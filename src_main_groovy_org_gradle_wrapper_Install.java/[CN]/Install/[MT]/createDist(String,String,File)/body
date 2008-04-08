@@ -1,15 +1,22 @@
 {
-  if (!alwaysInstall && new File(rootDir,distName).isDirectory()) {
+  File distDir=new File(rootDir,distName);
+  if (!alwaysDownload && !alwaysUnpack && distDir.isDirectory()) {
     return;
   }
-  if (rootDir.isDirectory()) {
-    System.out.println("Deleting directory " + rootDir.getAbsolutePath());
-    deleteDir(rootDir);
-  }
   File zipFile=new File(rootDir,distName + ".zip");
-  String downloadUrl=urlRoot + "/" + distName+ ".zip";
-  System.out.println("Downloading " + downloadUrl);
-  download.download(downloadUrl,zipFile);
+  if (alwaysDownload || !zipFile.exists()) {
+    if (rootDir.isDirectory()) {
+      System.out.println("Deleting directory " + rootDir.getAbsolutePath());
+      deleteDir(rootDir);
+    }
+    String downloadUrl=urlRoot + "/" + distName+ ".zip";
+    System.out.println("Downloading " + downloadUrl);
+    download.download(downloadUrl,zipFile);
+  }
+  if (distDir.isDirectory()) {
+    System.out.println("Deleting directory " + distDir.getAbsolutePath());
+    deleteDir(distDir);
+  }
   System.out.println("Unzipping " + zipFile.getAbsolutePath() + " to "+ rootDir.getAbsolutePath());
   unzip(zipFile,rootDir);
 }
