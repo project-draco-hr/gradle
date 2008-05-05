@@ -1,5 +1,6 @@
 {
   boolean modernCompilerFound=false;
+  List toolsMainInfo=new ArrayList();
   ClassLoader classLoader=ClassLoader.getSystemClassLoader();
   try {
     classLoader.loadClass("com.sun.tools.javac.Main");
@@ -28,5 +29,7 @@
   }
   Class mainClass=classLoader.loadClass("org.gradle.Main");
   Method mainMethod=mainClass.getMethod("main",new Class[]{String[].class});
-  mainMethod.invoke(null,new Object[]{args});
+  List argList=new ArrayList(Arrays.asList(args));
+  argList.add(0,toolsMainInfo.get(0));
+  mainMethod.invoke(null,new Object[]{(String[])argList.toArray(new String[argList.size()])});
 }
