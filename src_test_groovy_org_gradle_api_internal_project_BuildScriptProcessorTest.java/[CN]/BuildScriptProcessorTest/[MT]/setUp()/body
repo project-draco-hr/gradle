@@ -1,0 +1,23 @@
+{
+  context.setImposteriser(ClassImposteriser.INSTANCE);
+  testProjectDir=HelperUtil.makeNewTestDir("projectdir");
+  testBuildScriptFile=new File(testProjectDir,TEST_BUILD_FILE_NAME);
+  testProject=context.mock(Project.class);
+  importsReaderMock=context.mock(ImportsReader.class);
+  context.checking(new Expectations(){
+{
+      allowing(testProject).getRootDir();
+      will(returnValue(testProjectDir.getParentFile()));
+      allowing(testProject).getProjectDir();
+      will(returnValue(testProjectDir));
+      allowing(testProject).getBuildFileName();
+      will(returnValue(TEST_BUILD_FILE_NAME));
+      allowing(importsReaderMock).getImports(testProjectDir.getParentFile());
+      will(returnValue(TEST_IMPORTS));
+    }
+  }
+);
+  buildScriptProcessor=new BuildScriptProcessor(importsReaderMock,null,true);
+  buildScriptProcessor.scriptHandler=scriptHandlerMock=context.mock(ScriptHandler.class);
+  expectedScript=HelperUtil.createTestScript();
+}

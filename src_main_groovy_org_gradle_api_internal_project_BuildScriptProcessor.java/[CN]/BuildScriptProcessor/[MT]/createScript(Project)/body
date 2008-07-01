@@ -1,0 +1,31 @@
+{
+  File buildFile=buildFile(project);
+  String scriptTextForNonCachedExecution="";
+  if (GUtil.isTrue(inMemoryScriptText)) {
+    scriptTextForNonCachedExecution=inMemoryScriptText;
+  }
+ else   if (!useCache) {
+    if (buildFile.isFile()) {
+      try {
+        scriptTextForNonCachedExecution=FileUtils.readFileToString(buildFile);
+      }
+ catch (      IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+ else {
+      return returnEmptyScript();
+    }
+  }
+  if (GUtil.isTrue(scriptTextForNonCachedExecution)) {
+    return scriptHandler.createScript(project,buildScriptWithImports(project,scriptTextForNonCachedExecution));
+  }
+  if (!buildFile.isFile()) {
+    return returnEmptyScript();
+  }
+  Script cachedScript=scriptHandler.loadFromCache(project,buildFile.lastModified());
+  if (cachedScript != null) {
+    return cachedScript;
+  }
+  return scriptHandler.writeToCache(project,buildScriptWithImports(project));
+}

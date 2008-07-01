@@ -1,0 +1,51 @@
+{
+  logger.debug("Executing Task: " + path);
+  if (!enabled) {
+    logger.info("Skipping execution as task is disabled.");
+    executed=true;
+    return;
+  }
+  List trueSkips=new ArrayList();
+  List<String> allSkipProperties=new ArrayList<String>(skipProperties);
+  allSkipProperties.add(Task.AUTOSKIP_PROPERTY_PREFIX + name);
+  for (  String skipProperty : allSkipProperties) {
+    String propValue=System.getProperty(skipProperty);
+    if (propValue != null && !(propValue.toUpperCase().equals("FALSE"))) {
+      trueSkips.add(skipProperty);
+    }
+  }
+  if (trueSkips.size() > 0) {
+    logger.info("Skipping execution as following skip properties are true: " + trueSkips);
+  }
+ else {
+    for (    TaskAction action : actions) {
+      logger.debug("Executing Action:");
+      try {
+        action.execute(this);
+      }
+ catch (      StopExecutionException e) {
+        logger.info("Execution stopped by some action with message: $e.message");
+        break;
+      }
+catch (      StopActionException e) {
+        logger.debug("Action stopped by some action with message: $e.message");
+        continue;
+      }
+catch (      InvokerInvocationException e) {
+        if (e.getCause() != null) {
+          if (e.getCause() instanceof StopActionException) {
+            continue;
+          }
+ else           if (e.getCause() instanceof StopExecutionException) {
+            break;
+          }
+        }
+        throw e;
+      }
+catch (      Throwable t) {
+        throw new GradleScriptException(t,project.getBuildFileName());
+      }
+    }
+  }
+  executed=true;
+}

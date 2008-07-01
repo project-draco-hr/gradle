@@ -1,0 +1,24 @@
+{
+  final Project root=context.mock(Project.class);
+  final Task task=context.mock(Task.class);
+  final TreeMap result=new TreeMap();
+  final String taskName=":unknownchild:compile";
+  context.checking(new Expectations(){
+{
+      allowing(root).getTasksByName("compile",false);
+      will(returnValue(result));
+      allowing(root).getRootProject();
+      will(returnValue(root));
+      allowing(root).getPath();
+      will(returnValue("root"));
+      allowing(root).absolutePath(taskName);
+      will(returnValue(taskName));
+      allowing(root).project(":unknownchild");
+      will(throwException(new UnknownProjectException()));
+      allowing(dagMock).reset();
+    }
+  }
+);
+  result.put(root,new DefaultTask(root,"compile").dependsOn(new String[]{taskName}));
+  buildExecuter.execute("compile",false,root,root);
+}

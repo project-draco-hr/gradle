@@ -1,0 +1,21 @@
+{
+  if (name == null || name.length() == 0) {
+    throw new InvalidUserDataException("Name is not specified!");
+  }
+  final SortedMap<Project,Task> foundTargets=new TreeMap<Project,Task>();
+  ProjectAction action=new ProjectAction(){
+    public void execute(    Project project){
+      if (project.getTasks().get(name) != null) {
+        foundTargets.put(project,project.getTasks().get(name));
+      }
+    }
+  }
+;
+  if (recursive) {
+    allprojects(action);
+  }
+ else {
+    action.execute(this);
+  }
+  return foundTargets;
+}

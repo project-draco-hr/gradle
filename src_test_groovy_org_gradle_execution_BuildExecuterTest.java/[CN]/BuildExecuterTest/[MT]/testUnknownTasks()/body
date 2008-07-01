@@ -1,0 +1,14 @@
+{
+  DefaultTask rootCompile=new DefaultTask(root,"compile");
+  DefaultTask rootTest=new DefaultTask(root,"test");
+  DefaultTask childCompile=new DefaultTask(child,"compile");
+  DefaultTask childOtherTask=new DefaultTask(child,"other");
+  root.getTasks().put(rootCompile.getName(),rootCompile);
+  root.getTasks().put(rootTest.getName(),rootTest);
+  child.getTasks().put(childCompile.getName(),childCompile);
+  child.getTasks().put(childOtherTask.getName(),childOtherTask);
+  assertEquals(new ArrayList(),buildExecuter.unknownTasks(WrapUtil.toList("compile","test"),false,root));
+  assertEquals(WrapUtil.toList("test"),buildExecuter.unknownTasks(WrapUtil.toList("compile","test"),true,child));
+  assertEquals(new ArrayList(),buildExecuter.unknownTasks(WrapUtil.toList("compile","other"),true,root));
+  assertEquals(WrapUtil.toList("other"),buildExecuter.unknownTasks(WrapUtil.toList("compile","other"),false,root));
+}
