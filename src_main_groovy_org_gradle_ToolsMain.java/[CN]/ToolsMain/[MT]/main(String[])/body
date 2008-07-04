@@ -1,35 +1,16 @@
 {
-  boolean modernCompilerFound=false;
-  List toolsMainInfo=new ArrayList();
   ClassLoader classLoader=ClassLoader.getSystemClassLoader();
-  try {
-    classLoader.loadClass("com.sun.tools.javac.Main");
-    modernCompilerFound=true;
-    toolsMainInfo.add("Modern compiler found.");
-  }
- catch (  ClassNotFoundException e) {
-    toolsMainInfo.add("No modern compiler.");
-  }
-  ClassLoader _cl=classLoader;
-  while (_cl.getParent() != null) {
-    _cl=_cl.getParent();
-  }
-  File toolsJar=Locator.getToolsJar();
   List jars=new ArrayList();
-  File[] files=GradleUtil.getGradleClasspath();
+  File[] files=getGradleClasspath();
   for (int i=0; i < files.length; i++) {
-    jars.add(Locator.fileToURL(files[i]));
+    jars.add(files[i].toURL());
   }
-  if (!modernCompilerFound) {
-    jars.add(Locator.fileToURL(toolsJar));
-  }
-  ClassLoader contextClassLoader=new URLClassLoader((URL[])jars.toArray(new URL[jars.size()]),_cl);
-  contextClassLoader.loadClass("com.sun.tools.javac.Main");
+  ClassLoader contextClassLoader=new URLClassLoader((URL[])jars.toArray(new URL[jars.size()]),classLoader.getParent());
   classLoader=contextClassLoader;
   Thread.currentThread().setContextClassLoader(contextClassLoader);
   Class mainClass=classLoader.loadClass("org.gradle.Main");
   Method mainMethod=mainClass.getMethod("main",new Class[]{String[].class});
   List argList=new ArrayList(Arrays.asList(args));
-  argList.add(0,toolsMainInfo.get(0));
+  argList.add(0,"-B Adding jars to context loader: " + jars);
   mainMethod.invoke(null,new Object[]{(String[])argList.toArray(new String[argList.size()])});
 }

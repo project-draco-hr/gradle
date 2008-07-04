@@ -1,0 +1,13 @@
+{
+  if (customFactory != null) {
+    return customFactory.newInstanceFactory(startParameter);
+  }
+  return new BuildFactory(){
+    public Build newInstance(    String inMemoryScriptText,    File buildResolverDir){
+      DefaultDependencyManagerFactory dependencyManagerFactory=new DefaultDependencyManagerFactory();
+      ImportsReader importsReader=new ImportsReader(startParameter.getDefaultImportsFile());
+      return new Build(new RootFinder(),new SettingsProcessor(importsReader,new SettingsFactory(),dependencyManagerFactory,null,buildResolverDir),new ProjectsLoader(new ProjectFactory(dependencyManagerFactory,new BuildScriptProcessor(importsReader,inMemoryScriptText,startParameter.isUseCache()),new PluginRegistry(startParameter.getPluginPropertiesFile()),startParameter.getBuildFileName(),new ProjectRegistry())),new BuildConfigurer(new ProjectDependencies2TaskResolver(),new ProjectTasksPrettyPrinter()),new BuildExecuter(new Dag()));
+    }
+  }
+;
+}

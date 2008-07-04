@@ -1,0 +1,17 @@
+{
+  ClassLoader classLoader=settings.createClassLoader();
+  boolean unknownTaskCheck=false;
+  for (  String taskName : startParameter.getTaskNames()) {
+    logger.info("++++ Starting build for primary task: " + taskName);
+    projectLoader.load(settings,classLoader,startParameter,startParameter.getProjectProperties(),getAllSystemProperties(),getAllEnvProperties());
+    buildConfigurer.process(projectLoader.getRootProject());
+    if (!unknownTaskCheck) {
+      List unknownTasks=buildExecuter.unknownTasks(startParameter.getTaskNames(),startParameter.isRecursive(),projectLoader.getCurrentProject());
+      if (GUtil.isTrue(unknownTasks)) {
+        throw new UnknownTaskException("Task(s) $unknownTasks are unknown!");
+      }
+      unknownTaskCheck=true;
+    }
+    buildExecuter.execute(taskName,startParameter.isRecursive(),projectLoader.getCurrentProject(),projectLoader.getRootProject());
+  }
+}

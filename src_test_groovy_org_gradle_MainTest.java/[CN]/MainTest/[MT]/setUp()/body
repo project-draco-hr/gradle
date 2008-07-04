@@ -1,0 +1,31 @@
+{
+  context.setImposteriser(ClassImposteriser.INSTANCE);
+  buildMock=context.mock(Build.class);
+  testBuildFactory=new Build.BuildFactory(){
+    public Build newInstance(    String inMemoryScriptText,    File buildResolverDir){
+      actualEmbeddedScript=inMemoryScriptText;
+      actualBuildResolverDir=buildResolverDir;
+      return buildMock;
+    }
+  }
+;
+  Build.injectCustomFactory(new Build.CustomFactory(){
+    public Build.BuildFactory newInstanceFactory(    StartParameter startParameter){
+      actualStartParameter=startParameter;
+      return testBuildFactory;
+    }
+  }
+);
+  expectedGradleUserHome=new File(Main.DEFAULT_GRADLE_USER_HOME);
+  expectedGradleImportsFile=new File(TEST_GRADLE_HOME,Main.IMPORTS_FILE_NAME);
+  expectedPluginPropertiesFile=new File(TEST_GRADLE_HOME,Main.DEFAULT_PLUGIN_PROPERTIES);
+  expectedTaskNames=WrapUtil.toList("clean","compile");
+  expectedProjectDir=new File("").getCanonicalFile();
+  expectedProjectProperties=new HashMap();
+  expectedSystemProperties=new HashMap();
+  expectedBuildFileName=Project.DEFAULT_PROJECT_FILE;
+  expectedRecursive=true;
+  expectedUseCache=true;
+  expectedSearchUpwards=true;
+  expectedEmbeddedScript="somescript";
+}
