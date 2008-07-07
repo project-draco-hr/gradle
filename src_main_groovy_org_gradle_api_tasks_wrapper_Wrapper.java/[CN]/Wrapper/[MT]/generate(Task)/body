@@ -1,0 +1,14 @@
+{
+  if (scriptDestinationPath == null) {
+    throw new InvalidUserDataException("The scriptDestinationPath property must be specified!");
+  }
+  File jarFileDestination=new File(getProject().getProjectDir(),getJarPath() + "/" + Install.WRAPPER_JAR);
+  File jarFileSource=new File(System.getProperty("gradle.home") + "/lib",WRAPPER_JAR_BASE_NAME + "-" + new GradleVersion().getVersion()+ ".jar");
+  try {
+    FileUtils.copyFile(jarFileSource,jarFileDestination);
+  }
+ catch (  IOException e) {
+    throw new InvalidUserDataException(e);
+  }
+  wrapperScriptGenerator.generate(getGradleVersion(),getUrlRoot(),jarPath + "/" + Install.WRAPPER_JAR,distributionBase,distributionPath,new File(getProject().getProjectDir(),scriptDestinationPath),zipBase,zipPath);
+}

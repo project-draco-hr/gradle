@@ -1,0 +1,31 @@
+{
+  try {
+    String windowsWrapperScriptHead=IOUtils.toString(Wrapper.class.getResourceAsStream("windowsWrapperScriptHead.txt"));
+    String windowsWrapperScriptTail=IOUtils.toString(Wrapper.class.getResourceAsStream("windowsWrapperScriptTail.txt"));
+    String unixWrapperScriptHead=IOUtils.toString(Wrapper.class.getResourceAsStream("unixWrapperScriptHead.txt"));
+    String unixWrapperScriptTail=IOUtils.toString(Wrapper.class.getResourceAsStream("unixWrapperScriptTail.txt"));
+    String wrapperJarUnix=CURRENT_DIR_UNIX + "/" + FilenameUtils.separatorsToUnix(jarPath);
+    String wrapperJarWindows=CURRENT_DIR_WINDOWS + "\\" + FilenameUtils.separatorsToWindows(jarPath);
+    String distributionHomeUnix=getDistributionHomeUnix(distributionBase,distributionPath);
+    String distributionHomeWindows=getDistributionHomeWindows(distributionBase,distributionPath);
+    String gradleHomeUnix=distributionHomeUnix + "/gradle-" + gradleVersion;
+    String gradleHomeWindows=distributionHomeWindows + "\\gradle-" + gradleVersion;
+    String gradleWindowsPath=gradleHomeWindows + "\\bin";
+    String fillingUnix="" + UNIX_NL + "STARTER_MAIN_CLASS="+ InstallMain.class.getName()+ UNIX_NL+ "CLASSPATH="+ wrapperJarUnix+ UNIX_NL+ "URL_ROOT="+ downloadUrlRoot+ UNIX_NL+ "DIST_PATH="+ distributionHomeUnix+ UNIX_NL+ "DIST_NAME=gradle-"+ gradleVersion+ "-bin"+ UNIX_NL+ "ZIP_STORE="+ getDistributionHomeUnix(zipStoreBase,zipStorePath)+ UNIX_NL+ "GRADLE_HOME="+ gradleHomeUnix+ UNIX_NL+ "GRADLE="+ gradleHomeUnix+ "/bin/gradle"+ UNIX_NL;
+    String fillingWindows="" + WINDOWS_NL + "set STARTER_MAIN_CLASS="+ InstallMain.class.getName()+ WINDOWS_NL+ "set CLASSPATH="+ wrapperJarWindows+ WINDOWS_NL+ "set URL_ROOT="+ downloadUrlRoot+ WINDOWS_NL+ "set DIST_PATH="+ distributionHomeWindows+ WINDOWS_NL+ "set DIST_NAME=gradle-"+ gradleVersion+ "-bin"+ WINDOWS_NL+ "set ZIP_STORE="+ getDistributionHomeWindows(zipStoreBase,zipStorePath)+ WINDOWS_NL+ "set GRADLE_HOME="+ gradleHomeWindows+ WINDOWS_NL+ "set Path="+ gradleWindowsPath+ ";%Path%"+ WINDOWS_NL;
+    String unixScript=unixWrapperScriptHead + fillingUnix + unixWrapperScriptTail;
+    String windowsScript=windowsWrapperScriptHead + fillingWindows + windowsWrapperScriptTail;
+    File unixScriptFile=new File(scriptDestinationDir,"gradlew");
+    FileUtils.writeStringToFile(unixScriptFile,unixScript);
+    Chmod chmod=new Chmod();
+    chmod.setProject(AntUtil.createProject());
+    chmod.setFile(unixScriptFile);
+    chmod.setPerm("ugo+rx");
+    chmod.execute();
+    FileUtils.writeStringToFile(unixScriptFile,unixScript);
+    FileUtils.writeStringToFile(new File(scriptDestinationDir,"gradlew.bat"),windowsScript);
+  }
+ catch (  IOException e) {
+    throw new InvalidUserDataException(e);
+  }
+}
