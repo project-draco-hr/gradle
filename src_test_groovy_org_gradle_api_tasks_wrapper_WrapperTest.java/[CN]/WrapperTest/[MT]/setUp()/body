@@ -1,0 +1,29 @@
+{
+  super.setUp();
+  context.setImposteriser(ClassImposteriser.INSTANCE);
+  wrapper=new Wrapper(getProject(),AbstractTaskTest.TEST_TASK_NAME);
+  wrapperScriptGeneratorMock=context.mock(WrapperScriptGenerator.class);
+  wrapper.setScriptDestinationPath("scriptDestination");
+  wrapper.setGradleVersion("1.0");
+  testDir=HelperUtil.makeNewTestDir();
+  File gradleHome=new File(testDir,"gradleHome");
+  File gradleHomeLib=new File(gradleHome,"lib");
+  gradleHomeLib.mkdirs();
+  originalGradleHome=System.getProperty(Main.GRADLE_HOME_PROPERTY_KEY);
+  System.setProperty(Main.GRADLE_HOME_PROPERTY_KEY,gradleHome.getAbsolutePath());
+  sourceWrapperJar=new File(gradleHomeLib.getAbsolutePath(),Wrapper.WRAPPER_JAR_BASE_NAME + "-" + TestConsts.VERSION+ ".jar");
+  try {
+    FileUtils.writeStringToFile(sourceWrapperJar,"sometext" + System.currentTimeMillis());
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+  targetWrapperJarPath="lib";
+  expectedTargetWrapperJar="lib/" + Install.WRAPPER_JAR;
+  distributionPath="somepath";
+  zipPath="myzippath";
+  wrapper.setJarPath(targetWrapperJarPath);
+  wrapper.setDistributionPath(distributionPath);
+  expectedDistributionBase=Wrapper.PathBase.PROJECT;
+  expectedZipBase=Wrapper.PathBase.PROJECT;
+}
