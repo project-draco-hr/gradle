@@ -1,0 +1,20 @@
+{
+  try {
+    String unixWrapperScriptHead=IOUtils.toString(Wrapper.class.getResourceAsStream("unixWrapperScriptHead.txt"));
+    String unixWrapperScriptTail=IOUtils.toString(Wrapper.class.getResourceAsStream("unixWrapperScriptTail.txt"));
+    String wrapperJarUnix=CURRENT_DIR_UNIX + "/" + jarPath;
+    String fillingUnix="" + UNIX_NL + "STARTER_MAIN_CLASS="+ WrapperMain.class.getName()+ UNIX_NL+ "CLASSPATH="+ wrapperJarUnix+ UNIX_NL;
+    String unixScript=unixWrapperScriptHead + fillingUnix + unixWrapperScriptTail;
+    File unixScriptFile=new File(scriptDestinationDir,"gradlew");
+    FileUtils.writeStringToFile(unixScriptFile,unixScript);
+    Chmod chmod=new Chmod();
+    chmod.setProject(AntUtil.createProject());
+    chmod.setFile(unixScriptFile);
+    chmod.setPerm("ugo+rx");
+    chmod.execute();
+    FileUtils.writeStringToFile(unixScriptFile,unixScript);
+  }
+ catch (  IOException e) {
+    throw new InvalidUserDataException(e);
+  }
+}
