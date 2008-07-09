@@ -1,0 +1,21 @@
+{
+  String gradleHome=pathAssembler.gradleHome(distBase,distPath,distName,distVersion);
+  File gradleHomeFile=new File(gradleHome);
+  if (!alwaysDownload && !alwaysUnpack && gradleHomeFile.isDirectory()) {
+    return gradleHome;
+  }
+  File localZipFile=new File(pathAssembler.distZip(zipBase,zipPath,distName,distVersion));
+  if (alwaysDownload || !localZipFile.exists()) {
+    String downloadUrl=urlRoot + "/" + distName+ ".zip";
+    System.out.println("Downloading " + downloadUrl);
+    download.download(downloadUrl,localZipFile);
+  }
+  if (gradleHomeFile.isDirectory()) {
+    System.out.println("Deleting directory " + gradleHomeFile.getAbsolutePath());
+    deleteDir(gradleHomeFile);
+  }
+  File distDest=gradleHomeFile.getParentFile();
+  System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to "+ distDest.getAbsolutePath());
+  unzip(localZipFile,distDest);
+  return gradleHome;
+}

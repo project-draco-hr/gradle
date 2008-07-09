@@ -4,11 +4,24 @@
   }
   File jarFileDestination=new File(getProject().getProjectDir(),getJarPath() + "/" + Install.WRAPPER_JAR);
   File jarFileSource=new File(System.getProperty("gradle.home") + "/lib",WRAPPER_JAR_BASE_NAME + "-" + new GradleVersion().getVersion()+ ".jar");
+  File tmpExplodedSourceJar=GradleUtil.makeNewDir(new File(getProject().getBuildDir(),"wrapperJar"));
+  CompressUtil.unzip(jarFileSource,tmpExplodedSourceJar);
+  File propFile=new File(tmpExplodedSourceJar.getAbsolutePath() + "/org/gradle/wrapper/wrapper.properties");
+  propFile.getParentFile().mkdirs();
+  Properties wrapperProperties=new Properties();
+  wrapperProperties.put(org.gradle.wrapper.Wrapper.URL_ROOT_PROPERTY,urlRoot);
+  wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_BASE_PROPERTY,distributionBase.toString());
+  wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_PATH_PROPERTY,distributionPath);
+  wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_NAME_PROPERTY,distributionName);
+  wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_VERSION_PROPERTY,gradleVersion);
+  wrapperProperties.put(org.gradle.wrapper.Wrapper.ZIP_STORE_BASE_PROPERTY,zipBase.toString());
+  wrapperProperties.put(org.gradle.wrapper.Wrapper.ZIP_STORE_PATH_PROPERTY,zipPath);
   try {
-    FileUtils.copyFile(jarFileSource,jarFileDestination);
+    wrapperProperties.store(new FileOutputStream(propFile),"");
   }
  catch (  IOException e) {
-    throw new InvalidUserDataException(e);
+    throw new UncheckedIOException(e);
   }
-  wrapperScriptGenerator.generate(getGradleVersion(),getUrlRoot(),jarPath + "/" + Install.WRAPPER_JAR,distributionBase,distributionPath,new File(getProject().getProjectDir(),scriptDestinationPath),zipBase,zipPath);
+  CompressUtil.zip(tmpExplodedSourceJar,jarFileDestination);
+  unixWrapperScriptGenerator.generate(jarPath,new File(getProject().getProjectDir(),scriptDestinationPath));
 }

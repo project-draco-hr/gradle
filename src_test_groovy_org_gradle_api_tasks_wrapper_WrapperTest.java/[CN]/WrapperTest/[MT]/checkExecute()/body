@@ -1,10 +1,13 @@
 {
   context.checking(new Expectations(){
 {
-      one(wrapperScriptGeneratorMock).generate(wrapper.getGradleVersion(),wrapper.getUrlRoot(),targetWrapperJarPath + "/" + Install.WRAPPER_JAR,expectedDistributionBase,distributionPath,new File(getProject().getProjectDir(),wrapper.getScriptDestinationPath()),expectedZipBase,zipPath);
+      one(unixWrapperScriptGeneratorMock).generate(targetWrapperJarPath + "/" + Install.WRAPPER_JAR,new File(getProject().getProjectDir(),wrapper.getScriptDestinationPath()));
     }
   }
 );
   wrapper.execute();
-  assertEquals(FileUtils.readFileToString(sourceWrapperJar),FileUtils.readFileToString(new File(getProject().getProjectDir(),expectedTargetWrapperJar)));
+  File unjarDir=HelperUtil.makeNewTestDir("unjar");
+  CompressUtil.unzip(new File(getProject().getProjectDir(),expectedTargetWrapperJar),unjarDir);
+  assertEquals(TEST_TEXT,FileUtils.readFileToString(new File(unjarDir,TEST_FILE_NAME)));
+  Properties properties=GUtil.createProperties(new File(unjarDir.getAbsolutePath() + "/org/gradle/wrapper/wrapper.properties"));
 }
