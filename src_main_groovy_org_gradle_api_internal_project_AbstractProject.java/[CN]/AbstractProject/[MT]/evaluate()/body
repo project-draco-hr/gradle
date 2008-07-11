@@ -6,7 +6,16 @@
   state=STATE_INITIALIZING;
   buildScript=buildScriptProcessor.createScript(this);
   Clock runClock=new Clock();
-  buildScript.run();
+  try {
+    buildScript.run();
+  }
+ catch (  GradleException e) {
+    ((GradleException)e).setScriptName(getBuildFileCacheName());
+    throw e;
+  }
+catch (  Throwable t) {
+    throw new GradleScriptException(t,getBuildFileCacheName());
+  }
   logger.info("Timing: Running the build script took " + clock.getTime());
   state=STATE_INITIALIZED;
   lateInitializeTasks(tasks);

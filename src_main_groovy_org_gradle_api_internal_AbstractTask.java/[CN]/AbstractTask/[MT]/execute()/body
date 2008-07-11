@@ -39,11 +39,21 @@ catch (      InvokerInvocationException e) {
  else           if (e.getCause() instanceof StopExecutionException) {
             break;
           }
+ else           if (e.getCause() instanceof GradleException) {
+            ((GradleException)e.getCause()).setScriptName(project.getBuildFileCacheName());
+          }
+ else {
+            throw new GradleScriptException(e.getCause(),project.getBuildFileCacheName());
+          }
         }
         throw e;
       }
+catch (      GradleException e) {
+        ((GradleException)e).setScriptName(project.getBuildFileCacheName());
+        throw e;
+      }
 catch (      Throwable t) {
-        throw new GradleScriptException(t,project.getBuildFileName());
+        throw new GradleScriptException(t,project.getBuildFileCacheName());
       }
     }
   }
