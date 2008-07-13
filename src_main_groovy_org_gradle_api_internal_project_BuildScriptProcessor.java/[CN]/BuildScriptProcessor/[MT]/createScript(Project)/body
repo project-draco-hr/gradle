@@ -4,7 +4,7 @@
   if (GUtil.isTrue(inMemoryScriptText)) {
     scriptTextForNonCachedExecution=inMemoryScriptText;
   }
- else   if (!useCache) {
+ else   if (cacheUsage == CacheUsage.OFF) {
     if (buildFile.isFile()) {
       try {
         scriptTextForNonCachedExecution=FileUtils.readFileToString(buildFile);
@@ -23,9 +23,11 @@
   if (!buildFile.isFile()) {
     return returnEmptyScript();
   }
-  Script cachedScript=scriptHandler.loadFromCache(project,buildFile.lastModified());
-  if (cachedScript != null) {
-    return cachedScript;
+  if (cacheUsage == CacheUsage.ON) {
+    Script cachedScript=scriptHandler.loadFromCache(project,buildFile.lastModified());
+    if (cachedScript != null) {
+      return cachedScript;
+    }
   }
   return scriptHandler.writeToCache(project,buildScriptWithImports(project));
 }
