@@ -1,2 +1,18 @@
 {
+  String expectedTaskName="test";
+  boolean expectedRecursive=true;
+  final Task rootCompile=new DefaultTask(root,"compile",dagMock);
+  final Task rootTest=new DefaultTask(root,"test",dagMock);
+  final Task childCompile=new DefaultTask(child,"compile",dagMock);
+  final Task childTest=new DefaultTask(child,"test",dagMock);
+  final Task childOther=new DefaultTask(child,"other",dagMock);
+  rootTest.setDependsOn(WrapUtil.toSet(rootCompile.getPath()));
+  childTest.setDependsOn(WrapUtil.toSet(childCompile.getName(),childOther));
+  root.getTasks().put(rootCompile.getName(),rootCompile);
+  root.getTasks().put(rootTest.getName(),rootTest);
+  child.getTasks().put(childCompile.getName(),childCompile);
+  child.getTasks().put(childTest.getName(),childTest);
+  child.getTasks().put(childOther.getName(),childOther);
+  setDagMockExpectations(WrapUtil.toSet(root,child),WrapUtil.toSet(rootCompile,rootTest,childCompile,childTest,childOther));
+  assertTrue(buildExecuter.execute(expectedTaskName,expectedRecursive,root,root,true));
 }

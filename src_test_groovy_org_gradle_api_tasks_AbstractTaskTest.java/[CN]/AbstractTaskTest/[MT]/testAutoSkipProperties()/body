@@ -1,0 +1,21 @@
+{
+  getTask().setActions(new ArrayList());
+  final List<Boolean> actionsCalled=WrapUtil.toList(false);
+  TaskAction action1=new TaskAction(){
+    public void execute(    Task task,    Dag tasksGraph){
+      actionsCalled.set(0,true);
+    }
+  }
+;
+  getTask().doFirst(action1);
+  System.setProperty("skip." + getTask().getName(),"true");
+  getTask().execute();
+  assertFalse(actionsCalled.get(0));
+  assertTrue(getTask().isExecuted());
+  System.setProperty("skip." + getTask().getName(),"false");
+  getTask().setExecuted(false);
+  getTask().execute();
+  assertTrue(actionsCalled.get(0));
+  assertTrue(getTask().isExecuted());
+  System.getProperties().remove("skip." + getTask().getName());
+}

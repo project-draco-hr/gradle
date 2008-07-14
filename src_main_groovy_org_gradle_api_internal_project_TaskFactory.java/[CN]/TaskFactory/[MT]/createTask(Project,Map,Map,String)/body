@@ -1,0 +1,29 @@
+{
+  if (!GUtil.isTrue(name)) {
+    throw new InvalidUserDataException("The name of the task must be set!");
+  }
+  checkTaskArgsAndCreateDefaultValues(args);
+  if (!Boolean.valueOf(args.get(Task.TASK_OVERWRITE).toString()) && tasksMap.get(name) != null) {
+    throw new InvalidUserDataException("A task with this name already exists!");
+  }
+  Task task=createTaskObject(project,(Class)args.get(Task.TASK_TYPE),name);
+  Object dependsOn=args.get(Task.TASK_DEPENDS_ON);
+  if (dependsOn instanceof String || (dependsOn instanceof GString)) {
+    String singleDependencyName=(String)dependsOn;
+    if (singleDependencyName == null) {
+      throw new InvalidUserDataException("A dependency name must not be empty!");
+    }
+    args.put(Task.TASK_DEPENDS_ON,Collections.singletonList(singleDependencyName));
+  }
+  Object[] dependsOnTasks;
+  Object dependsOnTasksArg=args.get(Task.TASK_DEPENDS_ON);
+  if (dependsOnTasksArg instanceof Collection) {
+    dependsOnTasks=(Object[])((Collection)dependsOnTasksArg).toArray(new Object[((Collection)dependsOnTasksArg).size()]);
+  }
+ else {
+    dependsOnTasks=new Object[]{dependsOnTasksArg};
+  }
+  logger.debug("Adding dependencies: " + Arrays.asList(dependsOnTasks));
+  task.dependsOn(dependsOnTasks);
+  return task;
+}
