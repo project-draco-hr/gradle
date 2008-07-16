@@ -1,0 +1,18 @@
+{
+  Clock clock=new Clock();
+  File cacheDir=new File(cacheDirParent,scriptName);
+  GFileUtils.deleteDirectory(cacheDir);
+  cacheDir.mkdirs();
+  CompilerConfiguration configuration=createBaseCompilerConfiguration(scriptBaseClass);
+  configuration.setTargetDirectory(cacheDir);
+  CompilationUnit unit=new CompilationUnit(configuration,null,new GroovyClassLoader(classLoader));
+  unit.addSource(scriptName,new ByteArrayInputStream(scriptText.getBytes()));
+  try {
+    unit.compile();
+  }
+ catch (  CompilationFailedException e) {
+    throw new GradleScriptException(e,scriptName);
+  }
+  logger.info("Timing: Writing script to cache at {} took: {}",cacheDir.getAbsolutePath(),clock.getTime());
+  return loadFromCache(0,classLoader,scriptName,cacheDirParent);
+}

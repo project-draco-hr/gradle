@@ -2,22 +2,17 @@
   context.setImposteriser(ClassImposteriser.INSTANCE);
   testProjectDir=HelperUtil.makeNewTestDir("projectdir");
   testBuildScriptFile=new File(testProjectDir,TEST_BUILD_FILE_NAME);
-  testProject=context.mock(Project.class);
+  testProject=context.mock(DefaultProject.class);
   importsReaderMock=context.mock(ImportsReader.class);
-  context.checking(new Expectations(){
-{
-      allowing(testProject).getRootDir();
-      will(returnValue(testProjectDir.getParentFile()));
-      allowing(testProject).getProjectDir();
-      will(returnValue(testProjectDir));
-      allowing(testProject).getBuildFileName();
-      will(returnValue(TEST_BUILD_FILE_NAME));
-      allowing(importsReaderMock).getImports(testProjectDir.getParentFile());
-      will(returnValue(TEST_IMPORTS));
+  scriptProcessorMock=context.mock(IScriptProcessor.class);
+  expectedClassloader=new URLClassLoader(new URL[0]);
+  projectScriptMetaDataMock=context.mock(IProjectScriptMetaData.class);
+  expectedScript=new ProjectScript(){
+    public Object run(){
+      return null;
     }
   }
-);
-  buildScriptProcessor=new BuildScriptProcessor(importsReaderMock,null,CacheUsage.ON);
-  buildScriptProcessor.scriptHandler=scriptHandlerMock=context.mock(ScriptHandler.class);
-  expectedScript=HelperUtil.createTestScript();
+;
+  expectedCacheUsage=CacheUsage.ON;
+  buildScriptProcessor=new BuildScriptProcessor(scriptProcessorMock,projectScriptMetaDataMock,importsReaderMock,null,expectedCacheUsage);
 }

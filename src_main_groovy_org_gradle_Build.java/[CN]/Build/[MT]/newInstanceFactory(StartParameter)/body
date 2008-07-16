@@ -6,8 +6,9 @@
     public Build newInstance(    String inMemoryScriptText,    File buildResolverDir){
       DefaultDependencyManagerFactory dependencyManagerFactory=new DefaultDependencyManagerFactory();
       ImportsReader importsReader=new ImportsReader(startParameter.getDefaultImportsFile());
+      DefaultScriptProcessor scriptProcessor=new DefaultScriptProcessor(new DefaultScriptHandler());
       Dag tasksGraph=new Dag();
-      return new Build(new RootFinder(),new SettingsProcessor(importsReader,new SettingsFactory(),dependencyManagerFactory,null,buildResolverDir),new ProjectsLoader(new ProjectFactory(new TaskFactory(tasksGraph),dependencyManagerFactory,new BuildScriptProcessor(importsReader,inMemoryScriptText,startParameter.getCacheUsage()),new PluginRegistry(startParameter.getPluginPropertiesFile()),startParameter.getBuildFileName(),new ProjectRegistry())),new BuildConfigurer(new ProjectDependencies2TaskResolver(),new ProjectTasksPrettyPrinter()),new BuildExecuter(tasksGraph));
+      return new Build(new RootFinder(),new SettingsProcessor(new DefaultSettingsScriptMetaData(),scriptProcessor,importsReader,new SettingsFactory(),dependencyManagerFactory,null,buildResolverDir),new ProjectsLoader(new ProjectFactory(new TaskFactory(tasksGraph),dependencyManagerFactory,new BuildScriptProcessor(scriptProcessor,new DefaultProjectScriptMetaData(),importsReader,inMemoryScriptText,startParameter.getCacheUsage()),new PluginRegistry(startParameter.getPluginPropertiesFile()),startParameter.getBuildFileName(),new ProjectRegistry())),new BuildConfigurer(new ProjectDependencies2TaskResolver(),new ProjectTasksPrettyPrinter()),new BuildExecuter(tasksGraph));
     }
   }
 ;

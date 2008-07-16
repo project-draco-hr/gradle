@@ -1,0 +1,20 @@
+{
+  buildScriptProcessor=new BuildScriptProcessor(scriptProcessorMock,projectScriptMetaDataMock,importsReaderMock,TEST_SCRIPT_TEXT,expectedCacheUsage);
+  context.checking(new Expectations(){
+{
+      allowing(testProject).getRootDir();
+      will(returnValue(testProjectDir.getParentFile()));
+      allowing(testProject).getBuildScriptClassLoader();
+      will(returnValue(expectedClassloader));
+      allowing(testProject).getBuildFileCacheName();
+      will(returnValue(TEST_BUILD_FILE_SCRIPT_NAME));
+      allowing(importsReaderMock).getImports(testProjectDir.getParentFile());
+      will(returnValue(TEST_IMPORTS));
+      one(scriptProcessorMock).createScriptFromText(TEST_SCRIPT_TEXT,TEST_IMPORTS,TEST_BUILD_FILE_SCRIPT_NAME,expectedClassloader,ProjectScript.class);
+      will(returnValue(expectedScript));
+      one(projectScriptMetaDataMock).applyMetaData((ProjectScript)expectedScript,testProject);
+    }
+  }
+);
+  buildScriptProcessor.createScript(testProject);
+}
