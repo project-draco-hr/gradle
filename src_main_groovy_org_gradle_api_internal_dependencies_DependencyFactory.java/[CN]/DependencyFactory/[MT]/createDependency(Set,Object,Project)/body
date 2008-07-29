@@ -1,0 +1,29 @@
+{
+  Dependency dependency=null;
+  if (userDependencyDescription instanceof Dependency) {
+    dependency=(Dependency)userDependencyDescription;
+    dependency.setProject(project);
+    dependency.setConfs(confs);
+  }
+ else {
+    for (    Class dependencyType : dependencyImplementations) {
+      try {
+        Constructor constructor=dependencyType.getDeclaredConstructor(Set.class,Object.class,Project.class);
+        dependency=(Dependency)constructor.newInstance(confs,userDependencyDescription,project);
+      }
+ catch (      InvocationTargetException e) {
+        if (e.getCause() != null && !(e.getCause() instanceof UnknownDependencyNotation)) {
+          throw new GradleException(e);
+        }
+      }
+catch (      Exception e) {
+        throw new GradleException("Dependency creation error.",e);
+      }
+    }
+  }
+  if (dependency == null) {
+    throw new InvalidUserDataException("The dependency notation: " + userDependencyDescription + " is invalid!");
+  }
+  dependency.initialize();
+  return dependency;
+}
