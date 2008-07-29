@@ -1,0 +1,35 @@
+{
+  if (ivySettings != null) {
+    return ivySettings;
+  }
+  IvySettings ivySettings=new IvySettings();
+  ivySettings.setDefaultCache(new File(gradleUserHome,DependencyManager.DEFAULT_CACHE_DIR_NAME));
+  ivySettings.setDefaultCacheIvyPattern(DependencyManager.DEFAULT_CACHE_IVY_PATTERN);
+  ivySettings.setDefaultCacheArtifactPattern(DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN);
+  ClientModuleResolver clientModuleResolver=new ClientModuleResolver();
+  clientModuleResolver.setModuleRegistry(clientModuleRegistry);
+  clientModuleResolver.setName(CLIENT_MODULE_NAME);
+  ChainResolver chainResolver=new ChainResolver();
+  chainResolver.setName(CHAIN_RESOLVER_NAME);
+  chainResolver.add(buildResolver);
+  for (  Object classpathResolver : classpathResolvers) {
+    chainResolver.add((DependencyResolver)classpathResolver);
+  }
+  chainResolver.setReturnFirst(true);
+  clientModuleResolver.setMainResolver(chainResolver);
+  ChainResolver clientModuleChain=new ChainResolver();
+  clientModuleChain.setName(CLIENT_MODULE_CHAIN_NAME);
+  clientModuleChain.setReturnFirst(true);
+  clientModuleChain.add(clientModuleResolver);
+  clientModuleChain.add(chainResolver);
+  List<DependencyResolver> allResolvers=new ArrayList(otherResolvers);
+  allResolvers.addAll(classpathResolvers);
+  allResolvers.addAll(WrapUtil.toList(buildResolver,clientModuleChain,clientModuleResolver,chainResolver));
+  for (  DependencyResolver dependencyResolver : allResolvers) {
+    ivySettings.addResolver(dependencyResolver);
+    ((DefaultRepositoryCacheManager)dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
+  }
+  ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
+  ConfigureUtil.configure(clientModuleChainConfigurer,chainResolver);
+  return ivySettings;
+}
