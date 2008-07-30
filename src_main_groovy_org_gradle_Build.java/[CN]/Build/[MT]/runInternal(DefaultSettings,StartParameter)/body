@@ -2,8 +2,8 @@
   ClassLoader classLoader=settings.createClassLoader();
   Boolean rebuildDag=true;
   List<String> taskNames=startParameter.getTaskNames();
-  int i=0;
-  do {
+  TaskSelector selector=taskNames.size() == 0 ? new ProjectDefaultsTaskSelector() : new NameResolvingTaskSelector(taskNames);
+  while (selector.hasNext()) {
     if (rebuildDag) {
       projectLoader.load(settings,classLoader,startParameter,startParameter.getProjectProperties(),getAllSystemProperties(),getAllEnvProperties());
       buildConfigurer.process(projectLoader.getRootProject());
@@ -11,22 +11,9 @@
  else {
       logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
     }
-    if (i == 0) {
-      if (taskNames.size() == 0) {
-        taskNames=projectLoader.getCurrentProject().getDefaultTasks();
-      }
-      if (!GUtil.isTrue(taskNames)) {
-        throw new InvalidUserDataException("No task names have been specified and the project has not defined any default tasks!");
-      }
-      List unknownTasks=buildExecuter.unknownTasks(taskNames,startParameter.isRecursive(),projectLoader.getCurrentProject());
-      if (GUtil.isTrue(unknownTasks)) {
-        throw new UnknownTaskException("Task(s) " + unknownTasks + " are unknown!");
-      }
-    }
-    String taskName=taskNames.get(i);
-    logger.info("++++ Starting build for primary task: " + taskName);
-    boolean lastTask=isLastElement(taskNames,i);
-    rebuildDag=buildExecuter.execute(taskName,startParameter.isRecursive(),projectLoader.getCurrentProject(),projectLoader.getRootProject(),!lastTask);
+    selector.select(projectLoader.getCurrentProject());
+    logger.info(String.format("++++ Starting build for %s.",selector.getDescription()));
+    logger.debug(String.format("Selected for execution: %s.",selector.getTasks()));
+    rebuildDag=buildExecuter.execute(selector.getTasks(),projectLoader.getRootProject(),selector.hasNext());
   }
- while (++i < taskNames.size());
 }

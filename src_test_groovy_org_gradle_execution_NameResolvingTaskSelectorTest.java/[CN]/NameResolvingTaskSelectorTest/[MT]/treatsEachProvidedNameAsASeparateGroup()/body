@@ -1,0 +1,22 @@
+{
+  final Project project1=context.mock(Project.class,"project1");
+  final Project project2=context.mock(Project.class,"project2");
+  final Task task1=context.mock(Task.class,"task1");
+  final Task task2=context.mock(Task.class,"task2");
+  context.checking(new Expectations(){
+{
+      allowing(project1).getTasksByName(with(aNonNull(String.class)),with(equalTo(true)));
+      will(returnValue(WrapUtil.toSet(task1)));
+      atLeast(1).of(project2).getTasksByName("name2",true);
+      will(returnValue(WrapUtil.toSet(task2)));
+    }
+  }
+);
+  TaskSelector selector=new NameResolvingTaskSelector(WrapUtil.toList("name1","name2"));
+  selector.select(project1);
+  assertThat(selector.getDescription(),equalTo("primary task 'name1'"));
+  assertThat(selector.getTasks(),equalTo((Iterable<Task>)WrapUtil.toSet(task1)));
+  selector.select(project2);
+  assertThat(selector.getDescription(),equalTo("primary task 'name2'"));
+  assertThat(selector.getTasks(),equalTo((Iterable<Task>)WrapUtil.toSet(task2)));
+}

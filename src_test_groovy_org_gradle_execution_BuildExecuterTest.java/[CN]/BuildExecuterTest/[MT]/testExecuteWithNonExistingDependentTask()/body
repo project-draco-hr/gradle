@@ -1,22 +1,21 @@
 {
   final Project root=context.mock(Project.class);
-  final Task task=context.mock(Task.class);
-  final Set result=new HashSet();
   final String taskName=":child:compile";
   context.checking(new Expectations(){
 {
-      allowing(root).getTasksByName("compile",false);
-      will(returnValue(result));
       allowing(root).getRootProject();
       will(returnValue(root));
       allowing(root).getPath();
       will(returnValue("root"));
       allowing(root).absolutePath(taskName);
       will(returnValue(taskName));
+      allowing(root).project(":child");
+      will(returnValue(child));
       allowing(dagMock).reset();
     }
   }
 );
-  result.add(new DefaultTask(root,"compile",dagMock).dependsOn(taskName));
-  buildExecuter.execute("compile",false,child,root,true);
+  Task compileTask=new DefaultTask(root,"compile",dagMock);
+  compileTask.dependsOn(taskName);
+  buildExecuter.execute(WrapUtil.toList(compileTask),root,true);
 }

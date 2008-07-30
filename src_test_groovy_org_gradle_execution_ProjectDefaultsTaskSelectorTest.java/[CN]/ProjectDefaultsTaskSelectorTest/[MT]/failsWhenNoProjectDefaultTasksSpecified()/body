@@ -1,0 +1,18 @@
+{
+  final Project project=context.mock(Project.class);
+  context.checking(new Expectations(){
+{
+      one(project).getDefaultTasks();
+      will(returnValue(WrapUtil.toList()));
+    }
+  }
+);
+  TaskSelector selector=new ProjectDefaultsTaskSelector();
+  try {
+    selector.select(project);
+    fail();
+  }
+ catch (  InvalidUserDataException e) {
+    assertThat(e.getMessage(),equalTo("No tasks have been specified and the project has not defined any default tasks."));
+  }
+}

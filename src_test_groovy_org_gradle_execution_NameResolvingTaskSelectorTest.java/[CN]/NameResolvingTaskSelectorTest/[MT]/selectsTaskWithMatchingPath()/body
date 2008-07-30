@@ -1,0 +1,23 @@
+{
+  final Project project=context.mock(Project.class,"child");
+  final Project rootProject=context.mock(Project.class,"root");
+  final Task task=context.mock(Task.class);
+  final SortedMap<Project,Set<Task>> tasks=WrapUtil.toSortedMap(project,WrapUtil.toSet(task));
+  context.checking(new Expectations(){
+{
+      atLeast(1).of(project).absolutePath("a:b");
+      will(returnValue(":a:b"));
+      atLeast(1).of(project).getRootProject();
+      will(returnValue(rootProject));
+      atLeast(1).of(rootProject).getAllTasks(true);
+      will(returnValue(tasks));
+      allowing(task).getPath();
+      will(returnValue(":a:b"));
+    }
+  }
+);
+  TaskSelector selector=new NameResolvingTaskSelector(WrapUtil.toList("a:b"));
+  selector.select(project);
+  assertThat(selector.getDescription(),equalTo("primary task 'a:b'"));
+  assertThat(selector.getTasks(),equalTo((Iterable<Task>)WrapUtil.toSet(task)));
+}

@@ -5,7 +5,6 @@
   StartParameter startParameter=new StartParameter();
   OptionParser parser=new OptionParser(){
 {
-      acceptsAll(WrapUtil.toList(NON_RECURSIVE,"non-recursive"),"Do not execute primary tasks of childprojects.");
       acceptsAll(WrapUtil.toList(NO_JVM_TERMINATION),"Don't trigger a System.exit(0) for normal termination. Used for Gradle's internal testing.");
       acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS,"no-imports"),"Disable usage of default imports for build script files.");
       acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS,"no-search-upward"),"Don't search in parent folders for a settings.gradle file.");
@@ -75,7 +74,6 @@
       startParameter.getProjectProperties().put(elements[0],elements.length == 1 ? "" : elements[1]);
     }
   }
-  startParameter.setRecursive(!options.has(NON_RECURSIVE));
   startParameter.setSearchUpwards(!options.has(NO_SEARCH_UPWARDS));
   if (options.has(PROJECT_DIR)) {
     startParameter.setCurrentDir(new File(options.argumentOf(PROJECT_DIR)));
@@ -106,8 +104,8 @@
     startParameter.setCacheUsage(CacheUsage.ON);
   }
   if (options.has(EMBEDDED_SCRIPT)) {
-    if (options.has(BUILD_FILE) || options.has(NON_RECURSIVE) || options.has(NO_SEARCH_UPWARDS)) {
-      logger.error(String.format("Error: The %s option can't be used together with the %s, %s or %s option.",EMBEDDED_SCRIPT,BUILD_FILE,NON_RECURSIVE,NO_SEARCH_UPWARDS));
+    if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS)) {
+      logger.error(String.format("Error: The %s option can't be used together with the %s or %s option.",EMBEDDED_SCRIPT,BUILD_FILE,NO_SEARCH_UPWARDS));
       exitWithError(options,new InvalidUserDataException());
       return;
     }
@@ -116,7 +114,6 @@
   logger.debug("gradle.home= " + gradleHome);
   logger.debug("Project dir: " + startParameter.getCurrentDir());
   logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());
-  logger.info("Recursive: " + startParameter.isRecursive());
   logger.info("Buildfilename: " + startParameter.getBuildFileName());
   logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
   logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
