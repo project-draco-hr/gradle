@@ -7,6 +7,7 @@
   settingsProcessorMock=context.mock(SettingsProcessor.class);
   projectsLoaderMock=context.mock(ProjectsLoader.class);
   buildConfigurerMock=context.mock(BuildConfigurer.class);
+  buildListenerMock=context.mock(BuildListener.class);
   build=new Build(rootFinderMock,settingsProcessorMock,projectsLoaderMock,buildConfigurerMock,buildExecuterMock);
   testGradleProperties=WrapUtil.toMap(Project.SYSTEM_PROP_PREFIX + ".prop1","value1");
   testGradleProperties.put("prop2","value2");
@@ -14,10 +15,11 @@
   expectedClassLoader=new URLClassLoader(new URL[0]);
   expectedProjectProperties=WrapUtil.toMap("prop","value");
   expectedSystemPropertiesArgs=WrapUtil.toMap("systemProp","systemPropValue");
-  expectedCurrentDir=new File("currentDir");
+  expectedRootDir=new File("rootDir");
+  expectedCurrentDir=new File(expectedRootDir,"currentDir");
   expectedGradleUserHomeDir=new File(HelperUtil.TMP_DIR_FOR_TEST,"gradleUserHomeDir");
-  expectedRootProject=HelperUtil.createRootProject(new File("dir1"));
-  expectedCurrentProject=HelperUtil.createRootProject(new File("dir2"));
+  expectedRootProject=HelperUtil.createRootProject(expectedRootDir);
+  expectedCurrentProject=HelperUtil.createRootProject(expectedCurrentDir);
   expectTasks("a","b");
   expectedStartParams=new StartParameter();
   expectedStartParams.setTaskNames(expectedTaskNames);
@@ -31,6 +33,8 @@
       allowing(rootFinderMock).find(with(any(StartParameter.class)));
       allowing(rootFinderMock).getGradleProperties();
       will(returnValue(testGradleProperties));
+      allowing(rootFinderMock).getRootDir();
+      will(returnValue(expectedRootDir));
       allowing(settingsMock).createClassLoader();
       will(returnValue(expectedClassLoader));
       allowing(projectsLoaderMock).getRootProject();
@@ -40,4 +44,5 @@
     }
   }
 );
+  build.addBuildListener(buildListenerMock);
 }

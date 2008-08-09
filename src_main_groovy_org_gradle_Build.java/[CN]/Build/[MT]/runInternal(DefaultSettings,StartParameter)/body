@@ -1,19 +1,26 @@
 {
-  ClassLoader classLoader=settings.createClassLoader();
-  Boolean rebuildDag=true;
-  List<String> taskNames=startParameter.getTaskNames();
-  TaskSelector selector=taskNames.size() == 0 ? new ProjectDefaultsTaskSelector() : new NameResolvingTaskSelector(taskNames);
-  while (selector.hasNext()) {
-    if (rebuildDag) {
-      projectLoader.load(settings,classLoader,startParameter,startParameter.getProjectProperties(),getAllSystemProperties(),getAllEnvProperties());
-      buildConfigurer.process(projectLoader.getRootProject());
-    }
+  try {
+    ClassLoader classLoader=settings.createClassLoader();
+    Boolean rebuildDag=true;
+    List<String> taskNames=startParameter.getTaskNames();
+    TaskSelector selector=taskNames.size() == 0 ? new ProjectDefaultsTaskSelector() : new NameResolvingTaskSelector(taskNames);
+    while (selector.hasNext()) {
+      if (rebuildDag) {
+        projectLoader.load(settings,classLoader,startParameter,startParameter.getProjectProperties(),getAllSystemProperties(),getAllEnvProperties());
+        buildConfigurer.process(projectLoader.getRootProject());
+      }
  else {
-      logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
+        logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
+      }
+      selector.select(projectLoader.getCurrentProject());
+      logger.info(String.format("++++ Starting build for %s.",selector.getDescription()));
+      logger.debug(String.format("Selected for execution: %s.",selector.getTasks()));
+      rebuildDag=buildExecuter.execute(selector.getTasks(),projectLoader.getRootProject());
     }
-    selector.select(projectLoader.getCurrentProject());
-    logger.info(String.format("++++ Starting build for %s.",selector.getDescription()));
-    logger.debug(String.format("Selected for execution: %s.",selector.getTasks()));
-    rebuildDag=buildExecuter.execute(selector.getTasks(),projectLoader.getRootProject());
+  }
+  finally {
+    for (    BuildListener buildListener : buildListeners) {
+      buildListener.buildFinished(rootFinder.getRootDir());
+    }
   }
 }
