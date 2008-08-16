@@ -2,10 +2,17 @@
   createBuildScriptFile();
   context.checking(new Expectations(){
 {
-      one(scriptHandlerMock).writeToCache(TEST_SCRIPT_TEXT + System.getProperty("line.separator") + TEST_SCRIPT_ATACHEMENT,testClassLoader,TEST_SCRIPT_NAME,testCacheDir,expectedScriptBaseClass);
+      allowing(source).getSourceFile();
+      will(returnValue(testScriptFile));
+      allowing(source).getText();
+      will(returnValue(TEST_SCRIPT_TEXT));
+      allowing(source).getClassName();
+      will(returnValue(TEST_SCRIPT_NAME));
+      one(scriptHandlerMock).writeToCache(TEST_SCRIPT_TEXT,testClassLoader,TEST_SCRIPT_NAME,testCacheDir,expectedScriptBaseClass);
       will(returnValue(expectedScript));
     }
   }
 );
-  assertSame(expectedScript,scriptProcessor.createScriptFromFile(testCacheDir,testScriptFile,TEST_SCRIPT_ATACHEMENT,CacheUsage.REBUILD,testClassLoader,expectedScriptBaseClass));
+  scriptProcessor=new DefaultScriptProcessor(scriptHandlerMock,CacheUsage.REBUILD);
+  assertSame(expectedScript,scriptProcessor.createScript(source,testClassLoader,expectedScriptBaseClass));
 }

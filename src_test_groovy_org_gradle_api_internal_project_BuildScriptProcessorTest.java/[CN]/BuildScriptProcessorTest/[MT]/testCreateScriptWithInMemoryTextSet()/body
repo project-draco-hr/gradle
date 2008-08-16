@@ -1,18 +1,16 @@
 {
-  buildScriptProcessor=new BuildScriptProcessor(scriptProcessorMock,projectScriptMetaDataMock,importsReaderMock,TEST_SCRIPT_TEXT,expectedCacheUsage);
+  buildScriptProcessor=new BuildScriptProcessor(scriptProcessorMock,projectScriptMetaDataMock,importsReaderMock,TEST_SCRIPT_TEXT);
+  final File rootDir=testProjectDir.getParentFile();
+  final ScriptSource expectedScriptSource=new StringScriptSource("embedded build script",TEST_SCRIPT_TEXT,rootDir,importsReaderMock);
   context.checking(new Expectations(){
 {
       allowing(testProject).getRootDir();
-      will(returnValue(testProjectDir.getParentFile()));
+      will(returnValue(rootDir));
       allowing(testProject).getBuildScriptClassLoader();
       will(returnValue(expectedClassloader));
-      allowing(testProject).getBuildFileCacheName();
-      will(returnValue(TEST_BUILD_FILE_SCRIPT_NAME));
-      allowing(importsReaderMock).getImports(testProjectDir.getParentFile());
-      will(returnValue(TEST_IMPORTS));
-      one(scriptProcessorMock).createScriptFromText(TEST_SCRIPT_TEXT,TEST_IMPORTS,TEST_BUILD_FILE_SCRIPT_NAME,expectedClassloader,ProjectScript.class);
+      one(scriptProcessorMock).createScript(with(reflectionEquals(expectedScriptSource)),with(same(expectedClassloader)),with(equal(ProjectScript.class)));
       will(returnValue(expectedScript));
-      one(projectScriptMetaDataMock).applyMetaData((ProjectScript)expectedScript,testProject);
+      one(projectScriptMetaDataMock).applyMetaData(expectedScript,testProject);
     }
   }
 );
