@@ -1,14 +1,14 @@
 {
   buildScriptProcessor=new BuildScriptProcessor(scriptProcessorMock,projectScriptMetaDataMock,importsReaderMock,TEST_SCRIPT_TEXT);
   final File rootDir=testProjectDir.getParentFile();
-  final ScriptSource expectedScriptSource=new StringScriptSource("embedded build script",TEST_SCRIPT_TEXT,rootDir,importsReaderMock);
+  final ScriptSource expectedScriptSource=new StringScriptSource("embedded build script",TEST_SCRIPT_TEXT);
   context.checking(new Expectations(){
 {
       allowing(testProject).getRootDir();
       will(returnValue(rootDir));
       allowing(testProject).getBuildScriptClassLoader();
       will(returnValue(expectedClassloader));
-      one(scriptProcessorMock).createScript(with(reflectionEquals(expectedScriptSource)),with(same(expectedClassloader)),with(equal(ProjectScript.class)));
+      one(scriptProcessorMock).createScript(with(new ScriptSourceMatcher(expectedScriptSource)),with(same(expectedClassloader)),with(equal(ProjectScript.class)));
       will(returnValue(expectedScript));
       one(projectScriptMetaDataMock).applyMetaData(expectedScript,testProject);
     }
