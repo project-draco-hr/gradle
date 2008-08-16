@@ -1,0 +1,20 @@
+{
+  URL resource=getClass().getResource("testProjects/" + name);
+  assertThat(resource,notNullValue());
+  assertThat(resource.getProtocol(),equalTo("file"));
+  File sourceFile;
+  try {
+    sourceFile=new File(resource.toURI());
+  }
+ catch (  URISyntaxException e) {
+    throw new RuntimeException(String.format("Could not locate test build file '%s'.",name));
+  }
+  File destFile=new File(testDir,sourceFile.getName()).getAbsoluteFile();
+  try {
+    FileUtils.copyFile(sourceFile,destFile);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(String.format("Could not copy test build file '%s' to '%s'",sourceFile,destFile),e);
+  }
+  return destFile;
+}
