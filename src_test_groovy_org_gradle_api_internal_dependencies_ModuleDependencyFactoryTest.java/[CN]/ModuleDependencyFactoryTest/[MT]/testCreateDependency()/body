@@ -1,0 +1,18 @@
+{
+  final IExcludeRuleContainerFactory excludeRuleContainerFactoryMock=context.mock(IExcludeRuleContainerFactory.class);
+  final ExcludeRuleContainer expectedExcludeRuleContainer=new DefaultExcludeRuleContainer();
+  context.checking(new Expectations(){
+{
+      one(excludeRuleContainerFactoryMock).createExcludeRuleContainer();
+      will(returnValue(expectedExcludeRuleContainer));
+    }
+  }
+);
+  Set<String> expectedConfs=WrapUtil.toSet("conf1");
+  String expectedDescription="junit:junit:4.0";
+  moduleDependencyFactory=new ModuleDependencyFactory(excludeRuleContainerFactoryMock);
+  ModuleDependency moduleDependency=(ModuleDependency)moduleDependencyFactory.createDependency(expectedConfs,expectedDescription,null);
+  assertEquals(expectedConfs,moduleDependency.getConfs());
+  assertEquals(expectedDescription,moduleDependency.getUserDependencyDescription());
+  assertSame(expectedExcludeRuleContainer,moduleDependency.getExcludeRules());
+}
