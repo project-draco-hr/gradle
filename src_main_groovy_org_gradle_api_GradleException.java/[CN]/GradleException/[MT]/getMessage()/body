@@ -1,0 +1,15 @@
+{
+  if (scriptName == null) {
+    return super.getMessage();
+  }
+  List<Integer> lineNumbers=new ArrayList<Integer>();
+  for (Throwable currentException=this; currentException != null; currentException=currentException.getCause()) {
+    for (    StackTraceElement element : currentException.getStackTrace()) {
+      if (element.getFileName() != null && element.getFileName().equals(scriptName) && element.getLineNumber() >= 0) {
+        lineNumbers.add(element.getLineNumber());
+      }
+    }
+  }
+  String lineInfo=!lineNumbers.isEmpty() ? String.format("in line(s): %s",GUtil.join(lineNumbers,", ")) : "No line info available from stacktrace.";
+  return String.format("Buildscript=%s %s%s%s",scriptName,lineInfo,System.getProperty("line.separator"),super.getMessage());
+}
