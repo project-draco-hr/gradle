@@ -1,0 +1,12 @@
+{
+  ProjectFactory projectFactory=new ProjectFactory(taskFactoryMock,dependencyManagerFactoryMock,buildScriptProcessor,pluginRegistry,"build.gradle",projectRegistry,null);
+  DefaultProject project=projectFactory.createProject("somename",parentProject,rootDir,buildScriptClassLoader);
+  assertEquals("somename",project.getName());
+  assertEquals("build.gradle",project.getBuildFileName());
+  assertSame(parentProject,project.getParent());
+  assertSame(rootDir,project.getRootDir());
+  assertSame(rootProject,project.getRootProject());
+  checkProjectResources(project);
+  ScriptSource expectedScriptSource=new FileScriptSource("build file",new File(rootDir,"parent/somename/build.gradle"));
+  assertThat(project.getBuildScriptSource(),ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource));
+}
