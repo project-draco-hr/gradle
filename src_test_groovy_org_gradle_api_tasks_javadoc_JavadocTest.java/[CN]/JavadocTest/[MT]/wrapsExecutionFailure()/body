@@ -1,4 +1,5 @@
 {
+  final BuildException failure=new BuildException();
   task.setDestinationDir(destDir);
   task.setSrcDirs(srcDirs);
   context.checking(new Expectations(){
@@ -8,8 +9,16 @@
       one(dependencyManager).resolveTask(AbstractTaskTest.TEST_TASK_NAME);
       will(returnValue(classpath));
       one(antJavadoc).execute(srcDirs,destDir,classpath,null,null,EMPTY_LIST,EMPTY_LIST,getProject().getAnt());
+      will(throwException(failure));
     }
   }
 );
-  task.execute();
+  try {
+    task.execute();
+    fail();
+  }
+ catch (  GradleException e) {
+    assertThat(e.getMessage(),endsWith("Javadoc generation failed."));
+    assertThat(e.getCause(),sameInstance((Throwable)failure));
+  }
 }
