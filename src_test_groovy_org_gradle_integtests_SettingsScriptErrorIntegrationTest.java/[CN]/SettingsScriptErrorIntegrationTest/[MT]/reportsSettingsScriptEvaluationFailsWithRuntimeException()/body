@@ -1,0 +1,9 @@
+{
+  File buildFile=new File(getTestDir(),"some build.gradle");
+  File settingsFile=new File(getTestDir(),"some settings.gradle");
+  FileUtils.writeStringToFile(settingsFile,"\n\nthrow new RuntimeException('<failure message>')");
+  GradleExecutionFailure failure=usingBuildFile(buildFile).usingSettingsFile(settingsFile).runTasksAndExpectFailure("do-stuff");
+  failure.assertHasFileName(String.format("Settings file '%s'",settingsFile));
+  failure.assertHasLineNumber(3);
+  failure.assertHasDescription("<failure message>");
+}
