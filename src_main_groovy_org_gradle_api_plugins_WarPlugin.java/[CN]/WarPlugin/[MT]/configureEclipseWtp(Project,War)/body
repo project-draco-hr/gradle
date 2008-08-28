@@ -1,0 +1,36 @@
+{
+  final EclipseWtp eclipseWtp=(EclipseWtp)project.createTask(GUtil.map("type",EclipseWtp.class),ECLIPSE_WTP);
+  eclipseWtp.conventionMapping(GUtil.map("warResourceMappings",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      Map resourceMappings=WrapUtil.toMap("/WEB-INF/classes",GUtil.addLists(java(convention).getSrcDirs(),java(convention).getResourceDirs()));
+      resourceMappings.put("/",WrapUtil.toList(java(convention).getWebAppDir()));
+      return resourceMappings;
+    }
+  }
+,"outputDirectory",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      return java(convention).getClassesDir();
+    }
+  }
+,"deployName",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      return project.getName();
+    }
+  }
+,"warLibs",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      List warLibs=war.dependencies(eclipseWtp.isFailForMissingDependencies(),false);
+      if (war.getAdditionalLibFileSets() != null) {
+        warLibs.addAll(war.getAdditionalLibFileSets());
+      }
+      return warLibs;
+    }
+  }
+,"projectDependencies",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      return task.getProject().getDependencies().getDependencies(Filter.PROJECTS_ONLY);
+    }
+  }
+));
+  return eclipseWtp;
+}

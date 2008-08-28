@@ -1,0 +1,35 @@
+{
+  EclipseClasspath eclipseClasspath=(EclipseClasspath)project.createTask(GUtil.map("type",EclipseClasspath.class),ECLIPSE_CP);
+  eclipseClasspath.conventionMapping(GUtil.map("srcDirs",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      return GUtil.addLists(java(convention).getSrcDirs(),java(convention).getResourceDirs());
+    }
+  }
+,"testSrcDirs",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      return GUtil.addLists(java(convention).getTestSrcDirs(),java(convention).getTestResourceDirs());
+    }
+  }
+,"outputDirectory",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      return java(convention).getClassesDir();
+    }
+  }
+,"testOutputDirectory",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      return java(convention).getClassesDir();
+    }
+  }
+,"classpathLibs",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      return task.getProject().getDependencies().resolve(TEST_RUNTIME,((EclipseClasspath)task).getFailForMissingDependencies(),false);
+    }
+  }
+,"projectDependencies",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      return task.getProject().getDependencies().getDependencies(Filter.PROJECTS_ONLY);
+    }
+  }
+));
+  return eclipseClasspath;
+}
