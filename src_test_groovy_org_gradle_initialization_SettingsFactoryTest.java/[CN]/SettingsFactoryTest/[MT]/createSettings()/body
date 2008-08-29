@@ -1,0 +1,21 @@
+{
+  final DependencyManagerFactory dependencyManagerFactoryMock=context.mock(DependencyManagerFactory.class);
+  final DependencyManager dependencyManagerMock=context.mock(DependencyManager.class);
+  context.checking(new Expectations(){
+{
+      allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)));
+      will(returnValue(dependencyManagerMock));
+      allowing(dependencyManagerMock).addConfiguration(with(any(String.class)));
+    }
+  }
+);
+  BuildSourceBuilder expectedBuildSourceBuilder=new BuildSourceBuilder(new EmbeddedBuildExecuter());
+  RootFinder expectedRootFinder=new RootFinder();
+  StartParameter expectedStartParameter=HelperUtil.dummyStartParameter();
+  SettingsFactory settingsFactory=new SettingsFactory();
+  DefaultSettings settings=(DefaultSettings)settingsFactory.createSettings(dependencyManagerFactoryMock,expectedBuildSourceBuilder,expectedRootFinder,expectedStartParameter);
+  assertSame(dependencyManagerMock,settings.getDependencyManager());
+  assertSame(expectedBuildSourceBuilder,settings.getBuildSourceBuilder());
+  assertSame(expectedRootFinder,settings.getRootFinder());
+  assertSame(expectedStartParameter,settings.getStartParameter());
+}
