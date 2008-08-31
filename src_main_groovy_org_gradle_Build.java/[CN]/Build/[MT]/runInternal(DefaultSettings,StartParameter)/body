@@ -1,4 +1,5 @@
 {
+  RuntimeException failure=null;
   try {
     ClassLoader classLoader=settings.createClassLoader();
     Boolean rebuildDag=true;
@@ -18,9 +19,13 @@
       rebuildDag=buildExecuter.execute(selector.getTasks(),projectLoader.getRootProject());
     }
   }
-  finally {
-    for (    BuildListener buildListener : buildListeners) {
-      buildListener.buildFinished(rootFinder.getRootDir());
-    }
+ catch (  RuntimeException t) {
+    failure=t;
+  }
+  for (  BuildListener buildListener : buildListeners) {
+    buildListener.buildFinished(new BuildResult(settings,failure));
+  }
+  if (failure != null) {
+    throw failure;
   }
 }

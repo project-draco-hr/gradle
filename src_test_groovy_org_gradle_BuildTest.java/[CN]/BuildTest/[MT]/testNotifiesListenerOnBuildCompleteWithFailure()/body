@@ -1,0 +1,19 @@
+{
+  final RuntimeException failure=new RuntimeException();
+  expectSettingsBuilt();
+  expectTasksRunWithFailure(failure);
+  context.checking(new Expectations(){
+{
+      one(buildListenerMock).buildFinished(with(result(settingsMock,sameInstance(failure))));
+    }
+  }
+);
+  build.addBuildListener(buildListenerMock);
+  try {
+    build.run(expectedStartParams);
+    fail();
+  }
+ catch (  RuntimeException e) {
+    assertThat(e,sameInstance(failure));
+  }
+}
