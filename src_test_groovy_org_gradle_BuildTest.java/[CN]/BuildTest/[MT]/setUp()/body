@@ -2,13 +2,14 @@
   context.setImposteriser(ClassImposteriser.INSTANCE);
   HelperUtil.deleteTestDir();
   settingsFinderMock=context.mock(ISettingsFinder.class);
+  gradlePropertiesLoaderMock=context.mock(IGradlePropertiesLoader.class);
   settingsMock=context.mock(DefaultSettings.class);
   buildExecuterMock=context.mock(BuildExecuter.class);
   settingsProcessorMock=context.mock(SettingsProcessor.class);
   projectsLoaderMock=context.mock(ProjectsLoader.class);
   buildConfigurerMock=context.mock(BuildConfigurer.class);
   buildListenerMock=context.mock(BuildListener.class);
-  build=new Build(settingsFinderMock,settingsProcessorMock,projectsLoaderMock,buildConfigurerMock,buildExecuterMock);
+  build=new Build(settingsFinderMock,gradlePropertiesLoaderMock,settingsProcessorMock,projectsLoaderMock,buildConfigurerMock,buildExecuterMock);
   testGradleProperties=WrapUtil.toMap(Project.SYSTEM_PROP_PREFIX + ".prop1","value1");
   testGradleProperties.put("prop2","value2");
   expectedSearchUpwards=false;
@@ -31,7 +32,8 @@
   context.checking(new Expectations(){
 {
       allowing(settingsFinderMock).find(with(any(StartParameter.class)));
-      allowing(settingsFinderMock).getGradleProperties();
+      allowing(gradlePropertiesLoaderMock).loadGradleProperties(with(equal(expectedRootDir)),with(any(StartParameter.class)));
+      allowing(gradlePropertiesLoaderMock).getGradleProperties();
       will(returnValue(testGradleProperties));
       allowing(settingsFinderMock).getRootDir();
       will(returnValue(expectedRootDir));
