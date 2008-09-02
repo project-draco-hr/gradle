@@ -1,0 +1,24 @@
+{
+  URLClassLoader classLoader=(URLClassLoader)Thread.currentThread().getContextClassLoader();
+  Object dependency=null;
+  StartParameter startParameter=StartParameter.newInstance(buildSrcStartParameter);
+  startParameter.setCurrentDir(new File(rootFinder.getRootDir(),DEFAULT_BUILD_SRC_DIR));
+  if (buildSourceBuilder != null) {
+    dependency=buildSourceBuilder.createDependency(dependencyManager.getBuildResolverDir(),startParameter);
+  }
+  logger.debug("Build src dependency: {}",dependency);
+  if (dependency != null) {
+    dependencyManager.dependencies(WrapUtil.toList(BUILD_CONFIGURATION),dependency);
+  }
+ else {
+    logger.info("No build sources found.");
+  }
+  List additionalClasspath=dependencyManager.resolve(BUILD_CONFIGURATION);
+  File toolsJar=GradleUtil.getToolsJar();
+  if (toolsJar != null) {
+    additionalClasspath.add(toolsJar);
+  }
+  logger.debug("Adding to classpath: {}",additionalClasspath);
+  ClasspathUtil.addUrl(classLoader,additionalClasspath);
+  return classLoader;
+}
