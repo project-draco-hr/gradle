@@ -1,0 +1,21 @@
+{
+  File searchDir=startParameter.getCurrentDir();
+  String settingsFileName=startParameter.getSettingsFileName();
+  while (searchDir != null && settingsFile == null) {
+    for (    File file : searchDir.listFiles()) {
+      if (file.getName().equals(settingsFileName)) {
+        settingsFile=file;
+      }
+    }
+    searchDir=startParameter.isSearchUpwards() ? searchDir.getParentFile() : null;
+  }
+  if (settingsFile == null) {
+    rootDir=startParameter.getCurrentDir();
+    settingsFile=new File(rootDir,settingsFileName);
+  }
+ else {
+    rootDir=settingsFile.getParentFile();
+  }
+  settingsScript=new FileScriptSource("settings file",settingsFile);
+  addGradleProperties(rootDir,startParameter);
+}
