@@ -1,8 +1,8 @@
 {
   Clock settingsProcessingClock=new Clock();
-  initDependencyManagerFactory(rootFinder);
-  DefaultSettings settings=settingsFactory.createSettings(dependencyManagerFactory,buildSourceBuilder,rootFinder,startParameter);
-  ScriptSource source=new ImportsScriptSource(rootFinder.getSettingsScript(),importsReader,rootFinder.getRootDir());
+  initDependencyManagerFactory(settingsFinder);
+  DefaultSettings settings=settingsFactory.createSettings(dependencyManagerFactory,buildSourceBuilder,settingsFinder,startParameter);
+  ScriptSource source=new ImportsScriptSource(settingsFinder.getSettingsScript(),importsReader,settingsFinder.getRootDir());
   try {
     Script settingsScript=scriptProcessor.createScript(source,Thread.currentThread().getContextClassLoader(),Script.class);
     settingsScriptMetaData.applyMetaData(settingsScript,settings);
@@ -18,8 +18,8 @@ catch (  Throwable t) {
     throw new GradleScriptException(t,source);
   }
   logger.debug("Timing: Processing settings took: {}",settingsProcessingClock.getTime());
-  if (startParameter.getCurrentDir() != rootFinder.getRootDir() && !isCurrentDirIncluded(settings)) {
-    return createBasicSettings(rootFinder,startParameter);
+  if (startParameter.getCurrentDir() != settingsFinder.getRootDir() && !isCurrentDirIncluded(settings)) {
+    return createBasicSettings(settingsFinder,startParameter);
   }
   return settings;
 }
