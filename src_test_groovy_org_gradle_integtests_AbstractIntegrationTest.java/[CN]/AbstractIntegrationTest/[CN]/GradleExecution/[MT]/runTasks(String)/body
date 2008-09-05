@@ -1,10 +1,15 @@
 {
   parameter.setTaskNames(Arrays.asList(names));
+  BuildResult result;
   if (script == null) {
-    Build.newInstanceFactory(parameter).newInstance(null,null).run(parameter);
+    result=Build.newInstanceFactory(parameter).newInstance(null,null).run(parameter);
   }
  else {
-    Build.newInstanceFactory(parameter).newInstance(script,null).runNonRecursivelyWithCurrentDirAsRoot(parameter);
+    result=Build.newInstanceFactory(parameter).newInstance(script,null).runNonRecursivelyWithCurrentDirAsRoot(parameter);
   }
+  if (result.getFailure() instanceof RuntimeException) {
+    throw (RuntimeException)result.getFailure();
+  }
+  assertThat(result.getFailure(),nullValue());
   return this;
 }

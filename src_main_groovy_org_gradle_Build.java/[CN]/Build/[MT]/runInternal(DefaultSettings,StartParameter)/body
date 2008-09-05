@@ -1,5 +1,5 @@
 {
-  RuntimeException failure=null;
+  Throwable failure=null;
   try {
     ClassLoader classLoader=settings.createClassLoader();
     Boolean rebuildDag=true;
@@ -19,13 +19,12 @@
       rebuildDag=buildExecuter.execute(selector.getTasks(),projectLoader.getRootProject());
     }
   }
- catch (  RuntimeException t) {
+ catch (  Throwable t) {
     failure=t;
   }
+  BuildResult buildResult=new BuildResult(settings,failure);
   for (  BuildListener buildListener : buildListeners) {
-    buildListener.buildFinished(new BuildResult(settings,failure));
+    buildListener.buildFinished(buildResult);
   }
-  if (failure != null) {
-    throw failure;
-  }
+  return buildResult;
 }

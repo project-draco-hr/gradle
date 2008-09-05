@@ -1,5 +1,6 @@
 {
   BuildResultLogger resultLogger=new BuildResultLogger(logger);
+  BuildExceptionReporter exceptionReporter=new BuildExceptionReporter(logger);
   String gradleHome=System.getProperty(GRADLE_HOME_PROPERTY_KEY);
   String embeddedBuildScript=null;
   StartParameter startParameter=new StartParameter();
@@ -40,6 +41,7 @@
     System.err.println("====");
     return;
   }
+  exceptionReporter.setOptions(options);
   if (options.has(HELP)) {
     parser.printHelpOn(System.out);
     exitWithSuccess(options);
@@ -126,12 +128,12 @@
   logger.info("Buildfilename: " + startParameter.getBuildFileName());
   logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
   logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
+  startParameter.setTaskNames(options.nonOptionArguments());
   try {
-    startParameter.setTaskNames(options.nonOptionArguments());
     Build.BuildFactory buildFactory=Build.newInstanceFactory(startParameter);
     Build build=buildFactory.newInstance(embeddedBuildScript,null);
     build.getSettingsProcessor().setBuildSourceBuilder(new BuildSourceBuilder(new EmbeddedBuildExecuter(buildFactory)));
-    build.addBuildListener(new BuildExceptionReporter(logger,options));
+    build.addBuildListener(exceptionReporter);
     build.addBuildListener(resultLogger);
     if (options.has(TASKS)) {
       if (embeddedBuildScript != null) {
@@ -151,6 +153,7 @@
     }
   }
  catch (  Throwable e) {
+    exceptionReporter.buildFinished(new BuildResult(null,e));
     exitWithError(options,e);
   }
   exitWithSuccess(options);
