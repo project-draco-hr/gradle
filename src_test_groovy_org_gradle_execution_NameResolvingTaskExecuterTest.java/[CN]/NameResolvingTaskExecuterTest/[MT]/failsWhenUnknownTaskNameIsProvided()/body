@@ -1,0 +1,20 @@
+{
+  final Task task=context.mock(Task.class);
+  context.checking(new Expectations(){
+{
+      atLeast(1).of(project).getTasksByName("name1",true);
+      will(returnValue(WrapUtil.toSet()));
+      atLeast(1).of(project).getTasksByName("name2",true);
+      will(returnValue(WrapUtil.toSet(task)));
+    }
+  }
+);
+  TaskExecuter executer=new NameResolvingTaskExecuter(WrapUtil.toList("name1","name2"));
+  try {
+    executer.select(project);
+    fail();
+  }
+ catch (  UnknownTaskException e) {
+    assertThat(e.getMessage(),equalTo("Task 'name1' not found in this project."));
+  }
+}
