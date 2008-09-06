@@ -1,0 +1,12 @@
+{
+  File rootDir=getTestDir();
+  File settingsFile=new File(rootDir,"settings.gradle");
+  writeStringToFile(settingsFile,"include('child')");
+  File buildFile=new File(getTestDir(),"build.gradle");
+  writeStringToFile(buildFile,"createTask('do-stuff')");
+  File childDir=new File(rootDir,"child");
+  File childBuildFile=new File(childDir,"build.gradle");
+  writeStringToFile(childBuildFile,"createTask('do-stuff')");
+  usingCurrentDirectory(rootDir).withSearchUpwards().runTasks(":do-stuff","child:do-stuff");
+  usingCurrentDirectory(childDir).withSearchUpwards().runTasks(":do-stuff","do-stuff");
+}

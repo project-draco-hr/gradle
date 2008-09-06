@@ -94,16 +94,13 @@
   if (options.hasArgument(BUILD_FILE)) {
     startParameter.setBuildFileName(options.argumentOf(BUILD_FILE));
   }
- else   if (options.has(EMBEDDED_SCRIPT)) {
-    startParameter.setBuildFileName(Project.EMBEDDED_SCRIPT_ID);
-  }
   if (options.hasArgument(SETTINGS_FILE)) {
     startParameter.setSettingsFileName(options.argumentOf(SETTINGS_FILE));
   }
   startParameter.setPluginPropertiesFile(options.hasArgument(PLUGIN_PROPERTIES_FILE) ? new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)) : new File(gradleHome + '/' + DEFAULT_PLUGIN_PROPERTIES));
   if (options.has(CACHE_OFF)) {
     if (options.has(REBUILD_CACHE)) {
-      logger.error(String.format("Error: The %s option can't be used together with the %s option.",CACHE_OFF,REBUILD_CACHE));
+      logger.error(String.format("Error: The -%s option can't be used together with the -%s option.",CACHE_OFF,REBUILD_CACHE));
       exitWithError(options,new InvalidUserDataException());
     }
     startParameter.setCacheUsage(CacheUsage.OFF);
@@ -115,12 +112,13 @@
     startParameter.setCacheUsage(CacheUsage.ON);
   }
   if (options.has(EMBEDDED_SCRIPT)) {
-    if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS)) {
-      logger.error(String.format("Error: The %s option can't be used together with the %s or %s option.",EMBEDDED_SCRIPT,BUILD_FILE,NO_SEARCH_UPWARDS));
+    if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS) || options.has(SETTINGS_FILE)) {
+      logger.error(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",EMBEDDED_SCRIPT,BUILD_FILE,SETTINGS_FILE,NO_SEARCH_UPWARDS));
       exitWithError(options,new InvalidUserDataException());
       return;
     }
     embeddedBuildScript=options.argumentOf(EMBEDDED_SCRIPT);
+    startParameter.useEmbeddedBuildFile(embeddedBuildScript);
   }
   logger.debug("gradle.home= " + gradleHome);
   logger.debug("Project dir: " + startParameter.getCurrentDir());
@@ -130,9 +128,7 @@
   logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
   startParameter.setTaskNames(options.nonOptionArguments());
   try {
-    Build.BuildFactory buildFactory=Build.newInstanceFactory(startParameter);
-    Build build=buildFactory.newInstance(embeddedBuildScript,null);
-    build.getSettingsProcessor().setBuildSourceBuilder(new BuildSourceBuilder(new EmbeddedBuildExecuter(buildFactory)));
+    Build build=Build.newInstance(startParameter);
     build.addBuildListener(exceptionReporter);
     build.addBuildListener(resultLogger);
     if (options.has(TASKS)) {
