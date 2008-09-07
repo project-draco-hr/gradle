@@ -124,16 +124,16 @@
   logger.info("Buildfilename: " + startParameter.getBuildFileName());
   logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
   logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
-  startParameter.setTaskNames(options.nonOptionArguments());
+  if (options.has(TASKS)) {
+    startParameter.setTaskExecuter(new BuiltInTaskExecuter());
+  }
+ else {
+    startParameter.setTaskNames(options.nonOptionArguments());
+  }
   try {
     Build build=Build.newInstance(startParameter);
     build.addBuildListener(exceptionReporter);
     build.addBuildListener(resultLogger);
-    if (options.has(TASKS)) {
-      System.out.println(build.taskList(startParameter));
-      exitWithSuccess(options);
-      return;
-    }
     build.run(startParameter);
   }
  catch (  Throwable e) {
