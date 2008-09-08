@@ -1,3 +1,17 @@
 {
-  this.projectPaths.addAll(Arrays.asList(projectPaths));
+  for (  String projectPath : projectPaths) {
+    String subPath="";
+    String[] pathElements=removeTrailingColon(projectPath).split(":");
+    DefaultProjectDescriptor parentProjectDescriptor=rootProjectDescriptor;
+    for (    String pathElement : pathElements) {
+      subPath=subPath + ":" + pathElement;
+      DefaultProjectDescriptor projectDescriptor=projectDescriptorRegistry.getProjectDescriptor(subPath);
+      if (projectDescriptor == null) {
+        parentProjectDescriptor=createProjectDescriptor(parentProjectDescriptor,pathElement,new File(parentProjectDescriptor.getDir(),pathElement));
+      }
+ else {
+        parentProjectDescriptor=projectDescriptor;
+      }
+    }
+  }
 }
