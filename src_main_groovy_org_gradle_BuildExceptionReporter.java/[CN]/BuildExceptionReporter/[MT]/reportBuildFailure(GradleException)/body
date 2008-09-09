@@ -1,0 +1,28 @@
+{
+  boolean stacktrace=options != null && (options.has(Main.STACKTRACE) || options.has(Main.DEBUG));
+  boolean fullStacktrace=options != null && (options.has(Main.FULL_STACKTRACE));
+  Formatter formatter=new Formatter();
+  formatter.format("%nBuild failed with an exception.%n");
+  if (!fullStacktrace) {
+    if (!stacktrace) {
+      formatter.format("Run with -%s or -%s option to get more details. ",Main.STACKTRACE,Main.DEBUG);
+    }
+    formatter.format("Run with -%s option to get the full (very verbose) stacktrace.%n",Main.FULL_STACKTRACE);
+  }
+  formatter.format("%n");
+  if (failure instanceof GradleScriptException) {
+    GradleScriptException scriptException=(GradleScriptException)failure;
+    formatter.format("%s%n%n",scriptException.getLocation());
+    formatter.format("%s%nCause: %s",scriptException.getOriginalMessage(),scriptException.getCause().getMessage());
+  }
+ else {
+    formatter.format("%s",failure.getMessage());
+  }
+  if (stacktrace || fullStacktrace) {
+    formatter.format("%n%nException is:");
+    logger.error(formatter.toString(),fullStacktrace ? failure : StackTraceUtils.deepSanitize(failure));
+  }
+ else {
+    logger.error(formatter.toString());
+  }
+}
