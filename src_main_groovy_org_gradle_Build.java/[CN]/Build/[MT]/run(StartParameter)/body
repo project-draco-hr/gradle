@@ -1,4 +1,16 @@
 {
-  DefaultSettings settings=init(startParameter);
-  return runInternal(settings,startParameter);
+  SettingsInternal settings=null;
+  Throwable failure=null;
+  try {
+    settings=init(startParameter);
+    runInternal(settings,startParameter);
+  }
+ catch (  Throwable t) {
+    failure=t;
+  }
+  BuildResult buildResult=new BuildResult(settings,failure);
+  for (  BuildListener buildListener : buildListeners) {
+    buildListener.buildFinished(buildResult);
+  }
+  return buildResult;
 }
