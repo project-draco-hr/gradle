@@ -1,17 +1,12 @@
 {
-  if (taskName.contains(Project.PATH_SEPARATOR)) {
-    taskName=project.absolutePath(taskName);
-    Map<Project,Set<Task>> allTasks=project.getRootProject().getAllTasks(true);
-    for (    Collection<Task> projectTasks : allTasks.values()) {
-      for (      Task task : projectTasks) {
-        if (task.getPath().equals(taskName)) {
-          return Collections.singleton(task);
-        }
-      }
-    }
-    return Collections.emptySet();
+  if (!taskName.contains(Project.PATH_SEPARATOR)) {
+    return project.getTasksByName(taskName,true);
+  }
+  Task task=project.findTask(taskName);
+  if (task != null) {
+    return Collections.singleton(task);
   }
  else {
-    return project.getTasksByName(taskName,true);
+    return Collections.emptySet();
   }
 }
