@@ -4,13 +4,14 @@
   taskFactoryMock=context.mock(ITaskFactory.class);
   buildScriptProcessor=context.mock(BuildScriptProcessor.class);
   pluginRegistry=context.mock(PluginRegistry.class);
-  rootProject=HelperUtil.createRootProject(rootDir);
-  parentProject=HelperUtil.createChildProject(rootProject,"parent");
-  projectRegistry=rootProject.getProjectRegistry();
+  taskGraph=context.mock(Dag.class);
+  projectRegistry=context.mock(IProjectRegistry.class);
   context.checking(new Expectations(){
 {
       allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)));
+      allowing(projectRegistry).addProject(with(any(Project.class)));
     }
   }
 );
+  projectFactory=new ProjectFactory(taskFactoryMock,dependencyManagerFactoryMock,buildScriptProcessor,pluginRegistry,"build.gradle",projectRegistry,taskGraph,null);
 }

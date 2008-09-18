@@ -1,0 +1,15 @@
+{
+  DefaultProject rootProject=projectFactory.createProject("root",null,rootDir,buildScriptClassLoader);
+  DefaultProject parentProject=projectFactory.createProject("parent",rootProject,rootDir,buildScriptClassLoader);
+  DefaultProject project=projectFactory.createProject("somename",parentProject,projectDir,buildScriptClassLoader);
+  assertEquals("somename",project.getName());
+  assertEquals("build.gradle",project.getBuildFileName());
+  assertSame(parentProject,project.getParent());
+  assertSame(rootDir,project.getRootDir());
+  assertSame(projectDir,project.getProjectDir());
+  assertSame(rootProject,project.getRootProject());
+  assertThat(project.getBuild(),sameInstance(rootProject.getBuild()));
+  checkProjectResources(project);
+  ScriptSource expectedScriptSource=new FileScriptSource("build file",new File(projectDir,"build.gradle").getAbsoluteFile());
+  assertThat(project.getBuildScriptSource(),reflectionEquals(expectedScriptSource));
+}
