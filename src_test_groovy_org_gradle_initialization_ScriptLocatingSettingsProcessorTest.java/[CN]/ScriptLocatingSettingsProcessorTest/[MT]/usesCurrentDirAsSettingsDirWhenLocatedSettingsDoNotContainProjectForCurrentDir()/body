@@ -1,0 +1,19 @@
+{
+  final StartParameter noSearchParameter=new StartParameter();
+  final SettingsInternal currentDirSettings=context.mock(SettingsInternal.class,"currentDirSettings");
+  context.checking(new Expectations(){
+{
+      one(delegate).process(finder,startParameter,properties);
+      will(returnValue(settings));
+      one(settings).findDescriptor(currentDir);
+      will(returnValue(null));
+      one(startParameter).newInstance();
+      will(returnValue(noSearchParameter));
+      one(finder).find(noSearchParameter);
+      one(delegate).process(finder,noSearchParameter,properties);
+      will(returnValue(currentDirSettings));
+    }
+  }
+);
+  assertThat(processor.process(finder,startParameter,properties),sameInstance(currentDirSettings));
+}
