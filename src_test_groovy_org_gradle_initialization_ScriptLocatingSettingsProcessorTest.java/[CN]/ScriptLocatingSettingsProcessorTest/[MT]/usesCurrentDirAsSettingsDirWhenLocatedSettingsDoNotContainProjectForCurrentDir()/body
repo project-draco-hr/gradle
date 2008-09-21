@@ -3,17 +3,24 @@
   final SettingsInternal currentDirSettings=context.mock(SettingsInternal.class,"currentDirSettings");
   context.checking(new Expectations(){
 {
-      one(delegate).process(finder,startParameter,properties);
+      one(finder).find(startParameter);
+      one(finder).getSettingsDir();
+      will(returnValue(settingsDir));
+      one(propertiesLoader).loadProperties(settingsDir,startParameter);
+      one(delegate).process(finder,startParameter,propertiesLoader);
       will(returnValue(settings));
       one(settings).findDescriptor(currentDir);
       will(returnValue(null));
       one(startParameter).newInstance();
       will(returnValue(noSearchParameter));
       one(finder).find(noSearchParameter);
-      one(delegate).process(finder,noSearchParameter,properties);
+      one(finder).getSettingsDir();
+      will(returnValue(currentDir));
+      one(propertiesLoader).loadProperties(currentDir,noSearchParameter);
+      one(delegate).process(finder,noSearchParameter,propertiesLoader);
       will(returnValue(currentDirSettings));
     }
   }
 );
-  assertThat(processor.process(finder,startParameter,properties),sameInstance(currentDirSettings));
+  assertThat(processor.process(finder,startParameter,propertiesLoader),sameInstance(currentDirSettings));
 }

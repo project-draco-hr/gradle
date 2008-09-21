@@ -1,12 +1,16 @@
 {
   context.checking(new Expectations(){
 {
-      one(delegate).process(finder,startParameter,properties);
+      one(finder).find(startParameter);
+      one(finder).getSettingsDir();
+      will(returnValue(settingsDir));
+      one(propertiesLoader).loadProperties(settingsDir,startParameter);
+      one(delegate).process(finder,startParameter,propertiesLoader);
       will(returnValue(settings));
       one(settings).findDescriptor(currentDir);
       will(returnValue(context.mock(ProjectDescriptor.class)));
     }
   }
 );
-  assertThat(processor.process(finder,startParameter,properties),sameInstance(settings));
+  assertThat(processor.process(finder,startParameter,propertiesLoader),sameInstance(settings));
 }
