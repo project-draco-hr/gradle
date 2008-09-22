@@ -1,9 +1,6 @@
 {
-  String normalLayout="%msg%n";
-  String debugLayout="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n";
   ch.qos.logback.classic.Logger rootLogger=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger("root");
   String loglevel=null;
-  String layout=null;
   int ivyLogLevel=Message.MSG_INFO;
   if (options.has(IVY_DEBUG) && options.has(IVY_QUIET)) {
     System.out.printf("Error: For the dependency output you must either set -%s or -%s. Not Both!",IVY_QUIET,IVY_DEBUG);
@@ -21,19 +18,16 @@
   }
  else   if (options.has(DEBUG)) {
     loglevel="DEBUG";
-    layout=debugLayout;
   }
  else   if (options.has(QUIET)) {
     loglevel="ERROR";
-    layout=normalLayout;
     if (!options.has(IVY_DEBUG)) {
       ivyLogLevel=Message.MSG_ERR;
     }
   }
  else {
     loglevel="INFO";
-    layout=normalLayout;
   }
-  Message.setDefaultLogger(new DefaultMessageLogger(ivyLogLevel));
+  Message.setDefaultLogger(new IvyLoggingAdaper());
   rootLogger.setLevel(Level.toLevel(loglevel));
 }
