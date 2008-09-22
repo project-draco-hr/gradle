@@ -1,0 +1,15 @@
+{
+  final RuntimeException failure=new RuntimeException();
+  expectSettingsBuilt();
+  expectTasksRunWithFailure(failure);
+  context.checking(new Expectations(){
+{
+      one(buildListenerMock).buildStarted(expectedStartParams);
+      one(buildListenerMock).buildFinished(with(result(settingsMock,sameInstance(failure))));
+    }
+  }
+);
+  gradle.addBuildListener(buildListenerMock);
+  BuildResult buildResult=gradle.run(expectedStartParams);
+  assertThat(buildResult.getFailure(),sameInstance((Throwable)failure));
+}
