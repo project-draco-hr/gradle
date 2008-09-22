@@ -7,6 +7,16 @@
  else     if (dependency instanceof TaskDependency) {
       result.addAll(((TaskDependency)dependency).getDependencies(task));
     }
+ else     if (dependency instanceof Closure) {
+      Closure closure=(Closure)dependency;
+      Object closureResult=closure.call(task);
+      if (closureResult instanceof Task) {
+        result.add((Task)closureResult);
+      }
+ else {
+        result.addAll((Collection<? extends Task>)closureResult);
+      }
+    }
  else {
       String path=dependency.toString();
       result.addAll(Collections.singleton(task.getProject().task(path)));
