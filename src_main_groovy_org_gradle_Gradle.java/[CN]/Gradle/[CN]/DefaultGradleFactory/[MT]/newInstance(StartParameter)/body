@@ -1,0 +1,13 @@
+{
+  DependencyManagerFactory dependencyManagerFactory=new DefaultDependencyManagerFactory();
+  ImportsReader importsReader=new ImportsReader(startParameter.getDefaultImportsFile());
+  IScriptProcessor scriptProcessor=new DefaultScriptProcessor(new DefaultScriptHandler(),startParameter.getCacheUsage());
+  Dag tasksGraph=new Dag();
+  File buildResolverDir=startParameter.getBuildResolverDir();
+  ISettingsFinder settingsFinder=startParameter.getSettingsScriptSource() == null ? new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy())) : new EmbeddedScriptSettingsFinder();
+  Gradle gradle=new Gradle(startParameter,settingsFinder,new DefaultGradlePropertiesLoader(),new ScriptLocatingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(new DefaultSettingsScriptMetaData(),scriptProcessor,importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry(),dependencyManagerFactory,new BuildSourceBuilder(new EmbeddedBuildExecuter(this))),dependencyManagerFactory,buildResolverDir)),new ProjectsLoader(new ProjectFactory(new TaskFactory(tasksGraph),dependencyManagerFactory,new BuildScriptProcessor(scriptProcessor,new DefaultProjectScriptMetaData(),importsReader),new PluginRegistry(startParameter.getPluginPropertiesFile()),startParameter,new DefaultProjectRegistry(),tasksGraph,startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver(),new ProjectTasksPrettyPrinter()),new BuildExecuter(tasksGraph));
+  if (buildResolverDir == null) {
+    gradle.addBuildListener(new BuildCleanupListener());
+  }
+  return gradle;
+}
