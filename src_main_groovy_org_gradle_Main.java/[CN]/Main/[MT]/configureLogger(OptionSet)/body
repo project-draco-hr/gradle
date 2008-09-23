@@ -1,33 +1,39 @@
 {
-  ch.qos.logback.classic.Logger rootLogger=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger("root");
-  String loglevel=null;
-  int ivyLogLevel=Message.MSG_INFO;
-  if (options.has(IVY_DEBUG) && options.has(IVY_QUIET)) {
-    System.out.printf("Error: For the dependency output you must either set -%s or -%s. Not Both!",IVY_QUIET,IVY_DEBUG);
-    exitWithError(options,new RuntimeException("Wrong Parameter"));
-  }
- else   if (options.has(IVY_QUIET)) {
-    ivyLogLevel=Message.MSG_ERR;
-  }
- else   if (options.has(IVY_DEBUG)) {
-    ivyLogLevel=Message.MSG_DEBUG;
-  }
-  if (options.has(DEBUG) && options.has(QUIET)) {
-    System.out.printf("Error: For the loglevel you must either set -%s or -%s. Not Both!",QUIET,DEBUG);
-    exitWithError(options,new RuntimeException("Wrong Parameter"));
-  }
- else   if (options.has(DEBUG)) {
-    loglevel="DEBUG";
-  }
- else   if (options.has(QUIET)) {
-    loglevel="ERROR";
-    if (!options.has(IVY_DEBUG)) {
-      ivyLogLevel=Message.MSG_ERR;
+  String debugLayout="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n";
+  String infoLayout="%msg%n";
+  LoggerContext lc=(LoggerContext)LoggerFactory.getILoggerFactory();
+  lc.shutdownAndReset();
+  ch.qos.logback.classic.Logger rootLogger=lc.getLogger(LoggerContext.ROOT_NAME);
+  ConsoleAppender errorConsoleAppender=new ConsoleAppender();
+  errorConsoleAppender.setContext(lc);
+  errorConsoleAppender.setTarget("System.err");
+  errorConsoleAppender.setLayout(createPatternLayout(lc,infoLayout));
+  errorConsoleAppender.addFilter(createLevelFilter(lc,Level.ERROR,FilterReply.ACCEPT,FilterReply.DENY));
+  Level level=Level.INFO;
+  if (!options.has(QUIET)) {
+    ConsoleAppender nonErrorConsoleAppender=new ConsoleAppender();
+    nonErrorConsoleAppender.setContext(lc);
+    nonErrorConsoleAppender.addFilter(createLevelFilter(lc,Level.ERROR,FilterReply.DENY,FilterReply.NEUTRAL));
+    if (options.has(DEBUG)) {
+      level=Level.DEBUG;
+      nonErrorConsoleAppender.setLayout(createPatternLayout(lc,debugLayout));
+      errorConsoleAppender.setLayout(createPatternLayout(lc,debugLayout));
+      nonErrorConsoleAppender.addFilter(createLevelFilter(lc,Level.DEBUG,FilterReply.ACCEPT,FilterReply.DENY));
     }
-  }
  else {
-    loglevel="INFO";
+      nonErrorConsoleAppender.setLayout(createPatternLayout(lc,infoLayout));
+      if (options.has(INFO)) {
+        nonErrorConsoleAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.DENY));
+      }
+ else {
+        nonErrorConsoleAppender.addFilter(new HighLevelFilter());
+      }
+    }
+    rootLogger.addAppender(nonErrorConsoleAppender);
+    nonErrorConsoleAppender.start();
   }
+  rootLogger.addAppender(errorConsoleAppender);
+  errorConsoleAppender.start();
   Message.setDefaultLogger(new IvyLoggingAdaper());
-  rootLogger.setLevel(Level.toLevel(loglevel));
+  rootLogger.setLevel(level);
 }
