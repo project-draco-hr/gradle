@@ -1,18 +1,21 @@
 {
+  if (!Task.class.isAssignableFrom(type)) {
+    throw new GradleException(String.format("Cannot create task of type '%s' as it does not implement the Task interface.",type.getSimpleName()));
+  }
+  Constructor constructor;
   try {
-    Constructor constructor=type.getDeclaredConstructor(Project.class,String.class,Dag.class);
-    return (Task)constructor.newInstance(project,name,tasksGraph);
+    constructor=type.getDeclaredConstructor(Project.class,String.class);
   }
  catch (  NoSuchMethodException e) {
-  }
-catch (  Exception e) {
-    throw new GradleException("Task creation error.",e);
+    throw new GradleException(String.format("Cannot create task of type '%s' as it does not have an appropriate public constructor.",type.getSimpleName()));
   }
   try {
-    Constructor constructor=type.getDeclaredConstructor(Project.class,String.class);
     return (Task)constructor.newInstance(project,name);
   }
- catch (  Exception e) {
-    throw new GradleException("Task creation error.",e);
+ catch (  InvocationTargetException e) {
+    throw new GradleException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e.getCause());
+  }
+catch (  Exception e) {
+    throw new GradleException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e);
   }
 }

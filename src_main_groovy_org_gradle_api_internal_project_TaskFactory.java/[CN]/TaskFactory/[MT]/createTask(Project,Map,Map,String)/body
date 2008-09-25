@@ -4,21 +4,10 @@
   }
   checkTaskArgsAndCreateDefaultValues(args);
   if (!Boolean.valueOf(args.get(Task.TASK_OVERWRITE).toString()) && tasksMap.get(name) != null) {
-    throw new InvalidUserDataException("A task with this name already exists!");
+    throw new InvalidUserDataException(String.format("Cannot create task with name '%s' as a task with that name already exists.",name));
   }
   Task task=createTaskObject(project,(Class)args.get(Task.TASK_TYPE),name);
-  Object dependsOn=args.get(Task.TASK_DEPENDS_ON);
-  if (dependsOn instanceof String || (dependsOn instanceof GString)) {
-    String singleDependencyName=(String)dependsOn;
-    if (singleDependencyName == null) {
-      throw new InvalidUserDataException("A dependency name must not be empty!");
-    }
-    args.put(Task.TASK_DEPENDS_ON,Collections.singletonList(singleDependencyName));
-  }
   Object dependsOnTasks=args.get(Task.TASK_DEPENDS_ON);
-  if (logger.isDebugEnabled()) {
-    logger.debug("Adding dependencies: " + dependsOnTasks);
-  }
   task.dependsOn(dependsOnTasks);
   return task;
 }
