@@ -4,15 +4,19 @@
   taskFactoryMock=context.mock(ITaskFactory.class);
   buildScriptProcessor=context.mock(BuildScriptProcessor.class);
   pluginRegistry=context.mock(PluginRegistry.class);
-  taskGraph=context.mock(Dag.class);
+  build=context.mock(BuildInternal.class);
   projectRegistry=context.mock(IProjectRegistry.class);
   antBuilderFactory=context.mock(AntBuilderFactory.class);
   context.checking(new Expectations(){
 {
       allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)));
       allowing(projectRegistry).addProject(with(any(Project.class)));
+      allowing(build).getProjectRegistry();
+      will(returnValue(projectRegistry));
+      allowing(build).getBuildScriptClassLoader();
+      will(returnValue(buildScriptClassLoader));
     }
   }
 );
-  projectFactory=new ProjectFactory(taskFactoryMock,dependencyManagerFactoryMock,buildScriptProcessor,pluginRegistry,new StartParameter(),projectRegistry,taskGraph,null,antBuilderFactory);
+  projectFactory=new ProjectFactory(taskFactoryMock,dependencyManagerFactoryMock,buildScriptProcessor,pluginRegistry,new StartParameter(),null,antBuilderFactory);
 }
