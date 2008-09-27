@@ -1,16 +1,17 @@
 {
   ClassLoader classLoader=settings.createClassLoader();
   Boolean rebuildDag=true;
+  BuildInternal build=null;
   TaskExecuter executer=startParameter.getTaskExecuter();
   while (executer.hasNext()) {
     if (rebuildDag) {
-      projectLoader.load(settings.getRootProjectDescriptor(),classLoader,startParameter,gradlePropertiesLoader.getGradleProperties());
-      buildConfigurer.process(projectLoader.getRootProject());
+      build=projectLoader.load(settings.getRootProjectDescriptor(),classLoader,startParameter,gradlePropertiesLoader.getGradleProperties());
+      buildConfigurer.process(build.getRootProject());
     }
  else {
       logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
     }
-    executer.select(projectLoader.getCurrentProject());
+    executer.select(build.getCurrentProject());
     logger.info(String.format("++++ Starting build for %s.",executer.getDescription()));
     executer.execute(buildExecuter);
     rebuildDag=executer.requiresProjectReload();
