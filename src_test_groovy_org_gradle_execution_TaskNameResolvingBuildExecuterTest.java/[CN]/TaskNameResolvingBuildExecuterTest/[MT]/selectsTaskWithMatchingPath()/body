@@ -1,0 +1,14 @@
+{
+  final Task task=context.mock(Task.class);
+  context.checking(new Expectations(){
+{
+      atLeast(1).of(project).findTask("a:b");
+      will(returnValue(task));
+    }
+  }
+);
+  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(WrapUtil.toList("a:b"));
+  executer.select(project);
+  assertThat(executer.getDescription(),equalTo("primary task 'a:b'"));
+  assertThat(executer.getTasks(),equalTo((Iterable<Task>)WrapUtil.toSet(task)));
+}

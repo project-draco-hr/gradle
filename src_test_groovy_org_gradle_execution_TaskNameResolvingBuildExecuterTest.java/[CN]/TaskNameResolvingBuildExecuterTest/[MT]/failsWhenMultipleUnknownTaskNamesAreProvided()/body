@@ -1,0 +1,19 @@
+{
+  context.checking(new Expectations(){
+{
+      atLeast(1).of(project).getTasksByName("name1",true);
+      will(returnValue(WrapUtil.toSet()));
+      atLeast(1).of(project).getTasksByName("name2",true);
+      will(returnValue(WrapUtil.toSet()));
+    }
+  }
+);
+  BuildExecuter executer=new TaskNameResolvingBuildExecuter(WrapUtil.toList("name1","name2"));
+  try {
+    executer.select(project);
+    fail();
+  }
+ catch (  UnknownTaskException e) {
+    assertThat(e.getMessage(),equalTo("Tasks ['name1', 'name2'] not found in this project."));
+  }
+}
