@@ -1,0 +1,16 @@
+{
+  final DefaultDependencyDescriptor dependencyDescriptor3=new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org3","name3","rev3"),false);
+  context.checking(new Expectations(){
+{
+      allowing(conf2ScopeMappingContainerMock).getScope(dependencyDescriptor3.getModuleConfigurations());
+      will(returnValue(null));
+      allowing(moduleDescriptorMock).getDependencies();
+      will(returnValue(WrapUtil.toArray(dependencyDescriptor1,dependencyDescriptor2,dependencyDescriptor3)));
+    }
+  }
+);
+  List<MavenDependency> actualMavenDependencies=dependenciesConverter.convert(moduleDescriptorMock,true,conf2ScopeMappingContainerMock);
+  assertEquals(2,actualMavenDependencies.size());
+  Assert.assertThat(actualMavenDependencies,Matchers.hasItem((MavenDependency)DefaultMavenDependency.newInstance("org1","name1","rev1",null,"compile")));
+  Assert.assertThat(actualMavenDependencies,Matchers.hasItem((MavenDependency)DefaultMavenDependency.newInstance("org2","name2","rev2",null,"test")));
+}

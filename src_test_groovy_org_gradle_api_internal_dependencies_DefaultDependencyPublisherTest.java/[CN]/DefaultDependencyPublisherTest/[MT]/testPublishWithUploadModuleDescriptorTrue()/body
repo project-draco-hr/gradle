@@ -1,13 +1,12 @@
 {
-  final PublishOptions publishOptions=new PublishOptions();
-  publishOptions.setConfs(expectedConfs.toArray(new String[expectedConfs.size()]));
-  publishOptions.setOverwrite(true);
-  publishOptions.setSrcIvyPattern(expectedIvyFile.getAbsolutePath());
   context.checking(new Expectations(){
 {
-      one(publishEngineMock).publish(with(equal(expectedModuleDescriptor)),with(equal(expectedSrcArtifactPatterns)),(DependencyResolver)with(equal(expectedResolverContainer.getResolverList().get(0))),with(reflectionEquals(publishOptions)));
+      one(publishEngineMock).publish(with(same(moduleDescriptorMock)),with(equal(expectedSrcArtifactPatterns)),with(equal(testIvyDescriptorResolver)),with(reflectionEquals(createPublishOptions(expectedIvyFile))));
+      one(publishEngineMock).publish(with(same(moduleDescriptorMock)),with(equal(expectedSrcArtifactPatterns)),with(equal(testPomDescriptorResolver)),with(reflectionEquals(createPublishOptions(expectedPomFile))));
+      one(moduleDescriptorMock).toIvyFile(expectedIvyFile);
+      one(mavenMockPomGenerator).toPomFile(moduleDescriptorMock,expectedPomFile);
     }
   }
 );
-  dependencyPublisher.publish(expectedConfs,expectedResolverContainer,expectedModuleDescriptor,true,expectedIvyFile,dependencyManager,publishEngineMock);
+  dependencyPublisher.publish(expectedConfs,resolverContainerMock,moduleDescriptorMock,true,expectedIvyFile.getParentFile(),dependencyManagerMock,publishEngineMock);
 }
