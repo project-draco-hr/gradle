@@ -1,0 +1,15 @@
+{
+  String status=DependencyManager.DEFAULT_STATUS;
+  if (dependencyManager.getProject().hasProperty("status")) {
+    status=(String)dependencyManager.getProject().property("status");
+  }
+  DefaultModuleDescriptor moduleDescriptor=new DefaultModuleDescriptor(dependencyManager.createModuleRevisionId(),status,null);
+  for (  Configuration configuration : dependencyManager.getConfigurations().values()) {
+    moduleDescriptor.addConfiguration(((DefaultConfiguration)configuration).getIvyConfiguration());
+  }
+  addDependencyDescriptors(moduleDescriptor,dependencyManager,includeProjectDependencies);
+  addArtifacts(moduleDescriptor,dependencyManager);
+  addExcludes(moduleDescriptor,dependencyManager);
+  moduleDescriptor.addConflictManager(new ModuleId(ExactPatternMatcher.ANY_EXPRESSION,ExactPatternMatcher.ANY_EXPRESSION),ExactPatternMatcher.INSTANCE,new LatestConflictManager(new LatestRevisionStrategy()));
+  return moduleDescriptor;
+}
