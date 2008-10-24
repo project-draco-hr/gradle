@@ -1,0 +1,16 @@
+{
+  final PomWriter writerMock=context.mock(PomWriter.class);
+  final MavenPom testPom=context.mock(MavenPom.class);
+  final String expectedPomText="somePomXml";
+  context.checking(new Expectations(){
+{
+      one(writerMock).convert(with(same(testPom)),with(any(PrintWriter.class)));
+      will(new WriteAction(expectedPomText));
+    }
+  }
+);
+  new DefaultPomFileWriter(writerMock).write(testPom,_dest);
+  assertTrue(_dest.exists());
+  String wrote=FileUtils.readFileToString(_dest);
+  assertEquals(expectedPomText + System.getProperty("line.separator"),wrote);
+}
