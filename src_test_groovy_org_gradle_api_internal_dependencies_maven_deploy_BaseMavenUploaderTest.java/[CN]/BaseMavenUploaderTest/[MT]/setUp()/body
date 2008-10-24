@@ -1,0 +1,24 @@
+{
+  artifactPomContainerMock=context.mock(ArtifactPomContainer.class);
+  defaultArtifactPomMock=context.mock(ArtifactPom.class);
+  mavenPomFactoryMock=context.mock(MavenPomFactory.class);
+  deployTaskFactoryMock=context.mock(DeployTaskFactory.class);
+  deployTaskMock=context.mock(DeployTaskWithVisibleContainerProperty.class);
+  plexusContainerMock=context.mock(PlexusContainer.class);
+  pomMock=context.mock(MavenPom.class);
+  testRepository=new RemoteRepository();
+  testSnapshotRepository=new RemoteRepository();
+  context.checking(new Expectations(){
+{
+      allowing(mavenPomFactoryMock).createMavenPom();
+      will(returnValue(pomMock));
+      one(artifactPomContainerMock).setDefaultArtifactPom(with(artifactPomMatcher(BaseMavenUploader.DEFAULT_ARTIFACT_POM_NAME,pomMock,PublishFilter.ALWAYS_ACCEPT)));
+    }
+  }
+);
+  mavenUploader=createMavenUploader();
+  mavenUploader.setDeployTaskFactory(deployTaskFactoryMock);
+  mavenUploader.setRepository(testRepository);
+  mavenUploader.setSnapshotRepository(testSnapshotRepository);
+  mavenUploader.addProtocolProviderJars(TEST_PROTOCOL_PROVIDER_JARS);
+}

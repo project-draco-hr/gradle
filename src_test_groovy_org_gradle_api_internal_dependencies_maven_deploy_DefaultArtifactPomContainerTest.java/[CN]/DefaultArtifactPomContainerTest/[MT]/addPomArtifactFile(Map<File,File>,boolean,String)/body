@@ -1,0 +1,27 @@
+{
+  for (  String name : names) {
+    final File pomFile=new File(TEST_POM_DIR,"pom-" + name + ".xml");
+    final File artifactFile;
+    if (addArtifactFile) {
+      artifactFile=new File(name);
+      deployableUnits.put(pomFile,artifactFile);
+    }
+ else {
+      artifactFile=null;
+    }
+    final ArtifactPom artifactPomMock=context.mock(ArtifactPom.class,name);
+    context.checking(new Expectations(){
+{
+        allowing(artifactPomMock).getArtifactFile();
+        will(returnValue(artifactFile));
+        allowing(artifactPomMock).getName();
+        will(returnValue(artifactFile == null ? pomFile.getName() : artifactFile.getName()));
+        if (artifactFile != null) {
+          one(artifactPomMock).toPomFile(pomFile);
+        }
+      }
+    }
+);
+    artifactPomContainer.addArtifactPom(artifactPomMock);
+  }
+}

@@ -1,0 +1,18 @@
+{
+  StringWriter stringWriter=new StringWriter();
+  final PrintWriter testPrintWriter=new PrintWriter(stringWriter);
+  final MavenPom pomMock=context.mock(MavenPom.class);
+  final String testLicenseText="licenseText";
+  context.checking(new Expectations(){
+{
+      allowing(pomMock).getLicenseHeader();
+      will(returnValue(testLicenseText));
+      one(headerWriterMock).convert(testLicenseText,testPrintWriter);
+      one(moduleIdWriterMock).convert(pomMock,testPrintWriter);
+      one(dependenciesWriterMock).convert(with(same(pomMock)),with(same(testPrintWriter)));
+    }
+  }
+);
+  pomModuleDescriptorWriter.convert(pomMock,testPrintWriter);
+  assertEquals(String.format("</" + PomModuleDescriptorWriter.ROOT_ELEMENT_NAME + ">%n"),stringWriter.toString());
+}
