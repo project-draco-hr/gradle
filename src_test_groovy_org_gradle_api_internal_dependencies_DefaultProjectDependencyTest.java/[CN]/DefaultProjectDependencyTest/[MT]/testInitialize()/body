@@ -1,0 +1,35 @@
+{
+  final Project projectMock=context.mock(Project.class,"project");
+  final Task task=context.mock(Task.class);
+  final Map<String,Set<String>> tasks4conf=new HashMap<String,Set<String>>();
+  final Project dependencyProjectMock=context.mock(ProjectInternal.class,"dependencyProject");
+  final DependencyManager dependencyProjectDependencyManager=context.mock(DependencyManager.class,"dependencyProjectDependencyManager");
+  final Task expectedArtifactProductionTask=context.mock(Task.class,"artifactProductionTask");
+  final String expectedArtifactProductionTaskName="artifactTask";
+  final String expectedArtifactProductionTaskPath="artifactTaskPath";
+  projectDependency=new DefaultProjectDependency(TEST_CONF_SET,dependencyProjectMock,projectMock);
+  projectDependency.setUserDependencyDescription(dependencyProjectMock);
+  tasks4conf.put(TEST_CONF,WrapUtil.toSet(TEST_CONF));
+  context.checking(new Expectations(){
+{
+      allowing(projectMock).getDependencies();
+      will(returnValue(mockDependencyManager));
+      allowing(mockDependencyManager).getTasks4Conf();
+      will(returnValue(tasks4conf));
+      allowing(projectMock).task(TEST_CONF);
+      will(returnValue(task));
+      one(task).dependsOn(expectedArtifactProductionTaskPath);
+      one((ProjectInternal)dependencyProjectMock).evaluate();
+      allowing(dependencyProjectMock).getDependencies();
+      will(returnValue(dependencyProjectDependencyManager));
+      allowing(dependencyProjectDependencyManager).getArtifactProductionTaskName();
+      will(returnValue(expectedArtifactProductionTaskName));
+      allowing(dependencyProjectMock).task(expectedArtifactProductionTaskName);
+      will(returnValue(expectedArtifactProductionTask));
+      allowing(expectedArtifactProductionTask).getPath();
+      will(returnValue(expectedArtifactProductionTaskPath));
+    }
+  }
+);
+  projectDependency.initialize();
+}
