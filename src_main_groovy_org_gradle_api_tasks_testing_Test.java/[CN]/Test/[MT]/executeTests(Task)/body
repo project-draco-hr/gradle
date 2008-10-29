@@ -1,0 +1,9 @@
+{
+  if (getTestClassesDir() == null)   throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!");
+  if (getTestResultsDir() == null)   throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!");
+  existingDirsFilter.checkExistenceAndThrowStopActionIfNot(getTestClassesDir());
+  antJunit.execute(getTestClassesDir(),getClasspath(),getTestResultsDir(),getTestReportDir(),includes,excludes,options,getProject().getAnt());
+  if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY))) {
+    throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
+  }
+}
