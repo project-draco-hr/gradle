@@ -1,13 +1,12 @@
 {
   List<MavenDependency> mavenDependencies=new ArrayList<MavenDependency>();
   for (  DependencyDescriptor dependencyDescriptor : pom.getDependencies()) {
-    String scope=pom.getScopeMappings().getScope(dependencyDescriptor.getModuleConfigurations());
-    if (scope == null && pom.getScopeMappings().isSkipUnmappedConfs()) {
-      continue;
+    if (dependencyDescriptor.getAllDependencyArtifacts().length == 0) {
+      addFromDependencyDescriptor(mavenDependencies,pom,dependencyDescriptor);
     }
-    MavenDependency mavenDependency=createMavenDependencyFromDependencyDescriptor(dependencyDescriptor,scope);
-    mavenDependencies.add(mavenDependency);
-    addExclude(dependencyDescriptor,mavenDependency);
+ else {
+      addFromArtifactDescriptor(mavenDependencies,pom,dependencyDescriptor);
+    }
   }
   return mavenDependencies;
 }
