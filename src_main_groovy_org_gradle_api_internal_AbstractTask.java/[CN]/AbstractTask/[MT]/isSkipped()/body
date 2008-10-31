@@ -1,0 +1,24 @@
+{
+  List trueSkips=new ArrayList();
+  if (enabled) {
+    List<String> allSkipProperties=new ArrayList<String>(skipProperties);
+    allSkipProperties.add(Task.AUTOSKIP_PROPERTY_PREFIX + name);
+    for (    String skipProperty : allSkipProperties) {
+      String propValue=System.getProperty(skipProperty);
+      if (propValue != null && !(propValue.toUpperCase().equals("FALSE"))) {
+        trueSkips.add(skipProperty);
+      }
+    }
+    if (trueSkips.size() > 0) {
+      logger.info("Skipping execution as following skip properties are true: " + trueSkips);
+    }
+  }
+ else {
+    logger.info("Skipping execution as task is disabled.");
+  }
+  if (!enabled || trueSkips.size() > 0) {
+    logger.info(Logging.LIFECYCLE,"Skipping  Task: {}",path);
+    return true;
+  }
+  return false;
+}

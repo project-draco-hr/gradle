@@ -1,27 +1,9 @@
 {
   logger.debug("Starting to execute Task: {}",path);
-  List trueSkips=new ArrayList();
-  if (enabled) {
-    List<String> allSkipProperties=new ArrayList<String>(skipProperties);
-    allSkipProperties.add(Task.AUTOSKIP_PROPERTY_PREFIX + name);
-    for (    String skipProperty : allSkipProperties) {
-      String propValue=System.getProperty(skipProperty);
-      if (propValue != null && !(propValue.toUpperCase().equals("FALSE"))) {
-        trueSkips.add(skipProperty);
-      }
-    }
-    if (trueSkips.size() > 0) {
-      logger.info("Skipping execution as following skip properties are true: " + trueSkips);
-    }
-  }
- else {
-    logger.info("Skipping execution as task is disabled.");
-  }
-  if (!enabled || trueSkips.size() > 0) {
-    logger.info(Logging.LIFECYCLE,"Skipping  Task: {}",path);
-  }
- else {
+  if (!isSkipped()) {
     logger.info(Logging.LIFECYCLE,"Executing Task: {}",path);
+    StandardOutputCapture finalCapture=standardOutputCapture;
+    finalCapture.start();
     for (    TaskAction action : actions) {
       logger.debug("Executing Action:");
       try {
@@ -36,9 +18,11 @@ catch (      StopActionException e) {
         continue;
       }
 catch (      Throwable t) {
+        finalCapture.stop();
         throw new GradleScriptException(String.format("Execution failed for task %s.",getPath()),t,project.getBuildScriptSource());
       }
     }
+    finalCapture.stop();
   }
   executed=true;
   logger.debug("Finished executing Task: {}",path);

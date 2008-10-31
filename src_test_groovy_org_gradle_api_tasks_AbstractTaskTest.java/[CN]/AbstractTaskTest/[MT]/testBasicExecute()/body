@@ -1,4 +1,18 @@
 {
+  final Sequence captureOutput=context.sequence("captureOutput");
+  final StandardOutputCapture standardOutputCaptureMock=context.mock(StandardOutputCapture.class);
+  getTask().setStandardOutputCapture(standardOutputCaptureMock);
+  context.checking(new Expectations(){
+{
+      one(standardOutputCaptureMock).start();
+      inSequence(captureOutput);
+      will(returnValue(standardOutputCaptureMock));
+      one(standardOutputCaptureMock).stop();
+      inSequence(captureOutput);
+      will(returnValue(standardOutputCaptureMock));
+    }
+  }
+);
   getTask().setActions(new ArrayList());
   assertFalse(getTask().isExecuted());
   final List<Boolean> actionsCalled=WrapUtil.toList(false,false);
@@ -20,4 +34,5 @@
   assertTrue(getTask().isExecuted());
   assertTrue(actionsCalled.get(0));
   assertTrue(actionsCalled.get(1));
+  context.assertIsSatisfied();
 }

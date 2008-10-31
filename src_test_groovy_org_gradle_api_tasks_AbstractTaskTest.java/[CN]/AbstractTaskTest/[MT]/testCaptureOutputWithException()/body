@@ -1,0 +1,30 @@
+{
+  final Sequence captureOutput=context.sequence("captureOutput");
+  final StandardOutputCapture standardOutputCaptureMock=context.mock(StandardOutputCapture.class);
+  getTask().setStandardOutputCapture(standardOutputCaptureMock);
+  context.checking(new Expectations(){
+{
+      one(standardOutputCaptureMock).start();
+      inSequence(captureOutput);
+      will(returnValue(standardOutputCaptureMock));
+      one(standardOutputCaptureMock).stop();
+      inSequence(captureOutput);
+      will(returnValue(standardOutputCaptureMock));
+    }
+  }
+);
+  getTask().setActions(new ArrayList());
+  TaskAction action1=new TaskAction(){
+    public void execute(    Task task){
+      throw new RuntimeException();
+    }
+  }
+;
+  getTask().doLast(action1);
+  try {
+    getTask().execute();
+  }
+ catch (  Exception e) {
+  }
+  context.assertIsSatisfied();
+}
