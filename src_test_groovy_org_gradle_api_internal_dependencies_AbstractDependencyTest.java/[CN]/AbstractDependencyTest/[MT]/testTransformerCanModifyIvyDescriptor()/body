@@ -1,0 +1,16 @@
+{
+  final DependencyDescriptor original=context.mock(DependencyDescriptor.class,"original");
+  final DependencyDescriptor transformed=context.mock(DependencyDescriptor.class,"transformed");
+  final Transformer<DependencyDescriptor> transformer=context.mock(Transformer.class);
+  context.checking(new Expectations(){
+{
+      one(transformer).transform(with(sameInstance(original)));
+      will(returnValue(transformed));
+    }
+  }
+);
+  expectDescriptorBuilt(original);
+  getDependency().addIvyTransformer(transformer);
+  DependencyDescriptor descriptor=getDependency().createDependencyDescriptor(parentModuleDescriptorMock);
+  assertThat(descriptor,sameInstance(transformed));
+}
