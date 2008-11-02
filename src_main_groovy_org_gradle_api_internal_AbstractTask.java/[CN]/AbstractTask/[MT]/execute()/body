@@ -1,9 +1,9 @@
 {
+  executing=true;
   logger.debug("Starting to execute Task: {}",path);
   if (!isSkipped()) {
     logger.info(Logging.LIFECYCLE,"Executing Task: {}",path);
-    StandardOutputCapture finalCapture=standardOutputCapture;
-    finalCapture.start();
+    standardOutputCapture.start();
     for (    TaskAction action : actions) {
       logger.debug("Executing Action:");
       try {
@@ -18,12 +18,14 @@ catch (      StopActionException e) {
         continue;
       }
 catch (      Throwable t) {
-        finalCapture.stop();
+        executing=false;
+        standardOutputCapture.stop();
         throw new GradleScriptException(String.format("Execution failed for task %s.",getPath()),t,project.getBuildScriptSource());
       }
     }
-    finalCapture.stop();
+    standardOutputCapture.stop();
   }
+  executing=false;
   executed=true;
   logger.debug("Finished executing Task: {}",path);
 }
