@@ -1,17 +1,16 @@
 {
   final DefaultDependencyDescriptor dependencyDescriptor4=new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org3","name3","rev3"),false);
+  List<DependencyDescriptor> testDependencies=WrapUtil.<DependencyDescriptor>toList(dependencyDescriptor1,dependencyDescriptor2,dependencyDescriptor3,dependencyDescriptor4);
   context.checking(new Expectations(){
 {
       allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs();
       will(returnValue(false));
       allowing(conf2ScopeMappingContainerMock).getScope(dependencyDescriptor4.getModuleConfigurations());
       will(returnValue(null));
-      allowing(pomMock).getDependencies();
-      will(returnValue(WrapUtil.toList(dependencyDescriptor1,dependencyDescriptor2,dependencyDescriptor3,dependencyDescriptor4)));
     }
   }
 );
-  List<MavenDependency> actualMavenDependencies=dependenciesConverter.convert(pomMock);
+  List<MavenDependency> actualMavenDependencies=dependenciesConverter.convert(pomMock,testDependencies);
   assertEquals(5,actualMavenDependencies.size());
   chechCommonMavenDependencies(actualMavenDependencies);
   Assert.assertThat(actualMavenDependencies,Matchers.hasItem((MavenDependency)DefaultMavenDependency.newInstance("org3","name3","rev3",null,null)));

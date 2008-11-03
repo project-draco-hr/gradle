@@ -1,4 +1,5 @@
 {
+  List<DependencyDescriptor> testDependencies=WrapUtil.<DependencyDescriptor>toList(dependencyDescriptor1);
   final DefaultExcludeRule testExcludeRule=HelperUtil.getTestExcludeRule();
   final DefaultMavenExclude mavenExclude=new DefaultMavenExclude("a","b");
   dependencyDescriptor1.addExcludeRule("compileConf",testExcludeRule);
@@ -8,12 +9,10 @@
       will(returnValue(false));
       allowing(excludeRuleConverterMock).convert(testExcludeRule);
       will(returnValue(mavenExclude));
-      allowing(pomMock).getDependencies();
-      will(returnValue(WrapUtil.toList(dependencyDescriptor1)));
     }
   }
 );
-  List<MavenDependency> actualMavenDependencies=dependenciesConverter.convert(pomMock);
+  List<MavenDependency> actualMavenDependencies=dependenciesConverter.convert(pomMock,testDependencies);
   assertEquals(1,actualMavenDependencies.size());
   Assert.assertThat(actualMavenDependencies,Matchers.hasItem((MavenDependency)DefaultMavenDependency.newInstance("org1","name1","rev1",null,"compile")));
   assertEquals(actualMavenDependencies.get(0).getMavenExcludes(),WrapUtil.toList(mavenExclude));

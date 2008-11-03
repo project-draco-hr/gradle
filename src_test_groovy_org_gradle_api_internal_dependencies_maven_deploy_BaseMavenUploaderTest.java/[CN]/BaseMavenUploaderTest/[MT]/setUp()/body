@@ -1,4 +1,6 @@
 {
+  testDependencies=new ArrayList<DependencyDescriptor>();
+  dependencyManagerMock=context.mock(DependencyManager.class);
   artifactPomContainerMock=context.mock(ArtifactPomContainer.class);
   defaultArtifactPomMock=context.mock(ArtifactPom.class);
   mavenPomFactoryMock=context.mock(MavenPomFactory.class);
@@ -8,11 +10,16 @@
   pomMock=context.mock(MavenPom.class);
   testRepository=new RemoteRepository();
   testSnapshotRepository=new RemoteRepository();
+  final ModuleDescriptor moduleDescriptorMock=context.mock(ModuleDescriptor.class);
   context.checking(new Expectations(){
 {
       allowing(mavenPomFactoryMock).createMavenPom();
       will(returnValue(pomMock));
       one(artifactPomContainerMock).setDefaultArtifactPom(with(artifactPomMatcher(BaseMavenUploader.DEFAULT_ARTIFACT_POM_NAME,pomMock,PublishFilter.ALWAYS_ACCEPT)));
+      allowing(dependencyManagerMock).createModuleDescriptor(true);
+      will(returnValue(moduleDescriptorMock));
+      allowing(moduleDescriptorMock).getDependencies();
+      will(returnValue(testDependencies.toArray(new DependencyDescriptor[testDependencies.size()])));
     }
   }
 );
