@@ -1,0 +1,27 @@
+{
+  final TaskExecutionListener listener=context.mock(TaskExecutionListener.class);
+  final RuntimeException failure=new RuntimeException();
+  final Task a=createTask("a");
+  a.doLast(new TaskAction(){
+    public void execute(    Task task){
+      throw failure;
+    }
+  }
+);
+  taskExecuter.addTaskExecutionListener(listener);
+  taskExecuter.addTasks(toList(a));
+  context.checking(new Expectations(){
+{
+      one(listener).beforeExecute(a);
+      one(listener).afterExecute(with(sameInstance(a)),with(notNullValue(GradleScriptException.class)));
+    }
+  }
+);
+  try {
+    taskExecuter.execute();
+    fail();
+  }
+ catch (  GradleScriptException e) {
+    assertThat(e.getCause(),sameInstance((Throwable)failure));
+  }
+}

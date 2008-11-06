@@ -1,14 +1,17 @@
 {
   Clock clock=new Clock();
-  for (  TaskExecutionGraphListener listener : listeners) {
+  for (  TaskExecutionGraphListener listener : graphListeners) {
     listener.graphPopulated(this);
   }
+  Set<Task> tasks=new LinkedHashSet<Task>();
+  accumulateTasks(new TreeSet<Task>(dag.getSources()),tasks);
   try {
-    boolean dagNeutral=execute(new TreeSet<Task>(dag.getSources()));
+    boolean dagNeutral=execute(tasks);
     logger.debug("Timing: Executing the DAG took " + clock.getTime());
     return !dagNeutral;
   }
   finally {
+    executed.addAll(tasks);
     dag.reset();
   }
 }

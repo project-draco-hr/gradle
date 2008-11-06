@@ -1,6 +1,6 @@
 {
   TestFile buildFile=testFile("build.gradle");
-  buildFile.writelns("import org.gradle.integtests.TaskExecutionIntegrationTest","createTask('a') { task ->","    assertTrue(build.taskGraph.hasTask(':a'))","    assertTrue(build.taskGraph.allTasks.contains(task))","}","build.taskGraph.whenReady { graph ->","    assertTrue(graph.hasTask(':a'))","    assertTrue(graph.allTasks.contains(task('a')))","    TaskExecutionIntegrationTest.graphChecked = true","}");
-  usingBuildFile(buildFile).runTasks("a").assertTasksExecuted(":a");
-  assertTrue(graphChecked);
+  buildFile.writelns("import org.gradle.integtests.TaskExecutionIntegrationTest","createTask('a', dependsOn: 'b') { task ->","    assertTrue(build.taskGraph.hasTask(':a'))","    assertTrue(build.taskGraph.hasTask(':b'))","    assertTrue(build.taskGraph.allTasks.contains(task))","    assertTrue(build.taskGraph.allTasks.contains(project.task('b')))","}","createTask('b')","build.taskGraph.whenReady { graph ->","    assertTrue(graph.hasTask(':a'))","    assertTrue(graph.hasTask(':b'))","    assertTrue(graph.allTasks.contains(task('a')))","    assertTrue(graph.allTasks.contains(task('b')))","    TaskExecutionIntegrationTest.graphListenerNotified = true","}");
+  usingBuildFile(buildFile).runTasks("a").assertTasksExecuted(":b",":a");
+  assertTrue(graphListenerNotified);
 }
