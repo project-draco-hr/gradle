@@ -1,0 +1,20 @@
+{
+  return new Bundle.ConfigureAction(){
+    public void configure(    AbstractArchiveTask archiveTask){
+      if (archiveTask instanceof Jar) {
+        archiveTask.getProject().getDependencies().linkConfWithTask(JavaPlugin.RUNTIME,archiveTask.getName());
+        archiveTask.defineProperty("osgi",createDefaultOsgiManifest(archiveTask.getProject()));
+        archiveTask.doFirst(new TaskAction(){
+          public void execute(          Task task){
+            Jar jarTask=(Jar)task;
+            OsgiManifest osgiManifest=(OsgiManifest)jarTask.getAdditionalProperties().get("osgi");
+            osgiManifest.setClasspath(jarTask.getProject().getDependencies().resolveTask(jarTask.getName()));
+            osgiManifest.overwrite(jarTask.getManifest());
+          }
+        }
+);
+      }
+    }
+  }
+;
+}
