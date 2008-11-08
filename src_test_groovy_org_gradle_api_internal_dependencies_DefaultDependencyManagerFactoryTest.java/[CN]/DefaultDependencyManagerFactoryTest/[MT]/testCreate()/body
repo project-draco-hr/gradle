@@ -1,23 +1,5 @@
 {
-  Project expectedProject=new DefaultProject();
-  final File testRootDir=new File("root");
-  final File expectedBuildResolverDir=new File(testRootDir,Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME);
-  final ISettingsFinder settingsFinderMock=context.mock(ISettingsFinder.class);
-  context.checking(new Expectations(){
-{
-      allowing(settingsFinderMock).getSettingsDir();
-      will(returnValue(testRootDir));
-    }
-  }
-);
-  DefaultDependencyManager dependencyManager=(DefaultDependencyManager)new DefaultDependencyManagerFactory(settingsFinderMock).createDependencyManager(expectedProject);
-  assertSame(expectedProject,dependencyManager.getProject());
-  assertNotNull(dependencyManager.getDependencyFactory());
-  assertNotNull(dependencyManager.getSettingsConverter());
-  assertNotNull(dependencyManager.getModuleDescriptorConverter());
-  assertNotNull(dependencyManager.getDependencyPublisher());
-  assertNotNull(dependencyManager.getDependencyResolver());
-  assertEquals(expectedBuildResolverDir,dependencyManager.getBuildResolverHandler().getBuildResolverDir());
-  Set<IDependencyImplementationFactory> dependencyImplementationFactories=dependencyManager.getDependencyFactory().getDependencyFactories();
-  checkDependencyFactories(dependencyImplementationFactories);
+  DefaultDependencyManager dependencyManager=(DefaultDependencyManager)new DefaultDependencyManagerFactory(settingsFinderMock,CacheUsage.ON).createDependencyManager(expectedProject);
+  assertTrue(expectedBuildResolverDir.isDirectory());
+  checkCommon(expectedProject,dependencyManager);
 }
