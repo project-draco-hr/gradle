@@ -1,0 +1,31 @@
+{
+  context.checking(new Expectations(){
+{
+      allowing(pomFilterContainerMock).getActivePomFilters();
+      will(returnValue(WrapUtil.toList(pomFilterMock)));
+      allowing(pomFilterMock).getName();
+      will(returnValue(POMFILTER_NAME));
+      allowing(pomFilterMock).getFilter();
+      will(returnValue(publishFilterMock));
+      allowing(pomFilterMock).getPomTemplate();
+      will(returnValue(mavenTemplatePomMock));
+      allowing(publishFilterMock).accept(expectedArtifact,expectedFile);
+      will(returnValue(true));
+      allowing(mavenPomFactoryMock).createMavenPom();
+      will(returnValue(mavenPomMock));
+      allowing(artifactPomFactoryMock).createArtifactPom(mavenPomMock,expectedArtifact,expectedFile);
+      will(returnValue(artifactPomMock));
+      allowing(artifactPomMock).getPom();
+      will(returnValue(mavenPomMock));
+      allowing(artifactPomMock).getArtifactFile();
+      will(returnValue(expectedFile));
+      one(mavenPomMock).copyFrom(mavenTemplatePomMock);
+      one(pomFileWriterMock).write(with(same(mavenPomMock)),with(same(testDependencies)),with(equal(expectedPomFile)));
+    }
+  }
+);
+  artifactPomContainer.addArtifact(expectedArtifact,expectedFile);
+  Map<File,File> files=artifactPomContainer.createDeployableUnits(testDependencies);
+  assertEquals(1,files.size());
+  assertEquals(expectedFile,files.get(expectedPomFile));
+}
