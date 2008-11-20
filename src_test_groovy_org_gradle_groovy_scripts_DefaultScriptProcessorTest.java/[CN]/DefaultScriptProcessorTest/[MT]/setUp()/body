@@ -1,16 +1,18 @@
 {
+  context.setImposteriser(ClassImposteriser.INSTANCE);
   scriptHandlerMock=context.mock(IScriptHandler.class);
   testClassLoader=new URLClassLoader(new URL[0]);
   testScriptFileDir=HelperUtil.makeNewTestDir("projectdir");
   testScriptFile=new File(testScriptFileDir,TEST_BUILD_FILE_NAME);
   testCacheDir=new File(new File(testScriptFileDir,Project.CACHE_DIR_NAME),TEST_BUILD_FILE_NAME);
-  expectedScript=HelperUtil.createTestScript();
+  expectedScript=context.mock(ScriptWithSource.class);
   scriptProcessor=new DefaultScriptProcessor(scriptHandlerMock,CacheUsage.ON);
   source=context.mock(ScriptSource.class);
   context.checking(new Expectations(){
 {
       allowing(source).getDescription();
       will(returnValue("[script source]"));
+      allowing(expectedScript).setSource(source);
     }
   }
 );
