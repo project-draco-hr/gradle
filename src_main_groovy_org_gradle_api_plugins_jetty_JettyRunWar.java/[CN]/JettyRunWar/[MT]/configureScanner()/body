@@ -1,0 +1,20 @@
+{
+  final ArrayList scanList=new ArrayList();
+  scanList.add(BuildFileHelper.getBuildFile(getProject()));
+  scanList.add(getWebApp());
+  setScanList(scanList);
+  ArrayList listeners=new ArrayList();
+  listeners.add(new Scanner.BulkListener(){
+    public void filesChanged(    List changes){
+      try {
+        boolean reconfigure=changes.contains(BuildFileHelper.getBuildFile(getProject()).getCanonicalPath());
+        restartWebApp(reconfigure);
+      }
+ catch (      Exception e) {
+        logger.error("Error reconfiguring/restarting webapp after change in watched files",e);
+      }
+    }
+  }
+);
+  setScannerListeners(listeners);
+}

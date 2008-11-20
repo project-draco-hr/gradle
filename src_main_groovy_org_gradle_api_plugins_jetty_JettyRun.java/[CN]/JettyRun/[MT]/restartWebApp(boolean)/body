@@ -1,0 +1,21 @@
+{
+  logger.info("restarting " + webAppConfig);
+  logger.debug("Stopping webapp ...");
+  webAppConfig.stop();
+  logger.debug("Reconfiguring webapp ...");
+  checkPomConfiguration();
+  configureWebApplication();
+  if (reconfigureScanner) {
+    logger.info("Reconfiguring scanner after change to pom.xml ...");
+    scanList.clear();
+    scanList.add(getWebXmlFile());
+    if (getJettyEnvXmlFile() != null)     scanList.add(getJettyEnvXmlFile());
+    scanList.addAll(getExtraScanTargets());
+    scanList.add(BuildFileHelper.getBuildFile(getProject()));
+    scanList.addAll(getClassPathFiles());
+    getScanner().setScanDirs(scanList);
+  }
+  logger.debug("Restarting webapp ...");
+  webAppConfig.start();
+  logger.info("Restart completed at " + new Date().toString());
+}

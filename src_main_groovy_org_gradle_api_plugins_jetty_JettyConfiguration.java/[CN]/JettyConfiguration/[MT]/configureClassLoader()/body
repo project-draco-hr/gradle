@@ -1,0 +1,17 @@
+{
+  if (classPathFiles != null) {
+    Log.debug("Setting up classpath ...");
+    Iterator itor=classPathFiles.iterator();
+    while (itor.hasNext())     ((WebAppClassLoader)getWebAppContext().getClassLoader()).addClassPath(((File)itor.next()).getCanonicalPath());
+    if (Log.isDebugEnabled())     Log.debug("Classpath = " + LazyList.array2List(((URLClassLoader)getWebAppContext().getClassLoader()).getURLs()));
+  }
+ else {
+    super.configureClassLoader();
+  }
+  String[] existingServerClasses=getWebAppContext().getServerClasses();
+  String[] newServerClasses=new String[2 + (existingServerClasses == null ? 0 : existingServerClasses.length)];
+  newServerClasses[0]="-org.apache.maven.";
+  newServerClasses[1]="-org.codehaus.plexus.";
+  System.arraycopy(existingServerClasses,0,newServerClasses,2,existingServerClasses.length);
+  getWebAppContext().setServerClasses(newServerClasses);
+}

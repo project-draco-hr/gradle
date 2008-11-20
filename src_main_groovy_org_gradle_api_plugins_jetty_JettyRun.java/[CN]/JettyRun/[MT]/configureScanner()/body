@@ -1,0 +1,25 @@
+{
+  final ArrayList scanList=new ArrayList();
+  scanList.add(getWebXmlFile());
+  if (getJettyEnvXmlFile() != null)   scanList.add(getJettyEnvXmlFile());
+  File jettyWebXmlFile=findJettyWebXmlFile(new File(getWebAppSourceDirectory(),"WEB-INF"));
+  if (jettyWebXmlFile != null)   scanList.add(jettyWebXmlFile);
+  scanList.addAll(getExtraScanTargets());
+  scanList.add(BuildFileHelper.getBuildFile(getProject()));
+  scanList.addAll(getClassPathFiles());
+  setScanList(scanList);
+  ArrayList listeners=new ArrayList();
+  listeners.add(new Scanner.BulkListener(){
+    public void filesChanged(    List changes){
+      try {
+        boolean reconfigure=changes.contains(BuildFileHelper.getBuildFile(getProject()).getCanonicalPath());
+        restartWebApp(reconfigure);
+      }
+ catch (      Exception e) {
+        logger.error("Error reconfiguring/restarting webapp after change in watched files",e);
+      }
+    }
+  }
+);
+  setScannerListeners(listeners);
+}

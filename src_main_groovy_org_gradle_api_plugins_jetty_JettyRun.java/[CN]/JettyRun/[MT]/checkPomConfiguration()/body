@@ -1,0 +1,82 @@
+{
+  try {
+    if ((getWebAppSourceDirectory() == null) || !getWebAppSourceDirectory().exists())     throw new InvalidUserDataException("Webapp source directory " + (getWebAppSourceDirectory() == null ? "null" : getWebAppSourceDirectory().getCanonicalPath()) + " does not exist");
+ else     logger.info("Webapp source directory = " + getWebAppSourceDirectory().getCanonicalPath());
+  }
+ catch (  IOException e) {
+    throw new InvalidUserDataException("Webapp source directory does not exist",e);
+  }
+  if (!"automatic".equalsIgnoreCase(reload) && !"manual".equalsIgnoreCase(reload)) {
+    throw new InvalidUserDataException("invalid reload mechanic specified, must be 'automatic' or 'manual'");
+  }
+ else {
+    logger.info("Reload Mechanic: " + reload);
+  }
+  if (getWebXml() == null) {
+    webXml=new File(new File(getWebAppSourceDirectory(),"WEB-INF"),"web.xml");
+  }
+  setWebXmlFile(getWebXml());
+  try {
+    if (!getWebXmlFile().exists())     throw new InvalidUserDataException("web.xml does not exist at location " + webXmlFile.getCanonicalPath());
+ else     logger.info("web.xml file = " + webXmlFile.getCanonicalPath());
+  }
+ catch (  IOException e) {
+    throw new InvalidUserDataException("web.xml does not exist",e);
+  }
+  if (getJettyEnvXml() != null) {
+    setJettyEnvXmlFile(jettyEnvXml);
+    try {
+      if (!getJettyEnvXmlFile().exists())       throw new InvalidUserDataException("jetty-env.xml file does not exist at location " + jettyEnvXml);
+ else       logger.info(" jetty-env.xml = " + getJettyEnvXmlFile().getCanonicalPath());
+    }
+ catch (    IOException e) {
+      throw new InvalidUserDataException("jetty-env.xml does not exist");
+    }
+  }
+  try {
+    if (getClassesDirectory() != null) {
+      if (!getClassesDirectory().exists())       logger.info("Classes directory " + getClassesDirectory().getCanonicalPath() + " does not exist");
+ else       logger.info("Classes = " + getClassesDirectory().getCanonicalPath());
+    }
+ else     logger.info("Classes directory not set");
+  }
+ catch (  IOException e) {
+    throw new InvalidUserDataException("Location of classesDirectory does not exist");
+  }
+  setExtraScanTargets(new ArrayList());
+  if (scanTargets != null) {
+    for (int i=0; i < scanTargets.length; i++) {
+      logger.info("Added extra scan target:" + scanTargets[i]);
+      getExtraScanTargets().add(scanTargets[i]);
+    }
+  }
+  if (scanTargetPatterns != null) {
+    for (int i=0; i < scanTargetPatterns.length; i++) {
+      Iterator itor=scanTargetPatterns[i].getIncludes().iterator();
+      StringBuffer strbuff=new StringBuffer();
+      while (itor.hasNext()) {
+        strbuff.append((String)itor.next());
+        if (itor.hasNext())         strbuff.append(",");
+      }
+      String includes=strbuff.toString();
+      itor=scanTargetPatterns[i].getExcludes().iterator();
+      strbuff=new StringBuffer();
+      while (itor.hasNext()) {
+        strbuff.append((String)itor.next());
+        if (itor.hasNext())         strbuff.append(",");
+      }
+      String excludes=strbuff.toString();
+      try {
+        List files=FileUtils.getFiles(scanTargetPatterns[i].getDirectory(),includes,excludes);
+        itor=files.iterator();
+        while (itor.hasNext())         logger.info("Adding extra scan target from pattern: " + itor.next());
+        List currentTargets=getExtraScanTargets();
+        if (currentTargets != null && !currentTargets.isEmpty())         currentTargets.addAll(files);
+ else         setExtraScanTargets(files);
+      }
+ catch (      IOException e) {
+        throw new InvalidUserDataException(e.getMessage());
+      }
+    }
+  }
+}

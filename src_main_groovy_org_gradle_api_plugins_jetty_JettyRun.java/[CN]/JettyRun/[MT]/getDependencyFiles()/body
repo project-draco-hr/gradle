@@ -1,0 +1,59 @@
+{
+  List dependencyFiles=new ArrayList();
+  List overlays=new ArrayList();
+  List<File> dependencies=getProject().getDependencies().resolve(WarPlugin.PROVIDED_RUNTIME);
+  if (useTestClasspath) {
+    dependencies.addAll(getProject().getDependencies().resolve(JavaPlugin.TEST_RUNTIME));
+  }
+  for (  File dependency : dependencies) {
+    dependencyFiles.add(dependency);
+    logger.debug("Adding dependency {} for WEB-INF/lib ",dependency);
+  }
+  if (!overlays.isEmpty()) {
+    try {
+      Resource resource=webAppConfig.getBaseResource();
+      ResourceCollection rc=new ResourceCollection();
+      if (resource == null) {
+        int size=overlays.size() + 1;
+        Resource[] resources=new Resource[size];
+        resources[0]=Resource.newResource(getWebAppSourceDirectory().toURL());
+        for (int i=1; i < size; i++) {
+          resources[i]=(Resource)overlays.get(i - 1);
+          logger.info("Adding overlay: " + resources[i]);
+        }
+        rc.setResources(resources);
+      }
+ else {
+        if (resource instanceof ResourceCollection) {
+          Resource[] old=((ResourceCollection)resource).getResources();
+          int size=old.length + overlays.size();
+          Resource[] resources=new Resource[size];
+          System.arraycopy(old,0,resources,0,old.length);
+          for (int i=old.length, j=0; i < size; i++, j++) {
+            resources[i]=(Resource)overlays.get(j);
+            logger.info("Adding overlay: " + resources[i]);
+          }
+          rc.setResources(resources);
+        }
+ else {
+          if (!resource.isDirectory() && String.valueOf(resource.getFile()).endsWith(".war")) {
+            resource=Resource.newResource("jar:" + resource.getURL().toString() + "!/");
+          }
+          int size=overlays.size() + 1;
+          Resource[] resources=new Resource[size];
+          resources[0]=resource;
+          for (int i=1; i < size; i++) {
+            resources[i]=(Resource)overlays.get(i - 1);
+            logger.info("Adding overlay: " + resources[i]);
+          }
+          rc.setResources(resources);
+        }
+      }
+      webAppConfig.setBaseResource(rc);
+    }
+ catch (    Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+  return dependencyFiles;
+}

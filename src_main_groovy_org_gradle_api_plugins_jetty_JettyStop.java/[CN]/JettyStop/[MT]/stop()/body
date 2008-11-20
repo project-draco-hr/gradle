@@ -1,0 +1,18 @@
+{
+  if (getStopPort() == null)   throw new InvalidUserDataException("Please specify a valid port");
+  if (getStopKey() == null)   throw new InvalidUserDataException("Please specify a valid stopKey");
+  try {
+    Socket s=new Socket(InetAddress.getByName("127.0.0.1"),getStopPort());
+    s.setSoLinger(false,0);
+    OutputStream out=s.getOutputStream();
+    out.write((getStopKey() + "\r\nstop\r\n").getBytes());
+    out.flush();
+    s.close();
+  }
+ catch (  ConnectException e) {
+    logger.info("Jetty not running!");
+  }
+catch (  Exception e) {
+    logger.error("Exception during stopping",e);
+  }
+}

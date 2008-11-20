@@ -1,0 +1,44 @@
+{
+  try {
+    logger.debug("Starting Jetty Server ...");
+    printSystemProperties();
+    setServer(createServer());
+    applyJettyXml();
+    JettyPluginServer plugin=getServer();
+    Object[] configuredConnectors=getConnectors();
+    plugin.setConnectors(configuredConnectors);
+    Object[] connectors=plugin.getConnectors();
+    if (connectors == null || connectors.length == 0) {
+      configuredConnectors=new Object[]{plugin.createDefaultConnector(System.getProperty(PORT_SYSPROPERTY,null))};
+      plugin.setConnectors(configuredConnectors);
+    }
+    if (getRequestLog() != null)     getServer().setRequestLog(getRequestLog());
+    getServer().configureHandlers();
+    configureWebApplication();
+    getServer().addWebApplication(webAppConfig);
+    Object[] configuredRealms=getUserRealms();
+    for (int i=0; (configuredRealms != null) && i < configuredRealms.length; i++)     logger.debug(configuredRealms[i].getClass().getName() + ": " + configuredRealms[i].toString());
+    plugin.setUserRealms(configuredRealms);
+    finishConfigurationBeforeStart();
+    server.start();
+    logger.info("Started Jetty Server");
+    if (stopPort > 0 && stopKey != null) {
+      Monitor monitor=new Monitor(stopPort,stopKey,new Server[]{(Server)server.getProxiedObject()},!daemon);
+      monitor.start();
+    }
+    configureScanner();
+    startScanner();
+    startConsoleScanner();
+    if (!daemon) {
+      server.join();
+    }
+  }
+ catch (  Exception e) {
+    throw new GradleException("Failure",e);
+  }
+ finally {
+    if (!daemon) {
+      logger.info("Jetty server exiting.");
+    }
+  }
+}
