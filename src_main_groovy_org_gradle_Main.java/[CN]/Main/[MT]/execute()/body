@@ -1,0 +1,145 @@
+{
+  BuildResultLogger resultLogger=new BuildResultLogger(logger);
+  BuildExceptionReporter exceptionReporter=new BuildExceptionReporter(logger);
+  StartParameter startParameter=new StartParameter();
+  OptionParser parser=new OptionParser(){
+{
+      acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS,"no-imports"),"Disable usage of default imports for build script files.");
+      acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS,"no-search-upward"),"Don't search in parent folders for a settings.gradle file.");
+      acceptsAll(WrapUtil.toList(MERGED_BUILD,"merged-build"),"Merge all tasks into a single build.");
+      acceptsAll(WrapUtil.toList(CACHE_OFF,"cache-off"),"No caching of compiled build scripts.");
+      acceptsAll(WrapUtil.toList(REBUILD_CACHE,"rebuild-cache"),"Rebuild the cache of compiled build scripts.");
+      acceptsAll(WrapUtil.toList(VERSION,"version"),"Print version info.");
+      acceptsAll(WrapUtil.toList(DEBUG,"debug"),"Log in debug mode (includes normal stacktrace).");
+      acceptsAll(WrapUtil.toList(QUIET,"quiet"),"Log errors only.");
+      acceptsAll(WrapUtil.toList(INFO,"info"),"Set log level to info.");
+      acceptsAll(WrapUtil.toList(STACKTRACE,"stacktrace"),"Print out the stacktrace also for user exceptions (e.g. compile error).");
+      acceptsAll(WrapUtil.toList(FULL_STACKTRACE,"full-stacktrace"),"Print out the full (very verbose) stacktrace for any exceptions.");
+      acceptsAll(WrapUtil.toList(TASKS,"tasks"),"Show list of all available tasks and their dependencies.");
+      acceptsAll(WrapUtil.toList(PROJECT_DIR,"project-dir"),"Specifies the start dir for Gradle. Defaults to current dir.").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(GRADLE_USER_HOME,"gradle-user-home"),"Specifies the gradle user home dir.").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE,"plugin-properties-file"),"Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(DEFAULT_IMPORT_FILE,"default-import-file"),"Specifies the default import file.").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(SETTINGS_FILE,"settingsfile"),"Specifies the settings file name. Defaults to settings.gradle.").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(BUILD_FILE,"buildfile"),"Specifies the build file name (also for subprojects). Defaults to build.gradle.").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(SYSTEM_PROP,"systemprop"),"Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(PROJECT_PROP,"projectprop"),"Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT,"embedded"),"Specify an embedded build script.").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(HELP,"?"),"Shows this help message");
+    }
+  }
+;
+  OptionSet options;
+  try {
+    options=parser.parse(args);
+  }
+ catch (  OptionException e) {
+    parser.printHelpOn(System.err);
+    System.err.println("====");
+    return;
+  }
+  exceptionReporter.setOptions(options);
+  if (options.has(HELP)) {
+    parser.printHelpOn(System.out);
+    buildCompleter.exit(null);
+    return;
+  }
+  configureLogger(options);
+  if (options.has(VERSION)) {
+    System.out.println(new GradleVersion().prettyPrint());
+    buildCompleter.exit(null);
+    return;
+  }
+  String gradleHome=System.getProperty(GRADLE_HOME_PROPERTY_KEY);
+  if (!GUtil.isTrue(gradleHome)) {
+    logger.error("The gradle.home property is not set. Please set it and try again.");
+    buildCompleter.exit(new InvalidUserDataException());
+    return;
+  }
+  startParameter.setGradleHomeDir(new File(gradleHome));
+  if (options.has(NO_DEFAULT_IMPORTS)) {
+    startParameter.setDefaultImportsFile(null);
+  }
+ else   if (options.has(DEFAULT_IMPORT_FILE)) {
+    startParameter.setDefaultImportsFile(new File(options.argumentOf(DEFAULT_IMPORT_FILE)));
+  }
+  if (options.has(SYSTEM_PROP)) {
+    List<String> props=options.argumentsOf(SYSTEM_PROP);
+    logger.info("Running with System props: " + props);
+    for (    String keyValueExpression : props) {
+      String[] elements=keyValueExpression.split("=");
+      startParameter.getSystemPropertiesArgs().put(elements[0],elements.length == 1 ? "" : elements[1]);
+    }
+  }
+  if (options.has(PROJECT_PROP)) {
+    List<String> props=options.argumentsOf(PROJECT_PROP);
+    logger.info("Running with Project props: " + props);
+    for (    String keyValueExpression : props) {
+      String[] elements=keyValueExpression.split("=");
+      startParameter.getProjectProperties().put(elements[0],elements.length == 1 ? "" : elements[1]);
+    }
+  }
+  startParameter.setSearchUpwards(!options.has(NO_SEARCH_UPWARDS));
+  if (options.has(PROJECT_DIR)) {
+    startParameter.setCurrentDir(new File(options.argumentOf(PROJECT_DIR)));
+    if (!startParameter.getCurrentDir().isDirectory()) {
+      logger.error("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exist!");
+      buildCompleter.exit(new InvalidUserDataException());
+      return;
+    }
+  }
+  if (options.hasArgument(GRADLE_USER_HOME)) {
+    startParameter.setGradleUserHomeDir(new File(options.argumentOf(GRADLE_USER_HOME)));
+  }
+  if (options.hasArgument(BUILD_FILE)) {
+    startParameter.setBuildFileName(options.argumentOf(BUILD_FILE));
+  }
+  if (options.hasArgument(SETTINGS_FILE)) {
+    startParameter.setSettingsFileName(options.argumentOf(SETTINGS_FILE));
+  }
+  if (options.hasArgument(PLUGIN_PROPERTIES_FILE)) {
+    startParameter.setPluginPropertiesFile(new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)));
+  }
+  if (options.has(CACHE_OFF)) {
+    if (options.has(REBUILD_CACHE)) {
+      logger.error(String.format("Error: The -%s option can't be used together with the -%s option.",CACHE_OFF,REBUILD_CACHE));
+      buildCompleter.exit(new InvalidUserDataException());
+    }
+    startParameter.setCacheUsage(CacheUsage.OFF);
+  }
+ else   if (options.has(REBUILD_CACHE)) {
+    startParameter.setCacheUsage(CacheUsage.REBUILD);
+  }
+ else {
+    startParameter.setCacheUsage(CacheUsage.ON);
+  }
+  if (options.has(EMBEDDED_SCRIPT)) {
+    if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS) || options.has(SETTINGS_FILE)) {
+      logger.error(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",EMBEDDED_SCRIPT,BUILD_FILE,SETTINGS_FILE,NO_SEARCH_UPWARDS));
+      buildCompleter.exit(new InvalidUserDataException());
+      return;
+    }
+    startParameter.useEmbeddedBuildFile(options.argumentOf(EMBEDDED_SCRIPT));
+  }
+  if (options.has(TASKS)) {
+    startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter());
+  }
+ else {
+    startParameter.setTaskNames(options.nonOptionArguments());
+  }
+  startParameter.setMergedBuild(options.has(MERGED_BUILD));
+  try {
+    Gradle gradle=Gradle.newInstance(startParameter);
+    gradle.addBuildListener(exceptionReporter);
+    gradle.addBuildListener(resultLogger);
+    BuildResult buildResult=gradle.run();
+    if (buildResult.getFailure() != null) {
+      buildCompleter.exit(buildResult.getFailure());
+    }
+  }
+ catch (  Throwable e) {
+    exceptionReporter.buildFinished(new BuildResult(null,e));
+    buildCompleter.exit(e);
+  }
+  buildCompleter.exit(null);
+}
