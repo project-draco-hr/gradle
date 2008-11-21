@@ -1,5 +1,9 @@
 {
-  GradleExecutionFailure failure=usingBuildScript("createTask('do-stuff')\n{ 1 / 0 }").runTasksAndExpectFailure("do-stuff");
-  failure.assertHasFileName("Embedded build file");
-  failure.assertHasLineNumber(2);
+  TestFile buildFile=testFile("build.gradle");
+  buildFile.writelns("createTask('do-stuff')","{","1/0","}");
+  GradleExecutionFailure failure=usingBuildFile(buildFile).runTasksAndExpectFailure("do-stuff");
+  failure.assertHasFileName(String.format("Build file '%s'",buildFile));
+  failure.assertHasLineNumber(3);
+  failure.assertHasContext("Execution failed for task :do-stuff");
+  failure.assertHasDescription("/ by zero");
 }
