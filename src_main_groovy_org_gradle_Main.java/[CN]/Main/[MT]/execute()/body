@@ -44,7 +44,6 @@
     buildCompleter.exit(null);
     return;
   }
-  configureLogger(options);
   if (options.has(VERSION)) {
     System.out.println(new GradleVersion().prettyPrint());
     buildCompleter.exit(null);
@@ -52,7 +51,7 @@
   }
   String gradleHome=System.getProperty(GRADLE_HOME_PROPERTY_KEY);
   if (!GUtil.isTrue(gradleHome)) {
-    logger.error("The gradle.home property is not set. Please set it and try again.");
+    System.err.println("The gradle.home property is not set. Please set it and try again.");
     buildCompleter.exit(new InvalidUserDataException());
     return;
   }
@@ -65,7 +64,6 @@
   }
   if (options.has(SYSTEM_PROP)) {
     List<String> props=options.argumentsOf(SYSTEM_PROP);
-    logger.info("Running with System props: " + props);
     for (    String keyValueExpression : props) {
       String[] elements=keyValueExpression.split("=");
       startParameter.getSystemPropertiesArgs().put(elements[0],elements.length == 1 ? "" : elements[1]);
@@ -73,7 +71,6 @@
   }
   if (options.has(PROJECT_PROP)) {
     List<String> props=options.argumentsOf(PROJECT_PROP);
-    logger.info("Running with Project props: " + props);
     for (    String keyValueExpression : props) {
       String[] elements=keyValueExpression.split("=");
       startParameter.getProjectProperties().put(elements[0],elements.length == 1 ? "" : elements[1]);
@@ -83,7 +80,7 @@
   if (options.has(PROJECT_DIR)) {
     startParameter.setCurrentDir(new File(options.argumentOf(PROJECT_DIR)));
     if (!startParameter.getCurrentDir().isDirectory()) {
-      logger.error("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exist!");
+      System.err.println("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exist!");
       buildCompleter.exit(new InvalidUserDataException());
       return;
     }
@@ -102,7 +99,7 @@
   }
   if (options.has(CACHE_OFF)) {
     if (options.has(REBUILD_CACHE)) {
-      logger.error(String.format("Error: The -%s option can't be used together with the -%s option.",CACHE_OFF,REBUILD_CACHE));
+      System.err.println(String.format("Error: The -%s option can't be used together with the -%s option.",CACHE_OFF,REBUILD_CACHE));
       buildCompleter.exit(new InvalidUserDataException());
     }
     startParameter.setCacheUsage(CacheUsage.OFF);
@@ -115,7 +112,7 @@
   }
   if (options.has(EMBEDDED_SCRIPT)) {
     if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS) || options.has(SETTINGS_FILE)) {
-      logger.error(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",EMBEDDED_SCRIPT,BUILD_FILE,SETTINGS_FILE,NO_SEARCH_UPWARDS));
+      System.err.println(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",EMBEDDED_SCRIPT,BUILD_FILE,SETTINGS_FILE,NO_SEARCH_UPWARDS));
       buildCompleter.exit(new InvalidUserDataException());
       return;
     }
@@ -128,6 +125,7 @@
     startParameter.setTaskNames(options.nonOptionArguments());
   }
   startParameter.setMergedBuild(options.has(MERGED_BUILD));
+  startParameter.setLogLevel(getLogLevel(options));
   try {
     Gradle gradle=Gradle.newInstance(startParameter);
     gradle.addBuildListener(exceptionReporter);
