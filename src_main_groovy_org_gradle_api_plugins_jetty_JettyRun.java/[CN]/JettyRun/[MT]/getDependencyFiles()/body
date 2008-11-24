@@ -1,14 +1,13 @@
 {
-  List dependencyFiles=new ArrayList();
   List overlays=new ArrayList();
-  List<File> dependencies=getProject().getDependencies().resolve(WarPlugin.PROVIDED_RUNTIME);
+  List<File> dependencies;
   if (useTestClasspath) {
-    dependencies.addAll(getProject().getDependencies().resolve(JavaPlugin.TEST_RUNTIME));
+    dependencies=getProject().getDependencies().resolve(testConfiguration);
   }
-  for (  File dependency : dependencies) {
-    dependencyFiles.add(dependency);
-    logger.debug("Adding dependency {} for WEB-INF/lib ",dependency);
+ else {
+    dependencies=getProject().getDependencies().resolve(configuration);
   }
+  logger.debug("Adding dependencies {} for WEB-INF/lib ",dependencies);
   if (!overlays.isEmpty()) {
     try {
       Resource resource=webAppConfig.getBaseResource();
@@ -55,5 +54,5 @@
       throw new RuntimeException(e);
     }
   }
-  return dependencyFiles;
+  return dependencies;
 }
