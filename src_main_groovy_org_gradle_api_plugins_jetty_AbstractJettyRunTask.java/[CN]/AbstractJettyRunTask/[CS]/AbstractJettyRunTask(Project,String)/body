@@ -2,7 +2,24 @@
   super(project,name);
   doFirst(new TaskAction(){
     public void execute(    Task task){
-      startJetty();
+      ClassLoader originalClassloader=Thread.currentThread().getContextClassLoader();
+      List<URL> additionalClasspath=new ArrayList<URL>();
+      for (      File additionalRuntimeJar : additionalRuntimeJars) {
+        try {
+          additionalClasspath.add(additionalRuntimeJar.toURI().toURL());
+        }
+ catch (        MalformedURLException e) {
+          throw new InvalidUserDataException(e);
+        }
+      }
+      URLClassLoader jettyClassloader=new URLClassLoader(additionalClasspath.toArray(new URL[additionalClasspath.size()]),originalClassloader);
+      try {
+        Thread.currentThread().setContextClassLoader(jettyClassloader);
+        startJetty();
+      }
+  finally {
+        Thread.currentThread().setContextClassLoader(originalClassloader);
+      }
     }
   }
 );
