@@ -1,0 +1,7 @@
+{
+  testFile("settings.gradle").writelns("include 'child'");
+  testFile("build.gradle").writelns("def rootMethod(p) { 'root' + p }","def sharedMethod(p) { 'ignore me' }","convention.plugins.test = new " + ConventionBean.class.getName() + "()");
+  testFile("child/build.gradle").writelns("def childMethod(p) { 'child' + p }","def sharedMethod(p) { 'shared' + p }","createTask('testTask') {",DynamicObjectIntegrationTestHelper.class.getName() + ".reportMethods(project)","}");
+  inTestDirectory().runTasks("testTask");
+  assertThat(result,equalTo("rootMethod,childMethod,sharedMethod,conventionMethod"));
+}
