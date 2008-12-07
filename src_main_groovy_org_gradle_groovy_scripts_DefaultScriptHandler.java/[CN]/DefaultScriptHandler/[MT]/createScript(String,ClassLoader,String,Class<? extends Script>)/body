@@ -5,10 +5,13 @@
   GroovyShell groovyShell=new GroovyShell(classLoader,new Binding(),configuration);
   Script script;
   try {
-    script=groovyShell.parse(scriptText,scriptName);
+    script=groovyShell.parse(scriptText == null ? "" : scriptText,scriptName);
   }
  catch (  CompilationFailedException e) {
     throw new GradleException(e);
+  }
+  if (!scriptBaseClass.isInstance(script)) {
+    return new EmptyScript();
   }
   logger.debug("Timing: Creating script took: {}",clock.getTime());
   return script;
