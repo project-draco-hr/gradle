@@ -1,0 +1,23 @@
+{
+  Map<String,Object> properties=new HashMap<String,Object>();
+  properties.putAll(additionalProperties);
+  if (parent != null) {
+    properties.putAll(parent.properties());
+  }
+  if (convention != null) {
+    properties.putAll(convention.getAllProperties());
+  }
+  if (includeDelegateObjectProperties) {
+    List<MetaProperty> classProperties=getMetaClass().getProperties();
+    for (    MetaProperty metaProperty : classProperties) {
+      if (metaProperty instanceof MetaBeanProperty) {
+        MetaBeanProperty beanProperty=(MetaBeanProperty)metaProperty;
+        if (beanProperty.getGetter() == null) {
+          continue;
+        }
+      }
+      properties.put(metaProperty.getName(),metaProperty.getProperty(delegateObject));
+    }
+  }
+  return properties;
+}

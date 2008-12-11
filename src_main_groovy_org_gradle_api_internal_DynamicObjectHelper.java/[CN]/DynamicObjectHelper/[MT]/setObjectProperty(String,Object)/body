@@ -1,0 +1,23 @@
+{
+  if (includeDelegateObjectProperties) {
+    MetaProperty property=getMetaClass().hasProperty(delegateObject,name);
+    if (property != null) {
+      if (property instanceof MetaBeanProperty && ((MetaBeanProperty)property).getSetter() == null) {
+        throw new GroovyRuntimeException(String.format("Cannot set the value of read-only property '%s' on %s.",name,delegateObject));
+      }
+      try {
+        property.setProperty(delegateObject,value);
+      }
+ catch (      InvokerInvocationException e) {
+        if (e.getCause() instanceof RuntimeException) {
+          throw (RuntimeException)e.getCause();
+        }
+        throw e;
+      }
+    }
+  }
+  if (convention != null && convention.hasProperty(name)) {
+    convention.setProperty(name,value);
+  }
+  additionalProperties.put(name,value);
+}
