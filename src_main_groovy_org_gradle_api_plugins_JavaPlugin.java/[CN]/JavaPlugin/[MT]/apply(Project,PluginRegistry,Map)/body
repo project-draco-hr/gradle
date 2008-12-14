@@ -4,7 +4,12 @@
   convention.getPlugins().put("java",javaConvention);
   configureDependencyManager(project,javaConvention);
   project.createTask(INIT);
-  ((ConventionTask)project.createTask(GUtil.map("type",Clean.class),CLEAN)).conventionMapping(DefaultConventionsToPropertiesMapping.CLEAN);
+  ((ConventionTask)project.createTask(GUtil.map("type",Clean.class),CLEAN)).conventionMapping(GUtil.map("dir",new ConventionValue(){
+    public Object getValue(    Convention convention,    Task task){
+      return project.getBuildDir();
+    }
+  }
+));
   ((ConventionTask)project.createTask(GUtil.map("type",Javadoc.class),JAVADOC)).conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
   ((ConventionTask)project.createTask(GUtil.map("type",Resources.class,"dependsOn",INIT),RESOURCES)).conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
   configureCompile((Compile)project.createTask(GUtil.map("type",Compile.class,"dependsOn",RESOURCES),COMPILE),DefaultConventionsToPropertiesMapping.COMPILE);
