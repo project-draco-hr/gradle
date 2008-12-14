@@ -7,7 +7,12 @@
     throw propertyMissingException(name);
   }
   if (property instanceof MetaBeanProperty && ((MetaBeanProperty)property).getSetter() == null) {
-    throw new GroovyRuntimeException(String.format("Cannot set the value of read-only property '%s' on %s.",name,getDisplayName()));
+    throw new ReadOnlyPropertyException(name,bean.getClass()){
+      @Override public String getMessage(){
+        return String.format("Cannot set the value of read-only property '%s' on %s.",name,getDisplayName());
+      }
+    }
+;
   }
   try {
     property.setProperty(bean,value);
