@@ -1,0 +1,27 @@
+{
+  context.checking(new Expectations(){
+{
+      Task task1=context.mock(Task.class,"task1");
+      Task task2=context.mock(Task.class,"task2");
+      one(project).getAllprojects();
+      will(returnValue(toLinkedSet(project)));
+      one(project).getTasks();
+      will(returnValue(GUtil.map("task2",task2,"task1",task1)));
+      allowing(task2).compareTo(task1);
+      will(returnValue(1));
+      Sequence sequence=context.sequence("seq");
+      one(renderer).startProject(project);
+      inSequence(sequence);
+      one(renderer).addTask(task1);
+      inSequence(sequence);
+      one(renderer).addTask(task2);
+      inSequence(sequence);
+      one(renderer).completeProject(project);
+      inSequence(sequence);
+      one(renderer).complete();
+      inSequence(sequence);
+    }
+  }
+);
+  task.execute();
+}

@@ -1,0 +1,37 @@
+{
+  final Project child1=context.mock(Project.class,"child1");
+  final Project child2=context.mock(Project.class,"child2");
+  context.checking(new Expectations(){
+{
+      one(project).getAllprojects();
+      will(returnValue(toLinkedSet(child1,project,child2)));
+      allowing(project).getTasks();
+      will(returnValue(emptyMap()));
+      allowing(child1).getTasks();
+      will(returnValue(emptyMap()));
+      allowing(child2).getTasks();
+      will(returnValue(emptyMap()));
+      allowing(project).compareTo(child1);
+      will(returnValue(-1));
+      allowing(child2).compareTo(child1);
+      will(returnValue(1));
+      Sequence sequence=context.sequence("seq");
+      one(renderer).startProject(project);
+      inSequence(sequence);
+      one(renderer).completeProject(project);
+      inSequence(sequence);
+      one(renderer).startProject(child1);
+      inSequence(sequence);
+      one(renderer).completeProject(child1);
+      inSequence(sequence);
+      one(renderer).startProject(child2);
+      inSequence(sequence);
+      one(renderer).completeProject(child2);
+      inSequence(sequence);
+      one(renderer).complete();
+      inSequence(sequence);
+    }
+  }
+);
+  task.execute();
+}
