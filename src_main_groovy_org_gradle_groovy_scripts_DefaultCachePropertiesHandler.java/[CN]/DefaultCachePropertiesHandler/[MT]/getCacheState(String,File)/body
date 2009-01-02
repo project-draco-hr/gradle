@@ -1,0 +1,20 @@
+{
+  File propertiesFile=new File(scriptCacheDir,CachePropertiesHandler.PROPERTY_FILE_NAME);
+  if (!propertiesFile.isFile()) {
+    return CacheState.INVALID;
+  }
+  Properties properties=new Properties();
+  try {
+    properties.load(new FileInputStream(new File(scriptCacheDir,CachePropertiesHandler.PROPERTY_FILE_NAME)));
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+  if (properties.get(CachePropertiesHandler.EMPTY_SCRIPT) != null && properties.get(CachePropertiesHandler.EMPTY_SCRIPT).equals(Boolean.TRUE.toString())) {
+    return CacheState.EMPTY_SCRIPT;
+  }
+  if (!properties.get(CachePropertiesHandler.VERSION_KEY).equals(new GradleVersion().getVersion())) {
+    return CacheState.INVALID;
+  }
+  return createHash(scriptText).equals(properties.get(CachePropertiesHandler.HASH_KEY)) ? CacheState.VALID : CacheState.INVALID;
+}
