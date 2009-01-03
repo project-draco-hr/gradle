@@ -1,17 +1,11 @@
 {
+  pluginRegistry.apply(BasePlugin.class,project,customValues);
   JavaPluginConvention javaConvention=new JavaPluginConvention(project,customValues);
   Convention convention=project.getConvention();
   convention.getPlugins().put("java",javaConvention);
   configureDependencyManager(project,javaConvention);
-  project.createTask(INIT);
-  ((ConventionTask)project.createTask(GUtil.map("type",Clean.class),CLEAN)).conventionMapping(GUtil.map("dir",new ConventionValue(){
-    public Object getValue(    Convention convention,    Task task){
-      return project.getBuildDir();
-    }
-  }
-));
   ((ConventionTask)project.createTask(GUtil.map("type",Javadoc.class),JAVADOC)).conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
-  ((ConventionTask)project.createTask(GUtil.map("type",Resources.class,"dependsOn",INIT),RESOURCES)).conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
+  ((ConventionTask)project.createTask(GUtil.map("type",Resources.class,"dependsOn",BasePlugin.INIT),RESOURCES)).conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
   configureCompile((Compile)project.createTask(GUtil.map("type",Compile.class,"dependsOn",RESOURCES),COMPILE),DefaultConventionsToPropertiesMapping.COMPILE);
   configureTestResources(project);
   configureTestCompile((Compile)project.createTask(GUtil.map("type",Compile.class,"dependsOn",TEST_RESOURCES),TEST_COMPILE),(Compile)project.task(COMPILE),DefaultConventionsToPropertiesMapping.TEST_COMPILE);
