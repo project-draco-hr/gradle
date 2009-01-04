@@ -2,31 +2,22 @@
   if (scriptDestinationPath == null) {
     throw new InvalidUserDataException("The scriptDestinationPath property must be specified!");
   }
-  File jarFileDestination=new File(getProject().getProjectDir(),getJarPath() + "/" + Install.WRAPPER_JAR);
+  String wrapperDir=(GUtil.isTrue(jarPath) ? jarPath + "/" : "");
+  new File(getProject().getProjectDir(),wrapperDir).mkdirs();
+  String wrapperJar=wrapperDir + Install.WRAPPER_JAR;
+  String wrapperPropertiesPath=wrapperDir + Install.WRAPPER_PROPERTIES;
+  File jarFileDestination=new File(getProject().getProjectDir(),wrapperJar);
+  File propertiesFileDestination=new File(getProject().getProjectDir(),wrapperPropertiesPath);
   File jarFileSource=new File(getProject().getBuild().getGradleHomeDir() + "/lib",WRAPPER_JAR_BASE_NAME + "-" + getProject().getBuild().getGradleVersion()+ ".jar");
-  File tmpExplodedSourceJar=GradleUtil.makeNewDir(new File(getProject().getBuildDir(),"wrapperJar"));
-  CompressUtil.unzip(jarFileSource,tmpExplodedSourceJar);
-  File propFile=new File(tmpExplodedSourceJar.getAbsolutePath() + "/org/gradle/wrapper/wrapper.properties");
-  propFile.getParentFile().mkdirs();
-  Properties wrapperProperties=new Properties();
-  wrapperProperties.put(org.gradle.wrapper.Wrapper.URL_ROOT_PROPERTY,urlRoot);
-  wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_BASE_PROPERTY,distributionBase.toString());
-  wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_PATH_PROPERTY,distributionPath);
-  wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_NAME_PROPERTY,archiveName);
-  wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_CLASSIFIER_PROPERTY,archiveClassifier);
-  wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_VERSION_PROPERTY,gradleVersion);
-  wrapperProperties.put(org.gradle.wrapper.Wrapper.ZIP_STORE_BASE_PROPERTY,archiveBase.toString());
-  wrapperProperties.put(org.gradle.wrapper.Wrapper.ZIP_STORE_PATH_PROPERTY,archivePath);
+  propertiesFileDestination.delete();
+  jarFileDestination.delete();
+  writeProperties(propertiesFileDestination);
   try {
-    wrapperProperties.store(new FileOutputStream(propFile),"");
+    FileUtils.copyFile(jarFileSource,jarFileDestination);
   }
  catch (  IOException e) {
     throw new UncheckedIOException(e);
   }
-  jarFileDestination.getParentFile().mkdirs();
-  jarFileDestination.delete();
-  CompressUtil.zip(tmpExplodedSourceJar,jarFileDestination);
-  String wrapperJar=(GUtil.isTrue(jarPath) ? jarPath + "/" : "") + Install.WRAPPER_JAR;
   File scriptDestinationDir=new File(getProject().getProjectDir(),scriptDestinationPath);
-  wrapperScriptGenerator.generate(wrapperJar,scriptDestinationDir);
+  wrapperScriptGenerator.generate(wrapperJar,wrapperPropertiesPath,scriptDestinationDir);
 }
