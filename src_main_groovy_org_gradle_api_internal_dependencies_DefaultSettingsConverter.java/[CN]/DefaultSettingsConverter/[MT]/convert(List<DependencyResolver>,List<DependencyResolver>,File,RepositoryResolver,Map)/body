@@ -2,33 +2,11 @@
   if (ivySettings != null) {
     return ivySettings;
   }
-  IvySettings ivySettings=new IvySettings();
-  ivySettings.setDefaultCache(new File(gradleUserHome,DependencyManager.DEFAULT_CACHE_DIR_NAME));
-  ivySettings.setDefaultCacheIvyPattern(DependencyManager.DEFAULT_CACHE_IVY_PATTERN);
-  ivySettings.setDefaultCacheArtifactPattern(DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN);
-  ClientModuleResolver clientModuleResolver=new ClientModuleResolver();
-  clientModuleResolver.setModuleRegistry(clientModuleRegistry);
-  clientModuleResolver.setName(CLIENT_MODULE_NAME);
-  ChainResolver chainResolver=new ChainResolver();
-  chainResolver.setName(CHAIN_RESOLVER_NAME);
-  chainResolver.add(buildResolver);
-  chainResolver.setChangingPattern(".*-SNAPSHOT");
-  chainResolver.setChangingMatcher(PatternMatcher.REGEXP);
-  for (  Object classpathResolver : classpathResolvers) {
-    chainResolver.add((DependencyResolver)classpathResolver);
-  }
-  chainResolver.setReturnFirst(true);
-  clientModuleResolver.setMainResolver(chainResolver);
-  ChainResolver clientModuleChain=new ChainResolver();
-  clientModuleChain.setName(CLIENT_MODULE_CHAIN_NAME);
-  clientModuleChain.setReturnFirst(true);
-  clientModuleChain.add(clientModuleResolver);
-  clientModuleChain.add(chainResolver);
-  List<DependencyResolver> allResolvers=new ArrayList(otherResolvers);
-  allResolvers.addAll(classpathResolvers);
-  allResolvers.addAll(WrapUtil.toList(buildResolver,clientModuleChain,clientModuleResolver,chainResolver));
-  addTransferListener(ivySettings,allResolvers);
+  ChainResolver userResolverChain=createUserResolverChain(classpathResolvers,buildResolver);
+  ClientModuleResolver clientModuleResolver=createClientModuleResolver(clientModuleRegistry,userResolverChain);
+  ChainResolver outerChain=createOuterChain(userResolverChain,clientModuleResolver);
+  IvySettings ivySettings=createIvySettings(gradleUserHome);
+  initializeResolvers(ivySettings,getAllResolvers(classpathResolvers,otherResolvers,buildResolver,userResolverChain,clientModuleResolver,outerChain));
   ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
-  ivySettings.setVariable("ivy.log.modules.in.use","false");
   return ivySettings;
 }
