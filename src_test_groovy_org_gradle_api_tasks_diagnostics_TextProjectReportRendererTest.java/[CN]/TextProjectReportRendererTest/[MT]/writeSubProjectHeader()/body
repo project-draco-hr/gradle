@@ -1,0 +1,18 @@
+{
+  final Project project=context.mock(Project.class);
+  StringWriter writer=new StringWriter();
+  context.checking(new Expectations(){
+{
+      allowing(project).getRootProject();
+      will(returnValue(context.mock(Project.class,"root")));
+      allowing(project).getPath();
+      will(returnValue("<path>"));
+    }
+  }
+);
+  TextProjectReportRenderer renderer=new TextProjectReportRenderer(writer);
+  renderer.startProject(project);
+  renderer.completeProject(project);
+  renderer.complete();
+  assertThat(writer.toString(),containsLine("Project <path>"));
+}

@@ -1,0 +1,43 @@
+{
+  final DependencyManagerInternal dependencyManager=context.mock(DependencyManagerInternal.class);
+  final IDependencyResolver dependencyResolver=context.mock(IDependencyResolver.class);
+  final Configuration configuration1=context.mock(Configuration.class,"Configuration1");
+  final Configuration configuration2=context.mock(Configuration.class,"Configuration2");
+  final ResolveReport report=new ResolveReport(new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("org","mod"),"rev"),"status",null));
+  context.checking(new Expectations(){
+{
+      allowing(project).getDependencies();
+      will(returnValue(dependencyManager));
+      allowing(dependencyManager).getConfigurations();
+      will(returnValue(GUtil.map("config2",configuration2,"config1",configuration1)));
+      allowing(dependencyManager).getDependencyResolver();
+      will(returnValue(dependencyResolver));
+      Sequence resolve=context.sequence("resolve");
+      Sequence render=context.sequence("render");
+      one(dependencyManager).resolve("config1",false,true);
+      inSequence(resolve);
+      one(dependencyResolver).getLastResolveReport();
+      inSequence(resolve);
+      will(returnValue(report));
+      one(renderer).startConfiguration(configuration1);
+      inSequence(render);
+      one(renderer).render(with(aNonNull(IvyDependencyGraph.class)));
+      inSequence(render);
+      one(renderer).completeConfiguration(configuration1);
+      inSequence(render);
+      one(dependencyManager).resolve("config2",false,true);
+      inSequence(resolve);
+      one(dependencyResolver).getLastResolveReport();
+      inSequence(resolve);
+      will(returnValue(report));
+      one(renderer).startConfiguration(configuration2);
+      inSequence(render);
+      one(renderer).render(with(aNonNull(IvyDependencyGraph.class)));
+      inSequence(render);
+      one(renderer).completeConfiguration(configuration2);
+      inSequence(render);
+    }
+  }
+);
+  task.generate(project);
+}

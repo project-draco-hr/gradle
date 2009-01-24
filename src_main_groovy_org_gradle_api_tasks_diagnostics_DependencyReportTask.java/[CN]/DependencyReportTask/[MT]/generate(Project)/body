@@ -1,0 +1,15 @@
+{
+  DependencyManagerInternal depManager=(DependencyManagerInternal)project.getDependencies();
+  Map<String,Configuration> configs=new TreeMap<String,Configuration>(project.getDependencies().getConfigurations());
+  for (  Map.Entry<String,Configuration> entry : configs.entrySet()) {
+    String configName=entry.getKey();
+    Configuration configuration=entry.getValue();
+    IvyDependencyGraphBuilder graphBuilder=new IvyDependencyGraphBuilder();
+    IDependencyResolver resolver=depManager.getDependencyResolver();
+    depManager.resolve(configName,false,true);
+    IvyDependencyGraph graph=graphBuilder.buildGraph(resolver.getLastResolveReport(),configName);
+    renderer.startConfiguration(configuration);
+    renderer.render(graph);
+    renderer.completeConfiguration(configuration);
+  }
+}
