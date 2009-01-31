@@ -1,0 +1,23 @@
+{
+  String confName1="conf1";
+  String confName2="conf2";
+  String confName3="conf3";
+  String confName4="conf4";
+  org.apache.ivy.core.module.descriptor.Configuration ivyConf1=new org.apache.ivy.core.module.descriptor.Configuration(confName1);
+  org.apache.ivy.core.module.descriptor.Configuration ivyConf2=new org.apache.ivy.core.module.descriptor.Configuration(confName2);
+  org.apache.ivy.core.module.descriptor.Configuration ivyConf3=new org.apache.ivy.core.module.descriptor.Configuration(confName3);
+  org.apache.ivy.core.module.descriptor.Configuration ivyConf4=new org.apache.ivy.core.module.descriptor.Configuration(confName4);
+  final Set<Configuration> testConfs=WrapUtil.toSet(createMockConf(confName1,ivyConf1,false,true),createMockConf(confName2,ivyConf2,true,false),createMockConf(confName3,ivyConf3,true,true),createMockConf(confName4,ivyConf4,false,false));
+  configurationContainerMock=context.mock(ConfigurationContainer.class);
+  final DefaultModuleDescriptor moduleDescriptor=HelperUtil.getTestModuleDescriptor(Collections.EMPTY_SET);
+  context.checking(new Expectations(){
+{
+      allowing(configurationContainerMock).get(HelperUtil.TEST_SEPC);
+      will(returnValue(testConfs));
+    }
+  }
+);
+  Map<String,Boolean> transitiveOverride=GUtil.map(confName1,true,confName2,false);
+  configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor,configurationContainerMock,HelperUtil.TEST_SEPC,transitiveOverride);
+  assertEquals(WrapUtil.toSet(ivyConf1,ivyConf2,ivyConf3,ivyConf4),new HashSet(Arrays.asList(moduleDescriptor.getConfigurations())));
+}

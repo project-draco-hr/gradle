@@ -1,13 +1,21 @@
 {
-  clientModule=new ClientModule(dependencyFactory,TEST_CONF_MAPPING,TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER,testModuleRegistry);
+  final ClientModule clientModule=new ClientModule(TEST_CONF_MAPPING,TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER,dependencyContainerMock);
+  final ClientModuleDescriptorFactory clientModuleDescriptorFactoryMock=context.mock(ClientModuleDescriptorFactory.class);
+  clientModule.setClientModuleDescriptorFactory(clientModuleDescriptorFactoryMock);
   clientModule.setDependencyDescriptorFactory(dependencyDescriptorFactoryMock);
-  final ModuleDescriptor parentModuleDescriptorMock=context.mock(ModuleDescriptor.class);
+  final ModuleDescriptor parentModuleDescriptorMock=context.mock(ModuleDescriptor.class,"parent");
+  final ModuleDescriptor clientModuleDescriptorMock=context.mock(ModuleDescriptor.class,"clientModule");
   context.checking(new Expectations(){
 {
-      one(dependencyDescriptorFactoryMock).createFromClientModule(parentModuleDescriptorMock,clientModule);
+      allowing(dependencyContainerMock).getClientModuleRegistry();
+      will(returnValue(testModuleRegistry));
+      allowing(dependencyDescriptorFactoryMock).createFromClientModule(parentModuleDescriptorMock,clientModule);
       will(returnValue(expectedDependencyDescriptor));
+      allowing(clientModuleDescriptorFactoryMock).createModuleDescriptor(expectedDependencyDescriptor.getDependencyRevisionId(),dependencyContainerMock);
+      will(returnValue(clientModuleDescriptorMock));
     }
   }
 );
   assertSame(expectedDependencyDescriptor,clientModule.createDependencyDescriptor(parentModuleDescriptorMock));
+  assertThat((ModuleDescriptor)testModuleRegistry.get(TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER),Matchers.sameInstance(clientModuleDescriptorMock));
 }

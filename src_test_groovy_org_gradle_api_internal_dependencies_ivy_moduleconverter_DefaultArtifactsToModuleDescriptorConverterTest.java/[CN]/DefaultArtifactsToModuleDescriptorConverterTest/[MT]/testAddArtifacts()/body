@@ -1,0 +1,21 @@
+{
+  String confName1="conf1";
+  String confName2="conf2";
+  final DefaultModuleDescriptor moduleDescriptor=HelperUtil.getTestModuleDescriptor(WrapUtil.toSet(confName1,confName2));
+  final Set<DefaultConfiguration> testConfs=HelperUtil.createConfigurations(confName1,confName2);
+  context.checking(new Expectations(){
+{
+      allowing(artifactContainerMock).getArtifacts(HelperUtil.TEST_SEPC);
+      will(returnValue(WrapUtil.toSet(publishArtifactMock)));
+      allowing(publishArtifactMock).getConfigurations();
+      will(returnValue(testConfs));
+      allowing(publishArtifactMock).createIvyArtifact(moduleDescriptor.getModuleRevisionId());
+      will(returnValue(ivyArtifact));
+    }
+  }
+);
+  artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor,artifactContainerMock,HelperUtil.TEST_SEPC);
+  assertThat(moduleDescriptor.getArtifacts(confName1),equalTo(WrapUtil.toArray(ivyArtifact)));
+  assertThat(moduleDescriptor.getArtifacts(confName2),equalTo(WrapUtil.toArray(ivyArtifact)));
+  assertThat(moduleDescriptor.getAllArtifacts().length,equalTo(1));
+}

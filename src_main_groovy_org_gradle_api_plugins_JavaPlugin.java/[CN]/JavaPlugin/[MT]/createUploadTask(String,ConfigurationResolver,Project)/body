@@ -1,0 +1,18 @@
+{
+  final Upload upload=(Upload)project.createTask(GUtil.map("type",Upload.class),name);
+  ConfigurationPublishInstruction publishInstruction=new ConfigurationPublishInstruction(configuration.getName());
+  publishInstruction.getModuleDescriptor().setIvyFileParentDir(project.getBuildDir());
+  upload.setPublishInstruction(publishInstruction);
+  if (project.getState() == Project.State.INITIALIZED) {
+    createUploadDependencies(project,configuration,upload);
+  }
+ else {
+    project.addAfterEvaluateListener(new AfterEvaluateListener(){
+      public void afterEvaluate(      Project project){
+        createUploadDependencies(project,configuration,upload);
+      }
+    }
+);
+  }
+  return upload;
+}

@@ -1,16 +1,19 @@
 {
   final DependencyManager dependencyManagerMock=context.mock(DependencyManager.class);
+  final ConfigurationResolver configurationMock=context.mock(ConfigurationResolver.class);
   Map resolver1=WrapUtil.toMap("name",RESOLVER_NAME_1);
   resolver1.put("url","http://www.url1.com");
   Map resolver2=WrapUtil.toMap("name",RESOLVER_NAME_2);
   resolver2.put("url","http://www.url2.com");
-  final List<String> expectedConfigurations=WrapUtil.toList("conf1");
-  upload.setConfigurations(expectedConfigurations);
+  final ConfigurationPublishInstruction publishInstruction=new ConfigurationPublishInstruction("conf1");
+  upload.setPublishInstruction(publishInstruction);
   upload.setProject(HelperUtil.createRootProject(projectRootDir));
   ((AbstractProject)upload.getProject()).setDependencies(dependencyManagerMock);
   context.checking(new Expectations(){
 {
-      one(dependencyManagerMock).publish(expectedConfigurations,upload.getUploadResolvers(),false);
+      one(dependencyManagerMock).configuration(publishInstruction.getConfiguration());
+      will(returnValue(configurationMock));
+      one(configurationMock).publish(upload.getUploadResolvers(),publishInstruction);
     }
   }
 );

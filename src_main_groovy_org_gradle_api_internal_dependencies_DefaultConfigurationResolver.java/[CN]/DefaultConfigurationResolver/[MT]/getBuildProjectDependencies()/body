@@ -1,0 +1,14 @@
+{
+  DefaultTaskDependency taskDependency=new DefaultTaskDependency();
+  for (  ConfigurationResolver configurationResolver : getExtendsFrom()) {
+    taskDependency.add(configurationResolver.getBuildProjectDependencies());
+  }
+  for (  ProjectDependency projectDependency : getProjectDependencies()) {
+    List<String> dependencyConfigurations=projectDependency.getDependencyConfigurations(getName());
+    for (    String dependencyConfiguration : dependencyConfigurations) {
+      ConfigurationResolver configuration=projectDependency.getDependencyProject().getDependencies().configuration(dependencyConfiguration);
+      taskDependency.add(projectDependency.getDependencyProject().task(configuration.getUploadInternalTaskName()));
+    }
+  }
+  return taskDependency;
+}

@@ -21,13 +21,18 @@
     }
   }
 ,"classpathLibs",new ConventionValue(){
-    public Object getValue(    Convention convention,    Task task){
-      return task.getProject().getDependencies().resolve(TEST_RUNTIME,((EclipseClasspath)task).getFailForMissingDependencies(),false);
+    public Object getValue(    Convention convention,    final Task task){
+      return task.getProject().getDependencies().configuration(TEST_RUNTIME).resolve(new ResolveInstructionModifier(){
+        public ResolveInstruction modify(        ResolveInstruction resolveInstruction){
+          return new ResolveInstruction(resolveInstruction).setDependencyFilter(new TypeSpec(Type.EXTERNAL)).setFailOnResolveError(((EclipseClasspath)task).getFailForMissingDependencies());
+        }
+      }
+);
     }
   }
 ,"projectDependencies",new ConventionValue(){
     public Object getValue(    Convention convention,    Task task){
-      return task.getProject().getDependencies().getDependencies(Filter.PROJECTS_ONLY);
+      return task.getProject().getDependencies().getDependencies(new TypeSpec(Type.PROJECT));
     }
   }
 ));

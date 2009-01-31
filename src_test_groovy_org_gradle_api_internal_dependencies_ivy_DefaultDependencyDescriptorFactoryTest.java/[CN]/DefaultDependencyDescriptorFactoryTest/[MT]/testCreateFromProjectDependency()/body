@@ -1,0 +1,18 @@
+{
+  final DependencyManager dependencyProjectDependencyManagerMock=context.mock(DependencyManager.class);
+  final ModuleRevisionId testModuleRevisionId=ModuleRevisionId.newInstance(Project.DEFAULT_GROUP,DEPENDENCY_PROJECT_NAME,Project.DEFAULT_VERSION,new HashMap());
+  final ProjectInternal projectMock=context.mock(ProjectInternal.class,"project");
+  final AbstractProject dependencyProject=HelperUtil.createRootProject(new File(DEPENDENCY_PROJECT_NAME));
+  dependencyProject.setDependencies(dependencyProjectDependencyManagerMock);
+  DefaultProjectDependency projectDependency=new DefaultProjectDependency(TEST_CONF_MAPPING,dependencyProject,projectMock).setTransitive(true);
+  projectDependency.setExcludeRules(excludeRuleContainerMock);
+  projectDependency.setDependencyConfigurationMappings(dependencyConfigurationMappingContainerMock);
+  DefaultDependencyDescriptor dependencyDescriptor=(DefaultDependencyDescriptor)dependencyDescriptorFactory.createFromProjectDependency(TEST_PARENT,projectDependency);
+  assertSame(TEST_PARENT.getModuleRevisionId(),dependencyDescriptor.getParentRevisionId());
+  assertEquals(testModuleRevisionId,dependencyDescriptor.getDependencyRevisionId());
+  assertEquals(projectDependency.isTransitive(),dependencyDescriptor.isTransitive());
+  assertTrue(dependencyDescriptor.isChanging());
+  assertFalse(dependencyDescriptor.isForce());
+  checkDependencyConfigurations(dependencyDescriptor,projectDependency,WILDCARD_CONF);
+  checkExcludeRules(dependencyDescriptor,excludeRuleWithAllConf,excludeRuleWithConf);
+}

@@ -4,6 +4,7 @@
   Convention convention=project.getConvention();
   convention.getPlugins().put("java",javaConvention);
   configureDependencyManager(project,javaConvention);
+  configureUploadRules(project);
   project.createTask(INIT);
   ((ConventionTask)project.createTask(GUtil.map("type",Clean.class),CLEAN)).conventionMapping(GUtil.map("dir",new ConventionValue(){
     public Object getValue(    Convention convention,    Task task){
@@ -11,18 +12,15 @@
     }
   }
 ));
-  ((ConventionTask)project.createTask(GUtil.map("type",Javadoc.class),JAVADOC)).conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
+  configureJavaDoc(project);
   ((ConventionTask)project.createTask(GUtil.map("type",Resources.class,"dependsOn",INIT),RESOURCES)).conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
   configureCompile((Compile)project.createTask(GUtil.map("type",Compile.class,"dependsOn",RESOURCES),COMPILE),DefaultConventionsToPropertiesMapping.COMPILE);
   configureTestResources(project);
   configureTestCompile((Compile)project.createTask(GUtil.map("type",Compile.class,"dependsOn",TEST_RESOURCES),TEST_COMPILE),(Compile)project.task(COMPILE),DefaultConventionsToPropertiesMapping.TEST_COMPILE);
   configureTest(project);
   configureLibs(project,javaConvention);
-  configureUploadInternalLibs(project);
-  configureUploadLibs(project,javaConvention);
   configureDists(project,javaConvention);
-  configureUploadDists(project,javaConvention);
-  project.createTask(UPLOAD).dependsOn(UPLOAD_LIBS,UPLOAD_DISTS);
+  project.createTask(UPLOAD);
   configureEclipse(project);
   configureEclipseWtpModule(project);
 }

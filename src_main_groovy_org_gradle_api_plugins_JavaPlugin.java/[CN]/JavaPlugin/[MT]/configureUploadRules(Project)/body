@@ -1,0 +1,32 @@
+{
+  project.addRule(new Rule(){
+    public String getDescription(){
+      return "Pattern: upload<ConfigurationName>Internal: Upload the project artifacts of a configuration to the internal Gradle repository.";
+    }
+    public void apply(    String taskName){
+      List<ConfigurationResolver> configurations=project.getDependencies().getConfigurations();
+      for (      ConfigurationResolver configuration : configurations) {
+        if (taskName.equals(configuration.getUploadInternalTaskName())) {
+          Upload uploadInternal=createUploadTask(configuration.getUploadInternalTaskName(),configuration,project);
+          uploadInternal.getPublishInstruction().getModuleDescriptor().setPublish(true);
+          uploadInternal.getUploadResolvers().add(project.getDependencies().getBuildResolver(),null);
+        }
+      }
+    }
+  }
+);
+  project.addRule(new Rule(){
+    public String getDescription(){
+      return "Pattern: upload<ConfigurationName>: Upload the project artifacts of a configuration to a public Gradle repository.";
+    }
+    public void apply(    String taskName){
+      List<ConfigurationResolver> configurations=project.getDependencies().getConfigurations();
+      for (      ConfigurationResolver configuration : configurations) {
+        if (taskName.equals(configuration.getUploadTaskName())) {
+          createUploadTask(configuration.getUploadTaskName(),configuration,project);
+        }
+      }
+    }
+  }
+);
+}

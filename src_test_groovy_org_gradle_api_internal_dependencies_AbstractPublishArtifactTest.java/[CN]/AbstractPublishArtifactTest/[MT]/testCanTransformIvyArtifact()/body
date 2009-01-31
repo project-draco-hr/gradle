@@ -1,0 +1,14 @@
+{
+  PublishArtifact publishArtifact=createPublishArtifact(null);
+  final Artifact transformed=new DefaultArtifact(getTestModuleRevisionId(),new Date(),"name","type","ext");
+  final Transformer<Artifact> transformer=context.mock(Transformer.class);
+  context.checking(new Expectations(){
+{
+      one(transformer).transform(with(Matchers.notNullValue(Artifact.class)));
+      will(returnValue(transformed));
+    }
+  }
+);
+  publishArtifact.addIvyTransformer(transformer);
+  assertSame(transformed,publishArtifact.createIvyArtifact(getTestModuleRevisionId()));
+}

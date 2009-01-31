@@ -1,0 +1,18 @@
+{
+  final ConfigurationContainer configurationContainerMock=context.mock(ConfigurationContainer.class);
+  final ArtifactContainer artifactContainerMock=context.mock(ArtifactContainer.class);
+  final PublishInstruction testPublishInstruction=new PublishInstruction();
+  customizeMocks(configurationContainerMock,testPublishInstruction.getModuleDescriptor().getConfigurationFilter(),testPublishInstruction.getModuleDescriptor().getDependencyFilter(),new ArrayList<DependencyResolver>(),testPublishResolvers,new HashMap<String,ModuleDescriptor>(),artifactContainerMock,testPublishInstruction.getArtifactFilter(),new HashMap<String,Boolean>());
+  final String testConf2="testConf2";
+  context.checking(new Expectations(){
+{
+      allowing(configurationContainerMock).get(TEST_CONF);
+      will(returnValue(configurationMock));
+      allowing(configurationMock).getChain();
+      will(returnValue(WrapUtil.toSet(configurationMock,new DefaultConfiguration(testConf2,null))));
+      allowing(ivyDependencyPublisherMock).publish(WrapUtil.toSet(TEST_CONF,testConf2),testPublishInstruction,testPublishResolvers,testModuleDescriptor,publishEngineMock);
+    }
+  }
+);
+  ivyHandler.publish(TEST_CONF,testPublishInstruction,testPublishResolvers,configurationContainerMock,dependencyContainerMock,artifactContainerMock,testGradleUserHome);
+}

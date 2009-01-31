@@ -1,0 +1,15 @@
+{
+  final PublishInstruction publishInstruction=new PublishInstruction();
+  publishInstruction.getModuleDescriptor().setPublish(true);
+  context.checking(new Expectations(){
+{
+      allowing(publishOptionsFactoryMock).createPublishOptions(WrapUtil.toSet(expectedConf),publishInstruction,expectedIvyFile);
+      will(returnValue(expectedPublishOptions));
+      one(publishEngineMock).publish(moduleDescriptorMock,DefaultIvyDependencyPublisher.ARTIFACT_PATTERN,expectedResolverList.get(0),expectedPublishOptions);
+      one(moduleDescriptorMock).toIvyFile(expectedIvyFile);
+    }
+  }
+);
+  publishInstruction.getModuleDescriptor().setIvyFileParentDir(expectedIvyFile.getParentFile());
+  ivyDependencyPublisher.publish(WrapUtil.toSet(expectedConf),publishInstruction,expectedResolverList,moduleDescriptorMock,publishEngineMock);
+}

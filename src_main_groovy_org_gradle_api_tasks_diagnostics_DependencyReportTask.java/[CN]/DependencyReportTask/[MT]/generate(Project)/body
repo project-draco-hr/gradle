@@ -1,13 +1,20 @@
 {
-  DependencyManagerInternal depManager=(DependencyManagerInternal)project.getDependencies();
-  Map<String,Configuration> configs=new TreeMap<String,Configuration>(project.getDependencies().getConfigurations());
-  for (  Map.Entry<String,Configuration> entry : configs.entrySet()) {
-    String configName=entry.getKey();
-    Configuration configuration=entry.getValue();
+  List<ConfigurationResolver> sortedConfigurations=project.getDependencies().getConfigurations();
+  Collections.sort(sortedConfigurations,new Comparator<ConfigurationResolver>(){
+    public int compare(    ConfigurationResolver conf1,    ConfigurationResolver conf2){
+      return conf1.getName().compareTo(conf2.getName());
+    }
+  }
+);
+  for (  ConfigurationResolver configuration : sortedConfigurations) {
     IvyDependencyGraphBuilder graphBuilder=new IvyDependencyGraphBuilder();
-    IDependencyResolver resolver=depManager.getDependencyResolver();
-    depManager.resolve(configName,false,true);
-    IvyDependencyGraph graph=graphBuilder.buildGraph(resolver.getLastResolveReport(),configName);
+    ResolveInstructionModifier resolveInstructionModifier=new ResolveInstructionModifier(){
+      public ResolveInstruction modify(      ResolveInstruction resolveInstruction){
+        return new ResolveInstruction(resolveInstruction).setFailOnResolveError(false);
+      }
+    }
+;
+    IvyDependencyGraph graph=graphBuilder.buildGraph(configuration.resolveAsReport(resolveInstructionModifier),configuration.getName());
     renderer.startConfiguration(configuration);
     renderer.render(graph);
     renderer.completeConfiguration(configuration);

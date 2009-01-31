@@ -1,0 +1,32 @@
+{
+  testDependencyResolvers=WrapUtil.toList(context.mock(DependencyResolver.class,"dependencies"));
+  testPublishResolvers=WrapUtil.toList(context.mock(DependencyResolver.class,"publish"));
+  testBuildResolver=context.mock(RepositoryResolver.class);
+  testGradleUserHome=new File("testGradleUserHome");
+  testClientModuleRegistry=WrapUtil.toMap("a",context.mock(ModuleDescriptor.class));
+  testIvySettings=new IvySettings();
+  testResolveInstruction=new ResolveInstruction().setDependencyFilter(new TypeSpec(Type.EXTERNAL));
+  testModuleDescriptor=HelperUtil.getTestModuleDescriptor(WrapUtil.toSet(TEST_CONF));
+  testClasspath=WrapUtil.toList(new File("cp"));
+  testReport=new ResolveReport(testModuleDescriptor);
+  testConfigurations=WrapUtil.toSet(configurationMock);
+  context.checking(new Expectations(){
+{
+      allowing(configurationMock).getName();
+      will(returnValue(TEST_CONF));
+      allowing(buildResolverHandlerMock).getBuildResolver();
+      will(returnValue(testBuildResolver));
+      allowing(dependencyContainerMock).getClientModuleRegistry();
+      will(returnValue(testClientModuleRegistry));
+      allowing(ivyFactoryMock).createIvy(testIvySettings);
+      will(returnValue(ivyMock));
+      allowing(ivyMock).getPublishEngine();
+      will(returnValue(publishEngineMock));
+      allowing(ivyDependencyResolverMock).resolveAsReport(TEST_CONF,testResolveInstruction,ivyMock,testModuleDescriptor);
+      will(returnValue(testReport));
+      allowing(ivyDependencyResolverMock).resolveFromReport(TEST_CONF,testReport);
+      will(returnValue(testClasspath));
+    }
+  }
+);
+}

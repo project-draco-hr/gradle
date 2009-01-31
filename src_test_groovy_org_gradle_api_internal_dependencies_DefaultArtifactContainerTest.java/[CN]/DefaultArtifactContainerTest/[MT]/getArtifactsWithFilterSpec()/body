@@ -1,0 +1,21 @@
+{
+  final PublishArtifact publishArtifact1=context.mock(PublishArtifact.class,"artifact1");
+  final PublishArtifact publishArtifact2=context.mock(PublishArtifact.class,"artifact2");
+  artifactContainer.addArtifacts(publishArtifact1);
+  artifactContainer.addArtifacts(publishArtifact2);
+  final boolean[] artifact1Offered=new boolean[]{false};
+  final boolean[] artifact2Offered=new boolean[]{false};
+  Set<PublishArtifact> actualArtifacts=artifactContainer.getArtifacts(new FilterSpec<PublishArtifact>(){
+    public boolean isSatisfiedBy(    PublishArtifact filterCandidate){
+      if (filterCandidate == publishArtifact1) {
+        artifact1Offered[0]=true;
+      }
+      if (filterCandidate == publishArtifact2) {
+        artifact2Offered[0]=true;
+      }
+      return filterCandidate == publishArtifact1;
+    }
+  }
+);
+  assertThat(actualArtifacts,equalTo(WrapUtil.toSet(publishArtifact1)));
+}
