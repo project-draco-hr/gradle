@@ -3,16 +3,6 @@
   ConfigurationPublishInstruction publishInstruction=new ConfigurationPublishInstruction(configuration.getName());
   publishInstruction.getModuleDescriptor().setIvyFileParentDir(project.getBuildDir());
   upload.setPublishInstruction(publishInstruction);
-  if (project.getState() == Project.State.INITIALIZED) {
-    createUploadDependencies(project,configuration,upload);
-  }
- else {
-    project.addAfterEvaluateListener(new AfterEvaluateListener(){
-      public void afterEvaluate(      Project project){
-        createUploadDependencies(project,configuration,upload);
-      }
-    }
-);
-  }
+  upload.dependsOn(createUploadDependencies(project,configuration));
   return upload;
 }
