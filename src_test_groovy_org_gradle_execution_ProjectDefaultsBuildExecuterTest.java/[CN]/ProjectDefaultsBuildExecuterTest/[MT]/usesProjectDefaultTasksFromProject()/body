@@ -1,0 +1,20 @@
+{
+  context.checking(new Expectations(){
+{
+      one(project).getDefaultTasks();
+      will(returnValue(toList("a","b")));
+      Task task=context.mock(Task.class);
+      atLeast(1).of(project).getTasksByName("a",true);
+      will(returnValue(toSet(task)));
+      atLeast(1).of(project).getTasksByName("b",true);
+      will(returnValue(toSet(task)));
+      one(taskExecuter).addTasks(toSet(task));
+      one(taskExecuter).addTasks(toSet(task));
+      one(taskExecuter).execute();
+    }
+  }
+);
+  BuildExecuter executer=new ProjectDefaultsBuildExecuter();
+  executer.select(project);
+  executer.execute(taskExecuter);
+}

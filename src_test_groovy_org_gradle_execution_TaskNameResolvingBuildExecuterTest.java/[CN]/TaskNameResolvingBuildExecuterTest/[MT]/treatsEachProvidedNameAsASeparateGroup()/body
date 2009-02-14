@@ -1,22 +1,25 @@
 {
-  final Project project1=context.mock(Project.class,"project1");
-  final Project project2=context.mock(Project.class,"project2");
+  final TaskExecuter taskExecuter=context.mock(TaskExecuter.class);
   final Task task1=context.mock(Task.class,"task1");
   final Task task2=context.mock(Task.class,"task2");
   context.checking(new Expectations(){
 {
-      allowing(project1).getTasksByName(with(aNonNull(String.class)),with(equalTo(true)));
-      will(returnValue(WrapUtil.toSet(task1)));
-      atLeast(1).of(project2).getTasksByName("name2",true);
-      will(returnValue(WrapUtil.toSet(task2)));
+      allowing(project).getTasksByName("name1",true);
+      will(returnValue(toSet(task1)));
+      atLeast(1).of(project).getTasksByName("name2",true);
+      will(returnValue(toSet(task2)));
+      Sequence sequence=context.sequence("tasks");
+      one(taskExecuter).addTasks(toSet(task1));
+      inSequence(sequence);
+      one(taskExecuter).addTasks(toSet(task2));
+      inSequence(sequence);
+      one(taskExecuter).execute();
+      inSequence(sequence);
     }
   }
 );
-  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(WrapUtil.toList("name1","name2"));
-  executer.select(project1);
-  assertThat(executer.getDescription(),equalTo("primary task 'name1'"));
-  assertThat(executer.getTasks(),equalTo((Iterable<Task>)WrapUtil.toSet(task1)));
-  executer.select(project2);
-  assertThat(executer.getDescription(),equalTo("primary task 'name2'"));
-  assertThat(executer.getTasks(),equalTo((Iterable<Task>)WrapUtil.toSet(task2)));
+  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("name1","name2"));
+  executer.select(project);
+  assertThat(executer.getDescription(),equalTo("primary tasks 'name1', 'name2'"));
+  executer.execute(taskExecuter);
 }

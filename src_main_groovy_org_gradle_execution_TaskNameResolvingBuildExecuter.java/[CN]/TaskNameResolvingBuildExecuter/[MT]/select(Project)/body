@@ -1,14 +1,19 @@
 {
-  if (current == null) {
-    current=names.iterator();
-    checkForUnknownTasks(project);
+  Set<String> unknownTasks=new LinkedHashSet<String>();
+  for (  String taskName : names) {
+    Set<Task> tasksForName=findTasks(project,taskName);
+    if (tasksForName.size() == 0) {
+      unknownTasks.add(taskName);
+    }
+    tasks.add(tasksForName);
   }
-  if (!current.hasNext()) {
-    tasks=Collections.emptySet();
-    description="";
+  if (unknownTasks.size() == 0) {
     return;
   }
-  String taskName=current.next();
-  description=String.format("primary task '%s'",taskName);
-  tasks=findTasks(project,taskName);
+  if (unknownTasks.size() == 1) {
+    throw new UnknownTaskException(String.format("Task %s not found in %s.",GUtil.toString(unknownTasks),project));
+  }
+ else {
+    throw new UnknownTaskException(String.format("Tasks %s not found in %s.",GUtil.toString(unknownTasks),project));
+  }
 }
