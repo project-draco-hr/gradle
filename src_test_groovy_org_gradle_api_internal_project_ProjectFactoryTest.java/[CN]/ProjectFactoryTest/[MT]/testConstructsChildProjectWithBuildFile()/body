@@ -1,15 +1,19 @@
 {
   File buildFile=new File(projectDir,"build.gradle");
   FileUtils.writeStringToFile(buildFile,"build");
-  DefaultProject rootProject=projectFactory.createProject("root",null,rootDir,build);
-  DefaultProject parentProject=projectFactory.createProject("parent",rootProject,rootDir,build);
-  DefaultProject project=projectFactory.createProject("somename",parentProject,projectDir,build);
+  ProjectDescriptor rootDescriptor=descriptor("root");
+  ProjectDescriptor parentDescriptor=descriptor("parent");
+  ProjectDescriptor projectDescriptor=descriptor("somename",projectDir,buildFile,"build.gradle");
+  DefaultProject rootProject=projectFactory.createProject(rootDescriptor,null,build);
+  DefaultProject parentProject=projectFactory.createProject(parentDescriptor,rootProject,build);
+  DefaultProject project=projectFactory.createProject(projectDescriptor,parentProject,build);
   assertEquals("somename",project.getName());
   assertEquals("build.gradle",project.getBuildFileName());
   assertSame(parentProject,project.getParent());
   assertSame(rootDir,project.getRootDir());
   assertSame(projectDir,project.getProjectDir());
   assertSame(rootProject,project.getRootProject());
+  assertSame(project,parentProject.getChildProjects().get("somename"));
   checkProjectResources(project);
   ScriptSource expectedScriptSource=new FileScriptSource("build file",buildFile);
   assertThat(project.getBuildScriptSource(),Matchers.reflectionEquals(expectedScriptSource));
