@@ -1,0 +1,10 @@
+{
+  testFile("settings.gradle").write("include('another')");
+  testFile("gradle.properties").writelns("prop=value2","otherProp=value");
+  File subDirectory=new File(getTestDir(),"subdirectory");
+  TestFile buildFile=testFile(subDirectory,"build.gradle");
+  buildFile.writelns("createTask('do-stuff') {","assertThat(prop, equalTo('value'))","assertTrue(!project.hasProperty('otherProp'))","}");
+  testFile("subdirectory/gradle.properties").write("prop=value");
+  inDirectory(subDirectory).withSearchUpwards().runTasks("do-stuff");
+  usingBuildFile(buildFile).withSearchUpwards().runTasks("do-stuff");
+}
