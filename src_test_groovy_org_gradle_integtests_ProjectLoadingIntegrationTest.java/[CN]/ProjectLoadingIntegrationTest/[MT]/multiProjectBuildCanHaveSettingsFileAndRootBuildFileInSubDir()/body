@@ -1,6 +1,12 @@
 {
-  testFile("root/settings.gradle").writelns("includeFlat 'child'","rootProject.projectDir = new File(settingsDir, '..')","rootProject.buildFileName = 'root/build.gradle'");
-  testFile("root/build.gradle").write("createTask('do-stuff')");
-  testFile("child/builld.gradle").write("createTask('do-stuff')");
-  inDirectory(new File(getTestDir(),"root")).runTasks("do-stuff").assertTasksExecuted(":root:do-stuff",":child:do-stuff");
+  File buildFilesDir=new File(getTestDir(),"root");
+  TestFile settingsFile=testFile(buildFilesDir,"settings.gradle");
+  settingsFile.writelns("includeFlat 'child'","rootProject.projectDir = new File(settingsDir, '..')","rootProject.buildFileName = 'root/build.gradle'");
+  TestFile rootBuildFile=testFile(buildFilesDir,"build.gradle");
+  rootBuildFile.write("createTask('do-stuff')");
+  TestFile childBuildFile=testFile("child/build.gradle");
+  childBuildFile.write("createTask('do-stuff')");
+  inTestDirectory().usingSettingsFile(settingsFile).runTasks("do-stuff").assertTasksExecuted(":do-stuff",":child:do-stuff");
+  usingBuildFile(rootBuildFile).runTasks("do-stuff").assertTasksExecuted(":do-stuff",":child:do-stuff");
+  usingBuildFile(childBuildFile).usingSettingsFile(settingsFile).runTasks("do-stuff").assertTasksExecuted(":child:do-stuff");
 }
