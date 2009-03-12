@@ -1,0 +1,28 @@
+{
+  final StartParameter noSearchParameter=context.mock(StartParameter.class,"noSearchParameter");
+  final SettingsInternal currentDirSettings=context.mock(SettingsInternal.class,"currentDirSettings");
+  final ProjectDescriptor rootProject=context.mock(ProjectDescriptor.class);
+  context.checking(new Expectations(){
+{
+      one(finder).find(startParameter);
+      one(delegate).process(finder,startParameter,propertiesLoader);
+      will(returnValue(settings));
+      one(defaultProjectSelector).containsProject(projectRegistry);
+      will(returnValue(false));
+      one(startParameter).getSettingsScriptSource();
+      will(returnValue(null));
+      one(startParameter).newInstance();
+      will(returnValue(noSearchParameter));
+      one(noSearchParameter).setSettingsScriptSource(with(Matchers.reflectionEquals(new StringScriptSource("empty settings file",""))));
+      one(finder).find(noSearchParameter);
+      one(delegate).process(finder,noSearchParameter,propertiesLoader);
+      will(returnValue(currentDirSettings));
+      allowing(noSearchParameter).getBuildFile();
+      will(returnValue(null));
+      allowing(currentDirSettings).getRootProject();
+      will(returnValue(rootProject));
+    }
+  }
+);
+  assertThat(processor.process(finder,startParameter,propertiesLoader),sameInstance(currentDirSettings));
+}
