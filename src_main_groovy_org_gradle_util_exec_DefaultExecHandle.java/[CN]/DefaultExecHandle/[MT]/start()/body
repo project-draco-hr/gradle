@@ -1,0 +1,14 @@
+{
+  if (stateEquals(ExecHandleState.STARTED))   throw new IllegalStateException("already started!");
+  execHandleRunLock.lock();
+  try {
+    exitCode=-1;
+    failureCause=null;
+    threadPool=Executors.newFixedThreadPool(3);
+    execHandleRunner=new ExecHandleRunner(this,threadPool);
+    threadPool.execute(execHandleRunner);
+  }
+  finally {
+    execHandleRunLock.unlock();
+  }
+}

@@ -1,0 +1,37 @@
+{
+  final ProcessBuilder processBuilder=processBuilderFactory.createProcessBuilder(execHandle);
+  final long keepWaitingTimeout=execHandle.getKeepWaitingTimeout();
+  execHandle.started();
+  try {
+    final Process process=processBuilder.start();
+    final ExecOutputHandleRunner standardOutputHandleRunner=new ExecOutputHandleRunner(process.getInputStream(),execHandle.getStandardOutputHandle());
+    final ExecOutputHandleRunner errorOutputHandleRunner=new ExecOutputHandleRunner(process.getErrorStream(),execHandle.getErrorOutputHandle());
+    threadPool.execute(standardOutputHandleRunner);
+    threadPool.execute(errorOutputHandleRunner);
+    boolean processFinishedNormally=false;
+    while (keepWaiting.get() && !processFinishedNormally) {
+      try {
+        process.waitFor();
+        processFinishedNormally=true;
+      }
+ catch (      InterruptedException e) {
+      }
+      try {
+        Thread.sleep(keepWaitingTimeout);
+      }
+ catch (      InterruptedException e) {
+      }
+    }
+    if (!keepWaiting.get()) {
+      process.destroy();
+      execHandle.aborted();
+    }
+ else {
+      final int exitCode=process.exitValue();
+      execHandle.finished(exitCode);
+    }
+  }
+ catch (  Throwable t) {
+    execHandle.failed(t);
+  }
+}
