@@ -1,23 +1,6 @@
 {
   List<File> existingSourceDirs=existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(),getSrcDirs());
-  try {
-    final File javadocCommandLineFile=new File(getDestinationDir(),"javadoc.options");
-    storeJavadocOptions(existingSourceDirs,javadocCommandLineFile);
-    final ExecHandleBuilder execHandleBuilder=new ExecHandleBuilder(true).execDirectory(getProject().getRootDir()).execCommand(JavaEnvUtils.getJdkExecutable("javadoc")).prependedArguments("-J",options.getJFlags()).arguments("@" + javadocCommandLineFile.getAbsolutePath());
-    final ExecHandle execHandle=execHandleBuilder.getExecHandle();
-switch (execHandle.startAndWaitForFinish()) {
-case SUCCEEDED:
-      break;
-case ABORTED:
-    throw new GradleException("Javadoc generation ended in aborted state (should not happen)." + execHandle.getState());
-case FAILED:
-  if (failOnError)   throw new GradleException("Javadoc generation failed.",execHandle.getFailureCause());
- else   break;
-default :
-throw new GradleException("Javadoc generation ended in an unkown end state." + execHandle.getState());
-}
-}
- catch (IOException e) {
-throw new GradleException("Faild to store javadoc options.",e);
-}
+  options.sourcepath(existingSourceDirs).directory(getDestinationDir()).classpath(getClasspath()).classpath((File)getProject().getConvention().getProperty("classesDir")).windowTitle("\"" + getTitle() + "\"").exclude("**/package.html");
+  if (maxMemory != null)   options.jFlags("-Xmx" + maxMemory);
+  executeExternalJavadoc();
 }
