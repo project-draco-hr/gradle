@@ -1,12 +1,12 @@
 {
-  if (exitCode != 0) {
-    setEndStateInfo(ExecHandleState.FAILED,exitCode,new RuntimeException("exitCode != 0!"));
+  if (exitCode != normalTerminationExitCode) {
+    setEndStateInfo(ExecHandleState.FAILED,exitCode,new RuntimeException("exitCode != " + normalTerminationExitCode + "!"));
     shutdownThreadPool();
-    new Thread(new FailedNotifier(this,listeners)).start();
+    ThreadUtils.run(notifierFactory.createFailedNotifier(this));
   }
  else {
     setEndStateInfo(ExecHandleState.SUCCEEDED,0,null);
     shutdownThreadPool();
-    new Thread(new FinishedNotifier(this,listeners)).start();
+    ThreadUtils.run(notifierFactory.createSucceededNotifier(this));
   }
 }
