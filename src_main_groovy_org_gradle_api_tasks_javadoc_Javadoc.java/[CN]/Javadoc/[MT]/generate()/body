@@ -3,23 +3,21 @@
   try {
     final File javadocCommandLineFile=new File(getDestinationDir(),"javadoc.options");
     storeJavadocOptions(existingSourceDirs,javadocCommandLineFile);
-    final ExecHandleBuilder execHandleBuilder=new ExecHandleBuilder(true).execDirectory(getProject().getRootDir()).execCommand(System.getProperty("java.home") + "/bin/javadoc").prependedArguments("-J",options.getJFlags()).arguments("@" + javadocCommandLineFile.getAbsolutePath());
+    final ExecHandleBuilder execHandleBuilder=new ExecHandleBuilder(true).execDirectory(getProject().getRootDir()).execCommand(JavaEnvUtils.getJdkExecutable("javadoc")).prependedArguments("-J",options.getJFlags()).arguments("@" + javadocCommandLineFile.getAbsolutePath());
     final ExecHandle execHandle=execHandleBuilder.getExecHandle();
 switch (execHandle.startAndWaitForFinish()) {
 case SUCCEEDED:
       break;
 case ABORTED:
-    break;
+    throw new GradleException("Javadoc generation ended in aborted state (should not happen)." + execHandle.getState());
 case FAILED:
-  throw new GradleException("Javadoc generation failed.",execHandle.getFailureCause());
+  if (failOnError)   throw new GradleException("Javadoc generation failed.",execHandle.getFailureCause());
+ else   break;
 default :
 throw new GradleException("Javadoc generation ended in an unkown end state." + execHandle.getState());
 }
 }
- catch (BuildException e) {
-throw new GradleException("Javadoc generation failed.",e);
-}
-catch (IOException e) {
+ catch (IOException e) {
 throw new GradleException("Faild to store javadoc options.",e);
 }
 }
