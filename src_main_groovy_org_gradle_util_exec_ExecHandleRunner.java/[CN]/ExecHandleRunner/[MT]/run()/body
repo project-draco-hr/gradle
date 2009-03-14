@@ -1,13 +1,13 @@
 {
   final ProcessBuilder processBuilder=processBuilderFactory.createProcessBuilder(execHandle);
   final long keepWaitingTimeout=execHandle.getKeepWaitingTimeout();
-  execHandle.started();
   try {
     final Process process=processBuilder.start();
     final ExecOutputHandleRunner standardOutputHandleRunner=new ExecOutputHandleRunner(process.getInputStream(),execHandle.getStandardOutputHandle());
     final ExecOutputHandleRunner errorOutputHandleRunner=new ExecOutputHandleRunner(process.getErrorStream(),execHandle.getErrorOutputHandle());
     threadPool.execute(standardOutputHandleRunner);
     threadPool.execute(errorOutputHandleRunner);
+    execHandle.started();
     boolean processFinishedNormally=false;
     while (keepWaiting.get() && !processFinishedNormally) {
       try {
