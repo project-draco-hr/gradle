@@ -1,11 +1,19 @@
 {
   task.setDestinationDir(destDir);
   task.setSrcDirs(srcDirs);
+  task.getOptions().exclude("exclude");
   context.checking(new Expectations(){
 {
       one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir,srcDirs);
       will(returnValue(srcDirs));
-      one(antJavadoc).execute(srcDirs,destDir,classpath,null,null,WrapUtil.toList("include"),WrapUtil.toList("exclude"),false,getProject().getAnt());
+    }
+  }
+);
+  expectJavadocExecHandle();
+  context.checking(new Expectations(){
+{
+      one(execHandleMock).startAndWaitForFinish();
+      will(returnValue(ExecHandleState.SUCCEEDED));
     }
   }
 );
