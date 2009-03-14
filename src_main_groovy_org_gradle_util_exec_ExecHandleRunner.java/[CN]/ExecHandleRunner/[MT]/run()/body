@@ -8,13 +8,14 @@
     threadPool.execute(standardOutputHandleRunner);
     threadPool.execute(errorOutputHandleRunner);
     execHandle.started();
+    int exitCode=-1;
     boolean processFinishedNormally=false;
     while (keepWaiting.get() && !processFinishedNormally) {
       try {
-        process.waitFor();
+        exitCode=process.exitValue();
         processFinishedNormally=true;
       }
- catch (      InterruptedException e) {
+ catch (      IllegalThreadStateException e) {
       }
       try {
         Thread.sleep(keepWaitingTimeout);
@@ -27,7 +28,6 @@
       execHandle.aborted();
     }
  else {
-      final int exitCode=process.exitValue();
       execHandle.finished(exitCode);
     }
   }

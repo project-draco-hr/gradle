@@ -1,6 +1,39 @@
 {
   List<File> existingSourceDirs=existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(),getSrcDirs());
-  options.sourcepath(existingSourceDirs).directory(getDestinationDir()).classpath(getClasspath()).classpath((File)getProject().getConvention().getProperty("classesDir")).windowTitle("\"" + getTitle() + "\"").exclude("**/package.html");
-  if (maxMemory != null)   options.jFlags("-Xmx" + maxMemory);
+  final File destinationDir=getDestinationDir();
+  if (!destinationDir.exists()) {
+    if (!destinationDir.mkdirs())     throw new GradleException("Failed to create destination directory " + destinationDir.getAbsolutePath());
+  }
+  if (options.getDestinationDirectory() == null)   options.destinationDirectory(destinationDir);
+  if (options.getSourcepath().isEmpty() || alwaysAppendDefaultSourcepath)   options.sourcepath(existingSourceDirs);
+  if (options.getClasspath().isEmpty() || alwaysAppendDefaultClasspath) {
+    options.classpath(getClasspath()).classpath(getClassesDir());
+  }
+  if (StringUtils.isEmpty(options.getWindowTitle()))   options.windowTitle("\"" + getTitle() + "\"");
+  if (options.getPackageNames().isEmpty() && options.getSourceNames().isEmpty() && options.getSubPackages().isEmpty()) {
+    for (    File srcDir : getSrcDirs()) {
+      if (srcDir.exists()) {
+        for (        File packageDir : srcDir.listFiles()) {
+          if (packageDir.isDirectory()) {
+            final String packageDirName=packageDir.getName();
+            options.subPackages(packageDirName);
+            if (logger.isDebugEnabled()) {
+              logger.debug("Added {} package to subPackages Javadoc option",packageDirName);
+            }
+          }
+        }
+      }
+    }
+  }
+  if (maxMemory != null) {
+    final List<String> jFlags=options.getJFlags();
+    final Iterator<String> jFlagsIt=jFlags.iterator();
+    boolean containsXmx=false;
+    while (!containsXmx && jFlagsIt.hasNext()) {
+      final String jFlag=jFlagsIt.next();
+      if (jFlag.startsWith("-Xmx"))       containsXmx=true;
+    }
+    if (!containsXmx)     options.jFlags("-Xmx" + maxMemory);
+  }
   executeExternalJavadoc();
 }
