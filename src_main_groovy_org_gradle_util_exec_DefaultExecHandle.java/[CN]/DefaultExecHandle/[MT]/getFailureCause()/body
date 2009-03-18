@@ -1,4 +1,10 @@
 {
-  if (!stateEquals(ExecHandleState.FAILED))   throw new IllegalStateException("not in failed state!");
-  return failureCause;
+  lock.lock();
+  try {
+    if (!stateIn(ExecHandleState.FAILED))     throw new IllegalStateException("not in failed state!");
+    return failureCause;
+  }
+  finally {
+    lock.unlock();
+  }
 }

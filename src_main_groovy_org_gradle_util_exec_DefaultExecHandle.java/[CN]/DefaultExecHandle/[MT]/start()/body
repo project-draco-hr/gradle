@@ -1,18 +1,23 @@
 {
-  if (stateEquals(ExecHandleState.STARTED))   throw new IllegalStateException("already started!");
-  execHandleRunLock.lock();
+  lock.lock();
   try {
-    setState(ExecHandleState.INIT);
+    if (!stateIn(ExecHandleState.INIT))     throw new IllegalStateException("already started!");
+    setState(ExecHandleState.STARTING);
     exitCode=-1;
     failureCause=null;
     threadPool=Executors.newFixedThreadPool(3);
     execHandleRunner=new ExecHandleRunner(this,threadPool);
     threadPool.execute(execHandleRunner);
-    while (getState() == ExecHandleState.INIT) {
-      Thread.yield();
+    while (getState() == ExecHandleState.STARTING) {
+      try {
+        stateChange.await();
+      }
+ catch (      InterruptedException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
   finally {
-    execHandleRunLock.unlock();
+    lock.unlock();
   }
 }
