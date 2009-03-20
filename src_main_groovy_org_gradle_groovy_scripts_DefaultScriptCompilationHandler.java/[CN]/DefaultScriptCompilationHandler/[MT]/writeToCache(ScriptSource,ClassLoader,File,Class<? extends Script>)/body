@@ -5,12 +5,17 @@
   CompilerConfiguration configuration=createBaseCompilerConfiguration(scriptBaseClass);
   configuration.setTargetDirectory(scriptCacheDir);
   CompilationUnit unit=new CompilationUnit(configuration,null,new GroovyClassLoader(classLoader));
+  String scriptName=source.getClassName();
+  String scriptText=source.getText();
   unit.addSource(scriptName,new ByteArrayInputStream(scriptText == null ? new byte[0] : scriptText.getBytes()));
   try {
     unit.compile();
   }
- catch (  CompilationFailedException e) {
-    throw new GradleException(e);
+ catch (  MultipleCompilationErrorsException e) {
+    throw new GradleScriptException(String.format("Could not compile %s.",source.getDisplayName()),e,source,e.getErrorCollector().getSyntaxError(0).getLine());
+  }
+catch (  CompilationFailedException e) {
+    throw new GradleException(String.format("Could not compile %s.",source.getDisplayName()),e);
   }
   boolean emptyScript=false;
   if (unit.getClasses().isEmpty()) {
