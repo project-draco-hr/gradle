@@ -2,6 +2,6 @@
   testFile("settings.gradle").writelns("include 'child1', 'child2'");
   TestFile buildFile=testFile("build.gradle");
   buildFile.writelns("createTask('a')","allprojects {","    createTask('b')","    createTask('c', dependsOn: ['b', ':a'])","}");
-  usingBuildFile(buildFile).runTasks("a","c").assertTasksExecuted(":a",":b",":c",":child1:b",":child1:c",":child2:b",":child2:c");
-  usingBuildFile(buildFile).runTasks("b",":child2:c").assertTasksExecuted(":b",":child1:b",":child2:b",":a",":child2:c");
+  usingBuildFile(buildFile).withTasks("a","c").run().assertTasksExecuted(":a",":b",":c",":child1:b",":child1:c",":child2:b",":child2:c");
+  usingBuildFile(buildFile).withTasks("b",":child2:c").run().assertTasksExecuted(":b",":child1:b",":child2:b",":a",":child2:c");
 }

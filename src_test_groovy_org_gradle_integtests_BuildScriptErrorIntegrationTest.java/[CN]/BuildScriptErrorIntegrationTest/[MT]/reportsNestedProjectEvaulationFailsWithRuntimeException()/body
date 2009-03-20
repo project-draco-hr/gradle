@@ -4,7 +4,7 @@
   buildFile.writelns("dependsOn 'child'","createTask('t')");
   TestFile childBuildFile=testFile("child/build.gradle");
   childBuildFile.writelns("def broken = { ->","    throw new RuntimeException('failure') }","broken()");
-  GradleExecutionFailure failure=inTestDirectory().runTasksAndExpectFailure("t");
+  ExecutionFailure failure=inTestDirectory().withTasks("t").runWithFailure();
   failure.assertHasFileName(String.format("Build file '%s'",childBuildFile));
   failure.assertHasLineNumber(2);
   failure.assertHasContext("A problem occurred evaluating project ':child'");
