@@ -1,0 +1,14 @@
+{
+  final String clientModuleNotation="someNotation";
+  final Closure configureClosure=HelperUtil.toClosure("{}");
+  final ClientModule clientModuleDummy=context.mock(ClientModule.class);
+  context.checking(new Expectations(){
+{
+      allowing(dependencyFactoryStub).createModule(clientModuleNotation,configureClosure);
+      will(returnValue(clientModuleDummy));
+    }
+  }
+);
+  moduleFactoryDelegate.module(clientModuleNotation,configureClosure);
+  assertThat(this.clientModule.getDependencies(),Matchers.equalTo(WrapUtil.<Dependency>toSet(clientModuleDummy)));
+}

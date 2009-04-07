@@ -1,15 +1,15 @@
 {
-  context.setImposteriser(ClassImposteriser.INSTANCE);
-  dependencyManagerFactoryMock=context.mock(DependencyManagerFactory.class);
-  taskFactoryMock=context.mock(ITaskFactory.class);
-  buildScriptProcessor=context.mock(BuildScriptProcessor.class);
-  pluginRegistry=context.mock(PluginRegistry.class);
-  build=context.mock(BuildInternal.class);
-  projectRegistry=context.mock(IProjectRegistry.class);
-  antBuilderFactory=context.mock(AntBuilderFactory.class);
   context.checking(new Expectations(){
 {
-      allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)),with(any(File.class)));
+      allowing(repositoryHandlerFactory).createRepositoryHandler();
+      will(returnValue(repositoryHandler));
+      allowing(repositoryHandlerFactory).setConvention(with(any(Convention.class)));
+    }
+  }
+);
+  context.checking(new Expectations(){
+{
+      allowing(configurationContainerFactory).createConfigurationContainer(with(any(ResolverProvider.class)),with(any(DependencyMetaDataProvider.class)));
       allowing(projectRegistry).addProject(with(any(ProjectInternal.class)));
       allowing(build).getProjectRegistry();
       will(returnValue(projectRegistry));
@@ -20,5 +20,5 @@
     }
   }
 );
-  projectFactory=new ProjectFactory(taskFactoryMock,dependencyManagerFactoryMock,buildScriptProcessor,pluginRegistry,null,antBuilderFactory);
+  projectFactory=new ProjectFactory(taskFactoryMock,configurationContainerFactory,dependencyFactoryMock,repositoryHandlerFactory,publishArtifactFactoryMock,internalRepositoryDummy,buildScriptProcessor,pluginRegistry,null,antBuilderFactory);
 }

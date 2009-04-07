@@ -1,17 +1,18 @@
 {
-  final DefaultDependencyDescriptor dependencyDescriptor4=new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org3","name3","rev3"),false);
-  List<DependencyDescriptor> testDependencies=WrapUtil.<DependencyDescriptor>toList(dependencyDescriptor1,dependencyDescriptor2,dependencyDescriptor3,dependencyDescriptor4);
+  final Dependency dependency4=createDependency("org4","name4","rev4");
+  final String unmappedConfName="unmappedConf";
+  final Configuration unmappedConfigurationStub=createNamedConfigurationStubWithDependencies(unmappedConfName,dependency4);
   context.checking(new Expectations(){
 {
       allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs();
       will(returnValue(false));
-      allowing(conf2ScopeMappingContainerMock).getScope(dependencyDescriptor4.getModuleConfigurations());
+      allowing(conf2ScopeMappingContainerMock).getScope(unmappedConfName);
       will(returnValue(null));
     }
   }
 );
-  List<MavenDependency> actualMavenDependencies=dependenciesConverter.convert(pomMock,testDependencies);
+  List<MavenDependency> actualMavenDependencies=dependenciesConverter.convert(pomMock,WrapUtil.toSet(configurationCompileConfStub,configurationTestCompileConfStub,unmappedConfigurationStub));
   assertEquals(5,actualMavenDependencies.size());
-  chechCommonMavenDependencies(actualMavenDependencies);
-  Assert.assertThat(actualMavenDependencies,Matchers.hasItem((MavenDependency)DefaultMavenDependency.newInstance("org3","name3","rev3",null,null)));
+  checkCommonMavenDependencies(actualMavenDependencies);
+  Assert.assertThat(actualMavenDependencies,Matchers.hasItem((MavenDependency)DefaultMavenDependency.newInstance("org4","name4","rev4",null,null)));
 }

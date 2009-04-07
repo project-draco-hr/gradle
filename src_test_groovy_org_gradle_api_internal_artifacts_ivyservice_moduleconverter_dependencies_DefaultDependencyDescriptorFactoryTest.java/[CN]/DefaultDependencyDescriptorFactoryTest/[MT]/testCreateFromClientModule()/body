@@ -1,0 +1,17 @@
+{
+  dependencyDescriptorFactory.setClientModuleDescriptorFactory(context.mock(ClientModuleDescriptorFactory.class));
+  final HashMap testModuleRegistry=new HashMap();
+  final DefaultClientModule clientModule=(DefaultClientModule)setUpExternalDependency(new DefaultClientModule("org.gradle","gradle-core","1.0"));
+  final Dependency dependencyDependency=context.mock(Dependency.class,"dependencyDependency");
+  clientModule.addDependency(dependencyDependency);
+  final ModuleRevisionId testModuleRevisionId=createModuleRevisionIdFromDependency(clientModule,WrapUtil.toMap(ClientModule.CLIENT_MODULE_KEY,clientModule.getId()));
+  context.checking(new Expectations(){
+{
+      allowing(dependencyDescriptorFactory.getClientModuleDescriptorFactory()).createModuleDescriptor(testModuleRevisionId,WrapUtil.toSet(dependencyDependency),dependencyDescriptorFactory,testModuleRegistry);
+    }
+  }
+);
+  DefaultDependencyDescriptor dependencyDescriptor=(DefaultDependencyDescriptor)dependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF,TEST_PARENT,clientModule,testModuleRegistry);
+  assertDependencyDescriptorHasFixtureValuesForExternalDependencies(dependencyDescriptor,testModuleRevisionId);
+  assertFalse(dependencyDescriptor.isChanging());
+}

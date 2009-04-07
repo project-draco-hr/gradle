@@ -1,0 +1,23 @@
+{
+  dependency1=createDependency("org1","name1","rev1");
+  dependency2=createDependency("org2","name2","rev2");
+  dependency31=createDependency("org3","name3","rev3");
+  dependency32=createDependency("org3","name3","rev3");
+  dependency31.addArtifact(new DefaultDependencyArtifact("artifactName31","type31","ext",null,null));
+  dependency32.addArtifact(new DefaultDependencyArtifact("artifactName32","type32","ext",null,null));
+  configurationCompileConfStub=createNamedConfigurationStubWithDependencies(COMPILE_CONF_NAME,dependency1,dependency31);
+  configurationTestCompileConfStub=createNamedConfigurationStubWithDependencies(TEST_COMPILE_CONF_NAME,dependency2,dependency32);
+  context.checking(new Expectations(){
+{
+      allowing(conf2ScopeMappingContainerMock).getScope(TEST_COMPILE_CONF_NAME,COMPILE_CONF_NAME);
+      will(returnValue("test"));
+      allowing(conf2ScopeMappingContainerMock).getScope(COMPILE_CONF_NAME,TEST_COMPILE_CONF_NAME);
+      will(returnValue("test"));
+      allowing(conf2ScopeMappingContainerMock).getScope(TEST_COMPILE_CONF_NAME);
+      will(returnValue("test"));
+      allowing(conf2ScopeMappingContainerMock).getScope(COMPILE_CONF_NAME);
+      will(returnValue("compile"));
+    }
+  }
+);
+}

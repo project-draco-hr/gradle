@@ -1,0 +1,12 @@
+{
+  if (ivySettings != null) {
+    return ivySettings;
+  }
+  ChainResolver userResolverChain=createUserResolverChain(dependencyResolvers,internalRepository);
+  ClientModuleResolver clientModuleResolver=createClientModuleResolver(clientModuleRegistry,userResolverChain);
+  ChainResolver outerChain=createOuterChain(userResolverChain,clientModuleResolver);
+  IvySettings ivySettings=createIvySettings(gradleUserHome);
+  initializeResolvers(ivySettings,getAllResolvers(dependencyResolvers,Collections.<DependencyResolver>emptyList(),internalRepository,userResolverChain,clientModuleResolver,outerChain));
+  ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
+  return ivySettings;
+}

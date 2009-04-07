@@ -1,38 +1,34 @@
 {
   EclipseClasspath eclipseClasspath=(EclipseClasspath)project.createTask(GUtil.map("type",EclipseClasspath.class),ECLIPSE_CP);
   eclipseClasspath.conventionMapping(GUtil.map("srcDirs",new ConventionValue(){
-    public Object getValue(    Convention convention,    Task task){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
       return GUtil.addLists(java(convention).getSrcDirs(),java(convention).getResourceDirs());
     }
   }
 ,"testSrcDirs",new ConventionValue(){
-    public Object getValue(    Convention convention,    Task task){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
       return GUtil.addLists(java(convention).getTestSrcDirs(),java(convention).getTestResourceDirs());
     }
   }
 ,"outputDirectory",new ConventionValue(){
-    public Object getValue(    Convention convention,    Task task){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
       return java(convention).getClassesDir();
     }
   }
 ,"testOutputDirectory",new ConventionValue(){
-    public Object getValue(    Convention convention,    Task task){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
       return java(convention).getTestClassesDir();
     }
   }
 ,"classpathLibs",new ConventionValue(){
-    public Object getValue(    Convention convention,    final Task task){
-      return task.getProject().getDependencies().configuration(TEST_RUNTIME).resolve(new ResolveInstructionModifier(){
-        public ResolveInstruction modify(        ResolveInstruction resolveInstruction){
-          return new ResolveInstruction(resolveInstruction).setDependencySpec(new DependencyTypeSpec(Type.EXTERNAL)).setFailOnResolveError(((EclipseClasspath)task).getFailForMissingDependencies());
-        }
-      }
-);
+    public Object getValue(    Convention convention,    final IConventionAware conventionAwareObject){
+      ConfigurationContainer configurationContainer=((Task)conventionAwareObject).getProject().getConfigurations();
+      return new ArrayList(configurationContainer.get(TEST_RUNTIME).copyRecursive(DependencySpecs.type(Type.EXTERNAL)).resolve());
     }
   }
 ,"projectDependencies",new ConventionValue(){
-    public Object getValue(    Convention convention,    Task task){
-      return task.getProject().getDependencies().getDependencies(new DependencyTypeSpec(Type.PROJECT));
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return new ArrayList(((Task)conventionAwareObject).getProject().getConfigurations().get(TEST_RUNTIME).getAllProjectDependencies());
     }
   }
 ));

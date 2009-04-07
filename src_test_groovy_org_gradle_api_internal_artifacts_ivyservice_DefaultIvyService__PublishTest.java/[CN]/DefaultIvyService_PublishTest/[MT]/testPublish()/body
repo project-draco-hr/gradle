@@ -1,0 +1,17 @@
+{
+  final Set<Configuration> configurations=createConfigurations();
+  final PublishInstruction publishInstructionDummy=new PublishInstruction();
+  final List<DependencyResolver> publishResolversDummy=createPublishResolversDummy();
+  Module moduleDummy=context.mock(Module.class);
+  File cacheParentDirDummy=createCacheParentDirDummy();
+  final DefaultIvyService ivyService=createIvyService();
+  setUpForPublish(configurations,publishInstructionDummy,publishResolversDummy,moduleDummy,cacheParentDirDummy,ivyService);
+  final Set<String> expectedConfigurations=Configurations.getNames(configurations,true);
+  context.checking(new Expectations(){
+{
+      one(ivyService.getDependencyPublisher()).publish(expectedConfigurations,publishInstructionDummy,publishResolversDummy,moduleDescriptorDummy,publishEngineDummy);
+    }
+  }
+);
+  ivyService.publish(configurations,publishInstructionDummy,publishResolversDummy,moduleDummy,cacheParentDirDummy);
+}

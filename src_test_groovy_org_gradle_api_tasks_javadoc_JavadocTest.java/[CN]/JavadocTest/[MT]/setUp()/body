@@ -1,15 +1,14 @@
 {
   super.setUp();
-  context.setImposteriser(ClassImposteriser.INSTANCE);
-  javadocExecHandleBuilderMock=context.mock(JavadocExecHandleBuilder.class);
-  execHandleMock=context.mock(ExecHandle.class);
-  existingDirsFilter=context.mock(ExistingDirsFilter.class);
-  dependencyManager=context.mock(DependencyManager.class);
-  configurationMock=context.mock(ConfigurationResolver.class);
   task=new Javadoc(getProject(),AbstractTaskTest.TEST_TASK_NAME);
   task.setExistentDirsFilter(existingDirsFilter);
-  task.setDependencyManager(dependencyManager);
-  task.setResolveInstruction(new ConfigurationResolveInstructionModifier("testConf"));
-  JMockUtil.configureResolve(context,task.getResolveInstruction(),dependencyManager,configurationMock,classpath);
+  task.setConfiguration(configurationMock);
   task.setJavadocExecHandleBuilder(javadocExecHandleBuilderMock);
+  context.checking(new Expectations(){
+{
+      allowing(configurationMock).resolve();
+      will(returnValue(classpath));
+    }
+  }
+);
 }

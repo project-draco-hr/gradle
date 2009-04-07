@@ -1,0 +1,16 @@
+{
+  return new TaskDependency(){
+    public Set<? extends Task> getDependencies(    Task task){
+      DefaultTaskDependency taskDependency=new DefaultTaskDependency();
+      for (      Configuration configuration : getExtendsFrom()) {
+        taskDependency.add(configuration.getBuildProjectDependencies());
+      }
+      for (      ProjectDependency projectDependency : getProjectDependencies()) {
+        Configuration configuration=projectDependency.getDependencyProject().getConfigurations().get(projectDependency.getDependencyConfiguration());
+        taskDependency.add(projectDependency.getDependencyProject().task(configuration.getUploadInternalTaskName()));
+      }
+      return taskDependency.getDependencies(task);
+    }
+  }
+;
+}

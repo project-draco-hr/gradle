@@ -1,15 +1,15 @@
 {
-  test.setResolveInstruction(new ConfigurationResolveInstructionModifier("someConf"));
   test.setTestClassesDir(TEST_TEST_CLASSES_DIR);
   test.setTestResultsDir(TEST_TEST_RESULTS_DIR);
   test.setTestReportDir(TEST_TEST_REPORT_DIR);
   test.setUnmanagedClasspath(TEST_UNMANAGED_CLASSPATH);
-  test.setDependencyManager(dependencyManagerMock);
+  test.setConfiguration(configurationMock);
   test.classpathConverter=classpathConverterMock;
-  JMockUtil.configureResolve(context,test.getResolveInstruction(),dependencyManagerMock,configurationMock,TEST_DEPENDENCY_MANAGER_CLASSPATH);
   context.checking(new Expectations(){
 {
-      allowing(classpathConverterMock).createFileClasspath(TEST_ROOT_DIR,GUtil.addLists(WrapUtil.toList(TEST_TEST_CLASSES_DIR),TEST_UNMANAGED_CLASSPATH,TEST_DEPENDENCY_MANAGER_CLASSPATH));
+      allowing(configurationMock).resolve();
+      will(returnValue(TEST_DEPENDENCY_MANAGER_CLASSPATH));
+      allowing(classpathConverterMock).createFileClasspath(TEST_ROOT_DIR,GUtil.addLists(WrapUtil.toList(TEST_TEST_CLASSES_DIR),TEST_UNMANAGED_CLASSPATH,new ArrayList(TEST_DEPENDENCY_MANAGER_CLASSPATH)));
       will(returnValue(TEST_CONVERTED_CLASSPATH));
     }
   }

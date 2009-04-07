@@ -1,0 +1,14 @@
+{
+  final Point point=createAnonymousPoint();
+  final Dependency pointDependencyMock=context.mock(Dependency.class,"PointDependency");
+  context.checking(new Expectations(){
+{
+      allowing(testImplPointFactoryStub).createDependency(point);
+      will(returnValue(pointDependencyMock));
+      one(pointDependencyMock).setTransitive(true);
+    }
+  }
+);
+  Closure configureClosure=HelperUtil.toClosure("{ transitive = true }");
+  assertSame(pointDependencyMock,dependencyFactory.createDependency(point,configureClosure));
+}

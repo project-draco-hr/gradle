@@ -1,0 +1,17 @@
+{
+  ResolverProvider resolverProviderDummy=context.mock(ResolverProvider.class);
+  final DependencyMetaDataProvider dependencyMetaDataProviderStub=context.mock(DependencyMetaDataProvider.class);
+  final InternalRepository internalRepository=context.mock(InternalRepository.class);
+  context.checking(new Expectations(){
+{
+      allowing(dependencyMetaDataProviderStub).getInternalRepository();
+      will(returnValue(internalRepository));
+    }
+  }
+);
+  DefaultConfigurationContainer configurationContainer=(DefaultConfigurationContainer)new DefaultConfigurationContainerFactory().createConfigurationContainer(resolverProviderDummy,dependencyMetaDataProviderStub);
+  assertThat(configurationContainer.getIvyService(),IsNull.notNullValue());
+  assertThat(configurationContainer.getIvyService().getInternalRepository(),sameInstance(internalRepository));
+  assertThat(configurationContainer.getDependencyMetaDataProvider(),sameInstance(dependencyMetaDataProviderStub));
+  assertThat(configurationContainer.getResolverProvider(),sameInstance(resolverProviderDummy));
+}

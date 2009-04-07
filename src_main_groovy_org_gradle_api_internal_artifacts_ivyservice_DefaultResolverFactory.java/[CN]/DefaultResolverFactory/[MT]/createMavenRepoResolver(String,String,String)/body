@@ -1,27 +1,10 @@
 {
-  IBiblioResolver iBiblioResolver=new IBiblioResolver();
-  iBiblioResolver.setUsepoms(true);
-  iBiblioResolver.setName(name);
-  iBiblioResolver.setRoot(root);
-  iBiblioResolver.setPattern(DependencyManager.MAVEN_REPO_PATTERN);
-  iBiblioResolver.setM2compatible(true);
-  iBiblioResolver.setUseMavenMetadata(true);
+  IBiblioResolver iBiblioResolver=createIBiblioResolver(name,root);
   if (jarRepoUrls.length == 0) {
     iBiblioResolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
     return iBiblioResolver;
   }
   iBiblioResolver.setName(iBiblioResolver.getName() + "_poms");
-  DualResolver dualResolver=new DualResolver();
-  dualResolver.setName(name);
-  dualResolver.setIvyResolver(iBiblioResolver);
-  URLResolver urlResolver=new URLResolver();
-  urlResolver.setName(name + "_jars");
-  urlResolver.setM2compatible(true);
-  urlResolver.addArtifactPattern(root + '/' + DependencyManager.MAVEN_REPO_PATTERN);
-  for (  String jarRepoUrl : jarRepoUrls) {
-    urlResolver.addArtifactPattern(jarRepoUrl + '/' + DependencyManager.MAVEN_REPO_PATTERN);
-  }
-  dualResolver.setArtifactResolver(urlResolver);
-  dualResolver.setDescriptor(DualResolver.DESCRIPTOR_OPTIONAL);
-  return dualResolver;
+  URLResolver urlResolver=createUrlResolver(name,root,jarRepoUrls);
+  return createDualResolver(name,iBiblioResolver,urlResolver);
 }

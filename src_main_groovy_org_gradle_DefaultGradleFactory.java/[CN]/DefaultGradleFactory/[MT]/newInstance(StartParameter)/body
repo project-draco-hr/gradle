@@ -3,11 +3,15 @@
   ImportsReader importsReader=new ImportsReader(startParameter.getDefaultImportsFile());
   IScriptProcessor scriptProcessor=new DefaultScriptProcessor(new DefaultScriptCompilationHandler(new DefaultCachePropertiesHandler()),startParameter.getCacheUsage());
   ISettingsFinder settingsFinder=new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy())));
-  DependencyManagerFactory dependencyManagerFactory=new DefaultDependencyManagerFactory(settingsFinder,startParameter.getCacheUsage());
-  Gradle gradle=new Gradle(startParameter,settingsFinder,new DefaultGradlePropertiesLoader(),new ScriptLocatingSettingsProcessor(new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(new DefaultSettingsScriptMetaData(),scriptProcessor,importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry(),dependencyManagerFactory,new BuildSourceBuilder(new DefaultGradleFactory(new LoggingConfigurer(){
+  ConfigurationContainerFactory configurationContainerFactory=new DefaultConfigurationContainerFactory();
+  DefaultInternalRepository internalRepository=new DefaultInternalRepository();
+  DependencyFactory dependencyFactory=new DefaultDependencyFactory(WrapUtil.toSet(new ModuleDependencyFactory(),new ProjectDependencyFactory()),new DefaultClientModuleFactory());
+  ResolverFactory resolverFactory=new DefaultResolverFactory();
+  Gradle gradle=new Gradle(startParameter,settingsFinder,new DefaultGradlePropertiesLoader(),new ScriptLocatingSettingsProcessor(new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(new DefaultSettingsScriptMetaData(),scriptProcessor,importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry(),dependencyFactory,new DefaultResolverContainer(resolverFactory,null),configurationContainerFactory,internalRepository,new BuildSourceBuilder(new DefaultGradleFactory(new LoggingConfigurer(){
     public void configure(    LogLevel logLevel){
     }
   }
-),new DefaultCacheInvalidationStrategy()))))),new BuildLoader(new ProjectFactory(new TaskFactory(),dependencyManagerFactory,new BuildScriptProcessor(scriptProcessor,new DefaultProjectScriptMetaData(),importsReader),new PluginRegistry(startParameter.getPluginPropertiesFile()),startParameter.getBuildScriptSource(),new DefaultAntBuilderFactory(new AntLoggingAdapter()))),new BuildConfigurer(new ProjectDependencies2TaskResolver()));
+),new DefaultCacheInvalidationStrategy()))))),new BuildLoader(new ProjectFactory(new TaskFactory(),configurationContainerFactory,dependencyFactory,new DefaultRepositoryHandlerFactory(resolverFactory),new DefaultPublishArtifactFactory(),internalRepository,new BuildScriptProcessor(scriptProcessor,new DefaultProjectScriptMetaData(),importsReader),new PluginRegistry(startParameter.getPluginPropertiesFile()),startParameter.getBuildScriptSource(),new DefaultAntBuilderFactory(new AntLoggingAdapter()))),new BuildConfigurer(new ProjectDependencies2TaskResolver()));
+  gradle.addBuildListener(internalRepository);
   return gradle;
 }

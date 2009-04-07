@@ -1,21 +1,10 @@
 {
-  String confName1="conf1";
-  String confName2="conf2";
-  final DefaultModuleDescriptor moduleDescriptor=HelperUtil.getTestModuleDescriptor(WrapUtil.toSet(confName1,confName2));
-  final Set<DefaultConfiguration> testConfs=HelperUtil.createConfigurations(confName1,confName2);
-  context.checking(new Expectations(){
-{
-      allowing(artifactContainerMock).getArtifacts(HelperUtil.TEST_SEPC);
-      will(returnValue(WrapUtil.toSet(publishArtifactMock)));
-      allowing(publishArtifactMock).getConfigurations();
-      will(returnValue(testConfs));
-      allowing(publishArtifactMock).createIvyArtifact(moduleDescriptor.getModuleRevisionId());
-      will(returnValue(ivyArtifact));
-    }
-  }
-);
-  artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor,artifactContainerMock,HelperUtil.TEST_SEPC);
-  assertThat(moduleDescriptor.getArtifacts(confName1),equalTo(WrapUtil.toArray(ivyArtifact)));
-  assertThat(moduleDescriptor.getArtifacts(confName2),equalTo(WrapUtil.toArray(ivyArtifact)));
-  assertThat(moduleDescriptor.getAllArtifacts().length,equalTo(1));
+  DefaultArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter=new DefaultArtifactsToModuleDescriptorConverter();
+  Configuration configurationStub1=createConfigurationStub("conf1");
+  Configuration configurationStub2=createConfigurationStub("conf2");
+  DefaultModuleDescriptor moduleDescriptor=HelperUtil.createModuleDescriptor(WrapUtil.toSet(configurationStub1.getName(),configurationStub2.getName()));
+  artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor,WrapUtil.toSet(configurationStub1,configurationStub2));
+  assertArtifactIsAdded(configurationStub1,moduleDescriptor);
+  assertArtifactIsAdded(configurationStub2,moduleDescriptor);
+  assertThat(moduleDescriptor.getAllArtifacts().length,equalTo(2));
 }
