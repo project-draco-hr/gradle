@@ -1,10 +1,16 @@
 {
-  Javadoc javadoc=(Javadoc)project.task(JAVADOC);
-  javadoc.exclude("**/*.groovy");
-  javadoc.conventionMapping(WrapUtil.<String,ConventionValue>toMap("srcDirs",new ConventionValue(){
-    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
-      return GUtil.addLists(convention.getPlugin(JavaPluginConvention.class).getSrcDirs(),groovy(convention).getGroovySrcDirs());
+  TaskLifecycleListener<Javadoc> taskListener=new TaskLifecycleListener<Javadoc>(){
+    public void taskAdded(    Javadoc javadoc){
+      javadoc.exclude("**/*.groovy");
+      javadoc.conventionMapping(WrapUtil.<String,ConventionValue>toMap("srcDirs",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return GUtil.addLists(convention.getPlugin(JavaPluginConvention.class).getSrcDirs(),groovy(convention).getGroovySrcDirs());
+        }
+      }
+));
     }
   }
-));
+;
+  project.addTaskLifecycleListener(Javadoc.class,taskListener);
+  taskListener.taskAdded((Javadoc)project.task(JAVADOC));
 }

@@ -1,21 +1,18 @@
 {
-  project.addTaskLifecycleListener(new TaskLifecycleListener(){
-    public void taskAdded(    Task task){
-      if (task instanceof Test) {
-        Test test=(Test)task;
-        test.dependsOn(TEST_COMPILE);
-        test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
-        test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME));
-        addDependsOnProjectDependencies(test,TEST_RUNTIME);
-        test.doFirst(new TaskAction(){
-          public void execute(          Task task){
-            Test test=(Test)task;
-            List unmanagedClasspathFromTestCompile=((Compile)test.getProject().task(TEST_COMPILE)).getUnmanagedClasspath();
-            test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(new Object[unmanagedClasspathFromTestCompile.size()]));
-          }
+  project.addTaskLifecycleListener(Test.class,new TaskLifecycleListener<Test>(){
+    public void taskAdded(    Test test){
+      test.dependsOn(TEST_COMPILE);
+      test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
+      test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME));
+      addDependsOnProjectDependencies(test,TEST_RUNTIME);
+      test.doFirst(new TaskAction(){
+        public void execute(        Task task){
+          Test test=(Test)task;
+          List unmanagedClasspathFromTestCompile=((Compile)test.getProject().task(TEST_COMPILE)).getUnmanagedClasspath();
+          test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(new Object[unmanagedClasspathFromTestCompile.size()]));
         }
-);
       }
+);
     }
   }
 );
