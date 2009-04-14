@@ -1,12 +1,11 @@
 {
-  final String someConfName="someConfiguration";
-  final Configuration someConfigurationStub=createNamedConfigurationStubWithDependencies(someConfName,dependency1);
+  final Configuration someConfigurationStub=createNamedConfigurationStubWithDependencies("someConfiguration",dependency1);
   final DefaultMavenExclude mavenExclude=new DefaultMavenExclude("a","b");
   dependency1.exclude(WrapUtil.toMap("key","value"));
   context.checking(new Expectations(){
 {
-      allowing(conf2ScopeMappingContainerMock).getScope(someConfName);
-      will(returnValue("compile"));
+      allowing(conf2ScopeMappingContainerMock).getMapping(someConfigurationStub);
+      will(returnValue(createMapping(compileConfStub,"compile")));
       allowing(excludeRuleConverterMock).convert(dependency1.getExcludeRules().iterator().next());
       will(returnValue(mavenExclude));
     }
@@ -16,5 +15,5 @@
   assertEquals(1,actualMavenDependencies.size());
   Assert.assertThat(actualMavenDependencies,Matchers.hasItem((MavenDependency)DefaultMavenDependency.newInstance("org1","name1","rev1",null,"compile")));
   assertEquals(actualMavenDependencies.get(0).getMavenExcludes(),WrapUtil.toList(mavenExclude));
-  assertEquals(actualMavenDependencies.get(0).getScope(),COMPILE_CONF_NAME);
+  assertEquals(actualMavenDependencies.get(0).getScope(),"compile");
 }

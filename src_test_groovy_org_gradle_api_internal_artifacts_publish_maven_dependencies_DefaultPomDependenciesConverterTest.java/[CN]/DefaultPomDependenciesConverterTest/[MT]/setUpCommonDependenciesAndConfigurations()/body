@@ -1,22 +1,22 @@
 {
   dependency1=createDependency("org1","name1","rev1");
   dependency2=createDependency("org2","name2","rev2");
+  dependency2.addArtifact(new DefaultDependencyArtifact("name2",null,null,null,null));
   dependency31=createDependency("org3","name3","rev3");
   dependency32=createDependency("org3","name3","rev3");
-  dependency31.addArtifact(new DefaultDependencyArtifact("artifactName31","type31","ext",null,null));
-  dependency32.addArtifact(new DefaultDependencyArtifact("artifactName32","type32","ext",null,null));
-  configurationCompileConfStub=createNamedConfigurationStubWithDependencies(COMPILE_CONF_NAME,dependency1,dependency31);
-  configurationTestCompileConfStub=createNamedConfigurationStubWithDependencies(TEST_COMPILE_CONF_NAME,dependency2,dependency32);
+  dependency32.addArtifact(new DefaultDependencyArtifact("artifactName32","type32","ext","classifier32",null));
+  compileConfStub=createNamedConfigurationStubWithDependencies("compile",dependency1,dependency31);
+  testCompileConfStub=createNamedConfigurationStubWithDependencies("testCompile",dependency2,dependency32);
   context.checking(new Expectations(){
 {
-      allowing(conf2ScopeMappingContainerMock).getScope(TEST_COMPILE_CONF_NAME,COMPILE_CONF_NAME);
-      will(returnValue("test"));
-      allowing(conf2ScopeMappingContainerMock).getScope(COMPILE_CONF_NAME,TEST_COMPILE_CONF_NAME);
-      will(returnValue("test"));
-      allowing(conf2ScopeMappingContainerMock).getScope(TEST_COMPILE_CONF_NAME);
-      will(returnValue("test"));
-      allowing(conf2ScopeMappingContainerMock).getScope(COMPILE_CONF_NAME);
-      will(returnValue("compile"));
+      allowing(conf2ScopeMappingContainerMock).getMapping(testCompileConfStub,compileConfStub);
+      will(returnValue(createMapping(testCompileConfStub,"test")));
+      allowing(conf2ScopeMappingContainerMock).getMapping(compileConfStub,testCompileConfStub);
+      will(returnValue(createMapping(testCompileConfStub,"test")));
+      allowing(conf2ScopeMappingContainerMock).getMapping(WrapUtil.toArray(testCompileConfStub));
+      will(returnValue(createMapping(testCompileConfStub,"test")));
+      allowing(conf2ScopeMappingContainerMock).getMapping(WrapUtil.toArray(compileConfStub));
+      will(returnValue(createMapping(compileConfStub,"compile")));
     }
   }
 );

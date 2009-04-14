@@ -1,18 +1,17 @@
 {
   final Dependency dependency4=createDependency("org4","name4","rev4");
-  final String unmappedConfName="unmappedConf";
-  final Configuration unmappedConfigurationStub=createNamedConfigurationStubWithDependencies(unmappedConfName,dependency4);
+  final Configuration unmappedConfigurationStub=createNamedConfigurationStubWithDependencies("unmappedConf",dependency4);
   context.checking(new Expectations(){
 {
       allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs();
       will(returnValue(false));
-      allowing(conf2ScopeMappingContainerMock).getScope(unmappedConfName);
-      will(returnValue(null));
+      allowing(conf2ScopeMappingContainerMock).getMapping(unmappedConfigurationStub);
+      will(returnValue(new Conf2ScopeMapping(null,unmappedConfigurationStub,null)));
     }
   }
 );
-  List<MavenDependency> actualMavenDependencies=dependenciesConverter.convert(pomMock,WrapUtil.toSet(configurationCompileConfStub,configurationTestCompileConfStub,unmappedConfigurationStub));
-  assertEquals(5,actualMavenDependencies.size());
+  List<MavenDependency> actualMavenDependencies=dependenciesConverter.convert(pomMock,WrapUtil.toSet(compileConfStub,testCompileConfStub,unmappedConfigurationStub));
+  assertEquals(4,actualMavenDependencies.size());
   checkCommonMavenDependencies(actualMavenDependencies);
   Assert.assertThat(actualMavenDependencies,Matchers.hasItem((MavenDependency)DefaultMavenDependency.newInstance("org4","name4","rev4",null,null)));
 }
