@@ -3,7 +3,7 @@
   JavaPluginConvention javaConvention=new JavaPluginConvention(project,customValues);
   Convention convention=project.getConvention();
   convention.getPlugins().put("java",javaConvention);
-  configureConfigurations(project,javaConvention);
+  configureConfigurations(project);
   configureUploadRules(project);
   project.createTask(INIT);
   ((ConventionTask)project.createTask(GUtil.map("type",Clean.class),CLEAN)).conventionMapping(GUtil.map("dir",new ConventionValue(){
@@ -13,11 +13,11 @@
   }
 ));
   configureJavaDoc(project);
-  ((ConventionTask)project.createTask(GUtil.map("type",Resources.class,"dependsOn",INIT),RESOURCES)).conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
-  configureCompile((Compile)project.createTask(GUtil.map("type",Compile.class,"dependsOn",RESOURCES),COMPILE),DefaultConventionsToPropertiesMapping.COMPILE,project.getConfigurations());
-  configureTestResources(project);
-  configureTestCompile((Compile)project.createTask(GUtil.map("type",Compile.class,"dependsOn",TEST_RESOURCES),TEST_COMPILE),(Compile)project.task(COMPILE),DefaultConventionsToPropertiesMapping.TEST_COMPILE,project.getConfigurations());
+  configureResources(project);
+  configureCompile(project);
   configureTest(project);
+  configureTestResources(project);
+  configureTestCompile(project);
   configureLibs(project,javaConvention);
   configureDists(project,javaConvention);
   project.createTask(UPLOAD);
