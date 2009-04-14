@@ -2,9 +2,13 @@
   final String emptyScript="// ignore me\n";
   context.checking(new Expectations(){
 {
-      one(cachePropertiesHandlerMock).writeProperties(emptyScript,scriptCacheDir,true);
+      one(cachePropertiesHandlerMock).getCacheState(emptyScript,scriptCacheDir);
+      will(returnValue(CachePropertiesHandler.CacheState.VALID));
+      one(cachePropertiesHandlerMock).writeProperties(emptyScript,scriptCacheDir);
     }
   }
 );
-  scriptCompilationHandler.writeToCache(new StringScriptSource("script",emptyScript),classLoader,scriptCacheDir,expectedScriptClass);
+  StringScriptSource scriptSource=new StringScriptSource("script",emptyScript);
+  scriptCompilationHandler.writeToCache(scriptSource,classLoader,scriptCacheDir,expectedScriptClass);
+  assertThat(scriptCompilationHandler.loadFromCache(scriptSource,classLoader,scriptCacheDir,expectedScriptClass),Matchers.is(EmptyScript.class));
 }

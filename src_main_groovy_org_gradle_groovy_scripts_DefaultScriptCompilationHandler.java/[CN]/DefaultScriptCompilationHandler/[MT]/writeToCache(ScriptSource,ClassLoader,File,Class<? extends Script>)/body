@@ -7,7 +7,7 @@
   CompilationUnit unit=new CompilationUnit(configuration,null,new GroovyClassLoader(classLoader));
   String scriptName=source.getClassName();
   String scriptText=source.getText();
-  unit.addSource(scriptName,new ByteArrayInputStream(scriptText == null ? new byte[0] : scriptText.getBytes()));
+  unit.addSource(scriptName,new ByteArrayInputStream(scriptText.getBytes()));
   try {
     unit.compile();
   }
@@ -17,10 +17,6 @@
 catch (  CompilationFailedException e) {
     throw new GradleException(String.format("Could not compile %s.",source.getDisplayName()),e);
   }
-  boolean emptyScript=false;
-  if (unit.getClasses().isEmpty()) {
-    emptyScript=true;
-  }
-  cachePropertiesHandler.writeProperties(scriptText,scriptCacheDir,emptyScript);
+  cachePropertiesHandler.writeProperties(scriptText,scriptCacheDir);
   logger.debug("Timing: Writing script to cache at {} took: {}",scriptCacheDir.getAbsolutePath(),clock.getTime());
 }
