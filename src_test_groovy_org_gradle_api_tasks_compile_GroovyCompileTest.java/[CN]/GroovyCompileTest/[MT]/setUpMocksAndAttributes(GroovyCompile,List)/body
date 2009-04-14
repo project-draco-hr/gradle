@@ -1,6 +1,14 @@
 {
-  super.setUpMocksAndAttributes((Compile)compile);
-  compile.setGroovyClasspath(groovyClasspath);
+  super.setUpMocksAndAttributes(compile);
+  final FileCollection groovyClasspathCollection=context.mock(FileCollection.class);
+  context.checking(new Expectations(){
+{
+      allowing(groovyClasspathCollection).getFiles();
+      will(returnValue(new LinkedHashSet(groovyClasspath)));
+    }
+  }
+);
+  compile.setGroovyClasspath(groovyClasspathCollection);
   compile.setGroovySourceDirs(WrapUtil.toList(new File("groovySourceDir1"),new File("groovySourceDir2")));
   compile.existentDirsFilter=getGroovyCompileExistingDirsFilterMock();
   context.checking(new Expectations(){

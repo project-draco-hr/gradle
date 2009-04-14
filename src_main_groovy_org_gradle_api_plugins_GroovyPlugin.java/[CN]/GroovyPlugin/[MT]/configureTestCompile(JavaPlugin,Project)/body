@@ -1,13 +1,9 @@
 {
-  Compile testCompile=javaPlugin.configureTestCompile((Compile)project.createTask(GUtil.map("type",GroovyCompile.class,"overwrite",true),TEST_COMPILE),(Compile)project.task(COMPILE),DefaultConventionsToPropertiesMapping.TEST_COMPILE,project.getConfigurations());
+  GroovyCompile testCompile=(GroovyCompile)javaPlugin.configureTestCompile((Compile)project.createTask(GUtil.map("type",GroovyCompile.class,"overwrite",true),TEST_COMPILE),(Compile)project.task(COMPILE),DefaultConventionsToPropertiesMapping.TEST_COMPILE,project.getConfigurations());
+  testCompile.setGroovyClasspath(project.getConfigurations().get("groovy"));
   testCompile.conventionMapping(GUtil.map("groovySourceDirs",new ConventionValue(){
     public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
       return groovy(convention).getGroovyTestSrcDirs();
-    }
-  }
-,"groovyClasspath",new ConventionValue(){
-    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
-      return new ArrayList(((Task)conventionAwareObject).getProject().getConfigurations().get("groovy").resolve());
     }
   }
 ));
