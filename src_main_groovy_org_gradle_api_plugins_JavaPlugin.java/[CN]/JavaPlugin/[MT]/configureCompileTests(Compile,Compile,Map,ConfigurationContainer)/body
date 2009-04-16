@@ -1,0 +1,16 @@
+{
+  compileTests.setDependsOn(WrapUtil.toSet(PROCESS_TEST_RESOURCES_TASK_NAME));
+  compileTests.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
+  configureCompileInternal(compileTests,propertyMapping);
+  compileTests.setConfiguration(configurations.get(TEST_COMPILE_CONFIGURATION_NAME));
+  addDependsOnProjectDependencies(compileTests,TEST_COMPILE_CONFIGURATION_NAME);
+  return (Compile)compileTests.doFirst(new TaskAction(){
+    public void execute(    Task task){
+      Compile compileTests=(Compile)task;
+      if (compile.getUnmanagedClasspath() != null) {
+        compileTests.unmanagedClasspath((Object[])compile.getUnmanagedClasspath().toArray(new Object[compile.getUnmanagedClasspath().size()]));
+      }
+    }
+  }
+);
+}

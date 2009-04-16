@@ -2,13 +2,13 @@
   return new Bundle.ConfigureAction(){
     public void configure(    final AbstractArchiveTask archiveTask){
       if (archiveTask instanceof Jar) {
-        archiveTask.dependsOn(archiveTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME).getBuildDependencies());
+        archiveTask.dependsOn(archiveTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getBuildDependencies());
         archiveTask.defineProperty("osgi",createDefaultOsgiManifest(archiveTask.getProject()));
         archiveTask.doFirst(new TaskAction(){
           public void execute(          Task task){
             Jar jarTask=(Jar)task;
             OsgiManifest osgiManifest=(OsgiManifest)jarTask.getAdditionalProperties().get("osgi");
-            osgiManifest.setClasspath(getDependencies(osgiManifest,jarTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME).resolve()));
+            osgiManifest.setClasspath(getDependencies(osgiManifest,jarTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).resolve()));
             osgiManifest.overwrite(jarTask.getManifest());
           }
         }

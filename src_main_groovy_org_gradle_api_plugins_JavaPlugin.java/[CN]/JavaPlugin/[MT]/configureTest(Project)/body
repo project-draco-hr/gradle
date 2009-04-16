@@ -1,14 +1,14 @@
 {
   project.addTaskLifecycleListener(Test.class,new TaskLifecycleListener<Test>(){
     public void taskAdded(    Test test){
-      test.dependsOn(TEST_COMPILE);
+      test.dependsOn(COMPILE_TESTS_TASK_NAME);
       test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
-      test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME));
-      addDependsOnProjectDependencies(test,TEST_RUNTIME);
+      test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME_CONFIGURATION_NAME));
+      addDependsOnProjectDependencies(test,TEST_RUNTIME_CONFIGURATION_NAME);
       test.doFirst(new TaskAction(){
         public void execute(        Task task){
           Test test=(Test)task;
-          List unmanagedClasspathFromTestCompile=((Compile)test.getProject().task(TEST_COMPILE)).getUnmanagedClasspath();
+          List unmanagedClasspathFromTestCompile=((Compile)test.getProject().task(COMPILE_TESTS_TASK_NAME)).getUnmanagedClasspath();
           test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(new Object[unmanagedClasspathFromTestCompile.size()]));
         }
       }
@@ -16,5 +16,5 @@
     }
   }
 );
-  project.createTask(GUtil.map("type",Test.class),TEST).setDescription("Runs the tests.");
+  project.createTask(GUtil.map("type",Test.class),TEST_TASK_NAME).setDescription("Runs the tests.");
 }
