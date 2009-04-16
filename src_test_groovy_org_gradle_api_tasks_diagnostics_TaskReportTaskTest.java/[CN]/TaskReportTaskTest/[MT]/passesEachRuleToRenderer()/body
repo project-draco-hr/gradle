@@ -1,0 +1,24 @@
+{
+  context.checking(new Expectations(){
+{
+      Rule rule1=context.mock(Rule.class,"rule1");
+      Rule rule2=context.mock(Rule.class,"rule2");
+      List<String> defaultTasks=WrapUtil.toList();
+      allowing(project).getDefaultTasks();
+      will(returnValue(defaultTasks));
+      one(project).getTasks();
+      will(returnValue(GUtil.map()));
+      one(project).getRules();
+      will(returnValue(WrapUtil.toList(rule1,rule2)));
+      Sequence sequence=context.sequence("seq");
+      one(renderer).addDefaultTasks(defaultTasks);
+      inSequence(sequence);
+      one(renderer).addRule(rule1);
+      inSequence(sequence);
+      one(renderer).addRule(rule2);
+      inSequence(sequence);
+    }
+  }
+);
+  task.generate(project);
+}
