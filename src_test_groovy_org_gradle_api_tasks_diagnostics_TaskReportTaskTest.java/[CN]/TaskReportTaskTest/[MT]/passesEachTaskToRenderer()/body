@@ -3,15 +3,17 @@
 {
       Task task1=context.mock(Task.class,"task1");
       Task task2=context.mock(Task.class,"task2");
-      List<String> testDefaultTasks=WrapUtil.toList("defaultTask1","defaultTask2");
+      List<String> testDefaultTasks=toList("defaultTask1","defaultTask2");
       allowing(project).getDefaultTasks();
       will(returnValue(testDefaultTasks));
-      one(project).getTasks();
-      will(returnValue(GUtil.map("task2",task2,"task1",task1)));
+      one(taskContainer).getAll();
+      will(returnValue(toLinkedSet(task2,task1)));
       allowing(project).getRules();
-      will(returnValue(WrapUtil.toList()));
+      will(returnValue(toList()));
       allowing(task2).compareTo(task1);
       will(returnValue(1));
+      allowing(task1).compareTo(task2);
+      will(returnValue(-1));
       Sequence sequence=context.sequence("seq");
       one(renderer).addDefaultTasks(testDefaultTasks);
       inSequence(sequence);
