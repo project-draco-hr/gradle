@@ -1,6 +1,5 @@
 {
   final ScriptSource expectedScriptSource=new ImportsScriptSource(scriptSource,importsReader,rootDir);
-  final Throwable failure=new RuntimeException();
   context.checking(new Expectations(){
 {
       allowing(build).getProjectEvaluationBroadcaster();
@@ -18,18 +17,10 @@
       one(project).setBuildScript(buildScript);
       one(standardOutputRedirector).on(LogLevel.QUIET);
       one(buildScript).run();
-      will(throwException(failure));
       one(standardOutputRedirector).flush();
+      one(listener).afterEvaluate(project);
     }
   }
 );
-  try {
-    evaluator.evaluate(project);
-    fail();
-  }
- catch (  GradleScriptException e) {
-    assertThat(e.getOriginalMessage(),equalTo("A problem occurred evaluating " + project + "."));
-    assertThat(e.getScriptSource(),sameInstance(scriptSource));
-    assertThat(e.getCause(),sameInstance(failure));
-  }
+  evaluator.evaluate(project);
 }

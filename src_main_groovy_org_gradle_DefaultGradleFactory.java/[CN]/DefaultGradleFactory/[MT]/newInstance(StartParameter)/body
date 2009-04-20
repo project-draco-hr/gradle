@@ -7,11 +7,13 @@
   DefaultInternalRepository internalRepository=new DefaultInternalRepository();
   DependencyFactory dependencyFactory=new DefaultDependencyFactory(WrapUtil.toSet(new ModuleDependencyFactory(),new ProjectDependencyFactory()),new DefaultClientModuleFactory());
   ResolverFactory resolverFactory=new DefaultResolverFactory();
+  DefaultProjectEvaluator projectEvaluator=new DefaultProjectEvaluator(importsReader,scriptProcessor,new DefaultProjectScriptMetaData());
   Gradle gradle=new Gradle(startParameter,settingsFinder,new DefaultGradlePropertiesLoader(),new ScriptLocatingSettingsProcessor(new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(new DefaultSettingsScriptMetaData(),scriptProcessor,importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry(),dependencyFactory,new DefaultRepositoryHandler(resolverFactory,null),configurationContainerFactory,internalRepository,new BuildSourceBuilder(new DefaultGradleFactory(new LoggingConfigurer(){
     public void configure(    LogLevel logLevel){
     }
   }
-),new DefaultCacheInvalidationStrategy()))))),new BuildLoader(new ProjectFactory(new TaskFactory(),configurationContainerFactory,dependencyFactory,new DefaultRepositoryHandlerFactory(resolverFactory),new DefaultPublishArtifactFactory(),internalRepository,new DefaultProjectEvaluator(importsReader,scriptProcessor,new DefaultProjectScriptMetaData()),new PluginRegistry(startParameter.getPluginPropertiesFile()),startParameter.getBuildScriptSource(),new DefaultAntBuilderFactory(new AntLoggingAdapter()))),new BuildConfigurer(new ProjectDependencies2TaskResolver()));
+),new DefaultCacheInvalidationStrategy()))))),new BuildLoader(new ProjectFactory(new TaskFactory(),configurationContainerFactory,dependencyFactory,new DefaultRepositoryHandlerFactory(resolverFactory),new DefaultPublishArtifactFactory(),internalRepository,projectEvaluator,new PluginRegistry(startParameter.getPluginPropertiesFile()),startParameter.getBuildScriptSource(),new DefaultAntBuilderFactory(new AntLoggingAdapter())),internalRepository),new BuildConfigurer(new ProjectDependencies2TaskResolver()));
   gradle.addBuildListener(internalRepository);
+  gradle.addBuildListener(projectEvaluator);
   return gradle;
 }
