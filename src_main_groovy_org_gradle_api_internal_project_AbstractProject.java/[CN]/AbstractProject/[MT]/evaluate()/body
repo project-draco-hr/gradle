@@ -5,19 +5,7 @@
   Clock clock=new Clock();
   projectEvaluationListeners.getSource().beforeEvaluate(this);
   state=State.INITIALIZING;
-  try {
-    setBuildScript(buildScriptProcessor.createScript(this));
-    standardOutputRedirector.on(LogLevel.QUIET);
-    try {
-      buildScript.run();
-    }
-  finally {
-      standardOutputRedirector.flush();
-    }
-  }
- catch (  Throwable t) {
-    throw new GradleScriptException(String.format("A problem occurred evaluating %s.",this),t,getBuildScriptSource());
-  }
+  projectEvaluator.evaluate(this);
   logger.debug("Timing: Running the build script took " + clock.getTime());
   state=State.INITIALIZED;
   projectEvaluationListeners.getSource().afterEvaluate(this);
