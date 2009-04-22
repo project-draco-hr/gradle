@@ -2,6 +2,15 @@
   DetachedConfigurationsProvider configurationsProvider=new DetachedConfigurationsProvider();
   DefaultConfiguration copiedConfiguration=new DefaultConfiguration("copyOf" + getName(),configurationsProvider,ivyService,resolverProvider,dependencyMetaDataProvider);
   configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
+  copiedConfiguration.visibility=visibility;
+  copiedConfiguration.transitive=transitive;
+  copiedConfiguration.description=description;
+  for (  PublishArtifact artifact : getAllArtifacts()) {
+    copiedConfiguration.addArtifact(artifact);
+  }
+  for (  ExcludeRule excludeRule : getExcludeRules()) {
+    copiedConfiguration.getExcludeRules().add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
+  }
   for (  Dependency dependency : dependencies) {
     copiedConfiguration.addDependency(dependency.copy());
   }
