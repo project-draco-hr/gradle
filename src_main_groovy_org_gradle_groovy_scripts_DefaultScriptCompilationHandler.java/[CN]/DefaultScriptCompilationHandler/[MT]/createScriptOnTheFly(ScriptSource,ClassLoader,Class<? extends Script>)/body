@@ -1,22 +1,11 @@
 {
   Clock clock=new Clock();
   CompilerConfiguration configuration=createBaseCompilerConfiguration(scriptBaseClass);
-  GroovyShell groovyShell=new GroovyShell(classLoader,new Binding(),configuration);
-  String scriptText=source.getText();
-  String scriptName=source.getClassName();
-  Script script;
-  try {
-    script=groovyShell.parse(scriptText == null ? "" : scriptText,scriptName);
-  }
- catch (  MultipleCompilationErrorsException e) {
-    throw new GradleScriptException(String.format("Could not compile %s.",source.getDisplayName()),e,source,e.getErrorCollector().getSyntaxError(0).getLine());
-  }
-catch (  CompilationFailedException e) {
-    throw new GradleException(String.format("Could not compile %s.",source.getDisplayName()),e);
-  }
-  if (!scriptBaseClass.isInstance(script)) {
+  Class scriptClass=parseScript(source,classLoader,configuration);
+  if (scriptClass == null) {
     return new EmptyScript();
   }
+  Script script=InvokerHelper.createScript(scriptClass,new Binding());
   logger.debug("Timing: Creating script took: {}",clock.getTime());
   return script;
 }
