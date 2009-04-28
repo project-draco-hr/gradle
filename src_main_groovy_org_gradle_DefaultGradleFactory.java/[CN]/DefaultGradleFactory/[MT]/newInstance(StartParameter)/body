@@ -1,14 +1,14 @@
 {
   loggingConfigurer.configure(startParameter.getLogLevel());
   ImportsReader importsReader=new ImportsReader(startParameter.getDefaultImportsFile());
-  IScriptProcessor scriptProcessor=new DefaultScriptProcessor(new DefaultScriptCompilationHandler(new DefaultCachePropertiesHandler()),startParameter.getCacheUsage());
+  CachePropertiesHandler cachePropertiesHandler=new DefaultCachePropertiesHandler();
   ISettingsFinder settingsFinder=new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy())));
   ConfigurationContainerFactory configurationContainerFactory=new DefaultConfigurationContainerFactory();
   DefaultInternalRepository internalRepository=new DefaultInternalRepository();
   DependencyFactory dependencyFactory=new DefaultDependencyFactory(WrapUtil.toSet(new ModuleDependencyFactory(),new ProjectDependencyFactory()),new DefaultClientModuleFactory());
   ResolverFactory resolverFactory=new DefaultResolverFactory();
-  DefaultProjectEvaluator projectEvaluator=new DefaultProjectEvaluator(importsReader,scriptProcessor,new DefaultProjectScriptMetaData());
-  Gradle gradle=new Gradle(startParameter,settingsFinder,new DefaultGradlePropertiesLoader(),new ScriptLocatingSettingsProcessor(new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(new DefaultSettingsScriptMetaData(),scriptProcessor,importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry(),dependencyFactory,new DefaultRepositoryHandler(resolverFactory,null),configurationContainerFactory,internalRepository,new BuildSourceBuilder(new DefaultGradleFactory(new LoggingConfigurer(){
+  DefaultProjectEvaluator projectEvaluator=new DefaultProjectEvaluator(importsReader,new DefaultScriptProcessor(new DefaultScriptCompilationHandler(cachePropertiesHandler,new BuildScriptTransformer()),startParameter.getCacheUsage()),new DefaultProjectScriptMetaData());
+  Gradle gradle=new Gradle(startParameter,settingsFinder,new DefaultGradlePropertiesLoader(),new ScriptLocatingSettingsProcessor(new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(new DefaultSettingsScriptMetaData(),new DefaultScriptProcessor(new DefaultScriptCompilationHandler(cachePropertiesHandler),startParameter.getCacheUsage()),importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry(),dependencyFactory,new DefaultRepositoryHandler(resolverFactory,null),configurationContainerFactory,internalRepository,new BuildSourceBuilder(new DefaultGradleFactory(new LoggingConfigurer(){
     public void configure(    LogLevel logLevel){
     }
   }
