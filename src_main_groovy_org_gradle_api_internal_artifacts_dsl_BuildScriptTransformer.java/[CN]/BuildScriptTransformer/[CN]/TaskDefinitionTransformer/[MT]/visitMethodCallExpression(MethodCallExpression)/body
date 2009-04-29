@@ -1,0 +1,52 @@
+{
+  if (!isInstanceMethod(call,"task")) {
+    super.visitMethodCallExpression(call);
+    return;
+  }
+  ArgumentListExpression args=(ArgumentListExpression)call.getArguments();
+  if (args.getExpressions().size() != 1) {
+    super.visitMethodCallExpression(call);
+    return;
+  }
+  if (args.getExpression(0) instanceof VariableExpression) {
+    String taskName=args.getExpression(0).getText();
+    call.setMethod(new ConstantExpression("createTask"));
+    args.getExpressions().clear();
+    args.addExpression(new ConstantExpression(taskName));
+    return;
+  }
+  if (!(args.getExpression(0) instanceof MethodCallExpression)) {
+    super.visitMethodCallExpression(call);
+    return;
+  }
+  MethodCallExpression nestedMethod=(MethodCallExpression)args.getExpressions().get(0);
+  if (!isInstanceMethod(nestedMethod)) {
+    super.visitMethodCallExpression(call);
+    return;
+  }
+  Expression taskName=nestedMethod.getMethod();
+  Expression mapArg=null;
+  List<Expression> extraArgs=Collections.emptyList();
+  if (nestedMethod.getArguments() instanceof NamedArgumentListExpression) {
+    mapArg=nestedMethod.getArguments();
+  }
+ else   if (nestedMethod.getArguments() instanceof ArgumentListExpression) {
+    ArgumentListExpression nestedArgs=(ArgumentListExpression)nestedMethod.getArguments();
+    if (nestedArgs.getExpression(0) instanceof MapExpression) {
+      mapArg=nestedArgs.getExpression(0);
+      extraArgs=nestedArgs.getExpressions().subList(1,nestedArgs.getExpressions().size());
+    }
+ else {
+      extraArgs=nestedArgs.getExpressions();
+    }
+  }
+  call.setMethod(new ConstantExpression("createTask"));
+  args.getExpressions().clear();
+  if (mapArg != null) {
+    args.addExpression(mapArg);
+  }
+  args.addExpression(taskName);
+  for (  Expression extraArg : extraArgs) {
+    args.addExpression(extraArg);
+  }
+}
