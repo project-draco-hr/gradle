@@ -1,0 +1,27 @@
+{
+  final Task task=task("task");
+  final Map<String,?> options=GUtil.map(Task.TASK_NAME,"task");
+  context.checking(new Expectations(){
+{
+      one(taskFactory).createTask(project,options);
+      will(returnValue(task));
+    }
+  }
+);
+  context.checking(new Expectations(){
+{
+      one(taskFactory).createTask(project,options);
+      will(returnValue(task("task")));
+    }
+  }
+);
+  container.add("task");
+  try {
+    container.add("task");
+    fail();
+  }
+ catch (  InvalidUserDataException e) {
+    assertThat(e.getMessage(),equalTo("Cannot add task 'task' as a task with that name already exists."));
+  }
+  assertThat(container.getByName("task"),sameInstance(task));
+}
