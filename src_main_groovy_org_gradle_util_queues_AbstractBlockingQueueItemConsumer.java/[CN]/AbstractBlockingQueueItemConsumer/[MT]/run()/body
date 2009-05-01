@@ -1,0 +1,25 @@
+{
+  try {
+    setUp();
+    boolean stop=false;
+    while (!stop) {
+      try {
+        final T queueItem=toConsumeQueue.poll(pollTimeout,pollTimeoutTimeUnit);
+        if (queueItem != null) {
+          stop=consume(queueItem);
+        }
+      }
+ catch (      InterruptedException e) {
+      }
+      if (!keepConsuming.get())       stop=true;
+      if (!stop)       Thread.yield();
+    }
+    tearDown();
+  }
+ catch (  Throwable t) {
+    endCause=t;
+  }
+ finally {
+    ended.set(true);
+  }
+}
