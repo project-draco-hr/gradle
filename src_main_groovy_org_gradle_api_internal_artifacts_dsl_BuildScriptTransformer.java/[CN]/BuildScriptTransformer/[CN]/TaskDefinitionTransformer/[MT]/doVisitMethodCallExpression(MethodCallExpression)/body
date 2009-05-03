@@ -1,11 +1,9 @@
 {
   if (!isInstanceMethod(call,"task")) {
-    super.visitMethodCallExpression(call);
     return;
   }
   ArgumentListExpression args=(ArgumentListExpression)call.getArguments();
   if (args.getExpressions().size() != 1) {
-    super.visitMethodCallExpression(call);
     return;
   }
   if (args.getExpression(0) instanceof VariableExpression) {
@@ -16,12 +14,10 @@
     return;
   }
   if (!(args.getExpression(0) instanceof MethodCallExpression)) {
-    super.visitMethodCallExpression(call);
     return;
   }
   MethodCallExpression nestedMethod=(MethodCallExpression)args.getExpressions().get(0);
   if (!isInstanceMethod(nestedMethod)) {
-    super.visitMethodCallExpression(call);
     return;
   }
   Expression taskName=nestedMethod.getMethod();
@@ -32,7 +28,7 @@
   }
  else   if (nestedMethod.getArguments() instanceof ArgumentListExpression) {
     ArgumentListExpression nestedArgs=(ArgumentListExpression)nestedMethod.getArguments();
-    if (nestedArgs.getExpression(0) instanceof MapExpression) {
+    if (nestedArgs.getExpressions().size() > 0 && nestedArgs.getExpression(0) instanceof MapExpression) {
       mapArg=nestedArgs.getExpression(0);
       extraArgs=nestedArgs.getExpressions().subList(1,nestedArgs.getExpressions().size());
     }
