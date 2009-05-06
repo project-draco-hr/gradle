@@ -3,17 +3,51 @@
     public void execute(    AbstractArchiveTask task){
       if (task instanceof War) {
         task.conventionMapping(DefaultConventionsToPropertiesMapping.WAR);
+        task.dependsOn(TEST_TASK_NAME);
       }
  else       if (task instanceof Jar) {
         task.conventionMapping(DefaultConventionsToPropertiesMapping.JAR);
-      }
- else       if (task instanceof Zip) {
-        task.conventionMapping(DefaultConventionsToPropertiesMapping.ZIP);
+        task.dependsOn(TEST_TASK_NAME);
       }
  else       if (task instanceof Tar) {
         task.conventionMapping(DefaultConventionsToPropertiesMapping.TAR);
+        task.dependsOn(LIBS_TASK_NAME);
+      }
+ else       if (task instanceof Zip) {
+        task.conventionMapping(DefaultConventionsToPropertiesMapping.ZIP);
+        task.dependsOn(LIBS_TASK_NAME);
       }
     }
   }
 );
+  final Spec<Task> isLib=new Spec<Task>(){
+    public boolean isSatisfiedBy(    Task element){
+      return element instanceof Jar;
+    }
+  }
+;
+  Task libsTask=project.getTasks().add(LIBS_TASK_NAME);
+  libsTask.dependsOn(new TaskDependency(){
+    public Set<? extends Task> getDependencies(    Task task){
+      return project.getTasks().findAll(isLib);
+    }
+  }
+);
+  final Spec<Task> isDist=new Spec<Task>(){
+    public boolean isSatisfiedBy(    Task element){
+      return element instanceof Zip && !isLib.isSatisfiedBy(element);
+    }
+  }
+;
+  Task distsTask=project.getTasks().add(DISTS_TASK_NAME);
+  distsTask.dependsOn(LIBS_TASK_NAME);
+  distsTask.dependsOn(new TaskDependency(){
+    public Set<? extends Task> getDependencies(    Task task){
+      return project.getTasks().findAll(isDist);
+    }
+  }
+);
+  Jar jar=project.getTasks().add(JAR_TASK_NAME,Jar.class);
+  jar.setDescription("Generates a jar archive with all the compiled classes.");
+  project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
 }
