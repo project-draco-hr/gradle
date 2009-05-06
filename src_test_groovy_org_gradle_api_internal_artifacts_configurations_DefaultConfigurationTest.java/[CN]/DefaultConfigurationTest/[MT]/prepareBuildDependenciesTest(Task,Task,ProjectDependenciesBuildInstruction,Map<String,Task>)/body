@@ -1,0 +1,34 @@
+{
+  configuration.setProjectDependenciesBuildInstruction(projectDependenciesBuildInstruction);
+  final TaskDependency otherConfTaskDependencyMock=context.mock(TaskDependency.class,"otherConfTaskDep");
+  final Configuration otherConfiguration=context.mock(Configuration.class,"otherConf");
+  final Project dependencyProjectStub=context.mock(Project.class);
+  final Configuration dependencyProjectConfStub=context.mock(Configuration.class,"dependenctProjectConf");
+  final ProjectDependency projectDependencyStub=context.mock(ProjectDependency.class);
+  context.checking(new Expectations(){
+{
+      String uploadInternalTaskName="someName";
+      allowing(otherConfiguration).getBuildDependencies();
+      will(returnValue(otherConfTaskDependencyMock));
+      allowing(otherConfiguration).getHierarchy();
+      will(returnValue(WrapUtil.toList()));
+      allowing(projectDependencyStub).getDependencyProject();
+      will(returnValue(dependencyProjectStub));
+      allowing(projectDependencyStub).getConfiguration();
+      will(returnValue(dependencyProjectConfStub));
+      allowing(dependencyProjectConfStub).getUploadInternalTaskName();
+      will(returnValue(uploadInternalTaskName));
+      allowing(dependencyProjectStub).task(uploadInternalTaskName);
+      will(returnValue(dependencyProjectUploadTaskStub));
+      for (      String taskName : projectDependencyTasks.keySet()) {
+        allowing(dependencyProjectStub).task(taskName);
+        will(returnValue(projectDependencyTasks.get(taskName)));
+      }
+      allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
+      will(returnValue(WrapUtil.toSet(otherConfTaskMock)));
+    }
+  }
+);
+  configuration.addDependency(projectDependencyStub);
+  configuration.setExtendsFrom(WrapUtil.toSet(otherConfiguration));
+}

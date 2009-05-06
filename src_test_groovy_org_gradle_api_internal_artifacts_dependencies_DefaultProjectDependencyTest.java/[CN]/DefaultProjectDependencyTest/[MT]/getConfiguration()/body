@@ -1,0 +1,17 @@
+{
+  final Configuration configurationDummy=context.mock(Configuration.class);
+  final ConfigurationHandler configurationHandlerStub=context.mock(ConfigurationHandler.class);
+  final Project projectStub=context.mock(Project.class);
+  context.checking(new Expectations(){
+{
+      allowing(projectStub).getConfigurations();
+      will(returnValue(configurationHandlerStub));
+      allowing(configurationHandlerStub).getByName("conf1");
+      will(returnValue(configurationDummy));
+    }
+  }
+);
+  DefaultProjectDependency projectDependency=new DefaultProjectDependency(projectStub);
+  projectDependency.setDependencyConfiguration("conf1");
+  assertThat(projectDependency.getConfiguration(),sameInstance(configurationDummy));
+}

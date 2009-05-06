@@ -25,6 +25,8 @@
       acceptsAll(WrapUtil.toList(SYSTEM_PROP,"system-prop"),"Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
       acceptsAll(WrapUtil.toList(PROJECT_PROP,"project-prop"),"Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(String.class);
       acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT,"embedded"),"Specify an embedded build script.").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(PROJECT_DEPENDENCY_TASK_NAMES,"dep-tasks"),"Specify additional tasks for building project dependencies.").withRequiredArg().ofType(String.class);
+      acceptsAll(WrapUtil.toList(NO_PROJECT_DEPENDENCY_REBUILD,"no-rebuild"),"Do not rebuild project dependencies.");
       acceptsAll(WrapUtil.toList(HELP,"?","help"),"Shows this help message");
     }
   }
@@ -108,6 +110,21 @@
   if (options.has(TASKS) && options.has(PROPERTIES)) {
     System.err.println(String.format("Error: The -%s and -%s options cannot be used together.",TASKS,PROPERTIES));
     buildCompleter.exit(new InvalidUserDataException());
+  }
+  if (options.has(PROJECT_DEPENDENCY_TASK_NAMES) && options.has(NO_PROJECT_DEPENDENCY_REBUILD)) {
+    System.err.println(String.format("Error: The -%s and -%s options cannot be used together.",PROJECT_DEPENDENCY_TASK_NAMES,NO_PROJECT_DEPENDENCY_REBUILD));
+    buildCompleter.exit(new InvalidUserDataException());
+  }
+ else   if (options.has(NO_PROJECT_DEPENDENCY_REBUILD)) {
+    startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(null));
+  }
+ else   if (options.has(PROJECT_DEPENDENCY_TASK_NAMES)) {
+    List<String> normalizedTaskNames=new ArrayList<String>();
+    for (Iterator iterator=options.valuesOf(PROJECT_DEPENDENCY_TASK_NAMES).iterator(); iterator.hasNext(); ) {
+      String taskName=(String)iterator.next();
+      normalizedTaskNames.add(taskName.trim());
+    }
+    startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(normalizedTaskNames));
   }
   if (options.has(TASKS)) {
     startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));

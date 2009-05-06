@@ -1,0 +1,25 @@
+{
+  final Task otherConfTaskMock=context.mock(Task.class,"otherConfTask");
+  final Task artifactTaskMock=context.mock(Task.class,"artifactTask");
+  final Configuration otherConfiguration=context.mock(Configuration.class);
+  final TaskDependency otherConfTaskDependencyMock=context.mock(TaskDependency.class,"otherConfTaskDep");
+  final TaskDependency artifactTaskDependencyMock=context.mock(TaskDependency.class,"artifactTaskDep");
+  DefaultPublishArtifact artifact=HelperUtil.createPublishArtifact("name1","ext1","type1","classifier1");
+  artifact.setTaskDependency(artifactTaskDependencyMock);
+  configuration.addArtifact(artifact);
+  context.checking(new Expectations(){
+{
+      allowing(otherConfiguration).getBuildArtifacts();
+      will(returnValue(otherConfTaskDependencyMock));
+      allowing(otherConfiguration).getHierarchy();
+      will(returnValue(WrapUtil.toList()));
+      allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
+      will(returnValue(WrapUtil.toSet(otherConfTaskMock)));
+      allowing(artifactTaskDependencyMock).getDependencies(with(any(Task.class)));
+      will(returnValue(WrapUtil.toSet(artifactTaskMock)));
+    }
+  }
+);
+  configuration.setExtendsFrom(WrapUtil.toSet(otherConfiguration));
+  assertThat((Set<Task>)configuration.getBuildArtifacts().getDependencies(context.mock(Task.class,"caller")),equalTo(WrapUtil.toSet(artifactTaskMock,otherConfTaskMock)));
+}
