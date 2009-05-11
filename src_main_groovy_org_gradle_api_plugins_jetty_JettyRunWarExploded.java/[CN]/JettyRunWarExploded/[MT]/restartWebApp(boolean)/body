@@ -1,13 +1,12 @@
 {
   logger.info("Restarting webapp");
   logger.debug("Stopping webapp ...");
-  webAppConfig.stop();
+  getWebAppConfig().stop();
   logger.debug("Reconfiguring webapp ...");
-  checkPomConfiguration();
+  validateConfiguration();
   if (reconfigureScanner) {
     logger.info("Reconfiguring scanner after change to pom.xml ...");
-    ArrayList scanList=getScanList();
-    scanList.clear();
+    List<File> scanList=new ArrayList<File>();
     scanList.add(getProject().getBuildFile());
     File webInfDir=new File(webApp,"WEB-INF");
     scanList.add(new File(webInfDir,"web.xml"));
@@ -17,10 +16,9 @@
     if (jettyEnvXmlFile.exists())     scanList.add(jettyEnvXmlFile);
     scanList.add(new File(webInfDir,"classes"));
     scanList.add(new File(webInfDir,"lib"));
-    setScanList(scanList);
     getScanner().setScanDirs(scanList);
   }
   logger.debug("Restarting webapp ...");
-  webAppConfig.start();
+  getWebAppConfig().start();
   logger.info("Restart completed.");
 }

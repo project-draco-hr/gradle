@@ -1,19 +1,17 @@
 {
   logger.info("Restarting webapp ...");
   logger.debug("Stopping webapp ...");
-  webAppConfig.stop();
+  getWebAppConfig().stop();
   logger.debug("Reconfiguring webapp ...");
-  checkPomConfiguration();
+  validateConfiguration();
   if (reconfigureScanner) {
-    logger.info("Reconfiguring scanner after change to pom.xml ...");
-    ArrayList scanList=getScanList();
-    scanList.clear();
+    logger.info("Reconfiguring scanner ...");
+    List<File> scanList=new ArrayList<File>();
     scanList.add(getProject().getBuildFile());
     scanList.add(getWebApp());
-    setScanList(scanList);
     getScanner().setScanDirs(scanList);
   }
   logger.debug("Restarting webapp ...");
-  webAppConfig.start();
+  getWebAppConfig().start();
   logger.info("Restart completed.");
 }

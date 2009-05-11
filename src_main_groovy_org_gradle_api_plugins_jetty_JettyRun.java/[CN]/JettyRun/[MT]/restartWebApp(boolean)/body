@@ -1,14 +1,14 @@
 {
-  logger.info("restarting " + webAppConfig);
+  logger.info("restarting " + getWebAppConfig());
   logger.debug("Stopping webapp ...");
-  webAppConfig.stop();
+  getWebAppConfig().stop();
   logger.debug("Reconfiguring webapp ...");
-  checkPomConfiguration();
+  validateConfiguration();
   configureWebApplication();
   if (reconfigureScanner) {
-    logger.info("Reconfiguring scanner after change to pom.xml ...");
-    scanList.clear();
-    scanList.add(getWebXmlFile());
+    logger.info("Reconfiguring scanner ...");
+    List<File> scanList=new ArrayList<File>();
+    scanList.add(getWebXml());
     if (getJettyEnvXmlFile() != null)     scanList.add(getJettyEnvXmlFile());
     scanList.addAll(getExtraScanTargets());
     scanList.add(getProject().getBuildFile());
@@ -16,6 +16,6 @@
     getScanner().setScanDirs(scanList);
   }
   logger.debug("Restarting webapp ...");
-  webAppConfig.start();
+  getWebAppConfig().start();
   logger.info("Restart completed at " + new Date().toString());
 }
