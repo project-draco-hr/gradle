@@ -1,0 +1,16 @@
+{
+  project.getTasks().withType(JettyRunWar.class).whenTaskAdded(new Action<JettyRunWar>(){
+    public void execute(    JettyRunWar jettyRunWar){
+      jettyRunWar.dependsOn(WarPlugin.WAR_TASK_NAME);
+      jettyRunWar.getConventionMapping().put("webApp",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return ((War)project.task(WarPlugin.WAR_TASK_NAME)).getArchivePath();
+        }
+      }
+);
+    }
+  }
+);
+  JettyRunWar jettyRunWar=project.getTasks().add(JETTY_RUN_WAR,JettyRunWar.class);
+  jettyRunWar.setDescription("Assembles the webapp into a war and deploys it to Jetty.");
+}
