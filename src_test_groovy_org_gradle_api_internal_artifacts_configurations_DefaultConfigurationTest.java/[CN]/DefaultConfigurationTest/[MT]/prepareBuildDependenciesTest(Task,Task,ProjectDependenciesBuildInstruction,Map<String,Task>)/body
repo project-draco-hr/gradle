@@ -5,6 +5,7 @@
   final Project dependencyProjectStub=context.mock(Project.class);
   final Configuration dependencyProjectConfStub=context.mock(Configuration.class,"dependenctProjectConf");
   final ProjectDependency projectDependencyStub=context.mock(ProjectDependency.class);
+  final TaskContainer taskContainer=context.mock(TaskContainer.class);
   context.checking(new Expectations(){
 {
       String uploadInternalTaskName="someName";
@@ -18,10 +19,12 @@
       will(returnValue(dependencyProjectConfStub));
       allowing(dependencyProjectConfStub).getUploadInternalTaskName();
       will(returnValue(uploadInternalTaskName));
-      allowing(dependencyProjectStub).task(uploadInternalTaskName);
+      allowing(dependencyProjectStub).getTasks();
+      will(returnValue(taskContainer));
+      allowing(taskContainer).getByName(uploadInternalTaskName);
       will(returnValue(dependencyProjectUploadTaskStub));
       for (      String taskName : projectDependencyTasks.keySet()) {
-        allowing(dependencyProjectStub).task(taskName);
+        allowing(taskContainer).getByName(taskName);
         will(returnValue(projectDependencyTasks.get(taskName)));
       }
       allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
