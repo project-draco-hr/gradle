@@ -1,12 +1,6 @@
 {
-  List overlays=new ArrayList();
-  Set<File> dependencies;
-  if (useTestClasspath) {
-    dependencies=getProject().getConfigurations().getByName(getTestConfiguration()).resolve();
-  }
- else {
-    dependencies=getProject().getConfigurations().getByName(getConfiguration()).resolve();
-  }
+  List<Resource> overlays=new ArrayList<Resource>();
+  Set<File> dependencies=getConfiguration().getFiles();
   logger.debug("Adding dependencies {} for WEB-INF/lib ",dependencies);
   if (!overlays.isEmpty()) {
     try {
@@ -15,9 +9,9 @@
       if (resource == null) {
         int size=overlays.size() + 1;
         Resource[] resources=new Resource[size];
-        resources[0]=Resource.newResource(getWebAppSourceDirectory().toURL());
+        resources[0]=Resource.newResource(getWebAppSourceDirectory().toURI().toURL());
         for (int i=1; i < size; i++) {
-          resources[i]=(Resource)overlays.get(i - 1);
+          resources[i]=overlays.get(i - 1);
           logger.info("Adding overlay: " + resources[i]);
         }
         rc.setResources(resources);
@@ -29,7 +23,7 @@
           Resource[] resources=new Resource[size];
           System.arraycopy(old,0,resources,0,old.length);
           for (int i=old.length, j=0; i < size; i++, j++) {
-            resources[i]=(Resource)overlays.get(j);
+            resources[i]=overlays.get(j);
             logger.info("Adding overlay: " + resources[i]);
           }
           rc.setResources(resources);
@@ -42,7 +36,7 @@
           Resource[] resources=new Resource[size];
           resources[0]=resource;
           for (int i=1; i < size; i++) {
-            resources[i]=(Resource)overlays.get(i - 1);
+            resources[i]=overlays.get(i - 1);
             logger.info("Adding overlay: " + resources[i]);
           }
           rc.setResources(resources);

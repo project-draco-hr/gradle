@@ -2,9 +2,7 @@
   project.getTasks().withType(JettyRun.class).whenTaskAdded(new Action<JettyRun>(){
     public void execute(    JettyRun jettyRun){
       jettyRun.dependsOn(JavaPlugin.COMPILE_TESTS_TASK_NAME);
-      jettyRun.setConfiguration(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
-      jettyRun.setTestConfiguration(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME);
-      jettyRun.setUseTestClasspath(false);
+      jettyRun.setConfiguration(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME));
       jettyRun.getConventionMapping().put("webXml",new ConventionValue(){
         public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
           return getWebXml(project);
@@ -14,12 +12,6 @@
       jettyRun.getConventionMapping().put("classesDirectory",new ConventionValue(){
         public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
           return getJavaConvention(project).getClassesDir();
-        }
-      }
-);
-      jettyRun.getConventionMapping().put("testClassesDirectory",new ConventionValue(){
-        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
-          return getJavaConvention(project).getTestClassesDir();
         }
       }
 );
