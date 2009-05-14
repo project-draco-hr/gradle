@@ -1,0 +1,32 @@
+{
+  if (!(isTaskIdentifier(nestedMethod.getMethod()) && targetIsThis(nestedMethod))) {
+    return false;
+  }
+  Expression taskName=nestedMethod.getMethod();
+  Expression mapArg=null;
+  List<Expression> extraArgs=Collections.emptyList();
+  if (nestedMethod.getArguments() instanceof NamedArgumentListExpression) {
+    mapArg=nestedMethod.getArguments();
+  }
+ else   if (nestedMethod.getArguments() instanceof ArgumentListExpression) {
+    ArgumentListExpression nestedArgs=(ArgumentListExpression)nestedMethod.getArguments();
+    if (nestedArgs.getExpressions().size() > 0 && nestedArgs.getExpression(0) instanceof MapExpression) {
+      mapArg=nestedArgs.getExpression(0);
+      extraArgs=nestedArgs.getExpressions().subList(1,nestedArgs.getExpressions().size());
+    }
+ else {
+      extraArgs=nestedArgs.getExpressions();
+    }
+  }
+  target.setMethod(new ConstantExpression("createTask"));
+  ArgumentListExpression args=(ArgumentListExpression)target.getArguments();
+  args.getExpressions().clear();
+  if (mapArg != null) {
+    args.addExpression(mapArg);
+  }
+  args.addExpression(taskName);
+  for (  Expression extraArg : extraArgs) {
+    args.addExpression(extraArg);
+  }
+  return true;
+}

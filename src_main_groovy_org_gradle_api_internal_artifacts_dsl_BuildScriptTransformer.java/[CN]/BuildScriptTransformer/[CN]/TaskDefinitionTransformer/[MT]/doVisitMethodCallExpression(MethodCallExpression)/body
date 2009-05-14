@@ -3,46 +3,23 @@
     return;
   }
   ArgumentListExpression args=(ArgumentListExpression)call.getArguments();
-  if (args.getExpressions().size() != 1) {
+  if (args.getExpressions().size() == 0 || args.getExpressions().size() > 2) {
     return;
   }
-  if (args.getExpression(0) instanceof VariableExpression) {
-    String taskName=args.getExpression(0).getText();
-    call.setMethod(new ConstantExpression("createTask"));
-    args.getExpressions().clear();
-    args.addExpression(new ConstantExpression(taskName));
-    return;
-  }
-  if (!(args.getExpression(0) instanceof MethodCallExpression)) {
-    return;
-  }
-  MethodCallExpression nestedMethod=(MethodCallExpression)args.getExpressions().get(0);
-  if (!isInstanceMethod(nestedMethod)) {
-    return;
-  }
-  Expression taskName=nestedMethod.getMethod();
-  Expression mapArg=null;
-  List<Expression> extraArgs=Collections.emptyList();
-  if (nestedMethod.getArguments() instanceof NamedArgumentListExpression) {
-    mapArg=nestedMethod.getArguments();
-  }
- else   if (nestedMethod.getArguments() instanceof ArgumentListExpression) {
-    ArgumentListExpression nestedArgs=(ArgumentListExpression)nestedMethod.getArguments();
-    if (nestedArgs.getExpressions().size() > 0 && nestedArgs.getExpression(0) instanceof MapExpression) {
-      mapArg=nestedArgs.getExpression(0);
-      extraArgs=nestedArgs.getExpressions().subList(1,nestedArgs.getExpressions().size());
+  if (args.getExpressions().size() == 2) {
+    if (args.getExpression(0) instanceof MapExpression && args.getExpression(1) instanceof VariableExpression) {
+      args.getExpressions().set(1,new ConstantExpression(args.getExpression(1).getText()));
     }
- else {
-      extraArgs=nestedArgs.getExpressions();
-    }
+    return;
   }
-  call.setMethod(new ConstantExpression("createTask"));
-  args.getExpressions().clear();
-  if (mapArg != null) {
-    args.addExpression(mapArg);
+  Expression arg=args.getExpression(0);
+  if (arg instanceof VariableExpression) {
+    transformVariableExpression(call,(VariableExpression)arg);
   }
-  args.addExpression(taskName);
-  for (  Expression extraArg : extraArgs) {
-    args.addExpression(extraArg);
+ else   if (arg instanceof BinaryExpression) {
+    transformBinaryExpression(call,(BinaryExpression)arg);
+  }
+ else   if (arg instanceof MethodCallExpression) {
+    maybeTransformNestedMethodCall((MethodCallExpression)arg,call);
   }
 }
