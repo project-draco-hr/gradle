@@ -2,7 +2,11 @@
   prepareConfigurationForCopyRecursiveTest();
   Set<Dependency> expectedDependenciesToCopy=new HashSet(configuration.getAllDependencies());
   configuration.addDependency(HelperUtil.createDependency("group3","name3","version3"));
-  Closure specClosure=HelperUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
-  Configuration copiedConfiguration=configuration.copyRecursive(specClosure);
+  Configuration copiedConfiguration=configuration.copyRecursive(new Spec<Dependency>(){
+    public boolean isSatisfiedBy(    Dependency element){
+      return !element.getGroup().equals("group3");
+    }
+  }
+);
   assertThatCopiedConfigurationHasElementsAndName(copiedConfiguration,expectedDependenciesToCopy);
 }
