@@ -1,11 +1,14 @@
 {
+  final Set<File> protocolJars=WrapUtil.toLinkedSet(new File("jar1"),new File("jar1"));
   context.checking(new Expectations(){
 {
+      allowing(configurationStub).resolve();
+      will(returnValue(protocolJars));
       allowing(deployTaskFactoryMock).createDeployTask();
       will(returnValue(getInstallDeployTask()));
       allowing(deployTaskMock).getContainer();
       will(returnValue(plexusContainerMock));
-      for (      File protocolProviderJar : TEST_PROTOCOL_PROVIDER_JARS) {
+      for (      File protocolProviderJar : protocolJars) {
         one(plexusContainerMock).addJarResource(protocolProviderJar);
       }
       one(deployTaskMock).setUniqueVersion(mavenDeployer.isUniqueVersion());
