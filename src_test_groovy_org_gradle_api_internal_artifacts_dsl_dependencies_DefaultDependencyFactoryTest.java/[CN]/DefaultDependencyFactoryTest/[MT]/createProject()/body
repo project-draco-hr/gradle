@@ -1,0 +1,16 @@
+{
+  final ProjectDependencyFactory projectDependencyFactoryStub=context.mock(ProjectDependencyFactory.class);
+  final ProjectDependency projectDependency=context.mock(ProjectDependency.class);
+  final ProjectFinder projectFinderDummy=context.mock(ProjectFinder.class);
+  DefaultDependencyFactory dependencyFactory=new DefaultDependencyFactory(null,null,projectDependencyFactoryStub);
+  context.checking(new Expectations(){
+{
+      allowing(projectDependencyFactoryStub).createProject(projectFinderDummy,"notation");
+      will(returnValue(projectDependency));
+      one(projectDependency).setTransitive(false);
+    }
+  }
+);
+  Closure configureClosure=HelperUtil.toClosure("{ transitive = false }");
+  assertThat(dependencyFactory.createProject(projectFinderDummy,"notation",configureClosure),sameInstance(projectDependency));
+}
