@@ -9,23 +9,23 @@
   int minor=Integer.parseInt(version[1]);
   if ((major >= 1) && (minor >= 5)) {
     Class annotationParserClass=Thread.currentThread().getContextClassLoader().loadClass("org.mortbay.jetty.annotations.AnnotationParser");
-    Method parseAnnotationsMethod=annotationParserClass.getMethod("parseAnnotations",new Class[]{WebAppContext.class,Class.class,RunAsCollection.class,InjectionCollection.class,LifeCycleCallbackCollection.class});
+    Method parseAnnotationsMethod=annotationParserClass.getMethod("parseAnnotations",WebAppContext.class,Class.class,RunAsCollection.class,InjectionCollection.class,LifeCycleCallbackCollection.class);
     Iterator itor=LazyList.iterator(_servlets);
     while (itor.hasNext()) {
       ServletHolder holder=(ServletHolder)itor.next();
       Class servlet=getWebAppContext().loadClass(holder.getClassName());
-      parseAnnotationsMethod.invoke(null,new Object[]{getWebAppContext(),servlet,_runAsCollection,_injections,_callbacks});
+      parseAnnotationsMethod.invoke(null,getWebAppContext(),servlet,_runAsCollection,_injections,_callbacks);
     }
     itor=LazyList.iterator(_filters);
     while (itor.hasNext()) {
       FilterHolder holder=(FilterHolder)itor.next();
       Class filter=getWebAppContext().loadClass(holder.getClassName());
-      parseAnnotationsMethod.invoke(null,new Object[]{getWebAppContext(),filter,null,_injections,_callbacks});
+      parseAnnotationsMethod.invoke(null,getWebAppContext(),filter,null,_injections,_callbacks);
     }
     itor=LazyList.iterator(_listeners);
     while (itor.hasNext()) {
       Object listener=itor.next();
-      parseAnnotationsMethod.invoke(null,new Object[]{getWebAppContext(),listener.getClass(),null,_injections,_callbacks});
+      parseAnnotationsMethod.invoke(null,getWebAppContext(),listener.getClass(),null,_injections,_callbacks);
     }
   }
  else   Log.info("Annotations are not supported on jvms prior to jdk1.5");
