@@ -1,12 +1,31 @@
 {
   this.testClassesDirectory=testClassesDirectory;
   this.testClassNames=new HashSet<String>();
+  this.packageJarFilesMappings=new HashMap<String,Set<File>>();
+  this.extractedJarClasses=new HashMap<String,File>();
   testClassDirectories=new ArrayList<File>();
   testClassDirectories.add(testClassesDirectory);
   if (testClasspath != null && !testClasspath.isEmpty()) {
     for (    File testClasspathItem : testClasspath) {
       if (testClasspathItem.isDirectory()) {
         testClassDirectories.add(testClasspathItem);
+      }
+ else       if (testClasspathItem.getName().endsWith(".jar")) {
+        final List<String> jarFilePackages=new ArrayList<String>();
+        new JarFilePackageLister().listJarPackages(testClasspathItem,new JarFilePackageListener(){
+          public void receivePackage(          String packageName){
+            jarFilePackages.add(packageName);
+          }
+        }
+);
+        for (        final String packageName : jarFilePackages) {
+          Set<File> jarFiles=packageJarFilesMappings.get(packageName);
+          if (jarFiles == null) {
+            jarFiles=new HashSet<File>();
+          }
+          jarFiles.add(testClasspathItem);
+          packageJarFilesMappings.put(packageName,jarFiles);
+        }
       }
     }
   }

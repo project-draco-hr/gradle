@@ -1,5 +1,6 @@
 {
-  if (!"java/lang/Object".equals(superClassName) && !"groovy.lang.GroovyObject".equals(superClassName)) {
+  if (StringUtils.isEmpty(superClassName))   throw new IllegalArgumentException("superClassName is empty!");
+  if (!superClassName.startsWith("java/lang") && !superClassName.startsWith("groovy/lang")) {
     final Iterator<File> testClassDirectoriesIt=testClassDirectories.iterator();
     File superTestClassFile=null;
     while (superTestClassFile == null && testClassDirectoriesIt.hasNext()) {
@@ -11,7 +12,51 @@
       return superTestClassFile;
     }
  else {
-      return null;
+      File extractedSuperClassFile=extractedJarClasses.get(superClassName);
+      if (extractedSuperClassFile == null) {
+        final int lastSlashIndex=superClassName.lastIndexOf('/');
+        if (lastSlashIndex == -1) {
+          return null;
+        }
+ else {
+          final String superClassPackage=superClassName.substring(0,lastSlashIndex + 1);
+          final Set<File> packageJarFiles=packageJarFilesMappings.get(superClassPackage);
+          File classSourceJar=null;
+          if (packageJarFiles != null && !packageJarFiles.isEmpty()) {
+            final Iterator<File> packageJarFilesIt=packageJarFiles.iterator();
+            boolean classFileExtracted=false;
+            try {
+              extractedSuperClassFile=File.createTempFile("jar_extract_","_tmp");
+              extractedSuperClassFile.deleteOnExit();
+              while (!classFileExtracted && packageJarFilesIt.hasNext()) {
+                final File jarFile=packageJarFilesIt.next();
+                try {
+                  classFileExtracted=JarUtil.extractZipEntry(jarFile,superClassName + ".class",extractedSuperClassFile);
+                  if (classFileExtracted)                   classSourceJar=jarFile;
+                }
+ catch (                IOException e) {
+                  throw new GradleException("failed to extract class file from jar (" + jarFile + ")",e);
+                }
+              }
+            }
+ catch (            IOException e) {
+              throw new GradleException("failed to create temp file to extract class from jar into",e);
+            }
+            if (classFileExtracted) {
+              logger.debug("test-class-scan : [extracted] : extracted super class " + superClassName + " from "+ classSourceJar.getName());
+              extractedJarClasses.put(superClassName,extractedSuperClassFile);
+              return extractedSuperClassFile;
+            }
+ else             return null;
+          }
+ else {
+            return null;
+          }
+        }
+      }
+ else {
+        return extractedSuperClassFile;
+      }
     }
   }
  else {
