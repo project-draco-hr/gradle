@@ -1,7 +1,7 @@
 {
-  testFile("settings.gradle").writelns("include 'child'");
-  testFile("build.gradle").writelns("def rootMethod(p) { 'root' + p }","def sharedMethod(p) { 'ignore me' }","convention.plugins.test = new " + ConventionBean.class.getName() + "()","task rootTask","task testTask");
-  testFile("child/build.gradle").writelns("def childMethod(p) { 'child' + p }","def sharedMethod(p) { 'shared' + p }","task testTask << {",DynamicObjectIntegrationTestHelper.class.getName() + ".reportMethods(project)","}");
-  inTestDirectory().withTasks("testTask").run();
-  assertThat(result,equalTo("rootMethod,childMethod,sharedMethod,conventionMethod,task ':child:testTask'"));
+  TestFile testDir=dist.getTestDir();
+  testDir.file("settings.gradle").writelns("include 'child'");
+  testDir.file("build.gradle").writelns("def rootMethod(p) { 'root' + p }","def sharedMethod(p) { 'ignore me' }","convention.plugins.test = new ConventionBean()","task rootTask","task testTask","class ConventionBean { def conventionMethod(name) { 'convention' + name } }");
+  testDir.file("child/build.gradle").writelns("import static org.junit.Assert.*","def childMethod(p) { 'child' + p }","def sharedMethod(p) { 'shared' + p }","task testTask << {","  new Reporter().checkMethods(project)","}","class Reporter {","  def checkMethods(object) {","    assertEquals('rootMethod', object.rootMethod('Method'))","    assertEquals('childMethod', object.childMethod('Method'))","    assertEquals('sharedMethod', object.sharedMethod('Method'))","    assertEquals('conventionMethod', object.conventionMethod('Method'))","    object.testTask { assertEquals(':child:testTask', delegate.path) }","    try { object.rootTask { }; fail() } catch (MissingMethodException e) { }","  }","}");
+  executer.inDirectory(testDir.asFile()).withTasks("testTask").run();
 }

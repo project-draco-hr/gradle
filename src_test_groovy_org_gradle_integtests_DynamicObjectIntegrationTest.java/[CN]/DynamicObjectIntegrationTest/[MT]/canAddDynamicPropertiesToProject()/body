@@ -1,7 +1,7 @@
 {
-  testFile("settings.gradle").writelns("include 'child'");
-  testFile("build.gradle").writelns("rootProperty = 'root'","sharedProperty = 'ignore me'","convention.plugins.test = new " + ConventionBean.class.getName() + "()","task rootTask","task testTask");
-  testFile("child/build.gradle").writelns("childProperty = 'child'","sharedProperty = 'shared'","task testTask << {",DynamicObjectIntegrationTestHelper.class.getName() + ".reportProperties(project)","}");
-  inTestDirectory().withTasks("testTask").run();
-  assertThat(result,equalTo("root,child,shared,convention,task ':child:testTask'"));
+  TestFile testDir=dist.getTestDir();
+  testDir.file("settings.gradle").writelns("include 'child'");
+  testDir.file("build.gradle").writelns("rootProperty = 'root'","sharedProperty = 'ignore me'","convention.plugins.test = new ConventionBean()","task rootTask","task testTask","class ConventionBean { def getConventionProperty() { 'convention' } }");
+  testDir.file("child/build.gradle").writelns("import static org.junit.Assert.*","childProperty = 'child'","sharedProperty = 'shared'","task testTask << {","  new Reporter().checkProperties(project)","}","class Reporter {","  def checkProperties(object) {","    assertEquals('root', object.rootProperty)","    assertEquals('child', object.childProperty)","    assertEquals('shared', object.sharedProperty)","    assertEquals('convention', object.conventionProperty)","    assertEquals(':child:testTask', object.testTask.path)","    try { object.rootTask; fail() } catch (MissingPropertyException e) { }","  }","}");
+  executer.inDirectory(testDir.asFile()).withTasks("testTask").run();
 }

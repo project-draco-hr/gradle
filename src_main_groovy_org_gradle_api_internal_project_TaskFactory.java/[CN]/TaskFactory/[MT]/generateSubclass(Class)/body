@@ -5,7 +5,9 @@
   }
   String className=type.getSimpleName() + "_WithConventionMapping";
   Formatter src=new Formatter();
-  src.format("package %s;%n",type.getPackage().getName());
+  if (type.getPackage() != null) {
+    src.format("package %s;%n",type.getPackage().getName());
+  }
   src.format("public class %s extends %s {%n",className,type.getName().replaceAll("\\$","."));
   src.format("public %s(org.gradle.api.Project project, String name) { super(project, name); }%n",className);
   MetaClass metaClass=GroovySystem.getMetaClassRegistry().getMetaClass(type);
@@ -23,6 +25,8 @@
       }
     }
   }
+  src.format("void setProperty(String name, Object value) { defineProperty(name, value); }%n");
+  src.format("def propertyMissing(String name) { property(name); }%n");
   src.format("}");
   GroovyClassLoader classLoader=new GroovyClassLoader(type.getClassLoader());
   try {
