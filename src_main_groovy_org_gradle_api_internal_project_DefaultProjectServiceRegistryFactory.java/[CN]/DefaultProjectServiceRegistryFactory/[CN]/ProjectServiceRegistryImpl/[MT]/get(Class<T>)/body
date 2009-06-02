@@ -1,0 +1,45 @@
+{
+  if (serviceType.isAssignableFrom(Convention.class)) {
+    if (convention == null) {
+      convention=new DefaultConvention();
+    }
+    return serviceType.cast(convention);
+  }
+  if (serviceType.isAssignableFrom(TaskContainerInternal.class)) {
+    if (taskContainer == null) {
+      taskContainer=new DefaultTaskContainer(this.project,taskFactory);
+    }
+    return serviceType.cast(taskContainer);
+  }
+  if (serviceType.isAssignableFrom(RepositoryHandler.class)) {
+    if (repositoryHandler == null) {
+      repositoryHandler=repositoryHandlerFactory.createRepositoryHandler(get(Convention.class));
+    }
+    return serviceType.cast(repositoryHandler);
+  }
+  if (serviceType.isAssignableFrom(ConfigurationHandler.class)) {
+    if (configurationContainer == null) {
+      configurationContainer=configurationContainerFactory.createConfigurationContainer(new ResolverProviderImpl(),new DependencyMetaDataProviderImpl());
+    }
+    return serviceType.cast(configurationContainer);
+  }
+  if (serviceType.isAssignableFrom(ArtifactHandler.class)) {
+    if (artifactHandler == null) {
+      artifactHandler=new DefaultArtifactHandler(get(ConfigurationContainer.class),publishArtifactFactory);
+    }
+    return serviceType.cast(artifactHandler);
+  }
+  if (serviceType.isAssignableFrom(DependencyHandler.class)) {
+    if (dependencyHandler == null) {
+      ProjectFinder projectFinder=new ProjectFinder(){
+        public Project getProject(        String path){
+          return project.project(path);
+        }
+      }
+;
+      dependencyHandler=new DefaultDependencyHandler(get(ConfigurationContainer.class),dependencyFactory,projectFinder);
+    }
+    return serviceType.cast(dependencyHandler);
+  }
+  throw new IllegalArgumentException(String.format("No project service of type %s available.",serviceType.getSimpleName()));
+}

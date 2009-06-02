@@ -1,16 +1,19 @@
 {
   String[] pathElements=path.split("/");
   String name="";
+  Directory dirTask=null;
   for (  String pathElement : pathElements) {
     name+=name.length() != 0 ? "/" + pathElement : pathElement;
-    if (taskContainer.findByName(name) != null) {
-      if (!(taskContainer.findByName(name) instanceof Directory)) {
-        throw new InvalidUserDataException("A non directory task with this name already exsists.");
-      }
+    Task task=taskContainer.findByName(name);
+    if (task instanceof Directory) {
+      dirTask=(Directory)task;
+    }
+ else     if (task != null) {
+      throw new InvalidUserDataException(String.format("Cannot add directory task '%s' as a non-directory task with this name already exists.",name));
     }
  else {
-      taskContainer.add(name,Directory.class);
+      dirTask=taskContainer.add(name,Directory.class);
     }
   }
-  return taskContainer.getByName(path);
+  return dirTask;
 }
