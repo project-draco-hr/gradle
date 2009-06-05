@@ -1,0 +1,24 @@
+{
+  final ResolvedConfiguration resolvedConfiguration=resolver.resolve(configuration,ivy,moduleDescriptor);
+  final Set<SelfResolvingDependency> selfResolvingDependencies=configuration.getAllDependencies(SelfResolvingDependency.class);
+  return new ResolvedConfiguration(){
+    public ResolveReport getResolveReport(){
+      return resolvedConfiguration.getResolveReport();
+    }
+    public Set<File> getFiles(){
+      Set<File> files=new LinkedHashSet<File>();
+      for (      SelfResolvingDependency selfResolvingDependency : selfResolvingDependencies) {
+        files.addAll(selfResolvingDependency.resolve());
+      }
+      files.addAll(resolvedConfiguration.getFiles());
+      return files;
+    }
+    public boolean hasError(){
+      return resolvedConfiguration.hasError();
+    }
+    public void rethrowFailure() throws GradleException {
+      resolvedConfiguration.rethrowFailure();
+    }
+  }
+;
+}

@@ -1,26 +1,13 @@
 {
-  final ResolveReport resolveReport=resolveAsReport(configuration,ivy,moduleDescriptor);
-  return new ResolvedConfiguration(){
-    public ResolveReport getResolveReport(){
-      return resolveReport;
-    }
-    public boolean hasError(){
-      return resolveReport.hasError();
-    }
-    public void rethrowFailure() throws GradleException {
-      if (resolveReport.hasError()) {
-        Formatter formatter=new Formatter();
-        formatter.format("Could not resolve all dependencies for %s:%n",configuration);
-        for (        Object msg : resolveReport.getAllProblemMessages()) {
-          formatter.format("    - %s%n",msg);
-        }
-        throw new GradleException(formatter.toString());
-      }
-    }
-    public Set<File> getFiles(){
-      rethrowFailure();
-      return report2Classpath.getClasspath(configuration.getName(),resolveReport);
-    }
+  Clock clock=new Clock();
+  ResolveOptions resolveOptions=createResolveOptions(configuration);
+  ResolveReport resolveReport;
+  try {
+    resolveReport=ivy.resolve(moduleDescriptor,resolveOptions);
   }
-;
+ catch (  Exception e) {
+    throw new RuntimeException(e);
+  }
+  logger.debug("Timing: Ivy resolve took {}",clock.getTime());
+  return new ResolvedConfigurationImpl(resolveReport,configuration);
 }

@@ -1,0 +1,26 @@
+{
+  final SelfResolvingDependency dependency=context.mock(SelfResolvingDependency.class);
+  context.checking(new Expectations(){
+{
+      one(delegate).resolve(configuration,ivy,moduleDescriptor);
+      will(returnValue(resolvedConfiguration));
+      allowing(configuration).getAllDependencies(SelfResolvingDependency.class);
+      will(returnValue(toSet(dependency)));
+    }
+  }
+);
+  ResolvedConfiguration configuration=resolver.resolve(this.configuration,ivy,moduleDescriptor);
+  assertThat(configuration,not(sameInstance(resolvedConfiguration)));
+  final File configFile=new File("from config");
+  final File depFile=new File("from dep");
+  context.checking(new Expectations(){
+{
+      one(resolvedConfiguration).getFiles();
+      will(returnValue(toSet(configFile)));
+      one(dependency).resolve();
+      will(returnValue(toSet(depFile)));
+    }
+  }
+);
+  assertThat(configuration.getFiles(),equalTo(toLinkedSet(depFile,configFile)));
+}

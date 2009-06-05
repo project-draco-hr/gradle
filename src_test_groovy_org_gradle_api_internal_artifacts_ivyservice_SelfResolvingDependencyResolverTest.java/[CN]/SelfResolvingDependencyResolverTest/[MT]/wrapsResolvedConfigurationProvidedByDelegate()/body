@@ -1,0 +1,22 @@
+{
+  context.checking(new Expectations(){
+{
+      one(delegate).resolve(configuration,ivy,moduleDescriptor);
+      will(returnValue(resolvedConfiguration));
+      allowing(configuration).getAllDependencies(SelfResolvingDependency.class);
+      will(returnValue(toSet()));
+    }
+  }
+);
+  ResolvedConfiguration configuration=resolver.resolve(this.configuration,ivy,moduleDescriptor);
+  assertThat(configuration,not(sameInstance(resolvedConfiguration)));
+  final File file=new File("file");
+  context.checking(new Expectations(){
+{
+      one(resolvedConfiguration).getFiles();
+      will(returnValue(toSet(file)));
+    }
+  }
+);
+  assertThat(configuration.getFiles(),equalTo(toLinkedSet(file)));
+}
