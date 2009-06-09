@@ -1,5 +1,4 @@
 {
-  final ScriptSource expectedScriptSource=new ImportsScriptSource(scriptSource,importsReader,rootDir);
   final Throwable failure=new RuntimeException();
   context.checking(new Expectations(){
 {
@@ -12,14 +11,8 @@
   context.checking(new Expectations(){
 {
       one(listener).beforeEvaluate(project);
-      one(scriptProcessor).createScript(with(Matchers.reflectionEquals(expectedScriptSource)),with(same(classLoader)),with(equal(ProjectScript.class)));
-      will(returnValue(buildScript));
-      one(projectScriptMetaData).applyMetaData(buildScript,project);
-      one(project).setBuildScript(buildScript);
-      one(standardOutputRedirector).on(LogLevel.QUIET);
-      one(buildScript).run();
+      one(delegate).evaluate(project);
       will(throwException(failure));
-      one(standardOutputRedirector).flush();
       one(listener).afterEvaluate(with(sameInstance(project)),with(notNullValue(Throwable.class)));
     }
   }
