@@ -2,7 +2,11 @@
   final ScriptSource expectedScriptSource=new ImportsScriptSource(scriptSource,importsReader,rootDir);
   context.checking(new Expectations(){
 {
-      one(scriptProcessor).createScript(with(Matchers.reflectionEquals(expectedScriptSource)),with(same(classLoader)),with(equal(ProjectScript.class)));
+      one(scriptProcessor).createProcessor(with(reflectionEquals(expectedScriptSource)));
+      will(returnValue(processor));
+      one(processor).setClassloader(classLoader);
+      one(processor).setTransformer(with(any(TaskDefinitionScriptTransformer.class)));
+      one(processor).process(ProjectScript.class);
       will(returnValue(buildScript));
       one(projectScriptMetaData).applyMetaData(buildScript,project);
       one(project).setBuildScript(buildScript);

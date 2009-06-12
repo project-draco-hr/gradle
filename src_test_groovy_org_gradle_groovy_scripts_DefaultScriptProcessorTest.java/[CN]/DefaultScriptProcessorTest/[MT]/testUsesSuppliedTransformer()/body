@@ -1,0 +1,17 @@
+{
+  final CompilationUnit.SourceUnitOperation transformer=new CompilationUnit.SourceUnitOperation(){
+    public void call(    SourceUnit source) throws CompilationFailedException {
+    }
+  }
+;
+  context.checking(new Expectations(){
+{
+      allowing(source).getSourceFile();
+      will(returnValue(testScriptFile));
+      one(scriptCompilationHandlerMock).createScriptOnTheFly(source,testClassLoader,transformer,expectedScriptBaseClass);
+      will(returnValue(expectedScript));
+    }
+  }
+);
+  assertSame(expectedScript,scriptProcessor.createProcessor(source).setTransformer(transformer).process(expectedScriptBaseClass));
+}

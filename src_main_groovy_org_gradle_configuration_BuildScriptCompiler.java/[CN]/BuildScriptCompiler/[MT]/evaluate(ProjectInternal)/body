@@ -1,6 +1,9 @@
 {
   ScriptSource source=new ImportsScriptSource(project.getBuildScriptSource(),importsReader,project.getRootDir());
-  Script buildScript=scriptProcessor.createScript(source,project.getBuildScriptClassLoader(),ProjectScript.class);
+  ScriptProcessor processor=scriptProcessor.createProcessor(source);
+  processor.setClassloader(project.getBuildScriptClassLoader());
+  processor.setTransformer(new TaskDefinitionScriptTransformer());
+  Script buildScript=processor.process(ProjectScript.class);
   projectScriptMetaData.applyMetaData(buildScript,project);
   project.setBuildScript(buildScript);
 }
