@@ -1,14 +1,16 @@
 {
+  createBuildScriptFile();
   final CompilationUnit.SourceUnitOperation transformer=new CompilationUnit.SourceUnitOperation(){
     public void call(    SourceUnit source) throws CompilationFailedException {
     }
   }
 ;
+  final File expectedCacheDir=new File(testCacheDir.getParentFile(),transformer.getClass().getSimpleName());
   context.checking(new Expectations(){
 {
       allowing(source).getSourceFile();
       will(returnValue(testScriptFile));
-      one(scriptCompilationHandlerMock).createScriptOnTheFly(source,testClassLoader,transformer,expectedScriptBaseClass);
+      one(scriptCompilationHandlerMock).loadFromCache(source,testClassLoader,expectedCacheDir,expectedScriptBaseClass);
       will(returnValue(expectedScript));
     }
   }

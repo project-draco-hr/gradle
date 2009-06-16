@@ -5,7 +5,12 @@
       one(scriptProcessorFactory).createProcessor(with(reflectionEquals(expectedScriptSource)));
       will(returnValue(processor));
       one(processor).setClassloader(classLoader);
-      one(processor).setTransformer(with(any(TaskDefinitionScriptTransformer.class)));
+      one(processor).setTransformer(with(notNullValue(BuildScriptClasspathScriptTransformer.class)));
+      one(processor).process(ProjectScript.class);
+      will(returnValue(classpathScript));
+      one(projectScriptMetaData).applyMetaData(classpathScript,project);
+      one(classpathScript).run();
+      one(processor).setTransformer(with(notNullValue(TaskDefinitionScriptTransformer.class)));
       one(processor).process(ProjectScript.class);
       will(returnValue(buildScript));
       one(projectScriptMetaData).applyMetaData(buildScript,project);
