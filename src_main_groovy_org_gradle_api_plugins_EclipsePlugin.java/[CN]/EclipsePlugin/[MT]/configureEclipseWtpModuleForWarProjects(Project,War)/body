@@ -1,0 +1,37 @@
+{
+  final EclipseWtp eclipseWtp=project.getTasks().add(ECLIPSE_WTP_TASK_NAME,EclipseWtp.class);
+  eclipseWtp.conventionMapping(GUtil.map("warResourceMappings",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      Map resourceMappings=WrapUtil.toMap("/WEB-INF/classes",GUtil.addLists(java(convention).getSrcDirs(),java(convention).getResourceDirs()));
+      resourceMappings.put("/",WrapUtil.toList(war(convention).getWebAppDir()));
+      return resourceMappings;
+    }
+  }
+,"outputDirectory",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return java(convention).getClassesDir();
+    }
+  }
+,"deployName",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return project.getName();
+    }
+  }
+,"warLibs",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      List warLibs=war.dependencies(eclipseWtp.isFailForMissingDependencies(),false);
+      if (war.getAdditionalLibFileSets() != null) {
+        warLibs.addAll(war.getAdditionalLibFileSets());
+      }
+      return warLibs;
+    }
+  }
+,"projectDependencies",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return new ArrayList(Specs.filterIterable(((Task)conventionAwareObject).getProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getAllDependencies(),DependencySpecs.type(Type.PROJECT)));
+    }
+  }
+));
+  createDependencyOnEclipseProjectTaskOfDependentProjects(project,eclipseWtp);
+  project.getTasks().getByName(ECLIPSE_TASK_NAME).dependsOn(eclipseWtp);
+}
