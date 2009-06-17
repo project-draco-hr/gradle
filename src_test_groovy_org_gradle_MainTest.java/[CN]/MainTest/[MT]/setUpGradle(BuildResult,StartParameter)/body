@@ -1,0 +1,16 @@
+{
+  final Gradle gradleMock=context.mock(Gradle.class);
+  final GradleFactory gradleFactoryMock=context.mock(GradleFactory.class);
+  Gradle.injectCustomFactory(gradleFactoryMock);
+  context.checking(new Expectations(){
+{
+      one(gradleFactoryMock).newInstance(startParameter);
+      will(returnValue(gradleMock));
+      one(gradleMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));
+      one(gradleMock).addBuildListener(with(notNullValue(BuildResultLogger.class)));
+      one(gradleMock).run();
+      will(returnValue(buildResult));
+    }
+  }
+);
+}
