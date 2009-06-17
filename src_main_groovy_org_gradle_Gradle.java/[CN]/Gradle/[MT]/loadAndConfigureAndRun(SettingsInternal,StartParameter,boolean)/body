@@ -1,8 +1,12 @@
 {
   BuildInternal build=loadAndConfigure(settings,startParameter);
+  if (disableTasks) {
+    build.getTaskGraph().addTaskExecutionListener(createDisableTaskListener());
+  }
   attachTaskGraphListener(build);
   BuildExecuter executer=startParameter.getBuildExecuter();
   executer.select(build.getDefaultProject());
   logger.info(String.format("Starting build for %s.",executer.getDisplayName()));
   executer.execute(build.getTaskGraph());
+  return build;
 }
