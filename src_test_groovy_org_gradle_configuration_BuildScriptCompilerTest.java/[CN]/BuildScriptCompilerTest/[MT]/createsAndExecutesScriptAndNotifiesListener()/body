@@ -4,13 +4,16 @@
 {
       one(scriptProcessorFactory).createProcessor(with(reflectionEquals(expectedScriptSource)));
       will(returnValue(processor));
+      one(classLoaderProvider).getClassLoader();
+      will(returnValue(classLoader));
       one(processor).setClassloader(classLoader);
       one(processor).setTransformer(with(notNullValue(BuildScriptClasspathScriptTransformer.class)));
       one(processor).process(ProjectScript.class);
       will(returnValue(classpathScript));
       one(projectScriptMetaData).applyMetaData(classpathScript,project);
       one(classpathScript).run();
-      one(processor).setTransformer(with(notNullValue(TaskDefinitionScriptTransformer.class)));
+      one(classLoaderProvider).updateClassPath();
+      one(processor).setTransformer(with(notNullValue(BuildScriptTransformer.class)));
       one(processor).process(ProjectScript.class);
       will(returnValue(buildScript));
       one(projectScriptMetaData).applyMetaData(buildScript,project);

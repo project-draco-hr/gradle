@@ -76,7 +76,13 @@
       RepositoryHandler repositoryHandler=repositoryHandlerFactory.createRepositoryHandler(new DefaultConvention());
       ConfigurationHandler configurationContainer=configurationContainerFactory.createConfigurationContainer(repositoryHandler,new DependencyMetaDataProviderImpl());
       DependencyHandler dependencyHandler=new DefaultDependencyHandler(configurationContainer,dependencyFactory,get(ProjectFinder.class));
-      return new DefaultScriptClasspathHandler(repositoryHandler,dependencyHandler);
+      return new DefaultScriptClasspathHandler(repositoryHandler,dependencyHandler,configurationContainer,project.getBuild().getBuildScriptClassLoader());
+    }
+  }
+);
+  services.add(new Service(ScriptClassLoaderProvider.class){
+    @Override protected Object create(){
+      return get(ScriptClasspathHandler.class);
     }
   }
 );

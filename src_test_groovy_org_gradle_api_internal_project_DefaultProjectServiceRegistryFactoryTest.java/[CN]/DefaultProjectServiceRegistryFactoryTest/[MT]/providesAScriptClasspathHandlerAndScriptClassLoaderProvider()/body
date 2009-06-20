@@ -1,0 +1,18 @@
+{
+  expectConfigurationHandlerCreated();
+  context.checking(new Expectations(){
+{
+      BuildInternal build=context.mock(BuildInternal.class);
+      allowing(project).getBuild();
+      will(returnValue(build));
+      allowing(build).getBuildScriptClassLoader();
+      will(returnValue(null));
+      ignoring(configurationHandler);
+    }
+  }
+);
+  ProjectServiceRegistry registry=factory.create(project);
+  assertThat(registry.get(ScriptClasspathHandler.class),instanceOf(DefaultScriptClasspathHandler.class));
+  assertThat(registry.get(ScriptClasspathHandler.class),sameInstance(registry.get(ScriptClasspathHandler.class)));
+  assertThat(registry.get(ScriptClassLoaderProvider.class),sameInstance((Object)registry.get(ScriptClasspathHandler.class)));
+}

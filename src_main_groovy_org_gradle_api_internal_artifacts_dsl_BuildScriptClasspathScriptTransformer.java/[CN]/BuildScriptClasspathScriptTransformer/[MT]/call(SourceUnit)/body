@@ -1,9 +1,15 @@
 {
-  Iterator statementIterator=source.getAST().getStatementBlock().getStatements().iterator();
-  while (statementIterator.hasNext()) {
-    Statement statement=(Statement)statementIterator.next();
-    if (!isBuildScriptBlock(statement)) {
-      statementIterator.remove();
+  Spec<Statement> spec=isScriptBlock();
+  filterStatements(source,spec);
+  source.getAST().getImports().clear();
+  source.getAST().getImportPackages().clear();
+  List classes=source.getAST().getClasses();
+  if (!classes.isEmpty()) {
+    classes.subList(1,classes.size()).clear();
+    ClassNode scriptClass=(ClassNode)classes.get(0);
+    if (scriptClass.getMethods().size() > 2) {
+      scriptClass.getMethods().subList(2,scriptClass.getMethods().size()).clear();
     }
   }
+  source.getAST().getMethods().clear();
 }

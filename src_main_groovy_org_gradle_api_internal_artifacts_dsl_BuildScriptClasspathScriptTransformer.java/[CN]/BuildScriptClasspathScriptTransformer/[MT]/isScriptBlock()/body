@@ -1,0 +1,23 @@
+{
+  return new Spec<Statement>(){
+    public boolean isSatisfiedBy(    Statement statement){
+      if (!(statement instanceof ExpressionStatement)) {
+        return false;
+      }
+      ExpressionStatement expressionStatement=(ExpressionStatement)statement;
+      if (!(expressionStatement.getExpression() instanceof MethodCallExpression)) {
+        return false;
+      }
+      MethodCallExpression methodCall=(MethodCallExpression)expressionStatement.getExpression();
+      if (!isMethodOnThis(methodCall,BUILDSCRIPT_METHOD_NAME)) {
+        return false;
+      }
+      if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
+        return false;
+      }
+      ArgumentListExpression args=(ArgumentListExpression)methodCall.getArguments();
+      return args.getExpressions().size() == 1 && args.getExpression(0) instanceof ClosureExpression;
+    }
+  }
+;
+}
