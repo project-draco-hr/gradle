@@ -1,8 +1,29 @@
 {
   Spec<Statement> spec=isScriptBlock();
   filterStatements(source,spec);
-  source.getAST().getImports().clear();
-  source.getAST().getImportPackages().clear();
+  Iterator iter=source.getAST().getImports().iterator();
+  while (iter.hasNext()) {
+    ImportNode importedClass=(ImportNode)iter.next();
+    if (!isVisible(source,importedClass.getClassName())) {
+      iter.remove();
+    }
+  }
+  iter=source.getAST().getStaticImportClasses().keySet().iterator();
+  while (iter.hasNext()) {
+    String importedClass=(String)iter.next();
+    if (!isVisible(source,importedClass)) {
+      iter.remove();
+    }
+  }
+  iter=source.getAST().getStaticImportAliases().entrySet().iterator();
+  while (iter.hasNext()) {
+    Map.Entry entry=(Map.Entry)iter.next();
+    ClassNode importedClass=(ClassNode)entry.getValue();
+    if (!isVisible(source,importedClass.getName())) {
+      iter.remove();
+      source.getAST().getStaticImportFields().remove(entry.getKey());
+    }
+  }
   List classes=source.getAST().getClasses();
   if (!classes.isEmpty()) {
     classes.subList(1,classes.size()).clear();
