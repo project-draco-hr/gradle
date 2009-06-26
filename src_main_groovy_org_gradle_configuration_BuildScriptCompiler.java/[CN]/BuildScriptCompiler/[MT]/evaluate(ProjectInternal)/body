@@ -5,7 +5,13 @@
   processor.setTransformer(new BuildScriptClasspathScriptTransformer());
   Script classPathScript=processor.process(ProjectScript.class);
   projectScriptMetaData.applyMetaData(classPathScript,project);
-  classPathScript.run();
+  project.getStandardOutputRedirector().on(LogLevel.QUIET);
+  try {
+    classPathScript.run();
+  }
+  finally {
+    project.getStandardOutputRedirector().flush();
+  }
   project.getClassLoaderProvider().updateClassPath();
   processor.setTransformer(new BuildScriptTransformer());
   Script buildScript=processor.process(ProjectScript.class);
