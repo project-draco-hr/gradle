@@ -1,0 +1,20 @@
+{
+  AbstractProject project=HelperUtil.createRootProject();
+  final Set<Task> depTasks=new HashSet<Task>();
+  final TaskDependency dependencyMock=context.mock(TaskDependency.class);
+  getTask().dependsOn(dependencyMock);
+  context.checking(new Expectations(){
+{
+      allowing(dependencyMock).getDependencies(getTask());
+      will(returnValue(depTasks));
+    }
+  }
+);
+  DefaultTask task1=new DefaultTask(project,"task1");
+  DefaultTask task2=new DefaultTask(project,"task2");
+  depTasks.add(task1);
+  depTasks.add(task2);
+  assertFalse(getTask().dependsOnTaskDidWork());
+  task2.setDidWork(true);
+  assertTrue(getTask().dependsOnTaskDidWork());
+}

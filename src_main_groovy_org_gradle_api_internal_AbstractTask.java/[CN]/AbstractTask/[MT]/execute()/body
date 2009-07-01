@@ -2,27 +2,33 @@
   executing=true;
   logger.debug("Starting to execute Task: {}",path);
   if (!isSkipped()) {
-    logger.info(Logging.LIFECYCLE,"{}",path);
-    standardOutputCapture.start();
-    for (    TaskAction action : actions) {
-      logger.debug("Executing Action:");
-      try {
-        doExecute(action);
+    if (onlyIfSpec == null || project.getBuild().getStartParameter().isNoOpt() || onlyIfSpec.isSatisfiedBy(this)) {
+      logger.info(Logging.LIFECYCLE,"{}",path);
+      didWork=true;
+      standardOutputCapture.start();
+      for (      TaskAction action : actions) {
+        logger.debug("Executing Action:");
+        try {
+          doExecute(action);
+        }
+ catch (        StopExecutionException e) {
+          logger.info("Execution stopped by some action with message: {}",e.getMessage());
+          break;
+        }
+catch (        StopActionException e) {
+          logger.debug("Action stopped by some action with message: {}",e.getMessage());
+        }
+catch (        Throwable t) {
+          executing=false;
+          standardOutputCapture.stop();
+          throw new GradleScriptException(String.format("Execution failed for %s.",this),t,project.getBuildScriptSource());
+        }
       }
- catch (      StopExecutionException e) {
-        logger.info("Execution stopped by some action with message: {}",e.getMessage());
-        break;
-      }
-catch (      StopActionException e) {
-        logger.debug("Action stopped by some action with message: {}",e.getMessage());
-      }
-catch (      Throwable t) {
-        executing=false;
-        standardOutputCapture.stop();
-        throw new GradleScriptException(String.format("Execution failed for %s.",this),t,project.getBuildScriptSource());
-      }
+      standardOutputCapture.stop();
     }
-    standardOutputCapture.stop();
+ else {
+      logger.info(Logging.LIFECYCLE,"{} SKIPPED as onlyIf is false",path);
+    }
   }
   executing=false;
   executed=true;
