@@ -1,4 +1,5 @@
 {
+  final Dependency moduleDependency=context.mock(Dependency.class);
   final SelfResolvingDependency dependency=context.mock(SelfResolvingDependency.class);
   context.checking(new Expectations(){
 {
@@ -15,12 +16,12 @@
   final File depFile=new File("from dep");
   context.checking(new Expectations(){
 {
-      one(resolvedConfiguration).getFiles();
+      one(resolvedConfiguration).getFiles(Specs.SATISFIES_ALL);
       will(returnValue(toSet(configFile)));
       one(dependency).resolve();
       will(returnValue(toSet(depFile)));
     }
   }
 );
-  assertThat(configuration.getFiles(),equalTo(toLinkedSet(depFile,configFile)));
+  assertThat(configuration.getFiles(Specs.SATISFIES_ALL),equalTo(toLinkedSet(depFile,configFile)));
 }

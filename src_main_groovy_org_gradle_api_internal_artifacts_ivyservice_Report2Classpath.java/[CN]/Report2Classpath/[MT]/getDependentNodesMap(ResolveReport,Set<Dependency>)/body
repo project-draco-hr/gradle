@@ -1,0 +1,24 @@
+{
+  Set<ModuleRevisionId> firstLevelDependenciesModuleRevisionIds=createFirstLevelDependenciesModuleRevisionIds(firstLevelDependencies);
+  Set<File> files=new HashSet<File>();
+  Set<ModuleRevisionId> transitiveFirstLevelDependenciesModuleRevisionIds=new HashSet<ModuleRevisionId>();
+  for (Iterator iterator=resolveReport.getDependencies().iterator(); iterator.hasNext(); ) {
+    IvyNode ivyNode=(IvyNode)iterator.next();
+    if (ivyNode.isLoaded()) {
+      ModuleRevisionId normalizedIvyNodeId=normalize(ivyNode.getId());
+      boolean hasAssociatedFirstLevelDependencyNodes=false;
+      if (isNodeFirstLevelDependency(normalizedIvyNodeId,firstLevelDependenciesModuleRevisionIds)) {
+        hasAssociatedFirstLevelDependencyNodes=true;
+      }
+ else {
+        hasAssociatedFirstLevelDependencyNodes=hasParentFirstLevelDependency(transitiveFirstLevelDependenciesModuleRevisionIds,ivyNode);
+      }
+      if (!hasAssociatedFirstLevelDependencyNodes) {
+        continue;
+      }
+      transitiveFirstLevelDependenciesModuleRevisionIds.add(ivyNode.getResolvedId());
+      files.addAll(getFilesForReport(resolveReport.getArtifactsReports(ivyNode.getId())));
+    }
+  }
+  return files;
+}

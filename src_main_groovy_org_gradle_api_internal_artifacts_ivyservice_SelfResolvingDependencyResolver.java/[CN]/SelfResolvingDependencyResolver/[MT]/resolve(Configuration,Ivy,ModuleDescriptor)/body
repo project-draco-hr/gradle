@@ -5,12 +5,13 @@
     public ResolveReport getResolveReport(){
       return resolvedConfiguration.getResolveReport();
     }
-    public Set<File> getFiles(){
+    public Set<File> getFiles(    Spec<Dependency> dependencySpec){
       Set<File> files=new LinkedHashSet<File>();
-      for (      SelfResolvingDependency selfResolvingDependency : selfResolvingDependencies) {
-        files.addAll(selfResolvingDependency.resolve());
+      Set<SelfResolvingDependency> selfResolvingDependenciesSubSet=Specs.filterIterable(selfResolvingDependencies,dependencySpec);
+      for (      SelfResolvingDependency selfResolvingDependency : selfResolvingDependenciesSubSet) {
+        files.addAll((selfResolvingDependency).resolve());
       }
-      files.addAll(resolvedConfiguration.getFiles());
+      files.addAll(resolvedConfiguration.getFiles(dependencySpec));
       return files;
     }
     public boolean hasError(){
