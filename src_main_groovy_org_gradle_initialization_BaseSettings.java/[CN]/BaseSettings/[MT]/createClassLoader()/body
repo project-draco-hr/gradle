@@ -1,14 +1,21 @@
 {
-  URLClassLoader classLoader=(URLClassLoader)Thread.currentThread().getContextClassLoader();
-  StartParameter startParameter=buildSrcStartParameter.newInstance();
-  startParameter.setCurrentDir(new File(getRootDir(),DEFAULT_BUILD_SRC_DIR));
-  Set<File> additionalClasspath=buildSourceBuilder.createBuildSourceClasspath(startParameter);
-  additionalClasspath.addAll(buildConfiguration.getFiles());
+  ClassLoader parentClassLoader=Thread.currentThread().getContextClassLoader();
+  StartParameter buildSrcStartParameter=startParameter.newBuild();
+  buildSrcStartParameter.setCurrentDir(new File(getRootDir(),DEFAULT_BUILD_SRC_DIR));
+  Set<File> additionalClasspath=buildSourceBuilder.createBuildSourceClasspath(buildSrcStartParameter);
   File toolsJar=ClasspathUtil.getToolsJar();
   if (toolsJar != null) {
     additionalClasspath.add(toolsJar);
   }
   logger.debug("Adding to classpath: {}",additionalClasspath);
-  ClasspathUtil.addUrl(classLoader,additionalClasspath);
-  return classLoader;
+  List<URL> urls=new ArrayList<URL>();
+  for (  File file : additionalClasspath) {
+    try {
+      urls.add(file.toURI().toURL());
+    }
+ catch (    MalformedURLException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+  return new URLClassLoader(urls.toArray(new URL[urls.size()]),parentClassLoader);
 }

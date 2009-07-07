@@ -1,25 +1,11 @@
 {
-  final ConfigurationContainerFactory configurationContainerFactory=context.mock(ConfigurationContainerFactory.class);
-  final ConfigurationHandler configurationContainer=context.mock(ConfigurationHandler.class);
-  final Configuration configuration=context.mock(Configuration.class);
-  final InternalRepository internalRepositoryDummy=context.mock(InternalRepository.class);
   final File expectedSettingsDir=new File("settingsDir");
-  final RepositoryHandler repositoryHandlerMock=context.mock(RepositoryHandler.class);
   ScriptSource expectedScriptSource=context.mock(ScriptSource.class);
   Map<String,String> expectedGradleProperties=WrapUtil.toMap("key","myvalue");
-  context.checking(new Expectations(){
-{
-      one(configurationContainerFactory).createConfigurationContainer(with(any(ResolverProvider.class)),with(any(DependencyMetaDataProvider.class)));
-      will(returnValue(configurationContainer));
-      one(configurationContainer).add(with(any(String.class)));
-      will(returnValue(configuration));
-    }
-  }
-);
   BuildSourceBuilder expectedBuildSourceBuilder=context.mock(BuildSourceBuilder.class);
   IProjectDescriptorRegistry expectedProjectDescriptorRegistry=new DefaultProjectDescriptorRegistry();
   StartParameter expectedStartParameter=HelperUtil.dummyStartParameter();
-  SettingsFactory settingsFactory=new SettingsFactory(expectedProjectDescriptorRegistry,repositoryHandlerMock,configurationContainerFactory,internalRepositoryDummy,expectedBuildSourceBuilder);
+  SettingsFactory settingsFactory=new SettingsFactory(expectedProjectDescriptorRegistry,expectedBuildSourceBuilder);
   DefaultSettings settings=(DefaultSettings)settingsFactory.createSettings(expectedSettingsDir,expectedScriptSource,expectedGradleProperties,expectedStartParameter);
   assertSame(expectedProjectDescriptorRegistry,settings.getProjectDescriptorRegistry());
   assertSame(expectedBuildSourceBuilder,settings.getBuildSourceBuilder());
