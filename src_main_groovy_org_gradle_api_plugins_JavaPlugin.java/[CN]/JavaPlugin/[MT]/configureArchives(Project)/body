@@ -49,5 +49,11 @@
 );
   Jar jar=project.getTasks().add(JAR_TASK_NAME,Jar.class);
   jar.setDescription("Generates a jar archive with all the compiled classes.");
+  jar.conventionMapping("resourceCollections",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return WrapUtil.toList((Object)new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
+    }
+  }
+);
   project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
 }
