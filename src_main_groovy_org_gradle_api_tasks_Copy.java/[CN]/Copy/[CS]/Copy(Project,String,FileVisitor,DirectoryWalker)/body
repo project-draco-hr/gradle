@@ -1,4 +1,13 @@
 {
-  this(project,name);
-  copyAction=new CopyActionImpl(project,testVisitor,testWalker);
+  super(project,name);
+  FileResolver fileResolver=((ProjectInternal)project).getFileResolver();
+  copyAction=new CopyActionImpl(fileResolver,testVisitor,testWalker);
+  doLast(new TaskAction(){
+    public void execute(    Task task){
+      configureRootSpec();
+      copyAction.execute();
+      setDidWork(copyAction.getDidWork());
+    }
+  }
+);
 }
