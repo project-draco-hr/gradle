@@ -1,0 +1,15 @@
+{
+  visitor=new CopyVisitor(testDir,null,null,new FilterChain());
+  visitor.visitDir(sourceDir,new RelativePath(false));
+  File rootFile=getResource("testfiles/rootfile.txt");
+  File subDir=getResource("testfiles/subdir");
+  File anotherFile=getResource("testfiles/subdir/anotherfile.txt");
+  visitor.visitFile(rootFile,new RelativePath(true,rootFile.getName()));
+  RelativePath subDirPath=new RelativePath(false,subDir.getName());
+  visitor.visitDir(subDir,subDirPath);
+  visitor.visitFile(anotherFile,new RelativePath(true,subDirPath,anotherFile.getName()));
+  File targetRootFile=new File(testDir,rootFile.getName());
+  assertTrue(targetRootFile.exists());
+  File targetAnotherFile=new File(testDir,"subdir/" + anotherFile.getName());
+  assertTrue(targetAnotherFile.exists());
+}

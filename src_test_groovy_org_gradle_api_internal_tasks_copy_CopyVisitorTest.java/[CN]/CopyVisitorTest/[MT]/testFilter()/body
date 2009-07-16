@@ -1,0 +1,16 @@
+{
+  FilterChain filters=new FilterChain();
+  ReplaceTokens filter=new ReplaceTokens(filters.getChain());
+  filters.setChain(filter);
+  ReplaceTokens.Token token=new ReplaceTokens.Token();
+  token.setKey("MAGIC");
+  token.setValue("42");
+  filter.addConfiguredToken(token);
+  visitor=new CopyVisitor(testDir,null,null,filters);
+  File sourceFile=getResource("testfiles/rootfile.txt");
+  File destFile=new File(testDir,sourceFile.getName());
+  visitor.copyFile(sourceFile,destFile);
+  assertTrue(destFile.exists());
+  BufferedReader reader=new BufferedReader(new FileReader(destFile));
+  assertTrue(reader.readLine().startsWith("The magic number is 42"));
+}

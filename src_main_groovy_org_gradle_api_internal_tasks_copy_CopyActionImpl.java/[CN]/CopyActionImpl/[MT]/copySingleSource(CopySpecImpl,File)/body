@@ -1,0 +1,19 @@
+{
+  FileVisitor visitor=testVisitor;
+  if (visitor == null) {
+    visitor=new CopyVisitor(spec.getDestDir(),spec.getRemapClosures(),spec.getRenameMappers(),spec.getFilterChain());
+  }
+  DirectoryWalker walker=testWalker;
+  if (walker == null) {
+    walker=new BreadthFirstDirectoryWalker(caseSensitive,visitor);
+  }
+  walker.addIncludes(spec.getAllIncludes());
+  walker.addExcludes(spec.getAllExcludes());
+  try {
+    walker.start(source);
+  }
+ catch (  IOException e) {
+    throw new GradleException("IO Error during copy",e);
+  }
+  didWork=visitor.getDidWork();
+}

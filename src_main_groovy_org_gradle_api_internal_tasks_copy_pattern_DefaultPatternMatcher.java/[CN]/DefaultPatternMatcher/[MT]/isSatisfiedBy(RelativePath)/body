@@ -1,0 +1,40 @@
+{
+  ListIterator<PatternStep> patternIt=steps.listIterator();
+  ListIterator<String> testIt=pathToTest.segmentIterator();
+  boolean seenGreedy=false;
+  PatternStep patternStep;
+  while (testIt.hasNext()) {
+    String nextToTest=testIt.next();
+    if (!patternIt.hasNext()) {
+      return false;
+    }
+    patternStep=patternIt.next();
+    if (patternStep.isGreedy()) {
+      seenGreedy=true;
+      advancePatternStepToNextNonGreedy(patternIt);
+      if (!patternIt.hasNext())       return true;
+      patternStep=patternIt.next();
+      while (!(patternStep.matches(nextToTest,!testIt.hasNext() && pathToTest.isFile()) && ((patternIt.hasNext() == testIt.hasNext()) || nextPatternIsGreedy(patternIt)))) {
+        if (!testIt.hasNext()) {
+          return false;
+        }
+        nextToTest=testIt.next();
+      }
+    }
+ else {
+      if (!patternStep.matches(nextToTest,!testIt.hasNext() && pathToTest.isFile())) {
+        if (seenGreedy) {
+          rewindPatternStepToPreviousGreedy(patternIt);
+          testIt.previous();
+        }
+ else {
+          return false;
+        }
+      }
+    }
+  }
+  if (!patternIt.hasNext()) {
+    return true;
+  }
+  return isTerminatingMatch(pathToTest,patternIt);
+}

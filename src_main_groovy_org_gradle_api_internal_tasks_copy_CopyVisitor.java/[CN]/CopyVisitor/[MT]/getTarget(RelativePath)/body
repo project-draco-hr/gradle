@@ -1,0 +1,30 @@
+{
+  File result=null;
+  String targetName=path.getLastName();
+  if (nameMappers != null && nameMappers.size() != 0) {
+    String resultName=null;
+    for (    NameMapper nameMapper : nameMappers) {
+      resultName=nameMapper.rename(targetName);
+      if (resultName != null) {
+        break;
+      }
+    }
+    targetName=resultName;
+  }
+  if (targetName != null) {
+    File target=new File(currentDestDir,targetName);
+    if (remapClosures == null || remapClosures.size() == 0) {
+      result=target;
+    }
+ else {
+      for (      Closure nextClosure : remapClosures) {
+        Object targetObj=nextClosure.call(target);
+        if (targetObj instanceof File) {
+          result=(File)targetObj;
+          break;
+        }
+      }
+    }
+  }
+  return result;
+}

@@ -1,0 +1,27 @@
+{
+  walker=new BreadthFirstDirectoryWalker(true,visitor);
+  final MockFile root=new MockFile(context,"root",false);
+  final MockFile rootFile1=root.addFile("rootFile1");
+  final MockFile dir1=root.addDir("dir1");
+  final MockFile dirFile1=dir1.addFile("dirFile1");
+  final MockFile dirFile2=dir1.addFile("dirFile2");
+  final MockFile rootFile2=root.addFile("rootFile2");
+  root.setExpectations();
+  final Sequence visiting=context.sequence("visiting");
+  context.checking(new Expectations(){
+{
+      one(visitor).visitFile(rootFile1.getMock(),rootFile1.getRelativePath());
+      inSequence(visiting);
+      one(visitor).visitFile(rootFile2.getMock(),rootFile2.getRelativePath());
+      inSequence(visiting);
+      one(visitor).visitDir(dir1.getMock(),dir1.getRelativePath());
+      inSequence(visiting);
+      one(visitor).visitFile(dirFile1.getMock(),dirFile1.getRelativePath());
+      inSequence(visiting);
+      one(visitor).visitFile(dirFile2.getMock(),dirFile2.getRelativePath());
+      inSequence(visiting);
+    }
+  }
+);
+  walker.start(root.getMock());
+}
