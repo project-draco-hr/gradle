@@ -2,39 +2,14 @@
   final ConfigurationContainer configurationContainer=context.mock(ConfigurationHandler.class);
   final Configuration configuration1=context.mock(Configuration.class,"Configuration1");
   final Configuration configuration2=context.mock(Configuration.class,"Configuration2");
-  final ResolveReport report=new ResolveReport(new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("org","mod"),"rev"),"status",null));
   context.checking(new Expectations(){
 {
       allowing(project).getConfigurations();
       will(returnValue(configurationContainer));
       allowing(configurationContainer).getAll();
-      will(returnValue(WrapUtil.toSet(configuration2,configuration1)));
-      allowing(configuration1).getName();
-      will(returnValue("config1"));
-      allowing(configuration2).getName();
-      will(returnValue("config2"));
-      Sequence resolve=context.sequence("resolve");
-      Sequence render=context.sequence("render");
-      one(configuration1).resolveAsReport();
-      inSequence(resolve);
-      will(returnValue(report));
-      one(renderer).startConfiguration(configuration1);
-      inSequence(render);
-      one(renderer).render(with(aNonNull(IvyDependencyGraph.class)));
-      inSequence(render);
-      one(renderer).completeConfiguration(configuration1);
-      inSequence(render);
-      one(configuration2).resolveAsReport();
-      inSequence(resolve);
-      will(returnValue(report));
-      one(renderer).startConfiguration(configuration2);
-      inSequence(render);
-      one(renderer).render(with(aNonNull(IvyDependencyGraph.class)));
-      inSequence(render);
-      one(renderer).completeConfiguration(configuration2);
-      inSequence(render);
+      will(returnValue(WrapUtil.toSet(configuration1,configuration2)));
     }
   }
 );
-  task.generate(project);
+  assertConfigurationsIsPassedToRenderer(configuration1,configuration2);
 }

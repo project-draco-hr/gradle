@@ -1,0 +1,18 @@
+{
+  Clock clock=new Clock();
+  Map<Dependency,Set<ResolvedDependency>> firstLevelResolvedDependencies=new LinkedHashMap<Dependency,Set<ResolvedDependency>>();
+  ConfigurationResolveReport configurationResolveReport=resolveReport.getConfigurationReport(configuration.getName());
+  LinkedHashMap<ModuleRevisionId,Map<String,ResolvedDependency>> handledNodes=new LinkedHashMap<ModuleRevisionId,Map<String,ResolvedDependency>>();
+  Map<ResolvedDependency,IvyNode> resolvedDependencies2Nodes=new HashMap<ResolvedDependency,IvyNode>();
+  Map<ModuleRevisionId,Dependency> firstLevelDependenciesModuleRevisionIds=createFirstLevelDependenciesModuleRevisionIds(configuration.getAllDependencies());
+  List nodes=resolveReport.getDependencies();
+  for (Iterator iterator=nodes.iterator(); iterator.hasNext(); ) {
+    IvyNode node=(IvyNode)iterator.next();
+    if (!isResolvedNode(node,configuration)) {
+      continue;
+    }
+    buildGraphInternal(node,handledNodes,resolvedDependencies2Nodes,firstLevelResolvedDependencies,configuration.getName(),configurationResolveReport,firstLevelDependenciesModuleRevisionIds,resolveReport);
+  }
+  logger.debug("Timing: Translating report for configuration {} took {}",configuration,clock.getTime());
+  return firstLevelResolvedDependencies;
+}

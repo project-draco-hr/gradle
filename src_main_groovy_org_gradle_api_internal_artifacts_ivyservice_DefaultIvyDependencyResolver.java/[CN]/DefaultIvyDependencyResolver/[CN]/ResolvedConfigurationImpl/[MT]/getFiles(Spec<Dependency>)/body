@@ -1,5 +1,18 @@
 {
-  rethrowFailure();
+  if (configuration.getAllDependencies().equals(Specs.filterIterable(configuration.getAllDependencies(),dependencySpec))) {
+    return ivyReportTranslator.getClasspath(configuration.getName(),resolveReport);
+  }
+  buildResolvedDependencies();
   Set<Dependency> dependencies=Specs.filterIterable(configuration.getAllDependencies(),dependencySpec);
-  return report2Classpath.getClasspath(resolveReport,dependencies);
+  Set<File> files=new LinkedHashSet<File>();
+  for (  Dependency dependency : dependencies) {
+    Set<ResolvedDependency> resolvedDependencies=firstLevelResolvedDependencies.get(dependency);
+    if (resolvedDependencies == null) {
+      continue;
+    }
+    for (    ResolvedDependency resolvedDependency : resolvedDependencies) {
+      files.addAll(resolvedDependency.getAllFiles());
+    }
+  }
+  return files;
 }

@@ -1,0 +1,35 @@
+{
+  ModuleRevisionId nodeId=ivyNode.getId();
+  if (handledNodes.containsKey(nodeId)) {
+    return handledNodes.get(nodeId);
+  }
+  Map<String,ResolvedDependency> resolvedDependencies=new LinkedHashMap<String,ResolvedDependency>();
+  for (  IvyNodeCallers.Caller caller : ivyNode.getCallers(conf)) {
+    Set<String> dependencyConfigurations=getDependencyConfigurations(ivyNode,caller);
+    for (    String dependencyConfiguration : dependencyConfigurations) {
+      if (resolvedDependencies.containsKey(dependencyConfiguration)) {
+        continue;
+      }
+      DefaultResolvedDependency resolvedDependency=createResolvedDependency(ivyNode,resolveReport,dependencyConfiguration);
+      resolvedDependencies.put(dependencyConfiguration,resolvedDependency);
+      resolvedDependencies2Nodes.put(resolvedDependency,ivyNode);
+      addNodeIfFirstLevelDependency(ivyNode,resolvedDependency,firstLevelDependenciesModuleRevisionIds,firstLevelResolvedDependencies);
+    }
+    if (caller.getModuleDescriptor().equals(configurationResolveReport.getModuleDescriptor())) {
+      continue;
+    }
+    IvyNode parent=configurationResolveReport.getDependency(caller.getModuleRevisionId());
+    Map<String,ResolvedDependency> parentDeps=buildGraphInternal(parent,handledNodes,resolvedDependencies2Nodes,firstLevelResolvedDependencies,conf,configurationResolveReport,firstLevelDependenciesModuleRevisionIds,resolveReport);
+    for (    String dependencyConfiguration : dependencyConfigurations) {
+      Set<String> callerConfigurations=callerConfForDependencyConf(caller,ivyNode,dependencyConfiguration);
+      Set<ResolvedDependency> parentResolvedDependenciesSubSet=getParentResolvedDependencies(resolvedDependencies2Nodes,parentDeps,callerConfigurations);
+      for (      ResolvedDependency parentResolvedDependency : parentResolvedDependenciesSubSet) {
+        ResolvedDependency resolvedDependency=resolvedDependencies.get(dependencyConfiguration);
+        parentResolvedDependency.getChildren().add(resolvedDependency);
+        resolvedDependency.getParents().add(parentResolvedDependency);
+      }
+    }
+  }
+  handledNodes.put(nodeId,resolvedDependencies);
+  return resolvedDependencies;
+}
