@@ -1,11 +1,12 @@
 {
   prepareResolveReport();
-  final Dependency dependencyDummy1=context.mock(Dependency.class,"dep1");
-  final Dependency dependencyDummy2=context.mock(Dependency.class,"dep2");
+  final ModuleDependency moduleDependencyDummy1=context.mock(ModuleDependency.class,"dep1");
+  final ModuleDependency moduleDependencyDummy2=context.mock(ModuleDependency.class,"dep2");
+  final SelfResolvingDependency selfResolvingDependencyDummy=context.mock(SelfResolvingDependency.class);
   final ResolvedDependency resolvedDependency1=context.mock(ResolvedDependency.class,"resolved1");
   final ResolvedDependency resolvedDependency2=context.mock(ResolvedDependency.class,"resolved2");
   ResolvedDependency resolvedDependency3=context.mock(ResolvedDependency.class,"resolved3");
-  final Map<Dependency,Set<ResolvedDependency>> firstLevelResolvedDependencies=GUtil.map(dependencyDummy1,WrapUtil.toSet(resolvedDependency1,resolvedDependency2),dependencyDummy2,WrapUtil.toSet(resolvedDependency3));
+  final Map<Dependency,Set<ResolvedDependency>> firstLevelResolvedDependencies=GUtil.map(moduleDependencyDummy1,WrapUtil.toSet(resolvedDependency1,resolvedDependency2),moduleDependencyDummy2,WrapUtil.toSet(resolvedDependency3));
   context.checking(new Expectations(){
 {
       allowing(resolvedDependency1).getAllFiles();
@@ -13,7 +14,9 @@
       allowing(resolvedDependency2).getAllFiles();
       will(returnValue(WrapUtil.toSet(new File("file2"))));
       allowing(configurationStub).getAllDependencies();
-      will(returnValue(WrapUtil.toSet(dependencyDummy1,dependencyDummy2)));
+      will(returnValue(WrapUtil.toSet(moduleDependencyDummy1,moduleDependencyDummy2,selfResolvingDependencyDummy)));
+      allowing(configurationStub).getAllDependencies(ModuleDependency.class);
+      will(returnValue(WrapUtil.toSet(moduleDependencyDummy1,moduleDependencyDummy2)));
       allowing(ivyReportTranslatorStub).translateReport(resolveReportMock,configurationStub);
       will(returnValue(firstLevelResolvedDependencies));
     }
@@ -23,7 +26,7 @@
   prepareTestsThatRetrieveDependencies(moduleDescriptor);
   Set<File> actualFiles=ivyDependencyResolver.resolve(configurationStub,ivyStub,moduleDescriptor).getFiles(new Spec<Dependency>(){
     public boolean isSatisfiedBy(    Dependency element){
-      return element == dependencyDummy1;
+      return element == moduleDependencyDummy1 || element == selfResolvingDependencyDummy;
     }
   }
 );

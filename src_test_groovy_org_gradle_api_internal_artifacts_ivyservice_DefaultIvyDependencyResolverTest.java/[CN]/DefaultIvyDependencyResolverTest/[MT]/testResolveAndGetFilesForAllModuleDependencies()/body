@@ -1,0 +1,26 @@
+{
+  prepareResolveReport();
+  final ModuleDependency moduleDependencyDummy=context.mock(ModuleDependency.class);
+  final SelfResolvingDependency selfResolvingDependencyDummy=context.mock(SelfResolvingDependency.class);
+  final Set<File> expectedClasspath=toSet(new File(""));
+  final String configurationName=configurationStub.getName();
+  context.checking(new Expectations(){
+{
+      allowing(configurationStub).getAllDependencies();
+      will(returnValue(WrapUtil.toSet(moduleDependencyDummy,selfResolvingDependencyDummy)));
+      allowing(configurationStub).getAllDependencies(ModuleDependency.class);
+      will(returnValue(WrapUtil.toSet(moduleDependencyDummy)));
+      allowing(ivyReportTranslatorStub).getClasspath(configurationName,resolveReportMock);
+      will(returnValue(expectedClasspath));
+    }
+  }
+);
+  ModuleDescriptor moduleDescriptor=createAnonymousModuleDescriptor();
+  prepareTestsThatRetrieveDependencies(moduleDescriptor);
+  assertSame(expectedClasspath,ivyDependencyResolver.resolve(configurationStub,ivyStub,moduleDescriptor).getFiles(new Spec<Dependency>(){
+    public boolean isSatisfiedBy(    Dependency element){
+      return element == moduleDependencyDummy;
+    }
+  }
+));
+}
