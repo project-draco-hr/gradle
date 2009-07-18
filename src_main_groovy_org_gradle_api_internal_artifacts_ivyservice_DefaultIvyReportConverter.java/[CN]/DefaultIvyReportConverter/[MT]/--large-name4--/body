@@ -1,0 +1,31 @@
+{
+  ModuleRevisionId nodeId=ivyNode.getId();
+  if (handledNodes.containsKey(nodeId)) {
+    return handledNodes.get(nodeId);
+  }
+  Map<String,DefaultResolvedDependency> resolvedDependencies=new LinkedHashMap<String,DefaultResolvedDependency>();
+  for (  IvyNodeCallers.Caller caller : ivyNode.getCallers(conf)) {
+    Set<String> dependencyConfigurationsForNode=getDependencyConfigurationsByCaller(ivyNode,caller);
+    for (    String dependencyConfiguration : dependencyConfigurationsForNode) {
+      DefaultResolvedDependency resolvedDependencyForDependencyConfiguration=resolvedDependencies.get(dependencyConfiguration);
+      if (resolvedDependencyForDependencyConfiguration == null) {
+        resolvedDependencyForDependencyConfiguration=createResolvedDependency(ivyNode,resolveReport,dependencyConfiguration);
+        resolvedDependencies.put(dependencyConfiguration,resolvedDependencyForDependencyConfiguration);
+        resolvedDependencies2Nodes.put(resolvedDependencyForDependencyConfiguration,ivyNode);
+        addNodeIfFirstLevelDependency(ivyNode,resolvedDependencyForDependencyConfiguration,firstLevelDependenciesModuleRevisionIds,firstLevelResolvedDependencies);
+      }
+    }
+    if (isRootCaller(configurationResolveReport,caller)) {
+      for (      DefaultResolvedDependency resolvedDependency : resolvedDependencies.values()) {
+        resolvedDependency.getParents().add(null);
+        resolvedDependency.addParentSpecificFiles(null,getFilesForParent(conf,ivyNode.getRoot(),caller,resolveReport));
+      }
+      continue;
+    }
+    IvyNode parentNode=configurationResolveReport.getDependency(caller.getModuleRevisionId());
+    Map<String,DefaultResolvedDependency> parentResolvedDependencies=getResolvedDependenciesForNode(parentNode,handledNodes,resolvedDependencies2Nodes,firstLevelResolvedDependencies,conf,configurationResolveReport,firstLevelDependenciesModuleRevisionIds,resolveReport);
+    createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode,resolvedDependencies2Nodes,resolvedDependencies,parentNode,caller,dependencyConfigurationsForNode,parentResolvedDependencies,resolveReport);
+  }
+  handledNodes.put(nodeId,resolvedDependencies);
+  return resolvedDependencies;
+}

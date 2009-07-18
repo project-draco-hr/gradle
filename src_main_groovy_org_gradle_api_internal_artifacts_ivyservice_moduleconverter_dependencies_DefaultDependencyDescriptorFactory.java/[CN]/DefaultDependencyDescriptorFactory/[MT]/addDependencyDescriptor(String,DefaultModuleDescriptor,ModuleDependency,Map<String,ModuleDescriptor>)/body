@@ -1,14 +1,16 @@
 {
+  InternalDependencyFactory internalDependencyFactory=null;
   if (dependency instanceof ClientModule) {
-    moduleDescriptor.addDependency(createFromClientModule(configuration,moduleDescriptor,(ClientModule)dependency,clientModuleRegistry));
+    internalDependencyFactory=new ClientModuleDependencyFactory((ClientModule)dependency,configuration,moduleDescriptor,clientModuleRegistry);
   }
  else   if (dependency instanceof ProjectDependency) {
-    moduleDescriptor.addDependency(createFromProjectDependency(configuration,moduleDescriptor,(ProjectDependency)dependency));
+    internalDependencyFactory=new ProjectDependencyFactory((ProjectDependency)dependency,configuration,moduleDescriptor);
   }
  else   if (dependency instanceof ExternalModuleDependency) {
-    moduleDescriptor.addDependency(createFromModuleDependency(configuration,moduleDescriptor,(ExternalModuleDependency)dependency));
+    internalDependencyFactory=new ExternalModuleDependencyFactory((ExternalModuleDependency)dependency,configuration,moduleDescriptor);
   }
  else {
     throw new GradleException("Can't map dependency of type: " + dependency.getClass());
   }
+  addDependency(configuration,moduleDescriptor,internalDependencyFactory);
 }
