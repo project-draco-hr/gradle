@@ -1,0 +1,42 @@
+{
+  project.getConvention().getPlugins().put("groovyCodeQuality",new GroovyCodeQualityPluginConvention(project));
+  project.getTasks().getByName(CHECK_TASK).dependsOn(new TaskDependency(){
+    public Set<? extends Task> getDependencies(    Task task){
+      return project.getTasks().withType(CodeNarc.class).getAll();
+    }
+  }
+);
+  project.getTasks().withType(CodeNarc.class).allTasks(new Action<CodeNarc>(){
+    public void execute(    CodeNarc codeNarc){
+      codeNarc.conventionMapping("srcDirs",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return convention.getPlugin(GroovyPluginConvention.class).getGroovySrcDirs();
+        }
+      }
+);
+    }
+  }
+);
+  CodeNarc codeNarc=project.getTasks().add(CODE_NARC_TASK,CodeNarc.class);
+  codeNarc.setDescription("Runs CodeNarc against the project's Groovy source");
+  codeNarc.conventionMapping("reportFile",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return convention.getPlugin(GroovyCodeQualityPluginConvention.class).getCodeNarcReportFile();
+    }
+  }
+);
+  codeNarc=project.getTasks().add(CODE_NARC_TESTS_TASK,CodeNarc.class);
+  codeNarc.setDescription("Runs CodeNarc against the project's Groovy test source");
+  codeNarc.conventionMapping("srcDirs",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return convention.getPlugin(GroovyPluginConvention.class).getGroovyTestSrcDirs();
+    }
+  }
+);
+  codeNarc.conventionMapping("reportFile",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return convention.getPlugin(GroovyCodeQualityPluginConvention.class).getCodeNarcTestReportFile();
+    }
+  }
+);
+}

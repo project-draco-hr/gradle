@@ -1,0 +1,55 @@
+{
+  project.getConvention().getPlugins().put("javaCodeQuality",new JavaCodeQualityPluginConvention(project));
+  project.getTasks().getByName(CHECK_TASK).dependsOn(new TaskDependency(){
+    public Set<? extends Task> getDependencies(    Task task){
+      return project.getTasks().withType(Checkstyle.class).getAll();
+    }
+  }
+);
+  project.getTasks().withType(Checkstyle.class).allTasks(new Action<Checkstyle>(){
+    public void execute(    Checkstyle checkstyle){
+      checkstyle.conventionMapping("srcDirs",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return convention.getPlugin(JavaPluginConvention.class).getSrcDirs();
+        }
+      }
+);
+      checkstyle.conventionMapping("configFile",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return convention.getPlugin(JavaCodeQualityPluginConvention.class).getCheckstyleConfigFile();
+        }
+      }
+);
+    }
+  }
+);
+  Checkstyle checkstyle=project.getTasks().add(CHECKSTYLE_TASK,Checkstyle.class);
+  checkstyle.setDescription("Runs Checkstyle against the project's Java source");
+  checkstyle.conventionMapping("resultFile",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return convention.getPlugin(JavaCodeQualityPluginConvention.class).getCheckstyleResultFile();
+    }
+  }
+);
+  checkstyle=project.getTasks().add(CHECKSTYLE_TESTS_TASK,Checkstyle.class);
+  checkstyle.setDescription("Runs Checkstyle against the project's Java test source");
+  checkstyle.conventionMapping("srcDirs",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return convention.getPlugin(JavaPluginConvention.class).getTestSrcDirs();
+    }
+  }
+);
+  checkstyle.conventionMapping("configFile",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return convention.getPlugin(JavaCodeQualityPluginConvention.class).getCheckstyleTestConfigFile();
+    }
+  }
+);
+  checkstyle.conventionMapping("resultFile",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return convention.getPlugin(JavaCodeQualityPluginConvention.class).getCheckstyleTestResultFile();
+    }
+  }
+);
+  project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME).dependsOn(CHECK_TASK);
+}
