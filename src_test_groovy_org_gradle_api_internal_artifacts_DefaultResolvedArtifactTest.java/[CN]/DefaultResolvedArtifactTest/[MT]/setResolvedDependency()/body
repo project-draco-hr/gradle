@@ -1,0 +1,20 @@
+{
+  final String someVersion="someVersion";
+  final String someDependencyName="someDependencyName";
+  JUnit4Mockery context=new JUnit4Mockery();
+  final ResolvedDependency resolvedDependencyStub=context.mock(ResolvedDependency.class);
+  context.checking(new Expectations(){
+{
+      allowing(resolvedDependencyStub).getVersion();
+      will(returnValue(someVersion));
+      allowing(resolvedDependencyStub).getName();
+      will(returnValue(someDependencyName));
+    }
+  }
+);
+  DefaultResolvedArtifact resolvedArtifact=new DefaultResolvedArtifact("someName","someType","someExtension",new File("someFile"));
+  resolvedArtifact.setResolvedDependency(resolvedDependencyStub);
+  assertThat(resolvedArtifact.getResolvedDependency(),sameInstance(resolvedDependencyStub));
+  assertThat(resolvedArtifact.getVersion(),equalTo(someVersion));
+  assertThat(resolvedArtifact.getDependencyName(),equalTo(someDependencyName));
+}
