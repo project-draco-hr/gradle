@@ -10,6 +10,7 @@
       DefaultResolvedDependency resolvedDependencyForDependencyConfiguration=resolvedDependencies.get(dependencyConfiguration);
       if (resolvedDependencyForDependencyConfiguration == null) {
         resolvedDependencyForDependencyConfiguration=createResolvedDependency(ivyNode,resolveReport,dependencyConfiguration);
+        resolvedArtifacts.addAll(resolvedDependencyForDependencyConfiguration.getModuleArtifacts());
         resolvedDependencies.put(dependencyConfiguration,resolvedDependencyForDependencyConfiguration);
         resolvedDependencies2Nodes.put(resolvedDependencyForDependencyConfiguration,ivyNode);
         addNodeIfFirstLevelDependency(ivyNode,resolvedDependencyForDependencyConfiguration,firstLevelDependenciesModuleRevisionIds,firstLevelResolvedDependencies);
@@ -23,8 +24,8 @@
       continue;
     }
     IvyNode parentNode=configurationResolveReport.getDependency(caller.getModuleRevisionId());
-    Map<String,DefaultResolvedDependency> parentResolvedDependencies=getResolvedDependenciesForNode(parentNode,handledNodes,resolvedDependencies2Nodes,firstLevelResolvedDependencies,conf,configurationResolveReport,firstLevelDependenciesModuleRevisionIds,resolveReport);
-    createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode,resolvedDependencies2Nodes,resolvedDependencies,parentNode,caller,dependencyConfigurationsForNode,parentResolvedDependencies,resolveReport);
+    Map<String,DefaultResolvedDependency> parentResolvedDependencies=getResolvedDependenciesForNode(parentNode,handledNodes,resolvedDependencies2Nodes,firstLevelResolvedDependencies,resolvedArtifacts,conf,configurationResolveReport,firstLevelDependenciesModuleRevisionIds,resolveReport);
+    createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode,resolvedDependencies,resolvedArtifacts,parentNode,caller,dependencyConfigurationsForNode,parentResolvedDependencies,resolveReport);
   }
   handledNodes.put(nodeId,resolvedDependencies);
   return resolvedDependencies;

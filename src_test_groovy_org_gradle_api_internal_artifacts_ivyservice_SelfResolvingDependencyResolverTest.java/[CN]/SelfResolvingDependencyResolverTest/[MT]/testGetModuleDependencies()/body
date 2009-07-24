@@ -1,0 +1,20 @@
+{
+  context.checking(new Expectations(){
+{
+      one(delegate).resolve(configuration,ivy,moduleDescriptor);
+      will(returnValue(resolvedConfiguration));
+      allowing(configuration).getAllDependencies(SelfResolvingDependency.class);
+      will(returnValue(toSet()));
+    }
+  }
+);
+  final ResolvedDependency resolvedDependency=context.mock(ResolvedDependency.class);
+  context.checking(new Expectations(){
+{
+      one(resolvedConfiguration).getFirstLevelModuleDependencies();
+      will(returnValue(toSet(resolvedDependency)));
+    }
+  }
+);
+  assertThat(resolver.resolve(this.configuration,ivy,moduleDescriptor).getFirstLevelModuleDependencies(),equalTo(toSet(resolvedDependency)));
+}

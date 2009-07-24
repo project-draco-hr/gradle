@@ -1,6 +1,7 @@
 {
   Clock clock=new Clock();
   Map<Dependency,Set<ResolvedDependency>> firstLevelResolvedDependencies=new LinkedHashMap<Dependency,Set<ResolvedDependency>>();
+  Set<ResolvedArtifact> resolvedArtifacts=new LinkedHashSet<ResolvedArtifact>();
   ConfigurationResolveReport configurationResolveReport=resolveReport.getConfigurationReport(configuration.getName());
   LinkedHashMap<ModuleRevisionId,Map<String,DefaultResolvedDependency>> handledNodes=new LinkedHashMap<ModuleRevisionId,Map<String,DefaultResolvedDependency>>();
   Map<DefaultResolvedDependency,IvyNode> resolvedDependencies2Nodes=new HashMap<DefaultResolvedDependency,IvyNode>();
@@ -11,8 +12,8 @@
     if (!isResolvedNode(node,configuration)) {
       continue;
     }
-    getResolvedDependenciesForNode(node,handledNodes,resolvedDependencies2Nodes,firstLevelResolvedDependencies,configuration.getName(),configurationResolveReport,firstLevelDependenciesModuleRevisionIds,resolveReport);
+    getResolvedDependenciesForNode(node,handledNodes,resolvedDependencies2Nodes,firstLevelResolvedDependencies,resolvedArtifacts,configuration.getName(),configurationResolveReport,firstLevelDependenciesModuleRevisionIds,resolveReport);
   }
   logger.debug("Timing: Translating report for configuration {} took {}",configuration,clock.getTime());
-  return firstLevelResolvedDependencies;
+  return new DefaultIvyConversionResult(firstLevelResolvedDependencies,resolvedArtifacts);
 }
