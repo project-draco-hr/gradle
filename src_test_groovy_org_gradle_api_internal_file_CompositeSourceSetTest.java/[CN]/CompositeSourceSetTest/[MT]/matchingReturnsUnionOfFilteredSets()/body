@@ -1,0 +1,18 @@
+{
+  final Closure closure=HelperUtil.TEST_CLOSURE;
+  final SourceSet filtered1=context.mock(SourceSet.class,"filtered1");
+  final SourceSet filtered2=context.mock(SourceSet.class,"filtered2");
+  context.checking(new Expectations(){
+{
+      one(set1).matching(closure);
+      will(returnValue(filtered1));
+      one(set2).matching(closure);
+      will(returnValue(filtered2));
+    }
+  }
+);
+  SourceSet filtered=set.matching(closure);
+  assertThat(filtered,instanceOf(CompositeSourceSet.class));
+  CompositeSourceSet filteredCompositeSet=(CompositeSourceSet)filtered;
+  assertThat(filteredCompositeSet.getSets(),equalTo(toLinkedSet(filtered1,filtered2)));
+}
