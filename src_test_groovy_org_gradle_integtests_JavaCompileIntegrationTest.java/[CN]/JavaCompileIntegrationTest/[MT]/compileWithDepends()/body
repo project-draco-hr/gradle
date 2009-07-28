@@ -1,0 +1,15 @@
+{
+  testFile(testDir,"build.gradle").writelns("usePlugin('java')","compile.options.depend()");
+  writeShortInterface();
+  writeTestClass();
+  inDirectory(testDir).withTasks("compile").run();
+  try {
+    Thread.sleep(1000L);
+  }
+ catch (  InterruptedException e) {
+  }
+  writeLongInterface();
+  ExecutionFailure failure=inDirectory(testDir).withTasks("compile").runWithFailure();
+  failure.assertHasDescription("Execution failed for task ':compile'.");
+  testFile(testDir,"build/dependency-cache/dependencies.txt").assertExists();
+}
