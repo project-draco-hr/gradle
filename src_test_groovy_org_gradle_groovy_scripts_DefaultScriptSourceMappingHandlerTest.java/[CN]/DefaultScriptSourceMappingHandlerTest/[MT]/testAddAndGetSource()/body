@@ -1,0 +1,24 @@
+{
+  final ScriptSource source1=context.mock(ScriptSource.class,"scriptSource1");
+  final ScriptSource source2=context.mock(ScriptSource.class,"scriptSource2");
+  context.checking(new Expectations(){
+{
+      allowing(source1).getClassName();
+      will(returnValue(TEST_CLASS_NAME_1));
+      allowing(source1).getSourceFile();
+      will(returnValue(TEST_SOURCE_FILE_1));
+      allowing(source2).getClassName();
+      will(returnValue(TEST_CLASS_NAME_2));
+      allowing(source2).getSourceFile();
+      will(returnValue(TEST_SOURCE_FILE_2));
+    }
+  }
+);
+  DefaultScriptSourceMappingHandler handler1=new DefaultScriptSourceMappingHandler(buildDir);
+  handler1.addSource(source1);
+  assertThat(handler1.getSource(TEST_CLASS_NAME_1),equalTo(TEST_SOURCE_FILE_1));
+  DefaultScriptSourceMappingHandler handler2=new DefaultScriptSourceMappingHandler(buildDir);
+  assertThat(handler2.getSource(TEST_CLASS_NAME_1),equalTo(TEST_SOURCE_FILE_1));
+  handler2.addSource(source2);
+  assertThat(handler1.getSource(TEST_CLASS_NAME_2),equalTo(TEST_SOURCE_FILE_2));
+}
