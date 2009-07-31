@@ -1,0 +1,34 @@
+{
+  ByteArrayOutputStream outStream=new ByteArrayOutputStream();
+  ByteArrayOutputStream errStream=new ByteArrayOutputStream();
+  ExecHandleBuilder builder=new ExecHandleBuilder();
+  builder.standardOutput(outStream);
+  builder.errorOutput(errStream);
+  builder.inheritEnvironment();
+  builder.environment("GRADLE_HOME",gradleHome.toString());
+  builder.environment(envs);
+  builder.execDirectory(workingDir);
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    builder.execCommand("cmd");
+    builder.arguments("/c",windowsCommandSnippet);
+    builder.environment("Path",String.format("%s\\bin;%s",gradleHome,System.getenv("Path")));
+    builder.environment("GRADLE_EXIT_CONSOLE","true");
+  }
+ else {
+    builder.execCommand(unixCommandSnippet);
+  }
+  builder.arguments(tasknames);
+  LOG.info(String.format("Execute in %s with: %s %s",builder.getExecDirectory(),builder.getExecCommand(),builder.getArguments()));
+  ExecHandle proc=builder.getExecHandle();
+  proc.startAndWaitForFinish();
+  int exitValue=proc.getExitCode();
+  String output=outStream.toString();
+  String error=errStream.toString();
+  boolean failed=exitValue != 0;
+  LOG.info("OUTPUT: " + output);
+  LOG.info("ERROR: " + error);
+  if (failed != expectFailure) {
+    throw new RuntimeException(String.format("Integrationtests failed with: %s %s",output,error));
+  }
+  return GUtil.map("output",output,"error",error);
+}
