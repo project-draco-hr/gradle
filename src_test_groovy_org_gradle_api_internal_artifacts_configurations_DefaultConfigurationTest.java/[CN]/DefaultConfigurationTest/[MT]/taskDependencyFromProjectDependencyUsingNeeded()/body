@@ -1,0 +1,24 @@
+{
+  Configuration superConfig=configurationContainer.add("superConf");
+  configuration.extendsFrom(superConfig);
+  final ProjectDependency projectDependencyStub=context.mock(ProjectDependency.class);
+  superConfig.addDependency(projectDependencyStub);
+  final Project projectStub=context.mock(Project.class);
+  final TaskContainer taskContainerStub=context.mock(TaskContainer.class);
+  final Task taskStub=context.mock(Task.class);
+  final String taskName="testit";
+  context.checking(new Expectations(){
+{
+      allowing(projectDependencyStub).getDependencyProject();
+      will(returnValue(projectStub));
+      allowing(projectStub).getTasks();
+      will(returnValue(taskContainerStub));
+      allowing(taskContainerStub).findByName(taskName);
+      will(returnValue(taskStub));
+    }
+  }
+);
+  TaskDependency td=configuration.getTaskDependencyFromProjectDependency(true,taskName);
+  Task unusedTask=context.mock(Task.class,"unused");
+  assertThat((Set<Task>)td.getDependencies(unusedTask),equalTo(toSet(taskStub)));
+}

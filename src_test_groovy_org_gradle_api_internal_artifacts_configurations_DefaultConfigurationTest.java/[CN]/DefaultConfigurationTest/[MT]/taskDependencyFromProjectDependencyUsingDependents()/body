@@ -1,0 +1,37 @@
+{
+  final String configName=configuration.getName();
+  final String taskName="testit";
+  final Task tdTask=context.mock(Task.class,"tdTask");
+  final Project taskProject=context.mock(Project.class,"taskProject");
+  final Project rootProject=context.mock(Project.class,"rootProject");
+  final Project dependentProject=context.mock(Project.class,"dependentProject");
+  final Task desiredTask=context.mock(Task.class,"desiredTask");
+  final Set<Task> taskSet=toSet(desiredTask);
+  final ConfigurationHandler configHandler=context.mock(ConfigurationHandler.class);
+  final Configuration dependentConfig=context.mock(Configuration.class);
+  final ProjectDependency projectDependency=context.mock(ProjectDependency.class);
+  final Set<ProjectDependency> projectDependencies=toSet(projectDependency);
+  context.checking(new Expectations(){
+{
+      allowing(tdTask).getProject();
+      will(returnValue(taskProject));
+      allowing(taskProject).getRootProject();
+      will(returnValue(rootProject));
+      allowing(rootProject).getTasksByName(taskName,true);
+      will(returnValue(taskSet));
+      allowing(desiredTask).getProject();
+      will(returnValue(dependentProject));
+      allowing(dependentProject).getConfigurations();
+      will(returnValue(configHandler));
+      allowing(configHandler).findByName(configName);
+      will(returnValue(dependentConfig));
+      allowing(dependentConfig).getAllDependencies(ProjectDependency.class);
+      will(returnValue(projectDependencies));
+      allowing(projectDependency).getDependencyProject();
+      will(returnValue(taskProject));
+    }
+  }
+);
+  TaskDependency td=configuration.getTaskDependencyFromProjectDependency(false,taskName);
+  assertThat((Set<Task>)td.getDependencies(tdTask),equalTo(toSet(desiredTask)));
+}
