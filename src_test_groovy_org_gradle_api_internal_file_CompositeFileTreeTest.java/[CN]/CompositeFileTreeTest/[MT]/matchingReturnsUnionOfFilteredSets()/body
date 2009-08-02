@@ -1,0 +1,18 @@
+{
+  final Closure closure=HelperUtil.TEST_CLOSURE;
+  final FileTree filtered1=context.mock(FileTree.class,"filtered1");
+  final FileTree filtered2=context.mock(FileTree.class,"filtered2");
+  context.checking(new Expectations(){
+{
+      one(source1).matching(closure);
+      will(returnValue(filtered1));
+      one(source2).matching(closure);
+      will(returnValue(filtered2));
+    }
+  }
+);
+  FileTree filtered=tree.matching(closure);
+  assertThat(filtered,instanceOf(CompositeFileTree.class));
+  CompositeFileTree filteredCompositeSet=(CompositeFileTree)filtered;
+  assertThat(toList(filteredCompositeSet.getSourceCollections()),equalTo(toList(filtered1,filtered2)));
+}
