@@ -16,7 +16,9 @@
     scriptClass=groovyClassLoader.parseClass(scriptText == null ? "" : scriptText,scriptName);
   }
  catch (  MultipleCompilationErrorsException e) {
-    throw new GradleScriptException(String.format("Could not compile %s.",source.getDisplayName()),e,source,e.getErrorCollector().getSyntaxError(0).getLine());
+    SyntaxException syntaxError=e.getErrorCollector().getSyntaxError(0);
+    Integer lineNumber=syntaxError == null ? null : syntaxError.getLine();
+    throw new GradleScriptException(String.format("Could not compile %s.",source.getDisplayName()),e,source,lineNumber);
   }
 catch (  CompilationFailedException e) {
     throw new GradleException(String.format("Could not compile %s.",source.getDisplayName()),e);
