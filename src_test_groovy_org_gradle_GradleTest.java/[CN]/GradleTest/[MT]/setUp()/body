@@ -1,11 +1,10 @@
 {
   context.setImposteriser(ClassImposteriser.INSTANCE);
   HelperUtil.deleteTestDir();
-  settingsFinderMock=context.mock(ISettingsFinder.class);
+  settingsHandlerMock=context.mock(SettingsHandler.class);
   gradlePropertiesLoaderMock=context.mock(IGradlePropertiesLoader.class);
   settingsMock=context.mock(SettingsInternal.class);
   taskExecuterMock=context.mock(TaskExecuter.class);
-  settingsProcessorMock=context.mock(SettingsProcessor.class);
   buildLoaderMock=context.mock(BuildLoader.class);
   buildConfigurerMock=context.mock(BuildConfigurer.class);
   buildListenerMock=context.mock(BuildListener.class);
@@ -13,7 +12,7 @@
   testGradleProperties=WrapUtil.toMap("prop1","value1");
   boolean expectedSearchUpwards=false;
   expectedClassLoader=new URLClassLoader(new URL[0]);
-  expectedRootDir=new File("rootDir");
+  File expectedRootDir=new File("rootDir");
   File expectedCurrentDir=new File(expectedRootDir,"currentDir");
   expectedRootProjectDescriptor=new DefaultProjectDescriptor(null,"someName",new File("somedir"),new DefaultProjectDescriptorRegistry());
   expectedRootProject=HelperUtil.createRootProject(expectedRootDir);
@@ -24,15 +23,11 @@
   expectedStartParams.setCurrentDir(expectedCurrentDir);
   expectedStartParams.setSearchUpwards(expectedSearchUpwards);
   expectedStartParams.setGradleUserHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST,"gradleUserHomeDir"));
-  gradle=new Gradle(expectedStartParams,settingsFinderMock,gradlePropertiesLoaderMock,settingsProcessorMock,buildLoaderMock,buildConfigurerMock);
+  gradle=new Gradle(expectedStartParams,settingsHandlerMock,gradlePropertiesLoaderMock,buildLoaderMock,buildConfigurerMock);
   context.checking(new Expectations(){
 {
-      allowing(settingsFinderMock).find(with(any(StartParameter.class)));
-      allowing(gradlePropertiesLoaderMock).loadProperties(with(equal(expectedRootDir)),with(any(StartParameter.class)));
       allowing(gradlePropertiesLoaderMock).getGradleProperties();
       will(returnValue(testGradleProperties));
-      allowing(settingsFinderMock).getSettingsDir();
-      will(returnValue(expectedRootDir));
       allowing(settingsMock).createClassLoader();
       will(returnValue(expectedClassLoader));
       allowing(settingsMock).getRootProject();

@@ -1,0 +1,15 @@
+{
+  ScriptSource source=new ImportsScriptSource(settingsLocation.getSettingsScriptSource(),importsReader,settingsLocation.getSettingsDir());
+  try {
+    ScriptProcessor processor=scriptProcessorFactory.createProcessor(source);
+    processor.setClassloader(buildSourceClassLoader);
+    Script settingsScript=processor.process(ScriptWithSource.class);
+    settingsScriptMetaData.applyMetaData(settingsScript,settings);
+    Clock clock=new Clock();
+    settingsScript.run();
+    logger.debug("Timing: Evaluating settings file took: {}",clock.getTime());
+  }
+ catch (  Throwable t) {
+    throw new GradleScriptException("A problem occurred evaluating the settings file.",t,source);
+  }
+}
