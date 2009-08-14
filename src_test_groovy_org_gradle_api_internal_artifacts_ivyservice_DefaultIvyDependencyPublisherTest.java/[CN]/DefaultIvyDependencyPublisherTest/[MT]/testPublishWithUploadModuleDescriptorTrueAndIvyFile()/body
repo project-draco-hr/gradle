@@ -1,11 +1,16 @@
 {
   final PublishInstruction publishInstruction=new PublishInstruction(true,expectedIvyFile);
+  final ModuleDescriptorForUploadConverter converterStub=context.mock(ModuleDescriptorForUploadConverter.class);
+  ivyDependencyPublisher.setModuleDescriptorForUploadConverter(converterStub);
+  final ModuleDescriptor convertedModuleDescriptorMock=context.mock(ModuleDescriptor.class,"convertedDescriptor");
   context.checking(new Expectations(){
 {
+      allowing(converterStub).createModuleDescriptor(moduleDescriptorMock);
+      will(returnValue(convertedModuleDescriptorMock));
       allowing(publishOptionsFactoryMock).createPublishOptions(WrapUtil.toSet(expectedConf),publishInstruction);
       will(returnValue(expectedPublishOptions));
-      one(publishEngineMock).publish(moduleDescriptorMock,createSrcPatternForIvyArtifacts(),expectedResolverList.get(0),expectedPublishOptions);
-      one(moduleDescriptorMock).toIvyFile(expectedIvyFile);
+      one(publishEngineMock).publish(moduleDescriptorMock,DefaultIvyDependencyPublisher.ARTIFACT_PATTERN,expectedResolverList.get(0),expectedPublishOptions);
+      one(convertedModuleDescriptorMock).toIvyFile(expectedIvyFile);
     }
   }
 );

@@ -1,29 +1,10 @@
 {
   DefaultArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter=new DefaultArtifactsToModuleDescriptorConverter();
-  final PublishArtifact publishArtifact1=createNamedPublishArtifact("name1");
-  final PublishArtifact publishArtifact2=createNamedPublishArtifact("name2");
-  final Configuration configurationStub1=createConfigurationStub("conf1",publishArtifact1);
-  Configuration configurationStub2=createConfigurationStub("conf2",publishArtifact2);
+  Configuration configurationStub1=createConfigurationStub("conf1");
+  Configuration configurationStub2=createConfigurationStub("conf2");
   DefaultModuleDescriptor moduleDescriptor=HelperUtil.createModuleDescriptor(WrapUtil.toSet(configurationStub1.getName(),configurationStub2.getName()));
-  final Artifact ivyArtifact1=expectedIvyArtifact(publishArtifact1,moduleDescriptor);
-  final Artifact ivyArtifact2=expectedIvyArtifact(publishArtifact2,moduleDescriptor);
-  final IvyArtifactFilePathVariableProvider filePathVariableProviderStub=context.mock(IvyArtifactFilePathVariableProvider.class);
-  final String ivyArtifact1VariableName="ivyArtifact1Variable";
-  final String ivyArtifact2VariableName="ivyArtifact2Variable";
-  final IvySettings ivySettingsMock=context.mock(IvySettings.class);
-  context.checking(new Expectations(){
-{
-      allowing(filePathVariableProviderStub).createVariableName(ivyArtifact1);
-      will(returnValue(ivyArtifact1VariableName));
-      allowing(filePathVariableProviderStub).createVariableName(ivyArtifact2);
-      will(returnValue(ivyArtifact2VariableName));
-      one(ivySettingsMock).setVariable(ivyArtifact1VariableName,publishArtifact1.getFile().getAbsolutePath());
-      one(ivySettingsMock).setVariable(ivyArtifact2VariableName,publishArtifact2.getFile().getAbsolutePath());
-    }
-  }
-);
-  artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor,WrapUtil.toSet(configurationStub1,configurationStub2),ivySettingsMock,filePathVariableProviderStub);
-  assertArtifactIsAdded(configurationStub1,moduleDescriptor,ivyArtifact1);
-  assertArtifactIsAdded(configurationStub2,moduleDescriptor,ivyArtifact2);
+  artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor,WrapUtil.toSet(configurationStub1,configurationStub2));
+  assertArtifactIsAdded(configurationStub1,moduleDescriptor);
+  assertArtifactIsAdded(configurationStub2,moduleDescriptor);
   assertThat(moduleDescriptor.getAllArtifacts().length,equalTo(2));
 }
