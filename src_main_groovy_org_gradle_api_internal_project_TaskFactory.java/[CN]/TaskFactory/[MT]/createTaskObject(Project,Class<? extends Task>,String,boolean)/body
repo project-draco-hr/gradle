@@ -2,7 +2,7 @@
   if (!Task.class.isAssignableFrom(type)) {
     throw new GradleException(String.format("Cannot create task of type '%s' as it does not implement the Task interface.",type.getSimpleName()));
   }
-  Constructor constructor;
+  Constructor<? extends Task> constructor;
   try {
     constructor=type.getDeclaredConstructor(Project.class,String.class);
   }
@@ -10,7 +10,7 @@
     throw new GradleException(String.format("Cannot create task of type '%s' as it does not have an appropriate public constructor.",type.getSimpleName()));
   }
   if (generateGetters && ConventionTask.class.isAssignableFrom(type)) {
-    Class<?> generatedType=generateSubclass(type);
+    Class<? extends Task> generatedType=generator.generate(type);
     try {
       constructor=generatedType.getDeclaredConstructor(Project.class,String.class);
     }
@@ -19,7 +19,7 @@
     }
   }
   try {
-    return (Task)constructor.newInstance(project,name);
+    return constructor.newInstance(project,name);
   }
  catch (  InvocationTargetException e) {
     throw new GradleException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e.getCause());
