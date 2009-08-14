@@ -3,13 +3,15 @@
   expectSettingsBuilt();
   context.checking(new Expectations(){
 {
-      one(buildLoaderMock).load(expectedRootProjectDescriptor,expectedClassLoader,expectedStartParams,testGradleProperties);
+      one(buildBroadcaster).buildStarted(buildMock);
+      one(buildLoaderMock).load(expectedRootProjectDescriptor,buildMock,testGradleProperties);
       will(throwException(exception));
+      one(buildBroadcaster).buildFinished(with(any(BuildResult.class)));
     }
   }
 );
   BuildResult buildResult=gradle.getBuildAnalysis();
   assertThat(buildResult.getSettings(),sameInstance((Settings)settingsMock));
   assertThat((RuntimeException)buildResult.getFailure(),sameInstance(exception));
-  assertThat(buildResult.getBuild(),nullValue());
+  assertThat((BuildInternal)buildResult.getBuild(),sameInstance(buildMock));
 }

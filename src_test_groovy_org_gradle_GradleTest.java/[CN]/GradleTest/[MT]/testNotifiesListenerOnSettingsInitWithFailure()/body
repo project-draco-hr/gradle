@@ -2,14 +2,13 @@
   final RuntimeException failure=new RuntimeException();
   context.checking(new Expectations(){
 {
-      one(buildListenerMock).buildStarted(expectedStartParams);
-      one(settingsHandlerMock).findAndLoadSettings(expectedStartParams,gradlePropertiesLoaderMock);
+      one(buildBroadcaster).buildStarted(buildMock);
+      one(settingsHandlerMock).findAndLoadSettings(buildMock,gradlePropertiesLoaderMock);
       will(throwException(failure));
-      one(buildListenerMock).buildFinished(with(result(null,sameInstance(failure))));
+      one(buildBroadcaster).buildFinished(with(result(null,sameInstance(failure))));
     }
   }
 );
-  gradle.addBuildListener(buildListenerMock);
   BuildResult buildResult=gradle.run();
   assertThat(buildResult.getFailure(),sameInstance((Throwable)failure));
 }

@@ -1,17 +1,16 @@
 {
-  fireBuildStarted(startParameter);
+  build.getBuildListenerBroadcaster().buildStarted(build);
   SettingsInternal settings=null;
   Throwable failure=null;
-  Build build=null;
   try {
-    settings=settingsHandler.findAndLoadSettings(startParameter,gradlePropertiesLoader);
-    fireSettingsEvaluated(settings);
-    build=runSpecification.run(settings,startParameter);
+    settings=settingsHandler.findAndLoadSettings(build,gradlePropertiesLoader);
+    build.getBuildListenerBroadcaster().settingsEvaluated(settings);
+    runSpecification.run(build,settings.getRootProject());
   }
  catch (  Throwable t) {
     failure=t;
   }
   BuildResult buildResult=new BuildResult(settings,build,failure);
-  fireBuildFinished(buildResult);
+  build.getBuildListenerBroadcaster().buildFinished(buildResult);
   return buildResult;
 }

@@ -1,12 +1,14 @@
 {
   expectedStartParams.setTaskNames(WrapUtil.toList("unknown"));
+  expectSettingsBuilt();
   context.checking(new Expectations(){
 {
-      one(buildLoaderMock).load(expectedRootProjectDescriptor,expectedClassLoader,expectedStartParams,testGradleProperties);
-      will(returnValue(buildMock));
+      one(buildBroadcaster).buildStarted(buildMock);
+      one(buildBroadcaster).projectsLoaded(buildMock);
+      one(buildBroadcaster).projectsEvaluated(buildMock);
+      one(buildBroadcaster).buildFinished(with(any(BuildResult.class)));
+      one(buildLoaderMock).load(expectedRootProjectDescriptor,buildMock,testGradleProperties);
       one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
-      one(settingsHandlerMock).findAndLoadSettings(expectedStartParams,gradlePropertiesLoaderMock);
-      will(returnValue(settingsMock));
       one(buildConfigurerMock).process(expectedRootProject);
     }
   }

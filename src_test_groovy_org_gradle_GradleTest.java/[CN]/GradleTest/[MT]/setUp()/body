@@ -7,8 +7,8 @@
   taskExecuterMock=context.mock(TaskExecuter.class);
   buildLoaderMock=context.mock(BuildLoader.class);
   buildConfigurerMock=context.mock(BuildConfigurer.class);
-  buildListenerMock=context.mock(BuildListener.class);
   buildMock=context.mock(BuildInternal.class);
+  buildBroadcaster=context.mock(BuildListener.class);
   testGradleProperties=WrapUtil.toMap("prop1","value1");
   boolean expectedSearchUpwards=false;
   expectedClassLoader=new URLClassLoader(new URL[0]);
@@ -23,7 +23,7 @@
   expectedStartParams.setCurrentDir(expectedCurrentDir);
   expectedStartParams.setSearchUpwards(expectedSearchUpwards);
   expectedStartParams.setGradleUserHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST,"gradleUserHomeDir"));
-  gradle=new Gradle(expectedStartParams,settingsHandlerMock,gradlePropertiesLoaderMock,buildLoaderMock,buildConfigurerMock);
+  gradle=new Gradle(buildMock,settingsHandlerMock,gradlePropertiesLoaderMock,buildLoaderMock,buildConfigurerMock);
   context.checking(new Expectations(){
 {
       allowing(gradlePropertiesLoaderMock).getGradleProperties();
@@ -38,6 +38,10 @@
       will(returnValue(expectedCurrentProject));
       allowing(buildMock).getTaskGraph();
       will(returnValue(taskExecuterMock));
+      allowing(buildMock).getStartParameter();
+      will(returnValue(expectedStartParams));
+      allowing(buildMock).getBuildListenerBroadcaster();
+      will(returnValue(buildBroadcaster));
     }
   }
 );
