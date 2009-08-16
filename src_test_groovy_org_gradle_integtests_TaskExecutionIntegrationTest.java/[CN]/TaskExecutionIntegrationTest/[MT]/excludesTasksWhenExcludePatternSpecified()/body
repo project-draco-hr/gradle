@@ -1,0 +1,9 @@
+{
+  TestFile buildFile=testFile("build.gradle");
+  buildFile.writelns("task a","task b(dependsOn: a)","task c(dependsOn: [a, b])","task d(dependsOn: c)","defaultTasks 'd'");
+  usingBuildFile(buildFile).withTasks("d","!c").run().assertTasksExecuted(":d");
+  usingBuildFile(buildFile).withTasks("d","!b").run().assertTasksExecuted(":a",":c",":d");
+  usingBuildFile(buildFile).withTasks("d","!d").run().assertTasksExecuted();
+  usingBuildFile(buildFile).withTasks("!b").run().assertTasksExecuted(":a",":c",":d");
+  usingBuildFile(buildFile).withTasks("d","!unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"));
+}

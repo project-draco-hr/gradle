@@ -1,0 +1,24 @@
+{
+  final Task task1=context.mock(Task.class,"task1");
+  final Task task2=context.mock(Task.class,"task2");
+  context.checking(new Expectations(){
+{
+      allowing(build).getTaskGraph();
+      will(returnValue(taskExecuter));
+      one(delegate).select(build);
+    }
+  }
+);
+  executer.select(build);
+  context.checking(new Expectations(){
+{
+      one(taskExecuter).getAllTasks();
+      will(returnValue(toList(task1,task2)));
+      one(task1).setEnabled(false);
+      one(task2).setEnabled(false);
+      one(delegate).execute();
+    }
+  }
+);
+  executer.execute();
+}
