@@ -1,0 +1,23 @@
+{
+  docTask.setScalaSrcDirs(WrapUtil.toList(new File("sourceDir1"),new File("sourceDir2")));
+  docTask.setScalaIncludes(TEST_INCLUDES);
+  docTask.setScalaExcludes(TEST_EXCLUDES);
+  docTask.existentDirsFilter=new ExistingDirsFilter(){
+    @Override public List<File> checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(    File destDir,    Collection<File> dirFiles){
+      assertSame(destDir,docTask.getDestinationDir());
+      assertSame(dirFiles,docTask.getScalaSrcDirs());
+      return docTask.getScalaSrcDirs();
+    }
+  }
+;
+  docTask.setDestinationDir(TEST_TARGET_DIR);
+  docTask.setClasspath(new AbstractFileCollection(){
+    @Override public String getDisplayName(){
+      throw new UnsupportedOperationException();
+    }
+    public Set<File> getFiles(){
+      return new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH);
+    }
+  }
+);
+}
