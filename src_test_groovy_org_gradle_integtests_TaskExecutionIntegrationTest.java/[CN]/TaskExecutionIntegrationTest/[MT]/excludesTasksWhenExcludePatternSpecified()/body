@@ -3,12 +3,12 @@
   TestFile buildFile=testFile("build.gradle");
   buildFile.writelns("task a","task b(dependsOn: a)","task c(dependsOn: [a, b])","task d(dependsOn: c)","defaultTasks 'd'");
   testFile("sub/build.gradle").writelns("task c","task d(dependsOn: c)");
-  usingBuildFile(buildFile).withTasks(":d","^c").run().assertTasksExecuted(":d");
-  usingBuildFile(buildFile).withTasks(":d","^b").run().assertTasksExecuted(":a",":c",":d");
-  usingBuildFile(buildFile).withTasks("d","^c").run().assertTasksExecuted(":d",":sub:d");
-  usingBuildFile(buildFile).withTasks("d","^sub:c").run().assertTasksExecuted(":a",":b",":c",":d",":sub:d");
-  usingBuildFile(buildFile).withTasks("d","^:sub:c").run().assertTasksExecuted(":a",":b",":c",":d",":sub:d");
-  usingBuildFile(buildFile).withTasks("d","^d").run().assertTasksExecuted();
-  usingBuildFile(buildFile).withTasks("^b").run().assertTasksExecuted(":a",":c",":d",":sub:c",":sub:d");
-  usingBuildFile(buildFile).withTasks("d","^unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"));
+  usingBuildFile(buildFile).withTasks(":d","c-").run().assertTasksExecuted(":d");
+  usingBuildFile(buildFile).withTasks(":d","b-").run().assertTasksExecuted(":a",":c",":d");
+  usingBuildFile(buildFile).withTasks("d","c-").run().assertTasksExecuted(":d",":sub:d");
+  usingBuildFile(buildFile).withTasks("d","sub:c-").run().assertTasksExecuted(":a",":b",":c",":d",":sub:d");
+  usingBuildFile(buildFile).withTasks("d",":sub:c-").run().assertTasksExecuted(":a",":b",":c",":d",":sub:d");
+  usingBuildFile(buildFile).withTasks("d","d-").run().assertTasksExecuted();
+  usingBuildFile(buildFile).withTasks("b-").run().assertTasksExecuted(":a",":c",":d",":sub:c",":sub:d");
+  usingBuildFile(buildFile).withTasks("d","unknown-").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"));
 }
