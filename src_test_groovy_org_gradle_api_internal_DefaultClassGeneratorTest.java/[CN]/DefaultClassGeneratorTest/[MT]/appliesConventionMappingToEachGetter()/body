@@ -1,0 +1,16 @@
+{
+  Class<? extends Bean> generatedClass=generator.generate(Bean.class);
+  assertTrue(IConventionAware.class.isAssignableFrom(generatedClass));
+  Bean bean=generatedClass.newInstance();
+  IConventionAware conventionAware=(IConventionAware)bean;
+  assertThat(bean.getProperty(),nullValue());
+  conventionAware.conventionMapping(GUtil.map("property",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return "conventionValue";
+    }
+  }
+));
+  assertThat(bean.getProperty(),equalTo("conventionValue"));
+  bean.setProperty("value");
+  assertThat(bean.getProperty(),equalTo("value"));
+}
