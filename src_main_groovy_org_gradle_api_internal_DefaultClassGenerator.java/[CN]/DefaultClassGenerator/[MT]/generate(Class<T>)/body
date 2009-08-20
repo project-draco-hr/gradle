@@ -3,6 +3,12 @@
   if (generatedClass != null) {
     return generatedClass;
   }
+  if (Modifier.isPrivate(type.getModifiers())) {
+    throw new GradleException(String.format("Cannot create a proxy class for private class '%s'.",type.getSimpleName()));
+  }
+  if (Modifier.isAbstract(type.getModifiers())) {
+    throw new GradleException(String.format("Cannot create a proxy class for abstract class '%s'.",type.getSimpleName()));
+  }
   if (type.getAnnotation(NoConventionMapping.class) != null) {
     generatedClasses.put(type,type);
     return type;
@@ -34,11 +40,9 @@
     }
   }
   if (!IConventionAware.class.isAssignableFrom(type)) {
-    src.format("private final org.gradle.api.internal.ConventionAwareHelper helper = new org.gradle.api.internal.ConventionAwareHelper(this)%n");
-    src.format("public Object conventionMapping(Map<String, org.gradle.api.tasks.ConventionValue> mapping) { return helper.conventionMapping(mapping); }%n");
-    src.format("public void setConventionMapping(java.util.Map<String, org.gradle.api.tasks.ConventionValue> conventionMapping) { helper.setConventionMapping(conventionMapping) }%n");
-    src.format("public java.util.Map<String, ConventionValue> getConventionMapping() { return helper.getConventionMapping() }%n");
-    src.format("public Object conv(Object internalValue, String propertyName) { return helper.getConventionValue(internalValue, propertyName) }%n");
+    src.format("private org.gradle.api.internal.ConventionMapping mapping = new org.gradle.api.internal.ConventionAwareHelper(this)%n");
+    src.format("public void setConventionMapping(org.gradle.api.internal.ConventionMapping conventionMapping) { this.mapping = conventionMapping }%n");
+    src.format("public org.gradle.api.internal.ConventionMapping getConventionMapping() { return mapping }%n");
   }
   Class noMappingClass=Object.class;
   for (Class<?> c=type.getSuperclass(); c != null && noMappingClass == Object.class; c=c.getSuperclass()) {
@@ -66,11 +70,13 @@
         continue;
       }
       String returnTypeName=getter.getReturnType().getCanonicalName();
-      src.format("public %s %s() { return conv(super.%s(), '%s'); }%n",returnTypeName,getter.getName(),getter.getName(),property.getName());
+      src.format("public %s %s() { return conventionMapping.getConventionValue(super.%s(), '%s'); }%n",returnTypeName,getter.getName(),getter.getName(),property.getName());
     }
   }
-  src.format("void setProperty(String name, Object value) { defineProperty(name, value); }%n");
-  src.format("def propertyMissing(String name) { property(name); }%n");
+  if (Task.class.isAssignableFrom(type)) {
+    src.format("void setProperty(String name, Object value) { defineProperty(name, value); }%n");
+    src.format("def propertyMissing(String name) { property(name); }%n");
+  }
   src.format("}");
   GroovyClassLoader classLoader=new GroovyClassLoader(type.getClassLoader());
   try {
