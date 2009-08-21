@@ -1,7 +1,5 @@
 {
-  String scriptText=source.getText();
-  String scriptName=source.getClassName();
-  CachePropertiesHandler.CacheState cacheState=cachePropertiesHandler.getCacheState(scriptText,scriptCacheDir);
+  CachePropertiesHandler.CacheState cacheState=cachePropertiesHandler.getCacheState(source,scriptCacheDir,singletonMap(DEBUGINFO_KEY,source.getDebugInfo()));
   if (cacheState == CachePropertiesHandler.CacheState.INVALID) {
     return null;
   }
@@ -9,7 +7,7 @@
   Script script;
   try {
     URLClassLoader urlClassLoader=new URLClassLoader(WrapUtil.toArray(scriptCacheDir.toURI().toURL()),classLoader);
-    script=(Script)urlClassLoader.loadClass(scriptName).newInstance();
+    script=(Script)urlClassLoader.loadClass(source.getClassName()).newInstance();
   }
  catch (  ClassNotFoundException e) {
     logger.debug("Class not in cache: ",e);
