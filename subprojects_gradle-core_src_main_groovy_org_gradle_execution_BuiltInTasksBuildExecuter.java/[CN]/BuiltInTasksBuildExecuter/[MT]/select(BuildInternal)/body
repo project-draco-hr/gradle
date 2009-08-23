@@ -1,9 +1,12 @@
 {
   this.build=build;
-  task=new AnnotationProcessingTaskFactory(new ITaskFactory(){
-    public Task createTask(    Project project,    Map args){
-      return options.createTask(project);
+  AbstractTask.injectIntoNextInstance(build.getDefaultProject(),"reportTask");
+  task=options.createTask();
+  task.setProject(build.getDefaultProject());
+  task.doFirst(new TaskAction(){
+    public void execute(    Task x){
+      task.generate();
     }
   }
-).createTask(build.getDefaultProject(),Collections.EMPTY_MAP);
+);
 }
