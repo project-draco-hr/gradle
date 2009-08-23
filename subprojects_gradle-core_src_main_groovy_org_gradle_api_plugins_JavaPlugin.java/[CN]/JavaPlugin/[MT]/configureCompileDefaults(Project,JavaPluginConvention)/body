@@ -1,0 +1,41 @@
+{
+  project.getTasks().withType(Compile.class).allTasks(new Action<Compile>(){
+    public void execute(    final Compile compile){
+      ConventionMapping conventionMapping=compile.getConventionMapping();
+      conventionMapping.map("classpath",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME);
+        }
+      }
+);
+      compile.dependsOn(new TaskDependency(){
+        public Set<? extends Task> getDependencies(        Task task){
+          if (compile.getClasspath() instanceof Configuration) {
+            return ((Configuration)compile.getClasspath()).getBuildDependencies().getDependencies(task);
+          }
+          return Collections.emptySet();
+        }
+      }
+);
+      conventionMapping.map("dependencyCacheDir",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return javaConvention.getDependencyCacheDir();
+        }
+      }
+);
+      conventionMapping.map("sourceCompatibility",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return javaConvention.getSourceCompatibility().toString();
+        }
+      }
+);
+      conventionMapping.map("targetCompatibility",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return javaConvention.getTargetCompatibility().toString();
+        }
+      }
+);
+    }
+  }
+);
+}
