@@ -1,0 +1,18 @@
+{
+  final FileCollection inputFiles=context.mock(FileCollection.class);
+  context.checking(new Expectations(){
+{
+      one(inputFiles).stopExecutionIfEmpty();
+      will(throwException(new StopExecutionException()));
+    }
+  }
+);
+  TaskWithInputFiles task=new TaskWithInputFiles(inputFiles){
+    @TaskAction void doStuff(){
+      fail("task action should be skipped");
+    }
+  }
+;
+  expectTaskCreated(task);
+  task.execute();
+}
