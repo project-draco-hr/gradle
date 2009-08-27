@@ -1,0 +1,13 @@
+{
+  ScriptProcessor processor=scriptProcessorFactory.createProcessor(initScript);
+  processor.setClassloader(gradle.getClassLoaderProvider().getClassLoader());
+  processor.setTransformer(new InitScriptClasspathScriptTransformer());
+  Script classPathScript=processor.process(ScriptWithSource.class);
+  initScriptMetaData.applyMetaData(classPathScript,gradle);
+  classPathScript.run();
+  gradle.getClassLoaderProvider().updateClassPath();
+  processor.setTransformer(new InitScriptTransformer());
+  Script buildScript=processor.process(ScriptWithSource.class);
+  initScriptMetaData.applyMetaData(buildScript,gradle);
+  buildScript.run();
+}

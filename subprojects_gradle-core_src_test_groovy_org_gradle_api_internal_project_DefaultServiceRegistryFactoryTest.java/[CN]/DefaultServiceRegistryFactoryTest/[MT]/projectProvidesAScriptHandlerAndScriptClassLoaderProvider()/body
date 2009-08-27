@@ -1,0 +1,19 @@
+{
+  expectConfigurationHandlerCreated();
+  context.checking(new Expectations(){
+{
+      allowing(project).getParent();
+      will(returnValue(null));
+      allowing(project).getGradle();
+      will(returnValue(gradle));
+      allowing(gradle).getBuildScriptClassLoader();
+      will(returnValue(null));
+      ignoring(configurationHandler);
+    }
+  }
+);
+  ServiceRegistry registry=factory.createForProject(project);
+  assertThat(registry.get(ScriptHandler.class),instanceOf(DefaultScriptHandler.class));
+  assertThat(registry.get(ScriptHandler.class),sameInstance(registry.get(ScriptHandler.class)));
+  assertThat(registry.get(ScriptClassLoaderProvider.class),sameInstance((Object)registry.get(ScriptHandler.class)));
+}

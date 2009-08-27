@@ -1,0 +1,29 @@
+{
+  this.gradle=gradle;
+  services.add(new Service(ProjectFinder.class){
+    @Override protected Object create(){
+      return new ProjectFinder(){
+        public Project getProject(        String path){
+          return gradle.getRootProject().project(path);
+        }
+      }
+;
+    }
+  }
+);
+  services.add(new Service(ScriptHandler.class){
+    @Override protected Object create(){
+      RepositoryHandler repositoryHandler=repositoryHandlerFactory.createRepositoryHandler(new DefaultConvention());
+      ConfigurationHandler configurationContainer=configurationContainerFactory.createConfigurationContainer(repositoryHandler,new DependencyMetaDataProviderImpl());
+      DependencyHandler dependencyHandler=new DefaultDependencyHandler(configurationContainer,dependencyFactory,get(ProjectFinder.class));
+      return new DefaultScriptHandler(repositoryHandler,dependencyHandler,configurationContainer,Thread.currentThread().getContextClassLoader());
+    }
+  }
+);
+  services.add(new Service(ScriptClassLoaderProvider.class){
+    @Override protected Object create(){
+      return get(ScriptHandler.class);
+    }
+  }
+);
+}

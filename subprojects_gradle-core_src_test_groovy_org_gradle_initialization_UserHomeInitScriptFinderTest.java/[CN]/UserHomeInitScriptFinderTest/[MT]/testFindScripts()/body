@@ -1,0 +1,20 @@
+{
+  JUnit4Mockery context=new JUnit4Mockery();
+  final GradleInternal gradleMock=context.mock(GradleInternal.class);
+  final InitScriptFinder initScriptFinderMock=context.mock(InitScriptFinder.class);
+  final StartParameter testStartParameter=new StartParameter();
+  final File homeDir=new File("gradle home dir").getCanonicalFile();
+  testStartParameter.setGradleUserHomeDir(homeDir);
+  context.checking(new Expectations(){
+{
+      allowing(initScriptFinderMock).findScripts(gradleMock);
+      will(returnValue(new ArrayList()));
+      allowing(gradleMock).getStartParameter();
+      will(returnValue(testStartParameter));
+    }
+  }
+);
+  List<ScriptSource> sourceList=new UserHomeInitScriptFinder(initScriptFinderMock).findScripts(gradleMock);
+  assertThat(sourceList.size(),equalTo(1));
+  assertThat(sourceList.get(0).getSourceFile(),equalTo(new File(homeDir,"init.gradle")));
+}
