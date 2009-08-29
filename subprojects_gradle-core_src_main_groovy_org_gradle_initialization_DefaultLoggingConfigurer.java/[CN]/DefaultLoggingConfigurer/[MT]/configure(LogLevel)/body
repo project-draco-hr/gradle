@@ -1,40 +1,42 @@
 {
+  if (applied) {
+    return;
+  }
+  applied=true;
   SLF4JBridgeHandler.install();
   LoggerContext lc=(LoggerContext)LoggerFactory.getILoggerFactory();
   lc.shutdownAndReset();
   ch.qos.logback.classic.Logger rootLogger=lc.getLogger(LoggerContext.ROOT_NAME);
-  ConsoleAppender errorConsoleAppender=new ConsoleAppender();
-  errorConsoleAppender.setContext(lc);
-  errorConsoleAppender.setTarget("System.err");
-  errorConsoleAppender.addFilter(createLevelFilter(lc,Level.ERROR,FilterReply.ACCEPT,FilterReply.DENY));
+  stderrConsoleAppender.setContext(lc);
+  stderrConsoleAppender.setTarget("System.err");
+  stderrConsoleAppender.addFilter(createLevelFilter(lc,Level.ERROR,FilterReply.ACCEPT,FilterReply.DENY));
   Level level=Level.INFO;
-  ConsoleAppender nonErrorConsoleAppender=new ConsoleAppender();
-  nonErrorConsoleAppender.setContext(lc);
-  setLayouts(logLevel,errorConsoleAppender,nonErrorConsoleAppender,lc);
+  stdoutConsoleAppender.setContext(lc);
+  setLayouts(logLevel,stderrConsoleAppender,stdoutConsoleAppender,lc);
   MarkerFilter quietFilter=new MarkerFilter(FilterReply.DENY,Logging.QUIET);
-  nonErrorConsoleAppender.addFilter(quietFilter);
+  stdoutConsoleAppender.addFilter(quietFilter);
   if (!(logLevel == LogLevel.QUIET)) {
     quietFilter.setOnMismatch(FilterReply.NEUTRAL);
     if (logLevel == LogLevel.DEBUG) {
       level=Level.DEBUG;
-      nonErrorConsoleAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.NEUTRAL));
-      nonErrorConsoleAppender.addFilter(createLevelFilter(lc,Level.DEBUG,FilterReply.ACCEPT,FilterReply.NEUTRAL));
+      stdoutConsoleAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.NEUTRAL));
+      stdoutConsoleAppender.addFilter(createLevelFilter(lc,Level.DEBUG,FilterReply.ACCEPT,FilterReply.NEUTRAL));
     }
  else {
       if (logLevel == LogLevel.INFO) {
         level=Level.INFO;
-        nonErrorConsoleAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.NEUTRAL));
+        stdoutConsoleAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.NEUTRAL));
       }
  else {
-        nonErrorConsoleAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE,Logging.LIFECYCLE_ALLWAYS));
+        stdoutConsoleAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE,Logging.LIFECYCLE_ALLWAYS));
       }
     }
-    nonErrorConsoleAppender.addFilter(createLevelFilter(lc,Level.WARN,FilterReply.ACCEPT,FilterReply.DENY));
+    stdoutConsoleAppender.addFilter(createLevelFilter(lc,Level.WARN,FilterReply.ACCEPT,FilterReply.DENY));
   }
-  rootLogger.addAppender(nonErrorConsoleAppender);
-  nonErrorConsoleAppender.start();
-  rootLogger.addAppender(errorConsoleAppender);
-  errorConsoleAppender.start();
+  rootLogger.addAppender(stdoutConsoleAppender);
+  stdoutConsoleAppender.start();
+  rootLogger.addAppender(stderrConsoleAppender);
+  stderrConsoleAppender.start();
   Message.setDefaultLogger(new IvyLoggingAdaper());
   rootLogger.setLevel(level);
 }

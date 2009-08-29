@@ -3,18 +3,13 @@
   ScriptProcessor processor=scriptProcessorFactory.createProcessor(source);
   processor.setClassloader(project.getClassLoaderProvider().getClassLoader());
   processor.setTransformer(new BuildScriptClasspathScriptTransformer());
-  Script classPathScript=processor.process(ProjectScript.class);
-  projectScriptMetaData.applyMetaData(classPathScript,project);
-  project.getStandardOutputRedirector().on(LogLevel.QUIET);
-  try {
-    classPathScript.run();
-  }
-  finally {
-    project.getStandardOutputRedirector().flush();
-  }
+  ScriptRunner classPathScript=processor.compile(ProjectScript.class);
+  classPathScript.setDelegate(project);
+  classPathScript.run();
   project.getClassLoaderProvider().updateClassPath();
   processor.setTransformer(new BuildScriptTransformer());
-  Script buildScript=processor.process(ProjectScript.class);
-  projectScriptMetaData.applyMetaData(buildScript,project);
-  project.setScript(buildScript);
+  ScriptRunner script=processor.compile(ProjectScript.class);
+  script.setDelegate(project);
+  project.setScript(script.getScript());
+  script.run();
 }

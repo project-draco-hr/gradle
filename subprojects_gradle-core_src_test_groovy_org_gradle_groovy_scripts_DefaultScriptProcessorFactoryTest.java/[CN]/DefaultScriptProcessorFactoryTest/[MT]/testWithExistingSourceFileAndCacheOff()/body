@@ -6,9 +6,12 @@
       will(returnValue(testScriptFile));
       one(scriptCompilationHandlerMock).createScriptOnTheFly(source,testClassLoader,null,expectedScriptBaseClass);
       will(returnValue(expectedScript));
+      one(expectedScript).setScriptSource(source);
+      one(scriptRunnerFactoryMock).create(expectedScript);
+      will(returnValue(expectedScriptRunner));
     }
   }
 );
-  scriptProcessor=new DefaultScriptProcessorFactory(scriptCompilationHandlerMock,CacheUsage.OFF);
-  assertSame(expectedScript,scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
+  scriptProcessor=new DefaultScriptProcessorFactory(scriptCompilationHandlerMock,CacheUsage.OFF,scriptRunnerFactoryMock);
+  assertSame(expectedScriptRunner,scriptProcessor.createProcessor(source).compile(expectedScriptBaseClass));
 }

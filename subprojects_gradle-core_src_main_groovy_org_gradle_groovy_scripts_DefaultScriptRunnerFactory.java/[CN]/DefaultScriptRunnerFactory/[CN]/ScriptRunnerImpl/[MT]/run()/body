@@ -1,0 +1,15 @@
+{
+  ClassLoader originalLoader=Thread.currentThread().getContextClassLoader();
+  Thread.currentThread().setContextClassLoader(script.getContextClassloader());
+  script.getStandardOutputRedirector().on(LogLevel.QUIET);
+  try {
+    script.run();
+  }
+ catch (  Throwable e) {
+    throw new GradleScriptException(String.format("A problem occurred evaluating %s.",script),e,script.getScriptSource());
+  }
+ finally {
+    script.getStandardOutputRedirector().flush();
+    Thread.currentThread().setContextClassLoader(originalLoader);
+  }
+}

@@ -8,18 +8,19 @@
       will(returnValue(classLoader));
       one(processor).setClassloader(classLoader);
       one(processor).setTransformer(with(notNullValue(BuildScriptClasspathScriptTransformer.class)));
-      one(processor).process(ProjectScript.class);
-      will(returnValue(classpathScript));
-      one(projectScriptMetaData).applyMetaData(classpathScript,project);
-      one(standardOutputRedirector).on(LogLevel.QUIET);
-      one(classpathScript).run();
-      one(standardOutputRedirector).flush();
+      one(processor).compile(ProjectScript.class);
+      will(returnValue(classpathScriptRunner));
+      one(classpathScriptRunner).setDelegate(project);
+      one(classpathScriptRunner).run();
       one(classLoaderProvider).updateClassPath();
       one(processor).setTransformer(with(notNullValue(BuildScriptTransformer.class)));
-      one(processor).process(ProjectScript.class);
+      one(processor).compile(ProjectScript.class);
+      will(returnValue(buildScriptRunner));
+      one(buildScriptRunner).setDelegate(project);
+      one(buildScriptRunner).getScript();
       will(returnValue(buildScript));
-      one(projectScriptMetaData).applyMetaData(buildScript,project);
       one(project).setScript(buildScript);
+      one(buildScriptRunner).run();
     }
   }
 );

@@ -1,0 +1,25 @@
+{
+  final RuntimeException failure=new RuntimeException();
+  ScriptRunner<Script> scriptRunner=factory.create(scriptMock);
+  context.checking(new Expectations(){
+{
+      one(standardOutputRedirectorMock).on(LogLevel.QUIET);
+      one(scriptMock).run();
+      will(throwException(failure));
+      one(standardOutputRedirectorMock).flush();
+    }
+  }
+);
+  ClassLoader originalClassLoader=Thread.currentThread().getContextClassLoader();
+  assertThat(originalClassLoader,not(sameInstance(classLoaderDummy)));
+  try {
+    scriptRunner.run();
+    fail();
+  }
+ catch (  GradleScriptException e) {
+    assertThat(e.getOriginalMessage(),equalTo("A problem occurred evaluating <script-to-string>."));
+    assertThat(e.getScriptSource(),sameInstance(scriptSourceDummy));
+    assertThat(e.getCause(),sameInstance((Throwable)failure));
+  }
+  assertThat(Thread.currentThread().getContextClassLoader(),sameInstance(originalClassLoader));
+}

@@ -7,16 +7,12 @@
   DefaultInternalRepository internalRepository=new DefaultInternalRepository();
   DependencyFactory dependencyFactory=new DefaultDependencyFactory(WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),new SelfResolvingDependencyFactory()),new DefaultClientModuleFactory(),new DefaultProjectDependencyFactory());
   ResolverFactory resolverFactory=new DefaultResolverFactory();
-  ScriptProcessorFactory scriptProcessorFactory=new DefaultScriptProcessorFactory(new DefaultScriptCompilationHandler(cachePropertiesHandler),startParameter.getCacheUsage());
-  DefaultProjectEvaluator projectEvaluator=new DefaultProjectEvaluator(new BuildScriptCompiler(importsReader,scriptProcessorFactory,new DefaultScriptMetaData()),new BuildScriptEvaluator());
+  ScriptProcessorFactory scriptProcessorFactory=new DefaultScriptProcessorFactory(new DefaultScriptCompilationHandler(cachePropertiesHandler),startParameter.getCacheUsage(),new DefaultScriptRunnerFactory(new DefaultScriptMetaData()));
+  DefaultProjectEvaluator projectEvaluator=new DefaultProjectEvaluator(new BuildScriptCompiler(importsReader,scriptProcessorFactory));
   ClassGenerator classGenerator=new DefaultClassGenerator();
   ServiceRegistryFactory serviceRegistryFactory=new DefaultServiceRegistryFactory(new DefaultRepositoryHandlerFactory(resolverFactory,classGenerator),configurationContainerFactory,new DefaultPublishArtifactFactory(),dependencyFactory,projectEvaluator,classGenerator);
-  InitScriptHandler initScriptHandler=new InitScriptHandler(new UserHomeInitScriptFinder(new DefaultInitScriptFinder()),new DefaultInitScriptProcessor(scriptProcessorFactory,new DefaultScriptMetaData()));
-  DefaultGradle gradle=new DefaultGradle(startParameter,internalRepository,serviceRegistryFactory);
+  InitScriptHandler initScriptHandler=new InitScriptHandler(new UserHomeInitScriptFinder(new DefaultInitScriptFinder()),new DefaultInitScriptProcessor(scriptProcessorFactory,importsReader));
+  DefaultGradle gradle=new DefaultGradle(startParameter,internalRepository,serviceRegistryFactory,new DefaultStandardOutputRedirector());
   gradle.addBuildListener(internalRepository);
-  return new GradleLauncher(gradle,initScriptHandler,new SettingsHandler(settingsFinder,new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(new DefaultScriptMetaData(),scriptProcessorFactory,importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry()))),new BuildSourceBuilder(new DefaultGradleFactory(new LoggingConfigurer(){
-    public void configure(    LogLevel logLevel){
-    }
-  }
-,commandLine2StartParameterConverter),new DefaultCacheInvalidationStrategy())),new DefaultGradlePropertiesLoader(),new BuildLoader(new ProjectFactory(serviceRegistryFactory,startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver()));
+  return new GradleLauncher(gradle,initScriptHandler,new SettingsHandler(settingsFinder,new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(scriptProcessorFactory,importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry()))),new BuildSourceBuilder(new DefaultGradleFactory(loggingConfigurer,commandLine2StartParameterConverter),new DefaultCacheInvalidationStrategy())),new DefaultGradlePropertiesLoader(),new BuildLoader(new ProjectFactory(serviceRegistryFactory,startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver()),loggingConfigurer);
 }
