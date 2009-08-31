@@ -1,0 +1,10 @@
+{
+  Bean bean=generator.generate(Bean.class).newInstance();
+  DynamicObjectAware dynamicObjectAware=(DynamicObjectAware)bean;
+  ConventionObject conventionObject=new ConventionObject();
+  dynamicObjectAware.getConvention().getPlugins().put("plugin",conventionObject);
+  HelperUtil.call("{ it.conventionProperty = 'value' }",bean);
+  assertThat(conventionObject.getConventionProperty(),equalTo("value"));
+  assertThat(HelperUtil.call("{ it.conventionProperty }",bean),equalTo((Object)"value"));
+  assertThat(HelperUtil.call("{ it.doStuff('value') }",bean),equalTo((Object)"[value]"));
+}
