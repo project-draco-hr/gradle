@@ -1,0 +1,17 @@
+{
+  Type returnType=Type.getType(property.getGetter().getReturnType());
+  String methodDescriptor=Type.getMethodDescriptor(returnType,new Type[0]);
+  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,property.getGetter().getName(),methodDescriptor,null,new String[0]);
+  methodVisitor.visitCode();
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionAwareType.getInternalName(),"getConventionMapping",Type.getMethodDescriptor(conventionMappingType,new Type[0]));
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),property.getGetter().getName(),methodDescriptor);
+  methodVisitor.visitLdcInsn(property.getName());
+  String getConventionValueDesc=Type.getMethodDescriptor(ConventionMapping.class.getMethod("getConventionValue",Object.class,String.class));
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionMappingType.getInternalName(),"getConventionValue",getConventionValueDesc);
+  methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,property.getGetter().getReturnType().isArray() ? "[" + returnType.getElementType().getDescriptor() : returnType.getInternalName());
+  methodVisitor.visitInsn(Opcodes.ARETURN);
+  methodVisitor.visitMaxs(0,0);
+  methodVisitor.visitEnd();
+}

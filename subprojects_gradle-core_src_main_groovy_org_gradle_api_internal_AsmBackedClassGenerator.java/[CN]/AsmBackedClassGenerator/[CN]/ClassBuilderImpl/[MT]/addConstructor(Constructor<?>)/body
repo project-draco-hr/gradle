@@ -1,0 +1,22 @@
+{
+  List<Type> paramTypes=new ArrayList<Type>();
+  for (  Class<?> paramType : constructor.getParameterTypes()) {
+    paramTypes.add(Type.getType(paramType));
+  }
+  String methodDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,paramTypes.toArray(new Type[paramTypes.size()]));
+  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,"<init>",methodDescriptor,null,new String[0]);
+  methodVisitor.visitCode();
+  for (int i=0; i <= constructor.getParameterTypes().length; i++) {
+    methodVisitor.visitVarInsn(Opcodes.ALOAD,i);
+  }
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),"<init>",methodDescriptor);
+  if (initDynamicObjectHelper != null) {
+    initDynamicObjectHelper.add(methodVisitor);
+  }
+  if (initConventionAwareHelper != null) {
+    initConventionAwareHelper.add(methodVisitor);
+  }
+  methodVisitor.visitInsn(Opcodes.RETURN);
+  methodVisitor.visitMaxs(0,0);
+  methodVisitor.visitEnd();
+}

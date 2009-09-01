@@ -1,0 +1,51 @@
+{
+  final Type helperType=Type.getType(DynamicObjectHelper.class);
+  final String fieldSignature="L" + DynamicObjectHelper.class.getName().replaceAll("\\.","/") + ";";
+  visitor.visitField(Opcodes.ACC_PRIVATE,"dynamicObjectHelper",fieldSignature,null,null);
+  initDynamicObjectHelper=new MethodCodeBody(){
+    public void add(    MethodVisitor visitor) throws Exception {
+      String conventionConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[0]);
+      String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(Object.class),conventionType});
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitTypeInsn(Opcodes.NEW,helperType.getInternalName());
+      visitor.visitInsn(Opcodes.DUP);
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitTypeInsn(Opcodes.NEW,defaultConventionType.getInternalName());
+      visitor.visitInsn(Opcodes.DUP);
+      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,defaultConventionType.getInternalName(),"<init>",conventionConstructorDesc);
+      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,helperType.getInternalName(),"<init>",helperTypeConstructorDesc);
+      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
+    }
+  }
+;
+  addGetter(DynamicObjectAware.class.getDeclaredMethod("getConvention"),new MethodCodeBody(){
+    public void add(    MethodVisitor visitor) throws Exception {
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
+      String getterDescriptor=Type.getMethodDescriptor(DynamicObjectHelper.class.getDeclaredMethod("getConvention"));
+      visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,helperType.getInternalName(),"getConvention",getterDescriptor);
+    }
+  }
+);
+  addGetter(DynamicObjectAware.class.getDeclaredMethod("getAsDynamicObject"),new MethodCodeBody(){
+    public void add(    MethodVisitor visitor){
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
+    }
+  }
+);
+  addSetter(DynamicObjectAware.class.getDeclaredMethod("setConvention",Convention.class),new MethodCodeBody(){
+    public void add(    MethodVisitor visitor){
+      String setConventionDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{conventionType});
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
+      visitor.visitVarInsn(Opcodes.ALOAD,1);
+      visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,helperType.getInternalName(),"setConvention",setConventionDesc);
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getConventionMapping",Type.getMethodDescriptor(conventionMappingType,new Type[0]));
+      visitor.visitVarInsn(Opcodes.ALOAD,1);
+      visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionMappingType.getInternalName(),"setConvention",setConventionDesc);
+    }
+  }
+);
+}

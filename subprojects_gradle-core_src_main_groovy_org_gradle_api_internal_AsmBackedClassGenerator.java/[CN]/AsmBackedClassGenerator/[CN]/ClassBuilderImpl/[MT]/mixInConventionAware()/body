@@ -1,0 +1,42 @@
+{
+  final String mappingFieldSignature="L" + ConventionMapping.class.getName().replaceAll("\\.","/") + ";";
+  final String getConventionDesc=Type.getMethodDescriptor(conventionType,new Type[0]);
+  visitor.visitField(Opcodes.ACC_PRIVATE,"mapping",mappingFieldSignature,null,null);
+  initConventionAwareHelper=new MethodCodeBody(){
+    public void add(    MethodVisitor visitor) throws Exception {
+      Type helperType=Type.getType(ConventionAwareHelper.class);
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitTypeInsn(Opcodes.NEW,helperType.getInternalName());
+      visitor.visitInsn(Opcodes.DUP);
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      if (dynamicAware) {
+        visitor.visitVarInsn(Opcodes.ALOAD,0);
+        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getConvention",getConventionDesc);
+      }
+ else {
+        visitor.visitTypeInsn(Opcodes.NEW,defaultConventionType.getInternalName());
+        visitor.visitInsn(Opcodes.DUP);
+        visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,defaultConventionType.getInternalName(),"<init>","()V");
+      }
+      String constructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{conventionAwareType,conventionType});
+      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,helperType.getInternalName(),"<init>",constructorDesc);
+      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),"mapping",mappingFieldSignature);
+    }
+  }
+;
+  addGetter(IConventionAware.class.getDeclaredMethod("getConventionMapping"),new MethodCodeBody(){
+    public void add(    MethodVisitor visitor){
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"mapping",mappingFieldSignature);
+    }
+  }
+);
+  addSetter(IConventionAware.class.getDeclaredMethod("setConventionMapping",ConventionMapping.class),new MethodCodeBody(){
+    public void add(    MethodVisitor visitor){
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitVarInsn(Opcodes.ALOAD,1);
+      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),"mapping",mappingFieldSignature);
+    }
+  }
+);
+}
