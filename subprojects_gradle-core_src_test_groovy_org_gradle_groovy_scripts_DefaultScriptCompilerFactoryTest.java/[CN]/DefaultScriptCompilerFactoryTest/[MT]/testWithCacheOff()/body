@@ -1,0 +1,17 @@
+{
+  createBuildScriptFile();
+  context.checking(new Expectations(){
+{
+      allowing(source).getSourceFile();
+      will(returnValue(testScriptFile));
+      one(scriptCompilationHandlerMock).createScriptOnTheFly(source,testClassLoader,null,expectedScriptBaseClass);
+      will(returnValue(expectedScript));
+      one(expectedScript).setScriptSource(source);
+      one(scriptRunnerFactoryMock).create(expectedScript);
+      will(returnValue(expectedScriptRunner));
+    }
+  }
+);
+  scriptProcessor=new DefaultScriptCompilerFactory(scriptCompilationHandlerMock,CacheUsage.OFF,cacheDir,scriptRunnerFactoryMock);
+  assertSame(expectedScriptRunner,scriptProcessor.createCompiler(source).compile(expectedScriptBaseClass));
+}

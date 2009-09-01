@@ -1,14 +1,14 @@
 {
   ScriptSource withImports=new ImportsScriptSource(initScript,importsReader,null);
-  ScriptProcessor processor=scriptProcessorFactory.createProcessor(withImports);
-  processor.setClassloader(gradle.getClassLoaderProvider().getClassLoader());
-  processor.setTransformer(new InitScriptClasspathScriptTransformer());
-  ScriptRunner classPathScript=processor.compile(InitScript.class);
+  ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
+  compiler.setClassloader(gradle.getClassLoaderProvider().getClassLoader());
+  compiler.setTransformer(new InitScriptClasspathScriptTransformer());
+  ScriptRunner classPathScript=compiler.compile(InitScript.class);
   classPathScript.setDelegate(gradle);
   classPathScript.run();
   gradle.getClassLoaderProvider().updateClassPath();
-  processor.setTransformer(new InitScriptTransformer());
-  ScriptRunner script=processor.compile(InitScript.class);
+  compiler.setTransformer(new InitScriptTransformer());
+  ScriptRunner script=compiler.compile(InitScript.class);
   script.setDelegate(gradle);
   script.run();
 }

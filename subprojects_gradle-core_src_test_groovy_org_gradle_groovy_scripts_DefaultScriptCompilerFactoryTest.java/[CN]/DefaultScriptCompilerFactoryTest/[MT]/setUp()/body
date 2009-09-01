@@ -1,0 +1,25 @@
+{
+  context.setImposteriser(ClassImposteriser.INSTANCE);
+  scriptCompilationHandlerMock=context.mock(ScriptCompilationHandler.class);
+  scriptRunnerFactoryMock=context.mock(ScriptRunnerFactory.class);
+  testClassLoader=new URLClassLoader(new URL[0]);
+  File testDir=HelperUtil.makeNewTestDir("projectdir");
+  testScriptFile=new File(testDir,"script/mybuild.craidle");
+  cacheDir=new File(testDir,"cache");
+  expectedScriptCacheDir=new File(cacheDir,"scriptCache/<class-name>/NoTransformer");
+  expectedScript=context.mock(Script.class);
+  expectedScriptRunner=context.mock(ScriptRunner.class);
+  scriptProcessor=new DefaultScriptCompilerFactory(scriptCompilationHandlerMock,CacheUsage.ON,cacheDir,scriptRunnerFactoryMock);
+  source=context.mock(ScriptSource.class);
+  context.checking(new Expectations(){
+{
+      allowing(source).getDisplayName();
+      will(returnValue("[script source]"));
+      allowing(source).getClassName();
+      will(returnValue("<class-name>"));
+    }
+  }
+);
+  originalClassLoader=Thread.currentThread().getContextClassLoader();
+  Thread.currentThread().setContextClassLoader(testClassLoader);
+}

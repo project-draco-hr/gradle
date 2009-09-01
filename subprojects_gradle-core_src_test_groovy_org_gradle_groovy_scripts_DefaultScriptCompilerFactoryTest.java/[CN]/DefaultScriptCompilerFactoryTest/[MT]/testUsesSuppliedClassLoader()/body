@@ -1,0 +1,18 @@
+{
+  final ClassLoader classLoader=new ClassLoader(){
+  }
+;
+  context.checking(new Expectations(){
+{
+      allowing(source).getSourceFile();
+      will(returnValue(testScriptFile));
+      one(scriptCompilationHandlerMock).loadFromCache(source,classLoader,expectedScriptCacheDir,expectedScriptBaseClass);
+      will(returnValue(expectedScript));
+      one(expectedScript).setScriptSource(source);
+      one(scriptRunnerFactoryMock).create(expectedScript);
+      will(returnValue(expectedScriptRunner));
+    }
+  }
+);
+  assertSame(expectedScriptRunner,scriptProcessor.createCompiler(source).setClassloader(classLoader).compile(expectedScriptBaseClass));
+}

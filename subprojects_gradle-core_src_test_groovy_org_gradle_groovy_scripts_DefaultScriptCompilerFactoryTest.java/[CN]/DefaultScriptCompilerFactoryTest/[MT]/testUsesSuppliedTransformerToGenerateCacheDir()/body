@@ -1,0 +1,18 @@
+{
+  createBuildScriptFile();
+  final Transformer transformer=context.mock(Transformer.class);
+  final File expectedCacheDir=new File(expectedScriptCacheDir.getParentFile(),transformer.getClass().getSimpleName());
+  context.checking(new Expectations(){
+{
+      allowing(source).getSourceFile();
+      will(returnValue(testScriptFile));
+      one(scriptCompilationHandlerMock).loadFromCache(source,testClassLoader,expectedCacheDir,expectedScriptBaseClass);
+      will(returnValue(expectedScript));
+      one(expectedScript).setScriptSource(source);
+      one(scriptRunnerFactoryMock).create(expectedScript);
+      will(returnValue(expectedScriptRunner));
+    }
+  }
+);
+  assertSame(expectedScriptRunner,scriptProcessor.createCompiler(source).setTransformer(transformer).compile(expectedScriptBaseClass));
+}

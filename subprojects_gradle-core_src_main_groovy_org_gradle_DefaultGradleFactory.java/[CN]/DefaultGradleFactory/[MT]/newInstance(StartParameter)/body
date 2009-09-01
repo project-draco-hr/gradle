@@ -1,18 +1,17 @@
 {
   loggingConfigurer.configure(startParameter.getLogLevel());
   ImportsReader importsReader=new ImportsReader(startParameter.getDefaultImportsFile());
-  CachePropertiesHandler cachePropertiesHandler=new DefaultCachePropertiesHandler();
   ISettingsFinder settingsFinder=new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy())));
   ConfigurationContainerFactory configurationContainerFactory=new DefaultConfigurationContainerFactory(startParameter.getProjectDependenciesBuildInstruction());
   DefaultInternalRepository internalRepository=new DefaultInternalRepository();
   DependencyFactory dependencyFactory=new DefaultDependencyFactory(WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),new SelfResolvingDependencyFactory()),new DefaultClientModuleFactory(),new DefaultProjectDependencyFactory());
   ResolverFactory resolverFactory=new DefaultResolverFactory();
-  ScriptProcessorFactory scriptProcessorFactory=new DefaultScriptProcessorFactory(new DefaultScriptCompilationHandler(cachePropertiesHandler),startParameter.getCacheUsage(),new DefaultScriptRunnerFactory(new DefaultScriptMetaData()));
-  DefaultProjectEvaluator projectEvaluator=new DefaultProjectEvaluator(new BuildScriptProcessor(importsReader,scriptProcessorFactory));
+  ScriptCompilerFactory scriptCompilerFactory=new DefaultScriptCompilerFactory(new DefaultScriptCompilationHandler(new DefaultCachePropertiesHandler()),startParameter.getCacheUsage(),startParameter.getGradleUserHomeDir(),new DefaultScriptRunnerFactory(new DefaultScriptMetaData()));
+  DefaultProjectEvaluator projectEvaluator=new DefaultProjectEvaluator(new BuildScriptProcessor(importsReader,scriptCompilerFactory));
   ClassGenerator classGenerator=new AsmBackedClassGenerator();
   ServiceRegistryFactory serviceRegistryFactory=new DefaultServiceRegistryFactory(new DefaultRepositoryHandlerFactory(resolverFactory,classGenerator),configurationContainerFactory,new DefaultPublishArtifactFactory(),dependencyFactory,projectEvaluator,classGenerator);
-  InitScriptHandler initScriptHandler=new InitScriptHandler(new UserHomeInitScriptFinder(new DefaultInitScriptFinder()),new DefaultInitScriptProcessor(scriptProcessorFactory,importsReader));
+  InitScriptHandler initScriptHandler=new InitScriptHandler(new UserHomeInitScriptFinder(new DefaultInitScriptFinder()),new DefaultInitScriptProcessor(scriptCompilerFactory,importsReader));
   DefaultGradle gradle=new DefaultGradle(startParameter,internalRepository,serviceRegistryFactory,new DefaultStandardOutputRedirector());
   gradle.addBuildListener(internalRepository);
-  return new GradleLauncher(gradle,initScriptHandler,new SettingsHandler(settingsFinder,new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(scriptProcessorFactory,importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry()))),new BuildSourceBuilder(new DefaultGradleFactory(loggingConfigurer,commandLine2StartParameterConverter),new DefaultCacheInvalidationStrategy())),new DefaultGradlePropertiesLoader(),new BuildLoader(new ProjectFactory(serviceRegistryFactory,startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver()),loggingConfigurer);
+  return new GradleLauncher(gradle,initScriptHandler,new SettingsHandler(settingsFinder,new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(scriptCompilerFactory,importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry()))),new BuildSourceBuilder(new DefaultGradleFactory(loggingConfigurer,commandLine2StartParameterConverter),new DefaultCacheInvalidationStrategy())),new DefaultGradlePropertiesLoader(),new BuildLoader(new ProjectFactory(serviceRegistryFactory,startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver()),loggingConfigurer);
 }

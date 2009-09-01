@@ -1,0 +1,17 @@
+{
+  File scriptCacheDir=new File(cacheDir,source.getClassName());
+  if (transformer != null) {
+    scriptCacheDir=new File(scriptCacheDir,transformer.getClass().getSimpleName());
+  }
+ else {
+    scriptCacheDir=new File(scriptCacheDir,"NoTransformer");
+  }
+  if (cacheUsage == CacheUsage.ON) {
+    T cachedScript=scriptCompilationHandler.loadFromCache(source,classLoader,scriptCacheDir,scriptBaseClass);
+    if (cachedScript != null) {
+      return cachedScript;
+    }
+  }
+  scriptCompilationHandler.writeToCache(source,classLoader,scriptCacheDir,transformer,scriptBaseClass);
+  return scriptCompilationHandler.loadFromCache(source,classLoader,scriptCacheDir,scriptBaseClass);
+}

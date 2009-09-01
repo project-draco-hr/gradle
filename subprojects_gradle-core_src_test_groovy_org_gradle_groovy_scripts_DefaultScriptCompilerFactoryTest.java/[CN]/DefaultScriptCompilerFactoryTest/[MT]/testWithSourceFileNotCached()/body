@@ -1,0 +1,19 @@
+{
+  createBuildScriptFile();
+  context.checking(new Expectations(){
+{
+      allowing(source).getSourceFile();
+      will(returnValue(testScriptFile));
+      one(scriptCompilationHandlerMock).loadFromCache(source,testClassLoader,expectedScriptCacheDir,expectedScriptBaseClass);
+      will(returnValue(null));
+      one(scriptCompilationHandlerMock).writeToCache(source,testClassLoader,expectedScriptCacheDir,null,expectedScriptBaseClass);
+      one(scriptCompilationHandlerMock).loadFromCache(source,testClassLoader,expectedScriptCacheDir,expectedScriptBaseClass);
+      will(returnValue(expectedScript));
+      one(expectedScript).setScriptSource(source);
+      one(scriptRunnerFactoryMock).create(expectedScript);
+      will(returnValue(expectedScriptRunner));
+    }
+  }
+);
+  assertSame(expectedScriptRunner,scriptProcessor.createCompiler(source).compile(expectedScriptBaseClass));
+}
