@@ -3,8 +3,10 @@
   final DependencyMetaDataProvider dependencyMetaDataProviderStub=context.mock(DependencyMetaDataProvider.class);
   ProjectDependenciesBuildInstruction projectDependenciesBuildInstructionDummy=new ProjectDependenciesBuildInstruction(null);
   DefaultConfigurationContainer configurationContainer=(DefaultConfigurationContainer)new DefaultConfigurationContainerFactory(projectDependenciesBuildInstructionDummy).createConfigurationContainer(resolverProviderDummy,dependencyMetaDataProviderStub);
-  assertThat(configurationContainer.getIvyService(),instanceOf(DefaultIvyService.class));
-  assertThat(((DefaultIvyService)configurationContainer.getIvyService()).getMetaDataProvider(),sameInstance(dependencyMetaDataProviderStub));
-  assertThat(((DefaultIvyService)configurationContainer.getIvyService()).getResolverProvider(),sameInstance(resolverProviderDummy));
+  assertThat(configurationContainer.getIvyService(),instanceOf(ShortcircuitEmptyConfigsIvyService.class));
+  ShortcircuitEmptyConfigsIvyService service=(ShortcircuitEmptyConfigsIvyService)configurationContainer.getIvyService();
+  assertThat(service.getIvyService(),instanceOf(DefaultIvyService.class));
+  assertThat(((DefaultIvyService)service.getIvyService()).getMetaDataProvider(),sameInstance(dependencyMetaDataProviderStub));
+  assertThat(((DefaultIvyService)service.getIvyService()).getResolverProvider(),sameInstance(resolverProviderDummy));
   assertThat(configurationContainer.getProjectDependenciesBuildInstruction(),sameInstance(projectDependenciesBuildInstructionDummy));
 }
