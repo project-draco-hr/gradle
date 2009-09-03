@@ -14,8 +14,7 @@
       sourceSet.getResources().srcDir(String.format("src/%s/resources",sourceSet.getName()));
       sourceSet.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
       sourceSet.setRuntimeClasspath(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME));
-      String taskBaseName=sourceSet.getName().equals(MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(sourceSet.getName());
-      Copy processResources=project.getTasks().add(String.format("process%sResources",taskBaseName),Copy.class);
+      Copy processResources=project.getTasks().add(sourceSet.getProcessResourcesTaskName(),Copy.class);
       processResources.setDescription(String.format("Process and copy the %s resources.",sourceSet.getName()));
       conventionMapping=processResources.getConventionMapping();
       conventionMapping.map("srcDirs",new ConventionValue(){
@@ -30,7 +29,7 @@
         }
       }
 );
-      Compile compile=project.getTasks().add(String.format("compile%s",taskBaseName),Compile.class);
+      Compile compile=project.getTasks().add(sourceSet.getCompileTaskName(),Compile.class);
       configureForSourceSet(sourceSet,compile);
     }
   }
