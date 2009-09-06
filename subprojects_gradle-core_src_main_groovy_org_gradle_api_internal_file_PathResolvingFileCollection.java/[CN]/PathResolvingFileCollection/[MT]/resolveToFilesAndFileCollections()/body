@@ -1,0 +1,23 @@
+{
+  List<Object> result=new ArrayList<Object>();
+  LinkedList<Object> queue=new LinkedList<Object>();
+  queue.addAll(files);
+  while (!queue.isEmpty()) {
+    Object first=queue.removeFirst();
+    if (first instanceof FileCollection) {
+      result.add(first);
+    }
+ else     if (first instanceof Closure) {
+      Closure closure=(Closure)first;
+      queue.addFirst(closure.call());
+    }
+ else     if (first instanceof Collection) {
+      Collection<?> collection=(Collection<?>)first;
+      queue.addAll(0,collection);
+    }
+ else {
+      result.add(resolver.resolve(first));
+    }
+  }
+  return result;
+}

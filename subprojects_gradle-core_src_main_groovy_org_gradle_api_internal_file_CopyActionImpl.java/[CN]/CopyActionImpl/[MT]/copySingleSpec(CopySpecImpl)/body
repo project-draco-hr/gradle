@@ -4,9 +4,14 @@
     logger.error("No destination dir for Copy task");
     throw new InvalidUserDataException("Error - no destination for Copy task, use 'into' to specify a target directory.");
   }
- else {
-    for (    File source : spec.getAllSourceDirs()) {
-      copySingleSource(spec,source);
-    }
+  CopyVisitor visitor=this.visitor;
+  if (visitor == null) {
+    visitor=new CopyVisitor(spec.getDestDir(),spec.getRemapClosures(),spec.getRenameMappers(),spec.getFilterChain());
   }
+  PatternSet patterns=new PatternSet();
+  patterns.setCaseSensitive(caseSensitive);
+  patterns.include(spec.getAllIncludes());
+  patterns.exclude(spec.getAllExcludes());
+  spec.getSource().matching(patterns).visit(visitor);
+  didWork=visitor.getDidWork();
 }

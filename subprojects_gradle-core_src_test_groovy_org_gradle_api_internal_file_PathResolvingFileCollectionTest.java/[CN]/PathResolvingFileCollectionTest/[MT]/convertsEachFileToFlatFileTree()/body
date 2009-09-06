@@ -1,0 +1,15 @@
+{
+  final File file=new File(testDir,"f");
+  GFileUtils.touch(file);
+  context.checking(new Expectations(){
+{
+      one(resolverMock).resolve("file");
+      will(returnValue(file));
+    }
+  }
+);
+  FileCollection collection=new PathResolvingFileCollection(resolverMock,toList("file"));
+  FileTree fileTree=collection.getAsFileTree();
+  assertThat(fileTree,instanceOf(CompositeFileTree.class));
+  assertThat(((CompositeFileTree)fileTree).getSourceCollections().iterator().next(),instanceOf(FlatFileTree.class));
+}

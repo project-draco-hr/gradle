@@ -1,0 +1,16 @@
+{
+  final FileTree tree1=context.mock(FileTree.class,"tree1");
+  final FileTree tree2=context.mock(FileTree.class,"tree2");
+  context.checking(new Expectations(){
+{
+      one(source1).getAsFileTree();
+      will(returnValue(tree1));
+      one(source2).getAsFileTree();
+      will(returnValue(tree2));
+    }
+  }
+);
+  FileTree fileTree=collection.getAsFileTree();
+  assertThat(fileTree,instanceOf(UnionFileTree.class));
+  assertThat(((UnionFileTree)fileTree).getSourceCollections(),equalTo(toLinkedSet(tree1,tree2)));
+}
