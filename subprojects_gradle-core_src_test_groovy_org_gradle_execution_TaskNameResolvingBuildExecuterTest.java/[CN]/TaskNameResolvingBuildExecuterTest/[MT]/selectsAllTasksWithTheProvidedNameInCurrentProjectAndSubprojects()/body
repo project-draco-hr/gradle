@@ -1,0 +1,15 @@
+{
+  final Task task1=task("name");
+  final Task task2=task("name");
+  context.checking(new Expectations(){
+{
+      one(project).getTasksByName("name",true);
+      will(returnValue(toSet(task1,task2)));
+      one(taskExecuter).addTasks(toSet(task1,task2));
+    }
+  }
+);
+  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("name"));
+  executer.select(gradle);
+  assertThat(executer.getDisplayName(),equalTo("primary task 'name'"));
+}

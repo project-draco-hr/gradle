@@ -1,0 +1,9 @@
+{
+  TestFile buildFile=testFile("build.gradle");
+  buildFile.writelns("configurations { compile }","dependencies { compile project(':') }","defaultTasks 'listJars'","task listJars << { configurations.compile.each { println it } }");
+  ExecutionFailure failure=usingBuildFile(buildFile).runWithFailure();
+  failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
+  failure.assertHasDescription("Execution failed for task ':listJars'");
+  failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration 'compile'"));
+  failure.assertThatCause(containsString("a module is not authorized to depend on itself"));
+}

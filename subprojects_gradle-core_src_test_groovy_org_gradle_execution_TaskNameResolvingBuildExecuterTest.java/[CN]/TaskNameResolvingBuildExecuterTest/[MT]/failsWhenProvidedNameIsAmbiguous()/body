@@ -1,0 +1,23 @@
+{
+  final Task task1=task("someTask");
+  final Task task2=task("someTasks");
+  context.checking(new Expectations(){
+{
+      one(project).getTasksByName("soTa",true);
+      will(returnValue(toSet()));
+      one(taskContainer).getAll();
+      will(returnValue(toSet(task1)));
+      one(subProjectTaskContainer).getAll();
+      will(returnValue(toSet(task2)));
+    }
+  }
+);
+  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("soTa"));
+  try {
+    executer.select(gradle);
+    fail();
+  }
+ catch (  TaskSelectionException e) {
+    assertThat(e.getMessage(),equalTo("Task 'soTa' is ambiguous in [project]. Candidates are: 'someTask', 'someTasks'."));
+  }
+}

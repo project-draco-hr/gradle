@@ -1,0 +1,29 @@
+{
+  Formatter formatter=new Formatter();
+  formatter.format("%nFAILURE: %s",details.summary.toString().trim());
+  String location=details.location.toString().trim();
+  if (location.length() > 0) {
+    formatter.format("%n%n* Where:%n%s",location);
+  }
+  String failureDetails=details.details.toString().trim();
+  if (failureDetails.length() > 0) {
+    formatter.format("%n%n* What went wrong:%n%s",failureDetails);
+  }
+  String resolution=details.resolution.toString().trim();
+  if (resolution.length() > 0) {
+    formatter.format("%n%n* Try:%n%s",resolution);
+  }
+switch (details.exception) {
+case None:
+    logger.error(formatter.toString());
+  break;
+case Sanitized:
+formatter.format("%n%n* Exception is:");
+logger.error(formatter.toString(),StackTraceUtils.deepSanitize(details.failure));
+break;
+case Full:
+formatter.format("%n%n* Exception is:");
+logger.error(formatter.toString(),details.failure);
+break;
+}
+}

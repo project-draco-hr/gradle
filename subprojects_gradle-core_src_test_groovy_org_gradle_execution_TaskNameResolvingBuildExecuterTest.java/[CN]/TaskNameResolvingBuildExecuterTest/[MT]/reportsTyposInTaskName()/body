@@ -1,0 +1,25 @@
+{
+  final Task task1=task("someTask");
+  final Task task2=task("someTasks");
+  final Task task3=task("sometask");
+  final Task task4=task("other");
+  context.checking(new Expectations(){
+{
+      one(project).getTasksByName("ssomeTask",true);
+      will(returnValue(toSet()));
+      one(taskContainer).getAll();
+      will(returnValue(toSet(task1,task2)));
+      one(subProjectTaskContainer).getAll();
+      will(returnValue(toSet(task3,task4)));
+    }
+  }
+);
+  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("ssomeTask"));
+  try {
+    executer.select(gradle);
+    fail();
+  }
+ catch (  TaskSelectionException e) {
+    assertThat(e.getMessage(),equalTo("Task 'ssomeTask' not found in [project]. Some candidates are: 'someTask', 'someTasks', 'sometask'."));
+  }
+}

@@ -1,20 +1,23 @@
 {
-  final Task task=context.mock(Task.class);
+  final Task task1=task("t1");
+  final Task task2=task("t2");
   context.checking(new Expectations(){
 {
-      atLeast(1).of(project).getTasksByName("name1",true);
+      one(project).getTasksByName("b3",true);
       will(returnValue(toSet()));
-      atLeast(1).of(project).getTasksByName("name2",true);
-      will(returnValue(toSet(task)));
+      one(taskContainer).getAll();
+      will(returnValue(toSet(task1,task2)));
+      one(subProjectTaskContainer).getAll();
+      will(returnValue(toSet()));
     }
   }
 );
-  BuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("name1","name2"));
+  BuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("b3"));
   try {
     executer.select(gradle);
     fail();
   }
- catch (  UnknownTaskException e) {
-    assertThat(e.getMessage(),equalTo("Task 'name1' not found in [project]."));
+ catch (  TaskSelectionException e) {
+    assertThat(e.getMessage(),equalTo("Task 'b3' not found in [project]."));
   }
 }

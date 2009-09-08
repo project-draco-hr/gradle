@@ -1,11 +1,8 @@
 {
-  final Task task=context.mock(Task.class);
   context.checking(new Expectations(){
 {
-      atLeast(1).of(taskContainer).findByPath("a:b");
+      one(project).findProject("a");
       will(returnValue(null));
-      atLeast(1).of(project).getTasksByName("name2",true);
-      will(returnValue(toSet(task)));
     }
   }
 );
@@ -14,7 +11,7 @@
     executer.select(gradle);
     fail();
   }
- catch (  UnknownTaskException e) {
-    assertThat(e.getMessage(),equalTo("Task 'a:b' not found in [project]."));
+ catch (  TaskSelectionException e) {
+    assertThat(e.getMessage(),equalTo("Project 'a' not found in [project]."));
   }
 }

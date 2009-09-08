@@ -1,0 +1,26 @@
+{
+  final Task task1=task(matches);
+  final Task task2=task(matches);
+  final Set<Task> tasks=new HashSet<Task>();
+  tasks.add(task2);
+  for (  String name : otherNames) {
+    tasks.add(task(name));
+  }
+  tasks.add(task("."));
+  tasks.add(task("other"));
+  context.checking(new Expectations(){
+{
+      one(project).getTasksByName(pattern,true);
+      will(returnValue(toSet()));
+      one(taskContainer).getAll();
+      will(returnValue(toSet(task1)));
+      one(subProjectTaskContainer).getAll();
+      will(returnValue(tasks));
+      one(taskExecuter).addTasks(toSet(task1,task2));
+    }
+  }
+);
+  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList(pattern));
+  executer.select(gradle);
+  assertThat(executer.getDisplayName(),equalTo(String.format("primary task '%s'",matches)));
+}

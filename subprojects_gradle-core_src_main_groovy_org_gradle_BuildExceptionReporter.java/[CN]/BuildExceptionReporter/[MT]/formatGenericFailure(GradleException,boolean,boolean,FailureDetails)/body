@@ -1,0 +1,20 @@
+{
+  details.summary.format("Build failed with an exception.");
+  if (!fullStacktrace) {
+    if (!stacktrace) {
+      details.resolution.format("Run with -%s or -%s option to get more details. ",DefaultCommandLine2StartParameterConverter.STACKTRACE,DefaultCommandLine2StartParameterConverter.DEBUG);
+    }
+    details.resolution.format("Run with -%s option to get the full (very verbose) stacktrace.",DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE);
+  }
+  if (failure instanceof GradleScriptException) {
+    GradleScriptException scriptException=((GradleScriptException)failure).getReportableException();
+    details.location.format("%s",scriptException.getLocation());
+    details.details.format("%s",scriptException.getOriginalMessage());
+    for (    Throwable cause : scriptException.getReportableCauses()) {
+      details.details.format("%nCause: %s",getMessage(cause));
+    }
+  }
+ else {
+    details.details.format("%s",getMessage(failure));
+  }
+}
