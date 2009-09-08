@@ -1,0 +1,29 @@
+{
+  FavoritesEditor originalEditor=new FavoritesEditor();
+  Assert.assertTrue(originalEditor.getFavoriteTasks().isEmpty());
+  FavoriteTask favoriteTask1=originalEditor.addFavorite(mySubProject1Comple,true);
+  FavoriteTask favoriteTask2=originalEditor.addFavorite(mySubSubProjectLib,false);
+  originalEditor.editFavorite(favoriteTask1,new FavoritesEditor.EditFavoriteInteraction(){
+    public boolean editFavorite(    FavoritesEditor.EditibleFavoriteTask favoriteTask){
+      favoriteTask.displayName="favorite 1";
+      return true;
+    }
+    public void reportError(    String error){
+      throw new AssertionFailedError("Unexpected error");
+    }
+  }
+);
+  FavoriteTask originalFavoriteTask1=originalEditor.getFavoriteTasks().get(0);
+  assertFavorite(originalFavoriteTask1,"mysubproject1:compile","favorite 1",true);
+  FavoriteTask originalFavoriteTask2=originalEditor.getFavoriteTasks().get(1);
+  assertFavorite(originalFavoriteTask2,"mysubproject1:mysubsubproject:lib","mysubproject1:mysubsubproject:lib",false);
+  File file=TestUtility.createTemporaryFile("fred",".favorite-tasks");
+  file.deleteOnExit();
+  originalEditor.exportToFile(new TestUtility.TestExportInteraction(file,true));
+  FavoritesEditor newEditor=new FavoritesEditor();
+  newEditor.importFromFile(new TestUtility.TestImportInteraction(file));
+  FavoriteTask readInFavoriteTask1=originalEditor.getFavoriteTasks().get(0);
+  assertFavorite(readInFavoriteTask1,originalFavoriteTask1);
+  FavoriteTask readInFavoriteTask2=originalEditor.getFavoriteTasks().get(1);
+  assertFavorite(readInFavoriteTask2,originalFavoriteTask2);
+}

@@ -1,0 +1,27 @@
+{
+  FavoritesEditor editor=new FavoritesEditor();
+  Assert.assertTrue(editor.getFavoriteTasks().isEmpty());
+  editor.addFavorite(mySubProject1Comple,true);
+  FavoriteTask favoriteTask=editor.getFavoriteTasks().get(0);
+  Assert.assertEquals("mysubproject1:compile",favoriteTask.getDisplayName());
+  Assert.assertEquals("mysubproject1:compile",favoriteTask.getFullCommandLine());
+  Assert.assertTrue(favoriteTask.alwaysShowOutput());
+  final FavoritesEditor.FavoriteTasksObserver observer=context.mock(FavoritesEditor.FavoriteTasksObserver.class);
+  editor.addFavoriteTasksObserver(observer,false);
+  editor.editFavorite(favoriteTask,new FavoritesEditor.EditFavoriteInteraction(){
+    public boolean editFavorite(    FavoritesEditor.EditibleFavoriteTask favoriteTask){
+      favoriteTask.displayName="newname";
+      favoriteTask.fullCommandLine="nonexistanttask";
+      favoriteTask.alwaysShowOutput=!favoriteTask.alwaysShowOutput;
+      return false;
+    }
+    public void reportError(    String error){
+      throw new AssertionFailedError("unexpected error: " + error);
+    }
+  }
+);
+  favoriteTask=editor.getFavoriteTasks().get(0);
+  Assert.assertEquals("mysubproject1:compile",favoriteTask.getDisplayName());
+  Assert.assertEquals("mysubproject1:compile",favoriteTask.getFullCommandLine());
+  Assert.assertTrue(favoriteTask.alwaysShowOutput());
+}

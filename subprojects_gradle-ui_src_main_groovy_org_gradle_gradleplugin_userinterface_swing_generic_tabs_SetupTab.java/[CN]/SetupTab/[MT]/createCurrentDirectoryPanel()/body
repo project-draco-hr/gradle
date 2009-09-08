@@ -1,0 +1,24 @@
+{
+  currentDirectoryTextField=new JTextField();
+  currentDirectoryTextField.setEditable(false);
+  String currentDirectory=settingsNode.getValueOfChild(CURRENT_DIRECTORY,null);
+  if (currentDirectory == null || "".equals(currentDirectory.trim()))   currentDirectory=gradlePluginLord.getCurrentDirectory().getAbsolutePath();
+  currentDirectoryTextField.setText(currentDirectory);
+  gradlePluginLord.setCurrentDirectory(new File(currentDirectory));
+  JButton browseButton=new JButton(new AbstractAction("Browse..."){
+    public void actionPerformed(    ActionEvent e){
+      File file=browseForDirectory(currentDirectoryTextField);
+      if (file != null) {
+        gradlePluginLord.setCurrentDirectory(file);
+        settingsNode.setValueOfChild(CURRENT_DIRECTORY,file.getAbsolutePath());
+        swingGradleWrapper.refreshTaskTree();
+      }
+    }
+  }
+);
+  JPanel panel=new JPanel();
+  panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
+  panel.add(Utility.addLeftJustifiedComponent(new JLabel("Current Directory")));
+  panel.add(createSideBySideComponent(currentDirectoryTextField,browseButton));
+  return panel;
+}

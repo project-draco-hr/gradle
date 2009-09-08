@@ -1,0 +1,36 @@
+{
+  File file=promptForFile(exportInteraction,fileFilter);
+  if (file == null)   return;
+  FileOutputStream fileOutputStream=null;
+  try {
+    fileOutputStream=new FileOutputStream(file);
+  }
+ catch (  FileNotFoundException e) {
+    logger.error("Could not write to file: " + file.getAbsolutePath(),e);
+    exportInteraction.reportError("Could not write to file: " + file.getAbsolutePath());
+    return;
+  }
+  try {
+    XMLWriter xmlWriter=new XMLWriter(fileOutputStream,OutputFormat.createPrettyPrint());
+    Document document=DocumentHelper.createDocument();
+    Element rootElement=document.addElement(rootElementTag);
+    DOM4JSettingsNode settingsNode=new DOM4JSettingsNode(rootElement);
+    for (int index=0; index < serializables.length; index++) {
+      SettingsSerializable serializable=serializables[index];
+      try {
+        serializable.serializeOut(settingsNode);
+      }
+ catch (      Exception e) {
+        logger.error("serializing",e);
+      }
+    }
+    xmlWriter.write(document);
+  }
+ catch (  Throwable t) {
+    logger.error("Failed to save",t);
+    exportInteraction.reportError("Internal error. Failed to save.");
+  }
+ finally {
+    closeQuietly(fileOutputStream);
+  }
+}

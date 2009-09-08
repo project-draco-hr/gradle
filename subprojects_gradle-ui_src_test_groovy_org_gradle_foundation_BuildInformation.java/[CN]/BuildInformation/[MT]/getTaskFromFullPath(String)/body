@@ -1,0 +1,21 @@
+{
+  if (projects.isEmpty())   return null;
+  PathParserPortion pathParserPortion=new PathParserPortion(fullTaskName);
+  if (pathParserPortion.getFirstPart() == null)   return null;
+  String remainder=pathParserPortion.getRemainder();
+  ProjectView rootProject=null;
+  if (pathParserPortion.getFirstPart().equals("")) {
+    if (!projects.isEmpty())     rootProject=projects.get(0);
+  }
+ else {
+    rootProject=getRootLevelProject(pathParserPortion.getFirstPart());
+    if (rootProject == null) {
+      if (!projects.isEmpty()) {
+        rootProject=projects.get(0);
+        remainder=fullTaskName;
+      }
+    }
+  }
+  if (rootProject != null)   return rootProject.getTaskFromFullPath(remainder);
+  return null;
+}

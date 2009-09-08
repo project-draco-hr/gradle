@@ -1,0 +1,23 @@
+{
+  lastMessageReceived=message;
+  if (waitingOnHandshakeCompletion) {
+    if (ProtocolConstants.HANDSHAKE_CLIENT.equalsIgnoreCase(message.getMessage())) {
+      waitingOnHandshakeCompletion=false;
+      hasCompletedConnection=true;
+      handShakeCompleted();
+    }
+ else {
+      addStatus("Invalid handshaking. Stopping connection");
+      server.sendMessage("?","Invalid client handshake protocol!");
+      continueConnection=false;
+    }
+  }
+ else {
+    try {
+      handleMessageReceived(message);
+    }
+ catch (    Throwable e) {
+      logger.error("Problem while handing message :\n" + message,e);
+    }
+  }
+}

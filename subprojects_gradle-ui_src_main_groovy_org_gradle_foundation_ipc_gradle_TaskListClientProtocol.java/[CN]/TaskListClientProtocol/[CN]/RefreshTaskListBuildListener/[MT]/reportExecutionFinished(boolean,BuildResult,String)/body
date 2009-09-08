@@ -1,0 +1,15 @@
+{
+  if (!wasSuccessful) {
+    String details=GradlePluginLord.getGradleExceptionMessage(buildResult.getFailure(),gradle.getStartParameter().getShowStacktrace());
+    output+=details;
+    client.sendMessageWaitForReply(ProtocolConstants.TASK_LIST_COMPLETED_WITH_ERRORS_TYPE,output,new Boolean(wasSuccessful));
+  }
+ else {
+    ProjectConverter buildExecuter=new ProjectConverter();
+    List<ProjectView> projects=new ArrayList<ProjectView>();
+    projects.addAll(buildExecuter.convertProjects(buildResult.getGradle().getRootProject()));
+    client.sendMessageWaitForReply(ProtocolConstants.TASK_LIST_COMPLETED_SUCCESSFULLY_TYPE,output,(Serializable)projects);
+  }
+  client.sendMessageWaitForReply(ProtocolConstants.EXITING,null,null);
+  client.stop();
+}

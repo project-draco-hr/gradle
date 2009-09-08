@@ -1,0 +1,30 @@
+{
+  JPanel panel=new JPanel();
+  panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
+  logLevelComboBox=new JComboBox(getLogLevelWrappers());
+  panel.add(Utility.addLeftJustifiedComponent(new JLabel("Log Level")));
+  panel.add(Utility.addLeftJustifiedComponent(logLevelComboBox));
+  String logLevelName=settingsNode.getValueOfChild(LOG_LEVEL,null);
+  LogLevel logLevel=gradlePluginLord.getLogLevel();
+  if (logLevelName != null) {
+    try {
+      logLevel=LogLevel.valueOf(logLevelName);
+    }
+ catch (    IllegalArgumentException e) {
+      logger.error("Converting log level text to log level enum '" + logLevelName + "'",e);
+    }
+  }
+  gradlePluginLord.setLogLevel(logLevel);
+  setLogLevelComboBoxSetting(logLevel);
+  logLevelComboBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      LogLevelWrapper wrapper=(LogLevelWrapper)logLevelComboBox.getSelectedItem();
+      if (wrapper != null) {
+        gradlePluginLord.setLogLevel(wrapper.logLevel);
+        settingsNode.setValueOfChild(LOG_LEVEL,wrapper.logLevel.name());
+      }
+    }
+  }
+);
+  return panel;
+}

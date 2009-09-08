@@ -1,0 +1,31 @@
+{
+  final TaskContainer taskContainer=context.mock(TaskContainer.class,"[taskcontainer]_" + parentProject.getName() + '_'+ uniqueNameCounter++);
+  context.checking(new Expectations(){
+{
+      allowing(parentProject).getTasks();
+      will(returnValue(taskContainer));
+    }
+  }
+);
+  final Set<Task> set=new LinkedHashSet<Task>();
+  if (taskArray != null && taskArray.length != 0) {
+    set.addAll(Arrays.asList(taskArray));
+    for (int index=0; index < taskArray.length; index++) {
+      final Task task=taskArray[index];
+      context.checking(new Expectations(){
+{
+          allowing(task).getProject();
+          will(returnValue(parentProject));
+        }
+      }
+);
+    }
+  }
+  context.checking(new Expectations(){
+{
+      allowing(taskContainer).getAll();
+      will(returnValue(set));
+    }
+  }
+);
+}

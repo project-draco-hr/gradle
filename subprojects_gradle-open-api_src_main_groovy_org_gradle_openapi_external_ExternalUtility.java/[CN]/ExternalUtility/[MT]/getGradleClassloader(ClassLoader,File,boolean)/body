@@ -1,0 +1,13 @@
+{
+  File gradleJarFile=getGradleJar(gradleHomeDirectory);
+  if (gradleJarFile == null)   throw new RuntimeException("Not a valid gradle home directory '" + gradleHomeDirectory.getAbsolutePath() + "'");
+  System.setProperty("gradle.home",gradleHomeDirectory.getAbsolutePath());
+  URLClassLoader contextClassLoader=new URLClassLoader(new URL[]{gradleJarFile.toURI().toURL()},parentClassLoader);
+  Class bootstrapClass=contextClassLoader.loadClass("org.gradle.BootstrapLoader");
+  Object loader=bootstrapClass.newInstance();
+  Method initializeMethod=bootstrapClass.getDeclaredMethod("initialize",new Class<?>[]{ClassLoader.class,File.class,boolean.class,boolean.class,boolean.class});
+  initializeMethod.invoke(loader,parentClassLoader,gradleHomeDirectory,true,false,showDebugInfo);
+  Method getClassLoaderMethod=bootstrapClass.getDeclaredMethod("getClassLoader");
+  ClassLoader bootStrapClassLoader=(ClassLoader)getClassLoaderMethod.invoke(loader);
+  return bootStrapClassLoader;
+}

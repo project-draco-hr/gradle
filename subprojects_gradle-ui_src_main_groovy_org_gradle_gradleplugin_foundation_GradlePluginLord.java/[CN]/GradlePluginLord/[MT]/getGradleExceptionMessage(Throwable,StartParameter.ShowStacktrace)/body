@@ -1,0 +1,23 @@
+{
+  if (failure == null)   return "";
+  Formatter formatter=new Formatter();
+  formatter.format("%nBuild failed.%n");
+  if (stackTraceLevel == StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS)   formatter.format("Use the stack trace options to get more details.");
+  if (failure != null) {
+    formatter.format("%n");
+    if (failure instanceof GradleScriptException) {
+      GradleScriptException scriptException=((GradleScriptException)failure).getReportableException();
+      formatter.format("%s%n%n",scriptException.getLocation());
+      formatter.format("%s%nCause: %s",scriptException.getOriginalMessage(),getMessage(scriptException.getCause()));
+    }
+ else {
+      formatter.format("%s",getMessage(failure));
+    }
+    if (stackTraceLevel != StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS) {
+      formatter.format("%n%nException is:\n");
+      if (stackTraceLevel == StartParameter.ShowStacktrace.ALWAYS_FULL)       return formatter.toString() + getStackTraceAsText(failure);
+      return formatter.toString() + getStackTraceAsText(StackTraceUtils.deepSanitize(failure));
+    }
+  }
+  return formatter.toString();
+}

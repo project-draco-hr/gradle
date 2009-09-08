@@ -1,0 +1,19 @@
+{
+  if (ProtocolConstants.TASK_LIST_COMPLETED_WITH_ERRORS_TYPE.equals(message.getMessageType())) {
+    setHasReceivedBuildCompleteNotification();
+    Boolean wasSuccessful=(Boolean)message.getData();
+    executionInteraction.reportExecutionFinished(wasSuccessful,message.getMessage(),null,null);
+    return true;
+  }
+  if (ProtocolConstants.TASK_LIST_COMPLETED_SUCCESSFULLY_TYPE.equals(message.getMessageType())) {
+    setHasReceivedBuildCompleteNotification();
+    List<ProjectView> projects=(List<ProjectView>)message.getData();
+    executionInteraction.reportExecutionFinished(true,message.getMessage(),null,projects);
+    return true;
+  }
+  if (ProtocolConstants.EXITING.equals(message.getMessageType())) {
+    closeConnection();
+    return true;
+  }
+  return false;
+}

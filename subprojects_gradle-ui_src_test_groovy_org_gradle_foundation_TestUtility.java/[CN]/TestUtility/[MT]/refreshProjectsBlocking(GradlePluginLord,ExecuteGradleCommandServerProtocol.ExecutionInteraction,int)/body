@@ -1,0 +1,38 @@
+{
+  gradlePluginLord.startExecutionQueue();
+  final BooleanHolder isComplete=new BooleanHolder();
+  Request request=gradlePluginLord.addRefreshRequestToQueue(new ExecuteGradleCommandServerProtocol.ExecutionInteraction(){
+    public void reportExecutionStarted(){
+      executionInteraction.reportExecutionStarted();
+    }
+    public void reportExecutionFinished(    boolean wasSuccessful,    String message,    Throwable throwable){
+      executionInteraction.reportExecutionFinished(wasSuccessful,message,throwable);
+      isComplete.value=true;
+    }
+    public void reportTaskStarted(    String message,    float percentComplete){
+      executionInteraction.reportTaskStarted(message,percentComplete);
+    }
+    public void reportTaskComplete(    String message,    float percentComplete){
+      executionInteraction.reportTaskComplete(message,percentComplete);
+    }
+    public void reportLiveOutput(    String message){
+      executionInteraction.reportLiveOutput(message);
+    }
+  }
+);
+  Assert.assertNotNull(request);
+  int totalWaitTime=0;
+  while (!isComplete.value && totalWaitTime <= maximumWaitSeconds) {
+    try {
+      Thread.sleep(1000);
+    }
+ catch (    InterruptedException e) {
+      e.printStackTrace();
+    }
+    totalWaitTime+=1;
+  }
+  if (!isComplete.value) {
+    request.cancel();
+    throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
+  }
+}

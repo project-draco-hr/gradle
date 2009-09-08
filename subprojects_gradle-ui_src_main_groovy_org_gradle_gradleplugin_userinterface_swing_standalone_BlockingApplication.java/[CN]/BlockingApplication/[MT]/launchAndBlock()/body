@@ -1,0 +1,33 @@
+{
+  if (SwingUtilities.isEventDispatchThread())   throw new RuntimeException("Cannot launch and block from the Event Dispatch Thread!");
+  final WaitingLock waitingLock=new WaitingLock();
+  try {
+    SwingUtilities.invokeAndWait(new Runnable(){
+      public void run(){
+        new Application(new Application.LifecycleListener(){
+          /** 
+ * Notification that the application has started successfully. This is
+ * fired within the same thread that instantiates us.
+ */
+          public void hasStarted(){
+            waitingLock.lock();
+          }
+          /** 
+ * Notification that the application has shut down. This is fired from the
+ * Event Dispatch Thread.
+ */
+          public void hasShutDown(){
+            waitingLock.unlock();
+          }
+        }
+);
+      }
+    }
+);
+  }
+ catch (  Throwable t) {
+    logger.error("Running blocking application.",t);
+    return;
+  }
+  waitingLock.waitOnLock();
+}

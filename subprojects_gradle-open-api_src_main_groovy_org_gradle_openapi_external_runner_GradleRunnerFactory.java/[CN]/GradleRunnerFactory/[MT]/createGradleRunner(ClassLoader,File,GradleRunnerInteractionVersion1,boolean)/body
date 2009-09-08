@@ -1,0 +1,28 @@
+{
+  ClassLoader bootStrapClassLoader=ExternalUtility.getGradleClassloader(parentClassLoader,gradleHomeDirectory,showDebugInfo);
+  Thread.currentThread().setContextClassLoader(bootStrapClassLoader);
+  Class soughtClass=null;
+  try {
+    soughtClass=bootStrapClassLoader.loadClass("org.gradle.openapi.wrappers.runner.GradleRunnerWrapper");
+  }
+ catch (  NoClassDefFoundError e) {
+    e.printStackTrace();
+    return null;
+  }
+catch (  ClassNotFoundException e) {
+    e.printStackTrace();
+    return null;
+  }
+  if (soughtClass == null)   return null;
+  Constructor constructor=null;
+  try {
+    constructor=soughtClass.getDeclaredConstructor(File.class,GradleRunnerInteractionVersion1.class);
+  }
+ catch (  NoSuchMethodException e) {
+    e.printStackTrace();
+    System.out.println("Dumping available constructors on " + soughtClass.getName() + "\n"+ ExternalUtility.dumpConstructors(soughtClass));
+    throw e;
+  }
+  Object gradleRunner=constructor.newInstance(gradleHomeDirectory,interaction);
+  return (GradleRunnerVersion1)gradleRunner;
+}

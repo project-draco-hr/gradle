@@ -1,0 +1,20 @@
+{
+  if (procOutput == null) {
+    handleOutput=true;
+    internalProcessOutput=new ByteArrayOutputStream();
+    procOutput=internalProcessOutput;
+  }
+  if (procInput == null) {
+    procInput=new ByteArrayInputStream(inputString.getBytes());
+  }
+  process=pb.start();
+  inPump=new IOPump(process.getInputStream(),procOutput);
+  errPump=new IOPump(process.getErrorStream(),procOutput);
+  outPump=new IOPump(procInput,process.getOutputStream());
+  inThread=new Thread(inPump);
+  outThread=new Thread(outPump);
+  errThread=new Thread(errPump);
+  inThread.start();
+  outThread.start();
+  errThread.start();
+}

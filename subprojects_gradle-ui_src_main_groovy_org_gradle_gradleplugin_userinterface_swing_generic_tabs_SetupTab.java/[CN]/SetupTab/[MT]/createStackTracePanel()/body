@@ -1,0 +1,39 @@
+{
+  JPanel panel=new JPanel();
+  panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
+  panel.setBorder(BorderFactory.createTitledBorder("Stack Trace Output"));
+  showNoStackTraceRadioButton=new JRadioButton("Exceptions Only");
+  showStackTrackRadioButton=new JRadioButton("Standard Stack Trace");
+  showFullStackTrackRadioButton=new JRadioButton("Full Stack Trace");
+  showNoStackTraceRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY,StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS);
+  showStackTrackRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY,StartParameter.ShowStacktrace.ALWAYS);
+  showFullStackTrackRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY,StartParameter.ShowStacktrace.ALWAYS_FULL);
+  stackTraceButtonGroup=new ButtonGroup();
+  stackTraceButtonGroup.add(showNoStackTraceRadioButton);
+  stackTraceButtonGroup.add(showStackTrackRadioButton);
+  stackTraceButtonGroup.add(showFullStackTrackRadioButton);
+  showNoStackTraceRadioButton.setSelected(true);
+  ActionListener radioButtonListener=new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      updateStackTraceSetting(true);
+    }
+  }
+;
+  showNoStackTraceRadioButton.addActionListener(radioButtonListener);
+  showStackTrackRadioButton.addActionListener(radioButtonListener);
+  showFullStackTrackRadioButton.addActionListener(radioButtonListener);
+  panel.add(Utility.addLeftJustifiedComponent(showNoStackTraceRadioButton));
+  panel.add(Utility.addLeftJustifiedComponent(showStackTrackRadioButton));
+  panel.add(Utility.addLeftJustifiedComponent(showFullStackTrackRadioButton));
+  String stackTraceLevel=settingsNode.getValueOfChild(STACK_TRACE_LEVEL,getSelectedStackTraceLevel().name());
+  if (stackTraceLevel != null) {
+    try {
+      setSelectedStackTraceLevel(StartParameter.ShowStacktrace.valueOf(stackTraceLevel));
+      updateStackTraceSetting(false);
+    }
+ catch (    Exception e) {
+      logger.error("Converting stack trace level text to stack trace level enum '" + stackTraceLevel + "'",e);
+    }
+  }
+  return panel;
+}

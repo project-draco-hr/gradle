@@ -1,0 +1,30 @@
+{
+  Thread thread=new Thread(new Runnable(){
+    public void run(){
+      ExecutionInfo executionInfo=new ExecutionInfo();
+      protocol.getExecutionInfo(port,executionInfo);
+      ExternalProcess externalProcess=new ExternalProcess(executionInfo.workingDirectory,executionInfo.commandLineArguments);
+      setExternalProcess(externalProcess);
+      try {
+        externalProcess.start();
+      }
+ catch (      Throwable e) {
+        logger.error("Starting external process",e);
+        protocol.clientExited(-1,e.getMessage());
+        setExternalProcess(null);
+        return;
+      }
+      int result=0;
+      try {
+        result=externalProcess.waitFor();
+      }
+ catch (      InterruptedException e) {
+        logger.error("Waiting for external process",e);
+      }
+      setExternalProcess(null);
+      protocol.clientExited(result,externalProcess.getOutput());
+    }
+  }
+);
+  thread.start();
+}

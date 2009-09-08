@@ -1,0 +1,27 @@
+{
+  if (ProtocolConstants.EXECUTION_COMPLETED_TYPE.equals(message.getMessageType())) {
+    setHasReceivedBuildCompleteNotification();
+    Boolean wasSuccessful=(Boolean)message.getData();
+    executionInteraction.reportExecutionFinished(wasSuccessful.booleanValue(),message.getMessage(),null);
+    return true;
+  }
+  if (ProtocolConstants.TASK_STARTED_TYPE.equals(message.getMessageType())) {
+    Float percentComplete=(Float)message.getData();
+    executionInteraction.reportTaskStarted(message.getMessage(),percentComplete);
+    return true;
+  }
+  if (ProtocolConstants.TASK_COMPLETE_TYPE.equals(message.getMessageType())) {
+    Float percentComplete=(Float)message.getData();
+    executionInteraction.reportTaskComplete(message.getMessage(),percentComplete);
+    return true;
+  }
+  if (ProtocolConstants.LIVE_OUTPUT_TYPE.equals(message.getMessageType())) {
+    executionInteraction.reportLiveOutput(message.getMessage());
+    return true;
+  }
+  if (ProtocolConstants.EXITING.equals(message.getMessageType())) {
+    closeConnection();
+    return true;
+  }
+  return false;
+}

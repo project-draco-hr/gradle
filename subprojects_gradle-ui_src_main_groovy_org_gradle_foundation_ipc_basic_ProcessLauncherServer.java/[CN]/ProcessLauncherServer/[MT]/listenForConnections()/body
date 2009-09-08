@@ -1,0 +1,28 @@
+{
+  int consecutiveFailures=0;
+  while (!hasRequestedShutdown) {
+    Socket socket=null;
+    try {
+      serverSocket.setSoTimeout(2000);
+      socket=serverSocket.accept();
+      clientSocket=new ObjectSocketWrapper(socket);
+      protocol.connectionAccepted();
+      consecutiveFailures=0;
+      processCommunications();
+      clientSocket.close();
+    }
+ catch (    IOException e) {
+      consecutiveFailures++;
+      if (consecutiveFailures >= 20)       requestShutdown();
+      if (consecutiveFailures > 8)       logger.error("Accept failed (" + consecutiveFailures + ").");
+    }
+catch (    Throwable t) {
+      logger.error("Listening for connections",t);
+      requestShutdown();
+    }
+  }
+  isServerRunning=false;
+  stop();
+  killProcess();
+  notifyServerExited();
+}
