@@ -1,3 +1,20 @@
 {
-  throw new UnsupportedOperationException();
+  return new CompositeFileTree(){
+    @Override protected Iterable<FileTree> getSourceCollections(){
+      List<FileTree> trees=new ArrayList<FileTree>();
+      for (      File file : AbstractFileCollection.this.getFiles()) {
+        if (file.isFile()) {
+          trees.add(new FlatFileTree(file));
+        }
+ else         if (file.isDirectory()) {
+          trees.add(new FileSet(file,null));
+        }
+      }
+      return trees;
+    }
+    @Override public String getDisplayName(){
+      return AbstractFileCollection.this.getDisplayName();
+    }
+  }
+;
 }
