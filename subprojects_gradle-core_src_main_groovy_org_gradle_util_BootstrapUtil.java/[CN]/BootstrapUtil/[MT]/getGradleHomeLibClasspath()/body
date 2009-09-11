@@ -1,7 +1,24 @@
 {
   File gradleHomeLib=new File(System.getProperty("gradle.home") + "/lib");
   if (gradleHomeLib.isDirectory()) {
-    return gradleHomeLib.listFiles();
+    return Arrays.asList(gradleHomeLib.listFiles());
   }
-  return new File[0];
+  ClassLoader classLoader=BootstrapUtil.class.getClassLoader();
+  if (classLoader instanceof URLClassLoader) {
+    URLClassLoader urlClassLoader=(URLClassLoader)classLoader;
+    URL[] urls=urlClassLoader.getURLs();
+    List<File> classpath=new ArrayList();
+    for (    URL url : urls) {
+      if (url.getProtocol().equals("file")) {
+        try {
+          classpath.add(new File(url.toURI()));
+        }
+ catch (        URISyntaxException e) {
+          throw new UncheckedIOException(e);
+        }
+      }
+    }
+    return classpath;
+  }
+  return Collections.emptyList();
 }

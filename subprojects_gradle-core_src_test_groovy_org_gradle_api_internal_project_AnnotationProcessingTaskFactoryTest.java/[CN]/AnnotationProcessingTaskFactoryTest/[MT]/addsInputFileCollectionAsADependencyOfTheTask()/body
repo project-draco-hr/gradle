@@ -1,0 +1,16 @@
+{
+  final FileCollection inputFiles=context.mock(FileCollection.class);
+  final TaskWithInputFiles task=new TaskWithInputFiles(inputFiles);
+  expectTaskCreated(task);
+  context.checking(new Expectations(){
+{
+      TaskDependency dependency=context.mock(TaskDependency.class);
+      one(inputFiles).getBuildDependencies();
+      will(returnValue(dependency));
+      one(dependency).getDependencies(task);
+      will(returnValue(toSet()));
+    }
+  }
+);
+  assertThat(task.getTaskDependencies().getDependencies(task),notNullValue());
+}

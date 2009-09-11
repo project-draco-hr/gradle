@@ -1,0 +1,21 @@
+{
+  for (  final PropertyInfo property : properties) {
+    final Transformer<Object> transformer=property.actions.getTaskDependency();
+    if (transformer != null) {
+      task.dependsOn(new TaskDependency(){
+        public Set<? extends Task> getDependencies(        Task task){
+          Object value=ReflectionUtil.invoke(task,property.method.getName(),new Object[0]);
+          if (value != null) {
+            value=transformer.transform(value);
+          }
+          DefaultTaskDependency dependency=new DefaultTaskDependency();
+          if (value != null) {
+            dependency.add(value);
+          }
+          return dependency.getDependencies(task);
+        }
+      }
+);
+    }
+  }
+}

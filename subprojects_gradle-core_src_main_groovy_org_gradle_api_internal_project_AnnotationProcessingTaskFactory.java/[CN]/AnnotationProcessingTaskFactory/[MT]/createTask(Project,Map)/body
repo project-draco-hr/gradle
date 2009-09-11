@@ -1,29 +1,19 @@
 {
   Task task=taskFactory.createTask(project,args);
-  List<Action<Task>> actions=actionsForType.get(task.getClass());
+  Class<? extends Task> type=task.getClass();
+  List<Action<Task>> actions=actionsForType.get(type);
   if (actions == null) {
-    List<Action<Task>> notNullActions=new ArrayList<Action<Task>>();
-    List<Action<Task>> skipActions=new ArrayList<Action<Task>>();
-    List<Action<Task>> validationActions=new ArrayList<Action<Task>>();
-    actions=new ArrayList<Action<Task>>();
-    for (Class current=task.getClass(); current != null; current=current.getSuperclass()) {
-      for (      Method method : current.getDeclaredMethods()) {
-        attachTaskAction(method,actions);
-        MethodInfo methodInfo=new MethodInfo(method,skipActions,validationActions,notNullActions);
-        attachInputFileValidation(methodInfo);
-        attachInputFilesValidation(methodInfo);
-        attachInputDirValidation(methodInfo);
-        attachOutputFileValidation(methodInfo);
-        attachOutputDirValidation(methodInfo);
-      }
-    }
-    actions.addAll(validationActions);
-    actions.addAll(skipActions);
-    actions.addAll(notNullActions);
-    actionsForType.put(task.getClass(),actions);
+    actions=createActionsForType(type);
+    actionsForType.put(type,actions);
   }
+  Object autoWireStr=args.get(DEPENDENCY_AUTO_WIRE);
+  boolean autoWire=autoWireStr == null ? true : Boolean.valueOf(autoWireStr.toString());
   for (  Action<Task> action : actions) {
     task.doFirst(action);
+    if (autoWire && action instanceof Validator) {
+      Validator validator=(Validator)action;
+      validator.addDependencies(task);
+    }
   }
   return task;
 }

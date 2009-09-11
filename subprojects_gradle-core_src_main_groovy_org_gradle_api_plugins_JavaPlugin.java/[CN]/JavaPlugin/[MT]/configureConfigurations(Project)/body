@@ -4,16 +4,14 @@
   Configuration compileConfiguration=configurations.add(COMPILE_CONFIGURATION_NAME).setVisible(false).setTransitive(false).setDescription("Classpath for compiling the sources.");
   Configuration runtimeConfiguration=configurations.add(RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(compileConfiguration).setDescription("Classpath for running the compiled sources.");
   Configuration compileTestsConfiguration=configurations.add(TEST_COMPILE_CONFIGURATION_NAME).setVisible(false).extendsFrom(compileConfiguration).setTransitive(false).setDescription("Classpath for compiling the test sources.");
-  project.getDependencies().add(TEST_COMPILE_CONFIGURATION_NAME,new AbstractFileCollection(){
-    public String getDisplayName(){
-      return "classes dir";
-    }
-    public Set<File> getFiles(){
-      File classesDir=project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
-      return Collections.singleton(classesDir);
+  FileCollection mainClasses=project.files(new Callable(){
+    public Object call() throws Exception {
+      return project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
     }
   }
 );
+  FileCollectionDependency dependency=(FileCollectionDependency)project.getDependencies().add(TEST_COMPILE_CONFIGURATION_NAME,mainClasses);
+  dependency.builtBy(PROCESS_RESOURCES_TASK_NAME,COMPILE_TASK_NAME);
   configurations.add(TEST_RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(runtimeConfiguration,compileTestsConfiguration).setDescription("Classpath for running the test sources.");
   Configuration archivesConfiguration=configurations.add(Dependency.ARCHIVES_CONFIGURATION).setDescription("Configuration for the default artifacts.");
   configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration,archivesConfiguration).setDescription("Configuration the default artifacts and its dependencies.");
