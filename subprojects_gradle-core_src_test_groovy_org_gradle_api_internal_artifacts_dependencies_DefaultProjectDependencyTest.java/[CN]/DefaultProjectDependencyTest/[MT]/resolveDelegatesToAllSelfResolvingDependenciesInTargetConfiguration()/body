@@ -1,0 +1,17 @@
+{
+  final SelfResolvingDependency selfResolvingDependency=context.mock(SelfResolvingDependency.class);
+  final Set<File> selfResolvingFiles=toSet(new File("somePath"));
+  context.checking(new Expectations(){
+{
+      allowing(targetConfigurationHandlerStub).getByName("conf1");
+      will(returnValue(targetConfigurationMock));
+      allowing(targetConfigurationMock).getAllDependencies(SelfResolvingDependency.class);
+      will(returnValue(toSet(selfResolvingDependency)));
+      allowing(selfResolvingDependency).resolve();
+      will(returnValue(selfResolvingFiles));
+    }
+  }
+);
+  DefaultProjectDependency projectDependency=new DefaultProjectDependency(targetProjectStub,"conf1",instruction);
+  assertThat(projectDependency.resolve(),equalTo(selfResolvingFiles));
+}

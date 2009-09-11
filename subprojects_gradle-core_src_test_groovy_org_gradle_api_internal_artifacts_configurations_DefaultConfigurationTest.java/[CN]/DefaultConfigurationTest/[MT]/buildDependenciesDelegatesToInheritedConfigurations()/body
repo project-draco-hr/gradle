@@ -1,0 +1,19 @@
+{
+  final Task target=context.mock(Task.class,"target");
+  final Task otherConfTaskMock=context.mock(Task.class,"otherConfTask");
+  final TaskDependency otherConfTaskDependencyMock=context.mock(TaskDependency.class,"otherConfTaskDep");
+  final Configuration otherConfiguration=context.mock(Configuration.class,"otherConf");
+  context.checking(new Expectations(){
+{
+      allowing(otherConfiguration).getBuildDependencies();
+      will(returnValue(otherConfTaskDependencyMock));
+      allowing(otherConfiguration).getHierarchy();
+      will(returnValue(toList()));
+      allowing(otherConfTaskDependencyMock).getDependencies(target);
+      will(returnValue(toSet(otherConfTaskMock)));
+    }
+  }
+);
+  configuration.extendsFrom(otherConfiguration);
+  assertThat(configuration.getBuildDependencies().getDependencies(target),equalTo((Set)toSet(otherConfTaskMock)));
+}
