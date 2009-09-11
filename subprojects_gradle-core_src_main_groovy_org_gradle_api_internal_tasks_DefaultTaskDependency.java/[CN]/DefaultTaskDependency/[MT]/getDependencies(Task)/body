@@ -1,7 +1,13 @@
 {
   Set<Task> result=new HashSet<Task>();
-  for (  Object dependency : values) {
-    if (dependency instanceof Task) {
+  LinkedList<Object> queue=new LinkedList<Object>(values);
+  while (!queue.isEmpty()) {
+    Object dependency=queue.removeFirst();
+    if (dependency instanceof Buildable) {
+      Buildable buildable=(Buildable)dependency;
+      result.addAll(buildable.getBuildDependencies().getDependencies(task));
+    }
+ else     if (dependency instanceof Task) {
       result.add((Task)dependency);
     }
  else     if (dependency instanceof TaskDependency) {
@@ -10,11 +16,23 @@
  else     if (dependency instanceof Closure) {
       Closure closure=(Closure)dependency;
       Object closureResult=closure.call(task);
-      if (closureResult instanceof Task) {
-        result.add((Task)closureResult);
+      queue.add(0,closureResult);
+    }
+ else     if (dependency instanceof Collection) {
+      Collection<?> collection=(Collection)dependency;
+      queue.addAll(0,collection);
+    }
+ else     if (dependency instanceof Map) {
+      Map<?,?> map=(Map)dependency;
+      queue.addAll(0,map.values());
+    }
+ else     if (dependency instanceof Callable) {
+      Callable callable=(Callable)dependency;
+      try {
+        queue.add(0,callable.call());
       }
- else {
-        result.addAll((Collection<? extends Task>)closureResult);
+ catch (      Exception e) {
+        throw new GradleException(e);
       }
     }
  else {
