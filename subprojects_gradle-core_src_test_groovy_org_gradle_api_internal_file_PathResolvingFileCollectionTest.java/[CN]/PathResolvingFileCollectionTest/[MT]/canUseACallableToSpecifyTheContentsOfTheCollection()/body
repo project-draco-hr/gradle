@@ -1,0 +1,18 @@
+{
+  final File file1=new File("1");
+  final File file2=new File("2");
+  final Callable callable=context.mock(Callable.class);
+  context.checking(new Expectations(){
+{
+      one(callable).call();
+      will(returnValue(toList("src1","src2")));
+      allowing(resolverMock).resolve("src1");
+      will(returnValue(file1));
+      allowing(resolverMock).resolve("src2");
+      will(returnValue(file2));
+    }
+  }
+);
+  FileCollection collection=new PathResolvingFileCollection(resolverMock,callable);
+  assertThat(collection.getFiles(),equalTo(toLinkedSet(file1,file2)));
+}
