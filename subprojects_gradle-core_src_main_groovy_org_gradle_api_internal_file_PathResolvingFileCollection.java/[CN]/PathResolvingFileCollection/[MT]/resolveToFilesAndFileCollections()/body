@@ -9,7 +9,10 @@
     }
  else     if (first instanceof Closure) {
       Closure closure=(Closure)first;
-      queue.addFirst(closure.call());
+      Object closureResult=closure.call();
+      if (closureResult != null) {
+        queue.addFirst(closureResult);
+      }
     }
  else     if (first instanceof Collection) {
       Collection<?> collection=(Collection<?>)first;
@@ -17,11 +20,15 @@
     }
  else     if (first instanceof Callable) {
       Callable callable=(Callable)first;
+      Object callableResult;
       try {
-        queue.add(0,callable.call());
+        callableResult=callable.call();
       }
  catch (      Exception e) {
         throw new GradleException(e);
+      }
+      if (callableResult != null) {
+        queue.add(0,callableResult);
       }
     }
  else {

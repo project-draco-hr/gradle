@@ -1,0 +1,23 @@
+{
+  final FileCollection fileCollectionMock=context.mock(FileCollection.class);
+  collection.from(fileCollectionMock);
+  collection.from("f");
+  collection.builtBy('b');
+  final Task taskA=context.mock(Task.class,"a");
+  final Task taskB=context.mock(Task.class,"b");
+  context.checking(new Expectations(){
+{
+      allowing(resolverMock).resolve("f");
+      will(returnValue(new File("f")));
+      TaskDependency dependency=context.mock(TaskDependency.class);
+      allowing(fileCollectionMock).getBuildDependencies();
+      will(returnValue(dependency));
+      allowing(dependency).getDependencies(null);
+      will(returnValue(toSet(taskA)));
+      allowing(taskResolverStub).resolveTask('b');
+      will(returnValue(taskB));
+    }
+  }
+);
+  assertThat(collection.getBuildDependencies().getDependencies(null),equalTo((Set)toSet(taskA,taskB)));
+}

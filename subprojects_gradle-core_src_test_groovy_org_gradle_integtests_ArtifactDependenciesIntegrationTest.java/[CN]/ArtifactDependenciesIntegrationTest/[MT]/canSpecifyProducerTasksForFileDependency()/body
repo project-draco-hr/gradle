@@ -1,0 +1,6 @@
+{
+  testFile("settings.gradle").write("include 'sub'");
+  TestFile buildFile=testFile("build.gradle").writelns("configurations { compile }","dependencies { compile project(path: ':sub', configuration: 'compile') }","task test(dependsOn: configurations.compile) << { assertTrue(file('sub/sub.jar').isFile()) }");
+  testFile("sub/build.gradle").writelns("usePlugin org.gradle.api.plugins.BasePlugin","configurations { compile }","dependencies { compile files('sub.jar') { builtBy 'jar' } }","task jar << { file('sub.jar').text = 'content' }");
+  usingBuildFile(buildFile).withTasks("test").run().assertTasksExecuted(":sub:jar",":sub:uploadCompileInternal",":test");
+}
