@@ -1,6 +1,18 @@
 {
-  pluginConvention.getSource().add(SourceSet.MAIN_SOURCE_SET_NAME);
-  SourceSet sourceSet=pluginConvention.getSource().add(SourceSet.TEST_SOURCE_SET_NAME);
-  sourceSet.setCompileClasspath(pluginConvention.getProject().getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME));
-  sourceSet.setRuntimeClasspath(pluginConvention.getProject().getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME));
+  final Project project=pluginConvention.getProject();
+  final SourceSet main=pluginConvention.getSource().add(SourceSet.MAIN_SOURCE_SET_NAME);
+  final SourceSet test=pluginConvention.getSource().add(SourceSet.TEST_SOURCE_SET_NAME);
+  ConventionMapping conventionMapping=((IConventionAware)test).getConventionMapping();
+  conventionMapping.map("compileClasspath",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return project.files(main.getClasses(),project.getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME));
+    }
+  }
+);
+  conventionMapping.map("runtimeClasspath",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return project.files(test.getClasses(),main.getClasses(),project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME));
+    }
+  }
+);
 }

@@ -10,12 +10,22 @@
         }
       }
 );
+      conventionMapping.map("compileClasspath",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME);
+        }
+      }
+);
+      conventionMapping.map("runtimeClasspath",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return sourceSet.getClasses().plus(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME));
+        }
+      }
+);
       sourceSet.getJava().srcDir(String.format("src/%s/java",sourceSet.getName()));
       sourceSet.getResources().srcDir(String.format("src/%s/resources",sourceSet.getName()));
-      sourceSet.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
-      sourceSet.setRuntimeClasspath(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME));
       Copy processResources=project.getTasks().add(sourceSet.getProcessResourcesTaskName(),Copy.class);
-      processResources.setDescription(String.format("Process and copy the %s resources.",sourceSet.getName()));
+      processResources.setDescription(String.format("Processes the %s.",sourceSet.getResources()));
       conventionMapping=processResources.getConventionMapping();
       conventionMapping.map("srcDirs",new ConventionValue(){
         public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
@@ -31,6 +41,7 @@
 );
       Compile compile=project.getTasks().add(sourceSet.getCompileTaskName(),Compile.class);
       configureForSourceSet(sourceSet,compile);
+      sourceSet.compiledBy(sourceSet.getProcessResourcesTaskName(),sourceSet.getCompileTaskName());
     }
   }
 );
