@@ -3,8 +3,17 @@
   context.checking(new Expectations(){
 {
       one(antScalaCompileMock).execute(scalaCompile.getScalaSrcDirs(),scalaCompile.getScalaIncludes(),scalaCompile.getScalaExcludes(),scalaCompile.getDestinationDir(),scalaCompile.getClasspath(),scalaCompile.getScalaCompileOptions());
+      Set<String> expectedExcludes=new HashSet<String>();
+      expectedExcludes.addAll(scalaCompile.getExcludes());
+      expectedExcludes.add("**/*.scala");
+      List<File> expectedClassPath=new ArrayList<File>();
+      expectedClassPath.add(scalaCompile.getDestinationDir());
+      for (      File file : scalaCompile.getClasspath()) {
+        expectedClassPath.add(file);
+      }
+      one(antCompileMock).execute(scalaCompile.getScalaSrcDirs(),scalaCompile.getIncludes(),expectedExcludes,scalaCompile.getDestinationDir(),scalaCompile.getDependencyCacheDir(),expectedClassPath,scalaCompile.getSourceCompatibility(),scalaCompile.getTargetCompatibility(),scalaCompile.getOptions(),scalaCompile.getAnt());
     }
   }
 );
-  scalaCompile.execute();
+  scalaCompile.compile();
 }

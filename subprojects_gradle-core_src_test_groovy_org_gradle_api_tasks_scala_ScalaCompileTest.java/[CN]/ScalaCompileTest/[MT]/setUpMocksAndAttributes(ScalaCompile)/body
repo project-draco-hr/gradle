@@ -14,13 +14,13 @@
   compile.setTargetCompatibility("1.5");
   compile.setDestinationDir(destDir);
   compile.setDependencyCacheDir(depCacheDir);
-  compile.setClasspath(new AbstractFileCollection(){
-    @Override public String getDisplayName(){
-      throw new UnsupportedOperationException();
-    }
-    public Set<File> getFiles(){
-      return new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH);
+  final FileCollection configuration=context.mock(FileCollection.class);
+  context.checking(new Expectations(){
+{
+      allowing(configuration).iterator();
+      will(returnIterator(TEST_DEPENDENCY_MANAGER_CLASSPATH));
     }
   }
 );
+  compile.setClasspath(configuration);
 }
