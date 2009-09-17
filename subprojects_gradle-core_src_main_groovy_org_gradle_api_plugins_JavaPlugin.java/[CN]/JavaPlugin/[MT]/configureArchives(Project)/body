@@ -13,35 +13,17 @@
     }
   }
 );
-  final Spec<Task> isLib=new Spec<Task>(){
-    public boolean isSatisfiedBy(    Task element){
-      return element instanceof Jar;
-    }
-  }
-;
-  Task libsTask=project.getTasks().add(LIBS_TASK_NAME);
-  libsTask.setDescription("Builds all Jar and War archives");
-  libsTask.dependsOn(new TaskDependency(){
+  Task assembleTask=project.getTasks().add(ASSEMBLE_TASK_NAME);
+  assembleTask.setDescription("Builds all Jar, War, Zip, and Tar archives.");
+  assembleTask.dependsOn(new TaskDependency(){
     public Set<? extends Task> getDependencies(    Task task){
-      return project.getTasks().findAll(isLib);
+      return project.getTasks().withType(Zip.class).getAll();
     }
   }
 );
-  final Spec<Task> isDist=new Spec<Task>(){
-    public boolean isSatisfiedBy(    Task element){
-      return element instanceof Zip && !isLib.isSatisfiedBy(element);
-    }
-  }
-;
-  Task distsTask=project.getTasks().add(DISTS_TASK_NAME);
-  distsTask.setDescription("Builds all Jar, War, Zip, and Tar archives");
-  distsTask.dependsOn(LIBS_TASK_NAME);
-  distsTask.dependsOn(new TaskDependency(){
-    public Set<? extends Task> getDependencies(    Task task){
-      return project.getTasks().findAll(isDist);
-    }
-  }
-);
+  Task checkTask=project.getTasks().add(CHECK_TASK_NAME);
+  checkTask.setDescription("Runs all checks.");
+  checkTask.dependsOn(TEST_TASK_NAME);
   Jar jar=project.getTasks().add(JAR_TASK_NAME,Jar.class);
   jar.setDescription("Generates a jar archive with all the compiled classes.");
   jar.conventionMapping("resourceCollections",new ConventionValue(){
@@ -51,7 +33,5 @@
     }
   }
 );
-  jar.dependsOn(PROCESS_RESOURCES_TASK_NAME);
-  jar.dependsOn(COMPILE_TASK_NAME);
   project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
 }

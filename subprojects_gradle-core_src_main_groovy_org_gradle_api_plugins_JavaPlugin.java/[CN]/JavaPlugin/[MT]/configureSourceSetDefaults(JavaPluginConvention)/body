@@ -39,9 +39,13 @@
         }
       }
 );
-      Compile compile=project.getTasks().add(sourceSet.getCompileTaskName(),Compile.class);
-      configureForSourceSet(sourceSet,compile);
-      sourceSet.compiledBy(sourceSet.getProcessResourcesTaskName(),sourceSet.getCompileTaskName());
+      String compileTaskName=String.format("%sJava",sourceSet.getCompileTaskName());
+      Compile compileJava=project.getTasks().add(compileTaskName,Compile.class);
+      configureForSourceSet(sourceSet,compileJava);
+      Task compile=project.getTasks().add(sourceSet.getCompileTaskName());
+      compile.dependsOn(sourceSet.getProcessResourcesTaskName(),compileTaskName);
+      compile.setDescription(String.format("Compiles the %s source.",sourceSet.getName()));
+      sourceSet.compiledBy(sourceSet.getCompileTaskName());
     }
   }
 );
