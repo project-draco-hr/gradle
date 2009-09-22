@@ -1,5 +1,18 @@
 {
-  JButton button=new JButton(action);
-  setupButton(button,resourceClass,imageResourceName,tooltip);
+  JButton button=null;
+  if (imageResourceName != null) {
+    InputStream inputStream=resourceClass.getResourceAsStream(imageResourceName);
+    if (inputStream != null) {
+      try {
+        BufferedImage image=ImageIO.read(inputStream);
+        button=new BorderlessImageButton(action,new ImageIcon(image));
+      }
+ catch (      IOException e) {
+        logger.error("Reading image " + imageResourceName,e);
+      }
+    }
+  }
+  if (button == null)   button=new JButton(action);
+  if (tooltip != null)   button.setToolTipText(tooltip);
   return button;
 }
