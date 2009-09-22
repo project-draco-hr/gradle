@@ -1,7 +1,5 @@
 {
-  final FileSet testClassFileSet=new FileSet();
-  testClassFileSet.setProject(antBuilder.getAntProject());
-  testClassFileSet.setDir(testClassDirectory);
+  final FileSet testClassFileSet=new FileSet(testClassDirectory,null);
   if (!scanForTestClasses) {
     if (includePatterns.isEmpty()) {
       includePatterns.add("**/*Tests.class");
@@ -11,23 +9,33 @@
       excludePatterns.add("**/Abstract*.class");
     }
   }
-  if (includePatterns != null && !includePatterns.isEmpty())   testClassFileSet.appendIncludes(includePatterns.toArray(new String[includePatterns.size()]));
-  if (excludePatterns != null && !excludePatterns.isEmpty())   testClassFileSet.appendExcludes(excludePatterns.toArray(new String[excludePatterns.size()]));
-  final Iterator testClassFilesIterator=testClassFileSet.iterator();
+  testClassFileSet.include(includePatterns);
+  testClassFileSet.exclude(excludePatterns);
   final Set<String> testClassNames=new HashSet<String>();
-  while (testClassFilesIterator.hasNext()) {
-    final FileResource fileResource=(FileResource)testClassFilesIterator.next();
-    if (!fileResource.isDirectory() && fileResource.getFile().getAbsolutePath().endsWith(".class")) {
-      final String fileResourceName=fileResource.getName();
-      logger.debug("test-class-scan : scanning {}",fileResourceName);
-      if (scanForTestClasses) {
-        if (!testFramework.isTestClass(fileResource.getFile())) {
-          logger.debug("test-class-scan : discarded {} not a test class",fileResourceName);
+  testClassFileSet.visit(new FileVisitor(){
+    public void visitDir(    FileVisitDetails dirDetails){
+    }
+    public void visitFile(    FileVisitDetails fileDetails){
+      File file=fileDetails.getFile();
+      if (file.getAbsolutePath().endsWith(".class")) {
+        final String fileResourceName=fileDetails.getRelativePath().getPathString();
+        logger.debug("test-class-scan : scanning {}",fileResourceName);
+        if (scanForTestClasses) {
+          if (!testFramework.isTestClass(file)) {
+            logger.debug("test-class-scan : discarded {} not a test class",fileResourceName);
+          }
+        }
+ else {
+          testClassNames.add(fileResourceName);
         }
       }
- else       testClassNames.add(fileResourceName);
     }
   }
-  if (scanForTestClasses)   return testFramework.getTestClassNames();
- else   return testClassNames;
+);
+  if (scanForTestClasses) {
+    return testFramework.getTestClassNames();
+  }
+ else {
+    return testClassNames;
+  }
 }

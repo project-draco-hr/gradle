@@ -2,9 +2,10 @@
   if (!GUtil.isTrue(getTargetCompatibility())) {
     throw new InvalidUserDataException("The targetCompatibility must be set!");
   }
-  List<File> existingSrcDirs=existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(),getSrcDirs());
-  getAntScalaCompile().execute(existingSrcDirs,getIncludes(),getExcludes(),getDestinationDir(),getClasspath(),getScalaCompileOptions());
-  Set<String> excludes=GUtil.addSets(getExcludes(),Collections.singleton("**/*.scala"));
+  FileTree source=getFilteredSrc();
+  getAntScalaCompile().execute(source,getDestinationDir(),getClasspath(),getScalaCompileOptions());
+  FileTree javaSource=getFilteredJavaSrc();
   List<File> classpath=GUtil.addLists(Collections.singleton(getDestinationDir()),getClasspath());
-  antCompile.execute(existingSrcDirs,getIncludes(),excludes,getDestinationDir(),getDependencyCacheDir(),classpath,getSourceCompatibility(),getTargetCompatibility(),getOptions(),getAnt());
+  javaSource.stopExecutionIfEmpty();
+  antCompile.execute(javaSource,getDestinationDir(),getDependencyCacheDir(),classpath,getSourceCompatibility(),getTargetCompatibility(),getOptions(),getAnt());
 }

@@ -2,16 +2,14 @@
   setUpMocksAndAttributes(scalaCompile);
   context.checking(new Expectations(){
 {
-      one(antScalaCompileMock).execute(scalaCompile.getSrcDirs(),scalaCompile.getIncludes(),scalaCompile.getExcludes(),scalaCompile.getDestinationDir(),scalaCompile.getClasspath(),scalaCompile.getScalaCompileOptions());
-      Set<String> expectedExcludes=new HashSet<String>();
-      expectedExcludes.addAll(scalaCompile.getExcludes());
-      expectedExcludes.add("**/*.scala");
+      one(antScalaCompileMock).execute(with(hasSameItems(scalaCompile.getFilteredSrc())),with(equalTo(scalaCompile.getDestinationDir())),with(equalTo(scalaCompile.getClasspath())),with(equalTo(scalaCompile.getScalaCompileOptions())));
       List<File> expectedClassPath=new ArrayList<File>();
       expectedClassPath.add(scalaCompile.getDestinationDir());
       for (      File file : scalaCompile.getClasspath()) {
         expectedClassPath.add(file);
       }
-      one(antCompileMock).execute(scalaCompile.getSrcDirs(),scalaCompile.getIncludes(),expectedExcludes,scalaCompile.getDestinationDir(),scalaCompile.getDependencyCacheDir(),expectedClassPath,scalaCompile.getSourceCompatibility(),scalaCompile.getTargetCompatibility(),scalaCompile.getOptions(),scalaCompile.getAnt());
+      FileCollection javaSrc=scalaCompile.getFilteredJavaSrc();
+      one(antCompileMock).execute(with(hasSameItems(javaSrc)),with(equalTo(scalaCompile.getDestinationDir())),with(equalTo(scalaCompile.getDependencyCacheDir())),with(equalTo(expectedClassPath)),with(equalTo(scalaCompile.getSourceCompatibility())),with(equalTo(scalaCompile.getTargetCompatibility())),with(equalTo(scalaCompile.getOptions())),with(equalTo(scalaCompile.getAnt())));
     }
   }
 );

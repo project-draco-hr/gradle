@@ -3,12 +3,10 @@
   if (getSourceCompatibility() == null || getTargetCompatibility() == null) {
     throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
   }
-  List existingGroovySourceDirs=existentDirsFilter.findExistingDirs(getSrcDirs());
-  if (existingGroovySourceDirs.size() > 0) {
-    List<File> classpath=GUtil.addLists(getClasspath());
-    List<File> taskClasspath=new ArrayList<File>(getGroovyClasspath().getFiles());
-    throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
-    antGroovyCompile.execute(getProject().getAnt(),existingGroovySourceDirs,getIncludes(),getExcludes(),getDestinationDir(),classpath,getSourceCompatibility(),getTargetCompatibility(),getGroovyOptions(),getOptions(),taskClasspath);
-    setDidWork(antGroovyCompile.getNumFilesCompiled() > 0);
-  }
+  List<File> classpath=GUtil.addLists(getClasspath());
+  List<File> taskClasspath=new ArrayList<File>(getGroovyClasspath().getFiles());
+  throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
+  ProjectInternal project=(ProjectInternal)getProject();
+  antGroovyCompile.execute(project.getGradle().getIsolatedAntBuilder(),getFilteredSrc(),getDestinationDir(),classpath,getSourceCompatibility(),getTargetCompatibility(),getGroovyOptions(),getOptions(),taskClasspath);
+  setDidWork(antGroovyCompile.getNumFilesCompiled() > 0);
 }
