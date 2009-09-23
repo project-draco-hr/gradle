@@ -1,32 +1,11 @@
 {
-  List<File> existingSourceDirs=existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(),getSrcDirs());
   final File destinationDir=getDestinationDir();
   if (options.getDestinationDirectory() == null)   options.destinationDirectory(destinationDir);
-  if (options.getSourcepath().isEmpty() || alwaysAppendDefaultSourcepath)   options.sourcepath(existingSourceDirs);
   if (options.getClasspath().isEmpty() || alwaysAppendDefaultClasspath) {
-    options.classpath(new ArrayList<File>(getClasspath()));
+    options.classpath(new ArrayList<File>(getClasspath().getFiles()));
   }
   if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
     options.windowTitle(getTitle());
-  }
-  if (options.getPackageNames().isEmpty() && options.getSourceNames().isEmpty() && options.getSubPackages().isEmpty()) {
-    Set<String> subPackagesToAdd=new HashSet<String>();
-    for (    File srcDir : getSrcDirs()) {
-      if (srcDir.exists()) {
-        for (        File packageDir : srcDir.listFiles()) {
-          if (packageDir.isDirectory()) {
-            final String packageDirName=packageDir.getName();
-            subPackagesToAdd.add(packageDirName);
-          }
-        }
-      }
-    }
-    for (    String subPackageToAdd : subPackagesToAdd) {
-      options.subPackages(subPackageToAdd);
-      if (logger.isDebugEnabled()) {
-        logger.debug("Added {} package to subPackages Javadoc option",subPackageToAdd);
-      }
-    }
   }
   if (maxMemory != null) {
     final List<String> jFlags=options.getJFlags();
@@ -38,5 +17,10 @@
     }
     if (!containsXmx)     options.jFlags("-Xmx" + maxMemory);
   }
+  List<String> sourceNames=new ArrayList<String>();
+  for (  File sourceFile : getSource()) {
+    sourceNames.add(sourceFile.getAbsolutePath());
+  }
+  options.setSourceNames(sourceNames);
   executeExternalJavadoc();
 }
