@@ -3,7 +3,8 @@
     public void execute(    Javadoc javadoc){
       javadoc.getConventionMapping().map("classpath",new ConventionValue(){
         public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
-          return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getCompileClasspath();
+          SourceSet mainSourceSet=convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+          return mainSourceSet.getClasses().plus(mainSourceSet.getCompileClasspath());
         }
       }
 );
@@ -22,6 +23,12 @@
       javadoc.getConventionMapping().map("optionsFile",new ConventionValue(){
         public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
           return new File(project.getBuildDir(),"tmp/javadoc.options");
+        }
+      }
+);
+      javadoc.getConventionMapping().map("title",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return convention.getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
         }
       }
 );

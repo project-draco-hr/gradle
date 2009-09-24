@@ -1,14 +1,18 @@
 {
-  docTask.source(WrapUtil.toList(new File("sourceDir1"),new File("sourceDir2")));
-  docTask.setIncludes(TEST_INCLUDES);
-  docTask.setExcludes(TEST_EXCLUDES);
+  docTask.source(srcDir);
   docTask.setDestinationDir(destDir);
-  docTask.setClasspath(new AbstractFileCollection(){
-    @Override public String getDisplayName(){
-      throw new UnsupportedOperationException();
+  final FileCollection classpath=context.mock(FileCollection.class);
+  context.checking(new Expectations(){
+{
+      allowing(classpath).getFiles();
+      will(returnValue(new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH)));
     }
-    public Set<File> getFiles(){
-      return new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH);
+  }
+);
+  docTask.setClasspath(classpath);
+  context.checking(new Expectations(){
+{
+      one(antScalaDocMock).execute(with(hasSameItems(scalaDoc.getSource())),with(equalTo(scalaDoc.getDestinationDir())),with(equalTo(scalaDoc.getClasspath())),with(sameInstance(scalaDoc.getScalaDocOptions())));
     }
   }
 );
