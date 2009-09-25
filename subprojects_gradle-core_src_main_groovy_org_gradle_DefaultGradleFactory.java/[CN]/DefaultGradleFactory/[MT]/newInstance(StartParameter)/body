@@ -5,7 +5,8 @@
   ImportsReader importsReader=new ImportsReader(startParameter.getDefaultImportsFile());
   ISettingsFinder settingsFinder=new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy())));
   Map clientModuleRegistry=new HashMap();
-  ConfigurationContainerFactory configurationContainerFactory=new DefaultConfigurationContainerFactory(clientModuleRegistry);
+  ExcludeRuleConverter excludeRuleConverter=new DefaultExcludeRuleConverter();
+  ConfigurationContainerFactory configurationContainerFactory=new DefaultConfigurationContainerFactory(clientModuleRegistry,new DefaultSettingsConverter(),new DefaultModuleDescriptorConverter(new DefaultModuleDescriptorFactory(),new DefaultConfigurationsToModuleDescriptorConverter(),new DefaultDependenciesToModuleDescriptorConverter(new DefaultDependencyDescriptorFactory(excludeRuleConverter,new DefaultClientModuleDescriptorFactory(),clientModuleRegistry),excludeRuleConverter),new DefaultArtifactsToModuleDescriptorConverter()),new DefaultIvyFactory(),new SelfResolvingDependencyResolver(new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),new DefaultPublishOptionsFactory()));
   DefaultInternalRepository internalRepository=new DefaultInternalRepository(listenerManager);
   DependencyFactory dependencyFactory=new DefaultDependencyFactory(WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),new SelfResolvingDependencyFactory()),new DefaultClientModuleFactory(),new DefaultProjectDependencyFactory(startParameter.getProjectDependenciesBuildInstruction()));
   ResolverFactory resolverFactory=new DefaultResolverFactory();
