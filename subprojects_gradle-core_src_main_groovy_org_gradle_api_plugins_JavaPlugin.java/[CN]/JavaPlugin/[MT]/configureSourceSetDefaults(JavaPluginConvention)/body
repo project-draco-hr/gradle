@@ -1,5 +1,5 @@
 {
-  pluginConvention.getSource().allObjects(new Action<SourceSet>(){
+  pluginConvention.getSourceSets().allObjects(new Action<SourceSet>(){
     public void execute(    final SourceSet sourceSet){
       final Project project=pluginConvention.getProject();
       ConventionMapping conventionMapping=((IConventionAware)sourceSet).getConventionMapping();
@@ -39,13 +39,13 @@
         }
       }
 );
-      String compileTaskName=String.format("%sJava",sourceSet.getCompileTaskName());
+      String compileTaskName=sourceSet.getCompileTaskName("java");
       Compile compileJava=project.getTasks().add(compileTaskName,Compile.class);
       configureForSourceSet(sourceSet,compileJava);
-      Task compile=project.getTasks().add(sourceSet.getCompileTaskName());
-      compile.dependsOn(sourceSet.getProcessResourcesTaskName(),compileTaskName);
-      compile.setDescription(String.format("Compiles the %s source.",sourceSet.getName()));
-      sourceSet.compiledBy(sourceSet.getCompileTaskName());
+      Task classes=project.getTasks().add(sourceSet.getClassesTaskName());
+      classes.dependsOn(sourceSet.getProcessResourcesTaskName(),compileTaskName);
+      classes.setDescription(String.format("Assembles the %s classes.",sourceSet.getName()));
+      sourceSet.compiledBy(sourceSet.getClassesTaskName());
     }
   }
 );
