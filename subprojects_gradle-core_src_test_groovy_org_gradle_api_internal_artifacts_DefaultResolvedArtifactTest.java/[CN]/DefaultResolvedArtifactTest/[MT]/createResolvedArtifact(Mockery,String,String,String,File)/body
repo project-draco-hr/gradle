@@ -1,0 +1,25 @@
+{
+  final Artifact artifactStub=context.mock(Artifact.class,"artifact" + name);
+  context.checking(new Expectations(){
+{
+      allowing(artifactStub).getName();
+      will(returnValue(name));
+      allowing(artifactStub).getType();
+      will(returnValue(type));
+      allowing(artifactStub).getExt();
+      will(returnValue(extension));
+    }
+  }
+);
+  final ResolveEngine resolveEngineMock=context.mock(ResolveEngine.class,"engine" + name);
+  final ArtifactDownloadReport artifactDownloadReport=new ArtifactDownloadReport(artifactStub);
+  artifactDownloadReport.setLocalFile(file);
+  context.checking(new Expectations(){
+{
+      one(resolveEngineMock).download(with(equal(artifactStub)),with(any(DownloadOptions.class)));
+      will(returnValue(artifactDownloadReport));
+    }
+  }
+);
+  return new DefaultResolvedArtifact(artifactStub,resolveEngineMock);
+}
