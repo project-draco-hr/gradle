@@ -1,0 +1,48 @@
+{
+  super(parent);
+  this.gradle=gradle;
+  add(new Service(ProjectFinder.class){
+    @Override protected Object create(){
+      return new ProjectFinder(){
+        public Project getProject(        String path){
+          return gradle.getRootProject().project(path);
+        }
+      }
+;
+    }
+  }
+);
+  add(new Service(IProjectRegistry.class){
+    @Override protected Object create(){
+      return new DefaultProjectRegistry<ProjectInternal>();
+    }
+  }
+);
+  add(new Service(TaskExecuter.class){
+    @Override protected Object create(){
+      return new DefaultTaskExecuter();
+    }
+  }
+);
+  add(new Service(PluginRegistry.class){
+    @Override protected Object create(){
+      return new DefaultPluginRegistry(gradle.getStartParameter().getPluginPropertiesFile());
+    }
+  }
+);
+  add(new Service(ScriptHandler.class){
+    @Override protected Object create(){
+      RepositoryHandler repositoryHandler=get(RepositoryHandlerFactory.class).createRepositoryHandler(new DefaultConvention());
+      ConfigurationContainer configurationContainer=get(ConfigurationContainerFactory.class).createConfigurationContainer(repositoryHandler,new DependencyMetaDataProviderImpl());
+      DependencyHandler dependencyHandler=new DefaultDependencyHandler(configurationContainer,get(DependencyFactory.class),get(ProjectFinder.class));
+      return new DefaultScriptHandler(repositoryHandler,dependencyHandler,configurationContainer,Thread.currentThread().getContextClassLoader());
+    }
+  }
+);
+  add(new Service(ScriptClassLoaderProvider.class){
+    @Override protected Object create(){
+      return get(ScriptHandler.class);
+    }
+  }
+);
+}
