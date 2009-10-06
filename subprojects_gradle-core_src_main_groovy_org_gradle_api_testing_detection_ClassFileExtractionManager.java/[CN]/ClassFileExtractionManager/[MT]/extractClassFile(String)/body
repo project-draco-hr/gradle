@@ -1,0 +1,26 @@
+{
+  boolean classFileExtracted=false;
+  final File extractedClassFile=tempFile();
+  final String classFileName=new StrBuilder().append(className).append(".class").toString();
+  final String classNamePackage=classNamePackage(className);
+  final Set<File> packageJarFiles=packageJarFilesMappings.get(classNamePackage);
+  File classFileSourceJar=null;
+  if (packageJarFiles != null && !packageJarFiles.isEmpty()) {
+    final Iterator<File> packageJarFilesIt=packageJarFiles.iterator();
+    while (!classFileExtracted && packageJarFilesIt.hasNext()) {
+      final File jarFile=packageJarFilesIt.next();
+      try {
+        classFileExtracted=JarUtil.extractZipEntry(jarFile,classFileName,extractedClassFile);
+        if (classFileExtracted)         classFileSourceJar=jarFile;
+      }
+ catch (      IOException e) {
+        throw new GradleException("failed to extract class file from jar (" + jarFile + ")",e);
+      }
+    }
+    if (classFileExtracted) {
+      logger.debug("extracted class {} from {}",className,classFileSourceJar.getName());
+      extractedJarClasses.put(className,extractedClassFile);
+    }
+  }
+  return classFileExtracted;
+}

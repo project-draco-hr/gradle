@@ -1,0 +1,55 @@
+{
+  File forkConfigFile=null;
+  try {
+    forkConfigFile=File.createTempFile(".gradle","fork.config");
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+  StringWriter strWriter=new StringWriter();
+  BufferedWriter configFileWriter=null;
+  try {
+    configFileWriter=new BufferedWriter(strWriter);
+    configFileWriter.write("[shared]");
+    configFileWriter.newLine();
+    for (    File sharedCpElement : testTask.getClasspath()) {
+      if (sharedCpElement.getName().startsWith("junit-") || sharedCpElement.getName().startsWith("testng-")) {
+        configFileWriter.write(sharedCpElement.getAbsolutePath());
+        configFileWriter.newLine();
+      }
+    }
+    configFileWriter.write("[control]");
+    configFileWriter.newLine();
+    for (    File controlCpElement : BootstrapUtil.getGradleClasspath()) {
+      configFileWriter.write(controlCpElement.getAbsolutePath());
+      configFileWriter.newLine();
+    }
+    configFileWriter.write("[sandbox]");
+    configFileWriter.newLine();
+    for (    File sandboxCpElement : testTask.getClasspath()) {
+      if (!sandboxCpElement.getName().startsWith("junit-") && !sandboxCpElement.getName().startsWith("testng-")) {
+        configFileWriter.write(sandboxCpElement.getAbsolutePath());
+        configFileWriter.newLine();
+      }
+    }
+    configFileWriter.write("[arguments]");
+    configFileWriter.newLine();
+    configFileWriter.write(String.valueOf(pipelineId));
+    configFileWriter.newLine();
+    configFileWriter.write(String.valueOf(forkId));
+    configFileWriter.newLine();
+    configFileWriter.write(String.valueOf(testServerPort));
+    configFileWriter.newLine();
+    configFileWriter.write(testTask.getTestFramework().getTestFramework().getId());
+    configFileWriter.newLine();
+    configFileWriter.flush();
+    FileUtils.writeStringToFile(forkConfigFile,strWriter.toString());
+  }
+ catch (  IOException e) {
+    throw new GradleException("failed to create fork config file",e);
+  }
+ finally {
+    IOUtils.closeQuietly(configFileWriter);
+  }
+  return forkConfigFile;
+}

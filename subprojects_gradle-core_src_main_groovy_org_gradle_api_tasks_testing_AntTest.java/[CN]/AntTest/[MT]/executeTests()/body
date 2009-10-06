@@ -1,0 +1,32 @@
+{
+  final File testClassesDir=getTestClassesDir();
+  if (testClassesDir == null)   throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!");
+  if (getTestResultsDir() == null)   throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!");
+  existingDirsFilter.checkExistenceAndThrowStopActionIfNot(testClassesDir);
+  final TestFrameworkInstance testInstance=getTestFramework();
+  testInstance.prepare(getProject(),this,testClassReceiver);
+  final Set<String> includes=getIncludes();
+  final Set<String> excludes=getExcludes();
+  final TestClassScanner testClassScanner=new TestClassScanner(testClassesDir,includes,excludes,testFrameworkInstance,scanForTestClasses);
+  testClassScanner.getTestClassNames();
+  final Set<String> testClassNames=((SetBuildingTestClassReceiver)testClassReceiver).getTestClassNames();
+  Collection<String> toUseIncludes=null;
+  Collection<String> toUseExcludes=null;
+  if (testClassNames.isEmpty()) {
+    toUseIncludes=includes;
+    toUseExcludes=excludes;
+  }
+ else {
+    toUseIncludes=testClassNames;
+    toUseExcludes=new ArrayList<String>();
+  }
+  GFileUtils.createDirectoriesWhenNotExistent(getTestResultsDir());
+  if (!(toUseIncludes.isEmpty() && toUseExcludes.isEmpty()))   testInstance.execute(getProject(),this,toUseIncludes,toUseExcludes);
+ else   logger.debug("skipping test execution, because no tests were found");
+  if (testReport) {
+    testInstance.report(getProject(),this);
+  }
+  if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(FAILURES_OR_ERRORS_PROPERTY))) {
+    throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
+  }
+}

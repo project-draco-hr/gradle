@@ -1,0 +1,37 @@
+{
+  if (testControlMessage instanceof ExecuteTestActionMessage) {
+    final ExecuteTestActionMessage runTestResponse=(ExecuteTestActionMessage)testControlMessage;
+    final TestClassRunInfo testInfo=runTestResponse.getTestClassRunInfo();
+    final TestProcessor testProcessor=testProcessorFactory.createProcessor();
+    final TestProcessorRunnable testProcessorRunnable=new TestProcessorRunnable(this,testProcessor,testInfo,reforkDataGatherControl,testProcessResultFactory);
+    threadPool.submit(testProcessorRunnable);
+  }
+ else   if (testControlMessage instanceof WaitActionMesssage) {
+    final WaitActionMesssage waitMessage=(WaitActionMesssage)testControlMessage;
+    logger.debug("waiting for {} ms - for tests to become available",waitMessage.getTimeToWait());
+    try {
+      Thread.sleep(waitMessage.getTimeToWait());
+    }
+ catch (    InterruptedException e) {
+      e.printStackTrace();
+    }
+    actionExecuted(null,null);
+  }
+ else   if (testControlMessage instanceof StopForkActionMessage) {
+    exitReceived.set(true);
+    ThreadUtils.shutdown(threadPool);
+  }
+ else   if (testControlMessage instanceof InitializeActionMessage) {
+    final InitializeActionMessage initMessage=(InitializeActionMessage)testControlMessage;
+    final String testFrameworkId=initMessage.getTestFrameworkId();
+    final ReforkItemConfigs reforkItemConfigs=initMessage.getReforkItemConfigs();
+    reforkDataGatherControl=new ReforkDataGatherControl();
+    reforkDataGatherControl.initialize(reforkItemConfigs);
+    final TestFramework testFramework=TestFrameworkRegister.getTestFramework(testFrameworkId);
+    testProcessorFactory=testFramework.getProcessorFactory();
+    testProcessResultFactory=new TestProcessResultFactory();
+    testProcessorFactory.initialize(sandboxClassLoader,testProcessResultFactory);
+    actionExecuted(null,null);
+  }
+  return exitReceived.get();
+}

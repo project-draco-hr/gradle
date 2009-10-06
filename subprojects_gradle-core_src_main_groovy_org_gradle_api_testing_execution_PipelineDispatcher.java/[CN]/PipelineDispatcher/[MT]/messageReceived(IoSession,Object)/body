@@ -1,0 +1,18 @@
+{
+  if (message != null) {
+    final Class<?> messageClass=message.getClass();
+    final TestControlMessageHandler handler=messageClassHandlers.get(messageClass);
+    if (handler == null) {
+      logger.error("received unknown message of type {} on pipeline with id {} ",messageClass,pipeline.getId());
+      ioSession.write(new WaitActionMesssage(pipeline.getId(),100));
+    }
+ else {
+      try {
+        handler.handle(ioSession,message);
+      }
+ catch (      Throwable t) {
+        logger.error("failed to handle " + message,t);
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  super.setUp();
+  test=createTask(AntTest.class);
+  context.checking(new Expectations(){
+{
+      one(testFrameworkMock).getInstance(test);
+      will(returnValue(testFrameworkInstanceMock));
+      one(testFrameworkInstanceMock).initialize(getProject(),test);
+    }
+  }
+);
+  test.useTestFramework(testFrameworkMock);
+  test.setScanForTestClasses(false);
+  File rootDir=getProject().getProjectDir();
+  classesDir=new File(rootDir,"testClassesDir");
+  classfile=new File(classesDir,"FileTest.class");
+  GFileUtils.touch(classfile);
+  resultsDir=new File(rootDir,"resultDir");
+  reportDir=new File(rootDir,"report/tests");
+  convertedClasspath=GUtil.addLists(WrapUtil.toList(classesDir),TEST_DEPENDENCY_MANAGER_CLASSPATH);
+}

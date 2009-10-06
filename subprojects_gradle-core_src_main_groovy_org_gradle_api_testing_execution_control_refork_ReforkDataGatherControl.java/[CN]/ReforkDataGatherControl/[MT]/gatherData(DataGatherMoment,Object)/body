@@ -1,0 +1,21 @@
+{
+  ReforkDecisionContext reforkDecisionContext=new ReforkDecisionContextImpl();
+  final List<DecisionContextItemDataGatherer> momentDataGatherers=dataGatherers.get(moment);
+  if (momentDataGatherers != null && !momentDataGatherers.isEmpty()) {
+    for (    final DecisionContextItemDataGatherer dataGatherer : momentDataGatherers) {
+      try {
+        if (dataGatherer.processDataGatherMoment(moment,momentData)) {
+          reforkDecisionContext.addItem(dataGatherer.getItemKey(),dataGatherer.getCurrentData());
+        }
+      }
+ catch (      Throwable t) {
+        t.printStackTrace();
+      }
+    }
+  }
+ else {
+    System.out.println("no data gatherers for " + moment);
+  }
+  if (reforkDecisionContext.isEmpty())   return null;
+ else   return reforkDecisionContext;
+}

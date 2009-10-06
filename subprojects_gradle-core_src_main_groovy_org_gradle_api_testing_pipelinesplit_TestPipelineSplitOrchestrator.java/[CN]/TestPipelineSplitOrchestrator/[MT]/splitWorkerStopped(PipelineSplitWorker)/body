@@ -1,0 +1,13 @@
+{
+  runningWorkersLock.lock();
+  try {
+    final boolean removed=runningWorkers.remove(worker);
+    if (!removed) {
+      logger.warn("splitWorkerStopped called for an unrelated split worker");
+    }
+    if (runningWorkers.isEmpty())     allWorkersStopped.signal();
+  }
+  finally {
+    runningWorkersLock.unlock();
+  }
+}

@@ -1,0 +1,18 @@
+{
+  logger.warn("fork {} stopped for pipeline with id {}",forkId,pipelineId);
+  runningHandlesLock.lock();
+  try {
+    if (!getForkInfo(pipelineId,forkId).isRestarting()) {
+      try {
+        forkHandles.get(pipelineId).get(forkId).stopped(cause);
+      }
+ catch (      Throwable t) {
+      }
+      startPending();
+    }
+    lowerStartedForksCount();
+  }
+  finally {
+    runningHandlesLock.unlock();
+  }
+}

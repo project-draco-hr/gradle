@@ -1,0 +1,23 @@
+{
+  forkControlLock.lock();
+  try {
+    final ForkPolicyInstance forkPolicyInstance=forkInfo.getPipeline().getForkPolicyInstance();
+    runningHandlesLock.lock();
+    try {
+      Map<Integer,ForkInfo> forks=forkHandles.get(forkInfo.getPipeline().getId());
+      if (forks == null) {
+        forks=new HashMap<Integer,ForkInfo>();
+      }
+      forks.put(forkInfo.getId(),forkInfo);
+      forkHandles.put(forkInfo.getPipeline().getId(),forks);
+    }
+  finally {
+      runningHandlesLock.unlock();
+    }
+    forkPolicyInstance.startFork(forkInfo);
+    startedForks.incrementAndGet();
+  }
+  finally {
+    forkControlLock.unlock();
+  }
+}
