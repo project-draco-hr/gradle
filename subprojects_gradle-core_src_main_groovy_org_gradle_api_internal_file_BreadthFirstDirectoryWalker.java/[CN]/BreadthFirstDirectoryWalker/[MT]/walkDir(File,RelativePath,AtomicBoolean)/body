@@ -1,23 +1,23 @@
 {
   File[] children=file.listFiles();
-  List<File> dirs=new ArrayList<File>();
+  List<FileVisitDetailsImpl> dirs=new ArrayList<FileVisitDetailsImpl>();
   for (int i=0; !stopFlag.get() && i < children.length; i++) {
     File child=children[i];
     boolean isFile=child.isFile();
     RelativePath childPath=new RelativePath(isFile,path,child.getName());
-    if (isAllowed(childPath)) {
+    FileVisitDetailsImpl details=new FileVisitDetailsImpl(child,childPath,stopFlag);
+    if (isAllowed(details)) {
       if (isFile) {
-        notifyFile(child,childPath,stopFlag);
+        visitor.visitFile(details);
       }
  else {
-        dirs.add(child);
+        dirs.add(details);
       }
     }
   }
   for (int i=0; !stopFlag.get() && i < dirs.size(); i++) {
-    File dir=dirs.get(i);
-    RelativePath dirPath=new RelativePath(false,path,dir.getName());
-    notifyDir(dir,dirPath,stopFlag);
-    walkDir(dir,dirPath,stopFlag);
+    FileVisitDetailsImpl dir=dirs.get(i);
+    visitor.visitDir(dir);
+    walkDir(dir.file,dir.relativePath,stopFlag);
   }
 }

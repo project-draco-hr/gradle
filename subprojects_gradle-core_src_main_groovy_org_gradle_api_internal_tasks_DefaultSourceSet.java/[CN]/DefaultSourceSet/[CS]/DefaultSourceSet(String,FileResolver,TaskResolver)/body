@@ -8,7 +8,12 @@
   allJavaSource=new UnionFileTree(javaSrcDisplayName,javaSource.matching(javaSource.getFilter()));
   String resourcesDisplayName=String.format("%s resources",displayName);
   resources=new DefaultSourceDirectorySet(resourcesDisplayName,fileResolver);
-  resources.getFilter().exclude("**/*.java");
+  resources.getFilter().exclude(new Spec<FileTreeElement>(){
+    public boolean isSatisfiedBy(    FileTreeElement element){
+      return javaSource.contains(element.getFile());
+    }
+  }
+);
   String allSourceDisplayName=String.format("%s source",displayName);
   allSource=new UnionFileTree(allSourceDisplayName,resources,javaSource);
   String classesDisplayName=String.format("%s classes",displayName);

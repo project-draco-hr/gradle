@@ -1,4 +1,5 @@
 {
+  startParameterStub.setPluginPropertiesFile(new File("plugins"));
   context.checking(new Expectations(){
 {
       allowing(repositoryHandlerFactory).createRepositoryHandler(with(any(Convention.class)));
@@ -6,15 +7,16 @@
     }
   }
 );
+  final ServiceRegistryFactory gradleServices=serviceRegistryFactory.createFor(gradle);
   context.checking(new Expectations(){
 {
+      allowing(gradle).getServiceRegistryFactory();
+      will(returnValue(gradleServices));
       allowing(gradle).getStartParameter();
       will(returnValue(startParameterStub));
       allowing(configurationContainerFactory).createConfigurationContainer(with(any(ResolverProvider.class)),with(any(DependencyMetaDataProvider.class)));
       allowing(gradle).getProjectRegistry();
-      will(returnValue(projectRegistry));
-      allowing(gradle).getPluginRegistry();
-      will(returnValue(pluginRegistry));
+      will(returnValue(gradleServices.get(IProjectRegistry.class)));
       allowing(gradle).getBuildScriptClassLoader();
       will(returnValue(buildScriptClassLoader));
       allowing(gradle).getGradleUserHomeDir();
@@ -22,5 +24,5 @@
     }
   }
 );
-  projectFactory=new ProjectFactory(serviceRegistryFactory,null);
+  projectFactory=new ProjectFactory(null);
 }
