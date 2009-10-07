@@ -1,0 +1,29 @@
+{
+  Map<String,Object> actualArgs=new HashMap<String,Object>(args);
+  checkTaskArgsAndCreateDefaultValues(actualArgs);
+  String name=actualArgs.get(Task.TASK_NAME).toString();
+  if (!GUtil.isTrue(name)) {
+    throw new InvalidUserDataException("The task name must be provided.");
+  }
+  Class<? extends Task> type=(Class)actualArgs.get(Task.TASK_TYPE);
+  Boolean generateSubclass=Boolean.valueOf(actualArgs.get(GENERATE_SUBCLASS).toString());
+  Task task=createTaskObject(project,type,name,generateSubclass);
+  Object dependsOnTasks=actualArgs.get(Task.TASK_DEPENDS_ON);
+  if (dependsOnTasks != null) {
+    task.dependsOn(dependsOnTasks);
+  }
+  Object description=actualArgs.get(Task.TASK_DESCRIPTION);
+  if (description != null) {
+    task.setDescription(description.toString());
+  }
+  Object action=actualArgs.get(Task.TASK_ACTION);
+  if (action instanceof TaskAction) {
+    TaskAction taskAction=(TaskAction)action;
+    task.doFirst(taskAction);
+  }
+ else   if (action != null) {
+    Closure closure=(Closure)action;
+    task.doFirst(closure);
+  }
+  return task;
+}

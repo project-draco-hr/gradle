@@ -9,34 +9,27 @@
  else {
     generatedType=type;
   }
-  Constructor<? extends Task> constructor=null;
-  Object[] params=null;
+  final Constructor<? extends Task> constructor;
+  final Object[] params;
   try {
     constructor=generatedType.getDeclaredConstructor();
     params=new Object[0];
   }
  catch (  NoSuchMethodException e) {
+    throw new GradleException(String.format("Cannot create task of type '%s' as it does not have a public no-args constructor.",type.getSimpleName()));
   }
-  try {
-    constructor=generatedType.getDeclaredConstructor(Project.class,String.class);
-    params=new Object[]{project,name};
+  return AbstractTask.injectIntoNewInstance(project,name,new Callable<Task>(){
+    public Task call() throws Exception {
+      try {
+        return constructor.newInstance(params);
+      }
+ catch (      InvocationTargetException e) {
+        throw new GradleException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e.getCause());
+      }
+catch (      Exception e) {
+        throw new GradleException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e);
+      }
+    }
   }
- catch (  NoSuchMethodException e) {
-  }
-  if (constructor == null) {
-    throw new GradleException(String.format("Cannot create task of type '%s' as it does not have an appropriate public constructor.",type.getSimpleName()));
-  }
-  AbstractTask.injectIntoNextInstance(project,name);
-  try {
-    return constructor.newInstance(params);
-  }
- catch (  InvocationTargetException e) {
-    throw new GradleException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e.getCause());
-  }
-catch (  Exception e) {
-    throw new GradleException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e);
-  }
- finally {
-    AbstractTask.injectIntoNextInstance(null,null);
-  }
+);
 }

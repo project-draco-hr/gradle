@@ -1,0 +1,19 @@
+{
+  final Task task=context.mock(Task.class);
+  final Project project=context.mock(Project.class);
+  final TaskInputs taskInputs=context.mock(TaskInputs.class);
+  final FileCollection inputFiles=context.mock(FileCollection.class);
+  context.checking(new Expectations(){
+{
+      one(delegate).createTask(project,map());
+      will(returnValue(task));
+      allowing(task).getInputs();
+      will(returnValue(taskInputs));
+      allowing(taskInputs).getInputFiles();
+      will(returnValue(inputFiles));
+      one(task).dependsOn(inputFiles);
+    }
+  }
+);
+  assertThat(factory.createTask(project,map()),sameInstance(task));
+}

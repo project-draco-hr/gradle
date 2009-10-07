@@ -1,0 +1,30 @@
+{
+  for (  final PropertyInfo property : properties) {
+    final Transformer<Object> inputFilesTransformer=property.actions.getInputFiles();
+    if (inputFilesTransformer != null) {
+      task.getInputs().inputFiles(new Callable(){
+        public Object call() throws Exception {
+          Object value=ReflectionUtil.invoke(task,property.method.getName(),new Object[0]);
+          if (value != null) {
+            value=inputFilesTransformer.transform(value);
+          }
+          return value;
+        }
+      }
+);
+    }
+    final Transformer<Object> outputFilesTransformer=property.actions.getOutputFiles();
+    if (outputFilesTransformer != null) {
+      task.getOutputs().outputFiles(new Callable(){
+        public Object call() throws Exception {
+          Object value=ReflectionUtil.invoke(task,property.method.getName(),new Object[0]);
+          if (value != null) {
+            value=outputFilesTransformer.transform(value);
+          }
+          return value;
+        }
+      }
+);
+    }
+  }
+}
