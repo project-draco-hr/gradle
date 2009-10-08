@@ -1,0 +1,23 @@
+{
+  final ProjectSpec projectSpec=context.mock(ProjectSpec.class);
+  final IProjectRegistry projectRegistry=context.mock(IProjectRegistry.class);
+  startParameter.setDefaultProjectSelector(projectSpec);
+  context.checking(new Expectations(){
+{
+      allowing(settings).getProjectRegistry();
+      will(returnValue(projectRegistry));
+      allowing(settings).createClassLoader();
+      will(returnValue(urlClassLoader));
+      one(gradle).setBuildScriptClassLoader(urlClassLoader);
+      allowing(projectSpec).containsProject(projectRegistry);
+      will(returnValue(true));
+      allowing(gradle).getStartParameter();
+      will(returnValue(startParameter));
+      allowing(settingsFinder).find(startParameter);
+      will(returnValue(settingsLocation));
+      allowing(settingsProcessor).process(settingsLocation,urlClassLoader,startParameter,gradlePropertiesLoader);
+      will(returnValue(settings));
+    }
+  }
+);
+}

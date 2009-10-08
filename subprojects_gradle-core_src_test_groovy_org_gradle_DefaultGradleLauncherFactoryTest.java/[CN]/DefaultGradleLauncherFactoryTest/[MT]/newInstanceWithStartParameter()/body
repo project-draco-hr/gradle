@@ -1,4 +1,12 @@
 {
   final StartParameter startParameter=HelperUtil.dummyStartParameter();
-  new DefaultGradleLauncherFactory(context.mock(CommandLine2StartParameterConverter.class)).newInstance(startParameter);
+  final LoggingConfigurer loggingConfigurer=context.mock(LoggingConfigurer.class);
+  context.checking(new Expectations(){
+{
+      one(loggingConfigurer).initialize(with(any(ListenerManager.class)));
+      one(loggingConfigurer).configure(startParameter.getLogLevel());
+    }
+  }
+);
+  new DefaultGradleLauncherFactory(loggingConfigurer,context.mock(CommandLine2StartParameterConverter.class)).newInstance(startParameter);
 }

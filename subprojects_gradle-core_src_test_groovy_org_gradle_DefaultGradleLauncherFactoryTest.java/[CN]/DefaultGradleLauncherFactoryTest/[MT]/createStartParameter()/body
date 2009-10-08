@@ -1,13 +1,16 @@
 {
   final StartParameter startParameter=HelperUtil.dummyStartParameter();
+  final LoggingConfigurer loggingConfigurer=context.mock(LoggingConfigurer.class);
   final String[] commandLineArgs=WrapUtil.toArray("A","B");
   final CommandLine2StartParameterConverter parameterConverterStub=context.mock(CommandLine2StartParameterConverter.class);
   context.checking(new Expectations(){
 {
+      one(loggingConfigurer).initialize(with(any(ListenerManager.class)));
+      one(loggingConfigurer).configure(startParameter.getLogLevel());
       allowing(parameterConverterStub).convert(commandLineArgs);
       will(returnValue(startParameter));
     }
   }
 );
-  assertThat(new DefaultGradleLauncherFactory(parameterConverterStub).createStartParameter(commandLineArgs),Matchers.sameInstance(startParameter));
+  assertThat(new DefaultGradleLauncherFactory(loggingConfigurer,parameterConverterStub).createStartParameter(commandLineArgs),Matchers.sameInstance(startParameter));
 }
