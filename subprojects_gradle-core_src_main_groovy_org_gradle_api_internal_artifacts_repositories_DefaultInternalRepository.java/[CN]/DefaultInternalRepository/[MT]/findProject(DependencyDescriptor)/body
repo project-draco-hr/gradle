@@ -1,0 +1,14 @@
+{
+  for (  Project project : gradle.getRootProject().getAllprojects()) {
+    Set<Configuration> configurations=project.getConfigurations().getAll();
+    if (configurations.isEmpty()) {
+      continue;
+    }
+    DefaultModule module=new DefaultModule(project.getGroup().toString(),project.getName(),project.getVersion().toString(),project.getStatus().toString());
+    ModuleRevisionId moduleRevisionId=ModuleRevisionId.newInstance(module.getGroup(),module.getName(),module.getVersion());
+    if (moduleRevisionId.equals(descriptor.getDependencyRevisionId())) {
+      return moduleDescriptorConverter.convertForPublish(configurations,false,module,IvyContext.getContext().getIvy().getSettings());
+    }
+  }
+  return null;
+}

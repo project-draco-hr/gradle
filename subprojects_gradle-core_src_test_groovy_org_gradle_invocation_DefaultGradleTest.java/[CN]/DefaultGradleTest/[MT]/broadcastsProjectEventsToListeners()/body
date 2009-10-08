@@ -1,15 +1,14 @@
 {
-  final ProjectEvaluationListener listener=context.mock(ProjectEvaluationListener.class);
-  final Project project=context.mock(Project.class);
-  final RuntimeException failure=new RuntimeException();
+  final ProjectEvaluationListener listener=context.mock(ProjectEvaluationListener.class,"listener");
+  final ProjectEvaluationListener broadcaster=context.mock(ProjectEvaluationListener.class,"broadcaster");
   context.checking(new Expectations(){
 {
-      one(listener).beforeEvaluate(project);
-      one(listener).afterEvaluate(project,failure);
+      one(listenerManager).addListener(listener);
+      one(listenerManager).getBroadcaster(ProjectEvaluationListener.class);
+      will(returnValue(broadcaster));
     }
   }
 );
   gradle.addListener(listener);
-  gradle.getProjectEvaluationBroadcaster().beforeEvaluate(project);
-  gradle.getProjectEvaluationBroadcaster().afterEvaluate(project,failure);
+  assertThat(gradle.getProjectEvaluationBroadcaster(),sameInstance(broadcaster));
 }
