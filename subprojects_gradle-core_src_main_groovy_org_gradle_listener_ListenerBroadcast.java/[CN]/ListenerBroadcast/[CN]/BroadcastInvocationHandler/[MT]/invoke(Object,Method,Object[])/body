@@ -8,8 +8,16 @@
   if (method.getName().equals("toString")) {
     return String.format("%s broadcast",type.getSimpleName());
   }
+  DefaultStandardOutputCapture standardOutputCapture=null;
+  if (getType() != StandardOutputListener.class) {
+    standardOutputCapture=new DefaultStandardOutputCapture(true,LogLevel.QUIET);
+    standardOutputCapture.start();
+  }
   for (  InvocationHandler handler : handlers.values()) {
     handler.invoke(null,method,parameters);
+  }
+  if (standardOutputCapture != null) {
+    standardOutputCapture.stop();
   }
   return null;
 }
