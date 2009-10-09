@@ -1,38 +1,3 @@
 {
-  executing=true;
-  logger.debug("Starting to execute Task: {}",path);
-  if (!isSkipped()) {
-    if (onlyIfSpec == null || project.getGradle().getStartParameter().isNoOpt() || onlyIfSpec.isSatisfiedBy(this)) {
-      logger.lifecycle(path);
-      didWork=true;
-      standardOutputCapture.start();
-      for (      Action<? super Task> action : actions) {
-        logger.debug("Executing Action:");
-        try {
-          doExecute(action);
-        }
- catch (        StopExecutionException e) {
-          logger.info("Execution stopped by some action with message: {}",e.getMessage());
-          break;
-        }
-catch (        StopActionException e) {
-          logger.debug("Action stopped by some action with message: {}",e.getMessage());
-        }
-catch (        Throwable t) {
-          executing=false;
-          standardOutputCapture.stop();
-          outputHandler.writeHistory(false);
-          throw new GradleScriptException(String.format("Execution failed for %s.",this),t,project.getBuildScriptSource());
-        }
-      }
-      outputHandler.writeHistory(true);
-      standardOutputCapture.stop();
-    }
- else {
-      logger.lifecycle("{} SKIPPED as onlyIf is false",path);
-    }
-  }
-  executing=false;
-  executed=true;
-  logger.debug("Finished executing Task: {}",path);
+  return executer.execute(this,state);
 }

@@ -1,0 +1,23 @@
+{
+  for (  Action<? super Task> action : task.getActions()) {
+    state.setDidWork(true);
+    task.getStandardOutputCapture().start();
+    try {
+      action.execute(task);
+    }
+ catch (    StopActionException e) {
+      logger.debug("Action stopped by some action with message: {}",e.getMessage());
+    }
+catch (    StopExecutionException e) {
+      logger.info("Execution stopped by some action with message: {}",e.getMessage());
+      break;
+    }
+catch (    Throwable t) {
+      return new GradleScriptException(String.format("Execution failed for %s.",task),t,((ProjectInternal)task.getProject()).getBuildScriptSource());
+    }
+ finally {
+      task.getStandardOutputCapture().stop();
+    }
+  }
+  return null;
+}

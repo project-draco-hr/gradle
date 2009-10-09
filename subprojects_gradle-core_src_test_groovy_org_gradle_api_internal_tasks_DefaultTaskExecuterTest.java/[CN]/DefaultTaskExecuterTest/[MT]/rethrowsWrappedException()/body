@@ -1,0 +1,23 @@
+{
+  final Throwable failure=new RuntimeException("failure");
+  expectTaskEnabled();
+  context.checking(new Expectations(){
+{
+      allowing(task).getActions();
+      will(returnValue(toList(action1,action2)));
+      ignoring(standardOutputCapture);
+      one(action1).execute(task);
+      will(throwException(failure));
+      inSequence(sequence);
+    }
+  }
+);
+  TaskExecutionResult result=executer.execute(task,state);
+  try {
+    result.rethrowFailure();
+    fail();
+  }
+ catch (  GradleScriptException e) {
+    assertThat(e,sameInstance(result.getFailure()));
+  }
+}

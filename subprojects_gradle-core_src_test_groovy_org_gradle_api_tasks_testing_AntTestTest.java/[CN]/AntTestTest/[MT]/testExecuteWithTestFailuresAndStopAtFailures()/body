@@ -1,6 +1,5 @@
 {
   setUpMocks(test);
-  setExistingDirsFilter();
   context.checking(new Expectations(){
 {
       one(testFrameworkInstanceMock).prepare(getProject(),test,testClassReceiverMock);
@@ -10,5 +9,12 @@
     }
   }
 );
-  test.execute();
+  getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY,"true");
+  try {
+    test.executeTests();
+    fail();
+  }
+ catch (  GradleException e) {
+    assertThat(e.getMessage(),equalTo("??"));
+  }
 }

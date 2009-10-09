@@ -1,0 +1,28 @@
+{
+  expectTaskEnabled();
+  context.checking(new Expectations(){
+{
+      allowing(task).getActions();
+      will(returnValue(toList(action1,action2)));
+      one(standardOutputCapture).start();
+      inSequence(sequence);
+      one(action1).execute(task);
+      inSequence(sequence);
+      one(standardOutputCapture).stop();
+      inSequence(sequence);
+      one(standardOutputCapture).start();
+      inSequence(sequence);
+      one(action2).execute(task);
+      inSequence(sequence);
+      one(standardOutputCapture).stop();
+      inSequence(sequence);
+    }
+  }
+);
+  TaskExecutionResult result=executer.execute(task,state);
+  assertThat(result.getFailure(),nullValue());
+  assertThat(result.getSkipMessage(),nullValue());
+  assertTrue(state.isExecuted());
+  assertFalse(state.isExecuting());
+  assertTrue(state.isDidWork());
+}
