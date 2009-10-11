@@ -1,10 +1,11 @@
 {
-  createBuildScriptFile();
   context.checking(new Expectations(){
 {
-      allowing(source).getSourceFile();
-      will(returnValue(testScriptFile));
-      one(scriptCompilationHandlerMock).loadFromCache(source,testClassLoader,expectedScriptCacheDir,expectedScriptBaseClass);
+      one(cacheRepositoryMock).getGlobalCache("scripts/class-name",expectedCacheProperties);
+      will(returnValue(cacheMock));
+      allowing(cacheMock).isValid();
+      will(returnValue(true));
+      one(scriptCompilationHandlerMock).loadScriptFromDir(source,testClassLoader,expectedScriptCacheDir,expectedScriptBaseClass);
       will(returnValue(expectedScript));
       one(expectedScript).setScriptSource(source);
       one(scriptRunnerFactoryMock).create(expectedScript);

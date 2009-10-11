@@ -1,0 +1,18 @@
+{
+  final Gradle gradle=context.mock(Gradle.class);
+  final Project project=context.mock(Project.class);
+  context.checking(new Expectations(){
+{
+      allowing(gradle).getRootProject();
+      will(returnValue(project));
+      allowing(project).getProjectDir();
+      will(returnValue(buildRootDir));
+    }
+  }
+);
+  PersistentCache cache=repository.getCacheFor(gradle,"a/b/c",properties);
+  assertThat(cache,instanceOf(DefaultPersistentCache.class));
+  DefaultPersistentCache dCache=(DefaultPersistentCache)cache;
+  assertThat(dCache.getBaseDir(),equalTo((File)buildRootDir.file(".gradle/a/b/c")));
+  assertThat(dCache.getProperties(),equalTo(expectedPropreties));
+}

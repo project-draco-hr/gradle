@@ -2,20 +2,30 @@
   context.setImposteriser(ClassImposteriser.INSTANCE);
   scriptCompilationHandlerMock=context.mock(ScriptCompilationHandler.class);
   scriptRunnerFactoryMock=context.mock(ScriptRunnerFactory.class);
+  cacheRepositoryMock=context.mock(CacheRepository.class);
+  cacheMock=context.mock(PersistentCache.class);
   testClassLoader=new URLClassLoader(new URL[0]);
   testScriptFile=new File(tmpDir.getDir(),"script/mybuild.craidle");
   cacheDir=new File(tmpDir.getDir(),"cache");
-  expectedScriptCacheDir=new File(cacheDir,"scriptCache/<class-name>/NoTransformer");
+  expectedScriptCacheDir=new TestFile(cacheDir,"NoTransformer").createDir();
   expectedScript=context.mock(Script.class);
   expectedScriptRunner=context.mock(ScriptRunner.class);
-  scriptProcessor=new DefaultScriptCompilerFactory(scriptCompilationHandlerMock,CacheUsage.ON,cacheDir,scriptRunnerFactoryMock);
+  scriptProcessor=new DefaultScriptCompilerFactory(scriptCompilationHandlerMock,CacheUsage.ON,scriptRunnerFactoryMock,cacheRepositoryMock);
   source=context.mock(ScriptSource.class);
+  String expectedHash=HashUtil.createHash(TEST_SCRIPT_TEXT);
+  expectedCacheProperties=GUtil.map("source.filename","file-name","source.hash",expectedHash);
   context.checking(new Expectations(){
 {
       allowing(source).getDisplayName();
       will(returnValue("[script source]"));
       allowing(source).getClassName();
-      will(returnValue("<class-name>"));
+      will(returnValue("class-name"));
+      allowing(source).getFileName();
+      will(returnValue("file-name"));
+      allowing(source).getText();
+      will(returnValue(TEST_SCRIPT_TEXT));
+      allowing(cacheMock).getBaseDir();
+      will(returnValue(cacheDir));
     }
   }
 );

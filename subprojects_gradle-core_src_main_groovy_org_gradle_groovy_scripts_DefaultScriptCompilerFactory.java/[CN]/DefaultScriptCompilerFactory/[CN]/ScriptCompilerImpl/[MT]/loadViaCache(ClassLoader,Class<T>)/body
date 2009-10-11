@@ -1,17 +1,18 @@
 {
-  File scriptCacheDir=new File(cacheDir,source.getClassName());
+  Map<String,Object> properties=new HashMap<String,Object>();
+  properties.put("source.filename",source.getFileName());
+  properties.put("source.hash",HashUtil.createHash(source.getText()));
+  PersistentCache cache=cacheRepository.getGlobalCache(String.format("scripts/%s",source.getClassName()),properties);
+  File classesDir;
   if (transformer != null) {
-    scriptCacheDir=new File(scriptCacheDir,transformer.getClass().getSimpleName());
+    classesDir=new File(cache.getBaseDir(),transformer.getClass().getSimpleName());
   }
  else {
-    scriptCacheDir=new File(scriptCacheDir,"NoTransformer");
+    classesDir=new File(cache.getBaseDir(),"NoTransformer");
   }
-  if (cacheUsage == CacheUsage.ON) {
-    T cachedScript=scriptCompilationHandler.loadFromCache(source,classLoader,scriptCacheDir,scriptBaseClass);
-    if (cachedScript != null) {
-      return cachedScript;
-    }
+  if (!cache.isValid() || !classesDir.exists()) {
+    scriptCompilationHandler.compileScriptToDir(source,classLoader,classesDir,transformer,scriptBaseClass);
+    cache.update();
   }
-  scriptCompilationHandler.writeToCache(source,classLoader,scriptCacheDir,transformer,scriptBaseClass);
-  return scriptCompilationHandler.loadFromCache(source,classLoader,scriptCacheDir,scriptBaseClass);
+  return scriptCompilationHandler.loadScriptFromDir(source,classLoader,classesDir,scriptBaseClass);
 }
