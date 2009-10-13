@@ -1,0 +1,24 @@
+{
+  TaskExecution taskInfo=new EmptyTaskInfo();
+  List<String> outOfDateMessages=new ArrayList<String>();
+  for (  File outputFile : thisExecution.outputFiles.keySet()) {
+    if (!outputFile.exists()) {
+      outputs.put(outputFile,new OutputGenerators());
+      outOfDateMessages.add(String.format("%s does not exist.",outputFile));
+      continue;
+    }
+    OutputGenerators generators=outputs.get(outputFile);
+    if (generators == null) {
+      outputs.put(outputFile,new OutputGenerators());
+      outOfDateMessages.add(String.format("No history is available for %s.",outputFile));
+      continue;
+    }
+    TaskInfo lastExecution=generators.get(key);
+    if (lastExecution == null) {
+      outOfDateMessages.add(String.format("Task did not produce %s.",outputFile));
+      continue;
+    }
+    taskInfo=lastExecution;
+  }
+  return outOfDateMessages.isEmpty() ? taskInfo : new EmptyTaskInfo(outOfDateMessages);
+}

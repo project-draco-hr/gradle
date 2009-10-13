@@ -2,19 +2,10 @@
   ListenerManager listenerManager=new DefaultListenerManager();
   loggingConfigurer.initialize(listenerManager);
   loggingConfigurer.configure(startParameter.getLogLevel());
-  ImportsReader importsReader=new ImportsReader(startParameter.getDefaultImportsFile());
   ISettingsFinder settingsFinder=new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy())));
-  Map<String,ModuleDescriptor> clientModuleRegistry=new HashMap<String,ModuleDescriptor>();
-  ExcludeRuleConverter excludeRuleConverter=new DefaultExcludeRuleConverter();
-  ModuleDescriptorConverter moduleDescriptorConverter=new DefaultModuleDescriptorConverter(new DefaultModuleDescriptorFactory(),new DefaultConfigurationsToModuleDescriptorConverter(),new DefaultDependenciesToModuleDescriptorConverter(new DefaultDependencyDescriptorFactory(excludeRuleConverter,new DefaultClientModuleDescriptorFactory(),clientModuleRegistry),excludeRuleConverter),new DefaultArtifactsToModuleDescriptorConverter());
-  ConfigurationContainerFactory configurationContainerFactory=new DefaultConfigurationContainerFactory(clientModuleRegistry,new DefaultSettingsConverter(),moduleDescriptorConverter,new DefaultIvyFactory(),new SelfResolvingDependencyResolver(new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),new DefaultPublishOptionsFactory()));
-  DependencyFactory dependencyFactory=new DefaultDependencyFactory(WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),new SelfResolvingDependencyFactory()),new DefaultClientModuleFactory(),new DefaultProjectDependencyFactory(startParameter.getProjectDependenciesBuildInstruction()));
-  ResolverFactory resolverFactory=new DefaultResolverFactory();
-  ScriptCompilerFactory scriptCompilerFactory=new DefaultScriptCompilerFactory(new DefaultScriptCompilationHandler(),startParameter.getCacheUsage(),new DefaultScriptRunnerFactory(new DefaultScriptMetaData()),new DefaultCacheRepository(startParameter.getGradleUserHomeDir(),startParameter.getCacheUsage()));
-  DefaultProjectEvaluator projectEvaluator=new DefaultProjectEvaluator(new BuildScriptProcessor(importsReader,scriptCompilerFactory));
-  ClassGenerator classGenerator=new AsmBackedClassGenerator();
-  ServiceRegistryFactory serviceRegistryFactory=new DefaultServiceRegistryFactory(new DefaultRepositoryHandlerFactory(resolverFactory,classGenerator),configurationContainerFactory,dependencyFactory,projectEvaluator,classGenerator,moduleDescriptorConverter,startParameter);
-  InitScriptHandler initScriptHandler=new InitScriptHandler(new UserHomeInitScriptFinder(new DefaultInitScriptFinder()),new DefaultInitScriptProcessor(scriptCompilerFactory,importsReader));
+  ServiceRegistryFactory serviceRegistryFactory=new DefaultServiceRegistryFactory(startParameter);
+  ScriptCompilerFactory scriptCompilerFactory=serviceRegistryFactory.get(ScriptCompilerFactory.class);
+  InitScriptHandler initScriptHandler=new InitScriptHandler(new UserHomeInitScriptFinder(new DefaultInitScriptFinder()),new DefaultInitScriptProcessor(scriptCompilerFactory,serviceRegistryFactory.get(ImportsReader.class)));
   DefaultGradle gradle=new DefaultGradle(startParameter,serviceRegistryFactory,listenerManager);
-  return new GradleLauncher(gradle,initScriptHandler,new SettingsHandler(settingsFinder,new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(scriptCompilerFactory,importsReader,new SettingsFactory(new DefaultProjectDescriptorRegistry()))),new BuildSourceBuilder(new DefaultGradleLauncherFactory(loggingConfigurer,commandLine2StartParameterConverter),new DefaultCacheInvalidationStrategy())),new DefaultGradlePropertiesLoader(),new BuildLoader(new ProjectFactory(startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver()),loggingConfigurer,listenerManager);
+  return new GradleLauncher(gradle,initScriptHandler,new SettingsHandler(settingsFinder,new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(scriptCompilerFactory,serviceRegistryFactory.get(ImportsReader.class),new SettingsFactory(new DefaultProjectDescriptorRegistry()))),new BuildSourceBuilder(new DefaultGradleLauncherFactory(loggingConfigurer,commandLine2StartParameterConverter),new DefaultCacheInvalidationStrategy())),new DefaultGradlePropertiesLoader(),new BuildLoader(new ProjectFactory(startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver()),loggingConfigurer,listenerManager);
 }

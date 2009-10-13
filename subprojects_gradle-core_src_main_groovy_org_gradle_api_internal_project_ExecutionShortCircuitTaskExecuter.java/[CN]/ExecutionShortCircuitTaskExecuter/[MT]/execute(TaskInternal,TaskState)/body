@@ -1,0 +1,13 @@
+{
+  TaskArtifactState taskArtifactState=repository.getStateFor(task);
+  if (taskArtifactState.isUpToDate()) {
+    logger.lifecycle("{} {}",task.getPath(),upToDateResult.getSkipMessage());
+    return upToDateResult;
+  }
+  taskArtifactState.invalidate();
+  TaskExecutionResult executionResult=executer.execute(task,state);
+  if (executionResult.getFailure() == null) {
+    taskArtifactState.update();
+  }
+  return executionResult;
+}

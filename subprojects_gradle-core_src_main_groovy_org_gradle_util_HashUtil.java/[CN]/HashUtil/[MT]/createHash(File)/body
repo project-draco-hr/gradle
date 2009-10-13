@@ -1,0 +1,29 @@
+{
+  MessageDigest messageDigest;
+  try {
+    messageDigest=MessageDigest.getInstance("MD5");
+  }
+ catch (  NoSuchAlgorithmException e) {
+    throw new RuntimeException(e);
+  }
+  try {
+    byte[] buffer=new byte[4096];
+    InputStream instr=new FileInputStream(file);
+    try {
+      while (true) {
+        int nread=instr.read(buffer);
+        if (nread < 0) {
+          break;
+        }
+        messageDigest.update(buffer,0,nread);
+      }
+    }
+  finally {
+      instr.close();
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+  return new BigInteger(1,messageDigest.digest()).toString(16);
+}

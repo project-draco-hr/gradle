@@ -1,0 +1,18 @@
+{
+  context.checking(new Expectations(){
+{
+      one(repository).getStateFor(task);
+      will(returnValue(taskArtifactState));
+      one(taskArtifactState).isUpToDate();
+      will(returnValue(true));
+      allowing(task).getPath();
+      will(returnValue(":task"));
+    }
+  }
+);
+  TaskExecutionResult result=executer.execute(task,taskState);
+  assertThat(result,notNullValue());
+  assertThat(result.getSkipMessage(),equalTo("UP-TO-DATE"));
+  assertThat(result.getFailure(),nullValue());
+  result.rethrowFailure();
+}

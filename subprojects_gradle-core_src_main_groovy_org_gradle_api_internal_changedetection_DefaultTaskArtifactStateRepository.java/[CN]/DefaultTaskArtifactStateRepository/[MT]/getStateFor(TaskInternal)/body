@@ -1,0 +1,46 @@
+{
+  if (outputs == null) {
+    loadTasks(task);
+  }
+  final TaskKey key=new TaskKey(task);
+  final TaskInfo thisExecution=getThisExecution(task);
+  final TaskExecution lastExecution=getLastExecution(key,thisExecution);
+  return new TaskArtifactState(){
+    public boolean isUpToDate(){
+      List<String> messages=thisExecution.isSameAs(lastExecution);
+      if (messages == null || messages.isEmpty()) {
+        logger.info("Skipping {} as it is up-to-date.",task);
+        return true;
+      }
+      if (logger.isInfoEnabled()) {
+        Formatter formatter=new Formatter();
+        formatter.format("Executing %s due to:",task);
+        for (        String message : messages) {
+          formatter.format("%n%s",message);
+        }
+        logger.info(formatter.toString());
+      }
+      return false;
+    }
+    public void invalidate(){
+      for (      File file : thisExecution.outputFiles.keySet()) {
+        OutputGenerators generators=outputs.get(file);
+        generators.remove(key);
+      }
+    }
+    public void update(){
+      thisExecution.snapshotOutputFiles();
+      for (      Map.Entry<File,OutputFileInfo> entry : thisExecution.outputFiles.entrySet()) {
+        OutputGenerators generators=outputs.get(entry.getKey());
+        if (entry.getValue().isFile) {
+          generators.replace(key,thisExecution);
+        }
+ else {
+          generators.add(key,thisExecution);
+        }
+      }
+      save();
+    }
+  }
+;
+}

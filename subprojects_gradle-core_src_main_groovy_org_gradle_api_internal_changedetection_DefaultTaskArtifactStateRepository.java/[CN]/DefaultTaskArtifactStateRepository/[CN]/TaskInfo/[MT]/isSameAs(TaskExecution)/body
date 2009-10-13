@@ -1,0 +1,32 @@
+{
+  if (last instanceof EmptyTaskInfo) {
+    EmptyTaskInfo emptyTaskInfo=(EmptyTaskInfo)last;
+    return emptyTaskInfo.outOfDateMessages;
+  }
+  if (inputFiles.isEmpty()) {
+    return Arrays.asList("Task does not accept any input files.");
+  }
+  TaskInfo lastExecution=(TaskInfo)last;
+  if (!outputFiles.keySet().equals(lastExecution.outputFiles.keySet())) {
+    return Arrays.asList("The set of output files has changed.");
+  }
+  for (  Map.Entry<File,OutputFileInfo> entry : lastExecution.outputFiles.entrySet()) {
+    File file=entry.getKey();
+    OutputFileInfo lastOutputFile=entry.getValue();
+    if (!lastOutputFile.isUpToDate(file)) {
+      return Arrays.asList(String.format("Output file %s has changed.",file));
+    }
+  }
+  if (!inputFiles.keySet().equals(lastExecution.inputFiles.keySet())) {
+    return Arrays.asList("The set of input files has changed");
+  }
+  for (  Map.Entry<File,InputFileInfo> entry : inputFiles.entrySet()) {
+    File file=entry.getKey();
+    InputFileInfo inputFile=entry.getValue();
+    InputFileInfo lastInputFile=lastExecution.inputFiles.get(file);
+    if (!inputFile.isUpToDate(lastInputFile)) {
+      return Arrays.asList(String.format("Input file %s has changed.",file));
+    }
+  }
+  return null;
+}
