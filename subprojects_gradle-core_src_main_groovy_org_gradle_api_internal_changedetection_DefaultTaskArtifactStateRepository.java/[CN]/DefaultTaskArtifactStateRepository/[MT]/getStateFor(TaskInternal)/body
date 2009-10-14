@@ -1,5 +1,5 @@
 {
-  if (outputs == null) {
+  if (cache == null) {
     loadTasks(task);
   }
   final TaskKey key=new TaskKey(task);
@@ -24,22 +24,23 @@
     }
     public void invalidate(){
       for (      File file : thisExecution.outputFiles.keySet()) {
-        OutputGenerators generators=outputs.get(file);
+        OutputGenerators generators=cache.get(file);
         generators.remove(key);
+        cache.put(file,generators);
       }
     }
     public void update(){
       thisExecution.snapshotOutputFiles();
       for (      Map.Entry<File,OutputFileInfo> entry : thisExecution.outputFiles.entrySet()) {
-        OutputGenerators generators=outputs.get(entry.getKey());
+        OutputGenerators generators=cache.get(entry.getKey());
         if (entry.getValue().isFile) {
           generators.replace(key,thisExecution);
         }
  else {
           generators.add(key,thisExecution);
         }
+        cache.put(entry.getKey(),generators);
       }
-      save();
     }
   }
 ;
