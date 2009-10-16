@@ -11,18 +11,22 @@
       will(returnValue(mavenTemplatePomMock));
       allowing(publishFilterMock).accept(expectedArtifact,expectedFile);
       will(returnValue(true));
-      allowing(artifactPomFactoryMock).createArtifactPom(mavenTemplatePomMock,expectedArtifact,expectedFile);
+      allowing(artifactPomFactoryMock).createArtifactPom(mavenTemplatePomMock);
       will(returnValue(artifactPomMock));
+      one(artifactPomMock).addArtifact(expectedArtifact,expectedFile);
       allowing(artifactPomMock).getPom();
       will(returnValue(mavenPomMock));
       allowing(artifactPomMock).getArtifactFile();
       will(returnValue(expectedFile));
+      allowing(artifactPomMock).getClassifiers();
+      will(returnValue(new HashSet<ClassifierArtifact>()));
       one(pomFileWriterMock).write(with(same(mavenPomMock)),with(same(testConfigurations)),with(equal(expectedPomFile)));
     }
   }
 );
   artifactPomContainer.addArtifact(expectedArtifact,expectedFile);
-  Map<File,File> files=artifactPomContainer.createDeployableUnits(testConfigurations);
-  assertEquals(1,files.size());
-  assertEquals(expectedFile,files.get(expectedPomFile));
+  Set<DeployableFilesInfo> deployableFilesInfos=artifactPomContainer.createDeployableFilesInfos(testConfigurations);
+  assertEquals(1,deployableFilesInfos.size());
+  assertEquals(expectedFile,deployableFilesInfos.iterator().next().getArtifactFile());
+  assertEquals(expectedPomFile,deployableFilesInfos.iterator().next().getPomFile());
 }

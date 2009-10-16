@@ -1,0 +1,17 @@
+{
+  context.checking(new Expectations(){
+{
+      one(getInstallDeployTask()).setProject(with(any(Project.class)));
+      for (      DeployableFilesInfo deployableFilesInfo : deployableFilesInfos) {
+        one(getInstallDeployTask()).setFile(deployableFilesInfo.getArtifactFile());
+        one(getInstallDeployTask()).addPom(with(pomMatcher(deployableFilesInfo.getPomFile(),getInstallDeployTask().getProject())));
+        one(getInstallDeployTask()).execute();
+      }
+    }
+  }
+);
+  getMavenResolver().commitPublishTransaction();
+  assertThat(attachedArtifact.getFile(),equalTo(classifierArtifact.getFile()));
+  assertThat(attachedArtifact.getType(),equalTo(classifierArtifact.getType()));
+  assertThat(attachedArtifact.getClassifier(),equalTo(classifierArtifact.getClassifier()));
+}

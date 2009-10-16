@@ -1,23 +1,23 @@
 {
-  final HashMap<File,File> testDeployableUnits=new HashMap<File,File>(){
-{
-      put(new File("pom1.xml"),new File("artifact1.jar"));
-      put(new File("pom2.xml"),new File("artifact2.jar"));
-    }
-  }
-;
+  ClassifierArtifact classifierArtifact=new ClassifierArtifact("someClassifier","someType",new File("someClassifierFile"));
+  final Set<DeployableFilesInfo> testDeployableFilesInfos=WrapUtil.toSet(new DeployableFilesInfo(new File("pom1.xml"),new File("artifact1.jar"),Collections.<ClassifierArtifact>emptySet()),new DeployableFilesInfo(new File("pom2.xml"),new File("artifact2.jar"),WrapUtil.toSet(classifierArtifact)));
+  final AttachedArtifact attachedArtifact=new AttachedArtifact();
   context.checking(new Expectations(){
 {
       allowing((CustomInstallDeployTaskSupport)getInstallDeployTask()).getSettings();
       will(returnValue(mavenSettingsMock));
+      allowing((CustomInstallDeployTaskSupport)getInstallDeployTask()).getProject();
+      will(returnValue(AntUtil.createProject()));
+      allowing((CustomInstallDeployTaskSupport)getInstallDeployTask()).createAttach();
+      will(returnValue(attachedArtifact));
       one(artifactPomContainerMock).addArtifact(TEST_ARTIFACT,TEST_JAR_FILE);
-      allowing(artifactPomContainerMock).createDeployableUnits(testConfigurations);
-      will(returnValue(testDeployableUnits));
+      allowing(artifactPomContainerMock).createDeployableFilesInfos(testConfigurations);
+      will(returnValue(testDeployableFilesInfos));
     }
   }
 );
   getMavenResolver().publish(TEST_IVY_ARTIFACT,TEST_IVY_FILE,true);
   getMavenResolver().publish(TEST_ARTIFACT,TEST_JAR_FILE,true);
-  checkTransaction(testDeployableUnits);
+  checkTransaction(testDeployableFilesInfos,attachedArtifact,classifierArtifact);
   assertSame(mavenSettingsMock,getMavenResolver().getSettings());
 }
