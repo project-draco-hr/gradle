@@ -1,0 +1,16 @@
+{
+  MetaMethod setter=property.getSetter();
+  Type paramType=Type.getType(setter.getParameterTypes()[0].getTheClass());
+  String methodDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{paramType});
+  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,setter.getName(),methodDescriptor,null,new String[0]);
+  methodVisitor.visitCode();
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,1);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),setter.getName(),methodDescriptor);
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitLdcInsn(true);
+  methodVisitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),String.format("%sSet",property.getName()),Type.BOOLEAN_TYPE.getDescriptor());
+  methodVisitor.visitInsn(Opcodes.RETURN);
+  methodVisitor.visitMaxs(0,0);
+  methodVisitor.visitEnd();
+}

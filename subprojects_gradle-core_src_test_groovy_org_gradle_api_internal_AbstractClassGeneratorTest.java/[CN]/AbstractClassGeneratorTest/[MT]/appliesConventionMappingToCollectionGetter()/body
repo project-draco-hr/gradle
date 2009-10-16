@@ -1,0 +1,20 @@
+{
+  Class<? extends CollectionBean> generatedClass=generator.generate(CollectionBean.class);
+  CollectionBean bean=generatedClass.newInstance();
+  IConventionAware conventionAware=(IConventionAware)bean;
+  final List<String> conventionValue=toList("value");
+  assertThat(bean.getProperty(),isEmpty());
+  conventionAware.getConventionMapping().map("property",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return conventionValue;
+    }
+  }
+);
+  assertThat(bean.getProperty(),sameInstance(conventionValue));
+  bean.setProperty(toList("other"));
+  assertThat(bean.getProperty(),equalTo(toList("other")));
+  bean.setProperty(Collections.EMPTY_LIST);
+  assertThat(bean.getProperty(),equalTo(Collections.EMPTY_LIST));
+  bean.setProperty(null);
+  assertThat(bean.getProperty(),nullValue());
+}

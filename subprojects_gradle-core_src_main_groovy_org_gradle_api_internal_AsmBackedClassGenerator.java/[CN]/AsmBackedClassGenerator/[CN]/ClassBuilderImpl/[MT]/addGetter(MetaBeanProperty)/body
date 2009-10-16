@@ -1,16 +1,21 @@
 {
-  Type returnType=Type.getType(property.getGetter().getReturnType());
+  MetaMethod getter=property.getGetter();
+  String flagName=String.format("%sSet",property.getName());
+  visitor.visitField(Opcodes.ACC_PRIVATE,flagName,Type.BOOLEAN_TYPE.getDescriptor(),null,null);
+  Type returnType=Type.getType(getter.getReturnType());
   String methodDescriptor=Type.getMethodDescriptor(returnType,new Type[0]);
-  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,property.getGetter().getName(),methodDescriptor,null,new String[0]);
+  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,getter.getName(),methodDescriptor,null,new String[0]);
   methodVisitor.visitCode();
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
   methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionAwareType.getInternalName(),"getConventionMapping",Type.getMethodDescriptor(conventionMappingType,new Type[0]));
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),property.getGetter().getName(),methodDescriptor);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),getter.getName(),methodDescriptor);
   methodVisitor.visitLdcInsn(property.getName());
-  String getConventionValueDesc=Type.getMethodDescriptor(ConventionMapping.class.getMethod("getConventionValue",Object.class,String.class));
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),flagName,Type.BOOLEAN_TYPE.getDescriptor());
+  String getConventionValueDesc=Type.getMethodDescriptor(ConventionMapping.class.getMethod("getConventionValue",Object.class,String.class,Boolean.TYPE));
   methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionMappingType.getInternalName(),"getConventionValue",getConventionValueDesc);
-  methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,property.getGetter().getReturnType().isArray() ? "[" + returnType.getElementType().getDescriptor() : returnType.getInternalName());
+  methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,getter.getReturnType().isArray() ? "[" + returnType.getElementType().getDescriptor() : returnType.getInternalName());
   methodVisitor.visitInsn(Opcodes.ARETURN);
   methodVisitor.visitMaxs(0,0);
   methodVisitor.visitEnd();
