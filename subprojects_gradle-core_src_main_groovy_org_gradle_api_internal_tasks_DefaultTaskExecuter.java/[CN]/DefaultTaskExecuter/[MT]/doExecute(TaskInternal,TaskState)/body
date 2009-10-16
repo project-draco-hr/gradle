@@ -1,9 +1,7 @@
 {
   if (!task.getEnabled()) {
     logger.info("Skipping execution as task is disabled.");
-    String skipMessage="SKIPPED";
-    logger.lifecycle("{} {}",task.getPath(),skipMessage);
-    return new TaskExecutionResultImpl(task,null,skipMessage);
+    return new TaskExecutionResultImpl(task,null,"SKIPPED");
   }
   if (!startParameter.isNoOpt()) {
     boolean skip;
@@ -15,12 +13,11 @@
       return new TaskExecutionResultImpl(task,failure,null);
     }
     if (skip) {
-      String skipMessage="SKIPPED as onlyIf is false";
-      logger.lifecycle("{} {}",task.getPath(),skipMessage);
-      return new TaskExecutionResultImpl(task,null,skipMessage);
+      logger.info("Skipping execution as task onlyIf is false.");
+      return new TaskExecutionResultImpl(task,null,"SKIPPED as onlyIf is false");
     }
   }
-  logger.lifecycle(task.getPath());
+  listener.beforeActions(task);
   state.setExecuting(true);
   try {
     GradleException failure=executeActions(task,state);
@@ -28,5 +25,6 @@
   }
   finally {
     state.setExecuting(false);
+    listener.afterActions(task);
   }
 }
