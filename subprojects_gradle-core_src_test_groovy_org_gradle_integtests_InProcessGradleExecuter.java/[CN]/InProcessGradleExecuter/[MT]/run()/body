@@ -1,12 +1,8 @@
 {
-  if (isQuiet()) {
-    parameter.setLogLevel(LogLevel.QUIET);
-  }
-  GradleLauncher gradleLauncher=GradleLauncher.newInstance(parameter);
-  gradleLauncher.addListener(new BuildListenerImpl());
-  gradleLauncher.addStandardOutputListener(outputListener);
-  gradleLauncher.addStandardErrorListener(errorListener);
-  BuildResult result=gradleLauncher.run();
+  OutputListenerImpl outputListener=new OutputListenerImpl();
+  OutputListenerImpl errorListener=new OutputListenerImpl();
+  BuildListenerImpl buildListener=new BuildListenerImpl();
+  BuildResult result=doRun(outputListener,errorListener,buildListener);
   result.rethrowFailure();
-  return new InProcessExecutionResult(executedTasks,skippedTasks,outputListener.toString(),errorListener.toString());
+  return new InProcessExecutionResult(buildListener.executedTasks,buildListener.skippedTasks,outputListener.toString(),errorListener.toString());
 }
