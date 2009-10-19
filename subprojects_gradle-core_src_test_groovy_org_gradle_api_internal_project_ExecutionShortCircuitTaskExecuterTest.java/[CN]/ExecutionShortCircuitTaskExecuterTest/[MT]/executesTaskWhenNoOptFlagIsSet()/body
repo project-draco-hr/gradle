@@ -1,0 +1,17 @@
+{
+  context.checking(new Expectations(){
+{
+      one(repository).getStateFor(task);
+      will(returnValue(taskArtifactState));
+      one(taskArtifactState).invalidate();
+      one(delegate).execute(task,taskState);
+      will(returnValue(result));
+      allowing(result).getFailure();
+      will(returnValue(null));
+      one(taskArtifactState).update();
+    }
+  }
+);
+  startParameter.setNoOpt(true);
+  assertThat(executer.execute(task,taskState),sameInstance(result));
+}

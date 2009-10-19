@@ -1,10 +1,12 @@
 {
-  logger.debug("Starting to execute {}",task);
+  listener.beforeActions(task);
+  state.setExecuting(true);
   try {
-    return doExecute(task,state);
+    GradleException failure=executeActions(task,state);
+    return new DefaultTaskExecutionResult(task,failure,null);
   }
   finally {
-    state.setExecuted(true);
-    logger.debug("Finished executing {}",task);
+    state.setExecuting(false);
+    listener.afterActions(task);
   }
 }

@@ -1,0 +1,16 @@
+{
+  final TaskExecutionResult result=context.mock(TaskExecutionResult.class);
+  context.checking(new Expectations(){
+{
+      allowing(task).getEnabled();
+      will(returnValue(true));
+      allowing(spec).isSatisfiedBy(task);
+      will(returnValue(true));
+      one(delegate).execute(task,state);
+      will(returnValue(result));
+    }
+  }
+);
+  assertThat(executer.execute(task,state),sameInstance(result));
+  assertTrue(state.isExecuted());
+}

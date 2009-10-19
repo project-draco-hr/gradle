@@ -1,0 +1,19 @@
+{
+  if (!task.getEnabled()) {
+    logger.info("Skipping execution as task is disabled.");
+    return new DefaultTaskExecutionResult(task,null,"SKIPPED");
+  }
+  boolean skip;
+  try {
+    skip=!task.getOnlyIf().isSatisfiedBy(task);
+  }
+ catch (  Throwable t) {
+    Throwable failure=new GradleScriptException(String.format("Could not evaluate onlyIf predicate for %s.",task),t,((ProjectInternal)task.getProject()).getBuildScriptSource());
+    return new DefaultTaskExecutionResult(task,failure,null);
+  }
+  if (skip) {
+    logger.info("Skipping execution as task onlyIf is false.");
+    return new DefaultTaskExecutionResult(task,null,"SKIPPED as onlyIf is false");
+  }
+  return executer.execute(task,state);
+}
