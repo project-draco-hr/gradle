@@ -1,5 +1,5 @@
 {
-  TaskExecution taskInfo=new EmptyTaskInfo();
+  TaskExecution taskInfo=null;
   List<String> outOfDateMessages=new ArrayList<String>();
   for (  File outputFile : thisExecution.outputFiles.keySet()) {
     OutputGenerators generators=cache.get(outputFile);
@@ -11,12 +11,20 @@
     if (generators.invalidate(outputFile)) {
       cache.put(outputFile,generators);
     }
-    TaskInfo lastExecution=generators.get(key);
+    TaskExecution lastExecution=generators.get(key);
     if (lastExecution == null) {
       outOfDateMessages.add(String.format("Task did not produce %s.",outputFile));
       continue;
     }
-    taskInfo=lastExecution;
+    if (lastExecution instanceof TaskInfo) {
+      taskInfo=lastExecution;
+    }
   }
-  return outOfDateMessages.isEmpty() ? taskInfo : new EmptyTaskInfo(outOfDateMessages);
+  if (!outOfDateMessages.isEmpty()) {
+    return new EmptyTaskInfo(outOfDateMessages);
+  }
+  if (taskInfo == null) {
+    return new EmptyTaskInfo();
+  }
+  return taskInfo;
 }

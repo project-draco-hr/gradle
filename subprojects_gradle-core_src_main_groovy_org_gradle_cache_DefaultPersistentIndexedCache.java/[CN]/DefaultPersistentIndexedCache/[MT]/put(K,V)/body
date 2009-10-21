@@ -1,16 +1,16 @@
 {
+  File stateFile=getStateFile(key);
+  stateFile.getParentFile().mkdirs();
   try {
-    File stateFile=getStateFile(key);
-    stateFile.getParentFile().mkdirs();
-    ObjectOutputStream outStr=new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(stateFile)));
+    OutputStream outStr=new BufferedOutputStream(new FileOutputStream(stateFile));
     try {
-      outStr.writeObject(value);
+      serializer.write(outStr,value);
     }
   finally {
       outStr.close();
     }
   }
- catch (  IOException e) {
+ catch (  Exception e) {
     throw new UncheckedIOException(e);
   }
   backingCache.update();

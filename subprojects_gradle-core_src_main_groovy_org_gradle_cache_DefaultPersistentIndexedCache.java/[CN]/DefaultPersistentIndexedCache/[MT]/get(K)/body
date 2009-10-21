@@ -1,18 +1,15 @@
 {
   File stateFile=getStateFile(key);
-  if (!stateFile.exists()) {
-    return null;
-  }
   try {
-    ObjectInputStream inStr=new ObjectInputStream(new BufferedInputStream(new FileInputStream(stateFile)));
+    InputStream inStr=new BufferedInputStream(new FileInputStream(stateFile));
     try {
-      return (V)inStr.readObject();
+      return serializer.read(inStr);
     }
   finally {
       inStr.close();
     }
   }
- catch (  StreamCorruptedException e) {
+ catch (  FileNotFoundException e) {
     return null;
   }
 catch (  Exception e) {
