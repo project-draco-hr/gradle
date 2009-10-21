@@ -1,10 +1,23 @@
 {
-  File file;
-  if (path instanceof File) {
-    file=(File)path;
-  }
+  Object current=path;
+  while (current != null) {
+    if (current instanceof File) {
+      return (File)current;
+    }
+ else     if (current instanceof Closure) {
+      current=((Closure)current).call();
+    }
+ else     if (current instanceof Callable) {
+      try {
+        current=((Callable)current).call();
+      }
+ catch (      Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
  else {
-    file=new File(path.toString());
+      return new File(current.toString());
+    }
   }
-  return file;
+  return null;
 }
