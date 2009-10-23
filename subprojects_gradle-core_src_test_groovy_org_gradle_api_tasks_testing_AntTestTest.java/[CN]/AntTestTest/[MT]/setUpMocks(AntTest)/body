@@ -3,11 +3,18 @@
   test.setTestResultsDir(resultsDir);
   test.setTestReportDir(reportDir);
   test.setClasspath(classpathMock);
-  test.setTestClassReceiver(testClassReceiverMock);
+  test.setTestClassProcessor(testClassProcessorMock);
   test.setTestSrcDirs(Collections.<File>emptyList());
   context.checking(new Expectations(){
 {
-      allowing(testFrameworkInstanceMock).manualTestClass(with(aNonNull(String.class)));
+      one(testFrameworkInstanceMock).getDetector();
+      will(returnValue(testFrameworkDetectorMock));
+      one(testClassScannerFactoryMock).createTestClassScanner(test,testFrameworkDetectorMock,testClassProcessorMock);
+      will(returnValue(testClassScannerMock));
+      one(testClassScannerMock).executeScan();
+      one(testClassProcessorMock).getTestClassNames();
+      will(returnValue(okTestClassNames));
+      one(testFrameworkInstanceMock).execute(getProject(),test,okTestClassNames,new ArrayList<String>());
     }
   }
 );
