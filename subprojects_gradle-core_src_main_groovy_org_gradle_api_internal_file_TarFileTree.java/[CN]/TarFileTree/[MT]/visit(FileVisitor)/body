@@ -1,0 +1,31 @@
+{
+  if (!tarFile.exists()) {
+    return this;
+  }
+  if (!tarFile.isFile()) {
+    throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.",this));
+  }
+  AtomicBoolean stopFlag=new AtomicBoolean();
+  try {
+    FileInputStream inputStream=new FileInputStream(tarFile);
+    try {
+      NoCloseTarInputStream tar=new NoCloseTarInputStream(inputStream);
+      TarEntry entry;
+      while (!stopFlag.get() && (entry=tar.getNextEntry()) != null) {
+        if (entry.isDirectory()) {
+          visitor.visitDir(new DetailsImpl(entry,tar,stopFlag));
+        }
+ else {
+          visitor.visitFile(new DetailsImpl(entry,tar,stopFlag));
+        }
+      }
+    }
+  finally {
+      inputStream.close();
+    }
+  }
+ catch (  Exception e) {
+    throw new GradleException(String.format("Could not expand %s.",this),e);
+  }
+  return this;
+}
