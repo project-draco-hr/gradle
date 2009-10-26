@@ -1,7 +1,13 @@
 {
   ModuleRevisionId moduleRevisionId=ivyNode.getId();
   Set<String> configurations=getConfigurationHierarchy(ivyNode,configuration);
-  DefaultResolvedDependency resolvedDependency=new DefaultResolvedDependency(moduleRevisionId.getOrganisation(),moduleRevisionId.getName(),moduleRevisionId.getRevision(),configuration,configurations,getArtifacts(ivyNode));
+  DefaultResolvedDependency resolvedDependency;
+  if (moduleRevisionId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY) != null) {
+    resolvedDependency=new DefaultResolvedDependency(moduleRevisionId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY),moduleRevisionId.getOrganisation(),moduleRevisionId.getName(),moduleRevisionId.getRevision(),configuration,configurations,getArtifacts(ivyNode));
+  }
+ else {
+    resolvedDependency=new DefaultResolvedDependency(moduleRevisionId.getOrganisation(),moduleRevisionId.getName(),moduleRevisionId.getRevision(),configuration,configurations,getArtifacts(ivyNode));
+  }
   for (  ResolvedArtifact resolvedArtifact : resolvedDependency.getModuleArtifacts()) {
     ((DefaultResolvedArtifact)resolvedArtifact).setResolvedDependency(resolvedDependency);
   }
