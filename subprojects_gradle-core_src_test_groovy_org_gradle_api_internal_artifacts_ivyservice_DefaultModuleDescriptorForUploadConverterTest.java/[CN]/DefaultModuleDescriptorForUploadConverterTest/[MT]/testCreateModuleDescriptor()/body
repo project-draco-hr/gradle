@@ -3,13 +3,13 @@
   sourceModuleDescriptor.addDependency(new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("deporg","depname","depversion"),true));
   String confName="someConf";
   sourceModuleDescriptor.addConfiguration(new Configuration(confName));
-  Map noFilePathExtraAttributes=WrapUtil.toMap("someKey","someValue");
-  sourceModuleDescriptor.addArtifact(confName,new DefaultArtifact(sourceModuleDescriptor.getModuleRevisionId(),new Date(),"someName","someType","someExt",GUtil.addMaps(noFilePathExtraAttributes,WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE,"somePath"))));
+  Map noFileAndProjectPathExtraAttributes=WrapUtil.toMap("someKey","someValue");
+  sourceModuleDescriptor.addArtifact(confName,new DefaultArtifact(sourceModuleDescriptor.getModuleRevisionId(),new Date(),"someName","someType","someExt",GUtil.addMaps(noFileAndProjectPathExtraAttributes,GUtil.map(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE,"someFilePath",DependencyDescriptorFactory.PROJECT_PATH_KEY,"someProjectPath"))));
   ModuleDescriptor convertedModuleDescriptor=new DefaultModuleDescriptorForUploadConverter().createModuleDescriptor(sourceModuleDescriptor);
   assertThat(convertedModuleDescriptor.getModuleRevisionId(),equalTo(sourceModuleDescriptor.getModuleRevisionId()));
   assertThat(convertedModuleDescriptor.getStatus(),equalTo(sourceModuleDescriptor.getStatus()));
   assertThat(convertedModuleDescriptor.getPublicationDate(),equalTo(sourceModuleDescriptor.getPublicationDate()));
   assertThat(convertedModuleDescriptor.getConfigurations(),equalTo(sourceModuleDescriptor.getConfigurations()));
   assertThat(convertedModuleDescriptor.getDependencies(),equalTo(sourceModuleDescriptor.getDependencies()));
-  assertThatArtifactsAreEqualExceptFilePathAttribute(sourceModuleDescriptor.getArtifacts(confName)[0],convertedModuleDescriptor.getArtifacts(confName)[0],noFilePathExtraAttributes);
+  assertThatArtifactsAreEqualExceptFilePathAttribute(sourceModuleDescriptor.getArtifacts(confName)[0],convertedModuleDescriptor.getArtifacts(confName)[0],noFileAndProjectPathExtraAttributes);
 }
