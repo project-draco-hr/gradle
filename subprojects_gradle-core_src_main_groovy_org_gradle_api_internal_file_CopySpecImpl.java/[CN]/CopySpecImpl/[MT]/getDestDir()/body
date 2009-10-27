@@ -1,7 +1,14 @@
 {
-  File result=destDir;
-  if (result == null && parentSpec != null) {
-    result=parentSpec.getDestDir();
+  if (parentSpec == null) {
+    return getRootDir();
   }
-  return result;
+  File rootDir=parentSpec.getRootDir();
+  if (rootDir == null) {
+    return null;
+  }
+  String destPath=getDestPath();
+  if (destPath.equals("/") || destPath.equals(File.separator)) {
+    return rootDir;
+  }
+  return GFileUtils.canonicalise(new File(rootDir,destPath));
 }
