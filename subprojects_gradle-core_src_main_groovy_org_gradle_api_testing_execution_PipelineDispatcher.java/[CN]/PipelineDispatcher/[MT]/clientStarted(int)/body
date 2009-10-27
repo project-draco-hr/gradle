@@ -1,13 +1,12 @@
 {
   runningClientsLock.lock();
   try {
-    final TestServerClientHandle client=clientHandles.get(forkId);
-    if (client != null) {
-      runningClients.add(client);
+    TestServerClientHandle client=clientHandles.get(forkId);
+    if (client == null) {
+      client=clientHandleFactory.createTestServerClientHandle(pipeline,forkId);
+      clientHandles.put(forkId,client);
     }
- else {
-      logger.error("clientStarted called for forkId(" + forkId + ") that is unrelated to test server off pipeline ("+ pipeline.getId()+ ")");
-    }
+    runningClients.add(client);
   }
   finally {
     runningClientsLock.unlock();

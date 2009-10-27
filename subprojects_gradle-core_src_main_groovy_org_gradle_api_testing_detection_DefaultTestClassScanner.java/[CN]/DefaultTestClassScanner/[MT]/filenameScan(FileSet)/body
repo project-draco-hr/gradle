@@ -1,0 +1,17 @@
+{
+  if (includePatterns.isEmpty()) {
+    includePatterns.add("**/*Tests.class");
+    includePatterns.add("**/*Test.class");
+  }
+  if (excludePatterns.isEmpty()) {
+    excludePatterns.add("**/Abstract*.class");
+  }
+  testClassFileSet.include(includePatterns);
+  testClassFileSet.exclude(excludePatterns);
+  testClassFileSet.visit(new ClassFileVisitor(){
+    public void visitClassFile(    FileVisitDetails fileDetails){
+      testClassProcessor.processTestClass(fileDetails.getRelativePath().getPathString().replaceAll("\\.class",""));
+    }
+  }
+);
+}

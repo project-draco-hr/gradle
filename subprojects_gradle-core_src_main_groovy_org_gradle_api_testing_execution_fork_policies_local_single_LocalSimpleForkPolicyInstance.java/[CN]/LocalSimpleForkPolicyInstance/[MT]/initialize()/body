@@ -1,5 +1,12 @@
 {
   final int pipelineId=pipeline.getId();
+  final int amountToStart=((LocalSimpleForkPolicyConfig)pipeline.getConfig().getForkPolicyConfig()).getAmountToStart();
   logger.warn("Setting up test server & fork for pipeline {}",pipelineId);
-  controlServerPort=testServersManager.addAndStartServer(pipeline);
+  final PipelineDispatcher pipelineDispatcher=new PipelineDispatcher(pipeline,new TestServerClientHandleFactory(forkControl));
+  pipeline.setDispatcher(pipelineDispatcher);
+  controlServerPort=testServersManager.addAndStartServer(pipeline,pipelineDispatcher);
+  for (int i=0; i < amountToStart; i++) {
+    final ForkInfo forkInfo=forkControl.requestForkStart(pipeline);
+    forkInfo.addListener(new PipelineDispatcherForkInfoListener(pipeline.getDispatcher()));
+  }
 }
