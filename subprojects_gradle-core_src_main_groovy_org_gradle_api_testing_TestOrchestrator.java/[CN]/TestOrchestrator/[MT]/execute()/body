@@ -10,17 +10,21 @@
   actions.add(new TestOrchestratorAction(){
     public void execute(    TestOrchestratorContext context){
       final PipelinesManager pipelinesManager=context.getPipelinesManager();
+      final ReportsManager reportsManager=context.getReportsManager();
       final TestOrchestrator testOrchestrator=context.getTestOrchestrator();
       final NativeTest testTask=testOrchestrator.getTestTask();
       pipelinesManager.initialize(testTask);
+      reportsManager.initialize(testTask,pipelinesManager);
     }
   }
 );
   actions.add(new TestOrchestratorAction(){
     public void execute(    TestOrchestratorContext context){
       final TestDetectionOrchestrator testDetectionOrchestrator=context.getTestDetectionOrchestrator();
+      final ReportsManager reportsManager=context.getReportsManager();
       testDetectionOrchestrator.startDetection();
-      logger.debug("test - detection - started");
+      reportsManager.startReporting();
+      logger.debug("test - detection & reporting - started");
     }
   }
 );
@@ -55,6 +59,13 @@
     public void execute(    TestOrchestratorContext context){
       final PipelinesManager pipelinesManager=context.getPipelinesManager();
       pipelinesManager.waitForExecutionEnd();
+    }
+  }
+);
+  actions.add(new TestOrchestratorAction(){
+    public void execute(    TestOrchestratorContext context){
+      final ReportsManager reportsManager=context.getReportsManager();
+      reportsManager.waitForReportEnd();
     }
   }
 );

@@ -1,0 +1,31 @@
+{
+  if (TestClassProcessResultReportInfo.class == reportInfo.getClass()) {
+    final TestClassProcessResultReportInfo testClassInfo=(TestClassProcessResultReportInfo)reportInfo;
+    final Pipeline pipeline=testClassInfo.getPipeline();
+    final TestClassProcessResult classResult=testClassInfo.getTestClassProcessResult();
+    final List<TestMethodProcessResult> methodResults=classResult.getMethodResults();
+    long successCount=0;
+    long failureCount=0;
+    long errorCount=0;
+    long skippedCount=0;
+    for (    final TestMethodProcessResult methodResult : methodResults) {
+switch (methodResult.getState()) {
+case SUCCESS:
+        successCount++;
+      break;
+case FAILURE:
+    failureCount++;
+  break;
+case ERROR:
+errorCount++;
+break;
+case SKIPPED:
+skippedCount++;
+break;
+}
+}
+if (failureCount > 0 || errorCount > 0) {
+logger.warn("Test {} on pipeline failed: success#{}, failure#{}, error#{}, skipped#{}",new Object[]{classResult.getTestClassRunInfo().getTestClassName(),pipeline.getConfig().getName(),successCount,failureCount,errorCount,skippedCount});
+}
+}
+}

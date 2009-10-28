@@ -1,0 +1,21 @@
+{
+  final Map<String,ReportConfig> reportConfigs=testTask.getReportConfigs();
+  for (  final ReportConfig reportConfig : reportConfigs.values()) {
+    final ReportPolicyConfig reportPolicyConfig=reportConfig.getPolicyConfig();
+    final ReportPolicy reportPolicy=ReportPolicyRegister.getReportPolicy(reportPolicyConfig.getPolicyName());
+    final ReportPolicyInstance reportPolicyInstance=reportPolicy.createReportPolicyInstance();
+    final Report report=new Report(reportConfig,reportPolicyInstance);
+    reports.put(reportConfig.getName(),report);
+    notStopped.add(report);
+    reportPolicyInstance.initialize(report);
+  }
+  final List<Pipeline> pipelines=pipelinesManager.getPipelines();
+  for (  final Pipeline pipeline : pipelines) {
+    final List<ReportConfig> pipelineReportConfigs=pipeline.getConfig().getReports();
+    for (    final ReportConfig pipelineReportConfig : pipelineReportConfigs) {
+      final Report pipelineReport=reports.get(pipelineReportConfig.getName());
+      if (pipelineReport != null)       pipeline.addReport(pipelineReport);
+    }
+    pipeline.addListener(new ReportStopPipelineListener(this));
+  }
+}
