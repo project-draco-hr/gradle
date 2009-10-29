@@ -1,0 +1,18 @@
+{
+  final ModuleRevisionId someModuleRevisionId=ModuleRevisionId.newInstance("a","b","c");
+  final ProjectDependency projectDependency=createProjectDependency(TEST_DEP_CONF);
+  setUpDependency(projectDependency);
+  context.checking(new Expectations(){
+{
+      allowing(moduleRevisionIdStrategyStub).createModuleRevisionId(projectDependency);
+      will(returnValue(someModuleRevisionId));
+    }
+  }
+);
+  projectDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF,moduleDescriptor,projectDependency);
+  DefaultDependencyDescriptor dependencyDescriptor=(DefaultDependencyDescriptor)moduleDescriptor.getDependencies()[0];
+  assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);
+  assertTrue(dependencyDescriptor.isChanging());
+  assertFalse(dependencyDescriptor.isForce());
+  assertEquals(someModuleRevisionId,dependencyDescriptor.getDependencyRevisionId());
+}

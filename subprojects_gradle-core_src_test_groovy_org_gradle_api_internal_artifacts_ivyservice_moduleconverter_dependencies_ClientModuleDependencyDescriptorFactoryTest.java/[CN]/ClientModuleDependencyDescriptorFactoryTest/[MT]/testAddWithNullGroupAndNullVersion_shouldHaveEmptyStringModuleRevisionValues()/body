@@ -1,0 +1,13 @@
+{
+  ClientModule clientModule=new DefaultClientModule(null,"gradle-core",null,TEST_DEP_CONF);
+  final ModuleRevisionId testModuleRevisionId=IvyUtil.createModuleRevisionId(clientModule,WrapUtil.toMap(ClientModule.CLIENT_MODULE_KEY,clientModule.getId()));
+  context.checking(new Expectations(){
+{
+      allowing(moduleDescriptorFactoryForClientModule).createModuleDescriptor(testModuleRevisionId,WrapUtil.<ModuleDependency>toSet());
+    }
+  }
+);
+  clientModuleDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF,moduleDescriptor,clientModule);
+  DefaultDependencyDescriptor dependencyDescriptor=(DefaultDependencyDescriptor)moduleDescriptor.getDependencies()[0];
+  assertThat(dependencyDescriptor.getDependencyRevisionId(),equalTo(testModuleRevisionId));
+}

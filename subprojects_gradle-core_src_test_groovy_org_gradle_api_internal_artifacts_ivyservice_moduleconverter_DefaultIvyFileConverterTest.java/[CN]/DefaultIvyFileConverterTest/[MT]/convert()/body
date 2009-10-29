@@ -1,0 +1,28 @@
+{
+  final Set<Configuration> configurationsDummy=WrapUtil.toSet(context.mock(Configuration.class,"conf1"),context.mock(Configuration.class,"conf2"));
+  final Module moduleDummy=context.mock(Module.class);
+  final IvySettings ivySettingsDummy=new IvySettings();
+  final DefaultModuleDescriptor moduleDescriptorDummy=context.mock(DefaultModuleDescriptor.class);
+  final ModuleDescriptorFactory moduleDescriptorFactoryStub=context.mock(ModuleDescriptorFactory.class);
+  final ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverterMock=context.mock(ConfigurationsToModuleDescriptorConverter.class);
+  final DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverterMock=context.mock(DependenciesToModuleDescriptorConverter.class);
+  final ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter=context.mock(ArtifactsToModuleDescriptorConverter.class);
+  DefaultIvyFileConverter ivyFileConverter=new DefaultIvyFileConverter(moduleDescriptorFactoryStub,configurationsToModuleDescriptorConverterMock,dependenciesToModuleDescriptorConverterMock,artifactsToModuleDescriptorConverter);
+  ivyFileConverter.addIvyTransformer(createTransformerMock(moduleDescriptorDummy));
+  context.checking(new Expectations(){
+{
+      for (      Configuration configuration : configurationsDummy) {
+        allowing(configuration).getAll();
+        will(returnValue(configurationsDummy));
+      }
+      allowing(moduleDescriptorFactoryStub).createModuleDescriptor(moduleDummy);
+      will(returnValue(moduleDescriptorDummy));
+      one(configurationsToModuleDescriptorConverterMock).addConfigurations(moduleDescriptorDummy,configurationsDummy);
+      one(dependenciesToModuleDescriptorConverterMock).addDependencyDescriptors(moduleDescriptorDummy,configurationsDummy,ivySettingsDummy);
+      one(artifactsToModuleDescriptorConverter).addArtifacts(moduleDescriptorDummy,configurationsDummy);
+    }
+  }
+);
+  DefaultModuleDescriptor actualModuleDescriptor=(DefaultModuleDescriptor)ivyFileConverter.convert(configurationsDummy,moduleDummy,ivySettingsDummy);
+  assertThat(actualModuleDescriptor,equalTo(moduleDescriptorDummy));
+}

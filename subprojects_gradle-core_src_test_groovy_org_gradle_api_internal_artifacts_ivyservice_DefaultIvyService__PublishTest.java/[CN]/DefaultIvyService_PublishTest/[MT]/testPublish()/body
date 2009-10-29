@@ -1,17 +1,21 @@
 {
+  final IvySettings ivySettingsDummy=new IvySettings();
   final Set<Configuration> configurations=createConfigurations();
-  final PublishInstruction publishInstructionDummy=new PublishInstruction();
+  final File someDescriptorDestination=new File("somePath");
   final List<DependencyResolver> publishResolversDummy=createPublishResolversDummy();
-  Module moduleDummy=context.mock(Module.class);
+  final Module moduleDummy=context.mock(Module.class);
   File cacheParentDirDummy=createCacheParentDirDummy();
   final DefaultIvyService ivyService=createIvyService();
-  setUpForPublish(configurations,publishInstructionDummy,publishResolversDummy,moduleDummy,cacheParentDirDummy,ivyService);
+  setUpForPublish(configurations,publishResolversDummy,moduleDummy,cacheParentDirDummy,ivyService,ivySettingsDummy);
   final Set<String> expectedConfigurations=Configurations.getNames(configurations,true);
   context.checking(new Expectations(){
 {
-      one(ivyService.getDependencyPublisher()).publish(expectedConfigurations,publishInstructionDummy,publishResolversDummy,moduleDescriptorDummy,publishEngineDummy);
+      one(ivyService.getIvyFileConverter()).convert(configurations,moduleDummy,ivySettingsDummy);
+      will(returnValue(moduleDescriptorMock));
+      one(moduleDescriptorMock).toIvyFile(someDescriptorDestination);
+      one(ivyService.getDependencyPublisher()).publish(expectedConfigurations,publishResolversDummy,moduleDescriptorMock,someDescriptorDestination,publishEngineDummy);
     }
   }
 );
-  ivyService.publish(configurations,publishInstructionDummy,publishResolversDummy);
+  ivyService.publish(configurations,someDescriptorDestination,publishResolversDummy);
 }
