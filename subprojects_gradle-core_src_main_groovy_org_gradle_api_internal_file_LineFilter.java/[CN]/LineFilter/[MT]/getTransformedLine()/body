@@ -1,9 +1,29 @@
 {
-  String originalLine=bufferedIn.readLine();
-  if (originalLine != null) {
-    StringBuilder result=new StringBuilder((String)closure.call(originalLine));
-    result.append(lineTerminator);
-    return result.toString();
+  StringBuilder line=new StringBuilder();
+  boolean eol=false;
+  int ch;
+  while (!eol && (ch=bufferedIn.read()) >= 0) {
+    if (ch == '\n') {
+      eol=true;
+    }
+ else     if (ch == '\r') {
+      eol=true;
+      bufferedIn.mark(1);
+      if (bufferedIn.read() != '\n') {
+        bufferedIn.reset();
+      }
+    }
+ else {
+      line.append((char)ch);
+    }
   }
-  return null;
+  if (line.length() == 0 && !eol) {
+    return null;
+  }
+  StringBuilder result=new StringBuilder();
+  result.append(closure.call(line.toString()).toString());
+  if (eol) {
+    result.append(lineTerminator);
+  }
+  return result.toString();
 }
