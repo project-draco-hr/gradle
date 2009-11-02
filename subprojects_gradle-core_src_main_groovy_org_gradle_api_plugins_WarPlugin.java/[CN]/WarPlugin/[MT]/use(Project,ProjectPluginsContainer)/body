@@ -1,11 +1,30 @@
 {
   projectPluginsHandler.usePlugin(JavaPlugin.class,project);
-  project.getConvention().getPlugins().put("war",new WarPluginConvention(project));
+  final WarPluginConvention pluginConvention=new WarPluginConvention(project);
+  project.getConvention().getPlugins().put("war",pluginConvention);
   project.getTasks().withType(War.class).allTasks(new Action<War>(){
     public void execute(    War task){
-      task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.WAR);
-      Buildable runtimeClasspath=task.getProject().getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
-      task.dependsOn(runtimeClasspath);
+      task.from(new Callable(){
+        public Object call() throws Exception {
+          return pluginConvention.getWebAppDir();
+        }
+      }
+);
+      task.dependsOn(new Callable(){
+        public Object call() throws Exception {
+          return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+        }
+      }
+);
+      task.classpath(new Object[]{new Callable(){
+        public Object call() throws Exception {
+          Set<File> classpath=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath().getFiles();
+          Set<File> provided=project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME).getFiles();
+          classpath.removeAll(provided);
+          return classpath;
+        }
+      }
+});
     }
   }
 );

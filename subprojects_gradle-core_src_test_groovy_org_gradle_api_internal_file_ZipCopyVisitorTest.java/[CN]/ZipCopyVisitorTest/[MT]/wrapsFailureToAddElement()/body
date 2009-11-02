@@ -1,0 +1,20 @@
+{
+  final TestFile zipFile=tmpDir.getDir().file("test.zip");
+  context.checking(new Expectations(){
+{
+      allowing(copyAction).getArchivePath();
+      will(returnValue(zipFile));
+    }
+  }
+);
+  visitor.startVisit(copyAction);
+  Throwable failure=new RuntimeException("broken");
+  try {
+    visitor.visitFile(brokenFile("dir/file1",failure));
+    fail();
+  }
+ catch (  GradleException e) {
+    assertThat(e.getMessage(),equalTo(String.format("Could not add [dir/file1] to ZIP '%s'.",zipFile)));
+    assertThat(e.getCause(),sameInstance(failure));
+  }
+}

@@ -21,11 +21,16 @@
   }
 ,"warLibs",new ConventionValue(){
     public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
-      List warLibs=war.dependencies(eclipseWtp.isFailForMissingDependencies(),false);
-      if (war.getAdditionalLibFileSets() != null) {
-        warLibs.addAll(war.getAdditionalLibFileSets());
+      Spec<Dependency> spec=new Spec<Dependency>(){
+        public boolean isSatisfiedBy(        Dependency element){
+          return !(element instanceof ProjectDependency);
+        }
       }
-      return warLibs;
+;
+      Set<File> provided=project.getConfigurations().getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME).getFiles();
+      Set<File> runtime=project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).copyRecursive(spec).getFiles();
+      runtime.removeAll(provided);
+      return new ArrayList<Object>(runtime);
     }
   }
 ,"projectDependencies",new ConventionValue(){

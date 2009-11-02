@@ -1,0 +1,27 @@
+{
+  final FileVisitDetails details=context.mock(FileVisitDetails.class,path);
+  final String content=String.format("contents of %s",path);
+  context.checking(new Expectations(){
+{
+      allowing(details).getRelativePath();
+      will(returnValue(RelativePath.parse(true,path)));
+      allowing(details).getLastModified();
+      will(returnValue(1000L));
+      allowing(details).getSize();
+      will(returnValue((long)content.getBytes().length));
+      allowing(details).copyTo(with(notNullValue(OutputStream.class)));
+      will(new Action(){
+        public void describeTo(        Description description){
+          description.appendText("write content");
+        }
+        public Object invoke(        Invocation invocation) throws Throwable {
+          IOUtils.write(content,(OutputStream)invocation.getParameter(0));
+          return null;
+        }
+      }
+);
+    }
+  }
+);
+  return details;
+}

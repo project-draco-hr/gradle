@@ -1,0 +1,31 @@
+{
+  project.getTasks().withType(Jar.class).allTasks(new Action<Jar>(){
+    public void execute(    Jar task){
+      task.getConventionMapping().map("manifest",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return new GradleManifest(pluginConvention.getManifest().getManifest());
+        }
+      }
+);
+      task.getMetaInf().from(new Callable(){
+        public Object call() throws Exception {
+          return pluginConvention.getMetaInf();
+        }
+      }
+);
+    }
+  }
+);
+  Task checkTask=project.getTasks().add(CHECK_TASK_NAME);
+  checkTask.setDescription("Runs all checks.");
+  checkTask.dependsOn(TEST_TASK_NAME);
+  Jar jar=project.getTasks().add(JAR_TASK_NAME,Jar.class);
+  jar.setDescription("Generates a jar archive with all the compiled classes.");
+  jar.conventionMapping("defaultSource",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClasses();
+    }
+  }
+);
+  project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
+}

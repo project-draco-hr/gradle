@@ -1,17 +1,20 @@
 {
-  if (parentSpec == null) {
-    return "/";
+  if (root) {
+    return new RelativePath(false);
   }
-  String parentPath=parentSpec.getDestPath();
+  RelativePath parentPath;
+  if (parentSpec == null) {
+    parentPath=new RelativePath(false);
+  }
+ else {
+    parentPath=parentSpec.getDestPath();
+  }
   if (destDir == null) {
     return parentPath;
   }
   String path=destDir.toString();
   if (path.startsWith("/") || path.startsWith(File.separator)) {
-    return path;
+    return RelativePath.parse(false,path);
   }
-  if (parentPath.equals("/")) {
-    return "/" + path;
-  }
-  return parentPath + '/' + path;
+  return RelativePath.parse(false,parentPath,path);
 }

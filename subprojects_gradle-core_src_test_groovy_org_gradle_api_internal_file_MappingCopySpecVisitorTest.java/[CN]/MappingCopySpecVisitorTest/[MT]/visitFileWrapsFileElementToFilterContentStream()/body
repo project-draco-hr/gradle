@@ -1,0 +1,20 @@
+{
+  final Collector<FileVisitDetails> collector=expectSpecAndFileVisited();
+  final FilterChain filterChain=new FilterChain();
+  PrefixLines filter=new PrefixLines(filterChain.getLastFilter());
+  filter.setPrefix("PREFIX: ");
+  filterChain.addFilter(filter);
+  context.checking(new Expectations(){
+{
+      allowing(spec).getFilterChain();
+      will(returnValue(filterChain));
+      one(details).open();
+      will(returnValue(new ByteArrayInputStream("content".getBytes())));
+    }
+  }
+);
+  FileVisitDetails mappedDetails=collector.get();
+  ByteArrayOutputStream outstr=new ByteArrayOutputStream();
+  mappedDetails.copyTo(outstr);
+  assertThat(new String(outstr.toByteArray()),equalTo("PREFIX: content"));
+}
