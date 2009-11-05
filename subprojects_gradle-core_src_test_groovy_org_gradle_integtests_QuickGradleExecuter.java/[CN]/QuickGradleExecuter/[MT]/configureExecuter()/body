@@ -4,24 +4,12 @@
   parameter.setGradleHomeDir(dist.getGradleHomeDir());
   parameter.setGradleUserHomeDir(dist.getUserHomeDir());
   InProcessGradleExecuter inProcessGradleExecuter=new InProcessGradleExecuter(parameter);
-  inProcessGradleExecuter.inDirectory(directory);
-  if (args.length > 0) {
-    inProcessGradleExecuter.withArguments(args);
-  }
+  copyTo(inProcessGradleExecuter);
   GradleExecuter returnedExecuter=inProcessGradleExecuter;
   if (inProcessGradleExecuter.getParameter().isShowVersion() || !environmentVars.isEmpty() || script != null) {
     ForkingGradleExecuter forkingGradleExecuter=new ForkingGradleExecuter(dist);
-    forkingGradleExecuter.inDirectory(directory);
-    if (tasks.length > 0) {
-      forkingGradleExecuter.withTasks(tasks);
-    }
-    if (args.length > 0) {
-      forkingGradleExecuter.withArguments(args);
-    }
+    copyTo(forkingGradleExecuter);
     forkingGradleExecuter.withEnvironmentVars(environmentVars);
-    if (quiet) {
-      forkingGradleExecuter.withArguments("-q");
-    }
     forkingGradleExecuter.usingExecutable(script);
     returnedExecuter=forkingGradleExecuter;
   }
@@ -29,12 +17,6 @@
     if (inProcessStartParameterModifier != null) {
       inProcessStartParameterModifier.modify(inProcessGradleExecuter.getParameter());
     }
-  }
-  if (tasks.length > 0) {
-    returnedExecuter.withTasks(tasks);
-  }
-  if (quiet) {
-    returnedExecuter.withArguments("-q");
   }
   return returnedExecuter;
 }
