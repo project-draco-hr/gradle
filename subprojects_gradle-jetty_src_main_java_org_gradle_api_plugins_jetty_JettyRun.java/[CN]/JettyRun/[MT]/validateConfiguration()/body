@@ -1,0 +1,50 @@
+{
+  try {
+    if ((getWebAppSourceDirectory() == null) || !getWebAppSourceDirectory().exists())     throw new InvalidUserDataException("Webapp source directory " + (getWebAppSourceDirectory() == null ? "null" : getWebAppSourceDirectory().getCanonicalPath()) + " does not exist");
+ else     logger.info("Webapp source directory = " + getWebAppSourceDirectory().getCanonicalPath());
+  }
+ catch (  IOException e) {
+    throw new InvalidUserDataException("Webapp source directory does not exist",e);
+  }
+  if (!"automatic".equalsIgnoreCase(reload) && !"manual".equalsIgnoreCase(reload)) {
+    throw new InvalidUserDataException("invalid reload mechanic specified, must be 'automatic' or 'manual'");
+  }
+ else {
+    logger.info("Reload Mechanic: " + reload);
+  }
+  if (getWebXml() == null) {
+    setWebXml(new File(new File(getWebAppSourceDirectory(),"WEB-INF"),"web.xml"));
+  }
+  logger.info("web.xml file = " + getWebXml());
+  if (getJettyEnvXml() != null) {
+    setJettyEnvXmlFile(jettyEnvXml);
+    try {
+      if (!getJettyEnvXmlFile().exists())       throw new InvalidUserDataException("jetty-env.xml file does not exist at location " + jettyEnvXml);
+ else       logger.info(" jetty-env.xml = " + getJettyEnvXmlFile().getCanonicalPath());
+    }
+ catch (    IOException e) {
+      throw new InvalidUserDataException("jetty-env.xml does not exist");
+    }
+  }
+  setExtraScanTargets(new ArrayList<File>());
+  if (scanTargets != null) {
+    for (    File scanTarget : scanTargets) {
+      logger.info("Added extra scan target:" + scanTarget);
+      getExtraScanTargets().add(scanTarget);
+    }
+  }
+  if (scanTargetPatterns != null) {
+    for (    ScanTargetPattern scanTargetPattern : scanTargetPatterns) {
+      ConfigurableFileTree files=getProject().fileTree(scanTargetPattern.getDirectory());
+      files.include(scanTargetPattern.getIncludes());
+      files.exclude(scanTargetPattern.getExcludes());
+      List<File> currentTargets=getExtraScanTargets();
+      if (currentTargets != null && !currentTargets.isEmpty()) {
+        currentTargets.addAll(files.getFiles());
+      }
+ else {
+        setExtraScanTargets((List)files.asType(List.class));
+      }
+    }
+  }
+}
