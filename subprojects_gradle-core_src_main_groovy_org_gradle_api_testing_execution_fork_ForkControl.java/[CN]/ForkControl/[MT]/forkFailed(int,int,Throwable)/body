@@ -1,3 +1,12 @@
 {
-  forkStopped(pipelineId,forkId,cause);
+  logger.warn("fork {} failed for pipeline with id {}",forkId,pipelineId);
+  forkControlLock.lock();
+  try {
+    startedForks--;
+    forkHandles.get(pipelineId).get(forkId).failed(cause);
+    startPending();
+  }
+  finally {
+    forkControlLock.unlock();
+  }
 }

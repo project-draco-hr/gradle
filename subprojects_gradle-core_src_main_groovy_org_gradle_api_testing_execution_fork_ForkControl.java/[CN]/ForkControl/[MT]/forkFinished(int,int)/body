@@ -1,3 +1,14 @@
 {
-  forkStopped(pipelineId,forkId,null);
+  logger.warn("fork {} finished for pipeline with id {}",forkId,pipelineId);
+  forkControlLock.lock();
+  try {
+    startedForks--;
+    forkHandles.get(pipelineId).get(forkId).finished();
+    if (!forkHandles.get(pipelineId).get(forkId).isRestarting()) {
+      startPending();
+    }
+  }
+  finally {
+    forkControlLock.unlock();
+  }
 }

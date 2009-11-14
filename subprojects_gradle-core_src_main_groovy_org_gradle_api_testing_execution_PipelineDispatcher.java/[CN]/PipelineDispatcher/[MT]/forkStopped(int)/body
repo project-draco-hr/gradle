@@ -1,3 +1,12 @@
 {
-  getClientHandle(forkId).forkStopped();
+  runningClientsLock.lock();
+  TestServerClientHandle client=null;
+  try {
+    client=clientHandles.get(forkId);
+    client.stopped(this);
+  }
+  finally {
+    runningClientsLock.unlock();
+  }
+  client.requestClientStart(this);
 }

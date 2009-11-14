@@ -2,10 +2,13 @@
   super();
   pipelineConfigs=new HashMap<String,PipelineConfig>();
   defaultPipelineConfig=new PipelineConfig("default");
+  ((LocalSimpleForkPolicyConfig)defaultPipelineConfig.getForkPolicyConfig()).setAmountToStart(4);
   pipelineConfigs.put(defaultPipelineConfig.getName(),defaultPipelineConfig);
   reportConfigs=new HashMap<String,ReportConfig>();
-  errorsToConsoleReport=new ReportConfig("errorsToConsole");
-  errorsToConsoleReport.setPolicyConfig(ReportPolicyRegister.getReportPolicy(ReportPolicyNames.ERRORS_TO_CONSOLE).createReportPolicyConfigInstance());
-  reportConfigs.put(errorsToConsoleReport.getName(),errorsToConsoleReport);
-  defaultPipelineConfig.getReports().add(errorsToConsoleReport);
+  consoleReport=new ReportConfig("console");
+  consoleReport.setPolicyConfig(ReportPolicyRegister.getReportPolicy(ReportPolicyNames.CONSOLE).createReportPolicyConfigInstance());
+  final ConsoleReportPolicyConfig reportPolicyConfig=(ConsoleReportPolicyConfig)consoleReport.getPolicyConfig();
+  reportPolicyConfig.addShowStates(TestMethodProcessResultStates.values());
+  reportConfigs.put(consoleReport.getName(),consoleReport);
+  defaultPipelineConfig.getReports().add(consoleReport);
 }

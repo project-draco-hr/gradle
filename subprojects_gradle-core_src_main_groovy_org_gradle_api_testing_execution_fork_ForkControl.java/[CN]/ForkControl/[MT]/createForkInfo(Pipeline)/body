@@ -1,0 +1,18 @@
+{
+  forkControlLock.lock();
+  try {
+    final int pipelineId=pipeline.getId();
+    final int forkId=getNextForkId();
+    final ForkInfo forkInfo=createForkInfo(forkId,pipeline);
+    Map<Integer,ForkInfo> pipelineForks=forkHandles.get(pipelineId);
+    if (pipelineForks == null) {
+      pipelineForks=new HashMap<Integer,ForkInfo>();
+    }
+    pipelineForks.put(forkId,forkInfo);
+    forkHandles.put(pipelineId,pipelineForks);
+    return forkInfo;
+  }
+  finally {
+    forkControlLock.unlock();
+  }
+}

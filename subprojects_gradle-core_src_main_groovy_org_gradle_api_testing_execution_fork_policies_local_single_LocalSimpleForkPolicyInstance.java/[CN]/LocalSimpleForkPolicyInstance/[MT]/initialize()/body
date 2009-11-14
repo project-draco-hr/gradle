@@ -6,7 +6,9 @@
   pipeline.setDispatcher(pipelineDispatcher);
   controlServerPort=testServersManager.addAndStartServer(pipeline,pipelineDispatcher);
   for (int i=0; i < amountToStart; i++) {
-    final ForkInfo forkInfo=forkControl.requestForkStart(pipeline);
-    forkInfo.addListener(new PipelineDispatcherForkInfoListener(pipeline.getDispatcher()));
+    final ForkInfo forkInfo=forkControl.createForkInfo(pipeline);
+    forkInfo.addListener(new PipelineDispatcherForkInfoListener(pipelineDispatcher));
+    pipelineDispatcher.forkAttach(forkInfo.getId());
+    forkControl.requestForkStart(forkInfo);
   }
 }

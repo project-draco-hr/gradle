@@ -1,0 +1,30 @@
+{
+  final NextActionRequestMessage message=(NextActionRequestMessage)controlMessage;
+  final int forkId=message.getForkId();
+  final int pipelineId=pipeline.getId();
+  if (pipelineDispatcher.isStopping()) {
+    stopClient(ioSession,pipelineId,client);
+  }
+ else {
+    if (pipelineDispatcher.isAllTestsExecuted() && pipelineDispatcher.isPipelineSplittingEnded()) {
+      stopClient(ioSession,pipelineId,client);
+      pipelineDispatcher.stop();
+    }
+ else {
+      final TestClassProcessResult previousProcesTestResult=message.getPreviousProcessedTestResult();
+      processPreviousTestResult(forkId,previousProcesTestResult);
+      if (isReforkNeeded(message)) {
+        restartClient(ioSession,pipelineId,client);
+      }
+ else {
+        final TestClassRunInfo nextTest=client.nextTest(pipelineDispatcher);
+        if (nextTest == null) {
+          ioSession.write(new WaitActionMesssage(pipelineId,1000));
+        }
+ else {
+          ioSession.write(new ExecuteTestActionMessage(pipelineId,nextTest));
+        }
+      }
+    }
+  }
+}

@@ -2,17 +2,20 @@
   if (message != null) {
     final Class<?> messageClass=message.getClass();
     final TestControlMessageHandler handler=messageClassHandlers.get(messageClass);
-    if (handler == null) {
-      logger.error("received unknown message of type {} on pipeline with id {} ",messageClass,pipeline.getId());
-      ioSession.write(new WaitActionMesssage(pipeline.getId(),100));
-    }
- else {
+    if (handler != null) {
       try {
-        handler.handle(ioSession,message);
+        final int forkId=((TestClientControlMessage)message).getForkId();
+        final TestServerClientHandle client=clientHandles.get(forkId);
+        if (client == null)         ioSession.write(new WaitActionMesssage(pipeline.getId(),1000L));
+ else         handler.handle(ioSession,message,client);
       }
  catch (      Throwable t) {
         logger.error("failed to handle " + message,t);
       }
+    }
+ else {
+      logger.error("received unknown message of type {} on pipeline ",messageClass,pipeline.getConfig().getName());
+      ioSession.write(new StopForkActionMessage(pipeline.getId()));
     }
   }
 }
