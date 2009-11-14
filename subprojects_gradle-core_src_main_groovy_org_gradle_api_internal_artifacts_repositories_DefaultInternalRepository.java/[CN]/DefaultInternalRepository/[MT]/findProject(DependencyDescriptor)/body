@@ -5,5 +5,14 @@
   }
   Project project=gradle.getRootProject().project(projectPathValue);
   DependencyMetaDataProvider dependencyMetaDataProvider=((ProjectInternal)project).getServiceRegistryFactory().get(DependencyMetaDataProvider.class);
-  return moduleDescriptorConverter.convert(project.getConfigurations().getAll(),dependencyMetaDataProvider.getModuleForResolve(),IvyContext.getContext().getIvy().getSettings());
+  ModuleDescriptor projectDescriptor=moduleDescriptorConverter.convert(project.getConfigurations().getAll(),dependencyMetaDataProvider.getModuleForResolve(),IvyContext.getContext().getIvy().getSettings());
+  for (  DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
+    for (    Artifact artifact : projectDescriptor.getAllArtifacts()) {
+      if (artifact.getName().equals(artifactDescriptor.getName()) && artifact.getExt().equals(artifactDescriptor.getExt())) {
+        String path=artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+        ReflectionUtil.invoke(artifactDescriptor,"setExtraAttribute",new Object[]{DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE,path});
+      }
+    }
+  }
+  return projectDescriptor;
 }
