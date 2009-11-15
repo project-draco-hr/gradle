@@ -6,7 +6,7 @@
   InProcessGradleExecuter inProcessGradleExecuter=new InProcessGradleExecuter(parameter);
   copyTo(inProcessGradleExecuter);
   GradleExecuter returnedExecuter=inProcessGradleExecuter;
-  if (inProcessGradleExecuter.getParameter().isShowVersion() || !environmentVars.isEmpty() || script != null) {
+  if (fork || inProcessGradleExecuter.getParameter().isShowVersion() || !environmentVars.isEmpty()|| script != null) {
     ForkingGradleExecuter forkingGradleExecuter=new ForkingGradleExecuter(dist);
     copyTo(forkingGradleExecuter);
     forkingGradleExecuter.withEnvironmentVars(environmentVars);
@@ -17,6 +17,15 @@
     if (inProcessStartParameterModifier != null) {
       inProcessStartParameterModifier.modify(inProcessGradleExecuter.getParameter());
     }
+  }
+  boolean settingsFound=false;
+  for (File dir=getWorkingDir(); dir != null && dist.isFileUnderTest(dir) && !settingsFound; dir=dir.getParentFile()) {
+    if (new File(dir,"settings.gradle").isFile()) {
+      settingsFound=true;
+    }
+  }
+  if (settingsFound) {
+    returnedExecuter.withSearchUpwards();
   }
   return returnedExecuter;
 }
