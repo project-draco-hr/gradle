@@ -1,4 +1,9 @@
 {
   this.report=report;
   config=(ConsoleReportPolicyConfig)report.getConfig().getPolicyConfig();
+  reportThreadPool=ThreadUtils.newFixedThreadPool(config.getAmountOfReportingThreads());
+  consumers=new ArrayList<ReportInfoQueueItemConsumer>();
+  for (int i=0; i < config.getAmountOfReportingThreads(); i++) {
+    consumers.add(new ReportInfoQueueItemConsumer(report.getReportInfoQueue(),100L,TimeUnit.MILLISECONDS,this));
+  }
 }
