@@ -3,24 +3,19 @@
   if (StringUtils.isEmpty(superClassName)) {
     throw new IllegalArgumentException("superClassName is empty!");
   }
-  if (isLangPackageClassName(superClassName)) {
-    return null;
+  final Iterator<File> testClassDirectoriesIt=testClassDirectories.iterator();
+  File superTestClassFile=null;
+  while (superTestClassFile == null && testClassDirectoriesIt.hasNext()) {
+    final File testClassDirectory=testClassDirectoriesIt.next();
+    final File superTestClassFileCandidate=new File(testClassDirectory,superClassName + ".class");
+    if (superTestClassFileCandidate.exists()) {
+      superTestClassFile=superTestClassFileCandidate;
+    }
+  }
+  if (superTestClassFile != null) {
+    return superTestClassFile;
   }
  else {
-    final Iterator<File> testClassDirectoriesIt=testClassDirectories.iterator();
-    File superTestClassFile=null;
-    while (superTestClassFile == null && testClassDirectoriesIt.hasNext()) {
-      final File testClassDirectory=testClassDirectoriesIt.next();
-      final File superTestClassFileCandidate=new File(testClassDirectory,superClassName + ".class");
-      if (superTestClassFileCandidate.exists()) {
-        superTestClassFile=superTestClassFileCandidate;
-      }
-    }
-    if (superTestClassFile != null) {
-      return superTestClassFile;
-    }
- else {
-      return classFileExtractionManager.getLibraryClassFile(superClassName);
-    }
+    return classFileExtractionManager.getLibraryClassFile(superClassName);
   }
 }
