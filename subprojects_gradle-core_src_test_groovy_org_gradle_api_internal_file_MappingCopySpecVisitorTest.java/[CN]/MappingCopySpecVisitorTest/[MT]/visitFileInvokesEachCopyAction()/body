@@ -1,0 +1,30 @@
+{
+  final Action<FileCopyDetails> action1=context.mock(Action.class,"action1");
+  final Action<FileCopyDetails> action2=context.mock(Action.class,"action2");
+  final Collector<FileCopyDetails> collectDetails1=collectParam();
+  final Collector<Object> collectDetails2=collectParam();
+  final Collector<Object> collectDetails3=collectParam();
+  context.checking(new Expectations(){
+{
+      Sequence seq=context.sequence("seq");
+      one(delegate).visitSpec(spec);
+      inSequence(seq);
+      allowing(spec).getAllCopyActions();
+      will(returnValue(toList(action1,action2)));
+      one(action1).execute(with(notNullValue(FileCopyDetails.class)));
+      inSequence(seq);
+      will(collectDetails1);
+      one(action2).execute(with(notNullValue(FileCopyDetails.class)));
+      inSequence(seq);
+      will(collectDetails2);
+      one(delegate).visitFile(with(not(sameInstance(details))));
+      inSequence(seq);
+      will(collectDetails3);
+    }
+  }
+);
+  visitor.visitSpec(spec);
+  visitor.visitFile(details);
+  assertThat(collectDetails1.get(),sameInstance(collectDetails2.get()));
+  assertThat(collectDetails1.get(),sameInstance(collectDetails3.get()));
+}

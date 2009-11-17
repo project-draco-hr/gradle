@@ -1,0 +1,23 @@
+{
+  final Collector<FileCopyDetails> collectDetails=collectParam();
+  final Action<FileCopyDetails> action=context.mock(Action.class,"action1");
+  context.checking(new Expectations(){
+{
+      Sequence seq=context.sequence("seq");
+      one(delegate).visitSpec(spec);
+      inSequence(seq);
+      allowing(spec).getAllCopyActions();
+      will(returnValue(toList(action)));
+      one(action).execute(with(notNullValue(FileCopyDetails.class)));
+      inSequence(seq);
+      will(collectDetails);
+      one(delegate).visitFile(with(not(sameInstance(details))));
+      inSequence(seq);
+    }
+  }
+);
+  visitor.visitSpec(spec);
+  visitor.visitFile(details);
+  FileCopyDetails copyDetails=collectDetails.get();
+  return copyDetails;
+}

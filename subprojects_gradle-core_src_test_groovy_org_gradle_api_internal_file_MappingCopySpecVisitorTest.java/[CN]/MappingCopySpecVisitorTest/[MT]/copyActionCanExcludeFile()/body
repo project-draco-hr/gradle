@@ -1,0 +1,19 @@
+{
+  final Action<FileCopyDetails> action1=context.mock(Action.class,"action1");
+  final Action<FileCopyDetails> action2=context.mock(Action.class,"action2");
+  context.checking(new Expectations(){
+{
+      Sequence seq=context.sequence("seq");
+      one(delegate).visitSpec(spec);
+      inSequence(seq);
+      allowing(spec).getAllCopyActions();
+      will(returnValue(toList(action1,action2)));
+      one(action1).execute(with(notNullValue(FileCopyDetails.class)));
+      inSequence(seq);
+      will(excludeFile());
+    }
+  }
+);
+  visitor.visitSpec(spec);
+  visitor.visitFile(details);
+}
