@@ -3,16 +3,11 @@
   boolean isTest=classVisitor.isTest();
   if (!isTest) {
     final String superClassName=classVisitor.getSuperClassName();
-    if (isLangPackageClassName(superClassName)) {
-      isTest=false;
+    final File superClassFile=getSuperTestClassFile(superClassName);
+    if (superClassFile != null) {
+      isTest=processSuperClass(superClassFile);
     }
- else {
-      final File superClassFile=getSuperTestClassFile(superClassName);
-      if (superClassFile != null) {
-        isTest=processSuperClass(superClassFile);
-      }
- else       logger.debug("test-class-scan : failed to scan parent class {}, could not find the class file",superClassName);
-    }
+ else     logger.debug("test-class-scan : failed to scan parent class {}, could not find the class file",superClassName);
   }
   publishTestClass(isTest,classVisitor,superClass);
   return isTest;

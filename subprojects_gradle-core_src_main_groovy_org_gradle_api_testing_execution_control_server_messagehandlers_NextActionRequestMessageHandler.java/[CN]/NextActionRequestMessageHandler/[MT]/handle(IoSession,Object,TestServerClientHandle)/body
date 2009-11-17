@@ -6,24 +6,18 @@
     stopClient(ioSession,pipelineId,client);
   }
  else {
-    if (pipelineDispatcher.isAllTestsExecuted() && pipelineDispatcher.isPipelineSplittingEnded()) {
-      stopClient(ioSession,pipelineId,client);
-      pipelineDispatcher.stop();
+    final TestClassProcessResult previousProcesTestResult=message.getPreviousProcessedTestResult();
+    processPreviousTestResult(forkId,previousProcesTestResult);
+    if (isReforkNeeded(message)) {
+      restartClient(ioSession,pipelineId,client);
     }
  else {
-      final TestClassProcessResult previousProcesTestResult=message.getPreviousProcessedTestResult();
-      processPreviousTestResult(forkId,previousProcesTestResult);
-      if (isReforkNeeded(message)) {
-        restartClient(ioSession,pipelineId,client);
+      final TestClassRunInfo nextTest=client.nextTest(pipelineDispatcher);
+      if (nextTest == null) {
+        ioSession.write(new WaitActionMesssage(pipelineId,1000));
       }
  else {
-        final TestClassRunInfo nextTest=client.nextTest(pipelineDispatcher);
-        if (nextTest == null) {
-          ioSession.write(new WaitActionMesssage(pipelineId,1000));
-        }
- else {
-          ioSession.write(new ExecuteTestActionMessage(pipelineId,nextTest));
-        }
+        ioSession.write(new ExecuteTestActionMessage(pipelineId,nextTest));
       }
     }
   }
