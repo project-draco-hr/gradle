@@ -1,0 +1,40 @@
+{
+  this.pattern=pattern;
+  matches.clear();
+  candidates.clear();
+  if (items.contains(pattern)) {
+    matches.add(pattern);
+    return pattern;
+  }
+  if (pattern.length() == 0) {
+    return null;
+  }
+  Pattern camelCasePattern=getPatternForName(pattern);
+  Pattern normalisedCamelCasePattern=Pattern.compile(camelCasePattern.pattern(),Pattern.CASE_INSENSITIVE);
+  String normalisedPattern=pattern.toUpperCase();
+  Set<String> matches1=new TreeSet<String>();
+  Set<String> matches2=new TreeSet<String>();
+  for (  String candidate : items) {
+    if (camelCasePattern.matcher(candidate).matches()) {
+      matches1.add(candidate);
+      continue;
+    }
+    if (normalisedCamelCasePattern.matcher(candidate).lookingAt()) {
+      matches2.add(candidate);
+      continue;
+    }
+    if (StringUtils.getLevenshteinDistance(normalisedPattern,candidate.toUpperCase()) <= Math.min(3,pattern.length() / 2)) {
+      candidates.add(candidate);
+    }
+  }
+  if (!matches1.isEmpty()) {
+    matches.addAll(matches1);
+  }
+ else {
+    matches.addAll(matches2);
+  }
+  if (matches.size() == 1) {
+    return matches.first();
+  }
+  return null;
+}

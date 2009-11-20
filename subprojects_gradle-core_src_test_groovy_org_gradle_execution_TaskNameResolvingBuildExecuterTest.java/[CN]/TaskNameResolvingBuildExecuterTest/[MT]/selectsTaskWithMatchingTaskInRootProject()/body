@@ -1,0 +1,16 @@
+{
+  final Task task1=task("b");
+  context.checking(new Expectations(){
+{
+      one(project).getRootProject();
+      will(returnValue(otherProject));
+      one(otherProjectTaskContainer).findByName("b");
+      will(returnValue(task1));
+      one(taskExecuter).addTasks(toSet(task1));
+    }
+  }
+);
+  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList(":b"));
+  executer.select(gradle);
+  assertThat(executer.getDisplayName(),equalTo("primary task ':b'"));
+}
