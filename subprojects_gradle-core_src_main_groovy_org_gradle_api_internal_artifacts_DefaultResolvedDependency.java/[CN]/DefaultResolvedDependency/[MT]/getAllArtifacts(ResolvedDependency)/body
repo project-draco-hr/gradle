@@ -1,11 +1,13 @@
 {
-  throwExceptionIfUnknownParent(parent);
-  Set<ResolvedArtifact> allArtifacts=new LinkedHashSet<ResolvedArtifact>();
-  allArtifacts.addAll(getArtifacts(parent));
-  for (  ResolvedDependency childResolvedDependency : getChildren()) {
-    for (    ResolvedDependency childParent : childResolvedDependency.getParents()) {
-      allArtifacts.addAll(childResolvedDependency.getAllArtifacts(childParent));
+  if (allArtifactsCache.get(parent) == null) {
+    Set<ResolvedArtifact> allArtifacts=new LinkedHashSet<ResolvedArtifact>();
+    allArtifacts.addAll(getArtifacts(parent));
+    for (    ResolvedDependency childResolvedDependency : getChildren()) {
+      for (      ResolvedDependency childParent : childResolvedDependency.getParents()) {
+        allArtifacts.addAll(childResolvedDependency.getAllArtifacts(childParent));
+      }
     }
+    allArtifactsCache.put(parent,allArtifacts);
   }
-  return allArtifacts;
+  return allArtifactsCache.get(parent);
 }
