@@ -1,9 +1,17 @@
 {
   server.requestShutdown();
+  boolean wasPremature=false;
+  String message;
   if (!hasCompletedConnection) {
-    reportPrematureClientExit(returnCode,"Failed to connect to gradle process for command '" + commandLine + "'\n"+ output);
+    message="Failed to connect to gradle process for command '" + commandLine + "'\n"+ output;
+    wasPremature=true;
   }
  else   if (!hasReceivedBuildCompleteNotification) {
-    reportPrematureClientExit(returnCode,output);
+    message=output;
+    wasPremature=true;
   }
+ else {
+    message=output;
+  }
+  reportClientExit(wasPremature,returnCode,message);
 }

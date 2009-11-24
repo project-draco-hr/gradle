@@ -1,25 +1,19 @@
 {
   gradlePluginLord.startExecutionQueue();
   final BooleanHolder isComplete=new BooleanHolder();
-  Request request=gradlePluginLord.addRefreshRequestToQueue(new ExecuteGradleCommandServerProtocol.ExecutionInteraction(){
-    public void reportExecutionStarted(){
-      executionInteraction.reportExecutionStarted();
+  Request request=gradlePluginLord.addRefreshRequestToQueue();
+  gradlePluginLord.addRequestObserver(new GradlePluginLord.RequestObserver(){
+    public void executionRequestAdded(    ExecutionRequest request){
     }
-    public void reportExecutionFinished(    boolean wasSuccessful,    String message,    Throwable throwable){
-      executionInteraction.reportExecutionFinished(wasSuccessful,message,throwable);
+    public void refreshRequestAdded(    RefreshTaskListRequest request){
+    }
+    public void aboutToExecuteRequest(    Request request){
+    }
+    public void requestExecutionComplete(    Request request,    int result,    String output){
       isComplete.value=true;
     }
-    public void reportTaskStarted(    String message,    float percentComplete){
-      executionInteraction.reportTaskStarted(message,percentComplete);
-    }
-    public void reportTaskComplete(    String message,    float percentComplete){
-      executionInteraction.reportTaskComplete(message,percentComplete);
-    }
-    public void reportLiveOutput(    String message){
-      executionInteraction.reportLiveOutput(message);
-    }
   }
-);
+,false);
   Assert.assertNotNull(request);
   int totalWaitTime=0;
   while (!isComplete.value && totalWaitTime <= maximumWaitSeconds) {

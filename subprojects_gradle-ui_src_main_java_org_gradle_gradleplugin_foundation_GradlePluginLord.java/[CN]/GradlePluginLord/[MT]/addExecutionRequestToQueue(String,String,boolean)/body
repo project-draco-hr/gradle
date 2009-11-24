@@ -1,0 +1,18 @@
+{
+  if (!isStarted) {
+    return null;
+  }
+  if (fullCommandLine == null) {
+    return null;
+  }
+  fullCommandLine=alterCommandLine(fullCommandLine);
+  final ExecutionRequest request=new ExecutionRequest(getNextRequestID(),fullCommandLine,displayName,forceOutputToBeShown,executionQueue);
+  executionQueue.addRequestToQueue(request);
+  requestObserverLord.notifyObservers(new ObserverLord.ObserverNotification<RequestObserver>(){
+    public void notify(    RequestObserver observer){
+      observer.executionRequestAdded(request);
+    }
+  }
+);
+  return request;
+}

@@ -1,0 +1,16 @@
+{
+  if (!isStarted) {
+    return null;
+  }
+  String fullCommandLine='-' + DefaultCommandLine2StartParameterConverter.TASKS;
+  fullCommandLine=alterCommandLine(fullCommandLine);
+  final RefreshTaskListRequest request=new RefreshTaskListRequest(getNextRequestID(),fullCommandLine,executionQueue,this);
+  executionQueue.addRequestToQueue(request);
+  requestObserverLord.notifyObservers(new ObserverLord.ObserverNotification<RequestObserver>(){
+    public void notify(    RequestObserver observer){
+      observer.refreshRequestAdded(request);
+    }
+  }
+);
+  return request;
+}
