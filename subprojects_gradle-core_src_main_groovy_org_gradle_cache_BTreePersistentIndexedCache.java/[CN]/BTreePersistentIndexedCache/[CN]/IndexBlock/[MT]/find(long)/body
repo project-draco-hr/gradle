@@ -1,0 +1,19 @@
+{
+  int index=Collections.binarySearch(entries,new IndexEntry(hashCode));
+  if (index >= 0) {
+    return new Lookup(this,entries.get(index));
+  }
+  index=-index - 1;
+  long childBlockPos;
+  if (index == entries.size()) {
+    childBlockPos=tailPos;
+  }
+ else {
+    childBlockPos=entries.get(index).childPos;
+  }
+  if (childBlockPos == 0) {
+    return new Lookup(this,null);
+  }
+  IndexBlock childBlock=load(childBlockPos,this,index);
+  return childBlock.find(hashCode);
+}

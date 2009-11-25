@@ -1,0 +1,17 @@
+{
+  long pos=getPos();
+  file.seek(pos);
+  Crc32OutputStream checksumOutputStream=new Crc32OutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(file)));
+  DataOutputStream outstr=new DataOutputStream(checksumOutputStream);
+  outstr.writeByte(BLOCK_MARKER);
+  outstr.writeByte(getType());
+  int size=getSize();
+  outstr.writeInt(size);
+  long finalSize=pos + HEADER_SIZE + TAIL_SIZE+ size;
+  doWrite(outstr);
+  outstr.writeLong(checksumOutputStream.checksum.getValue());
+  outstr.close();
+  if (file.length() < finalSize) {
+    file.setLength(finalSize);
+  }
+}

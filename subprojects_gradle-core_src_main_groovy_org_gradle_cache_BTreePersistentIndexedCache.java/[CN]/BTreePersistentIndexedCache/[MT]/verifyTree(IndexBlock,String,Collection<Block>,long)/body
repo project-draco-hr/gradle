@@ -1,0 +1,35 @@
+{
+  current.read();
+  blocks.add(current);
+  if (!prefix.equals("") && current.entries.size() < maxIndexChildNodes / 2) {
+    throw new IOException(String.format("Too few entries found in %s",current));
+  }
+  if (current.entries.size() > maxIndexChildNodes) {
+    throw new IOException(String.format("Too many entries found in %s",current));
+  }
+  boolean isLeaf=current.entries.size() == 0 || current.entries.get(0).childPos == 0;
+  if (isLeaf ^ current.tailPos == 0) {
+    throw new IOException(String.format("Mismatched leaf/tail-node in %s",current));
+  }
+  long min=Long.MIN_VALUE;
+  for (  IndexEntry entry : current.entries) {
+    if (isLeaf ^ entry.childPos == 0) {
+      throw new IOException(String.format("Mismatched leaf/non-leaf entry in %s",current));
+    }
+    if (entry.hashCode >= maxValue || entry.hashCode <= min) {
+      throw new IOException(String.format("Out-of-order key in %s",current));
+    }
+    min=entry.hashCode;
+    if (entry.childPos != 0) {
+      IndexBlock child=new IndexBlock(entry.childPos);
+      verifyTree(child,"   " + prefix,blocks,entry.hashCode);
+    }
+    DataBlock block=new DataBlock(entry.pos);
+    block.read();
+    blocks.add(block);
+  }
+  if (current.tailPos != 0) {
+    IndexBlock tail=new IndexBlock(current.tailPos);
+    verifyTree(tail,"   " + prefix,blocks,maxValue);
+  }
+}

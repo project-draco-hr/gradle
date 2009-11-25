@@ -1,0 +1,13 @@
+{
+  TestFile testFile=tmpDir.getDir().file("cache.bin");
+  testFile.assertIsFile();
+  testFile.write("some junk");
+  BTreePersistentIndexedCache<String,Integer> cache=new BTreePersistentIndexedCache<String,Integer>(backingCache,serializer);
+  assertNull(cache.get("key_1"));
+  cache.put("key_1",99);
+  RandomAccessFile file=new RandomAccessFile(testFile,"rw");
+  file.setLength(file.length() - 10);
+  cache.reset();
+  assertNull(cache.get("key_1"));
+  cache.verify();
+}
