@@ -1,9 +1,21 @@
 {
   try {
     String keyString=key.toString();
-    Lookup lookup=header.getRoot().find(keyString);
-    DataBlock block=new DataBlock(keyString,value);
-    lookup.indexBlock.put(key,block.getPos());
+    long hashCode=keyString.hashCode();
+    Lookup lookup=header.getRoot().find(hashCode);
+    boolean needNewBlock=true;
+    if (lookup.entry != null) {
+      DataBlock block=new DataBlock(lookup.entry.pos);
+      block.read();
+      needNewBlock=!block.useNewValue(value);
+      if (needNewBlock) {
+        free(block);
+      }
+    }
+    if (needNewBlock) {
+      DataBlock block=new DataBlock(keyString,value);
+      lookup.indexBlock.put(hashCode,block.getPos());
+    }
     flush();
   }
  catch (  Exception e) {
