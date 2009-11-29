@@ -1,0 +1,28 @@
+{
+  context.checking(new Expectations(){
+{
+      Project rootProject=context.mock(Project.class,"rootProject");
+      allowing(gradle).getParent();
+      will(returnValue(context.mock(Gradle.class,"rootBuild")));
+      allowing(gradle).getRootProject();
+      will(returnValue(rootProject));
+      allowing(rootProject).getName();
+      will(returnValue("build"));
+      allowing(task).getPath();
+      will(returnValue(":path"));
+      allowing(result).getSkipMessage();
+      will(returnValue(null));
+    }
+  }
+);
+  executionLogger.beforeExecute(task);
+  context.checking(new Expectations(){
+{
+      one(logger).lifecycle(":build:path");
+    }
+  }
+);
+  executionLogger.beforeActions(task);
+  executionLogger.afterActions(task);
+  executionLogger.afterExecute(task,result);
+}
