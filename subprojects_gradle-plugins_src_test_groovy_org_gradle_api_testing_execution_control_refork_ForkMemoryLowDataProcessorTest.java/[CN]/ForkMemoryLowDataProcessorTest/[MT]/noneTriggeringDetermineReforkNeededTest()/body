@@ -1,0 +1,23 @@
+{
+  final ForkMemoryLowConfig config=context.mock(ForkMemoryLowConfig.class);
+  context.checking(new Expectations(){
+{
+      one(config).getMemoryLowThreshold();
+      will(returnValue(ForkMemoryLowConfigTest.OK_MEMORY_LOW_THRESHOLD));
+    }
+  }
+);
+  dataProcessor.configure(config);
+  final Pipeline pipeline=context.mock(Pipeline.class);
+  final int forkId=1;
+  final ForkMemoryLowData data=context.mock(ForkMemoryLowData.class);
+  context.checking(new Expectations(){
+{
+      one(data).getCurrentUsagePercentage();
+      will(returnValue(50D));
+    }
+  }
+);
+  final boolean restartNeeded=dataProcessor.determineReforkNeeded(pipeline,forkId,data);
+  assertFalse(restartNeeded);
+}

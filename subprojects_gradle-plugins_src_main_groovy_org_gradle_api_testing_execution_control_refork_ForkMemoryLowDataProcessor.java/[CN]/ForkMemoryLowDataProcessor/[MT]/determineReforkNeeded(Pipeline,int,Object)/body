@@ -1,11 +1,13 @@
 {
   final ForkMemoryLowData currentData=(ForkMemoryLowData)decisionContextItemData;
   boolean restartNeeded=false;
-  if (lowMemoryThreshold > 0) {
-    restartNeeded=currentData.getCurrentUsagePercentage() > lowMemoryThreshold;
+  if (memoryLowThreshold > 0) {
+    final double currentUsagePercentage=currentData.getCurrentUsagePercentage();
+    restartNeeded=currentUsagePercentage > memoryLowThreshold;
     if (restartNeeded) {
-      LOGGER.debug("pipeline {}, fork {} : totalMemory = {}, maxMemory = {}, freeMemory = {}",new Object[]{pipeline.getName(),forkId,currentData.getTotalMemory(),currentData.getMaxMemory(),currentData.getFreeMemory()});
-      LOGGER.info("pipeline {}, fork {} : restart needed, memory usage percentage of fork is {}",new Object[]{pipeline.getName(),forkId,currentData.getCurrentUsagePercentage()});
+      final String pipelineName=pipeline.getName();
+      LOGGER.debug("pipeline {}, fork {} : totalMemory = {}, maxMemory = {}, freeMemory = {}",new Object[]{pipelineName,forkId,currentData.getTotalMemory(),currentData.getMaxMemory(),currentData.getFreeMemory()});
+      LOGGER.info("pipeline {}, fork {} : restart needed, memory usage percentage of fork is {}",new Object[]{pipelineName,forkId,currentUsagePercentage});
     }
   }
   return restartNeeded;

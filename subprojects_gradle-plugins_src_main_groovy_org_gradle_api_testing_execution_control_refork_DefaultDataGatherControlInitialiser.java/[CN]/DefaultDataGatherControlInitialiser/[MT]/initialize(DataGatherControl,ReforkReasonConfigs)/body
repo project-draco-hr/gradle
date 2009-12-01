@@ -1,0 +1,21 @@
+{
+  if (dataGatherControl == null) {
+    throw new IllegalArgumentException("dataGatherControl can't be null!");
+  }
+  if (reforkReasonConfigs == null) {
+    throw new IllegalArgumentException("reforkReasonConfigs can't be null!");
+  }
+  final Map<ReforkReasonKey,ReforkReasonConfig> reasonConfigs=reforkReasonConfigs.getConfigs();
+  for (  final ReforkReasonKey reasonKey : reforkReasonConfigs.getKeys()) {
+    final ReforkReason reforkReason=reforkReasonRegisterAdapter.getReforkReason(reasonKey);
+    final ReforkReasonDataGatherer dataGatherer=reforkReason.getDataGatherer();
+    final ReforkReasonConfig itemConfig=reasonConfigs.get(reasonKey);
+    try {
+      dataGatherer.configure(itemConfig);
+      dataGatherControl.addDataGatherer(dataGatherer);
+    }
+ catch (    Throwable t) {
+      t.printStackTrace();
+    }
+  }
+}

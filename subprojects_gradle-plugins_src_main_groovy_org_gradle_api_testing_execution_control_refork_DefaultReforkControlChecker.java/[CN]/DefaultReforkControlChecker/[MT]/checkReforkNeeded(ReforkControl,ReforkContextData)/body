@@ -1,0 +1,26 @@
+{
+  if (reforkControl == null) {
+    throw new IllegalArgumentException("reforkControl can't be null!");
+  }
+  if (reforkContextData == null) {
+    throw new IllegalArgumentException("reforkNeededContext can't be null!");
+  }
+  boolean reforkNeeded=false;
+  final Pipeline pipeline=reforkContextData.getPipeline();
+  final int forkId=reforkContextData.getForkId();
+  final Iterator<ReforkReasonKey> reforkReasonKeyIterator=reforkControl.getReforkReasonKeys().iterator();
+  while (!reforkNeeded && reforkReasonKeyIterator.hasNext()) {
+    final ReforkReasonKey key=reforkReasonKeyIterator.next();
+    final Object data=reforkContextData.getReasonData(key);
+    if (data != null) {
+      final ReforkReasonDataProcessor dataProcessor=reforkControl.getDataProcessor(key);
+      try {
+        reforkNeeded=dataProcessor.determineReforkNeeded(pipeline,forkId,data);
+      }
+ catch (      Throwable t) {
+        LOGGER.error("while determening refork needed for refork reason " + key,t);
+      }
+    }
+  }
+  return reforkNeeded;
+}

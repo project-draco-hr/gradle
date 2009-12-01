@@ -3,7 +3,7 @@
     final ExecuteTestActionMessage runTestResponse=(ExecuteTestActionMessage)testControlMessage;
     final TestClassRunInfo testInfo=runTestResponse.getTestClassRunInfo();
     final TestProcessor testProcessor=testProcessorFactory.createProcessor();
-    final TestProcessorRunnable testProcessorRunnable=new TestProcessorRunnable(this,testProcessor,testInfo,reforkDataGatherControl,testProcessResultFactory);
+    final TestProcessorRunnable testProcessorRunnable=new TestProcessorRunnable(this,testProcessor,testInfo,dataGatherControl,testProcessResultFactory);
     threadPool.submit(testProcessorRunnable);
   }
  else   if (testControlMessage instanceof WaitActionMesssage) {
@@ -24,9 +24,9 @@
  else   if (testControlMessage instanceof InitializeActionMessage) {
     final InitializeActionMessage initMessage=(InitializeActionMessage)testControlMessage;
     final String testFrameworkId=initMessage.getTestFrameworkId();
-    final ReforkItemConfigs reforkItemConfigs=initMessage.getReforkItemConfigs();
-    reforkDataGatherControl=new ReforkDataGatherControl();
-    reforkDataGatherControl.initialize(reforkItemConfigs);
+    final ReforkReasonConfigs reforkReasonConfigs=initMessage.getReforkItemConfigs();
+    dataGatherControl=new DefaultDataGatherControl();
+    dataGatherControl.initialize(reforkReasonConfigs);
     final TestFramework testFramework=TestFrameworkRegister.getTestFramework(testFrameworkId);
     testProcessorFactory=testFramework.getProcessorFactory();
     testProcessResultFactory=new TestProcessResultFactory();

@@ -1,10 +1,12 @@
 {
   boolean reforkNeeded=false;
-  final ReforkController reforkController=pipeline.getReforkController();
-  if (reforkController != null) {
-    final ReforkDecisionContext reforkDecisionContext=message.getReforkDecisionContext();
-    if (reforkDecisionContext != null) {
-      reforkNeeded=reforkController.reforkNeeded(pipeline,message.getForkId(),reforkDecisionContext);
+  final ReforkControl reforkControl=pipeline.getReforkController();
+  if (reforkControl != null) {
+    final ReforkContextData reforkContextData=message.getReforkDecisionContext();
+    if (reforkContextData != null) {
+      reforkContextData.setPipeline(pipeline);
+      reforkContextData.setForkId(message.getForkId());
+      reforkNeeded=reforkControl.reforkNeeded(reforkContextData);
     }
   }
   return reforkNeeded;

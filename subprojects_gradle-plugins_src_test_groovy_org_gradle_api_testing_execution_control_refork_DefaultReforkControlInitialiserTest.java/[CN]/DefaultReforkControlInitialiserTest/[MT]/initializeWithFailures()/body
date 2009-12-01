@@ -1,0 +1,37 @@
+{
+  final ReforkControl reforkControl=context.mock(ReforkControl.class);
+  final ReforkReasonConfigs configs=context.mock(ReforkReasonConfigs.class);
+  final ReforkReasonRegisterAdapter reforkReasonRegisterAdapter=context.mock(ReforkReasonRegisterAdapter.class);
+  final ReforkReason reasonOne=context.mock(ReforkReason.class,"one#reason");
+  final ReforkReasonConfig configOne=context.mock(ReforkReasonConfig.class,"one#config");
+  final ReforkReasonDataProcessor dataProcessorOne=context.mock(ReforkReasonDataProcessor.class,"one#dataProcessor");
+  final ReforkReason reasonTwo=context.mock(ReforkReason.class,"two#reason");
+  final ReforkReasonConfig configTwo=context.mock(ReforkReasonConfig.class,"two#config");
+  final ReforkReasonDataProcessor dataProcessorTwo=context.mock(ReforkReasonDataProcessor.class,"two#dataProcessor");
+  final Map<ReforkReasonKey,ReforkReasonConfig> reasonConfigs=new HashMap<ReforkReasonKey,ReforkReasonConfig>();
+  reasonConfigs.put(TestReforkReasons.TEST_KEY_1,configOne);
+  reasonConfigs.put(TestReforkReasons.TEST_KEY_2,configTwo);
+  context.checking(new Expectations(){
+{
+      one(configs).getConfigs();
+      will(returnValue(reasonConfigs));
+      one(configs).getKeys();
+      will(returnValue(Arrays.asList(TestReforkReasons.TEST_KEY_1,TestReforkReasons.TEST_KEY_2)));
+      one(reforkReasonRegisterAdapter).getReforkReason(TestReforkReasons.TEST_KEY_1);
+      will(returnValue(reasonOne));
+      one(reasonOne).getDataProcessor();
+      will(returnValue(dataProcessorOne));
+      one(dataProcessorOne).configure(configOne);
+      will(throwException(new NullPointerException()));
+      one(reforkReasonRegisterAdapter).getReforkReason(TestReforkReasons.TEST_KEY_2);
+      will(returnValue(reasonTwo));
+      one(reasonTwo).getDataProcessor();
+      will(returnValue(dataProcessorTwo));
+      one(dataProcessorTwo).configure(configTwo);
+      one(reforkControl).addDataProcessor(dataProcessorTwo);
+    }
+  }
+);
+  initialiser.setReforkReasonRegisterAdapter(reforkReasonRegisterAdapter);
+  initialiser.initialize(reforkControl,configs);
+}

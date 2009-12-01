@@ -1,0 +1,26 @@
+{
+  final DataGatherControl dataGatherControl=context.mock(DataGatherControl.class);
+  final ReforkContextData reforkContextData=context.mock(ReforkContextData.class);
+  final DataGatherMoment moment=DataGatherMoment.AFTER_TEST_EXECUTION;
+  final ReforkReasonDataGatherer dataGathererOne=context.mock(ReforkReasonDataGatherer.class,"one@dataGatherer");
+  final ReforkReasonKey keyTwo=TestReforkReasons.TEST_KEY_2;
+  final Long dataTwo=2L;
+  final ReforkReasonDataGatherer dataGathererTwo=context.mock(ReforkReasonDataGatherer.class,"two@dataGatherer");
+  context.checking(new Expectations(){
+{
+      one(dataGatherControl).getDataGatherers(moment);
+      will(returnValue(Arrays.asList(dataGathererOne,dataGathererTwo)));
+      one(dataGathererOne).processDataGatherMoment(moment);
+      will(throwException(new NullPointerException()));
+      one(dataGathererTwo).processDataGatherMoment(moment);
+      will(returnValue(true));
+      one(dataGathererTwo).getKey();
+      will(returnValue(keyTwo));
+      one(dataGathererTwo).getCurrentData();
+      will(returnValue(dataTwo));
+      one(reforkContextData).addReasonData(keyTwo,dataTwo);
+    }
+  }
+);
+  gatherer.gatherData(dataGatherControl,reforkContextData,moment);
+}
