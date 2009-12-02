@@ -1,0 +1,30 @@
+{
+  if (block.hasPos()) {
+    return;
+  }
+  int requiredSize=block.getSize();
+  if (entries.isEmpty() || requiredSize <= largestInNextBlock) {
+    if (nextBlock.isNull()) {
+      return;
+    }
+    getNextBlock().alloc(block);
+    return;
+  }
+  int index=Collections.binarySearch(entries,new FreeListEntry(null,requiredSize));
+  if (index < 0) {
+    index=-index - 1;
+  }
+  if (index == entries.size()) {
+    return;
+  }
+  FreeListEntry entry=entries.remove(index);
+  block.setPos(entry.pos);
+  block.setSize(entry.size);
+  store.write(this);
+  if (entries.size() == 0 && prevBlock != null) {
+    prevBlock.nextBlock=nextBlock;
+    prevBlock.largestInNextBlock=largestInNextBlock;
+    store.remove(this);
+    store.write(prevBlock);
+  }
+}

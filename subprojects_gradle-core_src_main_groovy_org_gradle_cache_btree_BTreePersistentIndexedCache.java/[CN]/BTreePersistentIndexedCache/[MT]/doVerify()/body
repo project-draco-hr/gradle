@@ -1,0 +1,19 @@
+{
+  List<BlockPayload> blocks=new ArrayList<BlockPayload>();
+  HeaderBlock header=store.readFirst(HeaderBlock.class);
+  blocks.add(header);
+  verifyTree(header.getRoot(),"",blocks,Long.MAX_VALUE,true);
+  Collections.sort(blocks,new Comparator<BlockPayload>(){
+    public int compare(    BlockPayload block,    BlockPayload block1){
+      return block.getPos().compareTo(block1.getPos());
+    }
+  }
+);
+  for (int i=0; i < blocks.size() - 1; i++) {
+    Block b1=blocks.get(i).getBlock();
+    Block b2=blocks.get(i + 1).getBlock();
+    if (b1.getPos().getPos() + b1.getSize() > b2.getPos().getPos()) {
+      throw new IOException(String.format("%s overlaps with %s",b1,b2));
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  BlockStore.Factory factory=new BlockStore.Factory(){
+    public Object create(    Class<? extends BlockPayload> type){
+      if (type == HeaderBlock.class) {
+        return new HeaderBlock();
+      }
+      if (type == IndexBlock.class) {
+        return new IndexBlock();
+      }
+      if (type == DataBlock.class) {
+        return new DataBlock();
+      }
+      throw new UnsupportedOperationException();
+    }
+  }
+;
+  Runnable initAction=new Runnable(){
+    public void run(){
+      header=new HeaderBlock();
+      store.write(header);
+      header.index.newRoot();
+      store.flush();
+      backingCache.update();
+    }
+  }
+;
+  store.open(initAction,factory);
+  header=store.readFirst(HeaderBlock.class);
+}

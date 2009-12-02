@@ -1,0 +1,24 @@
+{
+  try {
+    String keyString=key.toString();
+    long hashCode=keyString.hashCode();
+    Lookup lookup=header.getRoot().find(hashCode);
+    boolean needNewBlock=true;
+    if (lookup.entry != null) {
+      DataBlock block=store.read(lookup.entry.dataBlock,DataBlock.class);
+      needNewBlock=!block.useNewValue(value);
+      if (needNewBlock) {
+        store.remove(block);
+      }
+    }
+    if (needNewBlock) {
+      DataBlock block=new DataBlock(keyString,value);
+      store.write(block);
+      lookup.indexBlock.put(hashCode,block.getPos());
+    }
+    store.flush();
+  }
+ catch (  Exception e) {
+    throw new UncheckedIOException(String.format("Could not add entry '%s' to %s.",key,this),e);
+  }
+}

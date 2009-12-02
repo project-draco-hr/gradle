@@ -1,0 +1,18 @@
+{
+  if (entries.size() > maxChildIndexEntries) {
+    int splitPos=entries.size() / 2;
+    IndexEntry splitEntry=entries.remove(splitPos);
+    if (parent == null) {
+      parent=root.newRoot();
+    }
+    IndexBlock sibling=new IndexBlock();
+    store.write(sibling);
+    List<IndexEntry> siblingEntries=entries.subList(splitPos,entries.size());
+    sibling.entries.addAll(siblingEntries);
+    siblingEntries.clear();
+    sibling.tailPos=tailPos;
+    tailPos=splitEntry.childIndexBlock;
+    splitEntry.childIndexBlock=new BlockPointer();
+    parent.add(this,splitEntry,sibling);
+  }
+}

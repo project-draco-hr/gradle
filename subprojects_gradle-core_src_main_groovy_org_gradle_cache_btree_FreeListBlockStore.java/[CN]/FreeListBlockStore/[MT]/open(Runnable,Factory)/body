@@ -1,0 +1,22 @@
+{
+  Runnable freeListInitAction=new Runnable(){
+    public void run(){
+      freeListBlock=new FreeListBlock();
+      store.write(freeListBlock);
+      store.flush();
+      initAction.run();
+    }
+  }
+;
+  Factory freeListFactory=new Factory(){
+    public Object create(    Class<? extends BlockPayload> type){
+      if (type == FreeListBlock.class) {
+        return new FreeListBlock();
+      }
+      return factory.create(type);
+    }
+  }
+;
+  store.open(freeListInitAction,freeListFactory);
+  freeListBlock=store.readFirst(FreeListBlock.class);
+}
