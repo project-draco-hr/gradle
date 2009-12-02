@@ -1,23 +1,25 @@
 {
-  final SelfResolvingDependency selfResolvingDependency=context.mock(SelfResolvingDependency.class);
-  final ProjectDependency targetProjectDependencyStub=context.mock(ProjectDependency.class);
-  final Set<File> selfResolvingFiles=toSet(new File("somePath"));
-  final Set<File> selfResolvingTargetProjectDependencyFiles=toSet(new File("someOtherPath"));
+  final SelfResolvingDependency projectSelfResolvingDependency=context.mock(SelfResolvingDependency.class);
+  final ProjectDependency transitiveProjectDependencyStub=context.mock(ProjectDependency.class);
+  final Set<File> selfResolvingProjectFiles=toSet(new File("somePath"));
+  final Set<File> selfResolvingTransitiveProjectDependencyFiles=toSet(new File("someOtherPath"));
   context.checking(new Expectations(){
 {
-      allowing(targetConfigurationsStub).getByName("conf1");
-      will(returnValue(targetConfigurationMock));
-      allowing(targetConfigurationMock).getAllDependencies(SelfResolvingDependency.class);
-      will(returnValue(toSet(selfResolvingDependency,targetProjectDependencyStub)));
-      allowing(selfResolvingDependency).resolve();
-      will(returnValue(selfResolvingFiles));
-      allowing(targetProjectDependencyStub).resolve();
-      will(returnValue(selfResolvingTargetProjectDependencyFiles));
+      allowing(projectConfigurationsStub).getByName("conf1");
+      will(returnValue(projectConfigurationStub));
+      allowing(projectConfigurationStub).getAllDependencies(SelfResolvingDependency.class);
+      will(returnValue(toSet(projectSelfResolvingDependency,transitiveProjectDependencyStub)));
+      allowing(projectSelfResolvingDependency).resolve();
+      will(returnValue(selfResolvingProjectFiles));
+      allowing(transitiveProjectDependencyStub).isTransitive();
+      will(returnValue(true));
+      allowing(transitiveProjectDependencyStub).resolve();
+      will(returnValue(selfResolvingTransitiveProjectDependencyFiles));
     }
   }
 );
-  DefaultProjectDependency projectDependency=new DefaultProjectDependency(targetProjectStub,"conf1",instruction);
-  Set<File> expectedResult=GUtil.addSets(selfResolvingFiles,selfResolvingTargetProjectDependencyFiles);
+  DefaultProjectDependency projectDependency=new DefaultProjectDependency(dependencyProjectStub,"conf1",instruction);
+  Set<File> expectedResult=GUtil.addSets(selfResolvingProjectFiles,selfResolvingTransitiveProjectDependencyFiles);
   assertThat(projectDependency.resolve(),equalTo(expectedResult));
   assertThat(projectDependency.resolve(true),equalTo(expectedResult));
 }
