@@ -20,11 +20,15 @@
   FreeListEntry entry=entries.remove(index);
   block.setPos(entry.pos);
   block.setSize(entry.size);
-  store.write(this);
-  if (entries.size() == 0 && prevBlock != null) {
-    prevBlock.nextBlock=nextBlock;
-    prevBlock.largestInNextBlock=largestInNextBlock;
-    store.remove(this);
-    store.write(prevBlock);
+  freeListStore.write(this);
+  if (entries.size() == 0 && prev != null) {
+    prev.nextBlock=nextBlock;
+    prev.largestInNextBlock=largestInNextBlock;
+    prev.next=next;
+    if (next != null) {
+      next.prev=prev;
+    }
+    freeListStore.write(prev);
+    freeListStore.remove(this);
   }
 }
