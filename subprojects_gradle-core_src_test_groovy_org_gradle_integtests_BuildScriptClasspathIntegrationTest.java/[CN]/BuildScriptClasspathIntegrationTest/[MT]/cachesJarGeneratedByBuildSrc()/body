@@ -1,10 +1,12 @@
 {
   testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
-  testFile("build.gradle").writelns("new BuildClass()");
-  inTestDirectory().withTaskList().run();
+  testFile("build.gradle").writelns("new BuildClass()","task test");
+  inTestDirectory().withTasks("test").run();
   TestFile buildSrcJar=testFile("buildSrc/build/libs/buildSrc.jar");
   buildSrcJar.assertIsFile();
-  long modTime=buildSrcJar.lastModified();
-  inTestDirectory().withTaskList().run();
-  assertThat(buildSrcJar.lastModified(),equalTo(modTime));
+  TestFile.Snapshot snapshot=buildSrcJar.snapshot();
+  inTestDirectory().withTasks("test").run();
+  buildSrcJar.assertHasNotChangedSince(snapshot);
+  inTestDirectory().withArguments("-Crebuild").withTasks("test").run();
+  buildSrcJar.assertHasChangedSince(snapshot);
 }

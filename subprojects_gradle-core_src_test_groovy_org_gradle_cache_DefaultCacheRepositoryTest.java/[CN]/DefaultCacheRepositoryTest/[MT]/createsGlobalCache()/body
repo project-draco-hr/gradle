@@ -1,7 +1,11 @@
 {
-  PersistentCache cache=repository.getGlobalCache("a/b/c",properties);
-  assertThat(cache,instanceOf(DefaultPersistentCache.class));
-  DefaultPersistentCache dCache=(DefaultPersistentCache)cache;
-  assertThat(dCache.getBaseDir(),equalTo((File)sharedCacheDir.file(version + "/a/b/c")));
-  assertThat(dCache.getProperties(),equalTo(properties));
+  final PersistentCache cache=context.mock(PersistentCache.class);
+  context.checking(new Expectations(){
+{
+      one(cacheFactory).open(sharedCacheDir.file(version + "/a/b/c"),CacheUsage.ON,properties);
+      will(returnValue(cache));
+    }
+  }
+);
+  assertThat(repository.getGlobalCache("a/b/c",properties),sameInstance(cache));
 }

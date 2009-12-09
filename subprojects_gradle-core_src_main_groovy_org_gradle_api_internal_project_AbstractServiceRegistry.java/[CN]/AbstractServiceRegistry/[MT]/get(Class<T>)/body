@@ -1,4 +1,7 @@
 {
+  if (closed) {
+    throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.",serviceType.getSimpleName(),this));
+  }
   for (  Service service : services) {
     T t=service.getService(serviceType);
     if (t != null) {
@@ -6,7 +9,11 @@
     }
   }
   if (parent != null) {
-    return parent.get(serviceType);
+    try {
+      return parent.get(serviceType);
+    }
+ catch (    IllegalArgumentException e) {
+    }
   }
-  throw new IllegalArgumentException(String.format("No service of type %s available.",serviceType.getSimpleName()));
+  throw new IllegalArgumentException(String.format("No service of type %s available in %s.",serviceType.getSimpleName(),this));
 }

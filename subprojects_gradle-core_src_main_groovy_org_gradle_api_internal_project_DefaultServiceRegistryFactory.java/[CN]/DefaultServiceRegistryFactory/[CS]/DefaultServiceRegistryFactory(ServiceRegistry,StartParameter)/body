@@ -1,0 +1,15 @@
+{
+  super(parent);
+  this.startParameter=startParameter;
+  add(ListenerManager.class,new DefaultListenerManager());
+  add(ImportsReader.class,new ImportsReader(startParameter.getDefaultImportsFile()));
+  add(ClassGenerator.class,new AsmBackedClassGenerator());
+  add(StandardOutputRedirector.class,new DefaultStandardOutputRedirector());
+  add(PublishArtifactFactory.class,new DefaultPublishArtifactFactory());
+  add(new Service(CacheFactory.class){
+    @Override protected Object create(){
+      return new AutoCloseCacheFactory(parent.get(CacheFactory.class));
+    }
+  }
+);
+}

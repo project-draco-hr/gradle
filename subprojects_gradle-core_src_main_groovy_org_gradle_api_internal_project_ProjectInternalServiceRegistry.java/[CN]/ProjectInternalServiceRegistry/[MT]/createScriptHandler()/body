@@ -1,0 +1,13 @@
+{
+  RepositoryHandler repositoryHandler=get(RepositoryHandlerFactory.class).createRepositoryHandler(new DefaultConvention());
+  ConfigurationContainer configurationContainer=get(ConfigurationContainerFactory.class).createConfigurationContainer(repositoryHandler,get(DependencyMetaDataProvider.class));
+  DependencyHandler dependencyHandler=new DefaultDependencyHandler(configurationContainer,get(DependencyFactory.class),get(ProjectFinder.class));
+  ClassLoader parentClassLoader;
+  if (project.getParent() != null) {
+    parentClassLoader=project.getParent().getClassLoaderProvider().getClassLoader();
+  }
+ else {
+    parentClassLoader=project.getGradle().getBuildScriptClassLoader();
+  }
+  return new DefaultScriptHandler(repositoryHandler,dependencyHandler,configurationContainer,parentClassLoader);
+}

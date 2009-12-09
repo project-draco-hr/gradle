@@ -1,14 +1,12 @@
 {
-  ListenerManager listenerManager=new DefaultListenerManager();
   loggingConfigurer.configure(startParameter.getLogLevel());
+  DefaultServiceRegistryFactory serviceRegistryFactory=new DefaultServiceRegistryFactory(sharedServices,startParameter);
+  ListenerManager listenerManager=serviceRegistryFactory.get(ListenerManager.class);
   loggingConfigurer.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
   loggingConfigurer.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
   listenerManager.useLogger(new TaskExecutionLogger(Logging.getLogger(TaskExecutionLogger.class)));
   listenerManager.addListener(tracker);
-  ServiceRegistryFactory serviceRegistryFactory=new DefaultServiceRegistryFactory(startParameter,listenerManager);
-  ISettingsFinder settingsFinder=new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy())));
-  ScriptCompilerFactory scriptCompilerFactory=serviceRegistryFactory.get(ScriptCompilerFactory.class);
-  InitScriptHandler initScriptHandler=new InitScriptHandler(new UserHomeInitScriptFinder(new DefaultInitScriptFinder()),new DefaultInitScriptProcessor(scriptCompilerFactory,serviceRegistryFactory.get(ImportsReader.class)));
+  listenerManager.addListener(new BuildCleanupListener(serviceRegistryFactory));
   DefaultGradle gradle=new DefaultGradle(tracker.getCurrentBuild(),startParameter,serviceRegistryFactory);
-  return new GradleLauncher(gradle,initScriptHandler,new SettingsHandler(settingsFinder,new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(scriptCompilerFactory,serviceRegistryFactory.get(ImportsReader.class),new SettingsFactory(new DefaultProjectDescriptorRegistry()))),new BuildSourceBuilder(this,new DefaultCacheInvalidationStrategy())),new DefaultGradlePropertiesLoader(),new BuildLoader(new ProjectFactory(startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver()),loggingConfigurer);
+  return new GradleLauncher(gradle,serviceRegistryFactory.get(InitScriptHandler.class),new SettingsHandler(new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy()))),new PropertiesLoadingSettingsProcessor(new ScriptEvaluatingSettingsProcessor(serviceRegistryFactory.get(ScriptCompilerFactory.class),serviceRegistryFactory.get(ImportsReader.class),new SettingsFactory(new DefaultProjectDescriptorRegistry()))),new BuildSourceBuilder(this,new DefaultCacheInvalidationStrategy())),new DefaultGradlePropertiesLoader(),new BuildLoader(new ProjectFactory(startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver()),loggingConfigurer);
 }
