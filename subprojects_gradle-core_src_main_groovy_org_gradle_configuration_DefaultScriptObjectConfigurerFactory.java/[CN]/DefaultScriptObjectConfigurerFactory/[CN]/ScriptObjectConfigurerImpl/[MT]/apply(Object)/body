@@ -1,0 +1,16 @@
+{
+  ScriptSource withImports=new ImportsScriptSource(scriptSource,importsReader,null);
+  ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
+  compiler.setClassloader(classLoaderProvider.getClassLoader());
+  BuildScriptClasspathScriptTransformer classpathScriptTransformer=new BuildScriptClasspathScriptTransformer(classpathClosureName);
+  compiler.setTransformer(classpathScriptTransformer);
+  ScriptRunner<? extends Script> classPathScript=compiler.compile(scriptType);
+  classPathScript.setDelegate(target);
+  classPathScript.run();
+  classLoaderProvider.updateClassPath();
+  compiler.setTransformer(new BuildScriptTransformer(classpathScriptTransformer));
+  ScriptRunner<? extends Script> script=compiler.compile(scriptType);
+  script.setDelegate(target);
+  initAction.execute(script.getScript());
+  script.run();
+}

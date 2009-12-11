@@ -1,14 +1,7 @@
 {
-  ScriptSource withImports=new ImportsScriptSource(initScript,importsReader,null);
-  ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
-  compiler.setClassloader(gradle.getClassLoaderProvider().getClassLoader());
-  compiler.setTransformer(new InitScriptClasspathScriptTransformer());
-  ScriptRunner classPathScript=compiler.compile(InitScript.class);
-  classPathScript.setDelegate(gradle);
-  classPathScript.run();
-  gradle.getClassLoaderProvider().updateClassPath();
-  compiler.setTransformer(new InitScriptTransformer());
-  ScriptRunner script=compiler.compile(InitScript.class);
-  script.setDelegate(gradle);
-  script.run();
+  ScriptObjectConfigurer configurer=configurerFactory.create(initScript);
+  configurer.setClasspathClosureName("initscript");
+  configurer.setClassLoaderProvider(gradle.getClassLoaderProvider());
+  configurer.setScriptBaseClass(InitScript.class);
+  configurer.apply(gradle);
 }

@@ -1,8 +1,13 @@
 {
-  ScriptSource source=new ImportsScriptSource(settingsLocation.getSettingsScriptSource(),importsReader,settingsLocation.getSettingsDir());
-  ScriptCompiler compiler=scriptCompilerFactory.createCompiler(source);
-  compiler.setClassloader(buildSourceClassLoader);
-  ScriptRunner settingsScript=compiler.compile(SettingsScript.class);
-  settingsScript.setDelegate(settings);
-  settingsScript.run();
+  ScriptObjectConfigurer configurer=configurerFactory.create(settingsLocation.getSettingsScriptSource());
+  configurer.setClassLoaderProvider(new ScriptClassLoaderProvider(){
+    public ClassLoader getClassLoader(){
+      return buildSourceClassLoader;
+    }
+    public void updateClassPath(){
+    }
+  }
+);
+  configurer.setScriptBaseClass(SettingsScript.class);
+  configurer.apply(settings);
 }
