@@ -1,0 +1,23 @@
+{
+  final Object target=new Object();
+  context.checking(new Expectations(){
+{
+      Sequence sequence=context.sequence("seq");
+      one(scriptCompilerFactoryMock).createCompiler(with(reflectionEquals(new ImportsScriptSource(scriptSourceMock,importsReaderMock,null))));
+      will(returnValue(scriptCompilerMock));
+      one(scriptCompilerMock).setClassloader(defaultClassLoader);
+      inSequence(sequence);
+      one(scriptCompilerMock).compile(BasicScript.class);
+      will(returnValue(scriptRunnerMock));
+      inSequence(sequence);
+      one(scriptRunnerMock).setDelegate(target);
+      inSequence(sequence);
+      one(scriptRunnerMock).run();
+      inSequence(sequence);
+    }
+  }
+);
+  ScriptObjectConfigurer configurer=factory.create(scriptSourceMock);
+  configurer.setClassLoader(defaultClassLoader);
+  configurer.apply(target);
+}
