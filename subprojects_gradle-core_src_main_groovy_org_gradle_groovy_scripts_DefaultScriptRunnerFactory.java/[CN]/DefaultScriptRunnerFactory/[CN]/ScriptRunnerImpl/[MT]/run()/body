@@ -1,16 +1,20 @@
 {
   ClassLoader originalLoader=Thread.currentThread().getContextClassLoader();
+  listener.beforeScript(script);
+  GradleScriptException failure=null;
   Thread.currentThread().setContextClassLoader(script.getContextClassloader());
   script.getStandardOutputRedirector().on(LogLevel.QUIET);
   try {
     script.run();
   }
  catch (  Throwable e) {
-    throw new GradleScriptException(String.format("A problem occurred evaluating %s.",script),e,script.getScriptSource());
+    failure=new GradleScriptException(String.format("A problem occurred evaluating %s.",script),e,script.getScriptSource());
   }
- finally {
-    script.getStandardOutputRedirector().flush();
-    script.getStandardOutputRedirector().off();
-    Thread.currentThread().setContextClassLoader(originalLoader);
+  script.getStandardOutputRedirector().flush();
+  script.getStandardOutputRedirector().off();
+  Thread.currentThread().setContextClassLoader(originalLoader);
+  listener.afterScript(script,failure);
+  if (failure != null) {
+    throw failure;
   }
 }

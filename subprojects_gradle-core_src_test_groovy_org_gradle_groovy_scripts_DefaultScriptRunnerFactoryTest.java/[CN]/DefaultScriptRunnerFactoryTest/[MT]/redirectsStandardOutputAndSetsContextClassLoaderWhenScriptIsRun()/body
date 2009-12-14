@@ -2,8 +2,13 @@
   ScriptRunner<Script> scriptRunner=factory.create(scriptMock);
   context.checking(new Expectations(){
 {
+      Sequence sequence=context.sequence("seq");
+      one(scriptExecutionListenerMock).beforeScript(scriptMock);
+      inSequence(sequence);
       one(standardOutputRedirectorMock).on(LogLevel.QUIET);
+      inSequence(sequence);
       one(scriptMock).run();
+      inSequence(sequence);
       will(doAll(new Action(){
         public void describeTo(        Description description){
           description.appendValue("check context classloader");
@@ -15,7 +20,11 @@
       }
 ));
       one(standardOutputRedirectorMock).flush();
+      inSequence(sequence);
       one(standardOutputRedirectorMock).off();
+      inSequence(sequence);
+      one(scriptExecutionListenerMock).afterScript(scriptMock,null);
+      inSequence(sequence);
     }
   }
 );

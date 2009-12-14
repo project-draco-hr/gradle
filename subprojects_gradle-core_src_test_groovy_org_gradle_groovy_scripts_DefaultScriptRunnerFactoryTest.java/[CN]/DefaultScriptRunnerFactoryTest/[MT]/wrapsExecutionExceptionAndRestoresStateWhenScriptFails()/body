@@ -3,11 +3,20 @@
   ScriptRunner<Script> scriptRunner=factory.create(scriptMock);
   context.checking(new Expectations(){
 {
+      Sequence sequence=context.sequence("seq");
+      one(scriptExecutionListenerMock).beforeScript(scriptMock);
+      inSequence(sequence);
       one(standardOutputRedirectorMock).on(LogLevel.QUIET);
+      inSequence(sequence);
       one(scriptMock).run();
+      inSequence(sequence);
       will(throwException(failure));
       one(standardOutputRedirectorMock).flush();
+      inSequence(sequence);
       one(standardOutputRedirectorMock).off();
+      inSequence(sequence);
+      one(scriptExecutionListenerMock).afterScript(with(sameInstance(scriptMock)),with(notNullValue(Throwable.class)));
+      inSequence(sequence);
     }
   }
 );

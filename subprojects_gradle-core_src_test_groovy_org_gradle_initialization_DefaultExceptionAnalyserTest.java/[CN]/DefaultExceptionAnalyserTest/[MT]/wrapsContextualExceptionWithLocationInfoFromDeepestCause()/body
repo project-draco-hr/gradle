@@ -1,0 +1,13 @@
+{
+  RuntimeException cause=new RuntimeException();
+  ContextualException failure=new ContextualException(new RuntimeException(cause));
+  failure.setStackTrace(WrapUtil.toArray(otherElement,callerElement));
+  cause.setStackTrace(WrapUtil.toArray(element,otherElement,callerElement));
+  DefaultExceptionAnalyser analyser=analyser();
+  notifyAnalyser(analyser,source);
+  Throwable transformedFailure=analyser.transform(failure);
+  assertThat(transformedFailure,instanceOf(GradleScriptException.class));
+  GradleScriptException gse=(GradleScriptException)transformedFailure;
+  assertThat(gse.getScriptSource(),sameInstance(source));
+  assertThat(gse.getLineNumber(),equalTo(7));
+}

@@ -1,5 +1,6 @@
 {
   final RuntimeException failure=new RuntimeException();
+  final RuntimeException transformedException=new RuntimeException();
   expectInitScripts();
   expectSettingsBuilt();
   expectDagBuilt();
@@ -9,10 +10,12 @@
       one(buildBroadcaster).buildStarted(gradleMock);
       one(buildBroadcaster).projectsLoaded(gradleMock);
       one(buildBroadcaster).projectsEvaluated(gradleMock);
-      one(buildBroadcaster).buildFinished(with(result(sameInstance(failure))));
+      one(exceptionAnalyserMock).transform(failure);
+      will(returnValue(transformedException));
+      one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
     }
   }
 );
   BuildResult buildResult=gradleLauncher.run();
-  assertThat(buildResult.getFailure(),sameInstance((Throwable)failure));
+  assertThat(buildResult.getFailure(),sameInstance((Throwable)transformedException));
 }
