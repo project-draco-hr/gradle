@@ -1,12 +1,12 @@
 {
   loggingConfigurer.configure(startParameter.getLogLevel());
-  DefaultServiceRegistryFactory serviceRegistryFactory=new DefaultServiceRegistryFactory(sharedServices,startParameter);
-  ListenerManager listenerManager=serviceRegistryFactory.get(ListenerManager.class);
+  TopLevelBuildServiceRegistry serviceRegistry=new TopLevelBuildServiceRegistry(sharedServices,startParameter);
+  ListenerManager listenerManager=serviceRegistry.get(ListenerManager.class);
   loggingConfigurer.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
   loggingConfigurer.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
   listenerManager.useLogger(new TaskExecutionLogger(Logging.getLogger(TaskExecutionLogger.class)));
   listenerManager.addListener(tracker);
-  listenerManager.addListener(new BuildCleanupListener(serviceRegistryFactory));
-  DefaultGradle gradle=new DefaultGradle(tracker.getCurrentBuild(),startParameter,serviceRegistryFactory);
-  return new GradleLauncher(gradle,serviceRegistryFactory.get(InitScriptHandler.class),new SettingsHandler(new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy()))),serviceRegistryFactory.get(SettingsProcessor.class),new BuildSourceBuilder(this,new DefaultCacheInvalidationStrategy())),new DefaultGradlePropertiesLoader(),new BuildLoader(new ProjectFactory(startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver()),loggingConfigurer,gradle.getBuildListenerBroadcaster(),serviceRegistryFactory.get(ExceptionAnalyser.class));
+  listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
+  DefaultGradle gradle=new DefaultGradle(tracker.getCurrentBuild(),startParameter,serviceRegistry);
+  return new GradleLauncher(gradle,serviceRegistry.get(InitScriptHandler.class),new SettingsHandler(new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy()))),serviceRegistry.get(SettingsProcessor.class),new BuildSourceBuilder(this,new DefaultCacheInvalidationStrategy())),new DefaultGradlePropertiesLoader(),new BuildLoader(new ProjectFactory(startParameter.getBuildScriptSource())),new BuildConfigurer(new ProjectDependencies2TaskResolver()),loggingConfigurer,gradle.getBuildListenerBroadcaster(),serviceRegistry.get(ExceptionAnalyser.class));
 }
