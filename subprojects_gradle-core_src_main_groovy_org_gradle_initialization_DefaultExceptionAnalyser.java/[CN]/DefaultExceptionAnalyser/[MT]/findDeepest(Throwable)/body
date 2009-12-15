@@ -1,12 +1,13 @@
 {
   Throwable result=null;
+  Throwable contextMatch=null;
   for (Throwable current=exception; current != null; current=current.getCause()) {
-    if (current instanceof TaskExecutionException) {
-      return current;
-    }
-    if (current.getClass().getAnnotation(Contextual.class) != null) {
+    if (current instanceof GradleScriptException || current instanceof TaskExecutionException) {
       result=current;
     }
+    if (current.getClass().getAnnotation(Contextual.class) != null) {
+      contextMatch=current;
+    }
   }
-  return result;
+  return result != null ? result : contextMatch;
 }

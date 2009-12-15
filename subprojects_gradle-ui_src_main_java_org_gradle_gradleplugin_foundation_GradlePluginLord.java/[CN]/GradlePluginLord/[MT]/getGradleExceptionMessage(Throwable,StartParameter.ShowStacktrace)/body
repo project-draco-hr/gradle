@@ -9,10 +9,13 @@
   }
   if (failure != null) {
     formatter.format("%n");
-    if (failure instanceof GradleScriptException) {
-      GradleScriptException scriptException=((GradleScriptException)failure).getReportableException();
+    if (failure instanceof LocationAwareException) {
+      LocationAwareException scriptException=(LocationAwareException)failure;
       formatter.format("%s%n%n",scriptException.getLocation());
-      formatter.format("%s%nCause: %s",scriptException.getOriginalMessage(),getMessage(scriptException.getCause()));
+      formatter.format("%s",scriptException.getOriginalMessage());
+      for (      Throwable cause : scriptException.getReportableCauses()) {
+        formatter.format("%nCause: %s",getMessage(cause));
+      }
     }
  else {
       formatter.format("%s",getMessage(failure));

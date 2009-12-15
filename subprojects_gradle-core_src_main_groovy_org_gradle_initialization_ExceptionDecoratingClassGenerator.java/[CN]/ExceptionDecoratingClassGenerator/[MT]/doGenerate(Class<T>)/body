@@ -1,0 +1,64 @@
+{
+  ClassWriter visitor=new ClassWriter(true);
+  String typeName="LocationAware" + type.getName();
+  Type generatedType=Type.getType("L" + typeName.replaceAll("\\.","/") + ";");
+  Type superclassType=Type.getType(type);
+  visitor.visit(Opcodes.V1_5,Opcodes.ACC_PUBLIC,generatedType.getInternalName(),null,superclassType.getInternalName(),new String[]{Type.getType(LocationAwareException.class).getInternalName()});
+  Type helperType=Type.getType(ExceptionHelper.class);
+  Type throwableType=Type.getType(Throwable.class);
+  Type scriptSourceType=Type.getType(ScriptSource.class);
+  Type integerType=Type.getType(Integer.class);
+  visitor.visitField(Opcodes.ACC_PRIVATE,"helper",helperType.getDescriptor(),null,null);
+  String methodDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{superclassType,scriptSourceType,integerType});
+  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,"<init>",methodDescriptor,null,new String[0]);
+  methodVisitor.visitCode();
+  boolean noArgsConstructor;
+  try {
+    type.getConstructor(type);
+    noArgsConstructor=false;
+  }
+ catch (  NoSuchMethodException e) {
+    try {
+      type.getConstructor();
+      noArgsConstructor=true;
+    }
+ catch (    NoSuchMethodException e1) {
+      throw new IllegalArgumentException(String.format("Cannot create subtype for exception '%s'. It needs a zero-args or copy constructor.",type.getName()));
+    }
+  }
+  if (noArgsConstructor) {
+    methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+    methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),"<init>",Type.getMethodDescriptor(Type.VOID_TYPE,new Type[0]));
+  }
+ else {
+    methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+    methodVisitor.visitVarInsn(Opcodes.ALOAD,1);
+    methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),"<init>",Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{superclassType}));
+  }
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitTypeInsn(Opcodes.NEW,helperType.getInternalName());
+  methodVisitor.visitInsn(Opcodes.DUP);
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,1);
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,2);
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,3);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,helperType.getInternalName(),"<init>",Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{throwableType,throwableType,scriptSourceType,integerType}));
+  methodVisitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),"helper",helperType.getDescriptor());
+  methodVisitor.visitInsn(Opcodes.RETURN);
+  methodVisitor.visitMaxs(0,0);
+  methodVisitor.visitEnd();
+  for (  Method method : ExceptionHelper.class.getDeclaredMethods()) {
+    methodDescriptor=Type.getMethodDescriptor(Type.getType(method.getReturnType()),new Type[0]);
+    methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,method.getName(),methodDescriptor,null,new String[0]);
+    methodVisitor.visitCode();
+    methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+    methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"helper",helperType.getDescriptor());
+    methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,helperType.getInternalName(),method.getName(),methodDescriptor);
+    methodVisitor.visitInsn(Opcodes.ARETURN);
+    methodVisitor.visitMaxs(0,0);
+    methodVisitor.visitEnd();
+  }
+  visitor.visitEnd();
+  byte[] bytecode=visitor.toByteArray();
+  return (Class<T>)ReflectionUtil.invoke(type.getClassLoader(),"defineClass",new Object[]{typeName,bytecode,0,bytecode.length});
+}
