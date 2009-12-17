@@ -5,9 +5,27 @@
       Sequence sequence=context.sequence("seq");
       one(scriptCompilerFactoryMock).createCompiler(with(reflectionEquals(new ImportsScriptSource(scriptSourceMock,importsReaderMock,null))));
       will(returnValue(scriptCompilerMock));
-      one(scriptCompilerMock).setClassloader(defaultClassLoader);
+      one(scriptHandlerFactoryMock).create(parentClassLoader);
+      will(returnValue(scriptHandlerMock));
+      allowing(scriptHandlerMock).getClassLoader();
+      will(returnValue(scriptClassLoader));
+      one(scriptCompilerMock).setClassloader(scriptClassLoader);
       inSequence(sequence);
-      one(scriptCompilerMock).compile(BasicScript.class);
+      one(scriptCompilerMock).setTransformer(with(any(ClasspathScriptTransformer.class)));
+      inSequence(sequence);
+      one(scriptCompilerMock).compile(DefaultScript.class);
+      will(returnValue(classPathScriptRunnerMock));
+      allowing(classPathScriptRunnerMock).getScript();
+      will(returnValue(classPathScriptMock));
+      one(classPathScriptMock).init(with(sameInstance(target)),with(notNullValue(ServiceRegistry.class)));
+      inSequence(sequence);
+      one(classPathScriptRunnerMock).run();
+      inSequence(sequence);
+      one(scriptHandlerMock).updateClassPath();
+      inSequence(sequence);
+      one(scriptCompilerMock).setTransformer(with(notNullValue(Transformer.class)));
+      inSequence(sequence);
+      one(scriptCompilerMock).compile(DefaultScript.class);
       will(returnValue(scriptRunnerMock));
       inSequence(sequence);
       allowing(scriptRunnerMock).getScript();
@@ -20,6 +38,6 @@
   }
 );
   ScriptObjectConfigurer configurer=factory.create(scriptSourceMock);
-  configurer.setClassLoader(defaultClassLoader);
+  configurer.setClassLoader(parentClassLoader);
   configurer.apply(target);
 }
