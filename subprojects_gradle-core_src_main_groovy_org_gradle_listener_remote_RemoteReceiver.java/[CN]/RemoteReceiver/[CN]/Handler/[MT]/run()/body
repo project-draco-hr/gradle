@@ -1,0 +1,22 @@
+{
+  try {
+    InputStream inputStream=new BufferedInputStream(Channels.newInputStream(socket));
+    while (true) {
+      Event message=Event.receive(inputStream);
+      try {
+        broadcaster.dispatch(message);
+      }
+ catch (      Exception e) {
+        if (exceptionListener != null) {
+          exceptionListener.receiverThrewException(e);
+        }
+      }
+    }
+  }
+ catch (  Exception e) {
+    if (e instanceof IOException && e.getMessage().startsWith("An existing connection was forcibly closed by the remote host")) {
+      return;
+    }
+    LOGGER.warn("Could not handle remote event connection.",e);
+  }
+}

@@ -1,0 +1,20 @@
+{
+  final TestListener listener=context.mock(TestListener.class);
+  final RuntimeException failure=new RuntimeException();
+  context.checking(new Expectations(){
+{
+      one(listener).event1("param");
+      will(throwException(failure));
+    }
+  }
+);
+  broadcast.add(listener);
+  try {
+    broadcast.dispatch(new Event(TestListener.class.getMethod("event1",String.class),new Object[]{"param"}));
+    fail();
+  }
+ catch (  ListenerNotificationException e) {
+    assertThat(e.getMessage(),equalTo("Failed to notify test listener."));
+    assertThat(e.getCause(),sameInstance((Throwable)failure));
+  }
+}
