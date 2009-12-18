@@ -1,0 +1,36 @@
+{
+  while (true) {
+    List<Event> events=new ArrayList<Event>();
+    lock.lock();
+    try {
+      while (!closed && queue.isEmpty()) {
+        try {
+          condition.await();
+        }
+ catch (        InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+      if (!queue.isEmpty()) {
+        events.addAll(queue);
+      }
+    }
+  finally {
+      lock.unlock();
+    }
+    if (events.isEmpty()) {
+      return;
+    }
+    for (    Event event : events) {
+      dispatch.dispatch(event);
+    }
+    lock.lock();
+    try {
+      queue.subList(0,events.size()).clear();
+      condition.signalAll();
+    }
+  finally {
+      lock.unlock();
+    }
+  }
+}

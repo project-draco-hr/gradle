@@ -1,0 +1,30 @@
+{
+  LOGGER.debug("Signalling {} for {}",Thread.currentThread(),tick);
+  Date expiry=new Date(System.currentTimeMillis() + MAX_WAIT_TIME);
+  while (true) {
+    if (allBlocked()) {
+      break;
+    }
+    try {
+      Thread.sleep(100);
+      if (System.currentTimeMillis() > expiry.getTime()) {
+        throw new RuntimeException(String.format("Timeout waiting for all threads to block for tick %d. Currently at %d.",tick,currentTick));
+      }
+    }
+ catch (    InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  lock.lock();
+  try {
+    if (tick != currentTick + 1) {
+      throw new RuntimeException(String.format("Cannot block until tick %d, as clock is currently at %s.",tick,currentTick));
+    }
+    currentTick++;
+    clockChanged.signalAll();
+  }
+  finally {
+    lock.unlock();
+  }
+  LOGGER.debug("Signal {} done",Thread.currentThread());
+}

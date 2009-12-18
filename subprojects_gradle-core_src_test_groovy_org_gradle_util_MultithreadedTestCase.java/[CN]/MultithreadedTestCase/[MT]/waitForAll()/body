@@ -1,0 +1,30 @@
+{
+  Date expiry=new Date(System.currentTimeMillis() + 2 * MAX_WAIT_TIME);
+  lock.lock();
+  try {
+    LOGGER.debug("Waiting for test threads complete.");
+    if (active.contains(Thread.currentThread())) {
+      throw new RuntimeException("A test thread cannot wait for test threads to complete.");
+    }
+    try {
+      while (!active.isEmpty()) {
+        boolean signaled=activeChanged.awaitUntil(expiry);
+        if (!signaled) {
+          throw new RuntimeException("Timeout waiting for threads to finish.");
+        }
+      }
+    }
+ catch (    InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    LOGGER.debug("All test threads complete.");
+    if (!failures.isEmpty()) {
+      failure=failures.get(0);
+      failures.clear();
+      throw new RuntimeException("An exception occurred in a test thread.",failure);
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+}

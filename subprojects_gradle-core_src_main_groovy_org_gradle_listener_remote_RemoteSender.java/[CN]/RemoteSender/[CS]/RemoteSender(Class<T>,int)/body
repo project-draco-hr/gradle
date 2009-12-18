@@ -1,5 +1,7 @@
 {
   socket=new Socket((String)null,port);
   outstr=new BufferedOutputStream(socket.getOutputStream());
-  source=type.cast(Proxy.newProxyInstance(type.getClassLoader(),new Class<?>[]{type},new SenderInvocationHandler()));
+  executor=Executors.newSingleThreadExecutor();
+  asyncDispatch=new AsyncDispatch(executor,new SerializingDispatch(outstr));
+  source=new ProxyDispatchAdapter<T>(type,asyncDispatch);
 }

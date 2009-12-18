@@ -3,16 +3,17 @@
     public void run(){
       ExecutionInfo executionInfo=new ExecutionInfo();
       protocol.getExecutionInfo(getPort(),executionInfo);
-      ExternalProcess externalProcess=new ExternalProcess(executionInfo.workingDirectory,executionInfo.commandLineArguments);
-      setExternalProcess(externalProcess);
-      Iterator<String> iterator=executionInfo.environmentVariables.keySet().iterator();
-      while (iterator.hasNext()) {
-        String name=iterator.next();
-        String value=executionInfo.environmentVariables.get(name);
-        externalProcess.setEnvironmentVariable(name,value);
-      }
+      ExecHandleBuilder builder=new ExecHandleBuilder();
+      builder.execDirectory(executionInfo.workingDirectory);
+      builder.commandLine(executionInfo.commandLineArguments);
+      builder.environment(executionInfo.environmentVariables);
+      ByteArrayOutputStream output=new ByteArrayOutputStream();
+      builder.standardOutput(output);
+      builder.errorOutput(output);
+      ExecHandle execHandle=builder.getExecHandle();
+      setExternalProcess(execHandle);
       try {
-        externalProcess.start();
+        execHandle.start();
       }
  catch (      Throwable e) {
         logger.error("Starting external process",e);
@@ -20,15 +21,9 @@
         setExternalProcess(null);
         return;
       }
-      int result=0;
-      try {
-        result=externalProcess.waitFor();
-      }
- catch (      InterruptedException e) {
-        logger.error("Waiting for external process",e);
-      }
+      execHandle.waitForFinish();
       setExternalProcess(null);
-      notifyClientExited(result,externalProcess.getOutput());
+      notifyClientExited(execHandle.getExitCode(),output.toString());
     }
   }
 );
