@@ -1,22 +1,29 @@
 {
   try {
-    InputStream inputStream=new BufferedInputStream(Channels.newInputStream(socket));
-    while (true) {
-      Event message=Event.receive(inputStream);
-      try {
-        broadcaster.dispatch(message);
-      }
- catch (      Exception e) {
-        if (exceptionListener != null) {
-          exceptionListener.receiverThrewException(e);
+    try {
+      InputStream inputStream=new BufferedInputStream(Channels.newInputStream(socket));
+      ClassLoader classLoader=Thread.currentThread().getContextClassLoader();
+      while (true) {
+        Message message=Message.receive(inputStream,classLoader);
+        if (message instanceof EndOfStream) {
+          return;
+        }
+        Event event=(Event)message;
+        try {
+          broadcaster.dispatch(event);
+        }
+ catch (        Exception e) {
+          if (exceptionListener != null) {
+            exceptionListener.receiverThrewException(e);
+          }
         }
       }
     }
+  finally {
+      socket.close();
+    }
   }
  catch (  Exception e) {
-    if (e instanceof IOException && e.getMessage().startsWith("An existing connection was forcibly closed by the remote host")) {
-      return;
-    }
     LOGGER.warn("Could not handle remote event connection.",e);
   }
 }

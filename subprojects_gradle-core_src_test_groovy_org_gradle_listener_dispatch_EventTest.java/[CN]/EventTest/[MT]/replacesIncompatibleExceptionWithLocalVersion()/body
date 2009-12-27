@@ -1,0 +1,14 @@
+{
+  RuntimeException cause=new RuntimeException("nested");
+  Class<? extends RuntimeException> sourceExceptionType=source.parseClass("package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }");
+  Class<? extends RuntimeException> destExceptionType=dest.parseClass("package org.gradle; public class TestException extends RuntimeException { private String someField; public TestException(String msg) { super(msg); } }");
+  RuntimeException original=sourceExceptionType.getConstructor(String.class,Throwable.class).newInstance("message",cause);
+  Object transported=transport(original);
+  assertThat(transported,instanceOf(destExceptionType));
+  RuntimeException e=(RuntimeException)transported;
+  assertThat(e.getMessage(),equalTo(original.getMessage()));
+  assertThat(e.getStackTrace(),equalTo(original.getStackTrace()));
+  assertThat(e.getCause().getClass(),equalTo((Object)RuntimeException.class));
+  assertThat(e.getCause().getMessage(),equalTo("nested"));
+  assertThat(e.getCause().getStackTrace(),equalTo(cause.getStackTrace()));
+}

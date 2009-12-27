@@ -1,0 +1,25 @@
+{
+  final TestListener listener=context.mock(TestListener.class);
+  final TestClosure closure=context.mock(TestClosure.class);
+  test.addTestListener(listener);
+  test.beforeTest(HelperUtil.toClosure(closure));
+  test.afterTest(HelperUtil.toClosure(closure));
+  final Test testInfo=context.mock(Test.class);
+  final TestResult result=context.mock(TestResult.class);
+  context.checking(new Expectations(){
+{
+      one(listener).beforeTest(testInfo);
+      one(closure).call(testInfo);
+    }
+  }
+);
+  test.getTestListenerBroadcaster().getSource().beforeTest(testInfo);
+  context.checking(new Expectations(){
+{
+      one(listener).afterTest(testInfo,result);
+      one(closure).call(testInfo);
+    }
+  }
+);
+  test.getTestListenerBroadcaster().getSource().afterTest(testInfo,result);
+}

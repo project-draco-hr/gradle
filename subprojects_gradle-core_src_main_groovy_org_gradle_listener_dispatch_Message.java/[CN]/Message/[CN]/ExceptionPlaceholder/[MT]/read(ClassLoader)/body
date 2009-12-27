@@ -1,0 +1,22 @@
+{
+  if (serializedException != null) {
+    try {
+      return (Throwable)new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedException),classLoader).readObject();
+    }
+ catch (    ClassNotFoundException e) {
+    }
+catch (    InvalidClassException e) {
+      try {
+        Throwable throwable=ReflectionUtil.newInstance(classLoader.loadClass(type),new Object[]{message});
+        throwable.initCause(getCause(classLoader));
+        throwable.setStackTrace(stackTrace);
+        return throwable;
+      }
+ catch (      ClassNotFoundException e1) {
+      }
+    }
+  }
+  PlaceholderException exception=new PlaceholderException(String.format("%s: %s",type,message),getCause(classLoader));
+  exception.setStackTrace(stackTrace);
+  return exception;
+}
