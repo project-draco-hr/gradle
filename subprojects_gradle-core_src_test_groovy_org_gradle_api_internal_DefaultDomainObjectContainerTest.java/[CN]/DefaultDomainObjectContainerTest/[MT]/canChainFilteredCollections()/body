@@ -1,22 +1,20 @@
 {
-  final Bean bean=new Bean();
-  final Bean bean2=new Bean();
-  final Bean bean3=new Bean();
-  Spec<Bean> spec=new Spec<Bean>(){
-    public boolean isSatisfiedBy(    Bean element){
-      return element != bean;
+  Spec<CharSequence> spec=new Spec<CharSequence>(){
+    public boolean isSatisfiedBy(    CharSequence element){
+      return !element.equals("b");
     }
   }
 ;
-  Spec<Bean> spec2=new Spec<Bean>(){
-    public boolean isSatisfiedBy(    Bean element){
-      return element != bean2;
+  Spec<String> spec2=new Spec<String>(){
+    public boolean isSatisfiedBy(    String element){
+      return !element.equals("c");
     }
   }
 ;
-  container.addObject("a",bean);
-  container.addObject("b",bean2);
-  container.addObject("c",bean3);
-  DomainObjectCollection<Bean> collection=container.matching(spec).matching(spec2);
-  assertThat(collection.getAll(),equalTo(toSet(bean3)));
+  container.addObject("a");
+  container.addObject("b");
+  container.addObject("c");
+  container.addObject(new StringBuffer("d"));
+  DomainObjectCollection<String> collection=container.matching(spec).withType(String.class).matching(spec2);
+  assertThat(collection.getAll(),equalTo(toSet("a")));
 }
