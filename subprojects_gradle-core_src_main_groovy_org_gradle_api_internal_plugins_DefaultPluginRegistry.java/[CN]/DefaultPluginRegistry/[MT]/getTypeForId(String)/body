@@ -1,11 +1,12 @@
 {
-  if (!GUtil.isTrue(properties.get(pluginId))) {
-    throw new UnknownPluginException("The plugin with the id '" + pluginId + "' is not available.");
+  String implClassName=properties.get(pluginId);
+  if (!GUtil.isTrue(implClassName)) {
+    throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
   }
   try {
-    return Class.forName(properties.get(pluginId)).asSubclass(Plugin.class);
+    return Class.forName(implClassName).asSubclass(Plugin.class);
   }
  catch (  ClassNotFoundException e) {
-    throw new PluginInstantiationException(e);
+    throw new PluginInstantiationException(String.format("Could not find implementation class '%s' for plugin '%s'.",implClassName,pluginId),e);
   }
 }

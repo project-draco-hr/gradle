@@ -1,3 +1,16 @@
 {
-  return addPlugin(pluginClass,pluginProvider);
+  T plugin=pluginClass.cast(plugins.get(pluginClass));
+  if (plugin == null) {
+    try {
+      plugin=pluginClass.newInstance();
+    }
+ catch (    InstantiationException e) {
+      throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",pluginClass.getSimpleName()),e.getCause());
+    }
+catch (    Exception e) {
+      throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",pluginClass.getSimpleName()),e);
+    }
+    plugins.put(pluginClass,plugin);
+  }
+  return plugin;
 }

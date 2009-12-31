@@ -1,6 +1,6 @@
 {
   if (!Task.class.isAssignableFrom(type)) {
-    throw new GradleException(String.format("Cannot create task of type '%s' as it does not implement the Task interface.",type.getSimpleName()));
+    throw new InvalidUserDataException(String.format("Cannot create task of type '%s' as it does not implement the Task interface.",type.getSimpleName()));
   }
   Class<? extends TaskInternal> generatedType;
   if (generateGetters) {
@@ -16,7 +16,7 @@
     params=new Object[0];
   }
  catch (  NoSuchMethodException e) {
-    throw new GradleException(String.format("Cannot create task of type '%s' as it does not have a public no-args constructor.",type.getSimpleName()));
+    throw new InvalidUserDataException(String.format("Cannot create task of type '%s' as it does not have a public no-args constructor.",type.getSimpleName()));
   }
   return AbstractTask.injectIntoNewInstance(project,name,new Callable<TaskInternal>(){
     public TaskInternal call() throws Exception {
@@ -24,10 +24,10 @@
         return constructor.newInstance(params);
       }
  catch (      InvocationTargetException e) {
-        throw new GradleException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e.getCause());
+        throw new TaskInstantiationException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e.getCause());
       }
 catch (      Exception e) {
-        throw new GradleException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e);
+        throw new TaskInstantiationException(String.format("Could not create task of type '%s'.",type.getSimpleName()),e);
       }
     }
   }
