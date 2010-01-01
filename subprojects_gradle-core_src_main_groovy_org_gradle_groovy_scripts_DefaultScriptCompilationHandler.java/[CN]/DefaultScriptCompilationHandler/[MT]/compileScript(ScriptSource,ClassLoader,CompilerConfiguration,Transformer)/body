@@ -4,7 +4,7 @@
     @Override protected CompilationUnit createCompilationUnit(    CompilerConfiguration compilerConfiguration,    CodeSource codeSource){
       CompilationUnit compilationUnit=new CompilationUnit(compilerConfiguration,codeSource,this){
         @Override protected ClassVisitor createClassVisitor(){
-          return new ClassWriter(true){
+          return new ClassWriter(ClassWriter.COMPUTE_MAXS){
             @Override public void visitSource(            String sourcePath,            String debugInfo){
               super.visitSource(source.getFileName(),debugInfo);
             }
@@ -23,8 +23,9 @@
   String scriptText=source.getText();
   String scriptName=source.getClassName();
   Class scriptClass;
+  GroovyCodeSource codeSource=new GroovyCodeSource(scriptText == null ? "" : scriptText,scriptName,"/groovy/script");
   try {
-    scriptClass=groovyClassLoader.parseClass(scriptText == null ? "" : scriptText,scriptName);
+    scriptClass=groovyClassLoader.parseClass(codeSource,false);
   }
  catch (  MultipleCompilationErrorsException e) {
     SyntaxException syntaxError=e.getErrorCollector().getSyntaxError(0);
