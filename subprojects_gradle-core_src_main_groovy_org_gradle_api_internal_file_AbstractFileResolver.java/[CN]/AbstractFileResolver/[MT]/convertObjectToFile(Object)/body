@@ -1,23 +1,11 @@
 {
-  Object current=path;
-  while (current != null) {
-    if (current instanceof File) {
-      return (File)current;
-    }
- else     if (current instanceof Closure) {
-      current=((Closure)current).call();
-    }
- else     if (current instanceof Callable) {
-      try {
-        current=((Callable)current).call();
-      }
- catch (      Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
- else {
-      return new File(current.toString());
-    }
+  Object object=unpack(path);
+  if (object == null) {
+    return null;
   }
-  return null;
+  Object converted=stringToFileOrUri(object);
+  if (converted instanceof File) {
+    return (File)converted;
+  }
+  throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.",converted));
 }

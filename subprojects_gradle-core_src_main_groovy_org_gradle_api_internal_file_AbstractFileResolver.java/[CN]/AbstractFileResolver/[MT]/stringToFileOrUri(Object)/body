@@ -1,0 +1,31 @@
+{
+  if (path instanceof File) {
+    return path;
+  }
+  if (path instanceof URI) {
+    URI uri=(URI)path;
+    if (uri.getScheme().equals("file")) {
+      return new File(uri.getPath());
+    }
+    return uri;
+  }
+  String str=path.toString();
+  if (str.startsWith("file:")) {
+    return new File(str.substring(5));
+  }
+  for (  File file : File.listRoots()) {
+    String rootPath=file.getAbsolutePath();
+    if (str.startsWith(rootPath) || str.startsWith(rootPath.replace(File.separatorChar,'/'))) {
+      return new File(str);
+    }
+  }
+  if (URI_SCHEME.matcher(str).matches()) {
+    try {
+      return new URI(str);
+    }
+ catch (    URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  return new File(str);
+}
