@@ -1,20 +1,21 @@
 {
+  final Collector<TestScript> collector=collector();
   context.checking(new Expectations(){
 {
       one(cacheRepositoryMock).getGlobalCache("scripts/class-name",expectedCacheProperties);
       will(returnValue(cacheMock));
       allowing(cacheMock).isValid();
       will(returnValue(false));
-      one(scriptCompilationHandlerMock).compileScriptToDir(source,testClassLoader,expectedScriptCacheDir,null,expectedScriptBaseClass);
+      one(scriptCompilationHandlerMock).compileToDir(expectedSource,testClassLoader,expectedScriptCacheDir,null,expectedScriptBaseClass);
       one(cacheMock).markValid();
-      one(scriptCompilationHandlerMock).loadScriptFromDir(source,testClassLoader,expectedScriptCacheDir,expectedScriptBaseClass);
-      will(returnValue(expectedScript));
-      one(expectedScript).setContextClassloader(testClassLoader);
-      one(expectedScript).setScriptSource(source);
-      one(scriptRunnerFactoryMock).create(expectedScript);
-      will(returnValue(expectedScriptRunner));
+      one(scriptCompilationHandlerMock).loadFromDir(expectedSource,testClassLoader,expectedScriptCacheDir,expectedScriptBaseClass);
+      will(returnValue(TestScript.class));
+      one(scriptRunnerFactoryMock).create(with(notNullValue(TestScript.class)));
+      will(collectTo(collector).then(returnValue(expectedScriptRunner)));
     }
   }
 );
   assertSame(expectedScriptRunner,scriptProcessor.createCompiler(source).compile(expectedScriptBaseClass));
+  assertSame(testClassLoader,collector.get().getContextClassloader());
+  assertEquals(expectedSource,collector.get().getScriptSource());
 }

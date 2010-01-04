@@ -1,4 +1,11 @@
 {
-  scriptCompilationHandler.compileScriptToDir(scriptSource,classLoader,scriptCacheDir,null,Script.class);
-  assertNull(scriptCompilationHandler.loadScriptFromDir(scriptSource,classLoader,scriptCacheDir,expectedScriptClass));
+  scriptCompilationHandler.compileToDir(scriptSource,classLoader,scriptCacheDir,null,Script.class);
+  try {
+    scriptCompilationHandler.loadFromDir(scriptSource,classLoader,scriptCacheDir,expectedScriptClass);
+    fail();
+  }
+ catch (  GradleException e) {
+    assertThat(e.getMessage(),equalTo("Could not load compiled classes for script-display-name from cache."));
+    assertThat(e.getCause(),instanceOf(ClassCastException.class));
+  }
 }

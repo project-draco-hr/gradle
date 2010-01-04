@@ -1,0 +1,21 @@
+{
+  final Collector<TestScript> collector=collector();
+  final ClassLoader classLoader=new ClassLoader(){
+  }
+;
+  context.checking(new Expectations(){
+{
+      one(cacheRepositoryMock).getGlobalCache("scripts/class-name",expectedCacheProperties);
+      will(returnValue(cacheMock));
+      allowing(cacheMock).isValid();
+      will(returnValue(true));
+      one(scriptCompilationHandlerMock).loadFromDir(expectedSource,classLoader,expectedScriptCacheDir,expectedScriptBaseClass);
+      will(returnValue(TestScript.class));
+      one(scriptRunnerFactoryMock).create(with(notNullValue(TestScript.class)));
+      will(collectTo(collector).then(returnValue(expectedScriptRunner)));
+    }
+  }
+);
+  assertSame(expectedScriptRunner,scriptProcessor.createCompiler(source).setClassloader(classLoader).compile(expectedScriptBaseClass));
+  assertSame(classLoader,collector.get().getContextClassloader());
+}
