@@ -1,9 +1,12 @@
 {
-  int port=Integer.parseInt(System.getProperty(PORT_VMARG,"0"));
-  if (port <= 0) {
-    throw new IllegalArgumentException(String.format("Invalid port '%s' specified for remote test listener.",System.getProperty(PORT_VMARG)));
+  if (defaultSender == null) {
+    int port=Integer.parseInt(System.getProperty(PORT_VMARG,"0"));
+    if (port <= 0) {
+      throw new IllegalArgumentException(String.format("Invalid port '%s' specified for remote test listener.",System.getProperty(PORT_VMARG)));
+    }
+    sender=new RemoteSender<TestListener>(TestListener.class,port);
+    ShutdownHookActionRegister.closeOnExit(sender);
+    defaultSender=sender.getSource();
   }
-  sender=new RemoteSender<TestListener>(TestListener.class,port);
-  ShutdownHookActionRegister.closeOnExit(sender);
-  remoteSender=sender.getSource();
+  remoteSender=defaultSender;
 }
