@@ -1,7 +1,7 @@
 {
   lock.lock();
   try {
-    while (!closed && queue.size() >= MAX_QUEUE_SIZE) {
+    while (dispatching && !closed && queue.size() >= maxQueueSize) {
       try {
         condition.await();
       }
@@ -11,6 +11,9 @@
     }
     if (closed) {
       throw new IllegalStateException("This message dispatch has been closed.");
+    }
+    if (!dispatching) {
+      throw new IllegalStateException("Cannot dispatch messages, as the dispatch thread has exited.");
     }
     queue.add(message);
     condition.signalAll();

@@ -3,13 +3,19 @@
   try {
     closed=true;
     condition.signalAll();
-    while (!queue.isEmpty()) {
+    Date expiry=new Date(System.currentTimeMillis() + (120 * 1000));
+    while (dispatching && !queue.isEmpty()) {
       try {
-        condition.await();
+        if (!condition.awaitUntil(expiry)) {
+          throw new IllegalStateException("Timeout waiting for messages to be flushed.");
+        }
       }
  catch (      InterruptedException e) {
         throw new RuntimeException(e);
       }
+    }
+    if (!queue.isEmpty()) {
+      throw new IllegalStateException("Cannot wait for messages to be flushed, as the dispatch thread has exited.");
     }
   }
   finally {

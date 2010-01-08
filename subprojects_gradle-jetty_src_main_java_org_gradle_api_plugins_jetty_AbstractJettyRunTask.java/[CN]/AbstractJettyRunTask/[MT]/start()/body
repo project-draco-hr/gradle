@@ -1,15 +1,10 @@
 {
-  ClassLoader originalClassloader=Thread.currentThread().getContextClassLoader();
-  List<URL> additionalClasspath=new ArrayList<URL>();
+  ClassLoader originalClassloader=Server.class.getClassLoader();
+  List<File> additionalClasspath=new ArrayList<File>();
   for (  File additionalRuntimeJar : getAdditionalRuntimeJars()) {
-    try {
-      additionalClasspath.add(additionalRuntimeJar.toURI().toURL());
-    }
- catch (    MalformedURLException e) {
-      throw new InvalidUserDataException(e);
-    }
+    additionalClasspath.add(additionalRuntimeJar);
   }
-  URLClassLoader jettyClassloader=new URLClassLoader(additionalClasspath.toArray(new URL[additionalClasspath.size()]),originalClassloader);
+  URLClassLoader jettyClassloader=new URLClassLoader(GFileUtils.toURLs(additionalClasspath),originalClassloader);
   try {
     Thread.currentThread().setContextClassLoader(jettyClassloader);
     startJetty();
