@@ -4,7 +4,8 @@
 {
       TaskInputs taskInputs=context.mock(TaskInputs.class,String.format("inputs%d",counter++));
       TaskOutputsInternal taskOutputs=context.mock(TaskOutputsInternal.class,String.format("outputs%d",counter++));
-      FileCollection outputFileCollection=context.mock(FileCollection.class,String.format("taskOutputFiles%d",counter++));
+      FileCollection outputFileCollection=new PathResolvingFileCollection(new IdentityFileResolver(),null,outputs);
+      FileCollection candidateOutputFileCollection=outputFileCollection.getAsFileTree();
       FileCollection inputFileCollection=context.mock(FileCollection.class,String.format("taskInputFiles%d",counter++));
       allowing(task).getProject();
       will(returnValue(project));
@@ -22,8 +23,21 @@
       will(returnValue(taskOutputs));
       allowing(taskOutputs).getFiles();
       will(returnValue(outputFileCollection));
-      allowing(outputFileCollection).iterator();
-      will(returnIterator(outputs));
+      allowing(taskOutputs).getCandidateFiles();
+      will(returnValue(candidateOutputFileCollection));
+      atMost(1).of(task).execute();
+      will(new Action(){
+        public void describeTo(        Description description){
+          description.appendText("creates ").appendValue(create);
+        }
+        public Object invoke(        Invocation invocation) throws Throwable {
+          for (          TestFile file : create) {
+            file.touch();
+          }
+          return null;
+        }
+      }
+);
     }
   }
 );

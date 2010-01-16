@@ -1,0 +1,16 @@
+{
+  FileCollectionSnapshotImpl other=(FileCollectionSnapshotImpl)snapshot;
+  Map<String,FileSnapshot> otherSnapshots=new HashMap<String,FileSnapshot>(other.snapshots);
+  for (  Map.Entry<String,FileSnapshot> entry : snapshots.entrySet()) {
+    FileSnapshot otherFile=otherSnapshots.remove(entry.getKey());
+    if (otherFile == null) {
+      listener.added(new File(entry.getKey()));
+    }
+ else     if (!entry.getValue().isUpToDate(otherFile)) {
+      listener.changed(new File(entry.getKey()));
+    }
+  }
+  for (  String file : otherSnapshots.keySet()) {
+    listener.removed(new File(file));
+  }
+}
