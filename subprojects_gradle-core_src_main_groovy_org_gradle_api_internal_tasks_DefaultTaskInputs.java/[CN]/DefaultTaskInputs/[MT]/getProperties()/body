@@ -1,0 +1,21 @@
+{
+  Map<String,Object> actualProperties=new HashMap<String,Object>();
+  for (  Map.Entry<String,Object> entry : properties.entrySet()) {
+    Object value=entry.getValue();
+    if (value instanceof Callable) {
+      Callable callable=(Callable)value;
+      try {
+        value=callable.call();
+      }
+ catch (      Exception e) {
+        throw new GradleException(e);
+      }
+    }
+    if (value instanceof Closure) {
+      Closure closure=(Closure)value;
+      value=closure.call();
+    }
+    actualProperties.put(entry.getKey(),value);
+  }
+  return actualProperties;
+}
