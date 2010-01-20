@@ -1,7 +1,10 @@
 {
-  final TestDetectionOrchestrator detectionOrchestrator=createTestDetectionOrchestrator();
-  final TestPipelineSplitOrchestrator pipelineSplitOrchestrator=createTestPipelineSplitOrchestrator();
-  final PipelinesManager pipelinesManager=createPipelinesManager();
-  final ReportsManager reportOrchestrator=createTestReportOrchestrator();
+  ForkControl forkControl=new ForkControl(testTask.getMaximumNumberOfForks());
+  PipelineFactory pipelineFactory=new PipelineFactory(testTask);
+  TestPipelineSplitOrchestrator pipelineSplitOrchestrator=new TestPipelineSplitOrchestrator();
+  DefaultTestClassScannerFactory testClassScannerFactory=new DefaultTestClassScannerFactory();
+  TestDetectionOrchestrator detectionOrchestrator=new DefaultTestDetectionOrchestrator(testClassScannerFactory.createTestClassScanner(testTask,pipelineSplitOrchestrator.getProcessor()));
+  PipelinesManager pipelinesManager=new PipelinesManager(pipelineFactory,forkControl);
+  ReportsManager reportOrchestrator=new DefaultReportsManager();
   return new TestOrchestratorContext(testOrchestrator,detectionOrchestrator,pipelineSplitOrchestrator,pipelinesManager,reportOrchestrator);
 }

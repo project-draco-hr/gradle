@@ -1,17 +1,16 @@
 {
-  final Map<SplitPolicyMatcher,Pipeline> pipelineMatchers=new HashMap<SplitPolicyMatcher,Pipeline>();
-  final List<SplitPolicyMatcher> splitPolicyMatchers=new ArrayList<SplitPolicyMatcher>();
+  final Map<Spec<TestClassRunInfo>,Pipeline> pipelineMatchers=new HashMap<Spec<TestClassRunInfo>,Pipeline>();
+  final List<Spec<TestClassRunInfo>> splitPolicyMatchers=new ArrayList<Spec<TestClassRunInfo>>();
   for (  final Pipeline pipeline : pipelinesManager.getPipelines()) {
     final PipelineConfig pipelineConfig=pipeline.getConfig();
     final SplitPolicyConfig splitPolicyConfig=pipelineConfig.getSplitPolicyConfig();
     final SplitPolicy splitPolicy=SplitPolicyRegister.getSplitPolicy(splitPolicyConfig.getPolicyName());
     final SplitPolicyInstance splitPolicyInstance=splitPolicy.getSplitPolicyInstance(pipelineConfig);
     splitPolicyInstance.prepare();
-    final SplitPolicyMatcher matcher=splitPolicyInstance.createSplitPolicyMatcher();
+    final Spec<TestClassRunInfo> matcher=splitPolicyInstance.createSplitPolicyMatcher();
     pipelineMatchers.put(matcher,pipeline);
     splitPolicyMatchers.add(matcher);
   }
-  for (int i=0; i < 2; i++) {
-    pipelineSplitThreadPool.submit(new PipelineSplitWorker(this,testDetectionQueue,100L,TimeUnit.MILLISECONDS,Collections.unmodifiableList(splitPolicyMatchers),Collections.unmodifiableMap(pipelineMatchers)));
-  }
+  TestClassProcessor splitter=new PipelineSplitWorker(Collections.unmodifiableList(splitPolicyMatchers),Collections.unmodifiableMap(pipelineMatchers));
+  asyncProxy.start(splitter);
 }
