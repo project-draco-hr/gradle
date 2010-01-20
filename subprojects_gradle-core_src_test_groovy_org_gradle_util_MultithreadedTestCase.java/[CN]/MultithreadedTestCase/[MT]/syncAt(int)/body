@@ -1,0 +1,34 @@
+{
+  LOGGER.debug("Thread {} synching at tick {}",Thread.currentThread(),tick);
+  lock.lock();
+  try {
+    if (tick != currentTick + 1) {
+      throw new RuntimeException(String.format("Cannot wait for clock tick %d, as clock is currently at %s.",tick,currentTick));
+    }
+    if (!active.contains(Thread.currentThread())) {
+      throw new RuntimeException("Cannot wait for clock tick from a thread which is not a test thread.");
+    }
+    Date expiry=new Date(System.currentTimeMillis() + MAX_WAIT_TIME);
+    synching.add(Thread.currentThread());
+    synchingChanged.signalAll();
+    while (currentTick != tick && (!synching.equals(active) || synching.size() == 1)) {
+      try {
+        boolean signalled=synchingChanged.awaitUntil(expiry);
+        if (!signalled) {
+          throw new RuntimeException(String.format("Timeout waiting for all threads to reach tick %d. Currently at %d.",tick,currentTick));
+        }
+      }
+ catch (      InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    if (currentTick + 1 == tick) {
+      currentTick=tick;
+      synching.clear();
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+  LOGGER.debug("Thread {} sync done",Thread.currentThread());
+}

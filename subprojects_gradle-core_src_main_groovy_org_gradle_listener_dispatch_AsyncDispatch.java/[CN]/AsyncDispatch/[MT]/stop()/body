@@ -1,0 +1,25 @@
+{
+  lock.lock();
+  try {
+    if (state != State.Broken) {
+      setState(State.Stopped);
+    }
+    Date expiry=new Date(System.currentTimeMillis() + (120 * 1000));
+    while (state != State.Broken && !queue.isEmpty()) {
+      try {
+        if (!condition.awaitUntil(expiry)) {
+          throw new IllegalStateException("Timeout waiting for messages to be flushed.");
+        }
+      }
+ catch (      InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    if (state == State.Broken && !queue.isEmpty()) {
+      throw new IllegalStateException("Cannot wait for messages to be flushed, as the dispatch thread has exited.");
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+}
