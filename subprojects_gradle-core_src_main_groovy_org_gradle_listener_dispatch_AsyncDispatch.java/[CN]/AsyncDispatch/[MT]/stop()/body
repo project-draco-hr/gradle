@@ -1,22 +1,20 @@
 {
   lock.lock();
   try {
-    if (state != State.Broken) {
-      setState(State.Stopped);
-    }
+    setState(State.Stopped);
     Date expiry=new Date(System.currentTimeMillis() + (120 * 1000));
-    while (state != State.Broken && !queue.isEmpty()) {
+    while (targets > 0) {
       try {
         if (!condition.awaitUntil(expiry)) {
           throw new IllegalStateException("Timeout waiting for messages to be flushed.");
         }
       }
  catch (      InterruptedException e) {
-        throw new RuntimeException(e);
+        throw new GradleException(e);
       }
     }
-    if (state == State.Broken && !queue.isEmpty()) {
-      throw new IllegalStateException("Cannot wait for messages to be flushed, as the dispatch thread has exited.");
+    if (!queue.isEmpty()) {
+      throw new IllegalStateException("Cannot wait for messages to be flushed, as there are no dispatch threads.");
     }
   }
   finally {

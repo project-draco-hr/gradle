@@ -1,0 +1,14 @@
+{
+  final IoAcceptorFactory ioAcceptorFactory=new ExternalIoAcceptorFactory();
+  CompositeMessageHandler handler=new CompositeMessageHandler(pipelineDispatcher);
+  handler.add(new ForkStartedMessageHandler(pipelineDispatcher));
+  handler.add(new ForkStoppedMessageHandler(pipelineDispatcher));
+  handler.add(new NextActionRequestMessageHandler(pipelineDispatcher));
+  pipelineDispatcher.setMessageHandler(handler);
+  return new DefaultTestControlServer(ioAcceptorFactory,new Dispatch<TransportMessage>(){
+    public void dispatch(    TransportMessage message){
+      pipelineDispatcher.messageReceived(message.getIoSession(),message.getMessage());
+    }
+  }
+);
+}

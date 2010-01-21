@@ -1,19 +1,16 @@
 {
   lock.lock();
   try {
-    while ((state == State.Init || state == State.Dispatching) && queue.size() >= maxQueueSize) {
+    while (state == State.Init && queue.size() >= maxQueueSize) {
       try {
         condition.await();
       }
  catch (      InterruptedException e) {
-        throw new RuntimeException(e);
+        throw new GradleException(e);
       }
     }
     if (state == State.Stopped) {
       throw new IllegalStateException("This message dispatch has been stopped.");
-    }
-    if (state == State.Broken) {
-      throw new IllegalStateException("Cannot dispatch messages, as the dispatch thread has exited.");
     }
     queue.add(message);
     condition.signalAll();

@@ -1,36 +1,27 @@
 {
   while (true) {
-    List<T> messages=new ArrayList<T>();
+    T message=null;
     lock.lock();
     try {
-      while (state == State.Dispatching && queue.isEmpty()) {
+      while (state == State.Init && queue.isEmpty()) {
         try {
           condition.await();
         }
  catch (        InterruptedException e) {
-          throw new RuntimeException(e);
+          throw new GradleException(e);
         }
       }
       if (!queue.isEmpty()) {
-        messages.addAll(queue);
+        message=queue.remove();
+        condition.signalAll();
       }
     }
   finally {
       lock.unlock();
     }
-    if (messages.isEmpty()) {
+    if (message == null) {
       return;
     }
-    for (    T message : messages) {
-      dispatch.dispatch(message);
-    }
-    lock.lock();
-    try {
-      queue.subList(0,messages.size()).clear();
-      condition.signalAll();
-    }
-  finally {
-      lock.unlock();
-    }
+    dispatch.dispatch(message);
   }
 }

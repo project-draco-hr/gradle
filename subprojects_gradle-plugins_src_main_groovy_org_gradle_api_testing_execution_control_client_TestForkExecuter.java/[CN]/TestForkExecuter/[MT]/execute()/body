@@ -3,16 +3,16 @@
     final int pipelineId=Integer.parseInt(arguments.get(0));
     final int forkId=Integer.parseInt(arguments.get(1));
     final int testServerPort=Integer.parseInt(arguments.get(2));
+    AsyncDispatch<TestControlMessage> asyncDispatch=new AsyncDispatch<TestControlMessage>(Executors.newSingleThreadExecutor());
     final IoConnectorFactory ioConnectorFactory=new ExternalIoConnectorFactory(testServerPort);
-    final DefaultTestControlClient testControlClient=new DefaultTestControlClient(forkId,ioConnectorFactory,testControlMessageQueue);
+    final DefaultTestControlClient testControlClient=new DefaultTestControlClient(forkId,ioConnectorFactory,asyncDispatch);
     try {
       testControlClient.open();
       testControlClient.reportStarted();
-      final TestControlMessageDispatcher testControlMessageDispatcher=new TestControlMessageDispatcher(testControlClient,sandboxClassLoader);
-      final TestControlMessageQueueConsumer controlMessageConsumer=new TestControlMessageQueueConsumer(testControlMessageQueue,100L,TimeUnit.MILLISECONDS,testControlMessageDispatcher);
-      Thread controlMessageConsumerThread=new Thread(controlMessageConsumer);
-      controlMessageConsumerThread.start();
-      ThreadUtils.join(controlMessageConsumerThread);
+      TestControlMessageDispatcher testControlMessageDispatcher=new TestControlMessageDispatcher(testControlClient,sandboxClassLoader);
+      asyncDispatch.add(testControlMessageDispatcher);
+      testControlMessageDispatcher.waitForExitReceived();
+      asyncDispatch.stop();
       testControlClient.reportStopped();
     }
   finally {

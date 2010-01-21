@@ -2,12 +2,25 @@
   lock.lock();
   try {
     active.remove(thread);
+    Matcher<? extends Throwable> matcher=expectedFailure.get();
     if (failure != null) {
-      LOGGER.debug(String.format("Failure in %s",thread),failure);
-      failures.add(failure);
+      if (matcher != null && matcher.matches(failure)) {
+        LOGGER.debug("Finished {} with expected failure.",thread);
+      }
+ else {
+        LOGGER.error(String.format("Failure in %s",thread),failure);
+        failures.add(failure);
+      }
     }
  else {
-      LOGGER.debug("Finished {}",thread);
+      if (matcher != null) {
+        String message=String.format("Did not get expected failure in %s",thread);
+        LOGGER.error(message);
+        failures.add(new AssertionFailedError(message));
+      }
+ else {
+        LOGGER.debug("Finished {}",thread);
+      }
     }
     activeChanged.signalAll();
   }
