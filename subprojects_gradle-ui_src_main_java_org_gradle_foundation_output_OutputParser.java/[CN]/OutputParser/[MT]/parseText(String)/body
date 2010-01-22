@@ -1,0 +1,31 @@
+{
+  List<FileLink> fileLinks=new ArrayList<FileLink>();
+  Pattern combinedSearchPattern=fileLinkDefinitionLord.getSearchPattern();
+  Matcher matcher=combinedSearchPattern.matcher(text);
+  int index=0;
+  boolean foundAMatch=matcher.find(index);
+  while (foundAMatch) {
+    String matchedText=matcher.group();
+    int start=matcher.start();
+    int end=matcher.end();
+    int nextStarting=start;
+    FileLinkDefinition fileLinkDefinition=fileLinkDefinitionLord.getMatchingFileLinkDefinition(matchedText);
+    if (fileLinkDefinition != null) {
+      nextStarting=fileLinkDefinition.parseFileLink(text,matchedText,start,end,verifyFileExists,fileLinks);
+    }
+ else {
+      System.out.println("We found a match but didn't find the matching definition. Matched text:\n" + text);
+    }
+    if (nextStarting == -1 || nextStarting < start) {
+      nextStarting=start;
+    }
+    index=nextStarting + 1;
+    if (index < text.length()) {
+      foundAMatch=matcher.find(index);
+    }
+ else {
+      foundAMatch=false;
+    }
+  }
+  return fileLinks;
+}

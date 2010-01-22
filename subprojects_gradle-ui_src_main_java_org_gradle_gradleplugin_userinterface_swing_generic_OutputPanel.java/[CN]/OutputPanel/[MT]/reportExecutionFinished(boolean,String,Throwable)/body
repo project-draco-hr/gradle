@@ -1,23 +1,27 @@
 {
-  setPending(false);
-  setBusy(false);
-  progressPanel.setVisible(false);
-  clearGradleOutput();
-  appendGradleOutput(getPrefixText());
-  appendGradleOutput(output);
-  SimpleDateFormat formatter=new SimpleDateFormat("h:mm:ss aa");
-  String formattedTime=formatter.format(Calendar.getInstance().getTime());
-  if (wasSuccessful) {
-    statusLabel.setText("Completed successfully at " + formattedTime);
-    appendGradleOutput("\nCompleted Successfully");
-  }
+  SwingUtilities.invokeLater(new Runnable(){
+    public void run(){
+      setPending(false);
+      setBusy(false);
+      progressPanel.setVisible(false);
+      String newText=getPrefixText() + output;
+      gradleOutputTextPane.setText(newText);
+      SimpleDateFormat formatter=new SimpleDateFormat("h:mm:ss aa");
+      String formattedTime=formatter.format(Calendar.getInstance().getTime());
+      if (wasSuccessful) {
+        statusLabel.setText("Completed successfully at " + formattedTime);
+        appendGradleOutput("\nCompleted Successfully");
+      }
  else {
-    statusLabel.setText("Completed with errors at " + formattedTime);
-    statusLabel.setForeground(Color.red.darker());
-    gradleOutputTextPanel.setVisible(true);
+        statusLabel.setText("Completed with errors at " + formattedTime);
+        statusLabel.setForeground(Color.red.darker());
+        gradleOutputTextPanel.setVisible(true);
+      }
+      executeAgainButton.setVisible(true);
+      appendThrowable(throwable);
+      forceShowOutputButtonLabel.setVisible(!gradleOutputTextPanel.isVisible());
+      parent.reportExecuteFinished(request,wasSuccessful);
+    }
   }
-  executeAgainButton.setVisible(true);
-  appendThrowable(throwable);
-  forceShowOutputButtonLabel.setVisible(!gradleOutputTextPanel.isVisible());
-  parent.reportExecuteFinished(request,wasSuccessful);
+);
 }
