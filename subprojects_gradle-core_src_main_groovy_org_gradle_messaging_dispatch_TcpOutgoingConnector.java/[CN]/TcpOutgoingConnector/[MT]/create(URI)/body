@@ -1,0 +1,14 @@
+{
+  if (!destinationUri.getScheme().equals("tcp") || !destinationUri.getHost().equals("localhost")) {
+    throw new IllegalArgumentException(String.format("Cannot create connection to destination URI '%s'.",destinationUri));
+  }
+  try {
+    SocketChannel socketChannel;
+    socketChannel=SocketChannel.open(new InetSocketAddress(InetAddress.getByName(null),destinationUri.getPort()));
+    URI localAddress=new URI(String.format("tcp://localhost:%d",socketChannel.socket().getLocalPort()));
+    return new SocketConnection(socketChannel,localAddress,destinationUri,classLoader);
+  }
+ catch (  Exception e) {
+    throw new GradleException(e);
+  }
+}
