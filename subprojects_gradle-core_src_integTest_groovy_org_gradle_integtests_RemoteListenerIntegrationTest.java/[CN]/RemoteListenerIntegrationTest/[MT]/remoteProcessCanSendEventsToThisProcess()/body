@@ -1,0 +1,20 @@
+{
+  final TestListenerInterface listenerMock=context.mock(TestListenerInterface.class);
+  context.checking(new Expectations(){
+{
+      one(listenerMock).send(FIRST_MESSAGE_TEXT,FIRST_MESSAGE_INT);
+      one(listenerMock).send(SECOND_MESSAGE_TEXT,SECOND_MESSAGE_INT);
+    }
+  }
+);
+  ListenerBroadcast<TestListenerInterface> broadcast=new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);
+  broadcast.add(listenerMock);
+  RemoteExceptionListener exceptionListener=new RemoteExceptionListener(broadcast);
+  RemoteReceiver receiver=new RemoteReceiver(TestListenerInterface.class,exceptionListener);
+  executeJava(RemoteProcess.class.getName(),receiver.getLocalAddress());
+  if (exceptionListener.ex != null) {
+    throw exceptionListener.ex;
+  }
+  receiver.stop();
+  context.assertIsSatisfied();
+}

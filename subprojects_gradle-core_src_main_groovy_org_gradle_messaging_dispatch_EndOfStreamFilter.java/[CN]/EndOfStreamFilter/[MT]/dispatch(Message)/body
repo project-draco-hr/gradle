@@ -1,0 +1,18 @@
+{
+  lock.lock();
+  try {
+    if (endOfStreamReached) {
+      throw new IllegalStateException(String.format("Cannot dispatch message %s, as this dispatch has been stopped.",message));
+    }
+    if (message instanceof EndOfStream) {
+      endOfStreamReached=true;
+      condition.signalAll();
+      endOfStreamAction.run();
+      return;
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+  dispatch.dispatch(message);
+}
