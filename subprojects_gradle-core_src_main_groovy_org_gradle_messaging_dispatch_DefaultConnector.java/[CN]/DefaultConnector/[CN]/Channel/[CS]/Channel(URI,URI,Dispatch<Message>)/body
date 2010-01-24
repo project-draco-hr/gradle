@@ -1,7 +1,7 @@
 {
   this.sourceAddress=sourceAddress;
   this.destinationAddress=destinationAddress;
-  outgoingQueue=new AsyncDispatch<Message>(executorService);
+  outgoingQueue=new AsyncDispatch<Message>(executorService,connection);
   outgoingDispatch=new EndOfStreamDispatch(outgoingQueue);
   this.incomingDispatch=new EndOfStreamFilter(incomingDispatch,new Runnable(){
     public void run(){
@@ -10,4 +10,5 @@
   }
 );
   this.incomingQueue=new AsyncDispatch<Message>(executorService,this.incomingDispatch);
+  incomingQueue.receiveFrom(connection);
 }
