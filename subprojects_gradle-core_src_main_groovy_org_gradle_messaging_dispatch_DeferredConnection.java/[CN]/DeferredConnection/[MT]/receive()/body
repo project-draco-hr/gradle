@@ -1,0 +1,60 @@
+{
+  Receive<Message> receive;
+  lock.lock();
+  try {
+    while (state == State.AwaitConnect) {
+      try {
+        condition.await();
+      }
+ catch (      InterruptedException e) {
+        throw new GradleException(e);
+      }
+    }
+switch (state) {
+case GenerateIncomingEndOfStream:
+      setState(State.Stopped);
+    return new EndOfStream();
+case Stopped:
+case AwaitOutgoingEndOfStream:
+  return null;
+case Connected:
+case AwaitIncomingEndOfStream:
+break;
+default :
+throw new IllegalStateException();
+}
+receive=connection;
+}
+  finally {
+lock.unlock();
+}
+Message message;
+try {
+message=receive.receive();
+}
+ catch (Throwable throwable) {
+LOGGER.error(String.format("Could not receive next message using %s. Discarding connection.",receive),throwable);
+message=new EndOfStream();
+}
+if (!(message instanceof EndOfStream)) {
+return message;
+}
+lock.lock();
+try {
+switch (state) {
+case Connected:
+setState(State.AwaitOutgoingEndOfStream);
+break;
+case AwaitIncomingEndOfStream:
+setState(State.Stopped);
+break;
+default :
+throw new IllegalStateException();
+}
+}
+  finally {
+lock.unlock();
+}
+cleanup();
+return message;
+}

@@ -1,8 +1,20 @@
 {
   IncomingMethodInvocationHandler incoming=new IncomingMethodInvocationHandler(classLoader);
-  OutgoingConnection<Message> messageConnection=connector.accept(incoming.getIncomingDispatch());
+  final OutgoingConnection<Message> messageConnection=connector.accept(incoming.getIncomingDispatch());
   OutgoingMethodInvocationHandler outgoing=new OutgoingMethodInvocationHandler(messageConnection);
-  DefaultObjectConnection connection=new DefaultObjectConnection(messageConnection,outgoing,incoming,cleanupAction);
+  final AtomicReference<ObjectConnection> connectionRef=new AtomicReference<ObjectConnection>();
+  AsyncStoppable stopControl=new AsyncStoppable(){
+    public void requestStop(){
+      messageConnection.requestStop();
+    }
+    public void stop(){
+      messageConnection.stop();
+      connections.remove(connectionRef.get());
+    }
+  }
+;
+  DefaultObjectConnection connection=new DefaultObjectConnection(messageConnection,stopControl,outgoing,incoming);
+  connectionRef.set(connection);
   connections.add(connection);
   return connection;
 }

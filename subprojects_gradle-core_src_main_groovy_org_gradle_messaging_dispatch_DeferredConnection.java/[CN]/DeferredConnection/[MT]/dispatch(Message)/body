@@ -1,0 +1,44 @@
+{
+  Dispatch<Message> dispatch;
+  lock.lock();
+  try {
+    boolean endOfStream=message instanceof EndOfStream;
+    while (!endOfStream && state == State.AwaitConnect) {
+      try {
+        condition.await();
+      }
+ catch (      InterruptedException e) {
+        throw new GradleException(e);
+      }
+    }
+switch (state) {
+case AwaitConnect:
+      setState(State.GenerateIncomingEndOfStream);
+    return;
+case Connected:
+  if (endOfStream) {
+    setState(State.AwaitIncomingEndOfStream);
+  }
+break;
+case AwaitOutgoingEndOfStream:
+if (endOfStream) {
+setState(State.Stopped);
+}
+break;
+default :
+throw new IllegalStateException();
+}
+dispatch=connection;
+}
+  finally {
+lock.unlock();
+}
+try {
+dispatch.dispatch(message);
+}
+ catch (Throwable throwable) {
+LOGGER.error(String.format("Could not send message using %s. Discarding connection.",dispatch),throwable);
+setState(State.GenerateIncomingEndOfStream);
+}
+cleanup();
+}
