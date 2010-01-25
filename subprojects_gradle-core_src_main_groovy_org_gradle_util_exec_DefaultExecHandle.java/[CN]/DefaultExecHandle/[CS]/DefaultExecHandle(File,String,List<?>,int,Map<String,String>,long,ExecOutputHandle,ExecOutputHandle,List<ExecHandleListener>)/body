@@ -15,6 +15,9 @@
   this.lock=new ReentrantLock();
   this.stateChange=lock.newCondition();
   this.state=ExecHandleState.INIT;
+  threadPool=Executors.newCachedThreadPool();
+  shutdownHookAction=new ExecHandleShutdownHookAction(this);
+  broadcast=new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class,threadPool);
   if (listeners != null) {
     broadcast.addAll(listeners);
   }

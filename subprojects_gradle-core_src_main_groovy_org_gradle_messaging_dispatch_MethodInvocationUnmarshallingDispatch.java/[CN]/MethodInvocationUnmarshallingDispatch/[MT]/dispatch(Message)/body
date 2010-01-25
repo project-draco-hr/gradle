@@ -1,0 +1,19 @@
+{
+  if (message instanceof MethodMetaInfo) {
+    MethodMetaInfo methodMetaInfo=(MethodMetaInfo)message;
+    Method method=methodMetaInfo.findMethod(classLoader);
+    methods.put(methodMetaInfo.getKey(),method);
+  }
+ else   if (message instanceof RemoteMethodInvocation) {
+    RemoteMethodInvocation remoteMethodInvocation=(RemoteMethodInvocation)message;
+    Method method=methods.get(remoteMethodInvocation.getKey());
+    if (method == null) {
+      throw new IllegalStateException("Received a method invocation message for an unknown method.");
+    }
+    MethodInvocation methodInvocation=new MethodInvocation(method,remoteMethodInvocation.getArguments());
+    dispatch.dispatch(methodInvocation);
+  }
+ else {
+    throw new IllegalStateException(String.format("Received an unknown message %s.",message));
+  }
+}

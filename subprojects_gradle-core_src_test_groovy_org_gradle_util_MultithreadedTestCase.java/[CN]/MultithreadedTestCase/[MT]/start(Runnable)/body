@@ -1,0 +1,34 @@
+{
+  final Thread thread=new Thread(){
+    @Override public String toString(){
+      return "test thread " + getId();
+    }
+    public void run(){
+      Throwable failure=null;
+      try {
+        try {
+          task.run();
+        }
+ catch (        InvokerInvocationException e) {
+          failure=e.getCause();
+        }
+catch (        Throwable throwable) {
+          failure=throwable;
+        }
+      }
+  finally {
+        testThreadFinished(this,failure);
+      }
+    }
+  }
+;
+  testThreadStarted(thread);
+  thread.start();
+  return new ThreadHandle(){
+    public ThreadHandle waitFor(){
+      MultithreadedTestCase.this.waitFor(thread);
+      return this;
+    }
+  }
+;
+}

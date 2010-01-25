@@ -1,0 +1,17 @@
+{
+  CompositeMessageHandler handler=new CompositeMessageHandler(pipelineDispatcher);
+  handler.add(new ForkStartedMessageHandler(pipelineDispatcher));
+  handler.add(new ForkStoppedMessageHandler(pipelineDispatcher));
+  handler.add(new NextActionRequestMessageHandler(pipelineDispatcher));
+  pipelineDispatcher.setMessageHandler(handler);
+  ObjectConnection connection=server.createUnicastConnection();
+  final Dispatch<TestServerControlMessage> outgoing=connection.addOutgoing(Dispatch.class);
+  Dispatch<TestClientControlMessage> incoming=new Dispatch<TestClientControlMessage>(){
+    public void dispatch(    final TestClientControlMessage message){
+      pipelineDispatcher.messageReceived(message,outgoing);
+    }
+  }
+;
+  connection.addIncoming(Dispatch.class,incoming);
+  return new TestControlServerImpl(connection);
+}

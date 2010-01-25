@@ -1,13 +1,12 @@
 {
-  pipelinesLock.writeLock().lock();
+  lock.lock();
   try {
-    final Pipeline pipeline=pipelineFactory.createPipeline(this,getNextPipelineId(),pipelineConfig);
-    pipelinesInfo.put(pipeline.getId(),pipeline);
+    final QueueingPipeline pipeline=pipelineFactory.createPipeline(this,pipelineIdSequence++,pipelineConfig,testReportProcessor);
     orderedPipelines.add(pipeline);
     notStopped.add(pipeline);
     return pipeline;
   }
   finally {
-    pipelinesLock.writeLock().unlock();
+    lock.unlock();
   }
 }

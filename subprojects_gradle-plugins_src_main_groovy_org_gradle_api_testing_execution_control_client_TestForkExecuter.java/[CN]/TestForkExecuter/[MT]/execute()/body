@@ -1,22 +1,17 @@
 {
   try {
-    final int pipelineId=Integer.parseInt(arguments.get(0));
     final int forkId=Integer.parseInt(arguments.get(1));
-    final int testServerPort=Integer.parseInt(arguments.get(2));
-    final IoConnectorFactory ioConnectorFactory=new ExternalIoConnectorFactory(testServerPort);
-    final DefaultTestControlClient testControlClient=new DefaultTestControlClient(forkId,ioConnectorFactory,testControlMessageQueue);
+    final URI testServerUri=new URI(arguments.get(2));
+    TcpMessagingClient client=new TcpMessagingClient(getClass().getClassLoader(),testServerUri);
     try {
-      testControlClient.open();
-      testControlClient.reportStarted();
-      final TestControlMessageDispatcher testControlMessageDispatcher=new TestControlMessageDispatcher(testControlClient,sandboxClassLoader);
-      final TestControlMessageQueueConsumer controlMessageConsumer=new TestControlMessageQueueConsumer(testControlMessageQueue,100L,TimeUnit.MILLISECONDS,testControlMessageDispatcher);
-      Thread controlMessageConsumerThread=new Thread(controlMessageConsumer);
-      controlMessageConsumerThread.start();
-      ThreadUtils.join(controlMessageConsumerThread);
-      testControlClient.reportStopped();
+      Dispatch<TestClientControlMessage> outgoing=client.getConnection().addOutgoing(Dispatch.class);
+      outgoing.dispatch(new ForkStartedMessage(forkId));
+      TestControlMessageDispatcher testControlMessageDispatcher=new TestControlMessageDispatcher(forkId,outgoing,sandboxClassLoader);
+      testControlMessageDispatcher.waitForExitReceived();
+      outgoing.dispatch(new ForkStoppedMessage(forkId));
     }
   finally {
-      testControlClient.close();
+      client.stop();
     }
   }
  catch (  Throwable t) {

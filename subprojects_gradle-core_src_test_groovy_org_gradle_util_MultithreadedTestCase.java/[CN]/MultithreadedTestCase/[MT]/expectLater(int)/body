@@ -1,0 +1,18 @@
+{
+  LOGGER.debug("Thread {} expecting tick {}",Thread.currentThread(),tick);
+  lock.lock();
+  try {
+    ClockTickImpl clockTick=getTick(tick);
+    if (!clockTick.isImmediatelyAfter(currentTick)) {
+      throw new RuntimeException(String.format("Cannot wait for %s, as clock is currently at %s.",clockTick,currentTick));
+    }
+    if (!active.contains(Thread.currentThread())) {
+      throw new RuntimeException("Cannot wait for clock tick from a thread which is not a test thread.");
+    }
+    synching.add(Thread.currentThread());
+    condition.signalAll();
+  }
+  finally {
+    lock.unlock();
+  }
+}

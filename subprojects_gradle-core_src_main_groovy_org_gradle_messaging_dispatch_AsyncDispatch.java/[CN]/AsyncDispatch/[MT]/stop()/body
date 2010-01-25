@@ -1,0 +1,27 @@
+{
+  lock.lock();
+  try {
+    Date expiry=new Date(System.currentTimeMillis() + (120 * 1000));
+    doRequestStop();
+    while (receivers > 0) {
+      if (!condition.awaitUntil(expiry)) {
+        throw new IllegalStateException("Timeout waiting for receiver threads to be dispatched.");
+      }
+    }
+    setState(State.Stopped);
+    while (dispatchers > 0) {
+      if (!condition.awaitUntil(expiry)) {
+        throw new IllegalStateException("Timeout waiting for messages to be dispatched.");
+      }
+    }
+    if (!queue.isEmpty()) {
+      throw new IllegalStateException("Cannot wait for messages to be dispatched, as there are no dispatch threads running.");
+    }
+  }
+ catch (  InterruptedException e) {
+    throw new GradleException(e);
+  }
+ finally {
+    lock.unlock();
+  }
+}
