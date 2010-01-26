@@ -1,15 +1,7 @@
 {
-  File forkConfigFile=null;
-  try {
-    forkConfigFile=File.createTempFile(".gradle","fork.config");
-  }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
-  }
   StringWriter strWriter=new StringWriter();
-  BufferedWriter configFileWriter=null;
+  BufferedWriter configFileWriter=new BufferedWriter(strWriter);
   try {
-    configFileWriter=new BufferedWriter(strWriter);
     configFileWriter.write("[shared]");
     configFileWriter.newLine();
     for (    File sharedCpElement : testTask.getClasspath()) {
@@ -43,7 +35,6 @@
     configFileWriter.write(testTask.getTestFramework().getTestFramework().getId());
     configFileWriter.newLine();
     configFileWriter.flush();
-    FileUtils.writeStringToFile(forkConfigFile,strWriter.toString());
   }
  catch (  IOException e) {
     throw new GradleException("failed to create fork config file",e);
@@ -51,5 +42,5 @@
  finally {
     IOUtils.closeQuietly(configFileWriter);
   }
-  return forkConfigFile;
+  return strWriter.toString();
 }

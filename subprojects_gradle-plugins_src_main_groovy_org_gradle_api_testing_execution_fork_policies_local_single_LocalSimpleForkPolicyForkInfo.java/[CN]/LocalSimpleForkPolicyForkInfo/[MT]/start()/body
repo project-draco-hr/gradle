@@ -6,10 +6,11 @@
   Project project=testTask.getProject();
   TestFrameworkInstance testFramework=testTask.getTestFramework();
   ForkConfigWriter forkConfigWriter=new ForkConfigWriter(testTask,pipelineId,forkInfo.getId(),server.getLocalAddress());
-  File forkConfigFile=forkConfigWriter.writeConfigFile();
-  ExecHandleBuilder forkHandleBuilder=new ExecHandleBuilder(false).execDirectory(project.getRootDir()).execCommand("java").errorOutputHandle(new DummyExecOutputHandle()).standardOutputHandle(new DummyExecOutputHandle());
+  String forkConfigFile=forkConfigWriter.writeConfigFile();
+  ExecHandleBuilder forkHandleBuilder=new ExecHandleBuilder().execDirectory(project.getProjectDir()).execCommand(Jvm.current().getJavaExecutable());
   testFramework.applyForkJvmArguments(forkHandleBuilder);
-  forkHandleBuilder.arguments("-cp",System.getProperty("gradle.fork.launcher.cp"),"org.gradle.api.testing.execution.fork.ForkLaunchMain",forkConfigFile.getAbsolutePath(),"org.gradle.api.testing.execution.control.client.TestForkExecuter");
+  forkHandleBuilder.arguments("-cp",System.getProperty("gradle.fork.launcher.cp"),ForkLaunchMain.class.getName(),TestForkExecuter.class.getName());
+  forkHandleBuilder.standardInput(new ByteArrayInputStream(forkConfigFile.getBytes()));
   testFramework.applyForkArguments(forkHandleBuilder);
   ExecHandle forkHandle=forkHandleBuilder.getExecHandle();
   forkHandle.addListeners(new ForkControlListener(forkControl,forkInfo.getPipeline().getId(),forkInfo.getId()));
