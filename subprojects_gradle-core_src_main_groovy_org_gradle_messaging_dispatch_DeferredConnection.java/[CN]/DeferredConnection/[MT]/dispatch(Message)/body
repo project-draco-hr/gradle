@@ -38,7 +38,15 @@ dispatch.dispatch(message);
 }
  catch (Throwable throwable) {
 LOGGER.error(String.format("Could not send message using %s. Discarding connection.",dispatch),throwable);
+lock.lock();
+try {
+if (state != State.Stopped) {
 setState(State.GenerateIncomingEndOfStream);
+}
+}
+  finally {
+lock.unlock();
+}
 }
 cleanup();
 }

@@ -36,9 +36,10 @@ message=receive.receive();
 LOGGER.error(String.format("Could not receive next message using %s. Discarding connection.",receive),throwable);
 message=new EndOfStream();
 }
-if (!(message instanceof EndOfStream)) {
+if (message != null && !(message instanceof EndOfStream)) {
 return message;
 }
+if (message instanceof EndOfStream) {
 lock.lock();
 try {
 switch (state) {
@@ -54,6 +55,24 @@ throw new IllegalStateException();
 }
   finally {
 lock.unlock();
+}
+}
+ else if (message == null) {
+lock.lock();
+try {
+switch (state) {
+case Connected:
+case AwaitIncomingEndOfStream:
+setState(State.Stopped);
+break;
+default :
+throw new IllegalStateException();
+}
+}
+  finally {
+lock.unlock();
+}
+message=new EndOfStream();
 }
 cleanup();
 return message;
