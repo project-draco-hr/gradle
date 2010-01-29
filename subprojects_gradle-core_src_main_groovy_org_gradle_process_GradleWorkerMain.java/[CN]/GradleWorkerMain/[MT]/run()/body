@@ -1,0 +1,18 @@
+{
+  ObservableUrlClassLoader sharedClassLoader=createSharedClassLoader();
+  FilteringClassLoader filteredShared=new FilteringClassLoader(sharedClassLoader);
+  ObservableUrlClassLoader implementationClassLoader=createImplementationClassLoader(filteredShared);
+  ObjectInputStream instr=new ClassLoaderObjectInputStream(System.in,implementationClassLoader);
+  sharedClassLoader.addURLs((Collection<URL>)instr.readObject());
+  Collection<String> sharedPackages=(Collection<String>)instr.readObject();
+  for (  String sharedPackage : sharedPackages) {
+    filteredShared.allowPackage(sharedPackage);
+  }
+  implementationClassLoader.addURLs((Iterable<URL>)instr.readObject());
+  Object action=instr.readObject();
+  URI serverAddress=(URI)instr.readObject();
+  Class<? extends Runnable> workerClass=implementationClassLoader.loadClass(WorkerMain.class.getName()).asSubclass(Runnable.class);
+  Constructor<? extends Runnable> constructor=workerClass.getConstructor(implementationClassLoader.loadClass(Action.class.getName()),URI.class);
+  Runnable worker=constructor.newInstance(action,serverAddress);
+  worker.run();
+}

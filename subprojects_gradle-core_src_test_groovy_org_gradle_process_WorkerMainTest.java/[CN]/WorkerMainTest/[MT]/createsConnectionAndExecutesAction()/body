@@ -1,0 +1,19 @@
+{
+  final Action<WorkerProcessContext> action=context.mock(Action.class);
+  final MessagingClient client=context.mock(MessagingClient.class);
+  final ObjectConnection connection=context.mock(ObjectConnection.class);
+  final Collector<WorkerProcessContext> collector=collector();
+  WorkerMain main=new WorkerMain(action,client);
+  context.checking(new Expectations(){
+{
+      allowing(client).getConnection();
+      will(returnValue(connection));
+      one(action).execute(with(notNullValue(WorkerProcessContext.class)));
+      will(collectTo(collector));
+      one(client).stop();
+    }
+  }
+);
+  main.run();
+  assertThat(collector.get().getServerConnection(),sameInstance(connection));
+}

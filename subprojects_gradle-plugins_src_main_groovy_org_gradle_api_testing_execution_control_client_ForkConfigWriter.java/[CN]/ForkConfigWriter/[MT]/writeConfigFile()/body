@@ -1,0 +1,31 @@
+{
+  ForkProcessConfig config=new ForkProcessConfig();
+  for (  File sharedCpElement : testTask.getClasspath()) {
+    if (sharedCpElement.getName().startsWith("junit-") || sharedCpElement.getName().startsWith("testng-")) {
+      config.shared(sharedCpElement);
+    }
+  }
+  for (  File controlCpElement : BootstrapUtil.getGradleClasspath()) {
+    config.control(controlCpElement);
+  }
+  for (  File sandboxCpElement : testTask.getClasspath()) {
+    if (!sandboxCpElement.getName().startsWith("junit-") && !sandboxCpElement.getName().startsWith("testng-")) {
+      config.sandbox(sandboxCpElement);
+    }
+  }
+  config.setPipelineId(pipelineId);
+  config.setForkId(forkId);
+  config.setServerAddress(testServerAddress);
+  config.setTestFrameworkId(testTask.getTestFramework().getTestFramework().getId());
+  ByteArrayOutputStream outputStream;
+  try {
+    outputStream=new ByteArrayOutputStream();
+    ObjectOutputStream objectStream=new ObjectOutputStream(outputStream);
+    objectStream.writeObject(config);
+    objectStream.close();
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+  return outputStream.toByteArray();
+}

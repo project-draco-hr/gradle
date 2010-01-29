@@ -1,8 +1,12 @@
 {
-  ExecHandleBuilder builder=new ExecHandleBuilder();
-  builder.execCommand(Jvm.current().getJavaExecutable());
-  builder.arguments("-cp",System.getProperty("java.class.path"));
-  builder.arguments(mainClass,String.valueOf(server.newIncomingConnection()));
-  proc=builder.getExecHandle();
+  WorkerProcessBuilder builder=workerFactory.newProcess();
+  builder.applicationClasspath(classPathRegistry.getClassPathFiles("ANT"));
+  builder.sharedPackages("org.apache.tools.ant");
+  builder.worker(action);
+  if (mainClass != null) {
+    builder.getJavaCommand().mainClass(mainClass);
+  }
+  proc=builder.build();
+  proc.getConnection().addIncoming(TestListenerInterface.class,exceptionListener);
   proc.start();
 }

@@ -1,0 +1,18 @@
+{
+  final Collector<ExecHandleListener> listener=collector();
+  context.checking(new Expectations(){
+{
+      one(execHandle).addListener(with(notNullValue(ExecHandleListener.class)));
+      will(collectTo(listener));
+    }
+  }
+);
+  DefaultWorkerProcess process=new DefaultWorkerProcess(connection,execHandle);
+  context.checking(new Expectations(){
+{
+      one(connection).stop();
+    }
+  }
+);
+  listener.get().executionFinished(execHandle);
+}

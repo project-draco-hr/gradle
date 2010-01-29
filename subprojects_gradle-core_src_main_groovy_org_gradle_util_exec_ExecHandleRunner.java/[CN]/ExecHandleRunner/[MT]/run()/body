@@ -1,8 +1,14 @@
 {
   ProcessBuilder processBuilder=processBuilderFactory.createProcessBuilder(execHandle);
-  long keepWaitingTimeout=execHandle.getKeepWaitingTimeout();
   try {
     Process process=processBuilder.start();
+    lock.lock();
+    try {
+      this.process=process;
+    }
+  finally {
+      lock.unlock();
+    }
     ExecOutputHandleRunner standardOutputRunner=new ExecOutputHandleRunner("read process standard output",process.getInputStream(),execHandle.getStandardOutput());
     ExecOutputHandleRunner errorOutputRunner=new ExecOutputHandleRunner("read process error output",process.getErrorStream(),execHandle.getErrorOutput());
     ExecOutputHandleRunner standardInputRunner=new ExecOutputHandleRunner("write process standard input",execHandle.getStandardInput(),process.getOutputStream());
@@ -10,23 +16,8 @@
     threadPool.execute(standardOutputRunner);
     threadPool.execute(errorOutputRunner);
     execHandle.started();
-    int exitCode=-1;
-    boolean processFinishedNormally=false;
-    while (keepWaiting.get() && !processFinishedNormally) {
-      try {
-        exitCode=process.exitValue();
-        processFinishedNormally=true;
-      }
- catch (      IllegalThreadStateException e) {
-      }
-      try {
-        Thread.sleep(keepWaitingTimeout);
-      }
- catch (      InterruptedException e) {
-      }
-    }
-    if (!keepWaiting.get()) {
-      process.destroy();
+    int exitCode=process.waitFor();
+    if (aborted) {
       execHandle.aborted();
     }
  else {
