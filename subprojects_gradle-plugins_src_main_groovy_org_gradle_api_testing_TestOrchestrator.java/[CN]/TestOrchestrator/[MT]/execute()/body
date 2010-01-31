@@ -1,78 +1,19 @@
 {
-  initLock.lock();
-  try {
-    this.context=factory.createContext(this);
-  }
-  finally {
-    initLock.unlock();
-  }
-  final List<TestOrchestratorAction> actions=new ArrayList<TestOrchestratorAction>();
-  actions.add(new TestOrchestratorAction(){
-    public void execute(    TestOrchestratorContext context){
-      final PipelinesManager pipelinesManager=context.getPipelinesManager();
-      final ReportsManager reportsManager=context.getReportsManager();
-      final TestOrchestrator testOrchestrator=context.getTestOrchestrator();
-      final NativeTest testTask=testOrchestrator.getTestTask();
-      pipelinesManager.initialize(testTask);
-      reportsManager.initialize(testTask,pipelinesManager);
-    }
-  }
-);
-  actions.add(new TestOrchestratorAction(){
-    public void execute(    TestOrchestratorContext context){
-      final TestDetectionOrchestrator testDetectionOrchestrator=context.getTestDetectionOrchestrator();
-      final ReportsManager reportsManager=context.getReportsManager();
-      testDetectionOrchestrator.startDetection();
-      reportsManager.startReporting();
-      LOGGER.debug("test - detection & reporting - started");
-    }
-  }
-);
-  actions.add(new TestOrchestratorAction(){
-    public void execute(    TestOrchestratorContext context){
-      final TestPipelineSplitOrchestrator pipelineSplitOrchestrator=context.getPipelineSplitOrchestrator();
-      final PipelinesManager pipelinesManager=context.getPipelinesManager();
-      pipelineSplitOrchestrator.startPipelineSplitting(pipelinesManager);
-      LOGGER.debug("test - pipeline splitting - started");
-    }
-  }
-);
-  actions.add(new TestOrchestratorAction(){
-    public void execute(    TestOrchestratorContext context){
-      final TestDetectionOrchestrator testDetectionOrchestrator=context.getTestDetectionOrchestrator();
-      testDetectionOrchestrator.waitForDetectionEnd();
-      LOGGER.debug("test - detection - ended");
-    }
-  }
-);
-  actions.add(new TestOrchestratorAction(){
-    public void execute(    TestOrchestratorContext context){
-      final TestPipelineSplitOrchestrator pipelineSplitOrchestrator=context.getPipelineSplitOrchestrator();
-      final PipelinesManager pipelinesManager=context.getPipelinesManager();
-      pipelineSplitOrchestrator.waitForPipelineSplittingEnded();
-      pipelinesManager.pipelineSplittingEnded();
-      LOGGER.debug("test - pipeline splitting - ended");
-    }
-  }
-);
-  actions.add(new TestOrchestratorAction(){
-    public void execute(    TestOrchestratorContext context){
-      final PipelinesManager pipelinesManager=context.getPipelinesManager();
-      pipelinesManager.waitForExecutionEnd();
-    }
-  }
-);
-  actions.add(new TestOrchestratorAction(){
-    public void execute(    TestOrchestratorContext context){
-      final ReportsManager reportsManager=context.getReportsManager();
-      reportsManager.waitForReportEnd();
-    }
-  }
-);
-  final Iterator<TestOrchestratorAction> actionsIterator=actions.iterator();
-  while (context.getKeepRunning().get() && actionsIterator.hasNext()) {
-    final TestOrchestratorAction currentAction=actionsIterator.next();
-    currentAction.execute(context);
-  }
+  TestOrchestratorContext context=factory.createContext(this);
+  PipelinesManager pipelinesManager=context.getPipelinesManager();
+  ReportsManager reportsManager=context.getReportsManager();
+  TestDetectionOrchestrator testDetectionOrchestrator=context.getTestDetectionOrchestrator();
+  TestPipelineSplitOrchestrator pipelineSplitOrchestrator=context.getPipelineSplitOrchestrator();
+  pipelinesManager.initialize(testTask.getPipelineConfigs());
+  reportsManager.start(testTask.getReportConfigs(),testTask.getTestFramework());
+  pipelineSplitOrchestrator.start(pipelinesManager);
+  testDetectionOrchestrator.startDetection();
+  testDetectionOrchestrator.waitForDetectionEnd();
+  LOGGER.debug("test - detection - ended");
+  pipelineSplitOrchestrator.waitForPipelineSplittingEnded();
+  pipelinesManager.pipelineSplittingEnded();
+  LOGGER.debug("test - pipeline splitting - ended");
+  pipelinesManager.waitForExecutionEnd();
+  reportsManager.waitForReportEnd();
   LOGGER.debug("test - execution - ended");
 }

@@ -1,29 +1,8 @@
 {
-  final TestFrameworkInstance testFrameworkInstance=getTestFramework();
-  final Set<String> includes=getIncludes();
-  final Set<String> excludes=getExcludes();
-  final TestClassScanner testClassScanner=testClassScannerFactory.createTestClassScanner(this,testClassProcessor);
+  TestFrameworkInstance testFrameworkInstance=getTestFramework();
+  AntTaskBackedTestClassProcessor processor=new AntTaskBackedTestClassProcessor(testFrameworkInstance);
+  TestClassScanner testClassScanner=testClassScannerFactory.createTestClassScanner(this,processor);
   testClassScanner.run();
-  final Set<String> testClassNames=testClassProcessor.getTestClassFileNames();
-  Collection<String> toUseIncludes=null;
-  Collection<String> toUseExcludes=null;
-  if (testClassNames.isEmpty()) {
-    toUseIncludes=includes;
-    toUseExcludes=excludes;
-  }
- else {
-    toUseIncludes=testClassNames;
-    toUseExcludes=new ArrayList<String>();
-  }
-  if (!(toUseIncludes.isEmpty() && toUseExcludes.isEmpty())) {
-    testFrameworkInstance.execute(getProject(),this,toUseIncludes,toUseExcludes);
-  }
- else {
-    LOGGER.debug("skipping test execution, because no tests were found");
-  }
-  if (testReport) {
-    testFrameworkInstance.report(getProject(),this);
-  }
   if (!isIgnoreFailures() && GUtil.isTrue(getProject().getAnt().getProject().getProperty(FAILURES_OR_ERRORS_PROPERTY))) {
     throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
   }
