@@ -1,8 +1,21 @@
 {
-  TestFrameworkInstance testFrameworkInstance=getTestFramework();
-  AntTaskBackedTestClassProcessor processor=new AntTaskBackedTestClassProcessor(testFrameworkInstance);
+  final TestFrameworkInstance testFrameworkInstance=getTestFramework();
+  TestClassProcessorFactory factory=new TestClassProcessorFactory(){
+    public TestClassProcessor create(){
+      return new AntTaskBackedTestClassProcessor(testFrameworkInstance);
+    }
+  }
+;
+  TestClassProcessor processor;
+  if (getForkEvery() != null) {
+    processor=new RestartEveryNTestClassProcessor(factory,getForkEvery());
+  }
+ else {
+    processor=factory.create();
+  }
   TestClassScanner testClassScanner=testClassScannerFactory.createTestClassScanner(this,processor);
   testClassScanner.run();
+  testFrameworkInstance.report();
   if (!isIgnoreFailures() && GUtil.isTrue(getProject().getAnt().getProject().getProperty(FAILURES_OR_ERRORS_PROPERTY))) {
     throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
   }

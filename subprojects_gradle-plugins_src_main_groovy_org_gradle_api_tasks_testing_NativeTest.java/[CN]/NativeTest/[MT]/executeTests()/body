@@ -1,12 +1,13 @@
 {
   ((LocalSimpleForkPolicyConfig)defaultPipelineConfig.getForkPolicyConfig()).setAmountToStart(amountOfForksToStart);
   ReforkReasonConfigs reforkReasonConfigs=null;
-  if (reforkEvery >= 1) {
+  Long forkEvery=getForkEvery();
+  if (forkEvery != null) {
     if (reforkReasonConfigs == null) {
       reforkReasonConfigs=new ReforkReasonConfigs();
     }
     final AmountOfTestCasesConfig reforkEveryConfig=(AmountOfTestCasesConfig)ReforkReasonRegister.getReforkReason(ReforkReasons.AMOUNT_OF_TESTCASES).getConfig();
-    reforkEveryConfig.setReforkEvery(reforkEvery);
+    reforkEveryConfig.setReforkEvery(forkEvery);
     reforkReasonConfigs.addOrUpdateReforkReasonConfig(reforkEveryConfig);
   }
   if (lowMemoryThreshold > 0) {
@@ -23,7 +24,7 @@
   final TestOrchestrator orchestrator=new TestOrchestrator(this);
   orchestrator.execute();
   if (!isIgnoreFailures() && GUtil.isTrue(getProject().getAnt().getProject().getProperty(FAILURES_OR_ERRORS_PROPERTY))) {
-    if (testReport) {
+    if (isTestReport()) {
       throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
     }
  else {

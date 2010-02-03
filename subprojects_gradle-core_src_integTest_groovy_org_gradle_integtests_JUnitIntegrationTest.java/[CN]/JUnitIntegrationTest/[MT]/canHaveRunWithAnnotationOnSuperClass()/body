@@ -1,0 +1,9 @@
+{
+  TestFile testDir=dist.getTestDir();
+  testDir.file("build.gradle").writelns("apply id: 'java'","repositories { mavenCentral() }","dependencies { compile 'junit:junit:4.7' }");
+  testDir.file("src/test/java/org/gradle/CustomRunner.java").writelns("package org.gradle;","public class CustomRunner extends org.junit.runners.BlockJUnit4ClassRunner {","    public CustomRunner(Class c) throws Exception { super(c); }","}");
+  testDir.file("src/test/java/org/gradle/AbstractTest.java").writelns("package org.gradle;","@org.junit.runner.RunWith(CustomRunner.class)","public abstract class AbstractTest {","    @org.junit.Test public void ok() { }","}");
+  testDir.file("src/test/java/org/gradle/SomeTest.java").writelns("package org.gradle;","public class SomeTest extends AbstractTest {","}");
+  executer.withTasks("test").run();
+  testDir.file("build/test-results/TEST-org.gradle.SomeTest.xml").assertIsFile();
+}
