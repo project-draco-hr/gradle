@@ -1,8 +1,19 @@
 {
-  requestStop();
-  incomingDispatch.stop();
-  incomingQueue.requestStop();
-  outgoingQueue.requestStop();
-  incomingQueue.stop();
-  outgoingQueue.stop();
+  Future<?> stopJob=executorService.submit(new Runnable(){
+    public void run(){
+      requestStop();
+      incomingDispatch.stop();
+      incomingQueue.requestStop();
+      outgoingQueue.requestStop();
+      incomingQueue.stop();
+      outgoingQueue.stop();
+    }
+  }
+);
+  try {
+    stopJob.get(2,TimeUnit.MINUTES);
+  }
+ catch (  Exception e) {
+    throw new GradleException("Could not stop connection.",e);
+  }
 }
