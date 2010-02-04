@@ -2,9 +2,10 @@
   setMocks();
   expectHandleEmptyIncludesExcludes();
   final Set<File> classpathSet=new TreeSet<File>();
-  final List<File> classpathList=new ArrayList<File>();
   context.checking(new Expectations(){
 {
+      one(testMock).getClassPathRegistry();
+      will(returnValue(context.mock(ClassPathRegistry.class)));
       one(testMock).getTestListenerBroadcaster();
       will(returnValue(listenerBroadcastMock));
       one(testMock).getTestClassesDir();
@@ -21,9 +22,9 @@
       will(returnValue(null));
       one(projectMock).getAnt();
       will(returnValue(antBuilderMock));
-      one(antJUnitExecuteMock).execute(testClassesDir,classpathList,testResultsDir,null,null,jUnitOptionsMock,antBuilderMock,listenerBroadcastMock);
     }
   }
 );
-  jUnitTestFrameworkInstance.execute(null,null);
+  TestClassProcessor testClassProcessor=jUnitTestFrameworkInstance.getProcessorFactory().create();
+  assertThat(testClassProcessor,instanceOf(AntJUnitExecute.class));
 }

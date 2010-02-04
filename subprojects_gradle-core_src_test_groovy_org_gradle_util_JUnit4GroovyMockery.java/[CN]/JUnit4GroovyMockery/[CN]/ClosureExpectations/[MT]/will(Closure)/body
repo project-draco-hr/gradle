@@ -4,7 +4,12 @@
       description.appendText("execute closure");
     }
     public Object invoke(    Invocation invocation) throws Throwable {
-      return cl.call(invocation.getParametersAsArray());
+      List<Object> params=Arrays.asList(invocation.getParametersAsArray());
+      Object result=cl.call(params.subList(0,Math.min(invocation.getParametersAsArray().length,cl.getMaximumNumberOfParameters())));
+      if (invocation.getInvokedMethod().getReturnType().isInstance(result)) {
+        return result;
+      }
+      return null;
     }
   }
 );

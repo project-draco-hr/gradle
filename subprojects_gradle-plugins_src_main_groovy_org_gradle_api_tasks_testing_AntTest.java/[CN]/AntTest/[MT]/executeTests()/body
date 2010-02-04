@@ -1,17 +1,12 @@
 {
   final TestFrameworkInstance testFrameworkInstance=getTestFramework();
-  TestClassProcessorFactory factory=new TestClassProcessorFactory(){
-    public TestClassProcessor create(){
-      return new AntTaskBackedTestClassProcessor(testFrameworkInstance);
-    }
-  }
-;
+  TestClassProcessorFactory processorFactory=testFrameworkInstance.getProcessorFactory();
   TestClassProcessor processor;
   if (getForkEvery() != null) {
-    processor=new RestartEveryNTestClassProcessor(factory,getForkEvery());
+    processor=new RestartEveryNTestClassProcessor(processorFactory,getForkEvery());
   }
  else {
-    processor=factory.create();
+    processor=processorFactory.create();
   }
   TestClassScanner testClassScanner=testClassScannerFactory.createTestClassScanner(this,processor);
   testClassScanner.run();
