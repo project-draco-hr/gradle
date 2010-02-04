@@ -36,10 +36,13 @@ message=receive.receive();
 LOGGER.error(String.format("Could not receive next message using %s. Discarding connection.",receive),throwable);
 message=new EndOfStream();
 }
-if (message != null && !(message instanceof EndOfStream)) {
+if (message == null) {
+LOGGER.warn("Received unexpected end-of-stream. Discarding connection");
+message=new EndOfStream();
+}
+if (!(message instanceof EndOfStream)) {
 return message;
 }
-if (message instanceof EndOfStream) {
 lock.lock();
 try {
 switch (state) {
@@ -47,7 +50,6 @@ case Connected:
 setState(State.AwaitOutgoingEndOfStream);
 break;
 case AwaitIncomingEndOfStream:
-case GenerateIncomingEndOfStream:
 setState(State.Stopped);
 break;
 default :
@@ -56,25 +58,6 @@ throw new IllegalStateException(String.format("Connection is in unexpected state
 }
   finally {
 lock.unlock();
-}
-}
- else if (message == null) {
-lock.lock();
-try {
-switch (state) {
-case Connected:
-case AwaitIncomingEndOfStream:
-case GenerateIncomingEndOfStream:
-setState(State.Stopped);
-break;
-default :
-throw new IllegalStateException(String.format("Connection is in unexpected state %s.",state));
-}
-}
-  finally {
-lock.unlock();
-}
-message=new EndOfStream();
 }
 cleanup();
 return message;

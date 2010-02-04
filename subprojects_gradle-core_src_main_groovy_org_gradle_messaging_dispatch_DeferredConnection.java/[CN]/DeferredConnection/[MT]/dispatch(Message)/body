@@ -40,8 +40,15 @@ dispatch.dispatch(message);
 LOGGER.error(String.format("Could not send message using %s. Discarding connection.",dispatch),throwable);
 lock.lock();
 try {
-if (state != State.Stopped) {
-setState(State.GenerateIncomingEndOfStream);
+switch (state) {
+case Connected:
+setState(State.AwaitIncomingEndOfStream);
+break;
+case AwaitOutgoingEndOfStream:
+setState(State.Stopped);
+break;
+default :
+throw new IllegalStateException(String.format("Connection is in unexpected state %s.",state));
 }
 }
   finally {
