@@ -1,6 +1,16 @@
 {
-  final TestFrameworkInstance testFrameworkInstance=getTestFramework();
-  TestClassProcessorFactory processorFactory=testFrameworkInstance.getProcessorFactory();
+  ClassPathRegistry classPathRegistry=getServices().get(ClassPathRegistry.class);
+  final List<File> classPath=GUtil.addLists(getClasspath(),classPathRegistry.getClassPathFiles("ANT_JUNIT"));
+  TcpMessagingServer server=new TcpMessagingServer(TestClassProcessor.class.getClassLoader());
+  final WorkerProcessFactory workerFactory=new DefaultWorkerProcessFactory(server,classPathRegistry,getServices().get(FileResolver.class));
+  TestFrameworkInstance testFrameworkInstance=getTestFramework();
+  final TestClassProcessorFactory testInstanceFactory=testFrameworkInstance.getProcessorFactory();
+  TestClassProcessorFactory processorFactory=new TestClassProcessorFactory(){
+    public TestClassProcessor create(){
+      return new ForkingTestClassProcessor(workerFactory,testInstanceFactory,getOptions().createForkOptions(),classPath);
+    }
+  }
+;
   TestClassProcessor processor;
   if (getForkEvery() != null) {
     processor=new RestartEveryNTestClassProcessor(processorFactory,getForkEvery());
@@ -8,10 +18,14 @@
  else {
     processor=processorFactory.create();
   }
+  TestSummaryListener listener=new TestSummaryListener(LoggerFactory.getLogger(AntTest.class));
+  addTestListener(listener);
+  processor.startProcessing(getTestListenerBroadcaster().getSource());
   TestClassScanner testClassScanner=testClassScannerFactory.createTestClassScanner(this,processor);
   testClassScanner.run();
+  server.stop();
   testFrameworkInstance.report();
-  if (!isIgnoreFailures() && GUtil.isTrue(getProject().getAnt().getProject().getProperty(FAILURES_OR_ERRORS_PROPERTY))) {
+  if (!isIgnoreFailures() && listener.hadFailures()) {
     throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
   }
 }

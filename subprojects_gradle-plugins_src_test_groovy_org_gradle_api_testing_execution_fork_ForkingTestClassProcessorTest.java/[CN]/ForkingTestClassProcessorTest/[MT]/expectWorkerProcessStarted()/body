@@ -1,0 +1,26 @@
+{
+  context.checking(new Expectations(){
+{
+      WorkerProcessBuilder builder=context.mock(WorkerProcessBuilder.class);
+      ObjectConnection connection=context.mock(ObjectConnection.class);
+      JavaExecHandleBuilder javaCommandBuilder=new JavaExecHandleBuilder();
+      one(workerFactory).newProcess();
+      will(returnValue(builder));
+      one(builder).worker(with(notNullValue(TestWorker.class)));
+      one(builder).applicationClasspath(appClassPath);
+      atLeast(1).of(builder).sharedPackages(with(notNullValue(String[].class)));
+      allowing(builder).getJavaCommand();
+      will(returnValue(javaCommandBuilder));
+      one(options).copyTo(javaCommandBuilder);
+      one(builder).build();
+      will(returnValue(workerProcess));
+      allowing(workerProcess).getConnection();
+      will(returnValue(connection));
+      one(connection).addIncoming(TestListener.class,testListener);
+      one(connection).addOutgoing(TestClassProcessor.class);
+      will(returnValue(worker));
+      one(workerProcess).start();
+    }
+  }
+);
+}

@@ -3,7 +3,7 @@
   lock.lock();
   try {
     boolean endOfStream=message instanceof EndOfStream;
-    while (!endOfStream && state == State.AwaitConnect) {
+    while (!endOfStream && dispatchState == State.AwaitConnect) {
       try {
         condition.await();
       }
@@ -11,22 +11,24 @@
         throw new GradleException(e);
       }
     }
-switch (state) {
+switch (dispatchState) {
 case AwaitConnect:
-      setState(State.GenerateIncomingEndOfStream);
+      setState(receiveState.onDispatchEndOfStream(),State.Stopped);
     return;
 case Connected:
   if (endOfStream) {
-    setState(State.AwaitIncomingEndOfStream);
+    setState(receiveState.onDispatchEndOfStream(),State.Stopped);
   }
 break;
-case AwaitOutgoingEndOfStream:
+case Stopping:
 if (endOfStream) {
-setState(State.Stopped);
+setState(receiveState,State.Stopped);
+return;
 }
-break;
+LOGGER.error("Could not send message, as connection is stopping.");
+return;
 default :
-throw new IllegalStateException(String.format("Connection is in unexpected state %s.",state));
+throw new IllegalStateException(String.format("Connection is in unexpected dispatch state %s.",dispatchState));
 }
 dispatch=connection;
 }
@@ -40,15 +42,12 @@ dispatch.dispatch(message);
 LOGGER.error(String.format("Could not send message using %s. Discarding connection.",dispatch),throwable);
 lock.lock();
 try {
-switch (state) {
+switch (receiveState) {
 case Connected:
-setState(State.AwaitIncomingEndOfStream);
-break;
-case AwaitOutgoingEndOfStream:
-setState(State.Stopped);
+setState(receiveState.onDispatchEndOfStream(),State.Stopped);
 break;
 default :
-throw new IllegalStateException(String.format("Connection is in unexpected state %s.",state));
+throw new IllegalStateException(String.format("Connection is in unexpected dispatch state %s.",dispatchState));
 }
 }
   finally {

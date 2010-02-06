@@ -1,0 +1,17 @@
+{
+  try {
+    LOGGER.debug("Executing test {}",testClass.getTestClassName());
+    JUnitTest test=new JUnitTest(testClass.getTestClassName());
+    JUnitTestRunner testRunner=new JUnitTestRunner(test,false,true,false,false,false,project.getCoreLoader());
+    forkedField.set(testRunner,true);
+    File testResultFile=new File(testResultsDir,"TEST-" + test.getName() + ".xml");
+    XMLJUnitResultFormatter xmlFormatter=new XMLJUnitResultFormatter();
+    xmlFormatter.setOutput(new BufferedOutputStream(new FileOutputStream(testResultFile)));
+    testRunner.addFormatter(xmlFormatter);
+    testRunner.addFormatter(new TestListenerFormatter(listener));
+    testRunner.run();
+  }
+ catch (  Throwable e) {
+    throw new GradleException(String.format("Could not execute test class %s.",testClass.getTestClassName()),e);
+  }
+}

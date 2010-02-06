@@ -1,0 +1,21 @@
+{
+  Future<?> stopJob=executor.submit(new Runnable(){
+    public void run(){
+      requestStop();
+      incomingDispatch.stop();
+      incomingQueue.requestStop();
+      incomingDemux.requestStop();
+      outgoingQueue.requestStop();
+      incomingQueue.stop();
+      incomingDemux.stop();
+      outgoingQueue.stop();
+    }
+  }
+);
+  try {
+    stopJob.get(120,TimeUnit.SECONDS);
+  }
+ catch (  Exception e) {
+    throw new GradleException("Could not stop connection.",e);
+  }
+}

@@ -1,0 +1,15 @@
+{
+  LOGGER.info("Executing tests.");
+  completed=new CountDownLatch(1);
+  ObjectConnection serverConnection=workerProcessContext.getServerConnection();
+  processor=factory.create();
+  TestListener listener=serverConnection.addOutgoing(TestListener.class);
+  processor.startProcessing(listener);
+  serverConnection.addIncoming(TestClassProcessor.class,this);
+  try {
+    completed.await();
+  }
+ catch (  InterruptedException e) {
+    throw new GradleException(e);
+  }
+}

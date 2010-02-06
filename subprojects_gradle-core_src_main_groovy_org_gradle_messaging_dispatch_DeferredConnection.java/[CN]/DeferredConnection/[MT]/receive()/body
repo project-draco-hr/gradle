@@ -2,7 +2,7 @@
   Receive<Message> receive;
   lock.lock();
   try {
-    while (state == State.AwaitConnect) {
+    while (receiveState == State.AwaitConnect) {
       try {
         condition.await();
       }
@@ -10,18 +10,16 @@
         throw new GradleException(e);
       }
     }
-switch (state) {
-case GenerateIncomingEndOfStream:
-      setState(State.Stopped);
+switch (receiveState) {
+case Stopping:
+      setState(State.Stopped,dispatchState);
     return new EndOfStream();
 case Stopped:
-case AwaitOutgoingEndOfStream:
   return null;
 case Connected:
-case AwaitIncomingEndOfStream:
 break;
 default :
-throw new IllegalStateException(String.format("Connection is in unexpected state %s.",state));
+throw new IllegalStateException(String.format("Connection is in unexpected receive state %s.",receiveState));
 }
 receive=connection;
 }
@@ -45,15 +43,12 @@ return message;
 }
 lock.lock();
 try {
-switch (state) {
+switch (receiveState) {
 case Connected:
-setState(State.AwaitOutgoingEndOfStream);
-break;
-case AwaitIncomingEndOfStream:
-setState(State.Stopped);
+setState(State.Stopped,dispatchState);
 break;
 default :
-throw new IllegalStateException(String.format("Connection is in unexpected state %s.",state));
+throw new IllegalStateException(String.format("Connection is in unexpected state %s.",receiveState));
 }
 }
   finally {

@@ -1,0 +1,11 @@
+{
+  if (!destinationAddress.getScheme().equals("channel")) {
+    throw new IllegalArgumentException(String.format("Cannot create a connection to destination URI '%s'.",destinationAddress));
+  }
+  URI connectionAddress=toConnectionAddress(destinationAddress);
+  Connection<Message> connection=outgoingConnector.connect(connectionAddress);
+  connection.dispatch(new ConnectRequest(destinationAddress,null));
+  DefaultMultiChannelConnection channelConnection=new DefaultMultiChannelConnection(executorService,null,destinationAddress);
+  channelConnection.setConnection(connection);
+  return channelConnection;
+}
