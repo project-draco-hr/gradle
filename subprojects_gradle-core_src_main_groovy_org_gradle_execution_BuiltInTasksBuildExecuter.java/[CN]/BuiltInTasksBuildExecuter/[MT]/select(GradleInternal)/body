@@ -1,17 +1,9 @@
 {
   this.gradle=gradle;
-  task=AbstractTask.injectIntoNewInstance(gradle.getDefaultProject(),"reportTask",new Callable<AbstractReportTask>(){
-    public AbstractReportTask call() throws Exception {
-      return options.createTask();
-    }
-  }
-);
-  task.setProject(gradle.getDefaultProject());
+  ITaskFactory taskFactory=gradle.getServiceRegistryFactory().get(ITaskFactory.class);
+  Map<String,Object> args=new HashMap<String,Object>();
+  args.put(Task.TASK_NAME,"report");
+  args.put(Task.TASK_TYPE,options.getTaskType());
+  task=(AbstractReportTask)taskFactory.createTask(gradle.getDefaultProject(),args);
   task.setProjects(getProjectsForReport(path));
-  task.doFirst(new Action<Task>(){
-    public void execute(    Task x){
-      task.generate();
-    }
-  }
-);
 }
