@@ -1,13 +1,10 @@
 {
   if (worker == null) {
     WorkerProcessBuilder builder=workerFactory.newProcess();
-    builder.sharedPackages("org.apache.tools.ant");
-    builder.sharedPackages("junit.framework");
-    builder.sharedPackages("org.junit");
-    builder.sharedPackages("org.testng");
     builder.applicationClasspath(classPath);
     builder.worker(new TestWorker(processorFactory));
     options.copyTo(builder.getJavaCommand());
+    buildConfigAction.execute(builder);
     workerProcess=builder.build();
     workerProcess.getConnection().addIncoming(TestListener.class,listener);
     worker=workerProcess.getConnection().addOutgoing(TestClassProcessor.class);

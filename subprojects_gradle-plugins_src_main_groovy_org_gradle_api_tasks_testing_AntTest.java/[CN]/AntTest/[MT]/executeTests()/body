@@ -1,13 +1,12 @@
 {
   ClassPathRegistry classPathRegistry=getServices().get(ClassPathRegistry.class);
-  final List<File> classPath=GUtil.addLists(getClasspath(),classPathRegistry.getClassPathFiles("ANT_JUNIT"));
   TcpMessagingServer server=new TcpMessagingServer(TestClassProcessor.class.getClassLoader());
   final WorkerProcessFactory workerFactory=new DefaultWorkerProcessFactory(server,classPathRegistry,getServices().get(FileResolver.class));
-  TestFrameworkInstance testFrameworkInstance=getTestFramework();
+  final TestFrameworkInstance testFrameworkInstance=getTestFramework();
   final TestClassProcessorFactory testInstanceFactory=testFrameworkInstance.getProcessorFactory();
   TestClassProcessorFactory processorFactory=new TestClassProcessorFactory(){
     public TestClassProcessor create(){
-      return new ForkingTestClassProcessor(workerFactory,testInstanceFactory,getOptions().createForkOptions(),classPath);
+      return new ForkingTestClassProcessor(workerFactory,testInstanceFactory,getOptions().createForkOptions(),getClasspath(),testFrameworkInstance.getWorkerConfigurationAction());
     }
   }
 ;

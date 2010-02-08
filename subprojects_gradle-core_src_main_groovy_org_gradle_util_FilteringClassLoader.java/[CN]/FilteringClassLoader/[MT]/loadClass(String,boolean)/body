@@ -1,7 +1,19 @@
 {
-  Class<?> cl=super.loadClass(name,resolve);
+  Class<?> cl;
+  try {
+    cl=super.loadClass(name,false);
+  }
+ catch (  NoClassDefFoundError e) {
+    if (classAllowed(name)) {
+      throw e;
+    }
+    throw new ClassNotFoundException(String.format("%s not found.",name));
+  }
   if (!allowed(cl)) {
     throw new ClassNotFoundException(String.format("%s not found.",cl.getName()));
+  }
+  if (resolve) {
+    resolveClass(cl);
   }
   return cl;
 }
