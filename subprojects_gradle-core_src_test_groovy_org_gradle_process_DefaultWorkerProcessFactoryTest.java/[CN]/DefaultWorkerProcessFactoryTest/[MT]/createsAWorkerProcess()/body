@@ -10,6 +10,7 @@
   WorkerProcessBuilder builder=factory.newProcess();
   assertThat(builder.getJavaCommand().getClasspath(),equalTo(processClassPath));
   assertThat(builder.getJavaCommand().getMainClass(),equalTo(GradleWorkerMain.class.getName()));
+  assertThat(builder.getLogLevel(),equalTo(LogLevel.LIFECYCLE));
   builder.worker(new TestAction());
   builder.applicationClasspath(Arrays.asList(new File("app.jar")));
   builder.sharedPackages("package1","package2");
@@ -27,6 +28,7 @@
   WorkerProcess process=builder.build();
   assertThat(process,instanceOf(DefaultWorkerProcess.class));
   ObjectInputStream instr=new ObjectInputStream(builder.getJavaCommand().getStandardInput());
+  assertThat(instr.readObject(),equalTo((Object)LogLevel.LIFECYCLE));
   assertThat(instr.readObject(),equalTo((Object)builder.getApplicationClasspath()));
   assertThat(instr.readObject(),equalTo((Object)builder.getSharedPackages()));
   assertThat(instr.readObject(),instanceOf(Collection.class));

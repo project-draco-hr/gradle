@@ -1,8 +1,14 @@
 {
+  LoggingConfigurer configurer=createLoggingConfigurer();
+  configurer.configure(LogLevel.LIFECYCLE);
+  FilteringClassLoader filteredSystem=new FilteringClassLoader(getClass().getClassLoader());
+  filteredSystem.allowPackage("org.slf4j");
   ObservableUrlClassLoader sharedClassLoader=createSharedClassLoader();
   FilteringClassLoader filteredShared=new FilteringClassLoader(sharedClassLoader);
-  ObservableUrlClassLoader implementationClassLoader=createImplementationClassLoader(filteredShared);
+  ObservableUrlClassLoader implementationClassLoader=createImplementationClassLoader(filteredSystem,filteredShared);
   ObjectInputStream instr=new ClassLoaderObjectInputStream(System.in,implementationClassLoader);
+  LogLevel logLevel=(LogLevel)instr.readObject();
+  configurer.configure(logLevel);
   sharedClassLoader.addURLs((Collection<URL>)instr.readObject());
   Collection<String> sharedPackages=(Collection<String>)instr.readObject();
   for (  String sharedPackage : sharedPackages) {

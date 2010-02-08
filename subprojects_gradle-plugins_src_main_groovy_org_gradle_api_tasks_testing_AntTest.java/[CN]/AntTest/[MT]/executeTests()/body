@@ -1,7 +1,5 @@
 {
-  ClassPathRegistry classPathRegistry=getServices().get(ClassPathRegistry.class);
-  TcpMessagingServer server=new TcpMessagingServer(TestClassProcessor.class.getClassLoader());
-  final WorkerProcessFactory workerFactory=new DefaultWorkerProcessFactory(server,classPathRegistry,getServices().get(FileResolver.class));
+  final WorkerProcessFactory workerFactory=getServices().get(WorkerProcessFactory.class);
   final TestFrameworkInstance testFrameworkInstance=getTestFramework();
   final TestClassProcessorFactory testInstanceFactory=testFrameworkInstance.getProcessorFactory();
   TestClassProcessorFactory processorFactory=new TestClassProcessorFactory(){
@@ -22,7 +20,6 @@
   processor.startProcessing(getTestListenerBroadcaster().getSource());
   TestClassScanner testClassScanner=testClassScannerFactory.createTestClassScanner(this,processor);
   testClassScanner.run();
-  server.stop();
   testFrameworkInstance.report();
   if (!isIgnoreFailures() && listener.hadFailures()) {
     throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");

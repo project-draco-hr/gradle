@@ -1,6 +1,13 @@
 {
   TestAction action=new TestAction();
-  System.setIn(serialize(new ArrayList<File>(),new ArrayList<String>(),new ArrayList<File>(),action,new URI("test:server")));
+  System.setIn(serialize(LogLevel.DEBUG,new ArrayList<File>(),new ArrayList<String>(),new ArrayList<File>(),action,new URI("test:server")));
+  context.checking(new Expectations(){
+{
+      one(loggingConfigurer).configure(LogLevel.LIFECYCLE);
+      one(loggingConfigurer).configure(LogLevel.DEBUG);
+    }
+  }
+);
   new TestGradleWorkerMain().run();
   assertThat(System.getProperty("action.result"),equalTo("result"));
 }

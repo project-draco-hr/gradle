@@ -3,15 +3,11 @@
     throw new IllegalStateException("No worker action specified for this worker process.");
   }
   ObjectConnection connection=server.createUnicastConnection();
-  List<URL> implementationClassPath=new ArrayList<URL>();
-  for (ClassLoader cl=getWorker().getClass().getClassLoader(); cl != ClassLoader.getSystemClassLoader().getParent(); cl=cl.getParent()) {
-    if (cl instanceof URLClassLoader) {
-      implementationClassPath.addAll(Arrays.asList(((URLClassLoader)cl).getURLs()));
-    }
-  }
+  List<URL> implementationClassPath=ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
   ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
   try {
     ObjectOutputStream objectStream=new ObjectOutputStream(outputStream);
+    objectStream.writeObject(getLogLevel());
     objectStream.writeObject(getApplicationClasspath());
     objectStream.writeObject(getSharedPackages());
     objectStream.writeObject(implementationClassPath);
@@ -22,8 +18,8 @@
  catch (  IOException e) {
     throw new UncheckedIOException(e);
   }
-  getJavaCommand().jvmArgs("-ea");
   getJavaCommand().standardInput(new ByteArrayInputStream(outputStream.toByteArray()));
+  getJavaCommand().jvmArgs("-ea");
   ExecHandle execHandle=getJavaCommand().build();
   return new DefaultWorkerProcess(connection,execHandle);
 }
