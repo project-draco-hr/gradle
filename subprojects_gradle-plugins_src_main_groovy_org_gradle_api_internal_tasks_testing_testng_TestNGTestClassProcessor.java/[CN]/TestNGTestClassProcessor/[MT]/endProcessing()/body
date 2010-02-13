@@ -2,17 +2,26 @@
   try {
     TestNG testNg=new TestNG();
     testNg.setOutputDirectory(testReportDir.getAbsolutePath());
-    testNg.setUseDefaultListeners(false);
-    testNg.addListener(new SuiteHTMLReporter());
-    testNg.addListener(new XMLReporter());
+    testNg.setDefaultSuiteName(options.getSuiteName());
+    testNg.setDefaultTestName(options.getTestName());
+    testNg.setAnnotations(options.getAnnotations());
+    if (options.getJavadocAnnotations()) {
+      testNg.setSourcePath(GUtil.join(options.getTestResources(),File.pathSeparator));
+    }
+    testNg.setUseDefaultListeners(options.getUseDefaultListeners());
     testNg.addListener(new TestNGListenerAdapter(listener));
     testNg.setVerbose(0);
-    Class[] classes=new Class[testClassNames.size()];
-    for (int i=0; i < testClassNames.size(); i++) {
-      String className=testClassNames.get(i);
-      classes[i]=TestNG.class.getClassLoader().loadClass(className);
+    if (!suiteFiles.isEmpty()) {
+      testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
     }
-    testNg.setTestClasses(classes);
+ else {
+      Class[] classes=new Class[testClassNames.size()];
+      for (int i=0; i < testClassNames.size(); i++) {
+        String className=testClassNames.get(i);
+        classes[i]=TestNG.class.getClassLoader().loadClass(className);
+      }
+      testNg.setTestClasses(classes);
+    }
     testNg.run();
   }
  catch (  Throwable throwable) {
