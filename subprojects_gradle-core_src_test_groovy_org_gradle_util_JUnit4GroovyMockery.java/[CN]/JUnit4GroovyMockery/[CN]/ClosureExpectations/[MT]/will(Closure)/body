@@ -5,7 +5,13 @@
     }
     public Object invoke(    Invocation invocation) throws Throwable {
       List<Object> params=Arrays.asList(invocation.getParametersAsArray());
-      Object result=cl.call(params.subList(0,Math.min(invocation.getParametersAsArray().length,cl.getMaximumNumberOfParameters())));
+      Object result;
+      try {
+        result=cl.call(params.subList(0,Math.min(invocation.getParametersAsArray().length,cl.getMaximumNumberOfParameters())));
+      }
+ catch (      InvokerInvocationException e) {
+        throw e.getCause();
+      }
       if (invocation.getInvokedMethod().getReturnType().isInstance(result)) {
         return result;
       }
