@@ -4,7 +4,7 @@
   this.destinationAddress=destinationAddress;
   outgoingQueue=new AsyncDispatch<Message>(executor);
   outgoingQueue.dispatchTo(wrapFailures(connection));
-  outgoingDispatch=new EndOfStreamDispatch(outgoingQueue);
+  outgoingDispatch=new EndOfStreamDispatch(new ChannelMessageMarshallingDispatch(outgoingQueue));
   incomingDemux=new IncomingDemultiplex();
   incomingDispatch=new EndOfStreamFilter(incomingDemux,new Runnable(){
     public void run(){
@@ -13,6 +13,6 @@
   }
 );
   incomingQueue=new AsyncDispatch<Message>(executor);
-  incomingQueue.dispatchTo(wrapFailures(incomingDispatch));
+  incomingQueue.dispatchTo(wrapFailures(new ChannelMessageUnmarshallingDispatch(incomingDispatch)));
   incomingQueue.receiveFrom(connection);
 }
