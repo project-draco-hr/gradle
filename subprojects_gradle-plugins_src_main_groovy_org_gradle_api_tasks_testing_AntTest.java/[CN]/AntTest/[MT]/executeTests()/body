@@ -17,13 +17,13 @@
   }
   TestSummaryListener listener=new TestSummaryListener(LoggerFactory.getLogger(AntTest.class));
   addTestListener(listener);
-  TestListener broadcaster=getTestListenerBroadcaster().getSource();
-  broadcaster.beforeSuite(new RootTestSuite());
-  processor.startProcessing(broadcaster);
+  TestListenerAdapter resultProcessor=new TestListenerAdapter(getTestListenerBroadcaster().getSource());
+  resultProcessor.started(new RootTestSuite());
+  processor.startProcessing(resultProcessor);
   TestClassScanner testClassScanner=testClassScannerFactory.createTestClassScanner(this,processor);
   testClassScanner.run();
   processor.endProcessing();
-  broadcaster.afterSuite(new RootTestSuite());
+  resultProcessor.completed(new RootTestSuite(),null);
   testFrameworkInstance.report();
   if (!isIgnoreFailures() && listener.hadFailures()) {
     throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");

@@ -1,6 +1,11 @@
 {
   long endTime=timeProvider.getCurrentTime();
-  DefaultTestResult result=new DefaultTestResult(error,startTime,endTime);
-  error=null;
-  listener.afterTest(convert(test),result);
+  TestInternal testInternal;
+  DefaultTestResult result;
+synchronized (lock) {
+    TestState state=executing.remove(test);
+    testInternal=state.test;
+    result=new DefaultTestResult(state.failure,state.startTime,endTime);
+  }
+  resultProcessor.completed(testInternal,result);
 }

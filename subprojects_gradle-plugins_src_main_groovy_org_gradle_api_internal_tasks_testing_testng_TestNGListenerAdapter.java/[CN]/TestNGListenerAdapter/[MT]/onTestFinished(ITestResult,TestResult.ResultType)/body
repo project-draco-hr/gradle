@@ -1,4 +1,8 @@
 {
   TestResult result=new DefaultTestResult(resultType,iTestResult.getThrowable(),iTestResult.getStartMillis(),iTestResult.getEndMillis());
-  remoteSender.afterTest(convert(iTestResult),result);
+  TestInternal testInternal;
+synchronized (lock) {
+    testInternal=tests.remove(iTestResult.getName());
+  }
+  resultProcessor.completed(testInternal,result);
 }

@@ -9,16 +9,17 @@
       testNg.setSourcePath(GUtil.join(options.getTestResources(),File.pathSeparator));
     }
     testNg.setUseDefaultListeners(options.getUseDefaultListeners());
-    testNg.addListener(new TestNGListenerAdapter(listener));
+    testNg.addListener(new TestNGListenerAdapter(resultProcessor));
     testNg.setVerbose(0);
     if (!suiteFiles.isEmpty()) {
       testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
     }
  else {
+      ClassLoader applicationClassLoader=Thread.currentThread().getContextClassLoader();
       Class[] classes=new Class[testClassNames.size()];
       for (int i=0; i < testClassNames.size(); i++) {
         String className=testClassNames.get(i);
-        classes[i]=TestNG.class.getClassLoader().loadClass(className);
+        classes[i]=applicationClassLoader.loadClass(className);
       }
       testNg.setTestClasses(classes);
     }

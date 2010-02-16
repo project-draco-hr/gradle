@@ -3,8 +3,9 @@
   completed=new CountDownLatch(1);
   ObjectConnection serverConnection=workerProcessContext.getServerConnection();
   processor=factory.create();
-  TestListener listener=serverConnection.addOutgoing(TestListener.class);
-  processor.startProcessing(listener);
+  appClassLoader=workerProcessContext.getApplicationClassLoader();
+  TestResultProcessor resultProcessor=serverConnection.addOutgoing(TestResultProcessor.class);
+  startProcessing(resultProcessor);
   serverConnection.addIncoming(TestClassProcessor.class,this);
   try {
     completed.await();
