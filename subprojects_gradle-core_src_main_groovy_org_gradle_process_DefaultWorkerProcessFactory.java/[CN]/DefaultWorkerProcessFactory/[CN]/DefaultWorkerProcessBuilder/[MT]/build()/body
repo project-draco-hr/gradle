@@ -4,9 +4,13 @@
   }
   ObjectConnection connection=server.createUnicastConnection();
   List<URL> implementationClassPath=ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
+  Object id=counter.getAndIncrement();
+  String displayName=String.format("Gradle Worker %s",id);
   ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
   try {
     ObjectOutputStream objectStream=new ObjectOutputStream(outputStream);
+    objectStream.writeObject(id);
+    objectStream.writeObject(displayName);
     objectStream.writeObject(getLogLevel());
     objectStream.writeObject(getApplicationClasspath());
     objectStream.writeObject(getSharedPackages());
@@ -19,7 +23,6 @@
     throw new UncheckedIOException(e);
   }
   getJavaCommand().standardInput(new ByteArrayInputStream(outputStream.toByteArray()));
-  getJavaCommand().jvmArgs("-ea");
   ExecHandle execHandle=getJavaCommand().build();
   return new DefaultWorkerProcess(connection,execHandle);
 }

@@ -1,11 +1,11 @@
 {
-  LOGGER.info("Executing tests.");
+  LOGGER.info("{} executing tests.",workerProcessContext.getDisplayName());
   completed=new CountDownLatch(1);
   ObjectConnection serverConnection=workerProcessContext.getServerConnection();
-  processor=factory.create();
-  appClassLoader=workerProcessContext.getApplicationClassLoader();
+  IdGenerator<Object> idGenerator=new CompositeIdGenerator(workerProcessContext.getWorkerId(),new LongIdGenerator());
+  processor=new WorkerTestClassProcessor(factory.create(idGenerator),idGenerator.generateId(),workerProcessContext.getDisplayName(),workerProcessContext.getApplicationClassLoader());
   TestResultProcessor resultProcessor=serverConnection.addOutgoing(TestResultProcessor.class);
-  startProcessing(resultProcessor);
+  processor.startProcessing(resultProcessor);
   serverConnection.addIncoming(TestClassProcessor.class,this);
   try {
     completed.await();
@@ -13,5 +13,5 @@
  catch (  InterruptedException e) {
     throw new GradleException(e);
   }
-  LOGGER.info("Finished executing tests.");
+  LOGGER.info("{} finished executing tests.",workerProcessContext.getDisplayName());
 }

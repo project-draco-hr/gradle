@@ -1,31 +1,21 @@
 {
-  try {
-    TestNG testNg=new TestNG();
-    testNg.setOutputDirectory(testReportDir.getAbsolutePath());
-    testNg.setDefaultSuiteName(options.getSuiteName());
-    testNg.setDefaultTestName(options.getTestName());
-    testNg.setAnnotations(options.getAnnotations());
-    if (options.getJavadocAnnotations()) {
-      testNg.setSourcePath(GUtil.join(options.getTestResources(),File.pathSeparator));
-    }
-    testNg.setUseDefaultListeners(options.getUseDefaultListeners());
-    testNg.addListener(listener);
-    testNg.setVerbose(0);
-    if (!suiteFiles.isEmpty()) {
-      testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
-    }
+  TestNG testNg=new TestNG();
+  testNg.setOutputDirectory(testReportDir.getAbsolutePath());
+  testNg.setDefaultSuiteName(options.getSuiteName());
+  testNg.setDefaultTestName(options.getTestName());
+  testNg.setAnnotations(options.getAnnotations());
+  if (options.getJavadocAnnotations()) {
+    testNg.setSourcePath(GUtil.join(options.getTestResources(),File.pathSeparator));
+  }
+  testNg.setUseDefaultListeners(options.getUseDefaultListeners());
+  testNg.addListener(listener);
+  testNg.setVerbose(0);
+  if (!suiteFiles.isEmpty()) {
+    testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
+  }
  else {
-      ClassLoader applicationClassLoader=Thread.currentThread().getContextClassLoader();
-      Class[] classes=new Class[testClassNames.size()];
-      for (int i=0; i < testClassNames.size(); i++) {
-        String className=testClassNames.get(i);
-        classes[i]=applicationClassLoader.loadClass(className);
-      }
-      testNg.setTestClasses(classes);
-    }
-    testNg.run();
+    Class[] classes=testClasses.toArray(new Class[testClasses.size()]);
+    testNg.setTestClasses(classes);
   }
- catch (  Throwable throwable) {
-    throw new GradleException("Could not execute tests.",throwable);
-  }
+  testNg.run();
 }
