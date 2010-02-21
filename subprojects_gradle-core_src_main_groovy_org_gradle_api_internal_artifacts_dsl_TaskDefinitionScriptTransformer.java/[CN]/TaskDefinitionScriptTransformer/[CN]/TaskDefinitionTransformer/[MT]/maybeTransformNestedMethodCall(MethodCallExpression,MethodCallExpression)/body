@@ -5,17 +5,17 @@
   Expression taskName=nestedMethod.getMethod();
   Expression mapArg=null;
   List<Expression> extraArgs=Collections.emptyList();
-  if (nestedMethod.getArguments() instanceof NamedArgumentListExpression) {
-    mapArg=nestedMethod.getArguments();
-  }
- else   if (nestedMethod.getArguments() instanceof ArgumentListExpression) {
-    ArgumentListExpression nestedArgs=(ArgumentListExpression)nestedMethod.getArguments();
+  if (nestedMethod.getArguments() instanceof TupleExpression) {
+    TupleExpression nestedArgs=(TupleExpression)nestedMethod.getArguments();
     if (nestedArgs.getExpressions().size() == 2 && nestedArgs.getExpression(0) instanceof MapExpression && nestedArgs.getExpression(1) instanceof ClosureExpression) {
       mapArg=nestedArgs.getExpression(0);
       extraArgs=nestedArgs.getExpressions().subList(1,nestedArgs.getExpressions().size());
     }
  else     if (nestedArgs.getExpressions().size() == 1 && nestedArgs.getExpression(0) instanceof ClosureExpression) {
       extraArgs=nestedArgs.getExpressions();
+    }
+ else     if (nestedArgs.getExpressions().size() == 1 && nestedArgs.getExpression(0) instanceof NamedArgumentListExpression) {
+      mapArg=nestedArgs.getExpression(0);
     }
  else     if (nestedArgs.getExpressions().size() != 0) {
       return false;
