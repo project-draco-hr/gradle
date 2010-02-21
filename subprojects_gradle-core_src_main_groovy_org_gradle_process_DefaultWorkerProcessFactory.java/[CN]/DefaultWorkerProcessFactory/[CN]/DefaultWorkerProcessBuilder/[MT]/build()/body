@@ -4,7 +4,7 @@
   }
   ObjectConnection connection=server.createUnicastConnection();
   List<URL> implementationClassPath=ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
-  Object id=counter.getAndIncrement();
+  Object id=idGenerator.generateId();
   String displayName=String.format("Gradle Worker %s",id);
   ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
   try {
@@ -22,6 +22,9 @@
  catch (  IOException e) {
     throw new UncheckedIOException(e);
   }
+  LOGGER.debug("Creating {}",displayName);
+  LOGGER.debug("Using application classpath {}",getApplicationClasspath());
+  LOGGER.debug("Using implementation classpath {}",implementationClassPath);
   getJavaCommand().standardInput(new ByteArrayInputStream(outputStream.toByteArray()));
   ExecHandle execHandle=getJavaCommand().build();
   return new DefaultWorkerProcess(connection,execHandle);
