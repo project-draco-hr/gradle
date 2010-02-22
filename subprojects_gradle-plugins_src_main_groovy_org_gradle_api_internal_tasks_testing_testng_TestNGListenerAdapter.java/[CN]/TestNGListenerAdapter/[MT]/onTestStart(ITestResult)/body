@@ -2,10 +2,10 @@
   TestInternal testInternal;
 synchronized (lock) {
     testInternal=new DefaultTestMethod(idGenerator.generateId(),iTestResult.getTestClass().getName(),iTestResult.getName());
-    TestInternal oldTest=tests.put(testInternal.getName(),testInternal);
-    if (oldTest != null) {
+    Object oldTestId=tests.put(testInternal.getName(),testInternal.getId());
+    if (oldTestId != null) {
       throw new IllegalStateException(String.format("Cannot handle a test instance executing multiple times concurrently: %s",testInternal));
     }
   }
-  resultProcessor.started(testInternal);
+  resultProcessor.started(testInternal,new TestStartEvent(iTestResult.getStartMillis()));
 }
