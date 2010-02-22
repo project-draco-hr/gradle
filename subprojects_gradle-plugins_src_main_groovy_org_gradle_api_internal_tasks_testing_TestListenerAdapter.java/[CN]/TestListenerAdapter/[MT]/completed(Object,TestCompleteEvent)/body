@@ -3,15 +3,8 @@
   if (testState == null) {
     throw new IllegalArgumentException(String.format("Received a completed event for test with unknown id '%s'.",testId));
   }
-  if (event.getFailure() != null) {
-    testState.failure=event.getFailure();
-  }
-  if (testState.isFailed() && testState.startEvent.getParentId() != null) {
-    executing.get(testState.startEvent.getParentId()).failedChild=true;
-  }
+  TestResult result=testState.completed(event);
   TestInternal test=testState.test;
-  TestResult.ResultType resultType=testState.isFailed() ? TestResult.ResultType.FAILURE : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
-  DefaultTestResult result=new DefaultTestResult(resultType,testState.failure,testState.startEvent.getStartTime(),event.getEndTime());
   if (test.isComposite()) {
     listener.afterSuite(test,result);
   }
