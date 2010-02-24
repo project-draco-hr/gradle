@@ -1,10 +1,10 @@
 {
   DefaultConf2ScopeMappingContainer scopeMappings=new DefaultConf2ScopeMappingContainer();
-  final DefaultModuleDescriptor testModuleDescriptor=DefaultModuleDescriptor.newBasicInstance(ModuleRevisionId.newInstance("org","name","version"),null);
-  testModuleDescriptor.addDependency(new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org1","name1","rev1"),false));
-  scopeMappings.addMapping(10,HelperUtil.createConfiguration("conf"),"scope");
-  DefaultMavenPomFactory mavenPomFactory=new DefaultMavenPomFactory(scopeMappings);
+  PomDependenciesConverter pomDependenciesConverter=context.mock(PomDependenciesConverter.class);
+  DefaultMavenPomFactory mavenPomFactory=new DefaultMavenPomFactory(scopeMappings,pomDependenciesConverter);
   DefaultMavenPom mavenPom=(DefaultMavenPom)mavenPomFactory.createMavenPom();
   assertNotSame(scopeMappings,mavenPom.getScopeMappings());
   assertEquals(scopeMappings,mavenPom.getScopeMappings());
+  assertThat(mavenPom.getMavenProject(),notNullValue());
+  assertThat(mavenPom.getPomDependenciesConverter(),Matchers.sameInstance(pomDependenciesConverter));
 }
