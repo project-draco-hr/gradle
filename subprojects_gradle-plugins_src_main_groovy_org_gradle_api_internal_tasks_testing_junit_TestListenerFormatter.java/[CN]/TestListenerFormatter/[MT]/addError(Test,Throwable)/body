@@ -1,7 +1,21 @@
 {
   TestDescriptorInternal testInternal;
+  boolean synthesiseFailedTest;
 synchronized (lock) {
-    testInternal=executing.get(test);
+    if (test == null) {
+      testInternal=new DefaultTestDescriptor(idGenerator.generateId(),currentSuite.getClassName(),"initializationError");
+      synthesiseFailedTest=true;
+    }
+ else {
+      testInternal=executing.get(test);
+      synthesiseFailedTest=false;
+    }
   }
-  resultProcessor.addFailure(testInternal.getId(),throwable);
+  if (synthesiseFailedTest) {
+    resultProcessor.started(testInternal,new TestStartEvent(timeProvider.getCurrentTime()));
+    resultProcessor.completed(testInternal.getId(),new TestCompleteEvent(timeProvider.getCurrentTime(),null,throwable));
+  }
+ else {
+    resultProcessor.addFailure(testInternal.getId(),throwable);
+  }
 }
