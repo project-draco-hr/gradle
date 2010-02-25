@@ -1,7 +1,16 @@
 {
   pomListeners.getSource().whenConfigured(this);
   try {
-    mavenProject.writeModel(pomWriter);
+    final StringWriter stringWriter=new StringWriter();
+    mavenProject.writeModel(stringWriter);
+    final StringBuilder stringBuilder=new StringBuilder(stringWriter.toString());
+    pomListeners.getSource().withXml(new XmlProvider(){
+      public StringBuilder asString(){
+        return stringBuilder;
+      }
+    }
+);
+    IOUtils.write(stringBuilder.toString(),pomWriter);
   }
  catch (  IOException e) {
     throw new UncheckedIOException(e);
