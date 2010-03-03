@@ -5,14 +5,16 @@
       will(returnValue(toList()));
       one(listener).beforeActions(task);
       inSequence(sequence);
+      one(state).setExecuting(true);
+      inSequence(sequence);
+      one(state).executed(null);
+      inSequence(sequence);
+      one(state).setExecuting(false);
+      inSequence(sequence);
       one(listener).afterActions(task);
       inSequence(sequence);
     }
   }
 );
-  TaskExecutionResult result=executer.execute(task,state);
-  assertThat(result.getFailure(),nullValue());
-  assertThat(result.getSkipMessage(),nullValue());
-  assertFalse(state.isExecuting());
-  assertFalse(state.isDidWork());
+  executer.execute(task,state);
 }
