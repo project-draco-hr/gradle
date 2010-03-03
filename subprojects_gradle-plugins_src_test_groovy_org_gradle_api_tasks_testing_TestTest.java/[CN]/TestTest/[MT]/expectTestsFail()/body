@@ -11,16 +11,20 @@
       final TestResult result=context.mock(TestResult.class);
       allowing(result).getResultType();
       will(returnValue(TestResult.ResultType.FAILURE));
+      ignoring(result);
       final TestDescriptor testDescriptor=context.mock(TestDescriptor.class);
       allowing(testDescriptor).getName();
       will(returnValue("test"));
+      allowing(testDescriptor).getParent();
+      will(returnValue(null));
+      ignoring(testDescriptor);
       one(testClassScannerMock).run();
       will(new Action(){
         public void describeTo(        Description description){
           description.appendText("fail tests");
         }
         public Object invoke(        Invocation invocation) throws Throwable {
-          TestTest.this.test.getTestListenerBroadcaster().getSource().afterTest(testDescriptor,result);
+          TestTest.this.test.getTestListenerBroadcaster().getSource().afterSuite(testDescriptor,result);
           return null;
         }
       }

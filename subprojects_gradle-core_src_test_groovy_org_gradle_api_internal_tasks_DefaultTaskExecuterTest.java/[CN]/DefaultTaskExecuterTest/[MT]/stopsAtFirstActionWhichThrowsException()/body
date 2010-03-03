@@ -1,10 +1,15 @@
 {
   final Throwable failure=new RuntimeException("failure");
+  final Collector<Throwable> wrappedFailure=collector();
   context.checking(new Expectations(){
 {
       allowing(task).getActions();
       will(returnValue(toList(action1,action2)));
       one(listener).beforeActions(task);
+      inSequence(sequence);
+      one(state).setExecuting(true);
+      inSequence(sequence);
+      one(state).setDidWork(true);
       inSequence(sequence);
       one(standardOutputCapture).start();
       inSequence(sequence);
@@ -13,18 +18,20 @@
       inSequence(sequence);
       one(standardOutputCapture).stop();
       inSequence(sequence);
+      one(state).executed(with(notNullValue(Throwable.class)));
+      will(collectTo(wrappedFailure));
+      inSequence(sequence);
+      one(state).setExecuting(false);
+      inSequence(sequence);
       one(listener).afterActions(task);
       inSequence(sequence);
     }
   }
 );
-  TaskExecutionResult result=executer.execute(task,state);
-  assertThat(result.getFailure(),instanceOf(TaskExecutionException.class));
-  TaskExecutionException exception=(TaskExecutionException)result.getFailure();
+  executer.execute(task,state);
+  assertThat(wrappedFailure.get(),instanceOf(TaskExecutionException.class));
+  TaskExecutionException exception=(TaskExecutionException)wrappedFailure.get();
   assertThat(exception.getTask(),equalTo((Task)task));
   assertThat(exception.getMessage(),equalTo("Execution failed for <task>."));
   assertThat(exception.getCause(),sameInstance(failure));
-  assertThat(result.getSkipMessage(),nullValue());
-  assertFalse(state.isExecuting());
-  assertTrue(state.isDidWork());
 }
