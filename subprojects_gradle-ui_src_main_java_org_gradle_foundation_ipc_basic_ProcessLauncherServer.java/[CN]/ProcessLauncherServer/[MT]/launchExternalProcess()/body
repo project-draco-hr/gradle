@@ -1,12 +1,11 @@
 {
   Thread thread=new Thread(new Runnable(){
     public void run(){
-      ExecutionInfo executionInfo=new ExecutionInfo();
-      protocol.getExecutionInfo(getPort(),executionInfo);
+      ExecutionInfo executionInfo=protocol.getExecutionInfo(getPort());
       ExecHandleBuilder builder=new ExecHandleBuilder();
-      builder.execDirectory(executionInfo.workingDirectory);
-      builder.commandLine(executionInfo.commandLineArguments);
-      builder.environment(executionInfo.environmentVariables);
+      builder.execDirectory(executionInfo.getWorkingDirectory());
+      builder.commandLine(executionInfo.getCommandLineArguments());
+      builder.environment(executionInfo.getEnvironmentVariables());
       ByteArrayOutputStream output=new ByteArrayOutputStream();
       builder.standardOutput(output);
       builder.errorOutput(output);
@@ -23,6 +22,7 @@
       }
       execHandle.waitForFinish();
       setExternalProcess(null);
+      executionInfo.processExecutionComplete();
       notifyClientExited(execHandle.getExitCode(),output.toString());
     }
   }
