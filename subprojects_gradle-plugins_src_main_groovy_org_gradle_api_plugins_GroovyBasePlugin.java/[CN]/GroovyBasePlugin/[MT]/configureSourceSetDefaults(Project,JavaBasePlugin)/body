@@ -1,0 +1,31 @@
+{
+  final ProjectInternal projectInternal=(ProjectInternal)project;
+  project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().allObjects(new Action<SourceSet>(){
+    public void execute(    SourceSet sourceSet){
+      final DefaultGroovySourceSet groovySourceSet=new DefaultGroovySourceSet(((DefaultSourceSet)sourceSet).getDisplayName(),projectInternal.getFileResolver());
+      ((DynamicObjectAware)sourceSet).getConvention().getPlugins().put("groovy",groovySourceSet);
+      groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy",sourceSet.getName()));
+      sourceSet.getResources().getFilter().exclude(new Spec<FileTreeElement>(){
+        public boolean isSatisfiedBy(        FileTreeElement element){
+          return groovySourceSet.getGroovy().contains(element.getFile());
+        }
+      }
+);
+      sourceSet.getAllJava().add(groovySourceSet.getGroovy().matching(sourceSet.getJava().getFilter()));
+      sourceSet.getAllSource().add(groovySourceSet.getGroovy());
+      String compileTaskName=sourceSet.getCompileTaskName("groovy");
+      GroovyCompile compile=project.getTasks().add(compileTaskName,GroovyCompile.class);
+      javaBasePlugin.configureForSourceSet(sourceSet,compile);
+      compile.dependsOn(sourceSet.getCompileTaskName("java"));
+      compile.setDescription(String.format("Compiles the %s Groovy source.",sourceSet.getName()));
+      compile.conventionMapping("defaultSource",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return groovySourceSet.getGroovy();
+        }
+      }
+);
+      project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(compileTaskName);
+    }
+  }
+);
+}
