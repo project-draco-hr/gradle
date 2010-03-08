@@ -1,0 +1,17 @@
+{
+  if (evt.getResource().isLocal()) {
+    return;
+  }
+  if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
+    logger=DefaultSettingsConverter.logger.createProgressLogger();
+    total=0;
+    logger.started(String.format("downloading (%s) %s",getLengthText(evt),evt.getResource().getName()));
+  }
+  if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
+    total+=evt.getLength();
+    logger.tick(String.format("%s downloaded",getLengthText(total)));
+  }
+  if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
+    logger.completed();
+  }
+}
