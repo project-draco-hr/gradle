@@ -6,14 +6,25 @@
  catch (    UnknownPluginException e) {
     }
   }
-  String implClassName=properties.get(pluginId);
-  if (!GUtil.isTrue(implClassName)) {
+  Class<? extends Plugin> implClass=idMappings.get(pluginId);
+  if (implClass != null) {
+    return implClass;
+  }
+  URL resource=classLoader.getResource(String.format("META-INF/gradle-plugins/%s.properties",pluginId));
+  if (resource == null) {
     throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
   }
+  Properties properties=GUtil.loadProperties(resource);
+  String implClassName=properties.getProperty("implementation-class");
+  if (!GUtil.isTrue(implClassName)) {
+    throw new PluginInstantiationException(String.format("No implementation class specified for plugin '%s' in %s.",pluginId,resource));
+  }
   try {
-    return classLoader.loadClass(implClassName).asSubclass(Plugin.class);
+    implClass=classLoader.loadClass(implClassName).asSubclass(Plugin.class);
   }
  catch (  ClassNotFoundException e) {
-    throw new PluginInstantiationException(String.format("Could not find implementation class '%s' for plugin '%s'.",implClassName,pluginId),e);
+    throw new PluginInstantiationException(String.format("Could not find implementation class '%s' for plugin '%s' specified in %s.",implClass,pluginId,resource),e);
   }
+  idMappings.put(pluginId,implClass);
+  return implClass;
 }

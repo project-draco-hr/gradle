@@ -1,0 +1,22 @@
+{
+  final WorkerProcessFactory workerFactory=getServices().get(WorkerProcessFactory.class);
+  final TestFrameworkInstance testFrameworkInstance=getTestFramework();
+  final WorkerTestClassProcessorFactory testInstanceFactory=testFrameworkInstance.getProcessorFactory();
+  TestClassProcessorFactory processorFactory=new TestClassProcessorFactory(){
+    public TestClassProcessor create(){
+      return new ForkingTestClassProcessor(workerFactory,testInstanceFactory,options,getClasspath(),testFrameworkInstance.getWorkerConfigurationAction());
+    }
+  }
+;
+  Long forkEvery=getForkEvery();
+  TestClassProcessor processor=new RestartEveryNTestClassProcessor(processorFactory,forkEvery == null ? 0 : forkEvery);
+  TestSummaryListener listener=new TestSummaryListener(LoggerFactory.getLogger(Test.class));
+  addTestListener(listener);
+  TestResultProcessor resultProcessor=new TestListenerAdapter(getTestListenerBroadcaster().getSource());
+  Runnable testClassScanner=testClassScannerFactory.createTestClassScanner(this,processor,resultProcessor);
+  testClassScanner.run();
+  testFrameworkInstance.report();
+  if (!isIgnoreFailures() && listener.hadFailures()) {
+    throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
+  }
+}

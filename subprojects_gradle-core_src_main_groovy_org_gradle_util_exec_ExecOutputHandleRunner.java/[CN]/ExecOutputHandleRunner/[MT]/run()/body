@@ -1,25 +1,17 @@
 {
-  boolean keepHandling=true;
+  byte[] buffer=new byte[2048];
   try {
-    while (keepHandling) {
-      String outputLine=null;
-      try {
-        outputLine=inputReader.readLine();
+    while (true) {
+      int nread=inputStream.read(buffer);
+      if (nread < 0) {
+        break;
       }
- catch (      Throwable t) {
-        keepHandling=execOutputHandle.execOutputHandleError(t);
-        continue;
-      }
-      if (outputLine == null) {
-        keepHandling=false;
-      }
- else {
-        execOutputHandle.handleOutputLine(outputLine);
-      }
+      outputStream.write(buffer,0,nread);
     }
-    execOutputHandle.endOutput();
+    inputStream.close();
+    outputStream.close();
   }
  catch (  Throwable t) {
-    LOGGER.error("Could not process output from exec'd process.",t);
+    LOGGER.error(String.format("Could not %s.",displayName),t);
   }
 }

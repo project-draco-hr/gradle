@@ -1,0 +1,17 @@
+{
+  WorkerProcessBuilder builder=workerFactory.newProcess();
+  builder.applicationClasspath(classPathRegistry.getClassPathFiles("ANT"));
+  builder.sharedPackages("org.apache.tools.ant");
+  builder.getJavaCommand().systemProperty("test.system.property","value");
+  builder.getJavaCommand().environment("TEST_ENV_VAR","value");
+  builder.worker(action);
+  if (mainClass != null) {
+    builder.getJavaCommand().mainClass(mainClass);
+  }
+  proc=builder.build();
+  proc.getConnection().addIncoming(TestListenerInterface.class,exceptionListener);
+  proc.start();
+  if (serverAction != null) {
+    serverAction.execute(proc.getConnection());
+  }
+}

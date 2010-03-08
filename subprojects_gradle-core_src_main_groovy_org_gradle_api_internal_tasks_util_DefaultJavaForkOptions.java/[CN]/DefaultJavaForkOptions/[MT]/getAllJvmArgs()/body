@@ -1,0 +1,23 @@
+{
+  List<String> args=new ArrayList<String>();
+  args.addAll(getJvmArgs());
+  for (  Map.Entry<String,Object> entry : getSystemProperties().entrySet()) {
+    if (entry.getValue() != null) {
+      args.add(String.format("-D%s=%s",entry.getKey(),entry.getValue().toString()));
+    }
+ else {
+      args.add(String.format("-D%s",entry.getKey()));
+    }
+  }
+  if (maxHeapSize != null) {
+    args.add(String.format("-Xmx%s",maxHeapSize));
+  }
+  FileCollection bootstrapClasspath=getBootstrapClasspath();
+  if (!bootstrapClasspath.isEmpty()) {
+    args.add(String.format("-Xbootclasspath:%s",bootstrapClasspath.getAsPath()));
+  }
+  if (assertionsEnabled) {
+    args.add("-ea");
+  }
+  return args;
+}

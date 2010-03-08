@@ -1,6 +1,6 @@
 {
   gradlePluginLord.startExecutionQueue();
-  final BooleanHolder isComplete=new BooleanHolder();
+  final AtomicBoolean isComplete=new AtomicBoolean();
   GradlePluginLord.RequestObserver observer=new GradlePluginLord.RequestObserver(){
     public void executionRequestAdded(    ExecutionRequest request){
     }
@@ -10,7 +10,7 @@
     public void aboutToExecuteRequest(    Request request){
     }
     public void requestExecutionComplete(    Request request,    int result,    String output){
-      isComplete.value=true;
+      isComplete.set(true);
     }
   }
 ;
@@ -18,7 +18,7 @@
   Request request=gradlePluginLord.addRefreshRequestToQueue();
   Assert.assertNotNull(request);
   int totalWaitTime=0;
-  while (!isComplete.value && totalWaitTime <= maximumWaitSeconds) {
+  while (!isComplete.get() && totalWaitTime <= maximumWaitSeconds) {
     try {
       Thread.sleep(1000);
     }
@@ -28,7 +28,7 @@
     totalWaitTime+=1;
   }
   gradlePluginLord.removeRequestObserver(observer);
-  if (!isComplete.value) {
+  if (!isComplete.get()) {
     request.cancel();
     throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
   }

@@ -11,24 +11,27 @@
   expectedScriptRunner=context.mock(ScriptRunner.class);
   scriptProcessor=new DefaultScriptCompilerFactory(scriptCompilationHandlerMock,scriptRunnerFactoryMock,cacheRepositoryMock);
   source=context.mock(ScriptSource.class);
-  expectedSource=new CachingScriptSource(source);
-  String expectedHash=HashUtil.createHash(TEST_SCRIPT_TEXT);
-  expectedCacheProperties=GUtil.map("source.filename","file-name","source.hash",expectedHash);
   context.checking(new Expectations(){
 {
+      Resource resource=context.mock(Resource.class);
       allowing(source).getDisplayName();
       will(returnValue("[script source]"));
       allowing(source).getClassName();
       will(returnValue("class-name"));
       allowing(source).getFileName();
       will(returnValue("file-name"));
-      allowing(source).getText();
+      allowing(source).getResource();
+      will(returnValue(resource));
+      allowing(resource).getText();
       will(returnValue(TEST_SCRIPT_TEXT));
       allowing(cacheMock).getBaseDir();
       will(returnValue(cacheDir));
     }
   }
 );
+  expectedSource=new CachingScriptSource(source);
+  String expectedHash=HashUtil.createHash(TEST_SCRIPT_TEXT);
+  expectedCacheProperties=GUtil.map("source.filename","file-name","source.hash",expectedHash);
   originalClassLoader=Thread.currentThread().getContextClassLoader();
   Thread.currentThread().setContextClassLoader(testClassLoader);
 }

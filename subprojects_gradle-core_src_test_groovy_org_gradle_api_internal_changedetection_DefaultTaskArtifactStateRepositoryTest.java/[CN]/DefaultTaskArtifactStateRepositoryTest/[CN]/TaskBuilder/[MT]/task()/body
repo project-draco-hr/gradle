@@ -1,45 +1,15 @@
 {
-  final TaskInternal task=context.mock(type,String.format("task%d",counter++));
-  context.checking(new Expectations(){
-{
-      TaskInputs taskInputs=context.mock(TaskInputs.class,String.format("inputs%d",counter++));
-      TaskOutputsInternal taskOutputs=context.mock(TaskOutputsInternal.class,String.format("outputs%d",counter++));
-      FileCollection outputFileCollection=new PathResolvingFileCollection(new IdentityFileResolver(),null,outputs);
-      FileCollection candidateOutputFileCollection=outputFileCollection.getAsFileTree();
-      FileCollection inputFileCollection=context.mock(FileCollection.class,String.format("taskInputFiles%d",counter++));
-      allowing(task).getProject();
-      will(returnValue(project));
-      allowing(task).getPath();
-      will(returnValue(path));
-      allowing(task).getInputs();
-      will(returnValue(taskInputs));
-      allowing(taskInputs).getHasInputFiles();
-      will(returnValue(inputs != null));
-      allowing(taskInputs).getFiles();
-      will(returnValue(inputFileCollection));
-      allowing(inputFileCollection).iterator();
-      will(returnIterator(inputs == null ? emptySet() : inputs));
-      allowing(taskInputs).getProperties();
-      will(returnValue(inputProperties));
-      allowing(task).getOutputs();
-      will(returnValue(taskOutputs));
-      allowing(taskOutputs).getFiles();
-      will(returnValue(outputFileCollection));
-      allowing(taskOutputs).getCandidateFiles();
-      will(returnValue(candidateOutputFileCollection));
-      atMost(1).of(task).execute();
-      will(new Action(){
-        public void describeTo(        Description description){
-          description.appendText("creates ").appendValue(create);
-        }
-        public Object invoke(        Invocation invocation) throws Throwable {
-          for (          TestFile file : create) {
-            file.touch();
-          }
-          return null;
-        }
+  final TaskInternal task=HelperUtil.createTask(type,project,path);
+  if (inputs != null) {
+    task.getInputs().files(inputs);
+  }
+  task.getInputs().properties(inputProperties);
+  task.getOutputs().files(outputs);
+  task.doLast(new org.gradle.api.Action<Object>(){
+    public void execute(    Object o){
+      for (      TestFile file : create) {
+        file.touch();
       }
-);
     }
   }
 );

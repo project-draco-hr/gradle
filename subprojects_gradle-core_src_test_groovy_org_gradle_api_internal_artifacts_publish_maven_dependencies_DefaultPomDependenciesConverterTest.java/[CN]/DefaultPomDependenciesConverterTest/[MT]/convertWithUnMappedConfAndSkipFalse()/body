@@ -5,13 +5,13 @@
 {
       allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs();
       will(returnValue(false));
-      allowing(conf2ScopeMappingContainerMock).getMapping(unmappedConfigurationStub);
+      allowing(conf2ScopeMappingContainerMock).getMapping(toSet(unmappedConfigurationStub));
       will(returnValue(new Conf2ScopeMapping(null,unmappedConfigurationStub,null)));
     }
   }
 );
-  List<MavenDependency> actualMavenDependencies=dependenciesConverter.convert(pomMock,toSet(compileConfStub,testCompileConfStub,unmappedConfigurationStub));
+  List<org.apache.maven.model.Dependency> actualMavenDependencies=dependenciesConverter.convert(conf2ScopeMappingContainerMock,toSet(compileConfStub,testCompileConfStub,unmappedConfigurationStub));
   assertEquals(4,actualMavenDependencies.size());
   checkCommonMavenDependencies(actualMavenDependencies);
-  assertThat(actualMavenDependencies,hasItem((MavenDependency)DefaultMavenDependency.newInstance("org4","name4","rev4",null,null)));
+  assertTrue(hasDependency(actualMavenDependencies,"org4","name4","rev4",null,null,null,false));
 }

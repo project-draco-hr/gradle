@@ -1,19 +1,23 @@
 {
   context.checking(new Expectations(){
 {
-      allowing(gradle).getProjectEvaluationBroadcaster();
-      will(returnValue(listener));
-    }
-  }
-);
-  context.checking(new Expectations(){
-{
+      allowing(state).getExecuted();
+      will(returnValue(false));
+      Sequence sequence=context.sequence("seq");
       one(listener).beforeEvaluate(project);
-      one(delegate).evaluate(project);
-      one(delegate2).evaluate(project);
-      one(listener).afterEvaluate(project,null);
+      inSequence(sequence);
+      one(state).setExecuting(true);
+      inSequence(sequence);
+      one(delegate).evaluate(project,state);
+      inSequence(sequence);
+      one(state).setExecuting(false);
+      inSequence(sequence);
+      one(state).executed();
+      inSequence(sequence);
+      one(listener).afterEvaluate(project,state);
+      inSequence(sequence);
     }
   }
 );
-  evaluator.evaluate(project);
+  evaluator.evaluate(project,state);
 }

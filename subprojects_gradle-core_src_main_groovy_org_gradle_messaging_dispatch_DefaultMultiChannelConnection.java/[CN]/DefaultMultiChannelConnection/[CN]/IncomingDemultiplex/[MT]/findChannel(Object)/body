@@ -1,0 +1,15 @@
+{
+  AsyncDispatch<Message> queue;
+  queueLock.lock();
+  try {
+    queue=incomingQueues.get(channel);
+    if (queue == null) {
+      queue=new AsyncDispatch<Message>(executor);
+      incomingQueues.put(channel,queue);
+    }
+  }
+  finally {
+    queueLock.unlock();
+  }
+  return queue;
+}

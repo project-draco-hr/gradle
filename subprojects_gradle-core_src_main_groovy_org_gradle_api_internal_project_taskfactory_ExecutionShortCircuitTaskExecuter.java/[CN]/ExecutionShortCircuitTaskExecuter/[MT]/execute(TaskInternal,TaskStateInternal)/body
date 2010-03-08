@@ -1,0 +1,15 @@
+{
+  LOGGER.debug("Determining if {} is up-to-date",task);
+  TaskArtifactState taskArtifactState=repository.getStateFor(task);
+  if (taskArtifactState.isUpToDate()) {
+    LOGGER.debug("{} is up-to-date",task);
+    state.upToDate();
+    return;
+  }
+  LOGGER.debug("{} is not up-to-date",task);
+  taskArtifactState.invalidate();
+  executer.execute(task,state);
+  if (state.getFailure() == null) {
+    taskArtifactState.update();
+  }
+}

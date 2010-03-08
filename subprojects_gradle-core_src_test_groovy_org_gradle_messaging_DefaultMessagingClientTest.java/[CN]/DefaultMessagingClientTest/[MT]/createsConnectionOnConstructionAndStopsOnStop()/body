@@ -1,0 +1,19 @@
+{
+  final URI serverAddress=new URI("test:somestuff");
+  final MultiChannelConnection<Message> connection=context.mock(MultiChannelConnection.class);
+  context.checking(new Expectations(){
+{
+      one(connector).connect(with(equalTo(serverAddress)));
+      will(returnValue(connection));
+    }
+  }
+);
+  DefaultMessagingClient client=new DefaultMessagingClient(connector,getClass().getClassLoader(),serverAddress);
+  context.checking(new Expectations(){
+{
+      one(connection).stop();
+    }
+  }
+);
+  client.stop();
+}

@@ -8,7 +8,7 @@
     }
     try {
       while (!active.isEmpty()) {
-        boolean signaled=activeChanged.awaitUntil(expiry);
+        boolean signaled=condition.awaitUntil(expiry);
         if (!signaled) {
           throw new RuntimeException("Timeout waiting for threads to finish.");
         }
@@ -21,6 +21,12 @@
     if (!failures.isEmpty()) {
       Throwable failure=failures.get(0);
       failures.clear();
+      if (failure instanceof RuntimeException) {
+        throw (RuntimeException)failure;
+      }
+      if (failure instanceof Error) {
+        throw (Error)failure;
+      }
       throw new RuntimeException("An unexpected exception occurred in a test thread.",failure);
     }
   }

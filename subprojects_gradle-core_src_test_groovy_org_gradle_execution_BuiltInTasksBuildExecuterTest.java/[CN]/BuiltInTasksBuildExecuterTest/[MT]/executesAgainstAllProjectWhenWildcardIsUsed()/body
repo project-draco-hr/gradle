@@ -1,6 +1,6 @@
 {
   final ProjectInternal rootProject=context.mock(ProjectInternal.class,"rootProject");
-  final Set<Project> allProjects=WrapUtil.toSet(context.mock(Project.class,"someProject"));
+  final Set<Project> allProjects=toSet(context.mock(Project.class,"someProject"));
   context.checking(new Expectations(){
 {
       allowing(gradle).getRootProject();
@@ -12,6 +12,7 @@
 );
   BuiltInTasksBuildExecuter executer=new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS,BuiltInTasksBuildExecuter.ALL_PROJECTS_WILDCARD);
   executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
+  expectTaskCreated(DependencyReportTask.class);
   executer.select(gradle);
-  assertThat(((DependencyReportTask)executer.getTask()).getProjects(),equalTo(allProjects));
+  assertThat(executer.getTask().getProjects(),equalTo(allProjects));
 }

@@ -1,0 +1,26 @@
+{
+  LoggingConfigurer configurer=createLoggingConfigurer();
+  configurer.configure(LogLevel.LIFECYCLE);
+  FilteringClassLoader filteredSystem=new FilteringClassLoader(getClass().getClassLoader());
+  filteredSystem.allowPackage("org.slf4j");
+  ObservableUrlClassLoader applicationClassLoader=createApplicationClassLoader();
+  FilteringClassLoader filteredApplication=new FilteringClassLoader(applicationClassLoader);
+  ObservableUrlClassLoader implementationClassLoader=createImplementationClassLoader(filteredSystem,filteredApplication);
+  ObjectInputStream instr=new ClassLoaderObjectInputStream(System.in,implementationClassLoader);
+  Object workerId=instr.readObject();
+  String displayName=(String)instr.readObject();
+  LogLevel logLevel=(LogLevel)instr.readObject();
+  configurer.configure(logLevel);
+  applicationClassLoader.addURLs((Collection<URL>)instr.readObject());
+  Collection<String> sharedPackages=(Collection<String>)instr.readObject();
+  for (  String sharedPackage : sharedPackages) {
+    filteredApplication.allowPackage(sharedPackage);
+  }
+  implementationClassLoader.addURLs((Iterable<URL>)instr.readObject());
+  Object action=instr.readObject();
+  URI serverAddress=(URI)instr.readObject();
+  Class<? extends Runnable> workerClass=implementationClassLoader.loadClass(WorkerMain.class.getName()).asSubclass(Runnable.class);
+  Constructor<? extends Runnable> constructor=workerClass.getConstructor(implementationClassLoader.loadClass(Action.class.getName()),Object.class,String.class,URI.class,ClassLoader.class);
+  Runnable worker=constructor.newInstance(action,workerId,displayName,serverAddress,applicationClassLoader);
+  worker.run();
+}

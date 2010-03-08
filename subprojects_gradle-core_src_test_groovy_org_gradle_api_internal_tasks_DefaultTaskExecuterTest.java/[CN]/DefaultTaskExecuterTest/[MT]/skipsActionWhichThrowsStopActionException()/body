@@ -5,6 +5,10 @@
       will(returnValue(toList(action1,action2)));
       one(listener).beforeActions(task);
       inSequence(sequence);
+      one(state).setExecuting(true);
+      inSequence(sequence);
+      one(state).setDidWork(true);
+      inSequence(sequence);
       one(standardOutputCapture).start();
       inSequence(sequence);
       one(action1).execute(task);
@@ -12,20 +16,22 @@
       inSequence(sequence);
       one(standardOutputCapture).stop();
       inSequence(sequence);
+      one(state).setDidWork(true);
+      inSequence(sequence);
       one(standardOutputCapture).start();
       inSequence(sequence);
       one(action2).execute(task);
       inSequence(sequence);
       one(standardOutputCapture).stop();
       inSequence(sequence);
+      one(state).executed(null);
+      inSequence(sequence);
+      one(state).setExecuting(false);
+      inSequence(sequence);
       one(listener).afterActions(task);
       inSequence(sequence);
     }
   }
 );
-  TaskExecutionResult result=executer.execute(task,state);
-  assertThat(result.getFailure(),nullValue());
-  assertThat(result.getSkipMessage(),nullValue());
-  assertFalse(state.isExecuting());
-  assertTrue(state.isDidWork());
+  executer.execute(task,state);
 }

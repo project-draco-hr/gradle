@@ -1,0 +1,27 @@
+{
+  while (true) {
+    T message=null;
+    lock.lock();
+    try {
+      while (state != State.Stopped && queue.isEmpty()) {
+        try {
+          condition.await();
+        }
+ catch (        InterruptedException e) {
+          throw new GradleException(e);
+        }
+      }
+      if (!queue.isEmpty()) {
+        message=queue.remove();
+        condition.signalAll();
+      }
+    }
+  finally {
+      lock.unlock();
+    }
+    if (message == null) {
+      return;
+    }
+    dispatch.dispatch(message);
+  }
+}

@@ -1,15 +1,5 @@
 {
-  if (state == State.INITIALIZED) {
-    return this;
-  }
-  Clock clock=new Clock();
-  logger.info(String.format("Evaluating %s using %s.",this,getBuildScriptSource().getDisplayName()));
-  beforeEvaluateActions.getSource().execute(this);
-  state=State.INITIALIZING;
-  projectEvaluator.evaluate(this);
-  logger.debug("Timing: Running the build script took " + clock.getTime());
-  state=State.INITIALIZED;
-  afterEvaluateActions.getSource().execute(this);
-  logger.debug("Timing: Project evaluation took " + clock.getTime());
+  projectEvaluator.evaluate(this,state);
+  state.rethrowFailure();
   return this;
 }

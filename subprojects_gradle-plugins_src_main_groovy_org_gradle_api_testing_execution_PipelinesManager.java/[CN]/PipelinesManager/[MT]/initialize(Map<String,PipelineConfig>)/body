@@ -1,0 +1,15 @@
+{
+  if (pipelineConfigs.isEmpty()) {
+    final PipelineConfig defaultPipelineConfig=new PipelineConfig("default");
+    pipelineConfigs.put(defaultPipelineConfig.getName(),defaultPipelineConfig);
+  }
+  for (  final PipelineConfig pipelineConfig : pipelineConfigs.values()) {
+    final QueueingPipeline pipeline=addPipeline(pipelineConfig);
+    final ForkPolicyConfig forkPolicyConfig=pipelineConfig.getForkPolicyConfig();
+    final ForkPolicy forkPolicy=ForkPolicyRegister.getForkPolicy(forkPolicyConfig.getPolicyName());
+    final ForkPolicyInstance forkPolicyInstance=forkPolicy.getForkPolicyInstance(pipeline,forkControl,serverFactory);
+    pipeline.setForkPolicyInstance(forkPolicyInstance);
+    pipeline.getForkPolicyInstance().initialize();
+    pipeline.getReforkController().initialize(pipeline);
+  }
+}

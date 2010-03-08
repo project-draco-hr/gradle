@@ -1,7 +1,0 @@
-{
-  TestFile testDir=dist.getTestDir();
-  testDir.file("settings.gradle").writelns("include 'child'");
-  testDir.file("build.gradle").writelns("rootProperty = 'root'","sharedProperty = 'ignore me'","convention.plugins.test = new ConventionBean()","task rootTask","task testTask","class ConventionBean { def getConventionProperty() { 'convention' } }");
-  testDir.file("child/build.gradle").writelns("childProperty = 'child'","sharedProperty = 'shared'","task testTask << {","  new Reporter().checkProperties(project)","}","class Reporter {","  def checkProperties(object) {","    assert 'root' == object.rootProperty","    assert 'child' == object.childProperty","    assert 'shared' == object.sharedProperty","    assert 'convention' == object.conventionProperty","    assert ':child:testTask' == object.testTask.path","    try { object.rootTask; fail() } catch (MissingPropertyException e) { }","  }","}");
-  executer.inDirectory(testDir).withTasks("testTask").run();
-}

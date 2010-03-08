@@ -1,0 +1,12 @@
+{
+  TestDescriptorInternal testInternal;
+synchronized (lock) {
+    testInternal=convert(idGenerator.generateId(),test);
+    TestDescriptorInternal oldTest=executing.put(test,testInternal);
+    if (oldTest != null) {
+      throw new IllegalStateException(String.format("Cannot handle a test instance executing multiple times concurrently: %s",testInternal));
+    }
+  }
+  long startTime=timeProvider.getCurrentTime();
+  resultProcessor.started(testInternal,new TestStartEvent(startTime));
+}
