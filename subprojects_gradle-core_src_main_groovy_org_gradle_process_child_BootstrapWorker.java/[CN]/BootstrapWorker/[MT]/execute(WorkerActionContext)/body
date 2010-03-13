@@ -1,0 +1,24 @@
+{
+  LoggingConfigurer configurer=createLoggingConfigurer();
+  configurer.configure(logLevel);
+  FilteringClassLoader filteredWorkerClassLoader=new FilteringClassLoader(getClass().getClassLoader());
+  filteredWorkerClassLoader.allowPackage("org.slf4j");
+  filteredWorkerClassLoader.allowClass(Action.class);
+  filteredWorkerClassLoader.allowClass(WorkerActionContext.class);
+  ClassLoader applicationClassLoader=workerActionContext.getApplicationClassLoader();
+  FilteringClassLoader filteredApplication=new FilteringClassLoader(applicationClassLoader);
+  ObservableUrlClassLoader implementationClassLoader=createImplementationClassLoader(filteredWorkerClassLoader,filteredApplication);
+  for (  String sharedPackage : sharedPackages) {
+    filteredApplication.allowPackage(sharedPackage);
+  }
+  implementationClassLoader.addURLs(implementationClassPath);
+  Action<WorkerActionContext> action;
+  try {
+    ObjectInputStream instr=new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorkerAction),implementationClassLoader);
+    action=(Action<WorkerActionContext>)instr.readObject();
+  }
+ catch (  Exception e) {
+    throw new GradleException(e);
+  }
+  action.execute(workerActionContext);
+}

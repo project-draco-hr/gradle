@@ -1,0 +1,16 @@
+{
+  final Action<WorkerActionContext> action=context.mock(Action.class);
+  final List<URL> implementationClassPath=toList(new File(".").toURL());
+  Action<WorkerActionContext> serializableAction=helper.serializable(action,implementationClassLoader);
+  BootstrapWorker worker=new TestBootstrapWorker(LogLevel.DEBUG,toList("a","b"),implementationClassPath,serializableAction);
+  context.checking(new Expectations(){
+{
+      one(loggingConfigurer).configure(LogLevel.DEBUG);
+      allowing(workerContext).getApplicationClassLoader();
+      will(returnValue(applicationClassLoader));
+      one(action).execute(workerContext);
+    }
+  }
+);
+  worker.execute(workerContext);
+}

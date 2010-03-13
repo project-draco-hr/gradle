@@ -1,0 +1,13 @@
+{
+  final ClassLoader applicationClassLoader=ClassLoader.getSystemClassLoader();
+  ClasspathUtil.addUrl((URLClassLoader)applicationClassLoader,applicationClassPath);
+  ClassLoaderObjectInputStream instr=new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker),getClass().getClassLoader());
+  Action<WorkerActionContext> action=(Action<WorkerActionContext>)instr.readObject();
+  action.execute(new WorkerActionContext(){
+    public ClassLoader getApplicationClassLoader(){
+      return applicationClassLoader;
+    }
+  }
+);
+  return null;
+}

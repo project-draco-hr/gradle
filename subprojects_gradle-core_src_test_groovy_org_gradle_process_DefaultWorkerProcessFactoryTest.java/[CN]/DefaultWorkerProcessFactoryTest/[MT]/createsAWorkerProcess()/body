@@ -9,7 +9,6 @@
   }
 );
   WorkerProcessBuilder builder=factory.newProcess();
-  assertThat(builder.getJavaCommand().getClasspath(),equalTo(processClassPath));
   assertThat(builder.getJavaCommand().getMainClass(),equalTo(GradleWorkerMain.class.getName()));
   assertThat(builder.getLogLevel(),equalTo(LogLevel.LIFECYCLE));
   builder.worker(new TestAction());
@@ -31,12 +30,5 @@
   WorkerProcess process=builder.build();
   assertThat(process,instanceOf(DefaultWorkerProcess.class));
   ObjectInputStream instr=new ObjectInputStream(builder.getJavaCommand().getStandardInput());
-  assertThat(instr.readObject(),equalTo((Object)"<id>"));
-  assertThat(instr.readObject(),equalTo((Object)"Gradle Worker <id>"));
-  assertThat(instr.readObject(),equalTo((Object)LogLevel.LIFECYCLE));
-  assertThat(instr.readObject(),equalTo((Object)builder.getApplicationClasspath()));
-  assertThat(instr.readObject(),equalTo((Object)builder.getSharedPackages()));
-  assertThat(instr.readObject(),instanceOf(Collection.class));
-  assertThat(instr.readObject(),instanceOf(TestAction.class));
-  assertThat(instr.readObject(),equalTo((Object)serverAddress));
+  assertThat(instr.readObject(),instanceOf(IsolatedClassLoaderWorker.class));
 }
