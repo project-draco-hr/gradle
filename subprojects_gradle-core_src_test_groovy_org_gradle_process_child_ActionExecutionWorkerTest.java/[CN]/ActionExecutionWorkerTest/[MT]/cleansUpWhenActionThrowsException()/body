@@ -1,0 +1,18 @@
+{
+  final RuntimeException failure=new RuntimeException();
+  context.checking(new Expectations(){
+{
+      one(action).execute(with(notNullValue(WorkerProcessContext.class)));
+      will(throwException(failure));
+      one(client).stop();
+    }
+  }
+);
+  try {
+    main.execute(workerContext);
+    fail();
+  }
+ catch (  RuntimeException e) {
+    assertThat(e,sameInstance(failure));
+  }
+}
