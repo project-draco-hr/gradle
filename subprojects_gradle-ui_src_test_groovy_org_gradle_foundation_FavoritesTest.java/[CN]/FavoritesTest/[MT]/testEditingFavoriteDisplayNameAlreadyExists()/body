@@ -7,5 +7,25 @@
   Assert.assertEquals("mysubproject1:compile",favoriteTask1.getFullCommandLine());
   FavoriteTask favoriteTask2=editor.getFavoriteTasks().get(1);
   Assert.assertEquals("mysubproject1:mysubsubproject:lib",favoriteTask2.getFullCommandLine());
-  editExpectingError(editor,favoriteTask1,favoriteTask2.getDisplayName(),favoriteTask1.getFullCommandLine());
+  final FavoritesEditor.FavoriteTasksObserver observer=context.mock(FavoritesEditor.FavoriteTasksObserver.class);
+  context.checking(new Expectations(){
+{
+      one(observer).favoritesChanged();
+    }
+  }
+);
+  editor.addFavoriteTasksObserver(observer,false);
+  FavoriteTask favoriteTaskToEdit=favoriteTask1;
+  String newName=favoriteTask2.getDisplayName();
+  String newFullName=favoriteTask1.getFullCommandLine();
+  String originalFullName=favoriteTaskToEdit.getFullCommandLine();
+  ValidationErrorTestEditFavoriteInteraction interaction=new ValidationErrorTestEditFavoriteInteraction(newName,newFullName);
+  editor.editFavorite(favoriteTaskToEdit,interaction);
+  Assert.assertFalse(interaction.receivedErrorMessage);
+  favoriteTaskToEdit=editor.getFavorite(originalFullName);
+  Assert.assertNotNull(favoriteTaskToEdit);
+  favoriteTaskToEdit=editor.getFavorite(newFullName);
+  Assert.assertNotNull(favoriteTaskToEdit);
+  Assert.assertEquals(newName,favoriteTaskToEdit.getDisplayName());
+  Assert.assertEquals(newFullName,favoriteTaskToEdit.getFullCommandLine());
 }

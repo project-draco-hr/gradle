@@ -1,0 +1,33 @@
+{
+  MyExecutionInfo executionInfo=new MyExecutionInfo();
+  executionInfo.addEnvironmentVariable("GRADLE_HOME",getGradleHomeDirectory().getAbsolutePath());
+  executionInfo.addEnvironmentVariable("JAVA_HOME",System.getProperty("java.home"));
+  executionInfo.setWorkingDirectory(currentDirectory);
+  List<String> executionCommandLine=new ArrayList<String>();
+  File gradleExecutableFile=getGradleExecutableFile();
+  executionCommandLine.add(gradleExecutableFile.getAbsolutePath());
+  executionCommandLine.add("-D" + ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY + "="+ Integer.toString(serverPort));
+  CommandLineAssistant commandLineAssistant=new CommandLineAssistant();
+  String[] individualCommandLineArguments=commandLineAssistant.breakUpCommandLine(commandLine);
+  executionCommandLine.addAll(Arrays.asList(individualCommandLineArguments));
+  File initStriptPath=getInitScriptFile();
+  if (initStriptPath != null) {
+    executionCommandLine.add("-" + DefaultCommandLine2StartParameterConverter.INIT_SCRIPT);
+    executionCommandLine.add(initStriptPath.getAbsolutePath());
+    executionInfo.initStriptPath=initStriptPath;
+  }
+  if (!commandLineAssistant.hasLogLevelDefined(individualCommandLineArguments)) {
+    String logLevelText=commandLineAssistant.getCommandLine2StartParameterConverter().getLogLevelCommandLine(logLevel);
+    if (logLevelText != null && !"".equals(logLevelText)) {
+      executionCommandLine.add('-' + logLevelText);
+    }
+  }
+  if (!commandLineAssistant.hasShowStacktraceDefined(individualCommandLineArguments)) {
+    String stackTraceLevelText=commandLineAssistant.getCommandLine2StartParameterConverter().getShowStacktraceCommandLine(stackTraceLevel);
+    if (stackTraceLevelText != null) {
+      executionCommandLine.add('-' + stackTraceLevelText);
+    }
+  }
+  executionInfo.setCommandLineArguments(executionCommandLine.toArray(new String[executionCommandLine.size()]));
+  return executionInfo;
+}

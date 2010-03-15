@@ -1,18 +1,22 @@
 {
-  final Type helperType=Type.getType(DynamicObjectHelper.class);
-  final String fieldSignature="L" + DynamicObjectHelper.class.getName().replaceAll("\\.","/") + ";";
+  final Type helperType=Type.getType(MixInDynamicObject.class);
+  final String fieldSignature="L" + MixInDynamicObject.class.getName().replaceAll("\\.","/") + ";";
   visitor.visitField(Opcodes.ACC_PRIVATE,"dynamicObjectHelper",fieldSignature,null,null);
   initDynamicObjectHelper=new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
-      String conventionConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[0]);
-      String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(Object.class),conventionType});
+      String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(Object.class),dynamicObjectType});
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitTypeInsn(Opcodes.NEW,helperType.getInternalName());
       visitor.visitInsn(Opcodes.DUP);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitTypeInsn(Opcodes.NEW,defaultConventionType.getInternalName());
-      visitor.visitInsn(Opcodes.DUP);
-      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,defaultConventionType.getInternalName(),"<init>",conventionConstructorDesc);
+      boolean useInheritedDynamicObject=GroovySystem.getMetaClassRegistry().getMetaClass(type).pickMethod("getAsDynamicObject",new Class[0]) != null;
+      if (useInheritedDynamicObject) {
+        visitor.visitVarInsn(Opcodes.ALOAD,0);
+        visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,Type.getType(type).getInternalName(),"getAsDynamicObject",Type.getMethodDescriptor(dynamicObjectType,new Type[0]));
+      }
+ else {
+        visitor.visitInsn(Opcodes.ACONST_NULL);
+      }
       visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,helperType.getInternalName(),"<init>",helperTypeConstructorDesc);
       visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
     }

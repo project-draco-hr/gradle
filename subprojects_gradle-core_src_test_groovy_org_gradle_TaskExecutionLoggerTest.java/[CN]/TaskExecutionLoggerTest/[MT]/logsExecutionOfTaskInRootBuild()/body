@@ -3,21 +3,20 @@
 {
       allowing(gradle).getParent();
       will(returnValue(null));
-      allowing(task).getPath();
-      will(returnValue(":path"));
-      allowing(state).getSkipMessage();
-      will(returnValue(null));
+      one(logger).createProgressLogger();
+      will(returnValue(progressLogger));
+      one(progressLogger).started(":path");
     }
   }
 );
   executionLogger.beforeExecute(task);
   context.checking(new Expectations(){
 {
-      one(logger).lifecycle(":path");
+      allowing(state).getSkipMessage();
+      will(returnValue(null));
+      one(progressLogger).completed();
     }
   }
 );
-  executionLogger.beforeActions(task);
-  executionLogger.afterActions(task);
   executionLogger.afterExecute(task,state);
 }

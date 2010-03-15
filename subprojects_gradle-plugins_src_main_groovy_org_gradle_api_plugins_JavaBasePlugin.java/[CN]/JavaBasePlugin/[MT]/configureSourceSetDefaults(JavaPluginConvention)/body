@@ -1,0 +1,40 @@
+{
+  pluginConvention.getSourceSets().allObjects(new Action<SourceSet>(){
+    public void execute(    final SourceSet sourceSet){
+      final Project project=pluginConvention.getProject();
+      ConventionMapping conventionMapping=((IConventionAware)sourceSet).getConventionMapping();
+      conventionMapping.map("classesDir",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          String classesDirName=String.format("classes/%s",sourceSet.getName());
+          return new File(project.getBuildDir(),classesDirName);
+        }
+      }
+);
+      sourceSet.getJava().srcDir(String.format("src/%s/java",sourceSet.getName()));
+      sourceSet.getResources().srcDir(String.format("src/%s/resources",sourceSet.getName()));
+      Copy processResources=project.getTasks().add(sourceSet.getProcessResourcesTaskName(),Copy.class);
+      processResources.setDescription(String.format("Processes the %s.",sourceSet.getResources()));
+      conventionMapping=processResources.getConventionMapping();
+      conventionMapping.map("defaultSource",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return sourceSet.getResources();
+        }
+      }
+);
+      conventionMapping.map("destinationDir",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return sourceSet.getClassesDir();
+        }
+      }
+);
+      String compileTaskName=sourceSet.getCompileTaskName("java");
+      Compile compileJava=project.getTasks().add(compileTaskName,Compile.class);
+      configureForSourceSet(sourceSet,compileJava);
+      Task classes=project.getTasks().add(sourceSet.getClassesTaskName());
+      classes.dependsOn(sourceSet.getProcessResourcesTaskName(),compileTaskName);
+      classes.setDescription(String.format("Assembles the %s classes.",sourceSet.getName()));
+      sourceSet.compiledBy(sourceSet.getClassesTaskName());
+    }
+  }
+);
+}

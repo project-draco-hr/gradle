@@ -1,0 +1,33 @@
+{
+  final String metaClassFieldSignature="L" + MetaClass.class.getName().replaceAll("\\.","/") + ";";
+  visitor.visitField(Opcodes.ACC_PRIVATE,"metaClass",metaClassFieldSignature,null,null);
+  initMetaClass=new MethodCodeBody(){
+    public void add(    MethodVisitor visitor) throws Exception {
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      String getMetaClassRegistryDesc=Type.getMethodDescriptor(GroovySystem.class.getDeclaredMethod("getMetaClassRegistry"));
+      visitor.visitMethodInsn(Opcodes.INVOKESTATIC,Type.getType(GroovySystem.class).getInternalName(),"getMetaClassRegistry",getMetaClassRegistryDesc);
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      String getClassDesc=Type.getMethodDescriptor(Object.class.getDeclaredMethod("getClass"));
+      visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,Type.getType(Object.class).getInternalName(),"getClass",getClassDesc);
+      String getMetaClassDesc=Type.getMethodDescriptor(MetaClassRegistry.class.getDeclaredMethod("getMetaClass",Class.class));
+      visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,Type.getType(MetaClassRegistry.class).getInternalName(),"getMetaClass",getMetaClassDesc);
+      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),"metaClass",metaClassFieldSignature);
+    }
+  }
+;
+  addGetter(GroovyObject.class.getDeclaredMethod("getMetaClass"),new MethodCodeBody(){
+    public void add(    MethodVisitor visitor) throws Exception {
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"metaClass",metaClassFieldSignature);
+    }
+  }
+);
+  addSetter(GroovyObject.class.getDeclaredMethod("setMetaClass",MetaClass.class),new MethodCodeBody(){
+    public void add(    MethodVisitor visitor) throws Exception {
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitVarInsn(Opcodes.ALOAD,1);
+      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),"metaClass",metaClassFieldSignature);
+    }
+  }
+);
+}

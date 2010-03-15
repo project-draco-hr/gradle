@@ -1,0 +1,33 @@
+{
+  final Bean bean1=new Bean();
+  final Bean bean2=new Bean();
+  container.addRule(new Rule(){
+    public String getDescription(){
+      return "rule1";
+    }
+    public void apply(    String domainObjectName){
+      if (domainObjectName.equals("bean1")) {
+        container.addObject("bean1",bean1);
+      }
+    }
+  }
+);
+  container.addRule(new Rule(){
+    private boolean applyHasBeenCalled;
+    public String getDescription(){
+      return "rule2";
+    }
+    public void apply(    String domainObjectName){
+      if (domainObjectName.equals("bean2")) {
+        assertThat(applyHasBeenCalled,equalTo(false));
+        container.findByName("bean1");
+        container.findByName("bean2");
+        container.addObject("bean2",bean2);
+        applyHasBeenCalled=true;
+      }
+    }
+  }
+);
+  container.findByName("bean2");
+  assertThat(container.getAll(),equalTo(WrapUtil.toSet(bean1,bean2)));
+}
