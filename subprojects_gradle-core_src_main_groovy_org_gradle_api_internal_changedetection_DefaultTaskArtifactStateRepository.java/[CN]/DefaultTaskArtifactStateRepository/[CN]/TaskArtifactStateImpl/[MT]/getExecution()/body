@@ -1,0 +1,29 @@
+{
+  if (!task.getInputs().getHasInputFiles() && !task.getOutputs().getHasOutputFiles()) {
+    return new NoDeclaredArtifactsExecution(task);
+  }
+  Set<String> outputFiles=outputFiles(task);
+  TaskConfiguration bestMatch=null;
+  int bestMatchOverlap=0;
+  for (  TaskConfiguration configuration : history.configurations) {
+    if (outputFiles.size() == 0) {
+      if (configuration.outputFiles.size() == 0) {
+        bestMatch=configuration;
+        break;
+      }
+    }
+    Set<String> intersection=new HashSet<String>(outputFiles);
+    intersection.retainAll(configuration.outputFiles);
+    if (intersection.size() > bestMatchOverlap) {
+      bestMatch=configuration;
+      bestMatchOverlap=intersection.size();
+    }
+    if (bestMatchOverlap == outputFiles.size()) {
+      break;
+    }
+  }
+  if (bestMatch == null) {
+    return new HistoricExecution(history,task,null,fileSnapshotter);
+  }
+  return new HistoricExecution(history,task,bestMatch,fileSnapshotter);
+}
