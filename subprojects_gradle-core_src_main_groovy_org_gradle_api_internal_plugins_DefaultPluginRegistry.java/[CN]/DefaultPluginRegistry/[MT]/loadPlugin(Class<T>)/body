@@ -2,18 +2,13 @@
   if (parent != null) {
     return parent.loadPlugin(pluginClass);
   }
-  T plugin=pluginClass.cast(plugins.get(pluginClass));
-  if (plugin == null) {
-    try {
-      plugin=pluginClass.newInstance();
-    }
- catch (    InstantiationException e) {
-      throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",pluginClass.getSimpleName()),e.getCause());
-    }
-catch (    Exception e) {
-      throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",pluginClass.getSimpleName()),e);
-    }
-    plugins.put(pluginClass,plugin);
+  try {
+    return pluginClass.newInstance();
   }
-  return plugin;
+ catch (  InstantiationException e) {
+    throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",pluginClass.getSimpleName()),e.getCause());
+  }
+catch (  Exception e) {
+    throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",pluginClass.getSimpleName()),e);
+  }
 }
