@@ -9,4 +9,11 @@
   buildSrcJar.assertHasNotChangedSince(snapshot);
   inTestDirectory().withArguments("-Crebuild").withTasks("test").run();
   buildSrcJar.assertHasChangedSince(snapshot);
+  snapshot=buildSrcJar.snapshot();
+  TestFile cacheProps=testFile("buildSrc/.gradle/noVersion/buildSrc/cache.properties");
+  Map<String,String> properties=cacheProps.getProperties();
+  properties.put("gradle.version","some-other-version");
+  cacheProps.writeProperties(properties);
+  inTestDirectory().withTasks("test").run();
+  buildSrcJar.assertHasChangedSince(snapshot);
 }

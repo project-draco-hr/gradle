@@ -1,0 +1,26 @@
+{
+  File cacheBaseDir;
+  Map<String,Object> properties=new HashMap<String,Object>(this.properties);
+  if (target == null) {
+    cacheBaseDir=globalCacheDir;
+  }
+ else   if (target instanceof Gradle) {
+    Gradle gradle=(Gradle)target;
+    cacheBaseDir=new File(gradle.getRootProject().getProjectDir(),Project.TMP_DIR_NAME);
+  }
+ else   if (target instanceof File) {
+    File dir=(File)target;
+    cacheBaseDir=new File(dir,Project.TMP_DIR_NAME);
+  }
+ else {
+    throw new IllegalArgumentException(String.format("Cannot create cache for unrecognised domain object %s.",target));
+  }
+  if (invalidateOnVersionChange) {
+    properties.put("gradle.version",version.getVersion());
+    cacheBaseDir=new File(cacheBaseDir,"noVersion");
+  }
+ else {
+    cacheBaseDir=new File(cacheBaseDir,version.getVersion());
+  }
+  return factory.open(new File(cacheBaseDir,key),cacheUsage,properties);
+}
