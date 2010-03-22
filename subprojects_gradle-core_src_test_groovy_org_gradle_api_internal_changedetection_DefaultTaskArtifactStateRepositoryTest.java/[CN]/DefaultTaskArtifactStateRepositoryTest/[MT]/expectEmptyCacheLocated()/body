@@ -1,8 +1,13 @@
 {
   context.checking(new Expectations(){
 {
+      CacheBuilder builder=context.mock(CacheBuilder.class);
       persistentCache=context.mock(PersistentCache.class);
-      one(cacheRepository).getCacheFor(gradle,"taskArtifacts");
+      one(cacheRepository).cache("taskArtifacts");
+      will(returnValue(builder));
+      one(builder).forObject(gradle);
+      will(returnValue(builder));
+      one(builder).open();
       will(returnValue(persistentCache));
       one(persistentCache).openIndexedCache();
       will(returnValue(new TestIndexedCache()));

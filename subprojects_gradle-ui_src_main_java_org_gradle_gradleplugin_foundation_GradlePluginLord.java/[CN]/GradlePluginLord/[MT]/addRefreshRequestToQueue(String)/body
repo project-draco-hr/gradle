@@ -1,0 +1,22 @@
+{
+  if (!isStarted) {
+    return null;
+  }
+  if (hasRequestOfType(RefreshTaskListRequest.TYPE)) {
+    return null;
+  }
+  String fullCommandLine='-' + DefaultCommandLine2StartParameterConverter.TASKS;
+  if (additionalCommandLineArguments != null) {
+    fullCommandLine+=' ' + additionalCommandLineArguments;
+  }
+  fullCommandLine=alterCommandLine(fullCommandLine);
+  final RefreshTaskListRequest request=new RefreshTaskListRequest(getNextRequestID(),fullCommandLine,executionQueue,this);
+  executionQueue.addRequestToQueue(request);
+  requestObserverLord.notifyObservers(new ObserverLord.ObserverNotification<RequestObserver>(){
+    public void notify(    RequestObserver observer){
+      observer.refreshRequestAdded(request);
+    }
+  }
+);
+  return request;
+}

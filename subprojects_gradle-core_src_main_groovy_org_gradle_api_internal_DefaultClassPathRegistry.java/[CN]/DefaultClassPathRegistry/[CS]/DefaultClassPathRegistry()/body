@@ -1,23 +1,13 @@
 {
-  URI location;
-  try {
-    location=DefaultClassPathRegistry.class.getProtectionDomain().getCodeSource().getLocation().toURI();
-  }
- catch (  URISyntaxException e) {
-    throw new UncheckedIOException(e);
-  }
-  if (!location.getScheme().equals("file")) {
-    throw new GradleException(String.format("Cannot determine Gradle home using codebase '%s'.",location));
-  }
-  File codeSource=new File(location.getPath());
+  File codeSource=findThisClass();
   if (codeSource.isFile()) {
     File gradleHome=codeSource.getParentFile().getParentFile();
-    runtimeLibDir=new DirScanner(new File(gradleHome + "/lib"));
-    pluginLibDir=new DirScanner(new File(gradleHome + "/lib/plugins"));
+    runtimeLibs=new DirScanner(new File(gradleHome + "/lib"));
+    pluginLibs=new DirScanner(new File(gradleHome + "/lib/plugins"));
   }
  else {
-    runtimeLibDir=new ClassPathScanner(codeSource);
-    pluginLibDir=new ClassPathScanner(codeSource);
+    runtimeLibs=new ClassPathScanner(codeSource);
+    pluginLibs=runtimeLibs;
   }
   List<Pattern> groovyPatterns=toPatterns("groovy-all");
   classPaths.put("LOCAL_GROOVY",groovyPatterns);
@@ -29,4 +19,5 @@
   classPaths.put("ANT_JUNIT",toPatterns("ant","ant-launcher","ant-junit"));
   classPaths.put("COMMONS_CLI",toPatterns("commons-cli"));
   classPaths.put("WORKER_PROCESS",toPatterns("gradle-core","slf4j-api","logback-classic","logback-core","jul-to-slf4j","jansi","jna","jna-posix"));
+  classPaths.put("WORKER_MAIN",toPatterns("gradle-core-worker"));
 }

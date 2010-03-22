@@ -1,13 +1,24 @@
 {
+  if (currentLevel == logLevel) {
+    return;
+  }
   LoggerContext lc=(LoggerContext)LoggerFactory.getILoggerFactory();
   ch.qos.logback.classic.Logger rootLogger;
-  if (!applied) {
+  if (currentLevel == null) {
     lc.reset();
     LogManager.getLogManager().reset();
     SLF4JBridgeHandler.install();
-    isTerminal=POSIXFactory.getPOSIX(new POSIXHandlerImpl(),true).isatty(FileDescriptor.out);
-    stderrConsoleAppender.setTarget(isTerminal ? AnsiConsole.err() : System.err);
-    stdoutConsoleAppender.setTarget(isTerminal ? AnsiConsole.out() : System.out);
+    boolean isTerminal=POSIXFactory.getPOSIX(new POSIXHandlerImpl(),true).isatty(FileDescriptor.out);
+    stderr.setTarget(System.err);
+    if (isTerminal) {
+      stdout.setTarget(AnsiConsole.out());
+      stdout.console=new org.gradle.logging.AnsiConsole(stdout.target);
+    }
+ else {
+      stdout.setTarget(System.out);
+    }
+    stderrConsoleAppender.setTarget(stderr);
+    stdoutConsoleAppender.setTarget(stdout);
     stderrConsoleAppender.setContext(lc);
     stdoutConsoleAppender.setContext(lc);
     rootLogger=lc.getLogger("ROOT");
@@ -17,7 +28,7 @@
  else {
     rootLogger=lc.getLogger("ROOT");
   }
-  applied=true;
+  currentLevel=logLevel;
   stderrConsoleAppender.stop();
   stdoutConsoleAppender.stop();
   stderrConsoleAppender.clearAllFilters();
