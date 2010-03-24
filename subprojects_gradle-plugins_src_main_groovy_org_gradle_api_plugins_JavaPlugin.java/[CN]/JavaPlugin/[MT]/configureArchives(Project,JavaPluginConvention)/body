@@ -1,7 +1,14 @@
 {
   project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(TEST_TASK_NAME);
   Jar jar=project.getTasks().add(JAR_TASK_NAME,Jar.class);
+  jar.getManifest().from(pluginConvention.getManifest());
   jar.setDescription("Generates a jar archive with all the compiled classes.");
   jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClasses());
+  jar.getMetaInf().from(new Callable(){
+    public Object call() throws Exception {
+      return pluginConvention.getMetaInf();
+    }
+  }
+);
   project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
 }

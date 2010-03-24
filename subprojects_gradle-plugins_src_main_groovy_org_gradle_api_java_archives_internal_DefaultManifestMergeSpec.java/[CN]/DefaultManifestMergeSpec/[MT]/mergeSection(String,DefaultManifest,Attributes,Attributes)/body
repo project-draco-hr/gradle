@@ -1,0 +1,18 @@
+{
+  Map<String,Object> mergeOnlyAttributes=new LinkedHashMap<String,Object>(mergeAttributes);
+  Set<DefaultManifestMergeDetails> mergeDetailsSet=new LinkedHashSet<DefaultManifestMergeDetails>();
+  for (  Map.Entry<String,Object> baseEntry : baseAttributes.entrySet()) {
+    Object mergeValue=mergeAttributes.get(baseEntry.getKey());
+    mergeDetailsSet.add(getMergeDetails(section,baseEntry.getKey(),baseEntry.getValue(),mergeValue));
+    mergeOnlyAttributes.remove(baseEntry.getKey());
+  }
+  for (  Map.Entry<String,Object> mergeEntry : mergeOnlyAttributes.entrySet()) {
+    mergeDetailsSet.add(getMergeDetails(section,mergeEntry.getKey(),null,mergeEntry.getValue()));
+  }
+  for (  DefaultManifestMergeDetails mergeDetails : mergeDetailsSet) {
+    for (    Action<? super ManifestMergeDetails> action : actions) {
+      action.execute(mergeDetails);
+    }
+    addMergeDetailToManifest(section,mergedManifest,mergeDetails);
+  }
+}

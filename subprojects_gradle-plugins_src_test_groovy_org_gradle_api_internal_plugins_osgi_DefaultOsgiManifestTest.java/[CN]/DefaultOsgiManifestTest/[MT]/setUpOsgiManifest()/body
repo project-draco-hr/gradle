@@ -1,20 +1,21 @@
 {
-  String testSymbolicName="symbolic";
-  String testName="myName";
-  String testVersion="myVersion";
-  String testDescription="myDescription";
-  String testLicense="myLicense";
-  String testVendor="myVendor";
-  String testDocURL="myDocUrl";
-  String[] testExportPackages={"pack1","pack2"};
-  String[] testImportPackages={"pack3","pack4"};
-  osgiManifest.setSymbolicName(testSymbolicName);
-  osgiManifest.setName(testName);
-  osgiManifest.setVersion(testVersion);
-  osgiManifest.setDescription(testDescription);
-  osgiManifest.setLicense(testLicense);
-  osgiManifest.setVendor(testVendor);
-  osgiManifest.setDocURL(testDocURL);
-  osgiManifest.instruction(Analyzer.EXPORT_PACKAGE,testExportPackages);
-  osgiManifest.instruction(Analyzer.IMPORT_PACKAGE,testImportPackages);
+  final FileCollection fileCollection=context.mock(FileCollection.class);
+  context.checking(new Expectations(){
+{
+      allowing(fileCollection).getFiles();
+      will(returnValue(WrapUtil.toSet(new File("someFile"))));
+    }
+  }
+);
+  osgiManifest.setSymbolicName("symbolic");
+  osgiManifest.setName("myName");
+  osgiManifest.setVersion("myVersion");
+  osgiManifest.setDescription("myDescription");
+  osgiManifest.setLicense("myLicense");
+  osgiManifest.setVendor("myVendor");
+  osgiManifest.setDocURL("myDocUrl");
+  osgiManifest.instruction(Analyzer.EXPORT_PACKAGE,new String[]{"pack1","pack2"});
+  osgiManifest.instruction(Analyzer.IMPORT_PACKAGE,new String[]{"pack3","pack4"});
+  osgiManifest.setClasspath(fileCollection);
+  osgiManifest.setClassesDir(new File("someDir"));
 }
