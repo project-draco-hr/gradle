@@ -8,55 +8,49 @@
     lc.reset();
     LogManager.getLogManager().reset();
     SLF4JBridgeHandler.install();
-    boolean isTerminal=POSIXFactory.getPOSIX(new POSIXHandlerImpl(),true).isatty(FileDescriptor.out);
-    stderr.setTarget(System.err);
-    if (isTerminal) {
-      stdout.setTarget(AnsiConsole.out());
-      stdout.console=new org.gradle.logging.AnsiConsole(stdout.target);
-    }
- else {
-      stdout.setTarget(System.out);
-    }
-    stderrConsoleAppender.setTarget(stderr);
-    stdoutConsoleAppender.setTarget(stdout);
-    stderrConsoleAppender.setContext(lc);
-    stdoutConsoleAppender.setContext(lc);
+    stdout.init(FileDescriptor.out,System.out);
+    stderr.init(FileDescriptor.err,System.err);
+    this.console=createConsole();
+    consoleFormatter=new ConsoleBackedFormatter(lc,console);
+    nonConsoleFormatter=new BasicProgressLoggingAwareFormatter(lc,stdout.getBroadcast(),stderr.getBroadcast());
+    errorAppender.setContext(lc);
+    infoAppender.setContext(lc);
     rootLogger=lc.getLogger("ROOT");
-    rootLogger.addAppender(stdoutConsoleAppender);
-    rootLogger.addAppender(stderrConsoleAppender);
+    rootLogger.addAppender(infoAppender);
+    rootLogger.addAppender(errorAppender);
   }
  else {
     rootLogger=lc.getLogger("ROOT");
   }
   currentLevel=logLevel;
-  stderrConsoleAppender.stop();
-  stdoutConsoleAppender.stop();
-  stderrConsoleAppender.clearAllFilters();
-  stdoutConsoleAppender.clearAllFilters();
-  stderrConsoleAppender.addFilter(createLevelFilter(lc,Level.ERROR,FilterReply.ACCEPT,FilterReply.DENY));
+  errorAppender.stop();
+  infoAppender.stop();
+  errorAppender.clearAllFilters();
+  infoAppender.clearAllFilters();
+  errorAppender.addFilter(createLevelFilter(lc,Level.ERROR,FilterReply.ACCEPT,FilterReply.DENY));
   Level level=Level.INFO;
-  setLayouts(logLevel,stderrConsoleAppender,stdoutConsoleAppender,lc);
+  setLayouts(logLevel,errorAppender,infoAppender,lc);
   MarkerFilter quietFilter=new MarkerFilter(FilterReply.DENY,Logging.QUIET);
-  stdoutConsoleAppender.addFilter(quietFilter);
+  infoAppender.addFilter(quietFilter);
   if (!(logLevel == LogLevel.QUIET)) {
     quietFilter.setOnMismatch(FilterReply.NEUTRAL);
     if (logLevel == LogLevel.DEBUG) {
       level=Level.DEBUG;
-      stdoutConsoleAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.NEUTRAL));
-      stdoutConsoleAppender.addFilter(createLevelFilter(lc,Level.DEBUG,FilterReply.ACCEPT,FilterReply.NEUTRAL));
+      infoAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.NEUTRAL));
+      infoAppender.addFilter(createLevelFilter(lc,Level.DEBUG,FilterReply.ACCEPT,FilterReply.NEUTRAL));
     }
  else {
       if (logLevel == LogLevel.INFO) {
         level=Level.INFO;
-        stdoutConsoleAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.NEUTRAL));
+        infoAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.NEUTRAL));
       }
  else {
-        stdoutConsoleAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE,Logging.PROGRESS));
+        infoAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE,Logging.PROGRESS));
       }
     }
-    stdoutConsoleAppender.addFilter(createLevelFilter(lc,Level.WARN,FilterReply.ACCEPT,FilterReply.DENY));
+    infoAppender.addFilter(createLevelFilter(lc,Level.WARN,FilterReply.ACCEPT,FilterReply.DENY));
   }
   rootLogger.setLevel(level);
-  stdoutConsoleAppender.start();
-  stderrConsoleAppender.start();
+  infoAppender.start();
+  errorAppender.start();
 }
