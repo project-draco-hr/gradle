@@ -1,0 +1,36 @@
+{
+  project.getPlugins().apply(JavaPlugin.class);
+  Configuration antlrConfiguration=project.getConfigurations().add(ANTLR_CONFIGURATION_NAME).setVisible(false).setTransitive(false).setDescription("The Antlr libraries to be used for this project.");
+  project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(antlrConfiguration);
+  final ProjectInternal projectInternal=(ProjectInternal)project;
+  project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().allObjects(new Action<SourceSet>(){
+    public void execute(    SourceSet sourceSet){
+      final AntlrSourceVirtualDirectoryImpl antlrDirectoryDelegate=new AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet)sourceSet).getDisplayName(),projectInternal.getFileResolver());
+      ((DynamicObjectAware)sourceSet).getConvention().getPlugins().put(AntlrSourceVirtualDirectory.NAME,antlrDirectoryDelegate);
+      final String srcDir=String.format("src/%s/antlr",sourceSet.getName());
+      antlrDirectoryDelegate.getAntlr().srcDir(srcDir);
+      sourceSet.getAllSource().add(antlrDirectoryDelegate.getAntlr());
+      final String taskName=sourceSet.getCompileTaskName("antlr");
+      AntlrTask antlrTask=project.getTasks().add(taskName,AntlrTask.class);
+      antlrTask.setDescription(String.format("Processes the %s Antlr grammars.",sourceSet.getName()));
+      antlrTask.conventionMapping("defaultSource",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return antlrDirectoryDelegate.getAntlr();
+        }
+      }
+);
+      antlrTask.getConventionMapping().map("antlrClasspath",new ConventionValue(){
+        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+          return project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME).copy().setTransitive(true);
+        }
+      }
+);
+      final String outputDirectoryName=String.format("%s/generated-src/antlr/%s",project.getBuildDir(),sourceSet.getName());
+      final File outputDirectory=new File(outputDirectoryName);
+      antlrTask.setOutputDirectory(outputDirectory);
+      sourceSet.getJava().srcDir(outputDirectory);
+      project.getTasks().getByName(sourceSet.getCompileTaskName("java")).dependsOn(taskName);
+    }
+  }
+);
+}

@@ -1,0 +1,23 @@
+{
+  try {
+    final Method getNameMethod=ANTLR_GRAMMAR_CLASS.getDeclaredMethod("getName",NO_ARG_SIGNATURE);
+    getNameMethod.setAccessible(true);
+    this.className=(String)getNameMethod.invoke(antlrGrammarMetadata,NO_ARGS);
+    final Method getSuperGrammarMethod=ANTLR_GRAMMAR_CLASS.getMethod("getSuperGrammar",NO_ARG_SIGNATURE);
+    getSuperGrammarMethod.setAccessible(true);
+    final Object antlrSuperGrammarGrammarMetadata=getSuperGrammarMethod.invoke(antlrGrammarMetadata,NO_ARGS);
+    this.superGrammarDelegate=antlrSuperGrammarGrammarMetadata == null ? null : new GrammarDelegate(antlrSuperGrammarGrammarMetadata);
+    Method getOptionsMethod=ANTLR_GRAMMAR_CLASS.getMethod("getOptions",NO_ARG_SIGNATURE);
+    getOptionsMethod.setAccessible(true);
+    IndexedVector options=(IndexedVector)getOptionsMethod.invoke(antlrGrammarMetadata,NO_ARGS);
+    Method getRHSMethod=ANTLR_OPTION_CLASS.getMethod("getRHS",NO_ARG_SIGNATURE);
+    getRHSMethod.setAccessible(true);
+    final Object importVocabOption=options == null ? null : options.getElement("importVocab");
+    this.importVocab=importVocabOption == null ? null : vocabName((String)getRHSMethod.invoke(importVocabOption,NO_ARGS));
+    final Object exportVocabOption=options == null ? null : options.getElement("exportVocab");
+    this.exportVocab=exportVocabOption == null ? null : vocabName((String)getRHSMethod.invoke(exportVocabOption,NO_ARGS));
+  }
+ catch (  Throwable t) {
+    throw new IllegalStateException("Error accessing  Antlr grammar metadata",t);
+  }
+}

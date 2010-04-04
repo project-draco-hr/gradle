@@ -1,0 +1,25 @@
+{
+  XRef xref=new MetadataExtracter().extractMetadata(getSource());
+  List<GenerationPlan> generationPlans=new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
+  for (  GenerationPlan generationPlan : generationPlans) {
+    if (!generationPlan.isOutOfDate()) {
+      LOGGER.info("grammar [" + generationPlan.getId() + "] was up-to-date; skipping");
+      continue;
+    }
+    LOGGER.info("performing grammar generation [" + generationPlan.getId() + "]");
+    generationPlan.getGenerationDirectory().mkdirs();
+    ANTLR antlr=new ANTLR();
+    antlr.setProject(getAnt().getAntProject());
+    Path antlrTaskClasspath=antlr.createClasspath();
+    for (    File dep : getAntlrClasspath()) {
+      antlrTaskClasspath.createPathElement().setLocation(dep);
+    }
+    antlr.setTrace(trace);
+    antlr.setTraceLexer(traceLexer);
+    antlr.setTraceParser(traceParser);
+    antlr.setTraceTreeWalker(traceTreeWalker);
+    antlr.setOutputdirectory(generationPlan.getGenerationDirectory());
+    antlr.setTarget(generationPlan.getSource());
+    antlr.execute();
+  }
+}
