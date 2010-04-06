@@ -3,15 +3,14 @@
   listener.beforeScript(script);
   GradleScriptException failure=null;
   Thread.currentThread().setContextClassLoader(script.getContextClassloader());
-  script.getStandardOutputRedirector().on(LogLevel.QUIET);
+  script.getStandardOutputCapture().start();
   try {
     script.run();
   }
  catch (  Throwable e) {
     failure=new GradleScriptException(String.format("A problem occurred evaluating %s.",script),e);
   }
-  script.getStandardOutputRedirector().flush();
-  script.getStandardOutputRedirector().off();
+  script.getStandardOutputCapture().stop();
   Thread.currentThread().setContextClassLoader(originalLoader);
   listener.afterScript(script,failure);
   if (failure != null) {
