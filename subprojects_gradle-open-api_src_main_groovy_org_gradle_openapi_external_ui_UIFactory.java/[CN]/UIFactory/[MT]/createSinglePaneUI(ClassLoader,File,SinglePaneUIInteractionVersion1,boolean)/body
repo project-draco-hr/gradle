@@ -1,29 +1,17 @@
 {
-  ClassLoader bootStrapClassLoader=ExternalUtility.getGradleClassloader(parentClassLoader,gradleHomeDirectory,showDebugInfo);
-  Thread.currentThread().setContextClassLoader(bootStrapClassLoader);
-  Class soughtClass=null;
+  Exception viaFactoryException=null;
+  SinglePaneUIVersion1 gradleUI=null;
   try {
-    soughtClass=bootStrapClassLoader.loadClass("org.gradle.openapi.wrappers.ui.SinglePaneUIWrapper");
+    gradleUI=createSinglePaneUIViaFactory(parentClassLoader,gradleHomeDirectory,interaction,showDebugInfo);
   }
- catch (  NoClassDefFoundError e) {
-    e.printStackTrace();
-    return null;
+ catch (  Exception e) {
+    viaFactoryException=e;
   }
-catch (  ClassNotFoundException e) {
-    e.printStackTrace();
+  if (gradleUI == null) {
+    gradleUI=createSinglePaneUIOldWay(parentClassLoader,gradleHomeDirectory,interaction,showDebugInfo);
   }
-  if (soughtClass == null) {
-    return null;
+  if (gradleUI == null && viaFactoryException != null) {
+    throw viaFactoryException;
   }
-  Constructor constructor=null;
-  try {
-    constructor=soughtClass.getDeclaredConstructor(SinglePaneUIInteractionVersion1.class);
-  }
- catch (  NoSuchMethodException e) {
-    e.printStackTrace();
-    System.out.println("Dumping available constructors on " + soughtClass.getName() + "\n"+ ExternalUtility.dumpConstructors(soughtClass));
-    throw e;
-  }
-  Object singlePaneUI=constructor.newInstance(singlePaneUIArguments);
-  return (SinglePaneUIVersion1)singlePaneUI;
+  return gradleUI;
 }
