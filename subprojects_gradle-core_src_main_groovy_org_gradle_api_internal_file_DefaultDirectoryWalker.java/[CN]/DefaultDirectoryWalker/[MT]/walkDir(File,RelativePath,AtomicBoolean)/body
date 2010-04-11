@@ -1,7 +1,10 @@
 {
   File[] children=file.listFiles();
   if (children == null) {
-    throw new GradleException(String.format("Could not list children of '%s'.",file));
+    if (file.isDirectory() && !file.canRead()) {
+      throw new GradleException(String.format("Could not list contents of directory '%s' as it is not readable.",file));
+    }
+    throw new GradleException(String.format("Could not list contents of '%s'.",file));
   }
   List<FileVisitDetailsImpl> dirs=new ArrayList<FileVisitDetailsImpl>();
   for (int i=0; !stopFlag.get() && i < children.length; i++) {
