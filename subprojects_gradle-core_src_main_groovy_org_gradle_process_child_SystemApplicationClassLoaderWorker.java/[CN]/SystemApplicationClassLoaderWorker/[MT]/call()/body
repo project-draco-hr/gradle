@@ -2,10 +2,16 @@
   final ClassLoader applicationClassLoader=ClassLoader.getSystemClassLoader();
   ClasspathUtil.addUrl((URLClassLoader)applicationClassLoader,applicationClassPath);
   ClassLoaderObjectInputStream instr=new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker),getClass().getClassLoader());
-  Action<WorkerContext> action=(Action<WorkerContext>)instr.readObject();
-  action.execute(new WorkerContext(){
-    public ClassLoader getApplicationClassLoader(){
-      return applicationClassLoader;
+  final Action<WorkerContext> action=(Action<WorkerContext>)instr.readObject();
+  AccessController.doPrivileged(new PrivilegedAction<Object>(){
+    public Object run(){
+      action.execute(new WorkerContext(){
+        public ClassLoader getApplicationClassLoader(){
+          return applicationClassLoader;
+        }
+      }
+);
+      return null;
     }
   }
 );
