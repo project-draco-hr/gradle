@@ -2,6 +2,7 @@
   Set<Task> visiting=new HashSet<Task>();
   List<Task> queue=new ArrayList<Task>();
   queue.addAll(tasks);
+  CachingTaskDependencyResolveContext context=new CachingTaskDependencyResolveContext();
   while (!queue.isEmpty()) {
     Task task=queue.get(0);
     if (!filter.isSatisfiedBy(task)) {
@@ -14,7 +15,7 @@
     }
     if (visiting.add(task)) {
       Set<Task> dependsOnTasks=new TreeSet<Task>(Collections.reverseOrder());
-      dependsOnTasks.addAll(task.getTaskDependencies().getDependencies(task));
+      dependsOnTasks.addAll(context.getDependencies(task));
       for (      Task dependsOnTask : dependsOnTasks) {
         if (visiting.contains(dependsOnTask)) {
           throw new CircularReferenceException(String.format("Circular dependency between tasks. Cycle includes %s.",task));

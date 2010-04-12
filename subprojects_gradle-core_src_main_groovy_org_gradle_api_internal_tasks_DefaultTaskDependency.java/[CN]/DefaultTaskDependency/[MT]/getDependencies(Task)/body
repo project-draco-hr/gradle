@@ -1,53 +1,5 @@
 {
-  Set<Task> result=new HashSet<Task>();
-  LinkedList<Object> queue=new LinkedList<Object>(values);
-  while (!queue.isEmpty()) {
-    Object dependency=queue.removeFirst();
-    if (dependency instanceof Buildable) {
-      Buildable buildable=(Buildable)dependency;
-      result.addAll(buildable.getBuildDependencies().getDependencies(task));
-    }
- else     if (dependency instanceof Task) {
-      result.add((Task)dependency);
-    }
- else     if (dependency instanceof TaskDependency) {
-      result.addAll(((TaskDependency)dependency).getDependencies(task));
-    }
- else     if (dependency instanceof Closure) {
-      Closure closure=(Closure)dependency;
-      Object closureResult=closure.call(task);
-      if (closureResult != null) {
-        queue.add(0,closureResult);
-      }
-    }
- else     if (dependency instanceof Iterable) {
-      Iterable<?> iterable=(Iterable)dependency;
-      queue.addAll(0,GUtil.addToCollection(new ArrayList(),iterable));
-    }
- else     if (dependency instanceof Map) {
-      Map<?,?> map=(Map)dependency;
-      queue.addAll(0,map.values());
-    }
- else     if (dependency instanceof Object[]) {
-      Object[] array=(Object[])dependency;
-      queue.addAll(0,Arrays.asList(array));
-    }
- else     if (dependency instanceof Callable) {
-      Callable callable=(Callable)dependency;
-      Object callableResult;
-      try {
-        callableResult=callable.call();
-      }
- catch (      Exception e) {
-        throw new GradleException(e);
-      }
-      if (callableResult != null) {
-        queue.add(0,callableResult);
-      }
-    }
- else {
-      result.add(resolver.resolveTask(dependency));
-    }
-  }
-  return result;
+  CachingTaskDependencyResolveContext context=new CachingTaskDependencyResolveContext();
+  context.add(this);
+  return context.resolve(task);
 }

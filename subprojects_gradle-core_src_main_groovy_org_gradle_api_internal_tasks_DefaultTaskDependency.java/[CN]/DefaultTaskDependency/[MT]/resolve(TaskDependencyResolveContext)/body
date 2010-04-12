@@ -1,0 +1,50 @@
+{
+  LinkedList<Object> queue=new LinkedList<Object>(values);
+  while (!queue.isEmpty()) {
+    Object dependency=queue.removeFirst();
+    if (dependency instanceof Buildable) {
+      context.add(dependency);
+    }
+ else     if (dependency instanceof Task) {
+      context.add(dependency);
+    }
+ else     if (dependency instanceof TaskDependency) {
+      context.add(dependency);
+    }
+ else     if (dependency instanceof Closure) {
+      Closure closure=(Closure)dependency;
+      Object closureResult=closure.call(context.getTask());
+      if (closureResult != null) {
+        queue.add(0,closureResult);
+      }
+    }
+ else     if (dependency instanceof Iterable) {
+      Iterable<?> iterable=(Iterable)dependency;
+      queue.addAll(0,GUtil.addToCollection(new ArrayList<Object>(),iterable));
+    }
+ else     if (dependency instanceof Map) {
+      Map<?,?> map=(Map)dependency;
+      queue.addAll(0,map.values());
+    }
+ else     if (dependency instanceof Object[]) {
+      Object[] array=(Object[])dependency;
+      queue.addAll(0,Arrays.asList(array));
+    }
+ else     if (dependency instanceof Callable) {
+      Callable callable=(Callable)dependency;
+      Object callableResult;
+      try {
+        callableResult=callable.call();
+      }
+ catch (      Exception e) {
+        throw new GradleException(e);
+      }
+      if (callableResult != null) {
+        queue.add(0,callableResult);
+      }
+    }
+ else {
+      context.add(resolver.resolveTask(dependency));
+    }
+  }
+}
