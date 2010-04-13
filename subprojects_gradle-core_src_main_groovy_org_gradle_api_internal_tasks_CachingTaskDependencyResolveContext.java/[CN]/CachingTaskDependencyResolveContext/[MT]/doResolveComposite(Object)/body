@@ -1,0 +1,21 @@
+{
+  if (dependency instanceof TaskDependencyInternal) {
+    TaskDependencyInternal taskDependency=(TaskDependencyInternal)dependency;
+    CachingTaskDependencyResolveContext nestedContext=new CachingTaskDependencyResolveContext(task,cache);
+    taskDependency.resolve(nestedContext);
+    return nestedContext.doResolve();
+  }
+ else   if (dependency instanceof TaskDependency) {
+    TaskDependency taskDependency=(TaskDependency)dependency;
+    return new LinkedHashSet<Task>(taskDependency.getDependencies(task));
+  }
+ else   if (dependency instanceof Buildable) {
+    Buildable buildable=(Buildable)dependency;
+    CachingTaskDependencyResolveContext nestedContext=new CachingTaskDependencyResolveContext(task,cache);
+    nestedContext.add(buildable.getBuildDependencies());
+    return nestedContext.doResolve();
+  }
+ else {
+    throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",dependency.getClass().getSimpleName()));
+  }
+}

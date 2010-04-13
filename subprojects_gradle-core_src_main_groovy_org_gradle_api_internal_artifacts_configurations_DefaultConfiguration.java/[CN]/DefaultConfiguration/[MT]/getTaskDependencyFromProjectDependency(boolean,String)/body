@@ -1,15 +1,31 @@
 {
-  return new TaskDependency(){
-    public Set<? extends Task> getDependencies(    Task task){
-      DefaultTaskDependency taskDependency=new DefaultTaskDependency();
+  return new AbstractTaskDependency(){
+    public void resolve(    TaskDependencyResolveContext context){
       if (useDependedOn) {
-        addTaskDependenciesFromProjectsIDependOn(taskName,taskDependency);
+        addTaskDependenciesFromProjectsIDependOn(taskName,context);
       }
  else {
-        Project thisProject=task.getProject();
-        addTaskDependenciesFromProjectsDependingOnMe(thisProject,taskName,taskDependency);
+        Project thisProject=context.getTask().getProject();
+        addTaskDependenciesFromProjectsDependingOnMe(thisProject,taskName,context);
       }
-      return taskDependency.getDependencies(task);
+    }
+    private void addTaskDependenciesFromProjectsIDependOn(    final String taskName,    final TaskDependencyResolveContext context){
+      Set<ProjectDependency> projectDependencies=getAllDependencies(ProjectDependency.class);
+      for (      ProjectDependency projectDependency : projectDependencies) {
+        Task nextTask=projectDependency.getDependencyProject().getTasks().findByName(taskName);
+        if (nextTask != null) {
+          context.add(nextTask);
+        }
+      }
+    }
+    private void addTaskDependenciesFromProjectsDependingOnMe(    final Project thisProject,    final String taskName,    final TaskDependencyResolveContext context){
+      Set<Task> tasksWithName=thisProject.getRootProject().getTasksByName(taskName,true);
+      for (      Task nextTask : tasksWithName) {
+        Configuration configuration=nextTask.getProject().getConfigurations().findByName(getName());
+        if (configuration != null && doesConfigurationDependOnProject(configuration,thisProject)) {
+          context.add(nextTask);
+        }
+      }
     }
   }
 ;

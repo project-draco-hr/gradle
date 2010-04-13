@@ -1,0 +1,19 @@
+{
+  Set<Task> tasks=new LinkedHashSet<Task>();
+  while (!queue.isEmpty()) {
+    Object dependency=queue.remove(0);
+    Set<? extends Task> resolvedDependencies=cache.get(dependency);
+    if (resolvedDependencies != null) {
+      tasks.addAll(resolvedDependencies);
+    }
+ else     if (dependency instanceof Task) {
+      tasks.add((Task)dependency);
+    }
+ else {
+      Set<Task> dependencies=doResolveComposite(dependency);
+      cache.put(dependency,dependencies);
+      tasks.addAll(dependencies);
+    }
+  }
+  return tasks;
+}
