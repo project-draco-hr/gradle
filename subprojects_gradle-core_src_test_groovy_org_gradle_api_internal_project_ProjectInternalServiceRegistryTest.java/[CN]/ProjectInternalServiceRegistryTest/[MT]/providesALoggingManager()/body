@@ -1,4 +1,15 @@
 {
-  assertThat(registry.get(LoggingManager.class),instanceOf(DefaultStandardOutputCapture.class));
+  final LoggingManagerFactory loggingManagerFactory=context.mock(LoggingManagerFactory.class);
+  final LoggingManager loggingManager=context.mock(LoggingManager.class);
+  context.checking(new Expectations(){
+{
+      allowing(parent).get(LoggingManagerFactory.class);
+      will(returnValue(loggingManagerFactory));
+      one(loggingManagerFactory).create();
+      will(returnValue(loggingManager));
+    }
+  }
+);
+  assertThat(registry.get(LoggingManager.class),sameInstance(loggingManager));
   assertThat(registry.get(LoggingManager.class),sameInstance(registry.get(LoggingManager.class)));
 }

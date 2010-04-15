@@ -8,7 +8,12 @@
       for (      DeployableFilesInfo deployableFilesInfo : deployableFilesInfos) {
         one(getInstallDeployTask()).setFile(deployableFilesInfo.getArtifactFile());
         one(getInstallDeployTask()).addPom(with(pomMatcher(deployableFilesInfo.getPomFile(),getInstallDeployTask().getProject())));
+        one(loggingManagerMock).captureStandardOutput(LogLevel.INFO);
+        will(returnValue(loggingManagerMock));
+        one(loggingManagerMock).start();
         one(getInstallDeployTask()).execute();
+        one(loggingManagerMock).stop();
+        will(returnValue(loggingManagerMock));
       }
     }
   }

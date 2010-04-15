@@ -1,14 +1,28 @@
 {
-  StandardOutputState oldState=StandardOutputLogging.getStateSnapshot();
+  final LoggingSystem.Snapshot snapshot=context.mock(LoggingSystem.Snapshot.class);
+  context.checking(new Expectations(){
+{
+      ignoring(loggingSystem);
+      one(stdOutLoggingSystem).on(LogLevel.DEBUG);
+      will(returnValue(snapshot));
+    }
+  }
+);
   standardOutputCapture.captureStandardOutput(LogLevel.DEBUG);
   standardOutputCapture.start();
-  assertSame(StandardOutputLogging.getOut(),System.out);
-  assertSame(StandardOutputLogging.getErr(),System.err);
-  assertEquals(StandardOutputLogging.getOutAdapter().getLevel(),LogLevel.DEBUG);
-  assertEquals(StandardOutputLogging.getErrAdapter().getLevel(),LogLevel.ERROR);
+  context.checking(new Expectations(){
+{
+      one(stdOutLoggingSystem).off();
+      will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
+    }
+  }
+);
   standardOutputCapture.disableStandardOutputCapture();
-  assertSame(StandardOutputLogging.DEFAULT_OUT,System.out);
-  assertSame(StandardOutputLogging.DEFAULT_ERR,System.err);
+  context.checking(new Expectations(){
+{
+      one(stdOutLoggingSystem).restore(snapshot);
+    }
+  }
+);
   standardOutputCapture.stop();
-  assertEquals(oldState,StandardOutputLogging.getStateSnapshot());
 }
