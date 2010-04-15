@@ -1,19 +1,16 @@
 {
   Clock clock=new Clock();
-  Map<Dependency,Set<ResolvedDependency>> firstLevelResolvedDependencies=new LinkedHashMap<Dependency,Set<ResolvedDependency>>();
-  Set<ResolvedArtifact> resolvedArtifacts=new LinkedHashSet<ResolvedArtifact>();
-  ConfigurationResolveReport configurationResolveReport=resolveReport.getConfigurationReport(configuration.getName());
-  LinkedHashMap<ModuleRevisionId,Map<String,DefaultResolvedDependency>> handledNodes=new LinkedHashMap<ModuleRevisionId,Map<String,DefaultResolvedDependency>>();
-  Map<DefaultResolvedDependency,IvyNode> resolvedDependencies2Nodes=new HashMap<DefaultResolvedDependency,IvyNode>();
-  Map<ModuleRevisionId,Map<String,ModuleDependency>> firstLevelDependenciesModuleRevisionIds=createFirstLevelDependenciesModuleRevisionIds(configuration.getAllDependencies(ModuleDependency.class));
-  List nodes=resolveReport.getDependencies();
-  for (Iterator iterator=nodes.iterator(); iterator.hasNext(); ) {
-    IvyNode node=(IvyNode)iterator.next();
+  ReportConversionContext context=new ReportConversionContext();
+  context.configurationResolveReport=resolveReport.getConfigurationReport(configuration.getName());
+  context.firstLevelDependenciesModuleRevisionIds=createFirstLevelDependenciesModuleRevisionIds(configuration.getAllDependencies(ModuleDependency.class));
+  context.conf=configuration.getName();
+  List<IvyNode> nodes=resolveReport.getDependencies();
+  for (  IvyNode node : nodes) {
     if (!isResolvedNode(node,configuration)) {
       continue;
     }
-    getResolvedDependenciesForNode(node,handledNodes,resolvedDependencies2Nodes,firstLevelResolvedDependencies,resolvedArtifacts,configuration.getName(),configurationResolveReport,firstLevelDependenciesModuleRevisionIds,resolveReport);
+    getResolvedDependenciesForNode(node,context);
   }
   logger.debug("Timing: Translating report for configuration {} took {}",configuration,clock.getTime());
-  return new DefaultIvyConversionResult(firstLevelResolvedDependencies,resolvedArtifacts);
+  return new DefaultIvyConversionResult(context.firstLevelResolvedDependencies,context.resolvedArtifacts);
 }

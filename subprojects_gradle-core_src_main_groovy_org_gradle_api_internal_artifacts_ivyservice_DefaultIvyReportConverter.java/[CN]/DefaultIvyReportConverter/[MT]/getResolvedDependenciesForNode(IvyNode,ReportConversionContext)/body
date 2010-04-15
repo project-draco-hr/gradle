@@ -1,0 +1,32 @@
+{
+  ModuleRevisionId nodeId=ivyNode.getId();
+  if (context.handledNodes.containsKey(nodeId)) {
+    return;
+  }
+  Map<String,DefaultResolvedDependency> resolvedDependencies=new LinkedHashMap<String,DefaultResolvedDependency>();
+  for (  IvyNodeCallers.Caller caller : ivyNode.getCallers(context.conf)) {
+    Set<String> dependencyConfigurationsForNode=getDependencyConfigurationsByCaller(ivyNode,caller);
+    for (    String dependencyConfiguration : dependencyConfigurationsForNode) {
+      DefaultResolvedDependency resolvedDependencyForDependencyConfiguration=resolvedDependencies.get(dependencyConfiguration);
+      if (resolvedDependencyForDependencyConfiguration == null) {
+        resolvedDependencyForDependencyConfiguration=createResolvedDependency(ivyNode,dependencyConfiguration);
+        context.resolvedArtifacts.addAll(resolvedDependencyForDependencyConfiguration.getModuleArtifacts());
+        resolvedDependencies.put(dependencyConfiguration,resolvedDependencyForDependencyConfiguration);
+        context.resolvedDependencies2Nodes.put(resolvedDependencyForDependencyConfiguration,ivyNode);
+        addNodeIfFirstLevelDependency(ivyNode,resolvedDependencyForDependencyConfiguration,context);
+      }
+    }
+    if (isRootCaller(context.configurationResolveReport,caller)) {
+      for (      DefaultResolvedDependency resolvedDependency : resolvedDependencies.values()) {
+        resolvedDependency.getParents().add(null);
+        resolvedDependency.addParentSpecificArtifacts(null,getParentSpecificArtifacts(resolvedDependency,context.conf,ivyNode.getRoot(),caller,ivyNode));
+      }
+      continue;
+    }
+    IvyNode parentNode=context.configurationResolveReport.getDependency(caller.getModuleRevisionId());
+    getResolvedDependenciesForNode(parentNode,context);
+    Map<String,DefaultResolvedDependency> parentResolvedDependencies=context.handledNodes.get(parentNode.getId());
+    createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode,resolvedDependencies,context.resolvedArtifacts,parentNode,caller,dependencyConfigurationsForNode,parentResolvedDependencies);
+  }
+  context.handledNodes.put(nodeId,resolvedDependencies);
+}
