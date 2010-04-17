@@ -1,0 +1,22 @@
+{
+  DefaultExternalModuleDependency dependency1=(DefaultExternalModuleDependency)HelperUtil.createDependency("group1","name","version");
+  configuration.addDependency(dependency1);
+  configuration.whenDependencyAdded(new Action<Dependency>(){
+    public void execute(    Dependency dependency){
+      ((DefaultExternalModuleDependency)dependency).setForce(true);
+    }
+  }
+);
+  configuration.whenDependencyAdded(HelperUtil.toClosure(new TestClosure(){
+    public Object call(    Object param){
+      return ((DefaultExternalModuleDependency)param).setChanging(true);
+    }
+  }
+));
+  DefaultExternalModuleDependency dependency2=(DefaultExternalModuleDependency)HelperUtil.createDependency("group2","name2","version2");
+  configuration.addDependency(dependency2);
+  assertThat(dependency1.isForce(),equalTo(false));
+  assertThat(dependency1.isForce(),equalTo(false));
+  assertThat(dependency2.isChanging(),equalTo(true));
+  assertThat(dependency2.isChanging(),equalTo(true));
+}

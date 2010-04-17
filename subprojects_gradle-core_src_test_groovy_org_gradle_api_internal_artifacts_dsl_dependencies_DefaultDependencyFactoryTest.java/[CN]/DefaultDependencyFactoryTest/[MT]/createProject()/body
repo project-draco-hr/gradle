@@ -3,14 +3,14 @@
   final ProjectDependency projectDependency=context.mock(ProjectDependency.class);
   final ProjectFinder projectFinderDummy=context.mock(ProjectFinder.class);
   DefaultDependencyFactory dependencyFactory=new DefaultDependencyFactory(null,null,projectDependencyFactoryStub);
+  final Map map=WrapUtil.toMap("key","value");
   context.checking(new Expectations(){
 {
-      allowing(projectDependencyFactoryStub).createProject(projectFinderDummy,"notation");
+      allowing(projectDependencyFactoryStub).createProjectDependencyFromMap(projectFinderDummy,map);
       will(returnValue(projectDependency));
-      one(projectDependency).setTransitive(false);
     }
   }
 );
   Closure configureClosure=HelperUtil.toClosure("{ transitive = false }");
-  assertThat(dependencyFactory.createProject(projectFinderDummy,"notation",configureClosure),sameInstance(projectDependency));
+  assertThat(dependencyFactory.createProjectDependencyFromMap(projectFinderDummy,map),sameInstance(projectDependency));
 }
