@@ -1,17 +1,19 @@
 {
   prepareResolveReport();
   final ModuleDependency moduleDependencyDummy1=context.mock(ModuleDependency.class,"dep1");
+  final ResolvedDependency root=context.mock(ResolvedDependency.class,"root");
   final ResolvedDependency resolvedDependency1=context.mock(ResolvedDependency.class,"resolved1");
   final ResolvedDependency resolvedDependency2=context.mock(ResolvedDependency.class,"resolved2");
   final IvyConversionResult conversionResultStub=context.mock(IvyConversionResult.class);
-  Set<ResolvedDependency> resolvedDependenciesSet=WrapUtil.toSet(resolvedDependency1,resolvedDependency2);
-  final Map<Dependency,Set<ResolvedDependency>> firstLevelResolvedDependencies=GUtil.map(moduleDependencyDummy1,resolvedDependenciesSet);
+  final Set<ResolvedDependency> resolvedDependenciesSet=WrapUtil.toSet(resolvedDependency1,resolvedDependency2);
   context.checking(new Expectations(){
 {
       allowing(ivyReportConverterStub).convertReport(resolveReportMock,configurationStub);
       will(returnValue(conversionResultStub));
-      allowing(conversionResultStub).getFirstLevelResolvedDependencies();
-      will(returnValue(firstLevelResolvedDependencies));
+      allowing(conversionResultStub).getRoot();
+      will(returnValue(root));
+      allowing(root).getChildren();
+      will(returnValue(resolvedDependenciesSet));
     }
   }
 );
