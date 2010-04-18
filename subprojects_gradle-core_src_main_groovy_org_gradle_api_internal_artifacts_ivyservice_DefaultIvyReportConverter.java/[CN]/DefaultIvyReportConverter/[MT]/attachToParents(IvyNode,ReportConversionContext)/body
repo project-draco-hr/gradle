@@ -1,0 +1,9 @@
+{
+  Map<String,ConfigurationDetails> resolvedDependencies=context.handledNodes.get(ivyNode.getId());
+  for (  IvyNodeCallers.Caller caller : ivyNode.getCallers(context.conf)) {
+    Set<String> dependencyConfigurationsForNode=getDependencyConfigurationsByCaller(ivyNode,caller);
+    IvyNode parentNode=isRootCaller(context.configurationResolveReport,caller) ? ivyNode.getRoot() : context.configurationResolveReport.getDependency(caller.getModuleRevisionId());
+    Map<String,ConfigurationDetails> parentResolvedDependencies=context.handledNodes.get(parentNode.getId());
+    createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode,resolvedDependencies,context.resolvedArtifacts,parentNode,caller,dependencyConfigurationsForNode,parentResolvedDependencies.values());
+  }
+}

@@ -4,12 +4,12 @@
   context.configurationResolveReport=resolveReport.getConfigurationReport(configuration.getName());
   context.firstLevelDependenciesModuleRevisionIds=createFirstLevelDependenciesModuleRevisionIds(configuration.getAllDependencies(ModuleDependency.class));
   context.conf=configuration.getName();
-  List<IvyNode> nodes=resolveReport.getDependencies();
-  for (  IvyNode node : nodes) {
-    if (!isResolvedNode(node,configuration)) {
-      continue;
-    }
-    getResolvedDependenciesForNode(node,context);
+  List<IvyNode> resolvedNodes=findResolvedNodes(resolveReport,context);
+  for (  IvyNode node : resolvedNodes) {
+    constructConfigurationsForNode(node,context);
+  }
+  for (  IvyNode node : resolvedNodes) {
+    attachToParents(node,context);
   }
   if (context.root == null) {
     context.root=new DefaultResolvedDependency(resolveReport.getModuleDescriptor().getModuleRevisionId().getOrganisation(),resolveReport.getModuleDescriptor().getModuleRevisionId().getName(),resolveReport.getModuleDescriptor().getModuleRevisionId().getRevision(),configuration.getName(),Collections.EMPTY_SET);
