@@ -3,28 +3,27 @@
   if (context.handledNodes.containsKey(nodeId)) {
     return;
   }
-  Map<String,DefaultResolvedDependency> resolvedDependencies=new LinkedHashMap<String,DefaultResolvedDependency>();
+  Map<String,ConfigurationDetails> resolvedDependencies=new LinkedHashMap<String,ConfigurationDetails>();
   if (ivyNode == ivyNode.getRoot()) {
-    DefaultResolvedDependency dependency=createResolvedDependency(ivyNode,context.conf);
-    context.root=dependency;
-    resolvedDependencies.put(context.conf,dependency);
+    ConfigurationDetails configuration=createResolvedDependency(ivyNode,context.conf);
+    context.root=configuration.dependency;
+    resolvedDependencies.put(context.conf,configuration);
   }
  else {
     for (    IvyNodeCallers.Caller caller : ivyNode.getCallers(context.conf)) {
       Set<String> dependencyConfigurationsForNode=getDependencyConfigurationsByCaller(ivyNode,caller);
       for (      String dependencyConfiguration : dependencyConfigurationsForNode) {
-        DefaultResolvedDependency resolvedDependencyForDependencyConfiguration=resolvedDependencies.get(dependencyConfiguration);
-        if (resolvedDependencyForDependencyConfiguration == null) {
-          resolvedDependencyForDependencyConfiguration=createResolvedDependency(ivyNode,dependencyConfiguration);
-          context.resolvedArtifacts.addAll(resolvedDependencyForDependencyConfiguration.getModuleArtifacts());
-          resolvedDependencies.put(dependencyConfiguration,resolvedDependencyForDependencyConfiguration);
-          context.resolvedDependencies2Nodes.put(resolvedDependencyForDependencyConfiguration,ivyNode);
+        ConfigurationDetails configurationDetails=resolvedDependencies.get(dependencyConfiguration);
+        if (configurationDetails == null) {
+          configurationDetails=createResolvedDependency(ivyNode,dependencyConfiguration);
+          context.resolvedArtifacts.addAll(configurationDetails.dependency.getModuleArtifacts());
+          resolvedDependencies.put(dependencyConfiguration,configurationDetails);
         }
       }
       IvyNode parentNode=isRootCaller(context.configurationResolveReport,caller) ? ivyNode.getRoot() : context.configurationResolveReport.getDependency(caller.getModuleRevisionId());
       getResolvedDependenciesForNode(parentNode,context);
-      Map<String,DefaultResolvedDependency> parentResolvedDependencies=context.handledNodes.get(parentNode.getId());
-      createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode,resolvedDependencies,context.resolvedArtifacts,parentNode,caller,dependencyConfigurationsForNode,parentResolvedDependencies);
+      Map<String,ConfigurationDetails> parentResolvedDependencies=context.handledNodes.get(parentNode.getId());
+      createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode,resolvedDependencies,context.resolvedArtifacts,parentNode,caller,dependencyConfigurationsForNode,parentResolvedDependencies.values());
     }
   }
   context.handledNodes.put(nodeId,resolvedDependencies);
