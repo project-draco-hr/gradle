@@ -1,0 +1,25 @@
+{
+  ModuleRevisionId actualId=ivyNode.getResolvedId();
+  Set<String> configurations=getConfigurationHierarchy(ivyNode,configuration);
+  DefaultResolvedDependency resolvedDependency;
+  if (actualId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY) != null) {
+    resolvedDependency=new DefaultResolvedDependency(actualId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY),actualId.getOrganisation(),actualId.getName(),actualId.getRevision(),configuration,getArtifacts(ivyNode));
+  }
+ else {
+    resolvedDependency=new DefaultResolvedDependency(actualId.getOrganisation(),actualId.getName(),actualId.getRevision(),configuration,getArtifacts(ivyNode));
+  }
+  for (  ResolvedArtifact resolvedArtifact : resolvedDependency.getModuleArtifacts()) {
+    ((DefaultResolvedArtifact)resolvedArtifact).setResolvedDependency(resolvedDependency);
+  }
+  ConfigurationDetails configurationDetails=new ConfigurationDetails(resolvedDependency,ivyNode,configurations);
+  this.configurations.put(resolvedDependency.getId(),configurationDetails);
+  ResolvedConfigurationIdentifier originalId=new ResolvedConfigurationIdentifier(ivyNode.getId(),configuration);
+  if (firstLevelDependenciesModuleRevisionIds.containsKey(originalId)) {
+    ModuleDependency firstLevelNode=firstLevelDependenciesModuleRevisionIds.get(originalId);
+    if (!firstLevelResolvedDependencies.containsKey(firstLevelNode)) {
+      firstLevelResolvedDependencies.put(firstLevelNode,new LinkedHashSet<ResolvedDependency>());
+    }
+    firstLevelResolvedDependencies.get(firstLevelNode).add(resolvedDependency);
+  }
+  return configurationDetails;
+}
