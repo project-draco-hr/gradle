@@ -1,50 +1,8 @@
 {
-  int componentCount=0;
-  Map<N,NodeDetails<N,T>> seenNodes=new HashMap<N,NodeDetails<N,T>>();
-  Map<Integer,NodeDetails<N,T>> componentValues=new HashMap<Integer,NodeDetails<N,T>>();
-  LinkedList<N> queue=new LinkedList<N>(startNodes);
-  while (!queue.isEmpty()) {
-    N node=queue.getFirst();
-    NodeDetails<N,T> details=seenNodes.get(node);
-    if (details == null) {
-      details=new NodeDetails<N,T>(componentCount++);
-      seenNodes.put(node,details);
-      Set<T> cacheValues=cachedNodeValues.get(node);
-      if (cacheValues != null) {
-        details.values=cacheValues;
-        queue.removeFirst();
-        continue;
-      }
-      componentValues.put(details.component,details);
-      graph.getNodeValues(node,details.values);
-      graph.getConnectedNodes(node,details.successors);
-      for (      N connectedNode : details.successors) {
-        if (!seenNodes.containsKey(connectedNode)) {
-          queue.add(0,connectedNode);
-        }
-      }
-    }
- else {
-      queue.removeFirst();
-      if (cachedNodeValues.containsKey(node)) {
-        continue;
-      }
-      for (      N connectedNode : details.successors) {
-        NodeDetails<N,T> connectedNodeDetails=seenNodes.get(connectedNode);
-        if (connectedNodeDetails.component != connectedNodeDetails.minSeen) {
-          details.minSeen=Math.min(details.minSeen,connectedNodeDetails.minSeen);
-        }
-        details.values.addAll(connectedNodeDetails.values);
-        graph.getEdgeValues(node,connectedNode,details.values);
-      }
-      componentValues.remove(details.component);
-      cachedNodeValues.put(node,details.values);
-    }
+  try {
+    return doSearch();
   }
-  Set<T> values=new LinkedHashSet<T>();
-  for (  N startNode : startNodes) {
-    values.addAll(cachedNodeValues.get(startNode));
+  finally {
+    startNodes.clear();
   }
-  startNodes.clear();
-  return values;
 }
