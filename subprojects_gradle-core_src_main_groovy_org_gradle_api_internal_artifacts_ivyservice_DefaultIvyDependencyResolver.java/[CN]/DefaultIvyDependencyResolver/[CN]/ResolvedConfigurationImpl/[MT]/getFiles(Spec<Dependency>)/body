@@ -2,29 +2,24 @@
   rethrowFailure();
   Set<ModuleDependency> allDependencies=configuration.getAllDependencies(ModuleDependency.class);
   Set<ModuleDependency> selectedDependencies=Specs.filterIterable(allDependencies,dependencySpec);
-  Set<File> files=new LinkedHashSet<File>();
-  if (allDependencies.equals(selectedDependencies)) {
-    for (    File depFile : ResolvedDependencies.getFilesFromArtifacts(getResolvedArtifacts())) {
-      if (depFile == null) {
-        throw new GradleException(String.format("Resolved files for %s contains a null value.",this));
+  Set<ResolvedArtifact> artifacts=new LinkedHashSet<ResolvedArtifact>();
+  for (  ModuleDependency moduleDependency : selectedDependencies) {
+    Set<ResolvedDependency> resolvedDependencies=conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
+    if (resolvedDependencies != null) {
+      for (      ResolvedDependency resolvedDependency : resolvedDependencies) {
+        artifacts.addAll(resolvedDependency.getParentArtifacts(conversionResult.getRoot()));
+        walker.add(resolvedDependency);
       }
-      files.add(depFile);
     }
   }
- else {
-    for (    ModuleDependency moduleDependency : selectedDependencies) {
-      Set<ResolvedDependency> resolvedDependencies=conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
-      if (resolvedDependencies != null) {
-        for (        ResolvedDependency resolvedDependency : resolvedDependencies) {
-          for (          File depFile : ResolvedDependencies.getFilesFromArtifacts(resolvedDependency.getAllArtifacts(conversionResult.getRoot()))) {
-            if (depFile == null) {
-              throw new GradleException(String.format("Resolved files for %s contains a null value.",resolvedDependency));
-            }
-            files.add(depFile);
-          }
-        }
-      }
+  artifacts.addAll(walker.findValues());
+  Set<File> files=new LinkedHashSet<File>();
+  for (  ResolvedArtifact artifact : artifacts) {
+    File depFile=artifact.getFile();
+    if (depFile == null) {
+      throw new GradleException(String.format("Resolved artifact %s contains a null value.",artifact));
     }
+    files.add(depFile);
   }
   return files;
 }

@@ -8,17 +8,25 @@
   final ResolvedDependency resolvedDependency2=context.mock(ResolvedDependency.class,"resolved2");
   ResolvedDependency resolvedDependency3=context.mock(ResolvedDependency.class,"resolved3");
   final IvyConversionResult conversionResultStub=context.mock(IvyConversionResult.class);
-  final Map<Dependency,Set<ResolvedDependency>> firstLevelResolvedDependencies=GUtil.map(moduleDependencyDummy1,WrapUtil.toSet(resolvedDependency1,resolvedDependency2),moduleDependencyDummy2,WrapUtil.toSet(resolvedDependency3));
+  final Map<Dependency,Set<ResolvedDependency>> firstLevelResolvedDependencies=GUtil.map(moduleDependencyDummy1,toSet(resolvedDependency1,resolvedDependency2),moduleDependencyDummy2,toSet(resolvedDependency3));
   context.checking(new Expectations(){
 {
-      allowing(resolvedDependency1).getAllArtifacts(root);
-      will(returnValue(WrapUtil.toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context,"someName","someType","someExtension",new File("file1")))));
-      allowing(resolvedDependency2).getAllArtifacts(root);
-      will(returnValue(WrapUtil.toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context,"someName2","someType","someExtension",new File("file2")))));
+      allowing(resolvedDependency1).getParentArtifacts(root);
+      will(returnValue(toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context,"dep1parent","someType","someExtension",new File("dep1parent")))));
+      allowing(resolvedDependency1).getModuleArtifacts();
+      will(returnValue(toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context,"dep1","someType","someExtension",new File("dep1")))));
+      allowing(resolvedDependency1).getChildren();
+      will(returnValue(toSet()));
+      allowing(resolvedDependency2).getParentArtifacts(root);
+      will(returnValue(toSet()));
+      allowing(resolvedDependency2).getModuleArtifacts();
+      will(returnValue(toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context,"dep2","someType","someExtension",new File("dep2")))));
+      allowing(resolvedDependency2).getChildren();
+      will(returnValue(toSet()));
       allowing(configurationStub).getAllDependencies();
-      will(returnValue(WrapUtil.toSet(moduleDependencyDummy1,moduleDependencyDummy2,selfResolvingDependencyDummy)));
+      will(returnValue(toSet(moduleDependencyDummy1,moduleDependencyDummy2,selfResolvingDependencyDummy)));
       allowing(configurationStub).getAllDependencies(ModuleDependency.class);
-      will(returnValue(WrapUtil.toSet(moduleDependencyDummy1,moduleDependencyDummy2)));
+      will(returnValue(toSet(moduleDependencyDummy1,moduleDependencyDummy2)));
       allowing(ivyReportConverterStub).convertReport(resolveReportMock,configurationStub);
       will(returnValue(conversionResultStub));
       allowing(conversionResultStub).getFirstLevelResolvedDependencies();
@@ -36,5 +44,5 @@
     }
   }
 );
-  assertThat(actualFiles,equalTo(WrapUtil.toSet(new File("file1"),new File("file2"))));
+  assertThat(actualFiles,equalTo(toSet(new File("dep1"),new File("dep2"),new File("dep1parent"))));
 }
