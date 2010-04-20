@@ -1,20 +1,19 @@
 {
-  final SelfResolvingDependency projectSelfResolvingDependency=context.mock(SelfResolvingDependency.class);
+  final DependencyResolveContext resolveContext=context.mock(DependencyResolveContext.class);
+  final Dependency projectSelfResolvingDependency=context.mock(Dependency.class);
   final ProjectDependency transitiveProjectDependencyStub=context.mock(ProjectDependency.class);
-  final Set<File> selfResolvingProjectFiles=toSet(new File("somePath"));
   context.checking(new Expectations(){
 {
       allowing(projectConfigurationsStub).getByName("conf1");
       will(returnValue(projectConfigurationStub));
-      allowing(projectSelfResolvingDependency).resolve();
-      will(returnValue(selfResolvingProjectFiles));
-      allowing(projectConfigurationStub).getAllDependencies(SelfResolvingDependency.class);
+      allowing(projectConfigurationStub).getAllDependencies();
       will(returnValue(toSet(projectSelfResolvingDependency,transitiveProjectDependencyStub)));
-      allowing(projectConfigurationStub).files(with(any(Spec.class)));
-      will(returnValue(selfResolvingProjectFiles));
+      allowing(resolveContext).isTransitive();
+      will(returnValue(false));
+      one(resolveContext).add(projectSelfResolvingDependency);
     }
   }
 );
   DefaultProjectDependency projectDependency=new DefaultProjectDependency(dependencyProjectStub,"conf1",instruction);
-  assertThat(projectDependency.resolve(false),equalTo(selfResolvingProjectFiles));
+  projectDependency.resolve(resolveContext);
 }

@@ -1,11 +1,13 @@
 {
-  final SelfResolvingDependency dependency=context.mock(SelfResolvingDependency.class);
+  final DependencyInternal dependency=context.mock(DependencyInternal.class);
   context.checking(new Expectations(){
 {
       one(delegate).resolve(configuration,ivy,moduleDescriptor);
       will(returnValue(resolvedConfiguration));
-      allowing(configuration).getAllDependencies(SelfResolvingDependency.class);
+      allowing(configuration).getAllDependencies(DependencyInternal.class);
       will(returnValue(toSet(dependency)));
+      allowing(configuration).isTransitive();
+      will(returnValue(true));
     }
   }
 );
@@ -13,6 +15,7 @@
   assertThat(actualResolvedConfiguration,not(sameInstance(resolvedConfiguration)));
   final File configFile=new File("from config");
   final File depFile=new File("from dep");
+  final FileCollection depFiles=context.mock(FileCollection.class);
   final boolean transitive=true;
   context.checking(new Expectations(){
 {
@@ -20,7 +23,18 @@
       will(returnValue(transitive));
       one(resolvedConfiguration).getFiles(Specs.SATISFIES_ALL);
       will(returnValue(toSet(configFile)));
-      one(dependency).resolve(transitive);
+      one(dependency).resolve(with(notNullValue(DependencyResolveContext.class)));
+      will(new Action(){
+        public void describeTo(        Description description){
+          description.appendText("add files to context");
+        }
+        public Object invoke(        Invocation invocation) throws Throwable {
+          ((DependencyResolveContext)invocation.getParameter(0)).add(depFiles);
+          return null;
+        }
+      }
+);
+      allowing(depFiles).getFiles();
       will(returnValue(toSet(depFile)));
     }
   }
