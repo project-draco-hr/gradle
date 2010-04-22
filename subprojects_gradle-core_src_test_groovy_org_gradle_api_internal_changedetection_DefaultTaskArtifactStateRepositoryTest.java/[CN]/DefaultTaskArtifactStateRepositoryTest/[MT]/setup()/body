@@ -1,0 +1,17 @@
+{
+  context.checking(new Expectations(){
+{
+      CacheBuilder builder=context.mock(CacheBuilder.class);
+      one(cacheRepository).cache("outputFileStates");
+      will(returnValue(builder));
+      one(builder).open();
+      will(returnValue(persistentCache));
+      one(persistentCache).openIndexedCache();
+      will(returnValue(new TestIndexedCache()));
+    }
+  }
+);
+  FileSnapshotter inputFilesSnapshotter=new DefaultFileSnapshotter(new DefaultHasher());
+  FileSnapshotter outputFilesSnapshotter=new OutputFilesSnapshotter(inputFilesSnapshotter,new RandomLongIdGenerator(),cacheRepository);
+  repository=new DefaultTaskArtifactStateRepository(cacheRepository,inputFilesSnapshotter,outputFilesSnapshotter);
+}

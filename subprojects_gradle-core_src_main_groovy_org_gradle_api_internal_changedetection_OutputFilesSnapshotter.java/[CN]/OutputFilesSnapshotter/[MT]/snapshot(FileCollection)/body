@@ -1,19 +1,19 @@
 {
   Map<String,Long> snapshotDirIds=new HashMap<String,Long>();
   for (  File file : files) {
-    Long counter;
+    Long dirId;
     if (file.exists()) {
-      counter=dirIdentifiers.get(file);
-      if (counter == null) {
-        counter=nextCounter++;
-        dirIdentifiers.put(file,counter);
+      dirId=dirIdentiferCache.get(file.getAbsolutePath());
+      if (dirId == null) {
+        dirId=idGenerator.generateId();
+        dirIdentiferCache.put(file.getAbsolutePath(),dirId);
       }
     }
  else {
-      dirIdentifiers.remove(file);
-      counter=null;
+      dirIdentiferCache.remove(file.getAbsolutePath());
+      dirId=null;
     }
-    snapshotDirIds.put(file.getAbsolutePath(),counter);
+    snapshotDirIds.put(file.getAbsolutePath(),dirId);
   }
   return new OutputFilesSnapshot(snapshotDirIds,snapshotter.snapshot(files.getAsFileTree()));
 }

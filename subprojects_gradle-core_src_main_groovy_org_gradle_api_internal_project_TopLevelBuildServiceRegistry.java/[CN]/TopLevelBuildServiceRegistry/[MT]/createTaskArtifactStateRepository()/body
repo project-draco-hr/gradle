@@ -1,5 +1,6 @@
 {
-  FileSnapshotter fileSnapshotter=new DefaultFileSnapshotter(new CachingHasher(new DefaultHasher(),get(CacheRepository.class)));
-  FileSnapshotter outputFilesSnapshotter=new OutputFilesSnapshotter(fileSnapshotter);
-  return new ShortCircuitTaskArtifactStateRepository(startParameter,new DefaultTaskArtifactStateRepository(get(CacheRepository.class),fileSnapshotter,outputFilesSnapshotter));
+  CacheRepository cacheRepository=get(CacheRepository.class);
+  FileSnapshotter fileSnapshotter=new DefaultFileSnapshotter(new CachingHasher(new DefaultHasher(),cacheRepository));
+  FileSnapshotter outputFilesSnapshotter=new OutputFilesSnapshotter(fileSnapshotter,new RandomLongIdGenerator(),cacheRepository);
+  return new ShortCircuitTaskArtifactStateRepository(startParameter,new DefaultTaskArtifactStateRepository(cacheRepository,fileSnapshotter,outputFilesSnapshotter));
 }
