@@ -3,7 +3,7 @@
   if (upToDate) {
     return false;
   }
-  FileCollectionSnapshot lastExecutionOutputFiles=lastExecution == null ? snapshotter.snapshot() : lastExecution.outputFilesSnapshot;
+  FileCollectionSnapshot lastExecutionOutputFiles=lastExecution == null ? outputFilesSnapshotter.snapshot() : lastExecution.outputFilesSnapshot;
   FileCollectionSnapshot newOutputFiles=outputFilesBefore.changesSince(lastExecutionOutputFiles).applyTo(lastExecutionOutputFiles,new ChangeListener<FileCollectionSnapshot.Merge>(){
     public void added(    FileCollectionSnapshot.Merge element){
       element.ignore();
@@ -14,7 +14,7 @@
     }
   }
 );
-  FileCollectionSnapshot outputFilesAfter=snapshotter.snapshot(task.getOutputs().getCandidateFiles());
+  FileCollectionSnapshot outputFilesAfter=outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
   thisExecution.outputFilesSnapshot=outputFilesAfter.changesSince(outputFilesBefore).applyTo(newOutputFiles);
   history.addConfiguration(thisExecution);
   return true;
