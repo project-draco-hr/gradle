@@ -1,18 +1,9 @@
 {
-  final Project project=pluginConvention.getProject();
-  final SourceSet main=pluginConvention.getSourceSets().add(SourceSet.MAIN_SOURCE_SET_NAME);
-  final SourceSet test=pluginConvention.getSourceSets().add(SourceSet.TEST_SOURCE_SET_NAME);
-  ConventionMapping conventionMapping=((IConventionAware)test).getConventionMapping();
-  conventionMapping.map("compileClasspath",new ConventionValue(){
-    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
-      return project.files(main.getClasses(),project.getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME));
-    }
-  }
-);
-  conventionMapping.map("runtimeClasspath",new ConventionValue(){
-    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
-      return project.files(test.getClasses(),main.getClasses(),project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME));
-    }
-  }
-);
+  Project project=pluginConvention.getProject();
+  SourceSet main=pluginConvention.getSourceSets().add(SourceSet.MAIN_SOURCE_SET_NAME);
+  main.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
+  main.setRuntimeClasspath(main.getClasses().plus(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME)));
+  SourceSet test=pluginConvention.getSourceSets().add(SourceSet.TEST_SOURCE_SET_NAME);
+  test.setCompileClasspath(project.files(main.getClasses(),project.getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME)));
+  test.setRuntimeClasspath(project.files(test.getClasses(),main.getClasses(),project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME)));
 }
