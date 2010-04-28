@@ -1,23 +1,11 @@
 {
-  Set<TemporaryFolder> matches=new HashSet<TemporaryFolder>();
-  for (Class<?> cl=target.getClass(); cl != Object.class; cl=cl.getSuperclass()) {
-    for (    Field field : cl.getDeclaredFields()) {
-      if (TemporaryFolder.class.isAssignableFrom(field.getType())) {
-        field.setAccessible(true);
-        try {
-          matches.add((TemporaryFolder)field.get(target));
-        }
- catch (        IllegalAccessException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }
+  GradleDistribution dist=findField(target,GradleDistribution.class);
+  if (dist != null) {
+    return dist.getTemporaryFolder();
   }
-  if (matches.isEmpty()) {
-    throw new RuntimeException(String.format("No TemporaryFolder field found for test class %s.",target.getClass().getSimpleName()));
+  TemporaryFolder folder=findField(target,TemporaryFolder.class);
+  if (folder != null) {
+    return folder;
   }
-  if (matches.size() > 1) {
-    throw new RuntimeException(String.format("Multiple TemporaryFolder fields found for test class %s.",target.getClass().getSimpleName()));
-  }
-  return matches.iterator().next();
+  throw new RuntimeException(String.format("Could not find a GradleDistribution or TemporaryFolder field for test class %s.",target.getClass().getSimpleName()));
 }
