@@ -1,0 +1,44 @@
+{
+  String testClassName=state.test.getClassName();
+  Element element;
+  if (!state.equals(testSuite)) {
+    element=testSuiteReport.createElement(XMLConstants.TESTCASE);
+    element.setAttribute(XMLConstants.ATTR_NAME,state.test.getName());
+    element.setAttribute(XMLConstants.ATTR_CLASSNAME,testClassName);
+    rootElement.appendChild(element);
+  }
+ else {
+    element=rootElement;
+    rootElement.setAttribute(XMLConstants.ATTR_NAME,testClassName);
+    rootElement.setAttribute(XMLConstants.ATTR_TESTS,String.valueOf(state.testCount));
+    rootElement.setAttribute(XMLConstants.ATTR_FAILURES,String.valueOf(state.failedCount));
+    rootElement.setAttribute(XMLConstants.ATTR_ERRORS,"0");
+    rootElement.setAttribute(XMLConstants.TIMESTAMP,DateUtils.format(state.getStartTime(),DateUtils.ISO8601_DATETIME_PATTERN));
+    rootElement.setAttribute(XMLConstants.HOSTNAME,hostName);
+    Element stdoutElement=testSuiteReport.createElement(XMLConstants.SYSTEM_OUT);
+    stdoutElement.appendChild(testSuiteReport.createCDATASection(outputs.get(TestOutputEvent.Destination.StdOut).toString()));
+    rootElement.appendChild(stdoutElement);
+    Element stderrElement=testSuiteReport.createElement(XMLConstants.SYSTEM_ERR);
+    stderrElement.appendChild(testSuiteReport.createCDATASection(outputs.get(TestOutputEvent.Destination.StdErr).toString()));
+    rootElement.appendChild(stderrElement);
+  }
+  element.setAttribute(XMLConstants.ATTR_TIME,String.valueOf(state.getExecutionTime() / 1000.0));
+  if (state.failure != null) {
+    Element failure=testSuiteReport.createElement(XMLConstants.FAILURE);
+    element.appendChild(failure);
+    failure.setAttribute(XMLConstants.ATTR_MESSAGE,state.failure.getMessage());
+    failure.setAttribute(XMLConstants.ATTR_TYPE,state.failure.getClass().getName());
+    failure.appendChild(testSuiteReport.createTextNode(StringUtils.getStackTrace(state.failure)));
+  }
+  if (state.equals(testSuite)) {
+    File reportFile=new File(testResultsDir,"TEST-" + testClassName + ".xml");
+    try {
+      transformer.transform(new DOMSource(testSuiteReport),new StreamResult(reportFile));
+    }
+ catch (    TransformerException e) {
+      throw new GradleException(String.format("Could not write test report file '%s'.",reportFile),e);
+    }
+    testSuite=null;
+    outputs.clear();
+  }
+}

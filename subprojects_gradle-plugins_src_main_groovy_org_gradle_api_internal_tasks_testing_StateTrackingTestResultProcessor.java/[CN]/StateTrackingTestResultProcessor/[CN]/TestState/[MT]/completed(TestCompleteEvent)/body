@@ -1,0 +1,29 @@
+{
+  this.completeEvent=event;
+  if (event.getFailure() != null) {
+    failure=event.getFailure();
+  }
+  resultType=isFailed() ? TestResult.ResultType.FAILURE : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
+  if (!test.isComposite()) {
+    testCount=1;
+switch (resultType) {
+case SUCCESS:
+      successfulCount=1;
+    break;
+case FAILURE:
+  failedCount=1;
+break;
+}
+}
+if (startEvent.getParentId() != null) {
+T parentState=executing.get(startEvent.getParentId());
+if (parentState != null) {
+if (isFailed()) {
+parentState.failedChild=true;
+}
+parentState.testCount+=testCount;
+parentState.successfulCount+=successfulCount;
+parentState.failedCount+=failedCount;
+}
+}
+}

@@ -1,0 +1,19 @@
+{
+  if (test instanceof JUnit4TestCaseFacade) {
+    JUnit4TestCaseFacade facade=(JUnit4TestCaseFacade)test;
+    Matcher matcher=Pattern.compile("(.*)\\((.*)\\)").matcher(facade.toString());
+    String className=facade.toString();
+    String methodName=null;
+    if (matcher.matches()) {
+      className=matcher.group(2);
+      methodName=matcher.group(1);
+    }
+    return new DefaultTestDescriptor(id,className,methodName);
+  }
+  if (test instanceof Describable) {
+    Describable describable=(Describable)test;
+    Description description=describable.getDescription();
+    return new DefaultTestDescriptor(id,description.getClassName(),description.getMethodName());
+  }
+  return super.convert(id,test);
+}
