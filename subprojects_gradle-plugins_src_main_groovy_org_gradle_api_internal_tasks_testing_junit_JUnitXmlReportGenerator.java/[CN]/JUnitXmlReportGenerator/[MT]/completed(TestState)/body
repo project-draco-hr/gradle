@@ -33,9 +33,15 @@
   if (state.equals(testSuite)) {
     File reportFile=new File(testResultsDir,"TEST-" + testClassName + ".xml");
     try {
-      transformer.transform(new DOMSource(testSuiteReport),new StreamResult(reportFile));
+      OutputStream outstr=new BufferedOutputStream(new FileOutputStream(reportFile));
+      try {
+        new DOMElementWriter(true).write(rootElement,outstr);
+      }
+  finally {
+        outstr.close();
+      }
     }
- catch (    TransformerException e) {
+ catch (    IOException e) {
       throw new GradleException(String.format("Could not write test report file '%s'.",reportFile),e);
     }
     testSuite=null;
