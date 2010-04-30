@@ -1,0 +1,28 @@
+{
+  final LoggingSystem.Snapshot snapshot=context.mock(LoggingSystem.Snapshot.class);
+  context.checking(new Expectations(){
+{
+      ignoring(loggingSystem);
+      one(stdOutLoggingSystem).off();
+      will(returnValue(snapshot));
+    }
+  }
+);
+  loggingManager.disableStandardOutputCapture();
+  loggingManager.start();
+  context.checking(new Expectations(){
+{
+      one(stdOutLoggingSystem).on(LogLevel.DEBUG);
+      will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
+    }
+  }
+);
+  loggingManager.captureStandardOutput(LogLevel.DEBUG);
+  context.checking(new Expectations(){
+{
+      one(stdOutLoggingSystem).restore(snapshot);
+    }
+  }
+);
+  loggingManager.stop();
+}

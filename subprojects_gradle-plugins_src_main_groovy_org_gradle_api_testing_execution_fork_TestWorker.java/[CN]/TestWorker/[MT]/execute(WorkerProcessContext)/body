@@ -3,7 +3,9 @@
   completed=new CountDownLatch(1);
   ObjectConnection serverConnection=workerProcessContext.getServerConnection();
   IdGenerator<Object> idGenerator=new CompositeIdGenerator(workerProcessContext.getWorkerId(),new LongIdGenerator());
-  TestClassProcessor targetProcessor=factory.create(idGenerator);
+  DefaultServiceRegistry testServices=new DefaultServiceRegistry();
+  testServices.add(IdGenerator.class,idGenerator);
+  TestClassProcessor targetProcessor=factory.create(testServices);
   targetProcessor=new WorkerTestClassProcessor(targetProcessor,idGenerator.generateId(),workerProcessContext.getDisplayName(),new TrueTimeProvider());
   ContextClassLoaderProxy<TestClassProcessor> proxy=new ContextClassLoaderProxy<TestClassProcessor>(TestClassProcessor.class,targetProcessor,workerProcessContext.getApplicationClassLoader());
   processor=proxy.getSource();

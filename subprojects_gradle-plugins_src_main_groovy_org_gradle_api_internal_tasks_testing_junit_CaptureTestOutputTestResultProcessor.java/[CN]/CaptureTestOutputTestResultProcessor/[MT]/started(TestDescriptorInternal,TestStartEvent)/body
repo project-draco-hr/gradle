@@ -1,18 +1,20 @@
 {
   processor.started(test,event);
+  if (suite != null) {
+    return;
+  }
   suite=test.getId();
-  out=System.out;
-  err=System.err;
-  System.setOut(new PrintStream(new LineBufferingOutputStream(){
-    @Override protected void writeLine(    String message) throws IOException {
-      processor.output(suite,new TestOutputEvent(TestOutputEvent.Destination.StdOut,String.format("%s%n",message)));
+  outputRedirector.redirectStandardOutputTo(new StandardOutputListener(){
+    public void onOutput(    CharSequence output){
+      processor.output(suite,new TestOutputEvent(TestOutputEvent.Destination.StdOut,output.toString()));
     }
   }
-));
-  System.setErr(new PrintStream(new LineBufferingOutputStream(){
-    @Override protected void writeLine(    String message) throws IOException {
-      processor.output(suite,new TestOutputEvent(TestOutputEvent.Destination.StdErr,String.format("%s%n",message)));
+);
+  outputRedirector.redirectStandardErrorTo(new StandardOutputListener(){
+    public void onOutput(    CharSequence output){
+      processor.output(suite,new TestOutputEvent(TestOutputEvent.Destination.StdErr,output.toString()));
     }
   }
-));
+);
+  outputRedirector.start();
 }
