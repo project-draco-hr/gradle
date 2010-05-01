@@ -2,14 +2,19 @@
   final WorkerProcessFactory workerFactory=getServices().get(WorkerProcessFactory.class);
   final TestFrameworkInstance testFrameworkInstance=getTestFramework();
   final WorkerTestClassProcessorFactory testInstanceFactory=testFrameworkInstance.getProcessorFactory();
-  TestClassProcessorFactory processorFactory=new TestClassProcessorFactory(){
+  final TestClassProcessorFactory forkingProcessorFactory=new TestClassProcessorFactory(){
     public TestClassProcessor create(){
       return new ForkingTestClassProcessor(workerFactory,testInstanceFactory,options,getClasspath(),testFrameworkInstance.getWorkerConfigurationAction());
     }
   }
 ;
-  Long forkEvery=getForkEvery();
-  TestClassProcessor processor=new RestartEveryNTestClassProcessor(processorFactory,forkEvery == null ? 0 : forkEvery);
+  TestClassProcessorFactory reforkingProcessorFactory=new TestClassProcessorFactory(){
+    public TestClassProcessor create(){
+      return new RestartEveryNTestClassProcessor(forkingProcessorFactory,getForkEvery());
+    }
+  }
+;
+  TestClassProcessor processor=new MaxNParallelTestClassProcessor(getMaxParallelForks(),reforkingProcessorFactory);
   TestSummaryListener listener=new TestSummaryListener(LoggerFactory.getLogger(Test.class));
   addTestListener(listener);
   TestResultProcessor resultProcessor=new TestListenerAdapter(getTestListenerBroadcaster().getSource());
