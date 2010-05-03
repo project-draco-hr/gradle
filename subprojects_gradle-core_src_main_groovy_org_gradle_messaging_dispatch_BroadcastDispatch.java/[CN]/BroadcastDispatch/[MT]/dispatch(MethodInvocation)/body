@@ -1,12 +1,13 @@
 {
   try {
-    Method method=invocation.getMethod();
-    dispatch(method,invocation.getArguments());
+    for (    Dispatch<MethodInvocation> handler : new ArrayList<Dispatch<MethodInvocation>>(handlers.values())) {
+      handler.dispatch(invocation);
+    }
   }
- catch (  ListenerNotificationException e) {
-    throw e;
+ catch (  UncheckedException e) {
+    throw new ListenerNotificationException(getErrorMessage(),e.getCause());
   }
-catch (  Throwable throwable) {
-    throw new GradleException(throwable);
+catch (  Throwable t) {
+    throw new ListenerNotificationException(getErrorMessage(),t);
   }
 }

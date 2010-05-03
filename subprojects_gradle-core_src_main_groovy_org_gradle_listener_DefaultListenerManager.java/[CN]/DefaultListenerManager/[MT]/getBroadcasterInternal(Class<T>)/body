@@ -1,9 +1,14 @@
 {
 synchronized (lock) {
-    ListenerBroadcast<T> broadcaster=broadcasterCache.get(listenerClass);
+    ListenerBroadcast<T> broadcaster=broadcasters.get(listenerClass);
     if (broadcaster == null) {
-      broadcaster=createBroadcaster(listenerClass);
-      broadcasterCache.put(listenerClass,broadcaster);
+      broadcaster=new ListenerBroadcast<T>(listenerClass);
+      broadcaster.add(getLogger(listenerClass));
+      broadcaster.add(getDispatcher(listenerClass));
+      if (parent != null) {
+        broadcaster.add(parent.getDispatcher(listenerClass));
+      }
+      broadcasters.put(listenerClass,broadcaster);
     }
     return broadcaster;
   }
