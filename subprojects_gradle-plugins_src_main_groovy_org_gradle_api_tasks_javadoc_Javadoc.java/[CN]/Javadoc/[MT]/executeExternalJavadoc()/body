@@ -1,19 +1,13 @@
 {
   javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(getOptionsFile());
-  final ExecHandle execHandle=javadocExecHandleBuilder.getExecHandle();
-switch (execHandle.startAndWaitForFinish()) {
-case SUCCEEDED:
-    break;
-case ABORTED:
-  throw new GradleException("Javadoc generation ended in aborted state (should not happen)." + execHandle.getState());
-case FAILED:
-if (failOnError) {
-  throw new GradleException("Javadoc generation failed.",execHandle.getFailureCause());
-}
- else {
-  break;
-}
-default :
-throw new GradleException("Javadoc generation ended in an unknown end state." + execHandle.getState());
-}
+  ExecAction execAction=javadocExecHandleBuilder.getExecHandle();
+  if (!failOnError) {
+    execAction.setIgnoreExitValue(true);
+  }
+  try {
+    execAction.execute();
+  }
+ catch (  ExecException e) {
+    throw new GradleException("Javadoc generation failed.",e);
+  }
 }
