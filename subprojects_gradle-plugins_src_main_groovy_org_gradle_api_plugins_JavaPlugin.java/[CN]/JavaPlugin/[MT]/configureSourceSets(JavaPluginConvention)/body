@@ -1,8 +1,13 @@
 {
-  Project project=pluginConvention.getProject();
+  final Project project=pluginConvention.getProject();
+  pluginConvention.getSourceSets().allObjects(new Action<SourceSet>(){
+    public void execute(    SourceSet sourceSet){
+      sourceSet.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
+      sourceSet.setRuntimeClasspath(sourceSet.getClasses().plus(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME)));
+    }
+  }
+);
   SourceSet main=pluginConvention.getSourceSets().add(SourceSet.MAIN_SOURCE_SET_NAME);
-  main.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
-  main.setRuntimeClasspath(main.getClasses().plus(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME)));
   SourceSet test=pluginConvention.getSourceSets().add(SourceSet.TEST_SOURCE_SET_NAME);
   test.setCompileClasspath(project.files(main.getClasses(),project.getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME)));
   test.setRuntimeClasspath(project.files(test.getClasses(),main.getClasses(),project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME)));
