@@ -1,0 +1,13 @@
+{
+  DefaultExecHandle execHandle=new DefaultExecHandle(tmpDir.getDir(),Jvm.current().getJavaExecutable().getAbsolutePath(),Arrays.asList("-cp",System.getProperty("java.class.path"),BrokenApp.class.getName()),0,System.getenv(),System.out,System.err,new ByteArrayInputStream(new byte[0]),null);
+  ExecResult result=execHandle.start().waitForFinish();
+  assertEquals(ExecHandleState.FAILED,execHandle.getState());
+  assertEquals(72,result.getExitValue());
+  try {
+    result.assertNormalExitValue();
+    fail();
+  }
+ catch (  ExecException e) {
+    assertEquals("Process finished with non-zero exit value.",e.getMessage());
+  }
+}

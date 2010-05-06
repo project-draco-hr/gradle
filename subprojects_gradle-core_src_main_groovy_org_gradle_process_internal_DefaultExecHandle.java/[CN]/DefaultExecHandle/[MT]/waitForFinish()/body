@@ -1,4 +1,26 @@
 {
   ThreadUtils.awaitTermination(threadPool);
-  return getState();
+  final int exitValue;
+  lock.lock();
+  try {
+    exitValue=exitCode;
+    if (failureCause != null) {
+      throw failureCause;
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+  return new ExecResult(){
+    public int getExitValue(){
+      return exitValue;
+    }
+    public ExecResult assertNormalExitValue() throws ExecException {
+      if (exitValue != 0) {
+        throw new ExecException("Process finished with non-zero exit value.");
+      }
+      return this;
+    }
+  }
+;
 }

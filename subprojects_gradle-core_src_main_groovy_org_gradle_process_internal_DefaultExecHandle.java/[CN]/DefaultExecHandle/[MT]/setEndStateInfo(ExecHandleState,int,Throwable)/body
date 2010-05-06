@@ -2,9 +2,16 @@
   ShutdownHookActionRegister.removeAction(shutdownHookAction);
   lock.lock();
   try {
+    if (failureCause != null) {
+      if (this.state == ExecHandleState.STARTING) {
+        this.failureCause=new ExecException(String.format("A problem occurred starting '%s'.",command),failureCause);
+      }
+ else {
+        this.failureCause=new ExecException(String.format("A problem occurred waiting for '%s' to complete.",command),failureCause);
+      }
+    }
     setState(state);
     this.exitCode=exitCode;
-    this.failureCause=failureCause;
   }
   finally {
     lock.unlock();

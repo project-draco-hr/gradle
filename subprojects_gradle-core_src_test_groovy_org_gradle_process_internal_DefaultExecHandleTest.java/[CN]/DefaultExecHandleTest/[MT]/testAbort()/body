@@ -1,10 +1,8 @@
 {
-  execHandle=new DefaultExecHandle(tmpDir,JavaEnvUtils.getJdkExecutable("javadoc"),Arrays.asList("-verbose","-d",new File("tmp/javadocTmpOut").getAbsolutePath(),"-sourcepath","src/main/groovy","org.gradle"),0,System.getenv(),System.out,System.err,new ByteArrayInputStream(new byte[0]),null);
+  DefaultExecHandle execHandle=new DefaultExecHandle(tmpDir.getDir(),Jvm.current().getJavaExecutable().getAbsolutePath(),Arrays.asList("-cp",System.getProperty("java.class.path"),SlowApp.class.getName()),0,System.getenv(),System.out,System.err,new ByteArrayInputStream(new byte[0]),null);
   execHandle.start();
   execHandle.abort();
-  final ExecHandleState endState=execHandle.waitForFinish();
-  if (endState == ExecHandleState.FAILED) {
-    execHandle.getFailureCause().printStackTrace();
-  }
-  assertEquals(ExecHandleState.ABORTED,endState);
+  ExecResult result=execHandle.waitForFinish();
+  assertEquals(ExecHandleState.ABORTED,execHandle.getState());
+  assertThat(result.getExitValue(),not(equalTo(0)));
 }
