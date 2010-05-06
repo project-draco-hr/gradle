@@ -4,7 +4,10 @@
   }
   try {
     SocketChannel socketChannel;
-    socketChannel=SocketChannel.open(new InetSocketAddress(InetAddress.getByName(null),destinationUri.getPort()));
+    InetAddress loopBackAddress=InetAddress.getByName(null);
+    LOGGER.debug("Connecting to address {}.",loopBackAddress);
+    LOGGER.debug("Using interface {}.",NetworkInterface.getByInetAddress(loopBackAddress));
+    socketChannel=SocketChannel.open(new InetSocketAddress(loopBackAddress,destinationUri.getPort()));
     URI localAddress=new URI(String.format("tcp://localhost:%d",socketChannel.socket().getLocalPort()));
     return new SocketConnection(socketChannel,localAddress,destinationUri,classLoader);
   }
