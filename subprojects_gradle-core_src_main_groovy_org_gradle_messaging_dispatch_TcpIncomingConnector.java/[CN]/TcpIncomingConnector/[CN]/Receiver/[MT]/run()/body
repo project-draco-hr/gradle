@@ -2,8 +2,13 @@
   try {
     while (true) {
       SocketChannel socket=serverSocket.accept();
-      URI remoteAddress=new URI(String.format("tcp://localhost:%d",((InetSocketAddress)socket.socket().getRemoteSocketAddress()).getPort()));
-      action.execute(new SocketConnection(socket,localAddress,remoteAddress,classLoader));
+      InetSocketAddress remoteAddress=(InetSocketAddress)socket.socket().getRemoteSocketAddress();
+      if (!localAddresses.contains(remoteAddress.getAddress())) {
+        LOGGER.error("Cannot accept connection from remote address {}.",remoteAddress.getAddress());
+      }
+      URI remoteUri=new URI(String.format("tcp://localhost:%d",remoteAddress.getPort()));
+      LOGGER.debug("Accepted connection from {}.",remoteUri);
+      action.execute(new SocketConnection(socket,localAddress,remoteUri,classLoader));
     }
   }
  catch (  AsynchronousCloseException e) {
