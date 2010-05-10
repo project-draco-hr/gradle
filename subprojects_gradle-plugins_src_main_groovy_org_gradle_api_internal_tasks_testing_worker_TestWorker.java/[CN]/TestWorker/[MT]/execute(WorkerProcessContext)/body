@@ -9,16 +9,13 @@
   targetProcessor=new WorkerTestClassProcessor(targetProcessor,idGenerator.generateId(),workerProcessContext.getDisplayName(),new TrueTimeProvider());
   ContextClassLoaderProxy<TestClassProcessor> proxy=new ContextClassLoaderProxy<TestClassProcessor>(TestClassProcessor.class,targetProcessor,workerProcessContext.getApplicationClassLoader());
   processor=proxy.getSource();
-  TestResultProcessor resultProcessor=serverConnection.addOutgoing(TestResultProcessor.class);
-  resultProcessor=new AttachParentTestResultProcessor(resultProcessor);
-  ThreadSafeProxy<TestResultProcessor> resultProcessorProxy=new ThreadSafeProxy<TestResultProcessor>(TestResultProcessor.class,resultProcessor);
-  this.resultProcessor=resultProcessorProxy.getSource();
+  this.resultProcessor=serverConnection.addOutgoing(TestResultProcessor.class);
   serverConnection.addIncoming(RemoteTestClassProcessor.class,this);
   try {
     completed.await();
   }
  catch (  InterruptedException e) {
-    throw new GradleException(e);
+    throw new UncheckedException(e);
   }
   LOGGER.info("{} finished executing tests.",workerProcessContext.getDisplayName());
 }
