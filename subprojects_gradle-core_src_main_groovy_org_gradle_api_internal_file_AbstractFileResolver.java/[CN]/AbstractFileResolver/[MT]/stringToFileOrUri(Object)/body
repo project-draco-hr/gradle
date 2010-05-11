@@ -2,6 +2,14 @@
   if (path instanceof File) {
     return path;
   }
+  if (path instanceof URL) {
+    try {
+      path=((URL)path).toURI();
+    }
+ catch (    URISyntaxException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
   if (path instanceof URI) {
     URI uri=(URI)path;
     if (uri.getScheme().equals("file")) {
@@ -11,7 +19,7 @@
   }
   String str=path.toString();
   if (str.startsWith("file:")) {
-    return new File(str.substring(5));
+    return new File(uriDecode(str.substring(5)));
   }
   for (  File file : File.listRoots()) {
     String rootPath=file.getAbsolutePath();
@@ -29,7 +37,7 @@
       return new URI(str);
     }
  catch (    URISyntaxException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
   return new File(str);
