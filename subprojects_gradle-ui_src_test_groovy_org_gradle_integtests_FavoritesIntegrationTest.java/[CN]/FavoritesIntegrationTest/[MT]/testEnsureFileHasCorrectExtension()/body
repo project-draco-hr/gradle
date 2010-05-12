@@ -2,13 +2,11 @@
   FavoritesEditor originalEditor=new FavoritesEditor();
   Assert.assertTrue(originalEditor.getFavoriteTasks().isEmpty());
   FavoriteTask favoriteTask1=originalEditor.addFavorite(mySubProject1Comple,true);
-  File incorrectFile=TestUtility.createTemporaryFile("fred",".wrong");
-  incorrectFile.deleteOnExit();
+  File incorrectFile=tempDir.createFile("fred.wrong");
   File correctFile=new File(incorrectFile.getParentFile(),incorrectFile.getName() + ".favorite-tasks");
   if (correctFile.exists()) {
     throw new AssertionFailedError("'correct' file already exists. This means this test WILL succeed but perhaps not for the correct reasons.");
   }
-  correctFile.deleteOnExit();
   originalEditor.exportToFile(new TestUtility.TestExportInteraction(incorrectFile,true));
   if (!correctFile.exists()) {
     throw new AssertionFailedError("failed to correct the file name. Expected it to be saved to '" + correctFile.getAbsolutePath() + "'");
