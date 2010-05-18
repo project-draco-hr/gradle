@@ -1,9 +1,18 @@
 {
   if (method.getName().equals("equals")) {
-    return parameters[0] != null && Proxy.isProxyClass(parameters[0].getClass()) && Proxy.getInvocationHandler(parameters[0]) == this;
+    Object parameter=parameters[0];
+    if (parameter == null || !Proxy.isProxyClass(parameter.getClass())) {
+      return false;
+    }
+    Object handler=Proxy.getInvocationHandler(parameter);
+    if (!DispatchingInvocationHandler.class.isInstance(handler)) {
+      return false;
+    }
+    DispatchingInvocationHandler otherHandler=(DispatchingInvocationHandler)handler;
+    return otherHandler.type.equals(type) && otherHandler.dispatch == dispatch;
   }
   if (method.getName().equals("hashCode")) {
-    return hashCode();
+    return dispatch.hashCode();
   }
   if (method.getName().equals("toString")) {
     return String.format("%s broadcast",type.getSimpleName());
