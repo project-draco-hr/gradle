@@ -1,5 +1,12 @@
 {
-  for (  AsyncDispatch<Message> queue : incomingQueues.values()) {
-    queue.stop();
+  Stoppable stopper;
+  queueLock.lock();
+  try {
+    stopper=new CompositeStoppable(incomingQueues.values());
+    incomingQueues.clear();
   }
+  finally {
+    queueLock.unlock();
+  }
+  stopper.stop();
 }
