@@ -1,0 +1,23 @@
+{
+  if (Thread.currentThread() == thread) {
+    throw new RuntimeException("A test thread cannot wait for itself to complete.");
+  }
+  lock.lock();
+  try {
+    while (active.contains(thread)) {
+      try {
+        boolean signalled=condition.awaitUntil(expiry);
+        if (!signalled) {
+          return false;
+        }
+      }
+ catch (      InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+  return true;
+}

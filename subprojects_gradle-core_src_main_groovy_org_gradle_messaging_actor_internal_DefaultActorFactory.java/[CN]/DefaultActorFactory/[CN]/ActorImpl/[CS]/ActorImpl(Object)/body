@@ -1,4 +1,5 @@
 {
-  syncDispatch=new ExceptionTrackingDispatch<MethodInvocation>(new ReflectionDispatch(targetObject),Logging.getLogger(ActorImpl.class));
-  dispatch=new AsyncDispatch<MethodInvocation>(executor,syncDispatch);
+  executor=executorFactory.create(String.format("Dispatch %s",targetObject));
+  exceptionListener=new ExceptionTrackingListener(Logging.getLogger(ActorImpl.class));
+  dispatch=new AsyncDispatch<MethodInvocation>(executor,new ExceptionTrackingDispatch<MethodInvocation>(new ReflectionDispatch(targetObject),exceptionListener));
 }
