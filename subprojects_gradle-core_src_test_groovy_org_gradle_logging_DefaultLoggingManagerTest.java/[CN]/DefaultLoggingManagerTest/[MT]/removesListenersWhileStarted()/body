@@ -1,0 +1,25 @@
+{
+  final StandardOutputListener stdoutListener=context.mock(StandardOutputListener.class);
+  final StandardOutputListener stderrListener=context.mock(StandardOutputListener.class);
+  loggingManager.addStandardOutputListener(stdoutListener);
+  loggingManager.addStandardErrorListener(stderrListener);
+  context.checking(new Expectations(){
+{
+      ignoring(loggingSystem);
+      ignoring(stdOutLoggingSystem);
+      one(loggingOutput).addStandardOutputListener(stdoutListener);
+      one(loggingOutput).addStandardErrorListener(stderrListener);
+    }
+  }
+);
+  loggingManager.start();
+  context.checking(new Expectations(){
+{
+      one(loggingOutput).removeStandardOutputListener(stdoutListener);
+      one(loggingOutput).removeStandardErrorListener(stderrListener);
+    }
+  }
+);
+  loggingManager.removeStandardOutputListener(stdoutListener);
+  loggingManager.removeStandardErrorListener(stderrListener);
+}

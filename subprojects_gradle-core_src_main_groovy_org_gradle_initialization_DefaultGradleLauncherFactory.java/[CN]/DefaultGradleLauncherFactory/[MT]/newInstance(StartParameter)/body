@@ -3,11 +3,11 @@
   ListenerManager listenerManager=serviceRegistry.get(ListenerManager.class);
   LoggingManager loggingManager=serviceRegistry.get(LoggingManagerFactory.class).create();
   loggingManager.setLevel(startParameter.getLogLevel());
-  loggingConfigurer.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
-  loggingConfigurer.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
+  loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
+  loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
   listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));
   listenerManager.addListener(tracker);
   listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
   DefaultGradle gradle=new DefaultGradle(tracker.getCurrentBuild(),startParameter,serviceRegistry);
-  return new DefaultGradleLauncher(gradle,serviceRegistry.get(InitScriptHandler.class),new SettingsHandler(new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy()))),serviceRegistry.get(SettingsProcessor.class),new BuildSourceBuilder(this,new DefaultCacheInvalidationStrategy(),serviceRegistry.get(ClassLoaderFactory.class),serviceRegistry.get(CacheRepository.class),serviceRegistry.get(TimeProvider.class))),new DefaultGradlePropertiesLoader(),new BuildLoader(serviceRegistry.get(IProjectFactory.class)),new BuildConfigurer(new ProjectDependencies2TaskResolver()),loggingConfigurer,gradle.getBuildListenerBroadcaster(),serviceRegistry.get(ExceptionAnalyser.class),loggingManager);
+  return new DefaultGradleLauncher(gradle,serviceRegistry.get(InitScriptHandler.class),new SettingsHandler(new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy()))),serviceRegistry.get(SettingsProcessor.class),new BuildSourceBuilder(this,new DefaultCacheInvalidationStrategy(),serviceRegistry.get(ClassLoaderFactory.class),serviceRegistry.get(CacheRepository.class),serviceRegistry.get(TimeProvider.class))),new DefaultGradlePropertiesLoader(),new BuildLoader(serviceRegistry.get(IProjectFactory.class)),new BuildConfigurer(new ProjectDependencies2TaskResolver()),gradle.getBuildListenerBroadcaster(),serviceRegistry.get(ExceptionAnalyser.class),loggingManager);
 }
