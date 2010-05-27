@@ -1,6 +1,9 @@
 {
-  if (cl.getClassLoader() == null || SYSTEM_CLASS_LOADERS.contains(cl.getClassLoader())) {
-    return true;
+  boolean systemClass=AccessController.doPrivileged(new PrivilegedAction<Boolean>(){
+    public Boolean run(){
+      return cl.getClassLoader() == null || SYSTEM_CLASS_LOADERS.contains(cl.getClassLoader());
+    }
   }
-  return classAllowed(cl.getName());
+);
+  return systemClass || classAllowed(cl.getName());
 }
