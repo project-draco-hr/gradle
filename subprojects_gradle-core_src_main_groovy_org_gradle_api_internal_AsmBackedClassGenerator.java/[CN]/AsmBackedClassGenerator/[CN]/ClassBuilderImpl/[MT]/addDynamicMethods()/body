@@ -25,12 +25,27 @@
   addGetter(GroovyObject.class.getDeclaredMethod("invokeMethod",String.class,Object.class),new MethodCodeBody(){
     public void add(    MethodVisitor methodVisitor) throws Exception {
       String invokeMethodDesc=Type.getMethodDescriptor(Type.getType(Object.class),new Type[]{Type.getType(String.class),Type.getType(Object[].class)});
+      String objArrayDesc=Type.getType(Object[].class).getDescriptor();
       methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
       String getAsDynamicObjectDesc=Type.getMethodDescriptor(DynamicObjectAware.class.getDeclaredMethod("getAsDynamicObject"));
       methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getAsDynamicObject",getAsDynamicObjectDesc);
       methodVisitor.visitVarInsn(Opcodes.ALOAD,1);
       methodVisitor.visitVarInsn(Opcodes.ALOAD,2);
-      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,Type.getType(Object[].class).getDescriptor());
+      methodVisitor.visitTypeInsn(Opcodes.INSTANCEOF,objArrayDesc);
+      Label end=new Label();
+      Label notArray=new Label();
+      methodVisitor.visitJumpInsn(Opcodes.IFEQ,notArray);
+      methodVisitor.visitVarInsn(Opcodes.ALOAD,2);
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,objArrayDesc);
+      methodVisitor.visitJumpInsn(Opcodes.GOTO,end);
+      methodVisitor.visitLabel(notArray);
+      methodVisitor.visitInsn(Opcodes.ICONST_1);
+      methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY,Type.getType(Object.class).getInternalName());
+      methodVisitor.visitInsn(Opcodes.DUP);
+      methodVisitor.visitInsn(Opcodes.ICONST_0);
+      methodVisitor.visitVarInsn(Opcodes.ALOAD,2);
+      methodVisitor.visitInsn(Opcodes.AASTORE);
+      methodVisitor.visitLabel(end);
       methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,dynamicObjectType.getInternalName(),"invokeMethod",invokeMethodDesc);
     }
   }
