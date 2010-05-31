@@ -2,17 +2,19 @@
   ProcessBuilder processBuilder=processBuilderFactory.createProcessBuilder(execHandle);
   int exitCode;
   try {
-    Process process=processBuilder.start();
-    lock.lock();
-    try {
+    ExecOutputHandleRunner standardOutputRunner;
+    ExecOutputHandleRunner errorOutputRunner;
+    ExecOutputHandleRunner standardInputRunner;
+    Process process;
+synchronized (START_LOCK) {
+      process=processBuilder.start();
+      standardOutputRunner=new ExecOutputHandleRunner("read process standard output",process.getInputStream(),execHandle.getStandardOutput());
+      errorOutputRunner=new ExecOutputHandleRunner("read process error output",process.getErrorStream(),execHandle.getErrorOutput());
+      standardInputRunner=new ExecOutputHandleRunner("write process standard input",execHandle.getStandardInput(),process.getOutputStream());
+    }
+synchronized (lock) {
       this.process=process;
     }
-  finally {
-      lock.unlock();
-    }
-    ExecOutputHandleRunner standardOutputRunner=new ExecOutputHandleRunner("read process standard output",process.getInputStream(),execHandle.getStandardOutput());
-    ExecOutputHandleRunner errorOutputRunner=new ExecOutputHandleRunner("read process error output",process.getErrorStream(),execHandle.getErrorOutput());
-    ExecOutputHandleRunner standardInputRunner=new ExecOutputHandleRunner("write process standard input",execHandle.getStandardInput(),process.getOutputStream());
     threadPool.execute(standardInputRunner);
     threadPool.execute(standardOutputRunner);
     threadPool.execute(errorOutputRunner);
