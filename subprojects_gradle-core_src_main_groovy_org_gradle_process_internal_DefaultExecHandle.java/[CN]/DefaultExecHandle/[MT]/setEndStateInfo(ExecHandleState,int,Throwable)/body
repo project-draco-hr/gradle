@@ -4,10 +4,10 @@
   try {
     if (failureCause != null) {
       if (this.state == ExecHandleState.STARTING) {
-        this.failureCause=new ExecException(String.format("A problem occurred starting command '%s'.",command),failureCause);
+        this.failureCause=new ExecException(String.format("A problem occurred starting %s.",displayName),failureCause);
       }
  else {
-        this.failureCause=new ExecException(String.format("A problem occurred waiting for command '%s' to complete.",command),failureCause);
+        this.failureCause=new ExecException(String.format("A problem occurred waiting for %s to complete.",displayName),failureCause);
       }
     }
     setState(state);
@@ -16,6 +16,7 @@
   finally {
     lock.unlock();
   }
+  LOGGER.debug("Process finished for {}.",displayName);
   broadcast.getSource().executionFinished(this);
   broadcast.stop();
   executor.requestStop();
