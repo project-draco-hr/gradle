@@ -1,0 +1,29 @@
+{
+  try {
+    waitForState(State.Blocked);
+    ThreadHandle thread=getBlockingThread();
+    if (thread.isCurrentThread()) {
+      throw new IllegalStateException("The blocking thread cannot unblock itself.");
+    }
+    setState(State.Blocked,State.Unblocking);
+    try {
+      thread.waitUntilBlocked();
+      action.call();
+      boolean completed=thread.waitUntil(new Date(System.currentTimeMillis() + 500L));
+      if (!completed) {
+        throw new IllegalStateException("Expected blocking action to unblock, but it did not.");
+      }
+      setState(State.Unblocking,State.Unblocked);
+    }
+ catch (    Throwable e) {
+      setState(State.Unblocking,State.Failed);
+      throw UncheckedException.asUncheckedException(e);
+    }
+ finally {
+      setBlockingThread(null);
+    }
+  }
+ catch (  InterruptedException e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+}

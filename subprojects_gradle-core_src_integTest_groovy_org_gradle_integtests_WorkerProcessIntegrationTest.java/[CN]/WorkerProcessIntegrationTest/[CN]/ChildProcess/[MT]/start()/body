@@ -9,8 +9,15 @@
     builder.getJavaCommand().setMain(mainClass);
   }
   proc=builder.build();
+  try {
+    proc.start();
+    assertFalse(startFails);
+  }
+ catch (  ExecException e) {
+    assertTrue(startFails);
+    return;
+  }
   proc.getConnection().addIncoming(TestListenerInterface.class,exceptionListener);
-  proc.start();
   if (serverAction != null) {
     serverAction.execute(proc.getConnection());
   }

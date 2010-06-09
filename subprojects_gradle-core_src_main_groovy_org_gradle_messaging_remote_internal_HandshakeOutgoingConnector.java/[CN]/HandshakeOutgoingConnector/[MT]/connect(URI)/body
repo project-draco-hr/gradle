@@ -1,0 +1,15 @@
+{
+  if (!destinationAddress.getScheme().equals("channel")) {
+    throw new IllegalArgumentException(String.format("Cannot create a connection to destination URI with unknown scheme: %s.",destinationAddress));
+  }
+  URI connectionAddress=toConnectionAddress(destinationAddress);
+  Connection<Message> connection=connector.connect(connectionAddress);
+  try {
+    connection.dispatch(new ConnectRequest(destinationAddress));
+  }
+ catch (  Throwable e) {
+    connection.stop();
+    throw UncheckedException.asUncheckedException(e);
+  }
+  return connection;
+}

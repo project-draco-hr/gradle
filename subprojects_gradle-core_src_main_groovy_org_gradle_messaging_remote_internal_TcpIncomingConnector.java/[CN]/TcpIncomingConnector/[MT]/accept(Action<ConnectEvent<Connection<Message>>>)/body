@@ -1,0 +1,16 @@
+{
+  ServerSocketChannel serverSocket;
+  URI localAddress;
+  try {
+    serverSocket=ServerSocketChannel.open();
+    serverSockets.add(serverSocket);
+    serverSocket.socket().bind(new InetSocketAddress(0));
+    localAddress=new URI(String.format("tcp://localhost:%d",serverSocket.socket().getLocalPort()));
+    LOGGER.debug("Listening on {}.",localAddress);
+  }
+ catch (  Exception e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+  executor.execute(new Receiver(serverSocket,localAddress,action));
+  return localAddress;
+}

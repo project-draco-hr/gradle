@@ -1,3 +1,15 @@
 {
-  return execHandle.waitForFinish().assertNormalExitValue();
+  ExecResult result=execHandle.waitForFinish();
+  ObjectConnection connection;
+  lock.lock();
+  try {
+    connection=this.connection;
+  }
+  finally {
+    lock.unlock();
+  }
+  if (connection != null) {
+    connection.stop();
+  }
+  return result.assertNormalExitValue();
 }

@@ -10,12 +10,13 @@
       while (!active.isEmpty()) {
         boolean signaled=condition.awaitUntil(expiry);
         if (!signaled) {
-          throw new RuntimeException("Timeout waiting for threads to finish.");
+          failures.add(new RuntimeException("Timeout waiting for threads to finish."));
+          break;
         }
       }
     }
  catch (    InterruptedException e) {
-      throw new RuntimeException(e);
+      throw UncheckedException.asUncheckedException(e);
     }
     LOGGER.debug("All test threads complete.");
     if (!failures.isEmpty()) {

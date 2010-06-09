@@ -1,23 +1,26 @@
 {
   ShutdownHookActionRegister.removeAction(shutdownHookAction);
+  ExecResultImpl result;
   lock.lock();
   try {
+    ExecException wrappedException=null;
     if (failureCause != null) {
       if (this.state == ExecHandleState.STARTING) {
-        this.failureCause=new ExecException(String.format("A problem occurred starting %s.",displayName),failureCause);
+        wrappedException=new ExecException(String.format("A problem occurred starting %s.",displayName),failureCause);
       }
  else {
-        this.failureCause=new ExecException(String.format("A problem occurred waiting for %s to complete.",displayName),failureCause);
+        wrappedException=new ExecException(String.format("A problem occurred waiting for %s to complete.",displayName),failureCause);
       }
     }
     setState(state);
-    this.exitCode=exitCode;
+    execResult=new ExecResultImpl(exitCode,wrappedException);
+    result=execResult;
   }
   finally {
     lock.unlock();
   }
   LOGGER.debug("Process finished for {}.",displayName);
-  broadcast.getSource().executionFinished(this);
+  broadcast.getSource().executionFinished(this,result);
   broadcast.stop();
   executor.requestStop();
 }

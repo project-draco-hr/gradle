@@ -2,16 +2,17 @@
   if (getWorker() == null) {
     throw new IllegalStateException("No worker action specified for this worker process.");
   }
-  ObjectConnection connection=server.createUnicastConnection();
+  final DefaultWorkerProcess workerProcess=new DefaultWorkerProcess();
+  URI localAddress=server.accept(workerProcess.getConnectAction());
   List<URL> implementationClassPath=ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
   Object id=idGenerator.generateId();
   String displayName=String.format("Gradle Worker %s",id);
   WorkerFactory workerFactory;
   if (isLoadApplicationInSystemClassLoader()) {
-    workerFactory=new ApplicationClassesInSystemClassLoaderWorkerFactory(id,displayName,this,implementationClassPath,connection.getLocalAddress(),classPathRegistry);
+    workerFactory=new ApplicationClassesInSystemClassLoaderWorkerFactory(id,displayName,this,implementationClassPath,localAddress,classPathRegistry);
   }
  else {
-    workerFactory=new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id,displayName,this,implementationClassPath,connection.getLocalAddress(),classPathRegistry);
+    workerFactory=new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id,displayName,this,implementationClassPath,localAddress,classPathRegistry);
   }
   Callable<?> workerMain=workerFactory.create();
   getJavaCommand().classpath(workerFactory.getSystemClasspath());
@@ -22,5 +23,6 @@
   getJavaCommand().setStandardInput(new ByteArrayInputStream(config));
   getJavaCommand().setDisplayName(displayName);
   ExecHandle execHandle=getJavaCommand().build();
-  return new DefaultWorkerProcess(connection,execHandle);
+  workerProcess.setExecHandle(execHandle);
+  return workerProcess;
 }

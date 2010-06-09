@@ -1,26 +1,11 @@
 {
   executor.stop();
-  final int exitValue;
   lock.lock();
   try {
-    exitValue=exitCode;
-    if (failureCause != null) {
-      throw failureCause;
-    }
+    execResult.rethrowFailure();
+    return execResult;
   }
   finally {
     lock.unlock();
   }
-  return new ExecResult(){
-    public int getExitValue(){
-      return exitValue;
-    }
-    public ExecResult assertNormalExitValue() throws ExecException {
-      if (exitValue != 0) {
-        throw new ExecException(String.format("%s finished with non-zero exit value.",StringUtils.capitalize(displayName)));
-      }
-      return this;
-    }
-  }
-;
 }

@@ -1,0 +1,16 @@
+{
+  Date expiry=new Date(System.currentTimeMillis() + 4000L);
+  Collection<State> expectedStates=Arrays.asList(states);
+  lock.lock();
+  try {
+    while (!expectedStates.contains(state)) {
+      if (!condition.awaitUntil(expiry)) {
+        throw new IllegalStateException(String.format("Timeout waiting for one of: %s",expectedStates));
+      }
+    }
+    return state;
+  }
+  finally {
+    lock.unlock();
+  }
+}

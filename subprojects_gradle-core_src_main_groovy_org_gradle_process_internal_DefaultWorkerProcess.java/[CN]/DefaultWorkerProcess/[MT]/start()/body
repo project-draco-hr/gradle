@@ -1,3 +1,33 @@
 {
+  lock.lock();
+  try {
+    running=true;
+  }
+  finally {
+    lock.unlock();
+  }
   execHandle.start();
+  Date connectExpiry=new Date(System.currentTimeMillis() + connectTimeout);
+  lock.lock();
+  try {
+    while (connection == null && running) {
+      try {
+        if (!condition.awaitUntil(connectExpiry)) {
+          throw new ExecException(String.format("Timeout waiting for %s to connect.",execHandle));
+        }
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.asUncheckedException(e);
+      }
+    }
+    if (processFailure != null) {
+      throw UncheckedException.asUncheckedException(processFailure);
+    }
+    if (connection == null) {
+      throw new ExecException(String.format("Never received a connection from %s.",execHandle));
+    }
+  }
+  finally {
+    lock.unlock();
+  }
 }

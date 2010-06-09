@@ -1,0 +1,31 @@
+{
+  final Set<File> processClassPath=Collections.singleton(new File("something.jar"));
+  context.checking(new Expectations(){
+{
+      one(classPathRegistry).getClassPathFiles("WORKER_PROCESS");
+      will(returnValue(processClassPath));
+      ignoring(fileResolver);
+    }
+  }
+);
+  WorkerProcessBuilder builder=factory.newProcess();
+  assertThat(builder.getJavaCommand().getMain(),equalTo(GradleWorkerMain.class.getName()));
+  assertThat(builder.getLogLevel(),equalTo(LogLevel.LIFECYCLE));
+  builder.worker(new TestAction());
+  builder.applicationClasspath(Arrays.asList(new File("app.jar")));
+  builder.sharedPackages("package1","package2");
+  final URI serverAddress=new URI("test:something");
+  context.checking(new Expectations(){
+{
+      one(messagingServer).accept(with(notNullValue(Action.class)));
+      will(returnValue(serverAddress));
+      one(idGenerator).generateId();
+      will(returnValue("<id>"));
+    }
+  }
+);
+  WorkerProcess process=builder.build();
+  assertThat(process,instanceOf(DefaultWorkerProcess.class));
+  ObjectInputStream instr=new ObjectInputStream(builder.getJavaCommand().getStandardInput());
+  assertThat(instr.readObject(),instanceOf(IsolatedApplicationClassLoaderWorker.class));
+}
