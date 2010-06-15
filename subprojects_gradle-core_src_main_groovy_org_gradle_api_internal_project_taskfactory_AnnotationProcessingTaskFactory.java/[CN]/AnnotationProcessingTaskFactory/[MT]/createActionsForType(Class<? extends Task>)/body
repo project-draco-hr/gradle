@@ -1,22 +1,6 @@
 {
   List<Action<Task>> actions=new ArrayList<Action<Task>>();
-  Validator validator=new Validator();
-  for (Class current=type; current != null; current=current.getSuperclass()) {
-    for (    Method method : current.getDeclaredMethods()) {
-      attachTaskAction(method,actions);
-      if (!isGetter(method)) {
-        continue;
-      }
-      final String propertyName=StringUtils.uncapitalize(method.getName().substring(3));
-      PropertyInfo propertyInfo=new PropertyInfo(propertyName,method);
-      attachValidationActions(propertyInfo);
-      if (propertyInfo.required) {
-        validator.properties.add(propertyInfo);
-      }
-    }
-  }
-  if (!validator.properties.isEmpty()) {
-    actions.add(validator);
-  }
+  findTaskAction(type,actions);
+  findProperties(type,actions);
   return actions;
 }

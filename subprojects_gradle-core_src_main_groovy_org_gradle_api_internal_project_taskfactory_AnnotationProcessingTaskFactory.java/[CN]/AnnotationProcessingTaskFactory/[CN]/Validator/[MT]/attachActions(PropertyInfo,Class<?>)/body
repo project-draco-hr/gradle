@@ -1,0 +1,19 @@
+{
+  if (type.getSuperclass() != null) {
+    attachActions(parent,type.getSuperclass());
+  }
+  for (  Method method : type.getDeclaredMethods()) {
+    if (!isGetter(method)) {
+      continue;
+    }
+    String propertyName=StringUtils.uncapitalize(method.getName().substring(3));
+    if (parent != null) {
+      propertyName=parent.getName() + '.' + propertyName;
+    }
+    PropertyInfo propertyInfo=new PropertyInfo(this,parent,propertyName,method);
+    attachValidationActions(propertyInfo);
+    if (propertyInfo.required) {
+      properties.add(propertyInfo);
+    }
+  }
+}

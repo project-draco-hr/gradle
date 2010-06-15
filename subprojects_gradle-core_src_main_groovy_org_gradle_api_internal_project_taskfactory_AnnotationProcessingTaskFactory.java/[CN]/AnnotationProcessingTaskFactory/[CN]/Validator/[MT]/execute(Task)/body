@@ -1,20 +1,17 @@
 {
   try {
-    Map<PropertyInfo,Object> propertyValues=new HashMap<PropertyInfo,Object>();
+    List<PropertyValue> propertyValues=new ArrayList<PropertyValue>();
     for (    PropertyInfo property : properties) {
-      propertyValues.put(property,ReflectionUtil.invoke(task,property.method.getName(),new Object[0]));
+      propertyValues.add(property.getValue(task));
     }
-    for (    PropertyInfo property : properties) {
-      property.notNullValidator.validate(property.propertyName,propertyValues.get(property));
+    for (    PropertyValue propertyValue : propertyValues) {
+      propertyValue.checkNotNull();
     }
-    for (    PropertyInfo property : properties) {
-      property.skipAction.validate(property.propertyName,propertyValues.get(property));
+    for (    PropertyValue propertyValue : propertyValues) {
+      propertyValue.checkSkip();
     }
-    for (    PropertyInfo property : properties) {
-      Object value=propertyValues.get(property);
-      if (value != null) {
-        property.validationAction.validate(property.propertyName,value);
-      }
+    for (    PropertyValue propertyValue : propertyValues) {
+      propertyValue.checkValid();
     }
   }
  catch (  InvalidUserDataException e) {
