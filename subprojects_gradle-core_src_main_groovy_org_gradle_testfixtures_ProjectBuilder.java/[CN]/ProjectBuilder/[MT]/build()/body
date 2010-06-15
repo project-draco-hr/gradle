@@ -10,12 +10,10 @@
       throw new UncheckedIOException(e);
     }
   }
-  File homeDir=new File(projectDir,"gradleHome");
-  GFileUtils.touch(new File(homeDir,"gradle-imports"));
+  final File homeDir=new File(projectDir,"gradleHome");
   StartParameter startParameter=new StartParameter();
-  startParameter.setGradleHomeDir(homeDir);
   startParameter.setGradleUserHomeDir(new File(projectDir,"userHome"));
-  TopLevelBuildServiceRegistry topLevelRegistry=new TopLevelBuildServiceRegistry(GLOBAL_SERVICES,startParameter);
+  ServiceRegistryFactory topLevelRegistry=new TestTopLevelBuildServiceRegistry(startParameter,homeDir);
   GradleInternal gradle=new DefaultGradle(null,startParameter,topLevelRegistry);
   DefaultProjectDescriptor projectDescriptor=new DefaultProjectDescriptor(null,"test",projectDir,new DefaultProjectDescriptorRegistry());
   ProjectInternal project=topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor,null,gradle);
