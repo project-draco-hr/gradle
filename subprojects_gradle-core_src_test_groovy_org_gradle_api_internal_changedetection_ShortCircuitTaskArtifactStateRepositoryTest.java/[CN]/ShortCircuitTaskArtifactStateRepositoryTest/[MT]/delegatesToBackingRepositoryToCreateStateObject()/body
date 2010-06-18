@@ -2,11 +2,15 @@
   expectTaskStateCreated();
   TaskArtifactState state=repository.getStateFor(task);
   assertNotNull(state);
+  final FileCollection outputFiles=context.mock(FileCollection.class);
   context.checking(new Expectations(){
 {
+      one(taskArtifactState).getOutputFiles();
+      will(returnValue(outputFiles));
       one(taskArtifactState).update();
     }
   }
 );
+  assertThat(state.getOutputFiles(),sameInstance(outputFiles));
   state.update();
 }

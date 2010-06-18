@@ -1,14 +1,23 @@
 {
   context.checking(new Expectations(){
 {
+      Sequence sequence=context.sequence("seq");
       one(repository).getStateFor(task);
       will(returnValue(taskArtifactState));
+      inSequence(sequence);
       one(taskArtifactState).isUpToDate();
       will(returnValue(false));
+      inSequence(sequence);
+      one(outputs).setHistory(taskArtifactState);
+      inSequence(sequence);
       one(delegate).execute(task,taskState);
+      inSequence(sequence);
       allowing(taskState).getFailure();
       will(returnValue(null));
       one(taskArtifactState).update();
+      inSequence(sequence);
+      one(outputs).setHistory(null);
+      inSequence(sequence);
     }
   }
 );
