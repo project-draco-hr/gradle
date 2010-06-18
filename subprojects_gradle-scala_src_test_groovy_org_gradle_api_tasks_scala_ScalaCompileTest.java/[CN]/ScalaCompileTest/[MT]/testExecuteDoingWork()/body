@@ -2,14 +2,24 @@
   setUpMocksAndAttributes(scalaCompile);
   context.checking(new Expectations(){
 {
-      one(antScalaCompileMock).execute(with(hasSameItems(scalaCompile.getSource())),with(equalTo(scalaCompile.getDestinationDir())),with(equalTo(scalaCompile.getClasspath())),with(equalTo(scalaCompile.getScalaCompileOptions())));
+      one(scalaCompiler).setSource(with(hasSameItems(scalaCompile.getSource())));
+      one(scalaCompiler).setDestinationDir(scalaCompile.getDestinationDir());
+      one(scalaCompiler).setClasspath(scalaCompile.getClasspath());
+      one(scalaCompiler).setScalaClasspath(scalaCompile.getScalaClasspath());
+      one(scalaCompiler).execute();
       List<File> expectedClassPath=new ArrayList<File>();
       expectedClassPath.add(scalaCompile.getDestinationDir());
       for (      File file : scalaCompile.getClasspath()) {
         expectedClassPath.add(file);
       }
       FileCollection javaSrc=scalaCompile.getJavaSrc();
-      one(antCompileMock).execute(with(hasSameItems(javaSrc)),with(equalTo(scalaCompile.getDestinationDir())),with(equalTo(scalaCompile.getDependencyCacheDir())),with(equalTo(expectedClassPath)),with(equalTo(scalaCompile.getSourceCompatibility())),with(equalTo(scalaCompile.getTargetCompatibility())),with(equalTo(scalaCompile.getOptions())),with(equalTo(scalaCompile.getAnt())));
+      one(javaCompiler).setSource(with(hasSameItems(javaSrc)));
+      one(javaCompiler).setClasspath(expectedClassPath);
+      one(javaCompiler).setDestinationDir(scalaCompile.getDestinationDir());
+      one(javaCompiler).setDependencyCacheDir(scalaCompile.getDependencyCacheDir());
+      one(javaCompiler).setSourceCompatibility(scalaCompile.getSourceCompatibility());
+      one(javaCompiler).setTargetCompatibility(scalaCompile.getTargetCompatibility());
+      one(javaCompiler).execute();
     }
   }
 );
