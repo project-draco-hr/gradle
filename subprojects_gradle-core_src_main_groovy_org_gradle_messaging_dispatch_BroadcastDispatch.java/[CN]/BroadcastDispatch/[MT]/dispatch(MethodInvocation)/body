@@ -1,13 +1,20 @@
 {
   try {
+    ExceptionTrackingListener tracker=new ExceptionTrackingListener(LOGGER);
     for (    Dispatch<MethodInvocation> handler : new ArrayList<Dispatch<MethodInvocation>>(handlers.values())) {
-      handler.dispatch(invocation);
+      try {
+        handler.dispatch(invocation);
+      }
+ catch (      UncheckedException e) {
+        tracker.execute(e.getCause());
+      }
+catch (      Throwable t) {
+        tracker.execute(t);
+      }
     }
+    tracker.stop();
   }
- catch (  UncheckedException e) {
-    throw new ListenerNotificationException(getErrorMessage(),e.getCause());
-  }
-catch (  Throwable t) {
+ catch (  Throwable t) {
     throw new ListenerNotificationException(getErrorMessage(),t);
   }
 }
