@@ -1,5 +1,7 @@
 {
   logger.info("Compiling {} using {}.",source.getDisplayName(),transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
+  final EmptyScriptDetector emptyScriptDetector=new EmptyScriptDetector();
+  final PackageStatementDetector packageDetector=new PackageStatementDetector();
   GroovyClassLoader groovyClassLoader=new GroovyClassLoader(classLoader,configuration,false){
     @Override protected CompilationUnit createCompilationUnit(    CompilerConfiguration compilerConfiguration,    CodeSource codeSource){
       CompilationUnit compilationUnit=new CompilationUnit(compilerConfiguration,codeSource,this){
@@ -16,16 +18,17 @@
       if (transformer != null) {
         transformer.register(compilationUnit);
       }
+      compilationUnit.addPhaseOperation(packageDetector,Phases.CANONICALIZATION);
+      compilationUnit.addPhaseOperation(emptyScriptDetector,Phases.CANONICALIZATION);
       return compilationUnit;
     }
   }
 ;
   String scriptText=source.getResource().getText();
   String scriptName=source.getClassName();
-  Class scriptClass;
   GroovyCodeSource codeSource=new GroovyCodeSource(scriptText == null ? "" : scriptText,scriptName,"/groovy/script");
   try {
-    scriptClass=groovyClassLoader.parseClass(codeSource,false);
+    groovyClassLoader.parseClass(codeSource,false);
   }
  catch (  MultipleCompilationErrorsException e) {
     SyntaxException syntaxError=e.getErrorCollector().getSyntaxError(0);
@@ -35,9 +38,10 @@
 catch (  CompilationFailedException e) {
     throw new GradleException(String.format("Could not compile %s.",source.getDisplayName()),e);
   }
-  if (!hasScriptStatements(scriptName,scriptClass)) {
-    String emptySource=String.format("class %s extends %s { public Object run() { return null } }",source.getClassName(),configuration.getScriptBaseClass().replaceAll("\\$","."));
-    scriptClass=groovyClassLoader.parseClass(emptySource,scriptName);
+  if (packageDetector.hasPackageStatement) {
+    throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",StringUtils.capitalize(source.getDisplayName())));
   }
-  return scriptClass;
+  if (emptyScriptDetector.isEmptyScript()) {
+    GFileUtils.touch(new File(classesDir,EMPTY_SCRIPT_MARKER_FILE_NAME));
+  }
 }
