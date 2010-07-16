@@ -1,0 +1,18 @@
+{
+  setChangingPattern(null);
+  ResolvedModuleRevision moduleRevision=super.findModuleInCache(dd,data);
+  if (moduleRevision == null) {
+    setChangingPattern(".*-SNAPSHOT");
+    return null;
+  }
+  PropertiesFile cacheProperties=getCacheProperties(dd,moduleRevision);
+  Long lastResolvedTime=getLastResolvedTime(cacheProperties);
+  updateCachePropertiesToCurrentTime(cacheProperties);
+  if (snapshotTimeout.isCacheTimedOut(lastResolvedTime)) {
+    setChangingPattern(".*-SNAPSHOT");
+    return null;
+  }
+ else {
+    return moduleRevision;
+  }
+}
