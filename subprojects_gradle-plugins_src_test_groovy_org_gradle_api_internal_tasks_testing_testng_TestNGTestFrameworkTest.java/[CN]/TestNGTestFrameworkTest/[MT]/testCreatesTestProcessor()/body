@@ -1,0 +1,19 @@
+{
+  testNGTestFramework=new TestNGTestFramework(testMock);
+  setMocks();
+  context.checking(new Expectations(){
+{
+      allowing(testMock).getTestSrcDirs();
+      will(returnValue(testSrcDirs));
+      allowing(testMock).getTestReportDir();
+      will(returnValue(testReportDir));
+      allowing(serviceRegistry).get(IdGenerator.class);
+      will(returnValue(idGeneratorMock));
+      one(testngOptionsMock).setTestResources(testSrcDirs);
+      one(testngOptionsMock).getSuites(temporaryDir);
+    }
+  }
+);
+  TestClassProcessor processor=testNGTestFramework.getProcessorFactory().create(serviceRegistry);
+  assertThat(processor,instanceOf(TestNGTestClassProcessor.class));
+}
