@@ -1,9 +1,18 @@
 {
   renderer.addDefaultTasks(project.getDefaultTasks());
-  Set<Task> tasks=new TreeSet<Task>(project.getTasks().getAll());
-  for (  Task task : tasks) {
-    renderer.addTask(task);
+  Multimap<String,Task> groups=TreeMultimap.create();
+  for (  Task task : project.getTasks().getAll()) {
+    if (GUtil.isTrue(task.getTaskGroup())) {
+      groups.put(task.getTaskGroup(),task);
+    }
   }
+  for (  String taskGroup : groups.keySet()) {
+    renderer.startTaskGroup(taskGroup);
+    for (    Task task : groups.get(taskGroup)) {
+      renderer.addTask(task);
+    }
+  }
+  renderer.completeTasks();
   for (  Rule rule : project.getTasks().getRules()) {
     renderer.addRule(rule);
   }
