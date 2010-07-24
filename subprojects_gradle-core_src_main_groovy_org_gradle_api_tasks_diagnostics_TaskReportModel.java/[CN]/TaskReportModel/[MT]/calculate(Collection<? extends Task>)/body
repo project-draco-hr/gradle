@@ -13,12 +13,10 @@
         }
       }
     }
-    @Override public void getEdgeValues(    Task from,    Task to,    Collection<Object> values){
-    }
   }
 );
-  GraphAggregator.Result<Task> result=aggregator.group(topLevelTasks);
-  for (  Task task : topLevelTasks) {
+  GraphAggregator.Result<Task> result=aggregator.group(topLevelTasks,tasks);
+  for (  Task task : result.getTopLevelNodes()) {
     Set<Task> nodesForThisTask=new TreeSet<Task>(result.getNodes(task));
     Set<TaskDetails> children=new LinkedHashSet<TaskDetails>();
     Set<String> dependencies=new TreeSet<String>();
@@ -32,6 +30,7 @@
         }
       }
     }
-    groups.put(task.getTaskGroup(),new TaskDetailsImpl(task,children,dependencies));
+    String taskGroup=topLevelTasks.contains(task) ? task.getTaskGroup() : "";
+    groups.put(taskGroup,new TaskDetailsImpl(task,children,dependencies));
   }
 }
