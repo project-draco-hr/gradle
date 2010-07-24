@@ -15,6 +15,12 @@
  else {
     throw new IllegalArgumentException(String.format("Cannot create cache for unrecognised domain object %s.",target));
   }
-  cacheBaseDir=new File(cacheBaseDir,version.getVersion());
+  if (invalidateOnVersionChange) {
+    properties.put("gradle.version",version.getVersion());
+    cacheBaseDir=new File(cacheBaseDir,"noVersion");
+  }
+ else {
+    cacheBaseDir=new File(cacheBaseDir,version.getVersion());
+  }
   return factory.open(new File(cacheBaseDir,key),cacheUsage,properties);
 }
