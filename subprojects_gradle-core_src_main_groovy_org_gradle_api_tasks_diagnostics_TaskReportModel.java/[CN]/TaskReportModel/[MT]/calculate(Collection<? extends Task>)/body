@@ -1,0 +1,37 @@
+{
+  Set<Task> topLevelTasks=new LinkedHashSet<Task>();
+  for (  final Task task : tasks) {
+    if (GUtil.isTrue(task.getTaskGroup())) {
+      topLevelTasks.add(task);
+    }
+  }
+  GraphAggregator<Task> aggregator=new GraphAggregator<Task>(new DirectedGraph<Task,Object>(){
+    @Override public void getNodeValues(    Task node,    Collection<Object> values,    Collection<Task> connectedNodes){
+      for (      Task dep : node.getTaskDependencies().getDependencies(node)) {
+        if (tasks.contains(dep)) {
+          connectedNodes.add(dep);
+        }
+      }
+    }
+    @Override public void getEdgeValues(    Task from,    Task to,    Collection<Object> values){
+    }
+  }
+);
+  GraphAggregator.Result<Task> result=aggregator.group(topLevelTasks);
+  for (  Task task : topLevelTasks) {
+    Set<Task> nodesForThisTask=new TreeSet<Task>(result.getNodes(task));
+    Set<TaskDetails> children=new LinkedHashSet<TaskDetails>();
+    Set<String> dependencies=new TreeSet<String>();
+    for (    Task node : nodesForThisTask) {
+      if (node != task) {
+        children.add(new TaskDetailsImpl(node,Collections.<TaskDetails>emptySet(),Collections.<String>emptySet()));
+      }
+      for (      Task dep : node.getTaskDependencies().getDependencies(node)) {
+        if (topLevelTasks.contains(dep) || !tasks.contains(dep)) {
+          dependencies.add(dep.getPath());
+        }
+      }
+    }
+    groups.put(task.getTaskGroup(),new TaskDetailsImpl(task,children,dependencies));
+  }
+}

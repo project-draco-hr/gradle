@@ -3,12 +3,13 @@
 {
       Task task1=task("a","group a");
       Task task2=task("b","group b");
-      Task task3=task("c","group b");
+      Task task3=task("c");
+      Task task4=task("d","group b",task3);
       List<String> testDefaultTasks=toList("defaultTask1","defaultTask2");
       allowing(project).getDefaultTasks();
       will(returnValue(testDefaultTasks));
       one(taskContainer).getAll();
-      will(returnValue(toLinkedSet(task2,task3,task1)));
+      will(returnValue(toLinkedSet(task2,task3,task4,task1)));
       allowing(taskContainer).getRules();
       will(returnValue(toList()));
       Sequence sequence=context.sequence("seq");
@@ -16,13 +17,15 @@
       inSequence(sequence);
       one(renderer).startTaskGroup("group a");
       inSequence(sequence);
-      one(renderer).addTask(task1);
+      one(renderer).addTask(with(isTask(task1)));
       inSequence(sequence);
       one(renderer).startTaskGroup("group b");
       inSequence(sequence);
-      one(renderer).addTask(task2);
+      one(renderer).addTask(with(isTask(task2)));
       inSequence(sequence);
-      one(renderer).addTask(task3);
+      one(renderer).addTask(with(isTask(task4)));
+      inSequence(sequence);
+      one(renderer).addChildTask(with(isTask(task3)));
       inSequence(sequence);
       one(renderer).completeTasks();
       inSequence(sequence);

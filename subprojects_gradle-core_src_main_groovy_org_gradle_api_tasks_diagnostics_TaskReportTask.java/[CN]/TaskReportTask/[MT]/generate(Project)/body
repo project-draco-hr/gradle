@@ -1,15 +1,14 @@
 {
   renderer.addDefaultTasks(project.getDefaultTasks());
-  Multimap<String,Task> groups=TreeMultimap.create();
-  for (  Task task : project.getTasks().getAll()) {
-    if (GUtil.isTrue(task.getTaskGroup())) {
-      groups.put(task.getTaskGroup(),task);
-    }
-  }
-  for (  String taskGroup : groups.keySet()) {
+  TaskReportModel model=new TaskReportModel();
+  model.calculate(project.getTasks().getAll());
+  for (  String taskGroup : model.getGroups()) {
     renderer.startTaskGroup(taskGroup);
-    for (    Task task : groups.get(taskGroup)) {
+    for (    TaskDetails task : model.getTasksForGroup(taskGroup)) {
       renderer.addTask(task);
+      for (      TaskDetails child : task.getChildren()) {
+        renderer.addChildTask(child);
+      }
     }
   }
   renderer.completeTasks();
