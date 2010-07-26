@@ -1,0 +1,16 @@
+{
+  StartParameter startParameter=new StartParameter();
+  startParameter.setCurrentDir(buildArgs.currentDir);
+  CommandLine2StartParameterConverter converter=new DefaultCommandLine2StartParameterConverter();
+  converter.convert(buildArgs.args,startParameter);
+  BuildListener resultLogger=new BuildLogger(LOGGER,clock,startParameter);
+  try {
+    GradleLauncher launcher=GradleLauncher.newInstance(startParameter);
+    launcher.addListener(stdout);
+    launcher.useLogger(resultLogger);
+    launcher.run();
+  }
+ catch (  Throwable e) {
+    resultLogger.buildFinished(new BuildResult(null,e));
+  }
+}

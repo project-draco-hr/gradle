@@ -1,0 +1,28 @@
+{
+  ServerSocket serverSocket=new ServerSocket(PORT);
+  while (true) {
+    LOGGER.lifecycle("Daemon running");
+    Socket socket=serverSocket.accept();
+    Clock clock=new Clock();
+    final PrintStream std=new PrintStream(socket.getOutputStream(),true);
+    try {
+      ObjectInputStream ois=new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+      Command command=(Command)ois.readObject();
+      if (command instanceof Stop) {
+        LOGGER.lifecycle("Daemon stopping");
+        return;
+      }
+      build((BuildArgs)command,clock,new StandardOutputListener(){
+        @Override public void onOutput(        CharSequence output){
+          std.print(output);
+        }
+      }
+);
+    }
+ catch (    Throwable throwable) {
+      throwable.printStackTrace(std);
+    }
+    std.flush();
+    socket.close();
+  }
+}

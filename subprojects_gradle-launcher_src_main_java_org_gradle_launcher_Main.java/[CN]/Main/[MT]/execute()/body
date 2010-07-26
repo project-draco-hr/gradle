@@ -1,5 +1,4 @@
 {
-  Clock buildTimeClock=new Clock();
   StartParameter startParameter=null;
   try {
     startParameter=parameterConverter.convert(args);
@@ -17,28 +16,26 @@
     System.out.println(new GradleVersion().prettyPrint());
     buildCompleter.exit(null);
   }
-  if (startParameter.isLaunchGUI()) {
-    try {
+  try {
+    if (startParameter.isLaunchGUI()) {
       BlockingApplication.launchAndBlock();
     }
- catch (    Throwable e) {
-      logger.error("Failed to run the UI.",e);
-      buildCompleter.exit(e);
+ else     if (startParameter.isForeground()) {
+      GradleDaemon.main(args);
     }
-    buildCompleter.exit(null);
-  }
-  BuildListener resultLogger=new BuildLogger(logger,buildTimeClock,startParameter);
-  try {
-    GradleLauncher gradleLauncher=GradleLauncher.newInstance(startParameter);
-    gradleLauncher.useLogger(resultLogger);
-    BuildResult buildResult=gradleLauncher.run();
-    if (buildResult.getFailure() != null) {
-      buildCompleter.exit(buildResult.getFailure());
+ else     if (startParameter.isNoDaemon()) {
+      GradleDaemon.build(new File(System.getProperty("user.dir")),args);
+    }
+ else     if (startParameter.isStopDaemon()) {
+      GradleDaemon.stop();
+    }
+ else {
+      GradleDaemon.clientMain(new File(System.getProperty("user.dir")),args);
     }
   }
- catch (  Throwable e) {
-    resultLogger.buildFinished(new BuildResult(null,e));
-    buildCompleter.exit(e);
+ catch (  Throwable throwable) {
+    throwable.printStackTrace();
+    buildCompleter.exit(throwable);
   }
   buildCompleter.exit(null);
 }
