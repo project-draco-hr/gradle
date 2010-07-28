@@ -1,28 +1,38 @@
 {
+  GradleLauncher.createStartParameter();
   ServerSocket serverSocket=new ServerSocket(PORT);
   while (true) {
     LOGGER.lifecycle("Daemon running");
     Socket socket=serverSocket.accept();
-    Clock clock=new Clock();
-    final PrintStream std=new PrintStream(socket.getOutputStream(),true);
     try {
-      ObjectInputStream ois=new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-      Command command=(Command)ois.readObject();
-      if (command instanceof Stop) {
-        LOGGER.lifecycle("Daemon stopping");
-        return;
-      }
-      build((BuildArgs)command,clock,new StandardOutputListener(){
-        @Override public void onOutput(        CharSequence output){
-          std.print(output);
+      Clock clock=new Clock();
+      PrintStream stdout=new PrintStream(socket.getOutputStream(),true);
+      try {
+        ObjectInputStream ois=new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+        Command command=(Command)ois.readObject();
+        if (command instanceof Stop) {
+          LOGGER.lifecycle("Daemon stopping");
+          return;
+        }
+        PrintStream origOut=System.out;
+        PrintStream origErr=System.err;
+        System.setOut(stdout);
+        System.setErr(stdout);
+        try {
+          build((BuildArgs)command,clock);
+        }
+  finally {
+          System.setOut(origOut);
+          System.setErr(origErr);
         }
       }
-);
+ catch (      Throwable throwable) {
+        throwable.printStackTrace(stdout);
+      }
+      stdout.flush();
     }
- catch (    Throwable throwable) {
-      throwable.printStackTrace(std);
+  finally {
+      socket.close();
     }
-    std.flush();
-    socket.close();
   }
 }
