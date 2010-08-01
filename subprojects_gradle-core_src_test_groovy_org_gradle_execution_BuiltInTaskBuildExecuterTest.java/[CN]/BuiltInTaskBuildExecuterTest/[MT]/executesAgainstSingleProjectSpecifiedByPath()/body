@@ -1,0 +1,18 @@
+{
+  String somePath=":SomePath";
+  final ProjectInternal rootProject=context.mock(ProjectInternal.class,"rootProject");
+  final ProjectInternal someProject=context.mock(ProjectInternal.class,"someProject");
+  context.checking(new Expectations(){
+{
+      allowing(gradle).getRootProject();
+      will(returnValue(rootProject));
+      allowing(rootProject).project(":SomePath");
+      will(returnValue(someProject));
+    }
+  }
+);
+  BuiltInTaskBuildExecuter executer=new TestTaskBuildExecuter(somePath);
+  expectTaskCreated();
+  executer.select(gradle);
+  assertThat(executer.getTask().getProjects(),equalTo(toSet((Project)someProject)));
+}
