@@ -1,0 +1,17 @@
+{
+  final ProjectInternal rootProject=context.mock(ProjectInternal.class,"rootProject");
+  final Set<Project> allProjects=toSet(context.mock(Project.class,"someProject"));
+  context.checking(new Expectations(){
+{
+      allowing(gradle).getRootProject();
+      will(returnValue(rootProject));
+      allowing(rootProject).getAllprojects();
+      will(returnValue(allProjects));
+    }
+  }
+);
+  BuiltInTaskBuildExecuter executer=new TestTaskBuildExecuter(BuiltInTaskBuildExecuter.ALL_PROJECTS_WILDCARD);
+  expectTaskCreated();
+  executer.select(gradle);
+  assertThat(executer.getTask().getProjects(),equalTo(allProjects));
+}
