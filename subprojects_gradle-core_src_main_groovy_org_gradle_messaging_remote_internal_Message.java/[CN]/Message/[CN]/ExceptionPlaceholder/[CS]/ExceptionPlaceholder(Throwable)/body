@@ -1,6 +1,17 @@
 {
   ByteArrayOutputStream outstr=new ByteArrayOutputStream();
-  ObjectOutputStream oos=new ObjectOutputStream(outstr);
+  ObjectOutputStream oos=new ExceptionReplacingObjectOutputStream(outstr){
+    @Override protected Object replaceObject(    Object obj) throws IOException {
+      if (obj == throwable) {
+        return throwable;
+      }
+      if (obj == throwable.getCause()) {
+        return new CausePlaceholder();
+      }
+      return super.replaceObject(obj);
+    }
+  }
+;
   try {
     oos.writeObject(throwable);
     oos.close();
