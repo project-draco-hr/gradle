@@ -1,10 +1,26 @@
 {
   names.putIfAbsent(name,new AtomicInteger());
   int count=names.get(name).getAndIncrement();
+  T mock;
   if (count == 0) {
-    return super.mock(typeToMock,name);
+    mock=super.mock(typeToMock,name);
   }
  else {
-    return super.mock(typeToMock,name + count);
+    mock=super.mock(typeToMock,name + count);
   }
+  if (mock instanceof ClassLoader) {
+    for (    Field field : ClassLoader.class.getDeclaredFields()) {
+      if (field.getName().equals("initialized")) {
+        field.setAccessible(true);
+        try {
+          field.set(mock,true);
+        }
+ catch (        IllegalAccessException e) {
+          throw UncheckedException.asUncheckedException(e);
+        }
+        break;
+      }
+    }
+  }
+  return mock;
 }
