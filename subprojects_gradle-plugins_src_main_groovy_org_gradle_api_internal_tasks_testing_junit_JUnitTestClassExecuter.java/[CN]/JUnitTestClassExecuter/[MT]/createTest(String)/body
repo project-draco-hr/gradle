@@ -2,21 +2,18 @@
   Class<?> testClass;
   try {
     testClass=Class.forName(testClassName,true,applicationClassLoader);
+    try {
+      Method suiteMethod=testClass.getMethod("suite",new Class[0]);
+      return (Test)suiteMethod.invoke(null);
+    }
+ catch (    NoSuchMethodException e) {
+    }
+catch (    InvocationTargetException e) {
+      return new BrokenTest(Description.createTestDescription(testClass,"suite"),e.getCause());
+    }
   }
  catch (  Throwable e) {
     return new BrokenTest(Description.createSuiteDescription(String.format("initializationError(%s)",testClassName)),e);
-  }
-  try {
-    Method suiteMethod=testClass.getMethod("suite",new Class[0]);
-    return (Test)suiteMethod.invoke(null);
-  }
- catch (  NoSuchMethodException e) {
-  }
-catch (  InvocationTargetException e) {
-    return new BrokenTest(Description.createTestDescription(testClass,"suite"),e.getCause());
-  }
-catch (  IllegalAccessException e) {
-    return new BrokenTest(Description.createTestDescription(testClass,"suite"),e);
   }
   return new JUnit4TestAdapter(testClass);
 }
