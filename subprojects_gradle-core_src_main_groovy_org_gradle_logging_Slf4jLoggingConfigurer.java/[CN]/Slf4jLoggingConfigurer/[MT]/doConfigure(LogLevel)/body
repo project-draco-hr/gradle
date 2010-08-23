@@ -3,50 +3,41 @@
   ch.qos.logback.classic.Logger rootLogger;
   if (currentLevel == null) {
     lc.reset();
-    stdout.init(FileDescriptor.out,System.out);
-    stderr.init(FileDescriptor.err,System.err);
-    Console console=createConsole();
-    consoleFormatter=console == null ? null : new ConsoleBackedFormatter(lc,console);
-    nonConsoleFormatter=new BasicProgressLoggingAwareFormatter(lc,stdout.getBroadcast(),stderr.getBroadcast());
-    errorAppender.setContext(lc);
-    infoAppender.setContext(lc);
+    appender.setContext(lc);
     rootLogger=lc.getLogger("ROOT");
-    rootLogger.addAppender(infoAppender);
-    rootLogger.addAppender(errorAppender);
+    rootLogger.addAppender(appender);
   }
  else {
     rootLogger=lc.getLogger("ROOT");
   }
   currentLevel=logLevel;
-  errorAppender.stop();
-  infoAppender.stop();
-  errorAppender.clearAllFilters();
-  infoAppender.clearAllFilters();
-  errorAppender.addFilter(createLevelFilter(lc,Level.ERROR,FilterReply.ACCEPT,FilterReply.DENY));
-  Level level=Level.INFO;
-  infoAppender.setFormatter(stdout.createFormatter(lc,logLevel));
-  errorAppender.setFormatter(stderr.createFormatter(lc,logLevel));
-  MarkerFilter quietFilter=new MarkerFilter(FilterReply.DENY,Logging.QUIET);
-  infoAppender.addFilter(quietFilter);
-  if (!(logLevel == LogLevel.QUIET)) {
-    quietFilter.setOnMismatch(FilterReply.NEUTRAL);
-    if (logLevel == LogLevel.DEBUG) {
-      level=Level.DEBUG;
-      infoAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.NEUTRAL));
-      infoAppender.addFilter(createLevelFilter(lc,Level.DEBUG,FilterReply.ACCEPT,FilterReply.NEUTRAL));
-    }
- else {
-      if (logLevel == LogLevel.INFO) {
-        level=Level.INFO;
-        infoAppender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.ACCEPT,FilterReply.NEUTRAL));
-      }
- else {
-        infoAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE,Logging.PROGRESS));
-      }
-    }
-    infoAppender.addFilter(createLevelFilter(lc,Level.WARN,FilterReply.ACCEPT,FilterReply.DENY));
-  }
-  rootLogger.setLevel(level);
-  infoAppender.start();
-  errorAppender.start();
+  appender.stop();
+  appender.clearAllFilters();
+switch (logLevel) {
+case DEBUG:
+    rootLogger.setLevel(Level.DEBUG);
+  break;
+case INFO:
+rootLogger.setLevel(Level.INFO);
+break;
+case LIFECYCLE:
+appender.addFilter(new MarkerFilter(Logging.QUIET,Logging.LIFECYCLE));
+appender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.DENY,FilterReply.NEUTRAL));
+rootLogger.setLevel(Level.INFO);
+break;
+case QUIET:
+appender.addFilter(new MarkerFilter(Logging.QUIET));
+appender.addFilter(createLevelFilter(lc,Level.INFO,FilterReply.DENY,FilterReply.NEUTRAL));
+rootLogger.setLevel(Level.INFO);
+break;
+case WARN:
+rootLogger.setLevel(Level.WARN);
+break;
+case ERROR:
+rootLogger.setLevel(Level.ERROR);
+break;
+default :
+throw new IllegalArgumentException();
+}
+appender.start();
 }

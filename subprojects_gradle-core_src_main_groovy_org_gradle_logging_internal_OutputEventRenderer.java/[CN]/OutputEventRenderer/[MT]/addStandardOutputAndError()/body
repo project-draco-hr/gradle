@@ -1,0 +1,22 @@
+{
+  TerminalDetector terminalDetector=new TerminalDetector();
+  boolean stdOutIsTerminal=terminalDetector.isSatisfiedBy(FileDescriptor.out);
+  boolean stdErrIsTerminal=terminalDetector.isSatisfiedBy(FileDescriptor.err);
+  if (stdOutIsTerminal) {
+    PrintStream outStr=org.fusesource.jansi.AnsiConsole.out();
+    Console console=new AnsiConsole(outStr,outStr);
+    addConsole(console,true,stdErrIsTerminal);
+  }
+ else   if (stdErrIsTerminal) {
+    PrintStream errStr=org.fusesource.jansi.AnsiConsole.err();
+    Console console=new AnsiConsole(errStr,errStr);
+    addConsole(console,false,true);
+  }
+  if (!stdOutIsTerminal) {
+    addStandardOutput(System.out);
+  }
+  if (!stdErrIsTerminal) {
+    addStandardError(System.err);
+  }
+  return this;
+}
