@@ -1,3 +1,22 @@
 {
-  listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(),category,text));
+  if (text.length() == 0) {
+    return;
+  }
+  StyledTextOutputEvent.Span span=new StyledTextOutputEvent.Span(style,text);
+  if (styleChange) {
+    if (spans == null) {
+      spans=new ArrayList<StyledTextOutputEvent.Span>();
+    }
+    spans.add(span);
+    return;
+  }
+ else   if (spans != null) {
+    spans.add(span);
+  }
+ else {
+    spans=Collections.singletonList(span);
+  }
+  StyledTextOutputEvent event=new StyledTextOutputEvent(timeProvider.getCurrentTime(),category,spans);
+  spans=null;
+  listener.onOutput(event);
 }
