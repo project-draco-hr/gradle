@@ -1,0 +1,20 @@
+{
+  lock.lock();
+  try {
+    Date expiry=new Date(System.currentTimeMillis() + timeOutUnits.toMillis(timeOutValue));
+    while (failure == null && request == null) {
+      if (!condition.awaitUntil(expiry)) {
+        throw new AssertionError("Timeout waiting for request to complete.");
+      }
+    }
+    if (failure != null) {
+      throw failure;
+    }
+  }
+ catch (  Throwable t) {
+    throw UncheckedException.asUncheckedException(t);
+  }
+ finally {
+    lock.unlock();
+  }
+}
