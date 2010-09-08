@@ -1,0 +1,36 @@
+{
+  boolean hasStatus=status.length() > 0;
+  boolean hasDescription=description.length() > 0;
+switch (state) {
+case None:
+    if (hasDescription && hasStatus) {
+      doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,description + ' ' + status+ EOL));
+    }
+ else     if (hasDescription) {
+      doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,description + EOL));
+    }
+ else     if (hasStatus) {
+      doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,status + EOL));
+    }
+  break;
+case HeaderStarted:
+if (hasStatus) {
+  doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,' ' + status + EOL));
+}
+ else {
+  doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,EOL));
+}
+break;
+case HeaderCompleted:
+if (hasDescription && hasStatus) {
+doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,description + ' ' + status+ EOL));
+}
+ else if (hasStatus) {
+doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,status + EOL));
+}
+break;
+default :
+throw new IllegalStateException();
+}
+state=State.Completed;
+}

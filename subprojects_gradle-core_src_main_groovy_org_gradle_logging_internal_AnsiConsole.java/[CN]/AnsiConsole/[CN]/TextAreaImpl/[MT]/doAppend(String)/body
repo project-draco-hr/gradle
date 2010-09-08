@@ -1,0 +1,34 @@
+{
+  if (text.length() == 0) {
+    return;
+  }
+  container.redraw(this,new Action<Ansi>(){
+    public void execute(    Ansi ansi){
+      if (extraEol) {
+        ansi.cursorUp(1);
+        ansi.cursorRight(width);
+        extraEol=false;
+      }
+      Ansi.Color colour=colorMap.getColourFor(style);
+      if (colour != Ansi.Color.DEFAULT) {
+        ansi.fg(colour);
+      }
+      Iterator<String> tokenizer=new LineSplitter(text);
+      while (tokenizer.hasNext()) {
+        String token=tokenizer.next();
+        if (token.equals(EOL)) {
+          width=0;
+          extraEol=false;
+        }
+ else {
+          width+=token.length();
+        }
+        ansi.a(token);
+      }
+      if (style != Style.Normal) {
+        ansi.fg(Ansi.Color.DEFAULT);
+      }
+    }
+  }
+);
+}

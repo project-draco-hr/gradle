@@ -1,0 +1,32 @@
+{
+  gradlePluginLord.startExecutionQueue();
+  final CountDownLatch complete=new CountDownLatch(1);
+  GradlePluginLord.RequestObserver observer=new GradlePluginLord.RequestObserver(){
+    public void executionRequestAdded(    ExecutionRequest request){
+    }
+    public void refreshRequestAdded(    RefreshTaskListRequest request){
+      request.setExecutionInteraction(executionInteraction);
+    }
+    public void aboutToExecuteRequest(    Request request){
+    }
+    public void requestExecutionComplete(    Request request,    int result,    String output){
+      complete.countDown();
+    }
+  }
+;
+  gradlePluginLord.addRequestObserver(observer,false);
+  Request request=gradlePluginLord.addRefreshRequestToQueue();
+  Assert.assertNotNull(request);
+  boolean completed;
+  try {
+    completed=complete.await(maximumWaitValue,maximumWaitUnits);
+  }
+ catch (  InterruptedException e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+  gradlePluginLord.removeRequestObserver(observer);
+  if (!completed) {
+    request.cancel();
+    throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitValue + " "+ maximumWaitUnits+ ". Considering this failed.");
+  }
+}

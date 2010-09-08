@@ -1,11 +1,9 @@
 {
   TopLevelBuildServiceRegistry serviceRegistry=new TopLevelBuildServiceRegistry(sharedServices,startParameter);
-  if (tracker.getCurrentBuild() == null) {
-    serviceRegistry.get(TerminalLoggingConfigurer.class).configure(startParameter.isStdoutTerminal(),startParameter.isStderrTerminal());
-  }
   ListenerManager listenerManager=serviceRegistry.get(ListenerManager.class);
   LoggingManagerInternal loggingManager=serviceRegistry.get(LoggingManagerFactory.class).create();
   loggingManager.setLevel(startParameter.getLogLevel());
+  loggingManager.colorStdOutAndStdErr(startParameter.isColorOutput());
   loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
   loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
   listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));

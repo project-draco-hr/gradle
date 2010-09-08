@@ -1,10 +1,17 @@
 {
   dist=RuleHelper.getField(target,GradleDistribution.class);
-  sampleDir=dist.getTestDir().file(name);
+  final String sampleName=getSampleName(method);
+  sampleDir=sampleName == null ? null : dist.getTestDir().file(sampleName);
   return new Statement(){
     @Override public void evaluate() throws Throwable {
-      TestFile srcDir=dist.getSamplesDir().file(name).assertIsDir();
-      srcDir.copyTo(sampleDir);
+      if (sampleName != null) {
+        TestFile srcDir=dist.getSamplesDir().file(sampleName).assertIsDir();
+        logger.debug("Copying sample '{}' to test directory.",sampleName);
+        srcDir.copyTo(sampleDir);
+      }
+ else {
+        logger.debug("No sample specified for this test, skipping.");
+      }
       base.evaluate();
     }
   }

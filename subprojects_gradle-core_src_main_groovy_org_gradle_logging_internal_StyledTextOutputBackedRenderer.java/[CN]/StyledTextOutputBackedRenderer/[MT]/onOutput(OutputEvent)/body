@@ -1,0 +1,24 @@
+{
+  if (event instanceof LogLevelChangeEvent) {
+    LogLevelChangeEvent changeEvent=(LogLevelChangeEvent)event;
+    debugOutput=changeEvent.getNewLogLevel() == LogLevel.DEBUG;
+  }
+  if (event instanceof RenderableOutputEvent) {
+    RenderableOutputEvent outputEvent=(RenderableOutputEvent)event;
+    textOutput.style(Normal);
+    if (debugOutput && (textOutput.atEndOfLine || lastEvent == null || !lastEvent.getCategory().equals(outputEvent.getCategory()))) {
+      if (!textOutput.atEndOfLine) {
+        textOutput.println();
+      }
+      textOutput.text(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date(outputEvent.getTimestamp())));
+      textOutput.text(" [");
+      textOutput.text(outputEvent.getLogLevel());
+      textOutput.text("] [");
+      textOutput.text(outputEvent.getCategory());
+      textOutput.text("] ");
+    }
+    outputEvent.render(textOutput);
+    lastEvent=outputEvent;
+    textOutput.style(Normal);
+  }
+}
