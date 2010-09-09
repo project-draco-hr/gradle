@@ -1,0 +1,36 @@
+{
+  try {
+    Clock clock=new Clock();
+    final ObjectInputStream ois=new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+    Command command=(Command)ois.readObject();
+    LOGGER.info("Executing {}",command);
+    if (command instanceof Stop) {
+      LOGGER.lifecycle("Stopping");
+      return true;
+    }
+    LoggingOutputInternal loggingOutput=loggingServices.get(LoggingOutputInternal.class);
+    OutputEventListener listener=new OutputEventListener(){
+      public void onOutput(      OutputEvent event){
+        try {
+          oos.writeObject(event);
+          oos.flush();
+        }
+ catch (        IOException e) {
+          throw UncheckedException.asUncheckedException(e);
+        }
+      }
+    }
+;
+    loggingOutput.addOutputEventListener(listener);
+    try {
+      build((Build)command,clock);
+    }
+  finally {
+      loggingOutput.removeOutputEventListener(listener);
+    }
+  }
+ catch (  Throwable throwable) {
+    LOGGER.error("Could not execute build.",throwable);
+  }
+  return false;
+}

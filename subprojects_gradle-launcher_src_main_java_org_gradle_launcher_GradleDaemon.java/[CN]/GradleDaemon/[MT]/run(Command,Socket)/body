@@ -1,17 +1,20 @@
 {
-  ObjectOutputStream oos=new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-  oos.writeObject(command);
-  oos.flush();
-  byte[] buffer=new byte[1024];
-  InputStream instr=socket.getInputStream();
-  while (true) {
-    int nread=instr.read(buffer);
-    if (nread < 0) {
-      break;
+  try {
+    ObjectOutputStream oos=new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+    oos.writeObject(command);
+    oos.flush();
+    OutputEventListener outputEventListener=loggingServices.get(OutputEventListener.class);
+    ObjectInputStream ois=new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+    while (true) {
+      Object object=ois.readObject();
+      if (object instanceof Stop) {
+        break;
+      }
+      OutputEvent outputEvent=(OutputEvent)object;
+      outputEventListener.onOutput(outputEvent);
     }
-    System.out.write(buffer,0,nread);
-    System.out.flush();
   }
-  System.out.flush();
-  socket.close();
+  finally {
+    socket.close();
+  }
 }

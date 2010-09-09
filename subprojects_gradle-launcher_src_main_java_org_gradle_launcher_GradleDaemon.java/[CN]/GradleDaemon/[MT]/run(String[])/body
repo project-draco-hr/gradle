@@ -1,0 +1,19 @@
+{
+  ServerSocket serverSocket=new ServerSocket(PORT);
+  while (true) {
+    LOGGER.lifecycle("Waiting for request");
+    Socket socket=serverSocket.accept();
+    try {
+      ObjectOutputStream oos=new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+      boolean finished=doRun(socket,oos);
+      oos.writeObject(new Stop());
+      oos.flush();
+      if (finished) {
+        break;
+      }
+    }
+  finally {
+      socket.close();
+    }
+  }
+}
