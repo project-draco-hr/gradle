@@ -1,8 +1,8 @@
 {
   try {
     Clock clock=new Clock();
-    final ObjectInputStream ois=new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-    Command command=(Command)ois.readObject();
+    final InputStream ois=new BufferedInputStream(socket.getInputStream());
+    Command command=(Command)Message.receive(ois,getClass().getClassLoader());
     LOGGER.info("Executing {}",command);
     if (command instanceof Stop) {
       LOGGER.lifecycle("Stopping");
@@ -12,8 +12,7 @@
     OutputEventListener listener=new OutputEventListener(){
       public void onOutput(      OutputEvent event){
         try {
-          oos.writeObject(event);
-          oos.flush();
+          Message.send(event,oos);
         }
  catch (        IOException e) {
           throw UncheckedException.asUncheckedException(e);
