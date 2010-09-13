@@ -1,3 +1,20 @@
 {
-  return invoke(method,DefaultServiceRegistry.this,parent.get(method.getParameterTypes()[0]));
+  Object value;
+  if (Factory.class.isAssignableFrom(method.getParameterTypes()[0])) {
+    ParameterizedType fatoryType=(ParameterizedType)method.getGenericParameterTypes()[0];
+    Type typeArg=fatoryType.getActualTypeArguments()[0];
+    Class type;
+    if (typeArg instanceof WildcardType) {
+      WildcardType wildcardType=(WildcardType)typeArg;
+      type=(Class)wildcardType.getUpperBounds()[0];
+    }
+ else {
+      type=(Class)typeArg;
+    }
+    value=parent.getFactory(type);
+  }
+ else {
+    value=parent.get(method.getParameterTypes()[0]);
+  }
+  return invoke(method,DefaultServiceRegistry.this,value);
 }
