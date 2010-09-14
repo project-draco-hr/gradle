@@ -1,0 +1,36 @@
+{
+  Multimap<String,Task> selected=LinkedHashMultimap.create();
+  Task task=project.getTasks().findByName(name);
+  if (task != null) {
+    selected.put(task.getName(),task);
+  }
+ else {
+    task=project.getImplicitTasks().findByName(name);
+    if (task != null) {
+      selected.put(task.getName(),task);
+    }
+  }
+  for (  Project additionalProject : additionalProjects) {
+    task=additionalProject.getTasks().findByName(name);
+    if (task != null) {
+      selected.put(task.getName(),task);
+    }
+  }
+  if (!selected.isEmpty()) {
+    return selected;
+  }
+  for (  Task t : project.getTasks()) {
+    selected.put(t.getName(),t);
+  }
+  for (  Task t : project.getImplicitTasks()) {
+    if (!selected.containsKey(t.getName())) {
+      selected.put(t.getName(),t);
+    }
+  }
+  for (  Project additionalProject : additionalProjects) {
+    for (    Task t : additionalProject.getTasks()) {
+      selected.put(t.getName(),t);
+    }
+  }
+  return selected;
+}

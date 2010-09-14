@@ -4,18 +4,14 @@
   context.checking(new Expectations(){
 {
       one(project).getChildProjects();
-      will(returnValue(toMap("a",otherProject)));
-      one(otherProjectTaskContainer).findByName("soTa");
-      will(returnValue(null));
-      one(otherProjectTaskContainer).getAll();
-      will(returnValue(toSet(task1,task2)));
+      will(returnValue(toMap("anotherProject",otherProject)));
+      one(resolver).select("soTa",otherProject);
+      will(returnValue(tasks(task1,task2)));
       one(taskExecuter).addTasks(toSet(task1));
-      allowing(otherProject).getPath();
-      will(returnValue(":a"));
     }
   }
 );
-  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("a:soTa"));
+  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("anotherProject:soTa"),resolver);
   executer.select(gradle);
-  assertThat(executer.getDisplayName(),equalTo("primary task ':a:someTask'"));
+  assertThat(executer.getDisplayName(),equalTo("primary task ':anotherProject:someTask'"));
 }

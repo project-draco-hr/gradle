@@ -5,10 +5,10 @@
 {
       one(project).getChildProjects();
       will(returnValue(toMap("child",otherProject)));
-      one(otherProjectTaskContainer).findByName("name1");
-      will(returnValue(task1));
-      one(project).getTasksByName("name2",true);
-      will(returnValue(toSet(task2)));
+      one(resolver).select("name1",otherProject);
+      will(returnValue(tasks(task1)));
+      one(resolver).selectAll("name2",project);
+      will(returnValue(tasks(task2)));
       Sequence sequence=context.sequence("tasks");
       one(taskExecuter).addTasks(toSet(task1));
       inSequence(sequence);
@@ -19,7 +19,7 @@
     }
   }
 );
-  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("child:name1","name2"));
+  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("child:name1","name2"),resolver);
   executer.select(gradle);
   assertThat(executer.getDisplayName(),equalTo("primary tasks 'child:name1', 'name2'"));
   executer.execute();
