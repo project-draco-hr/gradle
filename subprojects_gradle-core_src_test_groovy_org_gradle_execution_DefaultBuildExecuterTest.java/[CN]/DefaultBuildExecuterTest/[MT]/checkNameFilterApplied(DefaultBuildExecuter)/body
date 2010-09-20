@@ -3,8 +3,16 @@
   executer.setDelegate(delegate);
   context.checking(new Expectations(){
 {
-      one(project).getTasksByName("b",true);
-      will(returnValue(toSet(context.mock(Task.class))));
+      Task task=context.mock(Task.class);
+      TaskContainerInternal taskContainer=context.mock(TaskContainerInternal.class);
+      allowing(project).getSubprojects();
+      will(returnValue(toSet()));
+      allowing(project).getTasks();
+      will(returnValue(taskContainer));
+      one(taskContainer).findByName("b");
+      will(returnValue(task));
+      allowing(task).getName();
+      will(returnValue("b"));
       one(taskExecuter).useFilter(with(notNullValue(Spec.class)));
       one(delegate).select(gradle);
     }

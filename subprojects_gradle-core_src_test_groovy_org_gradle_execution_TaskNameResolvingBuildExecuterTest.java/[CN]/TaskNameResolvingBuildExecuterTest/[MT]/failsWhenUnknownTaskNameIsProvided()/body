@@ -3,16 +3,12 @@
   final Task task2=task("t2");
   context.checking(new Expectations(){
 {
-      one(project).getTasksByName("b3",true);
-      will(returnValue(toSet()));
-      one(taskContainer).getAll();
-      will(returnValue(toSet(task1,task2)));
-      one(otherProjectTaskContainer).getAll();
-      will(returnValue(toSet()));
+      one(resolver).selectAll("b3",project);
+      will(returnValue(tasks(task1,task2)));
     }
   }
 );
-  BuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("b3"));
+  BuildExecuter executer=new TaskNameResolvingBuildExecuter(toList("b3"),resolver);
   try {
     executer.select(gradle);
     fail();

@@ -1,18 +1,19 @@
 {
   final Task task1=task("b");
+  final Task task2=task("a");
   context.checking(new Expectations(){
 {
       one(project).getRootProject();
-      will(returnValue(otherProject));
-      one(otherProject).getChildProjects();
+      will(returnValue(rootProject));
+      one(rootProject).getChildProjects();
       will(returnValue(toMap("a",otherProject)));
-      one(otherProjectTaskContainer).findByName("b");
-      will(returnValue(task1));
+      one(resolver).select("b",otherProject);
+      will(returnValue(tasks(task1,task2)));
       one(taskExecuter).addTasks(toSet(task1));
     }
   }
 );
-  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList(":a:b"));
+  TaskNameResolvingBuildExecuter executer=new TaskNameResolvingBuildExecuter(toList(":a:b"),resolver);
   executer.select(gradle);
   assertThat(executer.getDisplayName(),equalTo("primary task ':a:b'"));
 }
