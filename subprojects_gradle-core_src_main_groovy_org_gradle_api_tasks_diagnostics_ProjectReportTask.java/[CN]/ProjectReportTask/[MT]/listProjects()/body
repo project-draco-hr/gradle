@@ -1,6 +1,26 @@
 {
-  TextReportRenderer renderer=new TextReportRenderer();
-  renderer.setOutput(textOutput);
-  renderer.writeHeading(StringUtils.capitalize(getProject().getGradle().toString()));
-  render(getProject().getRootProject(),new GraphRenderer(textOutput),true);
+  GradleLauncherMetaData metaData=new GradleLauncherMetaData();
+  Project project=getProject();
+  textOutput.println();
+  render(project,new GraphRenderer(textOutput),true);
+  if (project.getChildProjects().isEmpty()) {
+    textOutput.style(Info).text("No sub-projects").style(Normal).println();
+  }
+  textOutput.println();
+  textOutput.text("To see a list of the tasks of a particular project, run ");
+  textOutput.style(UserInput);
+  metaData.describeCommand(textOutput,String.format("<project-path>:%s",ImplicitTasksConfigurer.TASKS_TASK));
+  textOutput.style(Normal).println();
+  textOutput.text("For example, try running ");
+  textOutput.style(UserInput);
+  Project exampleProject=project.getChildProjects().isEmpty() ? project : getChildren(project).get(0);
+  metaData.describeCommand(textOutput,exampleProject.absolutePath(ImplicitTasksConfigurer.TASKS_TASK));
+  textOutput.style(Normal).println();
+  if (project != project.getRootProject()) {
+    textOutput.println();
+    textOutput.text("To see a list of all the projects in this build, run ");
+    textOutput.style(UserInput);
+    metaData.describeCommand(textOutput,project.getRootProject().absolutePath(ImplicitTasksConfigurer.PROJECTS_TASK));
+    textOutput.style(Normal).println();
+  }
 }
