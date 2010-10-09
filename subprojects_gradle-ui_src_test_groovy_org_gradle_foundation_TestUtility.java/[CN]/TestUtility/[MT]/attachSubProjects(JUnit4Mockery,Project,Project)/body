@@ -1,9 +1,8 @@
 {
-  final Set<Project> set=new LinkedHashSet<Project>();
-  if (subProjectArray != null && subProjectArray.length != 0) {
-    set.addAll(Arrays.asList(subProjectArray));
-    for (int index=0; index < subProjectArray.length; index++) {
-      final Project subProject=subProjectArray[index];
+  final Map<String,Project> childProjects=new LinkedHashMap<String,Project>();
+  if (subProjectArray != null) {
+    for (    final Project subProject : subProjectArray) {
+      childProjects.put(String.valueOf(childProjects.size()),subProject);
       context.checking(new Expectations(){
 {
           allowing(subProject).getParent();
@@ -15,8 +14,8 @@
   }
   context.checking(new Expectations(){
 {
-      allowing(parentProject).getSubprojects();
-      will(returnValue(set));
+      allowing(parentProject).getChildProjects();
+      will(returnValue(childProjects));
     }
   }
 );

@@ -1,12 +1,18 @@
 {
-  String colorSpec=System.getProperty(String.format("org.gradle.color.%s",name),defaults.get(name));
+  String colorSpec=System.getProperty(String.format("org.gradle.color.%s",style),defaults.get(style));
   if (colorSpec != null) {
     if (colorSpec.equalsIgnoreCase(BOLD)) {
       String terminalProgram=System.getenv("TERM_PROGRAM");
       if (terminalProgram != null && terminalProgram.equals("iTerm.app")) {
         return noDecoration;
       }
-      return bold;
+      return new AttributeColor(INTENSITY_BOLD,INTENSITY_BOLD_OFF);
+    }
+    if (colorSpec.equalsIgnoreCase("reverse")) {
+      return new AttributeColor(NEGATIVE_ON,NEGATIVE_OFF);
+    }
+    if (colorSpec.equalsIgnoreCase("italic")) {
+      return new AttributeColor(ITALIC,ITALIC_OFF);
     }
     Ansi.Color ansiColor=Ansi.Color.valueOf(colorSpec.toUpperCase());
     if (ansiColor != DEFAULT) {

@@ -1,4 +1,5 @@
 {
+  long profilingStarted=System.currentTimeMillis();
   TopLevelBuildServiceRegistry serviceRegistry=new TopLevelBuildServiceRegistry(sharedServices,startParameter);
   ListenerManager listenerManager=serviceRegistry.get(ListenerManager.class);
   LoggingManagerInternal loggingManager=serviceRegistry.newInstance(LoggingManagerInternal.class);
@@ -9,6 +10,9 @@
   listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));
   listenerManager.addListener(tracker);
   listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
+  if (startParameter.isProfile()) {
+    listenerManager.addListener(new ProfileListener(profilingStarted));
+  }
   DefaultGradle gradle=new DefaultGradle(tracker.getCurrentBuild(),startParameter,serviceRegistry);
   return new DefaultGradleLauncher(gradle,serviceRegistry.get(InitScriptHandler.class),new SettingsHandler(new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy()))),serviceRegistry.get(SettingsProcessor.class),new BuildSourceBuilder(this,serviceRegistry.get(ClassLoaderFactory.class),serviceRegistry.get(CacheRepository.class))),new DefaultGradlePropertiesLoader(),new BuildLoader(serviceRegistry.get(IProjectFactory.class)),serviceRegistry.get(BuildConfigurer.class),gradle.getBuildListenerBroadcaster(),serviceRegistry.get(ExceptionAnalyser.class),loggingManager);
 }

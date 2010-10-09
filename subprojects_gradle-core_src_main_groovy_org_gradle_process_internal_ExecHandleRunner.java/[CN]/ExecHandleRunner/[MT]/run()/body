@@ -5,12 +5,13 @@
     ExecOutputHandleRunner standardOutputRunner;
     ExecOutputHandleRunner errorOutputRunner;
     ExecOutputHandleRunner standardInputRunner;
+    InputStream instr=new DisconnectableInputStream(execHandle.getStandardInput(),new DefaultExecutorFactory());
     Process process;
 synchronized (START_LOCK) {
       process=processBuilder.start();
       standardOutputRunner=new ExecOutputHandleRunner("read process standard output",process.getInputStream(),execHandle.getStandardOutput());
       errorOutputRunner=new ExecOutputHandleRunner("read process error output",process.getErrorStream(),execHandle.getErrorOutput());
-      standardInputRunner=new ExecOutputHandleRunner("write process standard input",execHandle.getStandardInput(),process.getOutputStream());
+      standardInputRunner=new ExecOutputHandleRunner("write process standard input",instr,process.getOutputStream());
     }
 synchronized (lock) {
       this.process=process;
@@ -20,6 +21,7 @@ synchronized (lock) {
     threadPool.execute(errorOutputRunner);
     execHandle.started();
     exitCode=process.waitFor();
+    instr.close();
   }
  catch (  Throwable t) {
     execHandle.failed(t);
