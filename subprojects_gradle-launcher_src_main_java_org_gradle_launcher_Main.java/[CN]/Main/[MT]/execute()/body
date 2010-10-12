@@ -1,45 +1,14 @@
 {
-  Clock buildTimeClock=new Clock();
-  StartParameter startParameter=null;
+  BuildCompleter buildCompleter=createBuildCompleter();
+  Logger logger=createLogger();
   try {
-    startParameter=parameterConverter.convert(args);
-  }
- catch (  Exception e) {
-    System.err.println();
-    System.err.println(e.getMessage());
-    showUsage(System.err);
-    buildCompleter.exit(e);
-  }
-  if (startParameter.isShowHelp()) {
-    showUsage(System.out);
+    CommandLineActionFactory actionFactory=createActionFactory(buildCompleter);
+    Runnable action=actionFactory.convert(args);
+    action.run();
     buildCompleter.exit(null);
-  }
-  if (startParameter.isShowVersion()) {
-    System.out.println(new GradleVersion().prettyPrint());
-    buildCompleter.exit(null);
-  }
-  if (startParameter.isLaunchGUI()) {
-    try {
-      BlockingApplication.launchAndBlock();
-    }
- catch (    Throwable e) {
-      logger.error("Failed to run the UI.",e);
-      buildCompleter.exit(e);
-    }
-    buildCompleter.exit(null);
-  }
-  BuildListener resultLogger=new BuildLogger(logger,buildTimeClock,startParameter);
-  try {
-    GradleLauncher gradleLauncher=GradleLauncher.newInstance(startParameter);
-    gradleLauncher.useLogger(resultLogger);
-    BuildResult buildResult=gradleLauncher.run();
-    if (buildResult.getFailure() != null) {
-      buildCompleter.exit(buildResult.getFailure());
-    }
   }
  catch (  Throwable e) {
-    resultLogger.buildFinished(new BuildResult(null,e));
+    new BuildExceptionReporter(logger,new StartParameter()).reportException(e);
     buildCompleter.exit(e);
   }
-  buildCompleter.exit(null);
 }
