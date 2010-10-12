@@ -1,0 +1,84 @@
+{
+  LoggingConfiguration loggingConfiguration=loggingConfigurationCommandLineConverter.convert(options,new LoggingConfiguration());
+  startParameter.setLogLevel(loggingConfiguration.getLogLevel());
+  startParameter.setColorOutput(loggingConfiguration.isColorOutput());
+  for (  String keyValueExpression : options.option(SYSTEM_PROP).getValues()) {
+    String[] elements=keyValueExpression.split("=");
+    startParameter.getSystemPropertiesArgs().put(elements[0],elements.length == 1 ? "" : elements[1]);
+  }
+  for (  String keyValueExpression : options.option(PROJECT_PROP).getValues()) {
+    String[] elements=keyValueExpression.split("=");
+    startParameter.getProjectProperties().put(elements[0],elements.length == 1 ? "" : elements[1]);
+  }
+  if (options.hasOption(NO_SEARCH_UPWARDS)) {
+    startParameter.setSearchUpwards(false);
+  }
+  if (options.hasOption(PROJECT_DIR)) {
+    startParameter.setProjectDir(new File(options.option(PROJECT_DIR).getValue()));
+  }
+  if (options.hasOption(GRADLE_USER_HOME)) {
+    startParameter.setGradleUserHomeDir(new File(options.option(GRADLE_USER_HOME).getValue()));
+  }
+  if (options.hasOption(BUILD_FILE)) {
+    startParameter.setBuildFile(new File(options.option(BUILD_FILE).getValue()));
+  }
+  if (options.hasOption(SETTINGS_FILE)) {
+    startParameter.setSettingsFile(new File(options.option(SETTINGS_FILE).getValue()));
+  }
+  for (  String script : options.option(INIT_SCRIPT).getValues()) {
+    startParameter.addInitScript(new File(script));
+  }
+  if (options.hasOption(CACHE)) {
+    try {
+      startParameter.setCacheUsage(CacheUsage.fromString(options.option(CACHE).getValue()));
+    }
+ catch (    InvalidUserDataException e) {
+      throw new CommandLineArgumentException(e.getMessage());
+    }
+  }
+  if (options.hasOption(EMBEDDED_SCRIPT)) {
+    if (options.hasOption(BUILD_FILE) || options.hasOption(NO_SEARCH_UPWARDS) || options.hasOption(SETTINGS_FILE)) {
+      System.err.println(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",EMBEDDED_SCRIPT,BUILD_FILE,SETTINGS_FILE,NO_SEARCH_UPWARDS));
+      throw new CommandLineArgumentException(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",EMBEDDED_SCRIPT,BUILD_FILE,SETTINGS_FILE,NO_SEARCH_UPWARDS));
+    }
+    startParameter.useEmbeddedBuildFile(options.option(EMBEDDED_SCRIPT).getValue());
+  }
+  if (options.hasOption(FULL_STACKTRACE)) {
+    if (options.hasOption(STACKTRACE)) {
+      throw new CommandLineArgumentException(String.format("Error: The -%s option can't be used together with the -%s option.",FULL_STACKTRACE,STACKTRACE));
+    }
+    startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS_FULL);
+  }
+ else   if (options.hasOption(STACKTRACE)) {
+    startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS);
+  }
+  if (options.hasOption(PROJECT_DEPENDENCY_TASK_NAMES) && options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
+    throw new CommandLineArgumentException(String.format("Error: The -%s and -%s options cannot be used together.",PROJECT_DEPENDENCY_TASK_NAMES,NO_PROJECT_DEPENDENCY_REBUILD));
+  }
+ else   if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
+    startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(null));
+  }
+ else   if (options.hasOption(PROJECT_DEPENDENCY_TASK_NAMES)) {
+    List<String> normalizedTaskNames=new ArrayList<String>();
+    for (    String taskName : options.option(PROJECT_DEPENDENCY_TASK_NAMES).getValues()) {
+      normalizedTaskNames.add(taskName);
+    }
+    startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(normalizedTaskNames));
+  }
+  if (!options.getExtraArguments().isEmpty()) {
+    startParameter.setTaskNames(options.getExtraArguments());
+  }
+  if (options.hasOption(DRY_RUN)) {
+    startParameter.setDryRun(true);
+  }
+  if (options.hasOption(NO_OPT)) {
+    startParameter.setNoOpt(true);
+  }
+  if (options.hasOption(EXCLUDE_TASK)) {
+    startParameter.setExcludedTaskNames(options.option(EXCLUDE_TASK).getValues());
+  }
+  if (options.hasOption(PROFILE)) {
+    startParameter.setProfile(true);
+  }
+  return startParameter;
+}
