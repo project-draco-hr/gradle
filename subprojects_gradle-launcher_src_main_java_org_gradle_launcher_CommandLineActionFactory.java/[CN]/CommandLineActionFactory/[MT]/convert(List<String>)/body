@@ -1,25 +1,21 @@
 {
   CommandLineParser parser=new CommandLineParser();
+  CommandLineConverter<StartParameter> startParameterConverter=createStartParameterConverter();
   startParameterConverter.configure(parser);
   parser.option(HELP,"?","help").hasDescription("Shows this help message");
   parser.option(VERSION,"version").hasDescription("Print version info.");
   parser.option(GUI).hasDescription("Launches a GUI application");
+  LoggingConfiguration loggingConfiguration=new LoggingConfiguration();
+  ServiceRegistry loggingServices=createLoggingServices();
+  Runnable action;
   try {
     ParsedCommandLine commandLine=parser.parse(args);
-    if (commandLine.hasOption(HELP)) {
-      return new ShowUsageAction(parser);
-    }
-    if (commandLine.hasOption(VERSION)) {
-      return new ShowVersionAction();
-    }
-    if (commandLine.hasOption(GUI)) {
-      return new ShowGuiAction();
-    }
-    StartParameter startParameter=new StartParameter();
-    startParameterConverter.convert(commandLine,startParameter);
-    return new RunBuildAction(startParameter);
+    CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter=loggingServices.get(CommandLineConverter.class);
+    loggingConfigurationConverter.convert(commandLine,loggingConfiguration);
+    action=createAction(parser,commandLine,startParameterConverter,loggingServices);
   }
  catch (  CommandLineArgumentException e) {
-    return new CommandLineParseFailureAction(parser,e);
+    action=new CommandLineParseFailureAction(parser,e);
   }
+  return new WithLoggingAction(loggingConfiguration,loggingServices,action);
 }
