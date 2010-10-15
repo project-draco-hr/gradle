@@ -3,19 +3,11 @@
 {
       one(buildTimeClock).getTime();
       will(returnValue("10s"));
-      one(textOutputFactory).create(BuildResultLogger.class,LogLevel.ERROR);
+      one(textOutputFactory).create(BuildResultLogger.class,LogLevel.LIFECYCLE);
       will(returnValue(textOutput));
-      one(textOutput).println();
-      one(textOutput).style(Failure);
-      will(returnValue(textOutput));
-      one(textOutput).text("BUILD FAILED");
-      will(returnValue(textOutput));
-      one(textOutput).style(Normal);
-      one(textOutput).println();
-      one(textOutput).println();
-      one(textOutput).formatln("Total time: %s","10s");
     }
   }
 );
   listener.buildFinished(new BuildResult(null,new RuntimeException()));
+  assertEquals("\n{failure}BUILD FAILED{normal}\n\nTotal time: 10s\n",textOutput.getValue());
 }
