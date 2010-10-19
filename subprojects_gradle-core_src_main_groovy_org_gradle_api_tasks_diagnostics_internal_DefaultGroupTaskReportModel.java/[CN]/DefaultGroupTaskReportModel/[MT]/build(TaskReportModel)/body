@@ -1,0 +1,20 @@
+{
+  Comparator<String> keyComparator=GUtil.last(GUtil.last(GUtil.caseInsensitive(),"other"),"");
+  Comparator<TaskDetails> taskComparator=new Comparator<TaskDetails>(){
+    public int compare(    TaskDetails task1,    TaskDetails task2){
+      return GUtil.caseInsensitive().compare(task1.getPath(),task2.getPath());
+    }
+  }
+;
+  groups=TreeMultimap.create(keyComparator,taskComparator);
+  for (  String group : model.getGroups()) {
+    groups.putAll(group,model.getTasksForGroup(group));
+  }
+  String otherGroupName=findOtherGroup(groups.keySet());
+  if (otherGroupName != null && groups.keySet().contains("")) {
+    groups.putAll(otherGroupName,groups.removeAll(""));
+  }
+  if (groups.keySet().contains("") && groups.keySet().size() > 1) {
+    groups.putAll("other",groups.removeAll(""));
+  }
+}
