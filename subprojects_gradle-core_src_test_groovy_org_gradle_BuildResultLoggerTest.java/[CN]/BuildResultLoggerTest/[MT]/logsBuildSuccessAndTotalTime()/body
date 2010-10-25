@@ -3,10 +3,11 @@
 {
       one(buildTimeClock).getTime();
       will(returnValue("10s"));
-      one(logger).lifecycle(String.format("%nBUILD SUCCESSFUL%n"));
-      one(logger).lifecycle(with(startsWith("Total time: 10s")));
+      one(textOutputFactory).create(BuildResultLogger.class,LogLevel.LIFECYCLE);
+      will(returnValue(textOutput));
     }
   }
 );
   listener.buildFinished(new BuildResult(null,null));
+  assertEquals("\n{success}BUILD SUCCESSFUL{normal}\n\nTotal time: 10s\n",textOutput.getValue());
 }

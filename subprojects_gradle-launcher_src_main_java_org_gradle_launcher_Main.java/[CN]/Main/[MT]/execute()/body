@@ -1,42 +1,13 @@
 {
-  StartParameter startParameter=null;
+  BuildCompleter buildCompleter=createBuildCompleter();
   try {
-    startParameter=parameterConverter.convert(args);
+    CommandLineActionFactory actionFactory=createActionFactory(buildCompleter);
+    Runnable action=actionFactory.convert(Arrays.asList(args));
+    action.run();
+    buildCompleter.exit(null);
   }
- catch (  Exception e) {
-    System.err.println();
-    System.err.println(e.getMessage());
-    showUsage(System.err);
+ catch (  Throwable e) {
+    new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err),new StartParameter()).reportException(e);
     buildCompleter.exit(e);
   }
-  if (startParameter.isShowHelp()) {
-    showUsage(System.out);
-    buildCompleter.exit(null);
-  }
-  if (startParameter.isShowVersion()) {
-    System.out.println(new GradleVersion().prettyPrint());
-    buildCompleter.exit(null);
-  }
-  try {
-    if (startParameter.isLaunchGUI()) {
-      BlockingApplication.launchAndBlock();
-    }
- else     if (startParameter.isForeground()) {
-      new GradleDaemon().run(args);
-    }
- else     if (startParameter.isNoDaemon()) {
-      new GradleDaemon().build(new File(System.getProperty("user.dir")),args);
-    }
- else     if (startParameter.isStopDaemon()) {
-      new GradleDaemon().stop();
-    }
- else {
-      new GradleDaemon().clientMain(new File(System.getProperty("user.dir")),args);
-    }
-  }
- catch (  Throwable throwable) {
-    throwable.printStackTrace();
-    buildCompleter.exit(throwable);
-  }
-  buildCompleter.exit(null);
 }

@@ -1,0 +1,35 @@
+{
+  details.summary.text("Build failed with an exception.");
+  if (!debug) {
+    if (!stacktrace && !fullStacktrace) {
+      details.resolution.text("Run with ");
+      details.resolution.withStyle(UserInput).format("-%s",DefaultCommandLineConverter.STACKTRACE);
+      details.resolution.text(" or ");
+      details.resolution.withStyle(UserInput).format("-%s",LoggingCommandLineConverter.DEBUG);
+      details.resolution.text(" option to get more details. ");
+    }
+ else {
+      details.resolution.text("Run with ");
+      details.resolution.withStyle(UserInput).format("-%s",LoggingCommandLineConverter.DEBUG);
+      details.resolution.text(" option to get more details. ");
+    }
+    if (!fullStacktrace) {
+      details.resolution.text("Run with ");
+      details.resolution.withStyle(UserInput).format("-%s",DefaultCommandLineConverter.FULL_STACKTRACE);
+      details.resolution.text(" option to get the full (very verbose) stacktrace.");
+    }
+  }
+  if (failure instanceof LocationAwareException) {
+    LocationAwareException scriptException=(LocationAwareException)failure;
+    if (scriptException.getLocation() != null) {
+      details.location.text(scriptException.getLocation());
+    }
+    details.details.text(scriptException.getOriginalMessage());
+    for (    Throwable cause : scriptException.getReportableCauses()) {
+      details.details.format("%nCause: %s",getMessage(cause));
+    }
+  }
+ else {
+    details.details.text(getMessage(failure));
+  }
+}

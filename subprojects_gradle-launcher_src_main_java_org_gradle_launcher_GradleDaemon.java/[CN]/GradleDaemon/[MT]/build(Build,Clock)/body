@@ -1,9 +1,11 @@
 {
-  StartParameter startParameter=new StartParameter();
+  DefaultCommandLineConverter converter=new DefaultCommandLineConverter();
+  StartParameter startParameter=converter.convert(build.args);
   startParameter.setCurrentDir(build.currentDir);
-  CommandLine2StartParameterConverter converter=new DefaultCommandLine2StartParameterConverter();
-  converter.convert(build.args,startParameter);
-  BuildListener resultLogger=new BuildLogger(LOGGER,clock,startParameter);
+  LoggingManagerInternal loggingManager=loggingServices.getFactory(LoggingManagerInternal.class).create();
+  loggingManager.setLevel(startParameter.getLogLevel());
+  loggingManager.start();
+  BuildListener resultLogger=new BuildLogger(LOGGER,loggingServices.get(StyledTextOutputFactory.class),clock,startParameter);
   try {
     GradleLauncher launcher=launcherFactory.newInstance(startParameter);
     launcher.useLogger(resultLogger);
@@ -12,4 +14,5 @@
  catch (  Throwable e) {
     resultLogger.buildFinished(new BuildResult(null,e));
   }
+  loggingManager.stop();
 }

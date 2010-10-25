@@ -1,29 +1,38 @@
 {
-  Formatter formatter=new Formatter();
-  formatter.format("%nFAILURE: %s",details.summary.toString().trim());
-  String location=details.location.toString().trim();
-  if (location.length() > 0) {
-    formatter.format("%n%n* Where:%n%s",location);
+  StyledTextOutput output=textOutputFactory.create(BuildExceptionReporter.class,LogLevel.ERROR);
+  output.println();
+  output.withStyle(Failure).text("FAILURE: ");
+  details.summary.replay(output.withStyle(Failure));
+  if (details.location.hasContent) {
+    output.println().println();
+    output.println("* Where:");
+    details.location.replay(output);
   }
-  String failureDetails=details.details.toString().trim();
-  if (failureDetails.length() > 0) {
-    formatter.format("%n%n* What went wrong:%n%s",failureDetails);
+  if (details.details.hasContent) {
+    output.println().println();
+    output.println("* What went wrong:");
+    details.details.replay(output);
   }
-  String resolution=details.resolution.toString().trim();
-  if (resolution.length() > 0) {
-    formatter.format("%n%n* Try:%n%s",resolution);
+  if (details.resolution.hasContent) {
+    output.println().println();
+    output.println("* Try:");
+    details.resolution.replay(output);
   }
+  Throwable exception=null;
 switch (details.exception) {
 case None:
-    logger.error(formatter.toString());
-  break;
+    break;
 case Sanitized:
-formatter.format("%n%n* Exception is:");
-logger.error(formatter.toString(),StackTraceUtils.deepSanitize(details.failure));
+  exception=StackTraceUtils.deepSanitize(details.failure);
 break;
 case Full:
-formatter.format("%n%n* Exception is:");
-logger.error(formatter.toString(),details.failure);
+exception=details.failure;
 break;
 }
+if (exception != null) {
+output.println().println();
+output.println("* Exception is:");
+output.exception(exception);
+}
+output.println();
 }

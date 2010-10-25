@@ -1,0 +1,41 @@
+{
+  if (commandLine.hasOption(HELP)) {
+    return new ShowUsageAction(parser);
+  }
+  if (commandLine.hasOption(VERSION)) {
+    return new ShowVersionAction();
+  }
+  if (commandLine.hasOption(GUI)) {
+    return new ShowGuiAction();
+  }
+  if (commandLine.hasOption(STOP_DAEMON)) {
+    return new Runnable(){
+      public void run(){
+        new GradleDaemon(loggingServices).stop();
+      }
+    }
+;
+  }
+  if (commandLine.hasOption(FOREGROUND)) {
+    return new Runnable(){
+      public void run(){
+        new GradleDaemon(loggingServices).run();
+      }
+    }
+;
+  }
+  if (commandLine.hasOption(NO_DAEMON)) {
+    return new Runnable(){
+      public void run(){
+        new GradleDaemon(loggingServices).build(new File(""),commandLine.getExtraArguments());
+      }
+    }
+;
+  }
+  return new Runnable(){
+    public void run(){
+      new GradleDaemon(loggingServices).clientMain(new File(""),args);
+    }
+  }
+;
+}

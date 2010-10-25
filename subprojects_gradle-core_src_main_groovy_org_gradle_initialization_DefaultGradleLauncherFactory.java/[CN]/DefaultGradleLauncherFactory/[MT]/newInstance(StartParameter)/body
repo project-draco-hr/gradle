@@ -1,5 +1,5 @@
 {
-  long profilingStarted=System.currentTimeMillis();
+  Clock buildClock=new Clock();
   TopLevelBuildServiceRegistry serviceRegistry=new TopLevelBuildServiceRegistry(sharedServices,startParameter);
   ListenerManager listenerManager=serviceRegistry.get(ListenerManager.class);
   LoggingManagerInternal loggingManager=serviceRegistry.newInstance(LoggingManagerInternal.class);
@@ -8,10 +8,13 @@
   loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
   loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
   listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));
+  if (tracker.getCurrentBuild() == null) {
+    listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class),serviceRegistry.get(StyledTextOutputFactory.class),buildClock,startParameter));
+  }
   listenerManager.addListener(tracker);
   listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
   if (startParameter.isProfile()) {
-    listenerManager.addListener(new ProfileListener(profilingStarted));
+    listenerManager.addListener(new ProfileListener(buildClock.getTimeInMs()));
   }
   DefaultGradle gradle=new DefaultGradle(tracker.getCurrentBuild(),startParameter,serviceRegistry);
   return new DefaultGradleLauncher(gradle,serviceRegistry.get(InitScriptHandler.class),new SettingsHandler(new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy()))),serviceRegistry.get(SettingsProcessor.class),new BuildSourceBuilder(this,serviceRegistry.get(ClassLoaderFactory.class),serviceRegistry.get(CacheRepository.class))),new DefaultGradlePropertiesLoader(),new BuildLoader(serviceRegistry.get(IProjectFactory.class)),serviceRegistry.get(BuildConfigurer.class),gradle.getBuildListenerBroadcaster(),serviceRegistry.get(ExceptionAnalyser.class),loggingManager);

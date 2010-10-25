@@ -1,0 +1,24 @@
+{
+  CommandLineParser parser=new CommandLineParser();
+  CommandLineConverter<StartParameter> startParameterConverter=createStartParameterConverter();
+  startParameterConverter.configure(parser);
+  parser.option(HELP,"?","help").hasDescription("Shows this help message");
+  parser.option(VERSION,"version").hasDescription("Print version info.");
+  parser.option(GUI).hasDescription("Launches a GUI application");
+  parser.option(FOREGROUND).hasDescription("Runs the Gradle daemon in the foreground.");
+  parser.option(NO_DAEMON).hasDescription("Does not use the Gradle daemon.");
+  parser.option(STOP_DAEMON).hasDescription("Stops the Gradle daemon, if running.");
+  LoggingConfiguration loggingConfiguration=new LoggingConfiguration();
+  ServiceRegistry loggingServices=createLoggingServices();
+  Runnable action;
+  try {
+    ParsedCommandLine parsedCommandLine=parser.parse(args);
+    CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter=loggingServices.get(CommandLineConverter.class);
+    loggingConfiguration=loggingConfigurationConverter.convert(parsedCommandLine);
+    action=createAction(parser,parsedCommandLine,args,loggingServices);
+  }
+ catch (  CommandLineArgumentException e) {
+    action=new CommandLineParseFailureAction(parser,e);
+  }
+  return new WithLoggingAction(loggingConfiguration,loggingServices,action);
+}
