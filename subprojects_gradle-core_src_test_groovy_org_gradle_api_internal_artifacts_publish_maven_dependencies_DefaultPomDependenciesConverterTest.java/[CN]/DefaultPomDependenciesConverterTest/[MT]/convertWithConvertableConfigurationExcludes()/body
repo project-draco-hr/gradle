@@ -1,0 +1,22 @@
+{
+  final Configuration someConfigurationStub=createNamedConfigurationStubWithDependencies("someConfiguration",WrapUtil.<ExcludeRule>toSet(new DefaultExcludeRule(toMap("key","value"))),dependency1);
+  final Exclusion mavenExclude=new Exclusion();
+  mavenExclude.setGroupId("a");
+  mavenExclude.setArtifactId("b");
+  context.checking(new Expectations(){
+{
+      allowing(conf2ScopeMappingContainerMock).getMapping(toSet(someConfigurationStub));
+      will(returnValue(createMapping(compileConfStub,"compile")));
+      allowing(excludeRuleConverterMock).convert(someConfigurationStub.getExcludeRules().iterator().next());
+      will(returnValue(mavenExclude));
+    }
+  }
+);
+  List<org.apache.maven.model.Dependency> actualMavenDependencies=dependenciesConverter.convert(conf2ScopeMappingContainerMock,toSet(someConfigurationStub));
+  assertEquals(1,actualMavenDependencies.size());
+  assertTrue(hasDependency(actualMavenDependencies,"org1","name1","rev1",null,"compile",null,false));
+  org.apache.maven.model.Dependency mavenDependency=(org.apache.maven.model.Dependency)actualMavenDependencies.get(0);
+  assertThat(mavenDependency.getExclusions().size(),equalTo(1));
+  assertThat(((Exclusion)mavenDependency.getExclusions().get(0)).getGroupId(),equalTo(mavenExclude.getGroupId()));
+  assertThat(((Exclusion)mavenDependency.getExclusions().get(0)).getArtifactId(),equalTo(mavenExclude.getArtifactId()));
+}

@@ -1,12 +1,13 @@
 {
-  Map<ModuleDependency,String> dependenciesMap=createDependencyToScopeMap(conf2ScopeMappingContainer,configurations);
+  Map<ModuleDependency,Set<Configuration>> dependencyToConfigurations=createDependencyToConfigurationsMap(configurations);
+  Map<ModuleDependency,String> dependenciesMap=createDependencyToScopeMap(conf2ScopeMappingContainer,dependencyToConfigurations);
   List<org.apache.maven.model.Dependency> mavenDependencies=new ArrayList<org.apache.maven.model.Dependency>();
   for (  ModuleDependency dependency : dependenciesMap.keySet()) {
     if (dependency.getArtifacts().size() == 0) {
-      addFromDependencyDescriptor(mavenDependencies,dependency,dependenciesMap.get(dependency));
+      addFromDependencyDescriptor(mavenDependencies,dependency,dependenciesMap.get(dependency),dependencyToConfigurations.get(dependency));
     }
  else {
-      addFromArtifactDescriptor(mavenDependencies,dependency,dependenciesMap.get(dependency));
+      addFromArtifactDescriptor(mavenDependencies,dependency,dependenciesMap.get(dependency),dependencyToConfigurations.get(dependency));
     }
   }
   return mavenDependencies;
