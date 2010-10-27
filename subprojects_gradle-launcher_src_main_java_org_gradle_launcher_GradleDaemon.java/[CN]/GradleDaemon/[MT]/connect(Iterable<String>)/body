@@ -1,4 +1,7 @@
 {
+  DefaultCommandLineConverter converter=new DefaultCommandLineConverter();
+  StartParameter startParameter=converter.convert(args);
+  File userHomeDir=startParameter.getGradleUserHomeDir();
   Socket socket=maybeConnect();
   if (socket != null) {
     return socket;
@@ -12,6 +15,7 @@
   daemonArgs.add(GUtil.join(new DefaultClassPathRegistry().getClassPathFiles("GRADLE_RUNTIME"),File.pathSeparator));
   daemonArgs.add(GradleDaemon.class.getName());
   ProcessBuilder builder=new ProcessBuilder(daemonArgs);
+  builder.directory(userHomeDir);
   Process process=builder.start();
   process.getOutputStream().close();
   process.getErrorStream().close();
