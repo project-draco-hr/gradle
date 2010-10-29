@@ -10,6 +10,18 @@
     }
   }
 );
+  String methodDescriptor=Type.getMethodDescriptor(Type.getType(Boolean.TYPE),new Type[]{Type.getType(String.class)});
+  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,"hasProperty",methodDescriptor,null,new String[0]);
+  methodVisitor.visitCode();
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  String getAsDynamicObjectDesc=Type.getMethodDescriptor(DynamicObjectAware.class.getDeclaredMethod("getAsDynamicObject"));
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getAsDynamicObject",getAsDynamicObjectDesc);
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,1);
+  String getPropertyDesc=Type.getMethodDescriptor(DynamicObject.class.getDeclaredMethod("hasProperty",String.class));
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,dynamicObjectType.getInternalName(),"hasProperty",getPropertyDesc);
+  methodVisitor.visitInsn(Opcodes.IRETURN);
+  methodVisitor.visitMaxs(0,0);
+  methodVisitor.visitEnd();
   addSetter(GroovyObject.class.getDeclaredMethod("setProperty",String.class,Object.class),new MethodCodeBody(){
     public void add(    MethodVisitor methodVisitor) throws Exception {
       methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
