@@ -6,7 +6,14 @@
     return;
   }
   if (this.artifact != null) {
-    throw new InvalidUserDataException("A pom can't have multiple main artifacts. " + "Already assigned artifact: " + this.artifact + " Artifact trying to assign: "+ artifact);
+    if (!PACKAGING_TYPES.contains(artifact.getType())) {
+      addClassifierArtifact(artifact,src);
+      return;
+    }
+    if (PACKAGING_TYPES.contains(this.artifact.getType())) {
+      throw new InvalidUserDataException("A pom can't have multiple main artifacts. " + "Already assigned artifact: " + this.artifact + " Artifact trying to assign: "+ artifact);
+    }
+    addClassifierArtifact(this.artifact,this.artifactFile);
   }
   this.artifact=artifact;
   this.artifactFile=src;
