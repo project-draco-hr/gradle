@@ -1,7 +1,10 @@
 {
-  ClassifierArtifact classifierArtifact=new ClassifierArtifact("someClassifier","someType",new File("someClassifierFile"));
-  final Set<DeployableFilesInfo> testDeployableFilesInfos=WrapUtil.toSet(new DeployableFilesInfo(new File("pom1.xml"),new File("artifact1.jar"),Collections.<ClassifierArtifact>emptySet()),new DeployableFilesInfo(new File("pom2.xml"),new File("artifact2.jar"),WrapUtil.toSet(classifierArtifact)));
+  PublishArtifact classifierArtifact=artifact(new File("classifier.jar"));
+  final DefaultMavenDeployment deployment1=new DefaultMavenDeployment(artifact(new File("pom1.pom")),artifact(new File("artifact1.jar")),Collections.<PublishArtifact>emptySet());
+  final DefaultMavenDeployment deployment2=new DefaultMavenDeployment(artifact(new File("pom2.pom")),artifact(new File("artifact2.jar")),WrapUtil.toSet(classifierArtifact));
+  final Set<DefaultMavenDeployment> testDefaultMavenDeployments=WrapUtil.toSet(deployment1,deployment2);
   final AttachedArtifact attachedArtifact=new AttachedArtifact();
+  final Action<MavenDeployment> action=context.mock(Action.class);
   context.checking(new Expectations(){
 {
       allowing((CustomInstallDeployTaskSupport)getInstallDeployTask()).getSettings();
@@ -12,12 +15,15 @@
       will(returnValue(attachedArtifact));
       one(artifactPomContainerMock).addArtifact(TEST_ARTIFACT,TEST_JAR_FILE);
       allowing(artifactPomContainerMock).createDeployableFilesInfos();
-      will(returnValue(testDeployableFilesInfos));
+      will(returnValue(testDefaultMavenDeployments));
+      one(action).execute(deployment1);
+      one(action).execute(deployment2);
     }
   }
 );
+  getMavenResolver().beforeDeployment(action);
   getMavenResolver().publish(TEST_IVY_ARTIFACT,TEST_IVY_FILE,true);
   getMavenResolver().publish(TEST_ARTIFACT,TEST_JAR_FILE,true);
-  checkTransaction(testDeployableFilesInfos,attachedArtifact,classifierArtifact);
+  checkTransaction(testDefaultMavenDeployments,attachedArtifact,classifierArtifact);
   assertSame(mavenSettingsMock,getMavenResolver().getSettings());
 }

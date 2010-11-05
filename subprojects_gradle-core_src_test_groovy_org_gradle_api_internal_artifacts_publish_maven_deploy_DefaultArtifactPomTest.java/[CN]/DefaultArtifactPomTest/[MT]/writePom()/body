@@ -2,13 +2,19 @@
   final MavenPom mavenPomMock=context.mock(MavenPom.class);
   DefaultArtifactPom artifactPom=new DefaultArtifactPom(mavenPomMock);
   final File somePomFile=new File(tmpDir.getDir(),"someDir/somePath");
-  final Set<Configuration> configurations=WrapUtil.toSet(context.mock(Configuration.class));
   context.checking(new Expectations(){
 {
+      allowing(mavenPomMock).getArtifactId();
+      will(returnValue("artifactId"));
       one(mavenPomMock).writeTo(with(any(FileWriter.class)));
     }
   }
 );
-  artifactPom.writePom(somePomFile);
-  assertThat(somePomFile.getParentFile().isDirectory(),equalTo(true));
+  PublishArtifact artifact=artifactPom.writePom(somePomFile);
+  assertThat(artifact.getName(),equalTo("artifactId"));
+  assertThat(artifact.getType(),equalTo("pom"));
+  assertThat(artifact.getExtension(),equalTo("pom"));
+  assertThat(artifact.getClassifier(),nullValue());
+  assertThat(artifact.getFile(),equalTo(somePomFile));
+  assertThat(somePomFile.isFile(),equalTo(true));
 }

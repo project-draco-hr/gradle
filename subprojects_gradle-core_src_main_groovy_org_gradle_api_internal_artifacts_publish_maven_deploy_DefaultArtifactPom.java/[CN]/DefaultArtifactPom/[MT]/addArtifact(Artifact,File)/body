@@ -1,21 +1,26 @@
 {
   throwExceptionIfArtifactOrSrcIsNull(artifact,src);
-  if (hasClassifier(artifact)) {
-    addClassifierArtifact(artifact,src);
+  PublishArtifact publishArtifact=new MavenArtifact(artifact,src);
+  ArtifactKey artifactKey=new ArtifactKey(publishArtifact);
+  if (this.artifacts.containsKey(artifactKey)) {
+    throw new InvalidUserDataException(String.format("A POM cannot have multiple artifacts with the same type and classifier. Already have %s, trying to add %s.",this.artifacts.get(artifactKey),publishArtifact));
+  }
+  if (publishArtifact.getClassifier() != null) {
+    addArtifact(publishArtifact);
     assignArtifactValuesToPom(artifact,pom,false);
     return;
   }
   if (this.artifact != null) {
     if (!PACKAGING_TYPES.contains(artifact.getType())) {
-      addClassifierArtifact(artifact,src);
+      addArtifact(publishArtifact);
       return;
     }
     if (PACKAGING_TYPES.contains(this.artifact.getType())) {
-      throw new InvalidUserDataException("A pom can't have multiple main artifacts. " + "Already assigned artifact: " + this.artifact + " Artifact trying to assign: "+ artifact);
+      throw new InvalidUserDataException("A POM can not have multiple main artifacts. " + "Already have " + this.artifact + ", trying to add "+ publishArtifact);
     }
-    addClassifierArtifact(this.artifact,this.artifactFile);
+    addArtifact(this.artifact);
   }
-  this.artifact=artifact;
-  this.artifactFile=src;
+  this.artifact=publishArtifact;
+  this.artifacts.put(artifactKey,publishArtifact);
   assignArtifactValuesToPom(artifact,pom,true);
 }

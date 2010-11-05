@@ -1,10 +1,23 @@
 {
+  Artifact mainArtifact=createTestArtifact("someName",null,"mainPackaging");
+  File mainFile=new File("someFile");
+  Artifact classifierArtifact=createTestArtifact("otherName","javadoc","zip");
   File classifierFile=new File("someClassifierFile");
-  Artifact classifierArtifact=createTestArtifact(expectedArtifact.getName(),"javadoc","zip");
+  artifactPom.addArtifact(mainArtifact,mainFile);
   artifactPom.addArtifact(classifierArtifact,classifierFile);
-  artifactPom.addArtifact(expectedArtifact,expectedFile);
-  assertThat(artifactPom.getClassifiers(),hasItem(new ClassifierArtifact("javadoc","sometype",new File("someFile"))));
-  assertEquals(expectedArtifact,artifactPom.getArtifact());
-  assertEquals(expectedFile,artifactPom.getArtifactFile());
-  checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(),expectedArtifact.getName(),expectedArtifact.getType(),expectedArtifact.getModuleRevisionId().getRevision());
+  assertThat(artifactPom.getArtifact().getName(),equalTo("someName"));
+  assertThat(artifactPom.getArtifact().getExtension(),equalTo("mainPackaging"));
+  assertThat(artifactPom.getArtifact().getType(),equalTo("mainPackaging"));
+  assertThat(artifactPom.getArtifact().getClassifier(),nullValue());
+  assertThat(artifactPom.getArtifact().getFile(),equalTo(mainFile));
+  PublishArtifact artifact=singleItem(artifactPom.getAttachedArtifacts());
+  assertThat(artifact.getName(),equalTo("someName"));
+  assertThat(artifact.getExtension(),equalTo("zip"));
+  assertThat(artifact.getType(),equalTo("zip"));
+  assertThat(artifact.getClassifier(),equalTo("javadoc"));
+  assertThat(artifact.getFile(),equalTo(classifierFile));
+  assertThat(artifactPom.getPom().getGroupId(),equalTo("org"));
+  assertThat(artifactPom.getPom().getArtifactId(),equalTo("someName"));
+  assertThat(artifactPom.getPom().getVersion(),equalTo("1.0"));
+  assertThat(artifactPom.getPom().getPackaging(),equalTo("mainPackaging"));
 }

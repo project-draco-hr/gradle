@@ -1,11 +1,18 @@
 {
-  testPom.setArtifactId(expectedArtifact.getName() + "X");
-  testPom.setGroupId(expectedArtifact.getModuleRevisionId().getOrganisation() + "X");
-  testPom.setVersion(expectedArtifact.getModuleRevisionId().getRevision() + "X");
-  testPom.setPackaging(expectedArtifact.getType() + "X");
-  artifactPom=new DefaultArtifactPom(testPom);
-  artifactPom.addArtifact(expectedArtifact,expectedFile);
-  assertEquals(expectedArtifact,artifactPom.getArtifact());
-  assertEquals(expectedFile,artifactPom.getArtifactFile());
-  checkPom(testPom.getGroupId(),testPom.getArtifactId(),testPom.getPackaging(),testPom.getVersion());
+  Artifact mainArtifact=createTestArtifact("someName",null,"mainPackaging");
+  File mainFile=new File("someFile");
+  testPom.setArtifactId("customArtifactId");
+  testPom.setGroupId("customGroupId");
+  testPom.setVersion("customVersion");
+  testPom.setPackaging("customPackaging");
+  artifactPom.addArtifact(mainArtifact,mainFile);
+  assertThat(artifactPom.getArtifact().getName(),equalTo("customArtifactId"));
+  assertThat(artifactPom.getArtifact().getExtension(),equalTo("mainPackaging"));
+  assertThat(artifactPom.getArtifact().getType(),equalTo("mainPackaging"));
+  assertThat(artifactPom.getArtifact().getClassifier(),nullValue());
+  assertThat(artifactPom.getArtifact().getFile(),equalTo(mainFile));
+  assertThat(artifactPom.getPom().getGroupId(),equalTo("customGroupId"));
+  assertThat(artifactPom.getPom().getArtifactId(),equalTo("customArtifactId"));
+  assertThat(artifactPom.getPom().getVersion(),equalTo("customVersion"));
+  assertThat(artifactPom.getPom().getPackaging(),equalTo("mainPackaging"));
 }
