@@ -1,0 +1,19 @@
+{
+  DefaultCommandLineConverter converter=new DefaultCommandLineConverter();
+  StartParameter startParameter=new StartParameter();
+  startParameter.setCurrentDir(build.currentDir);
+  converter.convert(build.args,startParameter);
+  LoggingManagerInternal loggingManager=loggingServices.getFactory(LoggingManagerInternal.class).create();
+  loggingManager.setLevel(startParameter.getLogLevel());
+  loggingManager.start();
+  BuildListener resultLogger=new BuildLogger(LOGGER,loggingServices.get(StyledTextOutputFactory.class),clock,startParameter);
+  try {
+    GradleLauncher launcher=launcherFactory.newInstance(startParameter);
+    launcher.useLogger(resultLogger);
+    launcher.run();
+  }
+ catch (  Throwable e) {
+    resultLogger.buildFinished(new BuildResult(null,e));
+  }
+  loggingManager.stop();
+}

@@ -1,0 +1,20 @@
+{
+  try {
+    OutputStream oos=new BufferedOutputStream(socket.getOutputStream());
+    Message.send(command,oos);
+    oos.flush();
+    OutputEventListener outputEventListener=loggingServices.get(OutputEventListener.class);
+    InputStream ois=new BufferedInputStream(socket.getInputStream());
+    while (true) {
+      Object object=Message.receive(ois,getClass().getClassLoader());
+      if (object instanceof Stop) {
+        break;
+      }
+      OutputEvent outputEvent=(OutputEvent)object;
+      outputEventListener.onOutput(outputEvent);
+    }
+  }
+  finally {
+    socket.close();
+  }
+}
