@@ -1,37 +1,22 @@
 {
   if (commandLine.hasOption(HELP)) {
-    return new CompleteOnSuccessAction(new ShowUsageAction(parser));
+    return new ActionAdapter(new ShowUsageAction(parser));
   }
   if (commandLine.hasOption(VERSION)) {
-    return new CompleteOnSuccessAction(new ShowVersionAction());
+    return new ActionAdapter(new ShowVersionAction());
   }
   if (commandLine.hasOption(GUI)) {
-    return new CompleteOnSuccessAction(new ShowGuiAction());
+    return new ActionAdapter(new ShowGuiAction());
   }
   if (commandLine.hasOption(FOREGROUND)) {
-    return new CompleteOnSuccessAction(new Runnable(){
-      public void run(){
-        new GradleDaemon(loggingServices).run();
-      }
-    }
-);
+    return new ActionAdapter(new GradleDaemon(loggingServices));
   }
   if (commandLine.hasOption(STOP)) {
-    return new CompleteOnSuccessAction(new Runnable(){
-      public void run(){
-        new GradleDaemon(loggingServices).stop();
-      }
-    }
-);
-  }
-  if (commandLine.hasOption(DAEMON)) {
-    return new CompleteOnSuccessAction(new Runnable(){
-      public void run(){
-        new GradleDaemon(loggingServices).clientMain(new File(System.getProperty("user.dir")),commandLine);
-      }
-    }
-);
+    return new StopDaemonAction(new DaemonConnector(),loggingServices.get(OutputEventListener.class));
   }
   StartParameter startParameter=startParameterConverter.convert(commandLine);
+  if (commandLine.hasOption(DAEMON)) {
+    return new DaemonBuildAction(loggingServices.get(OutputEventListener.class),new DaemonConnector(),startParameter,commandLine);
+  }
   return new RunBuildAction(startParameter,loggingServices);
 }

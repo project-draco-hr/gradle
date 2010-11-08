@@ -1,24 +1,9 @@
 {
-  try {
-    ServerSocket serverSocket=new ServerSocket(PORT);
-    while (true) {
-      LOGGER.lifecycle("Waiting for request");
-      Socket socket=serverSocket.accept();
-      try {
-        OutputStream outputStream=new BufferedOutputStream(socket.getOutputStream());
-        boolean finished=doRun(socket,outputStream);
-        Message.send(new Stop(),outputStream);
-        outputStream.flush();
-        if (finished) {
-          break;
-        }
-      }
-  finally {
-        socket.close();
-      }
+  DaemonConnector connector=new DaemonConnector();
+  connector.accept(new IncomingConnectionHandler(){
+    public void handle(    Connection<Object> connection,    Stoppable serverControl){
+      doRun(connection,serverControl);
     }
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
-  }
+);
 }

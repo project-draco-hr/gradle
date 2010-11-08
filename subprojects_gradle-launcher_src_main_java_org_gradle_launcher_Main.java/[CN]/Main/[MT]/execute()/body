@@ -2,12 +2,13 @@
   BuildCompleter buildCompleter=createBuildCompleter();
   try {
     CommandLineActionFactory actionFactory=createActionFactory();
-    Action<BuildCompleter> action=actionFactory.convert(Arrays.asList(args));
+    Action<ExecutionListener> action=actionFactory.convert(Arrays.asList(args));
     action.execute(buildCompleter);
-    buildCompleter.exit(null);
   }
  catch (  Throwable e) {
-    new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err),new StartParameter()).reportException(e);
-    buildCompleter.exit(e);
+    BuildExceptionReporter exceptionReporter=new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err),new StartParameter());
+    exceptionReporter.reportException(e);
+    buildCompleter.onFailure(e);
   }
+  buildCompleter.exit();
 }

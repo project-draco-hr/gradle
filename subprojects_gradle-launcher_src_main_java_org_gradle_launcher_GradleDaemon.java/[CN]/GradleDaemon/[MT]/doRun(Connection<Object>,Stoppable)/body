@@ -1,0 +1,24 @@
+{
+  ExecutionListenerImpl executionListener=new ExecutionListenerImpl();
+  try {
+    LoggingOutputInternal loggingOutput=loggingServices.get(LoggingOutputInternal.class);
+    OutputEventListener listener=new OutputEventListener(){
+      public void onOutput(      OutputEvent event){
+        connection.dispatch(event);
+      }
+    }
+;
+    loggingOutput.addOutputEventListener(listener);
+    try {
+      doRunWithLogging(connection,serverControl,executionListener);
+    }
+  finally {
+      loggingOutput.removeOutputEventListener(listener);
+    }
+  }
+ catch (  Throwable throwable) {
+    LOGGER.error("Could not execute build.",throwable);
+    executionListener.onFailure(throwable);
+  }
+  connection.dispatch(new CommandComplete(executionListener.failure));
+}

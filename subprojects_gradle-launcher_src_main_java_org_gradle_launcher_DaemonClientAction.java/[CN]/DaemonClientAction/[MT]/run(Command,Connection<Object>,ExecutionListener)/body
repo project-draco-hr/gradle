@@ -1,0 +1,20 @@
+{
+  try {
+    connection.dispatch(command);
+    while (true) {
+      Object object=connection.receive();
+      if (object instanceof CommandComplete) {
+        CommandComplete commandComplete=(CommandComplete)object;
+        if (commandComplete.getFailure() != null) {
+          executionListener.onFailure(commandComplete.getFailure());
+        }
+        break;
+      }
+      OutputEvent outputEvent=(OutputEvent)object;
+      outputEventListener.onOutput(outputEvent);
+    }
+  }
+  finally {
+    connection.stop();
+  }
+}
