@@ -1,12 +1,12 @@
 {
   try {
-    Socket socket=new Socket(InetAddress.getByName(null),DAEMON_PORT);
+    SocketChannel socket=SocketChannel.open(new InetSocketAddress(DAEMON_PORT));
     try {
-      return new SocketConnection(socket);
+      return new SocketConnection<Object>(socket,"launcher","daemon",getClass().getClassLoader());
     }
- catch (    IOException e) {
+ catch (    Throwable throwable) {
       socket.close();
-      throw e;
+      throw UncheckedException.asUncheckedException(throwable);
     }
   }
  catch (  ConnectException e) {

@@ -1,13 +1,14 @@
 {
   try {
-    ServerSocket serverSocket=new ServerSocket(DAEMON_PORT);
+    ServerSocketChannel serverSocket=ServerSocketChannel.open();
+    serverSocket.socket().bind(new InetSocketAddress(DAEMON_PORT));
     try {
       final AtomicBoolean finished=new AtomicBoolean();
       while (!finished.get()) {
         LOGGER.lifecycle("Waiting for request");
-        final Socket socket=serverSocket.accept();
+        final SocketChannel socket=serverSocket.accept();
         try {
-          Connection<Object> connection=new SocketConnection(socket);
+          Connection<Object> connection=new SocketConnection<Object>(socket,"daemon","client",getClass().getClassLoader());
           handler.handle(connection,new Stoppable(){
             public void stop(){
               finished.set(true);
