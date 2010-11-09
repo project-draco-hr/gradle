@@ -5,8 +5,11 @@
   otherManifest.mainAttributes(WrapUtil.toMap("somekey","somevalue"));
   otherManifest.mainAttributes(WrapUtil.toMap(Analyzer.BUNDLE_VENDOR,"mergeVendor"));
   osgiManifest.from(otherManifest);
-  DefaultManifest expectedManifest=new DefaultManifest(fileResolver);
-  expectedManifest.attributes(getDefaultManifestWithOsgiValues().getAttributes());
+  DefaultManifest defaultManifest=getDefaultManifestWithOsgiValues();
+  DefaultManifest expectedManifest=new DefaultManifest(fileResolver).attributes(defaultManifest.getAttributes());
+  for (  Map.Entry<String,Attributes> ent : defaultManifest.getSections().entrySet()) {
+    expectedManifest.attributes(ent.getValue(),ent.getKey());
+  }
   expectedManifest.attributes(otherManifest.getAttributes());
   DefaultManifest manifest=osgiManifest.getEffectiveManifest();
   assertTrue(manifest.isEqualsTo(expectedManifest));
