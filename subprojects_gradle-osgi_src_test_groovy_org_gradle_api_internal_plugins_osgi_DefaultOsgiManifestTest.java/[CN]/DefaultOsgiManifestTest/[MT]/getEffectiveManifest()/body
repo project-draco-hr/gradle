@@ -2,7 +2,11 @@
   setUpOsgiManifest();
   prepareMock();
   DefaultManifest manifest=osgiManifest.getEffectiveManifest();
-  DefaultManifest expectedManifest=new DefaultManifest(fileResolver).attributes(getDefaultManifestWithOsgiValues().getAttributes());
+  DefaultManifest defaultManifest=getDefaultManifestWithOsgiValues();
+  DefaultManifest expectedManifest=new DefaultManifest(fileResolver).attributes(defaultManifest.getAttributes());
+  for (  Map.Entry<String,Attributes> ent : defaultManifest.getSections().entrySet()) {
+    expectedManifest.attributes(ent.getValue(),ent.getKey());
+  }
   assertThat(manifest.getAttributes(),Matchers.equalTo(expectedManifest.getAttributes()));
   assertThat(manifest.getSections(),Matchers.equalTo(expectedManifest.getSections()));
 }
