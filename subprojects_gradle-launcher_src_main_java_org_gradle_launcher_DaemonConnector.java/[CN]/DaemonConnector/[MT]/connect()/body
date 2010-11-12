@@ -1,0 +1,23 @@
+{
+  Connection<Object> connection=maybeConnect();
+  if (connection != null) {
+    return connection;
+  }
+  LOGGER.info("Starting Gradle daemon");
+  try {
+    startDaemon();
+    Date expiry=new Date(System.currentTimeMillis() + 30000L);
+    do {
+      connection=maybeConnect();
+      if (connection != null) {
+        return connection;
+      }
+      Thread.sleep(200L);
+    }
+ while (System.currentTimeMillis() < expiry.getTime());
+  }
+ catch (  Exception e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+  throw new GradleException("Timeout waiting to connect to Gradle daemon.");
+}

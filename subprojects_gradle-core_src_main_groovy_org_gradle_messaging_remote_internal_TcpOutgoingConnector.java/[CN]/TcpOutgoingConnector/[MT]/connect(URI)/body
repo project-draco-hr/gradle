@@ -1,5 +1,5 @@
 {
-  if (!destinationUri.getScheme().equals("tcp") || !destinationUri.getHost().equals("localhost")) {
+  if (!destinationUri.getScheme().equals("tcp") || destinationUri.getHost() == null || !destinationUri.getHost().equals("localhost")) {
     throw new IllegalArgumentException(String.format("Cannot create connection to destination URI '%s'.",destinationUri));
   }
   List<InetAddress> loopBackAddresses=findLocalAddresses();
@@ -22,7 +22,10 @@
     }
     throw lastFailure;
   }
- catch (  Exception e) {
+ catch (  java.net.ConnectException e) {
+    throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",destinationUri,loopBackAddresses),e);
+  }
+catch (  Exception e) {
     throw new GradleException(String.format("Could not connect to server %s. Tried addresses: %s.",destinationUri,loopBackAddresses),e);
   }
 }

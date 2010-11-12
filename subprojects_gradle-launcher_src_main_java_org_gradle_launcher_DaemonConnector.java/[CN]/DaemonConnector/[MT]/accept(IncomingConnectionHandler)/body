@@ -1,31 +1,41 @@
 {
-  try {
-    ServerSocketChannel serverSocket=ServerSocketChannel.open();
-    serverSocket.socket().bind(new InetSocketAddress(DAEMON_PORT));
-    try {
-      final AtomicBoolean finished=new AtomicBoolean();
-      while (!finished.get()) {
-        LOGGER.lifecycle("Waiting for request");
-        final SocketChannel socket=serverSocket.accept();
-        try {
-          Connection<Object> connection=new SocketConnection<Object>(socket,"daemon","client",getClass().getClassLoader());
-          handler.handle(connection,new Stoppable(){
-            public void stop(){
-              finished.set(true);
-            }
-          }
-);
-        }
+  DefaultExecutorFactory executorFactory=new DefaultExecutorFactory();
+  TcpIncomingConnector incomingConnector=new TcpIncomingConnector(executorFactory,getClass().getClassLoader());
+  final CompletionHandler finished=new CompletionHandler();
+  LOGGER.lifecycle("Awaiting requests.");
+  URI uri=incomingConnector.accept(new Action<ConnectEvent<Connection<Object>>>(){
+    public void execute(    ConnectEvent<Connection<Object>> connectionConnectEvent){
+      try {
+        finished.onConnect();
+        handler.handle(connectionConnectEvent.getConnection(),finished);
+      }
   finally {
-          socket.close();
-        }
+        connectionConnectEvent.getConnection().stop();
       }
     }
+  }
+);
+  try {
+    File registryFile=getRegistryFile();
+    registryFile.getParentFile().mkdirs();
+    FileOutputStream outputStream=new FileOutputStream(registryFile);
+    try {
+      outputStream.getChannel().lock();
+      DataOutputStream dataOutputStream=new DataOutputStream(outputStream);
+      dataOutputStream.writeUTF(uri.toString());
+      dataOutputStream.flush();
+    }
   finally {
-      serverSocket.close();
+      outputStream.close();
     }
   }
  catch (  IOException e) {
     throw UncheckedException.asUncheckedException(e);
   }
+  boolean stopped=finished.awaitStop();
+  if (!stopped) {
+    LOGGER.lifecycle("Time-out waiting for requests. Stopping.");
+  }
+  new CompositeStoppable(incomingConnector,executorFactory).stop();
+  getRegistryFile().delete();
 }

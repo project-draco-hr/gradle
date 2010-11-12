@@ -1,18 +1,28 @@
 {
   try {
-    SocketChannel socket=SocketChannel.open(new InetSocketAddress(InetAddress.getByName(null),DAEMON_PORT));
+    URI uri;
     try {
-      return new SocketConnection<Object>(socket,"launcher","daemon",getClass().getClassLoader());
+      FileInputStream inputStream=new FileInputStream(getRegistryFile());
+      try {
+        inputStream.getChannel().lock(0,Long.MAX_VALUE,true);
+        DataInputStream dataInputStream=new DataInputStream(inputStream);
+        uri=new URI(dataInputStream.readUTF());
+      }
+  finally {
+        inputStream.close();
+      }
     }
- catch (    Throwable throwable) {
-      socket.close();
-      throw UncheckedException.asUncheckedException(throwable);
+ catch (    FileNotFoundException e) {
+      return null;
+    }
+    try {
+      return new TcpOutgoingConnector(getClass().getClassLoader()).connect(uri);
+    }
+ catch (    ConnectException e) {
+      return null;
     }
   }
- catch (  ConnectException e) {
-    return null;
-  }
-catch (  IOException e) {
+ catch (  Exception e) {
     throw UncheckedException.asUncheckedException(e);
   }
 }
