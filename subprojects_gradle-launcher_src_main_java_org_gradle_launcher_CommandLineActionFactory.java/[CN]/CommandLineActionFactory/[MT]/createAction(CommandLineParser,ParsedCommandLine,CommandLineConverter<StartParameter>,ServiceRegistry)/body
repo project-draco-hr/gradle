@@ -15,7 +15,10 @@
     return new StopDaemonAction(new DaemonConnector(),loggingServices.get(OutputEventListener.class));
   }
   StartParameter startParameter=startParameterConverter.convert(commandLine);
-  if (commandLine.hasOption(DAEMON) || System.getProperty("org.gradle.daemon","false").equals("true")) {
+  boolean useDaemon=System.getProperty("org.gradle.daemon","false").equals("true");
+  useDaemon=useDaemon || commandLine.hasOption(DAEMON);
+  useDaemon=useDaemon && !commandLine.hasOption(NO_DAEMON);
+  if (useDaemon) {
     return new DaemonBuildAction(loggingServices.get(OutputEventListener.class),new DaemonConnector(),startParameter,commandLine,new File(System.getProperty("user.dir")));
   }
   return new RunBuildAction(startParameter,loggingServices);
