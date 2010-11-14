@@ -9,7 +9,7 @@
   Properties sysProperties=new Properties();
   sysProperties.putAll(System.getProperties());
   try {
-    RunBuildAction action=new RunBuildAction(startParameter,loggingServices){
+    RunBuildAction action=new RunBuildAction(startParameter,loggingServices,new DefaultBuildRequestMetaData(build.getClientMetaData(),build.getStartTime())){
       @Override GradleLauncherFactory createGradleLauncherFactory(      ServiceRegistry loggingServices){
         return launcherFactory;
       }
@@ -18,7 +18,7 @@
     action.execute(executionListener);
   }
  catch (  Throwable throwable) {
-    BuildExceptionReporter exceptionReporter=new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class),new StartParameter());
+    BuildExceptionReporter exceptionReporter=new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class),new StartParameter(),build.getClientMetaData());
     exceptionReporter.reportException(throwable);
     executionListener.onFailure(throwable);
   }

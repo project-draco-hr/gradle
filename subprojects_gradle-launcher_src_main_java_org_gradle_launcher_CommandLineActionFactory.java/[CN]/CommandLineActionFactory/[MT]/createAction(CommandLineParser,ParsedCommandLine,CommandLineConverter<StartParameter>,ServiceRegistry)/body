@@ -11,17 +11,19 @@
   StartParameter startParameter=new StartParameter();
   startParameterConverter.convert(commandLine,startParameter);
   DaemonConnector connector=new DaemonConnector(startParameter.getGradleUserHomeDir());
+  GradleLauncherMetaData clientMetaData=new GradleLauncherMetaData();
+  long startTime=ManagementFactory.getRuntimeMXBean().getStartTime();
   if (commandLine.hasOption(FOREGROUND)) {
     return new ActionAdapter(new DaemonMain(loggingServices,connector));
   }
   if (commandLine.hasOption(STOP)) {
-    return new StopDaemonAction(connector,loggingServices.get(OutputEventListener.class));
+    return new StopDaemonAction(connector,loggingServices.get(OutputEventListener.class),clientMetaData);
   }
   boolean useDaemon=System.getProperty("org.gradle.daemon","false").equals("true");
   useDaemon=useDaemon || commandLine.hasOption(DAEMON);
   useDaemon=useDaemon && !commandLine.hasOption(NO_DAEMON);
   if (useDaemon) {
-    return new DaemonBuildAction(loggingServices.get(OutputEventListener.class),connector,commandLine,new File(System.getProperty("user.dir")));
+    return new DaemonBuildAction(loggingServices.get(OutputEventListener.class),connector,commandLine,new File(System.getProperty("user.dir")),clientMetaData,startTime);
   }
-  return new RunBuildAction(startParameter,loggingServices);
+  return new RunBuildAction(startParameter,loggingServices,new DefaultBuildRequestMetaData(clientMetaData,startTime));
 }
