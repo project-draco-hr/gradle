@@ -1,0 +1,62 @@
+{
+  int remaining=input.length() - pos;
+  if (remaining == 0) {
+    token=null;
+    value=null;
+    return false;
+  }
+  int startNext=pos;
+  while (remaining > 0) {
+    if (inlineTag == null && remaining >= 3 && input.charAt(pos) == '<') {
+      break;
+    }
+    if (remaining >= 4 && input.startsWith("{@",pos)) {
+      break;
+    }
+    if (inlineTag != null && input.charAt(pos) == '}') {
+      break;
+    }
+    pos++;
+    remaining--;
+  }
+  if (pos > startNext) {
+    token=Token.Text;
+    value=input.substring(startNext,pos);
+    return true;
+  }
+  if (inlineTag == null && remaining >= 3 && input.charAt(pos) == '<') {
+    pos++;
+    token=Token.Start;
+    if (input.charAt(pos) == '/') {
+      token=Token.End;
+      pos++;
+    }
+    int endpos=input.indexOf('>',pos);
+    value=input.substring(pos,endpos);
+    pos=endpos + 1;
+    return true;
+  }
+  if (remaining >= 4 && input.startsWith("{@",pos)) {
+    pos+=2;
+    int endpos=pos;
+    while (endpos < input.length() && !Character.isWhitespace(input.charAt(endpos))) {
+      endpos++;
+    }
+    token=Token.Start;
+    value=input.substring(pos,endpos);
+    inlineTag=value;
+    while (endpos < input.length() && Character.isWhitespace(input.charAt(endpos))) {
+      endpos++;
+    }
+    pos=endpos;
+    return true;
+  }
+  if (inlineTag != null && input.charAt(pos) == '}') {
+    token=Token.End;
+    value=inlineTag;
+    inlineTag=null;
+    pos=pos + 1;
+    return true;
+  }
+  throw new IllegalStateException();
+}
