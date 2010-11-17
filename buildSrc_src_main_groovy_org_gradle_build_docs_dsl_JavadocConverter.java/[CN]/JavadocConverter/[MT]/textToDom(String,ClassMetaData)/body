@@ -1,0 +1,82 @@
+{
+  Lexer lexer=new Lexer(text);
+  final NodeStack nodes=new NodeStack();
+  int sectionDepth=0;
+  StringBuilder link=null;
+  while (lexer.next()) {
+switch (lexer.token) {
+case Text:
+      if (link != null) {
+        link.append(lexer.value);
+        break;
+      }
+    nodes.appendChild(lexer.value);
+  break;
+case Start:
+if (lexer.value.equalsIgnoreCase("p")) {
+  nodes.push(lexer.value,document.createElement("para"));
+  break;
+}
+if (lexer.value.equalsIgnoreCase("code")) {
+nodes.push(lexer.value,document.createElement("literal"));
+break;
+}
+if (lexer.value.equalsIgnoreCase("pre")) {
+nodes.push(lexer.value,document.createElement("programlisting"));
+break;
+}
+if (lexer.value.equalsIgnoreCase("em")) {
+nodes.push(lexer.value,document.createElement("emphasis"));
+break;
+}
+if (lexer.value.equalsIgnoreCase("ul")) {
+nodes.push(lexer.value,document.createElement("itemizedlist"));
+break;
+}
+if (lexer.value.equalsIgnoreCase("li")) {
+nodes.push(lexer.value,document.createElement("listitem"));
+break;
+}
+if (lexer.value.equalsIgnoreCase("link")) {
+link=new StringBuilder();
+break;
+}
+Matcher matcher=headerPattern.matcher(lexer.value);
+if (matcher.matches()) {
+int depth=Integer.parseInt(matcher.group(1));
+if (sectionDepth == 0) {
+sectionDepth=depth - 1;
+}
+while (sectionDepth >= depth) {
+nodes.pop("section");
+sectionDepth--;
+}
+Element section=document.createElement("section");
+while (sectionDepth < depth) {
+nodes.push("section",section);
+sectionDepth++;
+}
+nodes.push("title",document.createElement("title"));
+sectionDepth=depth;
+break;
+}
+nodes.appendChild(String.format("!!UNKNOWN TAG %s!!",lexer.value));
+break;
+case End:
+if (lexer.value.equalsIgnoreCase("link")) {
+for (Node node : linkConverter.resolve(link.toString(),classMetaData)) {
+nodes.appendChild(node);
+}
+link=null;
+break;
+}
+Matcher endMatcher=headerPattern.matcher(lexer.value);
+if (endMatcher.matches()) {
+nodes.pop("title");
+break;
+}
+nodes.pop(lexer.value);
+}
+}
+return nodes.nodes;
+}
