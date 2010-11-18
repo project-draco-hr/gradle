@@ -1,0 +1,23 @@
+{
+  Lexer lexer=new Lexer(new Scanner(rawCommentText));
+  NodeStack nodes=new NodeStack();
+  HtmlGeneratingTokenHandler handler=new HtmlGeneratingTokenHandler(nodes);
+  handler.add(new TagToElementTranslatingTokenHandler(nodes,document));
+  handler.add(new HeaderHandler(nodes,document));
+  handler.add(new LinkHandler(nodes,linkConverter,classMetaData));
+  handler.add(new InheritDocHandler(lexer,inheritedCommentSource));
+  while (lexer.next()) {
+switch (lexer.token) {
+case Text:
+      handler.onText(lexer.value);
+    break;
+case Start:
+  handler.onStartTag(lexer.value);
+break;
+case End:
+handler.onEndTag(lexer.value);
+break;
+}
+}
+return nodes.nodes;
+}

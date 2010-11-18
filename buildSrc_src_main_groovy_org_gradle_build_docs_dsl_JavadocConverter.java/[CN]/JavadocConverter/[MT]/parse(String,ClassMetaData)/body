@@ -1,31 +1,14 @@
 {
-  StringBuilder builder=new StringBuilder();
-  try {
-    BufferedReader reader=new BufferedReader(new StringReader(rawCommentText));
-    String line;
-    while ((line=reader.readLine()) != null) {
-      line=line.replaceFirst("\\s*\\*\\s*","");
-      if (line.startsWith("@")) {
-        break;
-      }
-      builder.append(line);
-      builder.append("\n");
-    }
-  }
- catch (  IOException e) {
-    throw UncheckedException.asUncheckedException(e);
-  }
-  String normalisedCommentText=builder.toString().trim();
-  String firstSentence=firstSentence(normalisedCommentText);
-  final List<Node> firstSentenceNodes=textToDom(firstSentence,classMetaData);
-  final List<Node> nodes=textToDom(normalisedCommentText,classMetaData);
-  return new DocComment(){
-    public Iterable<? extends Node> getDocbook(){
-      return nodes;
-    }
-    public Iterable<? extends Node> getFirstSentence(){
-      return firstSentenceNodes;
+  CommentSource commentSource=new CommentSource(){
+    public String getCommentText(){
+      throw new UnsupportedOperationException();
     }
   }
 ;
+  try {
+    return parse(rawCommentText,classMetaData,commentSource);
+  }
+ catch (  Exception e) {
+    throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nComment: %s",classMetaData.getClassName(),rawCommentText),e);
+  }
 }

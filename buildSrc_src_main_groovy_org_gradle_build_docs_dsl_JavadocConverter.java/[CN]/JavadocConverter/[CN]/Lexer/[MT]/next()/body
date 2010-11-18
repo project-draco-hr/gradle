@@ -1,61 +1,68 @@
 {
-  int remaining=input.length() - pos;
-  if (remaining == 0) {
+  if (scanner.isEmpty()) {
     token=null;
     value=null;
     return false;
   }
-  int startNext=pos;
-  while (remaining > 0) {
-    if (inlineTag == null && remaining >= 3 && input.charAt(pos) == '<') {
+  scanner.mark();
+  while (!scanner.isEmpty()) {
+    if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
       break;
     }
-    if (remaining >= 4 && input.startsWith("{@",pos)) {
+    if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
       break;
     }
-    if (inlineTag != null && input.charAt(pos) == '}') {
+    if (scanner.lookingAt(TAG)) {
       break;
     }
-    pos++;
-    remaining--;
+    if (inlineTag != null && scanner.lookingAt('}')) {
+      break;
+    }
+    scanner.next();
   }
-  if (pos > startNext) {
+  String region=scanner.region();
+  if (region.length() > 0) {
     token=Token.Text;
-    value=input.substring(startNext,pos);
+    value=region;
     return true;
   }
-  if (inlineTag == null && remaining >= 3 && input.charAt(pos) == '<') {
-    pos++;
+  if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
+    scanner.next();
     token=Token.Start;
-    if (input.charAt(pos) == '/') {
+    if (scanner.lookingAt('/')) {
       token=Token.End;
-      pos++;
+      scanner.next();
     }
-    int endpos=input.indexOf('>',pos);
-    value=input.substring(pos,endpos);
-    pos=endpos + 1;
+    scanner.mark();
+    scanner.find('>');
+    value=scanner.region().toLowerCase();
+    scanner.next();
     return true;
   }
-  if (remaining >= 4 && input.startsWith("{@",pos)) {
-    pos+=2;
-    int endpos=pos;
-    while (endpos < input.length() && !Character.isWhitespace(input.charAt(endpos))) {
-      endpos++;
-    }
+  if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
+    scanner.next();
+    scanner.mark();
+    scanner.find(';');
+    token=Token.Text;
+    value=ENTITIES.get(scanner.region().toLowerCase());
+    scanner.next();
+    return true;
+  }
+  if (scanner.lookingAt(TAG)) {
+    scanner.next(2);
+    scanner.mark();
+    scanner.find(END_TAG_NAME);
     token=Token.Start;
-    value=input.substring(pos,endpos);
+    value=scanner.region();
     inlineTag=value;
-    while (endpos < input.length() && Character.isWhitespace(input.charAt(endpos))) {
-      endpos++;
-    }
-    pos=endpos;
+    scanner.skip(WHITESPACE);
     return true;
   }
-  if (inlineTag != null && input.charAt(pos) == '}') {
+  if (inlineTag != null && scanner.lookingAt('}')) {
     token=Token.End;
     value=inlineTag;
     inlineTag=null;
-    pos=pos + 1;
+    scanner.next();
     return true;
   }
   throw new IllegalStateException();
