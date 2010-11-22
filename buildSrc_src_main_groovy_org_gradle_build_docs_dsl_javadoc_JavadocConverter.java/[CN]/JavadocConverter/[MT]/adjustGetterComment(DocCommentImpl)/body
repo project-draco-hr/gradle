@@ -1,0 +1,16 @@
+{
+  List<Node> nodes=docComment.getDocbook();
+  if (nodes.isEmpty() || !(nodes.get(0) instanceof Element)) {
+    return;
+  }
+  Element firstNode=(Element)nodes.get(0);
+  if (!firstNode.getNodeName().equals("para") || !(firstNode.getFirstChild() instanceof Text)) {
+    return;
+  }
+  Text comment=(Text)firstNode.getFirstChild();
+  Pattern getterPattern=Pattern.compile("returns\\s+the\\s+",Pattern.CASE_INSENSITIVE);
+  Matcher matcher=getterPattern.matcher(comment.getData());
+  if (matcher.lookingAt()) {
+    comment.setData("The " + comment.getData().substring(matcher.end()));
+  }
+}

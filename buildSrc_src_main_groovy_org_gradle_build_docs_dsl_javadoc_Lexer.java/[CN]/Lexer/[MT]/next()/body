@@ -9,6 +9,9 @@
     if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
       break;
     }
+    if (inlineTag == null && scanner.lookingAt(HTML_ENCODED_CHAR)) {
+      break;
+    }
     if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
       break;
     }
@@ -36,6 +39,15 @@
     scanner.mark();
     scanner.find('>');
     value=scanner.region().toLowerCase();
+    scanner.next();
+    return true;
+  }
+  if (inlineTag == null && scanner.lookingAt(HTML_ENCODED_CHAR)) {
+    scanner.next(2);
+    scanner.mark();
+    scanner.find(';');
+    token=Token.Text;
+    value=new String(new char[]{(char)Integer.parseInt(scanner.region())});
     scanner.next();
     return true;
   }
