@@ -1,6 +1,6 @@
 {
   Lexer lexer=new Lexer(new Scanner(rawCommentText));
-  NodeStack nodes=new NodeStack();
+  NodeStack nodes=new NodeStack(document);
   HtmlGeneratingTokenHandler handler=new HtmlGeneratingTokenHandler(nodes);
   handler.add(new TagToElementTranslatingTokenHandler(nodes,document));
   handler.add(new HeaderHandler(nodes,document));
@@ -11,13 +11,15 @@ switch (lexer.token) {
 case Text:
       handler.onText(lexer.value);
     break;
-case Start:
-  handler.onStartTag(lexer.value);
+case StartElement:
+case StartTag:
+  handler.onStartTag(lexer.value,lexer.token);
 break;
 case End:
 handler.onEndTag(lexer.value);
 break;
 }
 }
+nodes.complete();
 return nodes.nodes;
 }

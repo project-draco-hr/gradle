@@ -1,4 +1,9 @@
 {
+  if (implicitEnd) {
+    token=Token.End;
+    implicitEnd=false;
+    return true;
+  }
   if (scanner.isEmpty()) {
     token=null;
     value=null;
@@ -31,15 +36,18 @@
   }
   if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
     scanner.next();
-    token=Token.Start;
+    token=Token.StartElement;
     if (scanner.lookingAt('/')) {
       token=Token.End;
       scanner.next();
     }
     scanner.mark();
-    scanner.find('>');
+    scanner.find(END_ELEMENT_NAME);
+    if (scanner.lookingAt('/')) {
+      implicitEnd=true;
+    }
     value=scanner.region().toLowerCase();
-    scanner.next();
+    scanner.skip(END_ELEMENT_NAME);
     return true;
   }
   if (inlineTag == null && scanner.lookingAt(HTML_ENCODED_CHAR)) {
@@ -64,7 +72,7 @@
     scanner.next(2);
     scanner.mark();
     scanner.find(END_TAG_NAME);
-    token=Token.Start;
+    token=Token.StartTag;
     value=scanner.region();
     inlineTag=value;
     scanner.skip(WHITESPACE);
