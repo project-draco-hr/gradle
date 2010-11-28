@@ -1,0 +1,22 @@
+{
+  if (t.getType() == DOT) {
+    GroovySourceAST firstChild=(GroovySourceAST)t.getFirstChild();
+    GroovySourceAST secondChild=(GroovySourceAST)firstChild.getNextSibling();
+    return extractName(firstChild) + "." + extractName(secondChild);
+  }
+  if (t.getType() == IDENT) {
+    return t.getText();
+  }
+  if (t.getType() == STAR) {
+    return t.getText();
+  }
+  GroovySourceAST child=t.childOfType(DOT);
+  if (child != null) {
+    return extractName(child);
+  }
+  child=t.childOfType(IDENT);
+  if (child != null) {
+    return extractName(child);
+  }
+  throw new RuntimeException(String.format("Unexpected token in name: %s",t));
+}

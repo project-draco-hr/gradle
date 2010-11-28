@@ -1,0 +1,19 @@
+{
+  GroovySourceAST parentNode=getParentNode();
+  boolean isField=parentNode != null && parentNode.getType() == OBJBLOCK;
+  if (!isField) {
+    return;
+  }
+  int modifiers=extractModifiers(t);
+  boolean isProp=groovy && !Modifier.isStatic(modifiers) && !Modifier.isPublic(modifiers)&& !Modifier.isProtected(modifiers)&& !Modifier.isPrivate(modifiers);
+  if (!isProp) {
+    return;
+  }
+  String fieldName=extractIdent(t);
+  String type=extractTypeName(t);
+  ClassMetaData currentClass=getCurrentClass();
+  currentClass.addReadableProperty(fieldName,type,getJavaDocCommentsBeforeNode(t));
+  if (!Modifier.isFinal(modifiers)) {
+    currentClass.addWriteableProperty(fieldName,type,getJavaDocCommentsBeforeNode(t));
+  }
+}

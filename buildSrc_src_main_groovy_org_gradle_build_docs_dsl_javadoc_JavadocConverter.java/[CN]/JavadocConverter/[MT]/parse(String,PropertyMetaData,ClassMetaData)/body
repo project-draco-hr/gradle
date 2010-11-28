@@ -1,8 +1,11 @@
 {
   CommentSource commentSource=new CommentSource(){
-    public String getCommentText(){
-      String comment=propertyMetaData.getInheritedRawCommentText();
-      return GUtil.isTrue(comment) ? comment : "!!NO INHERITED DOC COMMENT!!";
+    public Iterable<? extends Node> getCommentText(){
+      PropertyMetaData overriddenProperty=propertyMetaData.getOverriddenProperty();
+      if (overriddenProperty == null) {
+        return Arrays.asList(document.createTextNode("!!NO INHERITED DOC COMMENT!!"));
+      }
+      return parse(overriddenProperty.getRawCommentText(),overriddenProperty,overriddenProperty.getOwnerClass()).getDocbook();
     }
   }
 ;

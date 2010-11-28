@@ -1,0 +1,58 @@
+{
+  if (primitiveTypes.contains(name)) {
+    return name;
+  }
+  String candidateClassName;
+  String[] innerNames=name.split("\\.");
+  ClassMetaData pos=classMetaData;
+  for (int i=0; i < innerNames.length; i++) {
+    String innerName=innerNames[i];
+    candidateClassName=pos.getClassName() + '.' + innerName;
+    if (!pos.getInnerClassNames().contains(candidateClassName)) {
+      break;
+    }
+    if (i == innerNames.length - 1) {
+      return candidateClassName;
+    }
+    pos=metaDataRepository.get(candidateClassName);
+  }
+  String outerClassName=classMetaData.getOuterClassName();
+  while (outerClassName != null) {
+    if (name.equals(StringUtils.substringAfterLast(outerClassName,"."))) {
+      return outerClassName;
+    }
+    ClassMetaData outerClass=metaDataRepository.get(outerClassName);
+    candidateClassName=outerClassName + '.' + name;
+    if (outerClass.getInnerClassNames().contains(candidateClassName)) {
+      return candidateClassName;
+    }
+    outerClassName=outerClass.getOuterClassName();
+  }
+  if (name.contains(".")) {
+    return name;
+  }
+  for (  String importedClass : classMetaData.getImports()) {
+    String baseName=StringUtils.substringAfterLast(importedClass,".");
+    if (baseName.equals("*")) {
+      candidateClassName=StringUtils.substringBeforeLast(importedClass,".") + "." + name;
+      if (metaDataRepository.find(candidateClassName) != null) {
+        return candidateClassName;
+      }
+    }
+ else     if (name.equals(baseName)) {
+      return importedClass;
+    }
+  }
+  candidateClassName=classMetaData.getPackageName() + "." + name;
+  if (metaDataRepository.find(candidateClassName) != null) {
+    return candidateClassName;
+  }
+  try {
+    candidateClassName="java.lang." + name;
+    ClassLoader.getSystemClassLoader().loadClass(candidateClassName);
+    return candidateClassName;
+  }
+ catch (  ClassNotFoundException e) {
+  }
+  return name;
+}
