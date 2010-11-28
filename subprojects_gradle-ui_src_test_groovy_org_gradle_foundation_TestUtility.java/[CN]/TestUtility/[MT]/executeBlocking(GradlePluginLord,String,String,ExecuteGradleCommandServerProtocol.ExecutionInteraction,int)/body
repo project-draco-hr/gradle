@@ -1,6 +1,6 @@
 {
   gradlePluginLord.startExecutionQueue();
-  final AtomicBoolean isComplete=new AtomicBoolean();
+  final CountDownLatch complete=new CountDownLatch(1);
   GradlePluginLord.RequestObserver observer=new GradlePluginLord.RequestObserver(){
     public void executionRequestAdded(    ExecutionRequest request){
       request.setExecutionInteraction(executionInteraction);
@@ -10,25 +10,22 @@
     public void aboutToExecuteRequest(    Request request){
     }
     public void requestExecutionComplete(    Request request,    int result,    String output){
-      isComplete.set(true);
+      complete.countDown();
     }
   }
 ;
   gradlePluginLord.addRequestObserver(observer,false);
   Request request=gradlePluginLord.addExecutionRequestToQueue(fullCommandLine,displayName);
   Assert.assertNotNull(request);
-  int totalWaitTime=0;
-  while (!isComplete.get() && totalWaitTime <= maximumWaitSeconds) {
-    try {
-      Thread.sleep(1000);
-    }
- catch (    InterruptedException e) {
-      e.printStackTrace();
-    }
-    totalWaitTime+=1;
+  boolean timeout;
+  try {
+    timeout=!complete.await(maximumWaitSeconds,TimeUnit.SECONDS);
+  }
+ catch (  InterruptedException e) {
+    throw UncheckedException.asUncheckedException(e);
   }
   gradlePluginLord.removeRequestObserver(observer);
-  if (!isComplete.get()) {
+  if (timeout) {
     request.cancel();
     throw new AssertionFailedError("Failed to comlete execution in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
   }
