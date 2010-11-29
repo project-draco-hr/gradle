@@ -1,16 +1,21 @@
 {
   String name=extractName(t);
-  if (name.matches("get.+")) {
-    String propName=name.substring(3,4).toLowerCase() + name.substring(4);
+  Matcher matcher=GETTER_METHOD_NAME.matcher(name);
+  if (matcher.matches()) {
+    int startName=matcher.start(2);
+    String propName=name.substring(startName,startName + 1).toLowerCase() + name.substring(startName + 1);
     String type=extractTypeName(t);
     getCurrentClass().addReadableProperty(propName,type,getJavaDocCommentsBeforeNode(t));
+    return;
   }
- else   if (name.matches("set.+")) {
-    GroovySourceAST paramsAst=t.childOfType(PARAMETERS);
-    if (paramsAst.getFirstChild() == null || paramsAst.getFirstChild().getNextSibling() != null) {
-      return;
-    }
-    String propName=name.substring(3,4).toLowerCase() + name.substring(4);
+  GroovySourceAST paramsAst=t.childOfType(PARAMETERS);
+  if (paramsAst.getFirstChild() == null || paramsAst.getFirstChild().getNextSibling() != null) {
+    return;
+  }
+  matcher=SETTER_METHOD_NAME.matcher(name);
+  if (matcher.matches()) {
+    int startName=matcher.start(1);
+    String propName=name.substring(startName,startName + 1).toLowerCase() + name.substring(startName + 1);
     String type=extractTypeName((GroovySourceAST)paramsAst.getFirstChild());
     getCurrentClass().addWriteableProperty(propName,type,getJavaDocCommentsBeforeNode(t));
   }
