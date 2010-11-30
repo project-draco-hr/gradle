@@ -1,0 +1,22 @@
+{
+  try {
+    FileInputStream inputStream=new FileInputStream(getRegistryFile());
+    try {
+      inputStream.getChannel().lock(0,Long.MAX_VALUE,true);
+      DataInputStream dataInputStream=new DataInputStream(inputStream);
+      return new URI(dataInputStream.readUTF());
+    }
+  finally {
+      inputStream.close();
+    }
+  }
+ catch (  FileNotFoundException e) {
+    return null;
+  }
+catch (  EOFException e) {
+    return null;
+  }
+catch (  Exception e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+}
