@@ -1,0 +1,31 @@
+{
+  if (pendingTokens.size() > 0) {
+    pendingTokens.removeFirst();
+    if (pendingTokens.size() > 0) {
+      return true;
+    }
+  }
+  boolean next=lexer.next();
+  if (!next) {
+    return false;
+  }
+  Token token=lexer.getToken();
+switch (token.tokenType) {
+case StartElement:
+    if (token.value.equals("li")) {
+      unwindTo("li");
+    }
+ else     if (blockElements.contains(token.value)) {
+      unwindTo("p");
+    }
+case StartTag:
+  elementStack.addFirst(token.value);
+break;
+case End:
+unwindTo(token.value);
+break;
+default :
+}
+pendingTokens.addLast(token);
+return true;
+}

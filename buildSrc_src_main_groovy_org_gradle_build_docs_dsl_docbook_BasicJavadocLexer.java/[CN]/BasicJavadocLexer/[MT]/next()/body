@@ -1,0 +1,89 @@
+{
+  if (implicitEnd) {
+    tokenType=TokenType.End;
+    implicitEnd=false;
+    return true;
+  }
+  if (scanner.isEmpty()) {
+    tokenType=null;
+    value=null;
+    return false;
+  }
+  scanner.mark();
+  while (!scanner.isEmpty()) {
+    if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
+      break;
+    }
+    if (inlineTag == null && scanner.lookingAt(HTML_ENCODED_CHAR)) {
+      break;
+    }
+    if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
+      break;
+    }
+    if (scanner.lookingAt(TAG)) {
+      break;
+    }
+    if (inlineTag != null && scanner.lookingAt('}')) {
+      break;
+    }
+    scanner.next();
+  }
+  String region=scanner.region();
+  if (region.length() > 0) {
+    tokenType=TokenType.Text;
+    value=region;
+    return true;
+  }
+  if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
+    scanner.next();
+    tokenType=TokenType.StartElement;
+    if (scanner.lookingAt('/')) {
+      tokenType=TokenType.End;
+      scanner.next();
+    }
+    scanner.mark();
+    scanner.find(END_ELEMENT_NAME);
+    if (scanner.lookingAt('/')) {
+      implicitEnd=true;
+    }
+    value=scanner.region().toLowerCase();
+    scanner.skip(END_ELEMENT_NAME);
+    return true;
+  }
+  if (inlineTag == null && scanner.lookingAt(HTML_ENCODED_CHAR)) {
+    scanner.next(2);
+    scanner.mark();
+    scanner.find(';');
+    tokenType=TokenType.Text;
+    value=new String(new char[]{(char)Integer.parseInt(scanner.region())});
+    scanner.next();
+    return true;
+  }
+  if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
+    scanner.next();
+    scanner.mark();
+    scanner.find(';');
+    tokenType=TokenType.Text;
+    value=ENTITIES.get(scanner.region().toLowerCase());
+    scanner.next();
+    return true;
+  }
+  if (scanner.lookingAt(TAG)) {
+    scanner.next(2);
+    scanner.mark();
+    scanner.find(END_TAG_NAME);
+    tokenType=TokenType.StartTag;
+    value=scanner.region();
+    inlineTag=value;
+    scanner.skip(WHITESPACE_WITH_EOL);
+    return true;
+  }
+  if (inlineTag != null && scanner.lookingAt('}')) {
+    tokenType=TokenType.End;
+    value=inlineTag;
+    inlineTag=null;
+    scanner.next();
+    return true;
+  }
+  throw new IllegalStateException();
+}

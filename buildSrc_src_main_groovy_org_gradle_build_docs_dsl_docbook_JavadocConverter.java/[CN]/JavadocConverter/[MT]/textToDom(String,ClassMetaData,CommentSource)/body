@@ -1,5 +1,5 @@
 {
-  JavadocLexer lexer=new JavadocLexer(new JavadocScanner(rawCommentText));
+  JavadocLexer lexer=new HtmlToXmlJavadocLexer(new BasicJavadocLexer(new JavadocScanner(rawCommentText)));
   NodeStack nodes=new NodeStack(document);
   HtmlGeneratingTokenHandler handler=new HtmlGeneratingTokenHandler(nodes,document);
   handler.add(new TagToElementTranslatingTokenHandler(nodes,document));
@@ -8,16 +8,17 @@
   handler.add(new InheritDocHandler(nodes,inheritedCommentSource));
   handler.add(new UnknownElementTagHandler(nodes,document));
   while (lexer.next()) {
-switch (lexer.token) {
+    JavadocLexer.Token token=lexer.getToken();
+switch (token.tokenType) {
 case Text:
-      handler.onText(lexer.value);
+      handler.onText(token.value);
     break;
 case StartElement:
 case StartTag:
-  handler.onStartTag(lexer.value,lexer.token);
+  handler.onStartTag(token.value,token.tokenType);
 break;
 case End:
-handler.onEndTag(lexer.value);
+handler.onEndTag(token.value);
 break;
 }
 }
