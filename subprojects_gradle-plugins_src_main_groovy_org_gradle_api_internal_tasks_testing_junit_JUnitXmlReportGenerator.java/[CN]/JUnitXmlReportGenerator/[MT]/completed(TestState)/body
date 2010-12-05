@@ -23,12 +23,12 @@
     rootElement.appendChild(stderrElement);
   }
   element.setAttribute(XMLConstants.ATTR_TIME,String.valueOf(state.getExecutionTime() / 1000.0));
-  if (state.failure != null) {
-    Element failure=testSuiteReport.createElement(XMLConstants.FAILURE);
-    element.appendChild(failure);
-    failure.setAttribute(XMLConstants.ATTR_MESSAGE,failureMessage(state));
-    failure.setAttribute(XMLConstants.ATTR_TYPE,state.failure.getClass().getName());
-    failure.appendChild(testSuiteReport.createTextNode(stackTrace(state)));
+  for (  Throwable failure : state.failures) {
+    Element failureElement=testSuiteReport.createElement(XMLConstants.FAILURE);
+    element.appendChild(failureElement);
+    failureElement.setAttribute(XMLConstants.ATTR_MESSAGE,failureMessage(failure));
+    failureElement.setAttribute(XMLConstants.ATTR_TYPE,failure.getClass().getName());
+    failureElement.appendChild(testSuiteReport.createTextNode(stackTrace(failure)));
   }
   if (state.equals(testSuite)) {
     File reportFile=new File(testResultsDir,"TEST-" + testClassName + ".xml");
