@@ -3,8 +3,11 @@
   if (!groovy && name.equals(getCurrentClass().getSimpleName())) {
     return;
   }
+  ASTIterator children=new ASTIterator(t);
+  children.skip(MODIFIERS);
+  children.skip(TYPE_PARAMETERS);
   String rawCommentText=getJavaDocCommentsBeforeNode(t);
-  TypeMetaData returnType=extractTypeName(t);
+  TypeMetaData returnType=extractTypeName(children.current);
   MethodMetaData method=getCurrentClass().addMethod(name,returnType,rawCommentText);
   extractParameters(t,method);
   Matcher matcher=GETTER_METHOD_NAME.matcher(name);

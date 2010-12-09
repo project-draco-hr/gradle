@@ -1,7 +1,28 @@
 {
-  GroovySourceAST typeAst=ast.childOfType(TYPE);
-  GroovySourceAST firstChild=(GroovySourceAST)typeAst.getFirstChild();
   TypeMetaData type=new TypeMetaData();
-  extractTypeName(firstChild,type);
-  return type;
+switch (ast.getType()) {
+case TYPE:
+    GroovySourceAST typeName=(GroovySourceAST)ast.getFirstChild();
+  extractTypeName(typeName,type);
+break;
+case WILDCARD_TYPE:
+GroovySourceAST bounds=(GroovySourceAST)(groovy ? ast.getNextSibling() : ast.getFirstChild());
+if (bounds == null) {
+type.setWildcard();
+}
+ else if (bounds.getType() == TYPE_UPPER_BOUNDS) {
+type.setUpperBounds(extractTypeName((GroovySourceAST)bounds.getFirstChild()));
+}
+ else if (bounds.getType() == TYPE_LOWER_BOUNDS) {
+type.setLowerBounds(extractTypeName((GroovySourceAST)bounds.getFirstChild()));
+}
+break;
+case IDENT:
+case DOT:
+extractTypeName(ast,type);
+break;
+default :
+throw new RuntimeException(String.format("Unexpected token in type name: %s",ast));
+}
+return type;
 }

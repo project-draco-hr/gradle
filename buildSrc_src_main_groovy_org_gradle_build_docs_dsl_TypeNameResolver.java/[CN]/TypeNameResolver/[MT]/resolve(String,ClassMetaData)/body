@@ -38,6 +38,9 @@
       if (metaDataRepository.find(candidateClassName) != null) {
         return candidateClassName;
       }
+      if (importedClass.startsWith("java.") && isVisibleClass(candidateClassName)) {
+        return candidateClassName;
+      }
     }
  else     if (name.equals(baseName)) {
       return importedClass;
@@ -47,12 +50,17 @@
   if (metaDataRepository.find(candidateClassName) != null) {
     return candidateClassName;
   }
-  try {
-    candidateClassName="java.lang." + name;
-    ClassLoader.getSystemClassLoader().loadClass(candidateClassName);
+  candidateClassName="java.lang." + name;
+  if (isVisibleClass(candidateClassName)) {
     return candidateClassName;
   }
- catch (  ClassNotFoundException e) {
+  if (classMetaData.isGroovy()) {
+    for (    String prefix : groovyImplicitImportPackages) {
+      candidateClassName=prefix + name;
+      if (isVisibleClass(candidateClassName)) {
+        return candidateClassName;
+      }
+    }
   }
   return name;
 }
