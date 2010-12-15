@@ -1,0 +1,25 @@
+{
+  String[] parts=fieldName.split("#");
+  ClassMetaData targetClass;
+  if (parts[0].length() > 0) {
+    String targetClassName=typeNameResolver.resolve(parts[0],classMetaData);
+    targetClass=repository.find(targetClassName);
+    if (targetClass == null) {
+      Element element=document.createElement("UNHANDLED-VALUE");
+      element.appendChild(document.createTextNode(targetClassName + ":" + parts[1]));
+      return element;
+    }
+  }
+ else {
+    targetClass=classMetaData;
+  }
+  String value=targetClass.getConstants().get(parts[1]);
+  if (value == null) {
+    Element element=document.createElement("NO-VALUE-FOR_FIELD");
+    element.appendChild(document.createTextNode(targetClass.getClassName() + ":" + parts[1]));
+    return element;
+  }
+  Element element=document.createElement("literal");
+  element.appendChild(document.createTextNode(value));
+  return element;
+}
