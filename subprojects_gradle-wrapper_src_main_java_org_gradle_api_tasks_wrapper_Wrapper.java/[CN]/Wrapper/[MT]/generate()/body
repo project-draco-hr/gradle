@@ -1,18 +1,18 @@
 {
-  String wrapperDir=GUtil.isTrue(jarPath) ? jarPath + "/" : "";
-  new File(getProject().getProjectDir(),wrapperDir).mkdirs();
-  String wrapperJar=wrapperDir + WRAPPER_JAR;
-  String wrapperPropertiesPath=wrapperDir + WRAPPER_PROPERTIES;
-  File jarFileDestination=new File(getProject().getProjectDir(),wrapperJar);
-  File propertiesFileDestination=new File(getProject().getProjectDir(),wrapperPropertiesPath);
+  File jarFileDestination=getJarFile();
+  File propertiesFileDestination=getPropertiesFile();
+  File scriptFileDestination=getScriptFile();
+  FileResolver resolver=getServices().get(FileResolver.class).withBaseDir(scriptFileDestination.getParentFile());
+  String jarFileRelativePath=resolver.resolveAsRelativePath(jarFileDestination);
+  String propertiesFileRelativePath=resolver.resolveAsRelativePath(propertiesFileDestination);
+  propertiesFileDestination.delete();
+  jarFileDestination.delete();
+  scriptFileDestination.delete();
+  writeProperties(propertiesFileDestination);
   URL jarFileSource=getClass().getResource("/" + WRAPPER_JAR_BASE_NAME + ".jar");
   if (jarFileSource == null) {
     throw new GradleException("Cannot locate wrapper JAR resource.");
   }
-  propertiesFileDestination.delete();
-  jarFileDestination.delete();
-  writeProperties(propertiesFileDestination);
   GFileUtils.copyURLToFile(jarFileSource,jarFileDestination);
-  File scriptDestinationDir=new File(getProject().getProjectDir(),scriptDestinationPath);
-  wrapperScriptGenerator.generate(wrapperJar,wrapperPropertiesPath,scriptDestinationDir);
+  wrapperScriptGenerator.generate(jarFileRelativePath,propertiesFileRelativePath,scriptFileDestination);
 }
