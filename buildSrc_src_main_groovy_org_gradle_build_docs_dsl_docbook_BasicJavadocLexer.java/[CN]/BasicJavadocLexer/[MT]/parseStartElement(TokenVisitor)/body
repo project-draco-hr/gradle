@@ -1,0 +1,50 @@
+{
+  scanner.next();
+  boolean isEnd=false;
+  if (scanner.lookingAt('/')) {
+    isEnd=true;
+    scanner.next();
+  }
+  scanner.skip(WHITESPACE_WITH_EOL);
+  scanner.mark();
+  scanner.find(END_ELEMENT_NAME);
+  String elementName=scanner.region().toLowerCase();
+  if (isEnd) {
+    visitor.onEndHtmlElement(elementName);
+  }
+ else {
+    visitor.onStartHtmlElement(elementName);
+  }
+  scanner.skip(WHITESPACE_WITH_EOL);
+  while (!scanner.isEmpty() && scanner.lookingAt(ELEMENT_ATTRIBUTE)) {
+    scanner.mark();
+    scanner.find(END_ATTRIBUTE_NAME);
+    String attrName=scanner.region();
+    scanner.skip(ATTRIBUTE_SEPARATOR);
+    char quote=scanner.getFirst();
+    scanner.next();
+    StringBuilder attrValue=new StringBuilder();
+    while (!scanner.isEmpty() && !scanner.lookingAt(quote)) {
+      if (scanner.lookingAt(HTML_ENCODED_CHAR)) {
+        parseHtmlEncodedChar(attrValue);
+      }
+ else       if (scanner.lookingAt(HTML_ENTITY)) {
+        parseHtmlEntity(attrValue);
+      }
+ else {
+        attrValue.append(scanner.getFirst());
+        scanner.next();
+      }
+    }
+    visitor.onHtmlElementAttribute(attrName,attrValue.toString());
+    scanner.next();
+    scanner.skip(WHITESPACE_WITH_EOL);
+  }
+  if (!isEnd) {
+    visitor.onStartHtmlElementComplete(elementName);
+  }
+  if (scanner.lookingAt('/')) {
+    visitor.onEndHtmlElement(elementName);
+  }
+  scanner.skip(END_ELEMENT);
+}

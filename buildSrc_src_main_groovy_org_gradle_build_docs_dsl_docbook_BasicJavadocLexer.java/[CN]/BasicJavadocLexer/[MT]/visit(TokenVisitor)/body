@@ -1,0 +1,32 @@
+{
+  while (!scanner.isEmpty()) {
+    if (scanner.lookingAt(HTML_ELEMENT)) {
+      parseStartElement(visitor);
+      continue;
+    }
+    if (scanner.lookingAt(TAG)) {
+      parseJavadocTag(visitor);
+      continue;
+    }
+    StringBuilder text=new StringBuilder();
+    while (!scanner.isEmpty()) {
+      if (scanner.lookingAt(HTML_ELEMENT)) {
+        break;
+      }
+      if (scanner.lookingAt(TAG)) {
+        break;
+      }
+      if (scanner.lookingAt(HTML_ENCODED_CHAR)) {
+        parseHtmlEncodedChar(text);
+      }
+ else       if (scanner.lookingAt(HTML_ENTITY)) {
+        parseHtmlEntity(text);
+      }
+ else {
+        text.append(scanner.getFirst());
+        scanner.next();
+      }
+    }
+    visitor.onText(text.toString());
+  }
+}
