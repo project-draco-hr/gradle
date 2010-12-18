@@ -1,0 +1,19 @@
+{
+  JavadocLexer lexer=new HtmlToXmlJavadocLexer(new BasicJavadocLexer(new JavadocScanner(rawCommentText)));
+  NodeStack nodes=new NodeStack(document);
+  final HtmlGeneratingTokenHandler handler=new HtmlGeneratingTokenHandler(nodes,document);
+  handler.add(new HtmlElementTranslatingHandler(nodes,document));
+  handler.add(new JavadocTagToElementTranslatingHandler(nodes,document));
+  handler.add(new HeaderHandler(nodes,document));
+  handler.add(new LinkHandler(nodes,linkConverter,classMetaData,listener));
+  handler.add(new InheritDocHandler(nodes,inheritedCommentSource));
+  handler.add(new ValueHtmlElementHandler(nodes,linkConverter,classMetaData,listener));
+  handler.add(new TableHandler(nodes,document));
+  handler.add(new AnchorElementHandler(nodes,document,classMetaData));
+  handler.add(new AToLinkTranslatingHandler(nodes,document,classMetaData));
+  handler.add(new UnknownJavadocTagHandler(nodes,document,listener));
+  handler.add(new UnknownHtmlElementHandler(nodes,document,listener));
+  lexer.visit(handler);
+  nodes.complete();
+  return new DocCommentImpl(nodes.nodes);
+}
