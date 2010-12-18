@@ -1,18 +1,13 @@
 {
-  LinkedList<ClassMetaData> queue=new LinkedList<ClassMetaData>();
-  queue.add(ownerClass.getSuperClass());
-  queue.addAll(ownerClass.getInterfaces());
-  while (!queue.isEmpty()) {
-    ClassMetaData cl=queue.removeFirst();
-    if (cl == null) {
-      continue;
-    }
-    PropertyMetaData overriddenProperty=cl.findDeclaredProperty(name);
-    if (overriddenProperty != null) {
-      return overriddenProperty;
-    }
-    queue.add(cl.getSuperClass());
-    queue.addAll(cl.getInterfaces());
+  MethodMetaData overriddenMethod=null;
+  if (getter != null) {
+    overriddenMethod=getter.getOverriddenMethod();
+  }
+  if (overriddenMethod == null && setter != null) {
+    overriddenMethod=setter.getOverriddenMethod();
+  }
+  if (overriddenMethod != null) {
+    return overriddenMethod.getOwnerClass().findDeclaredProperty(name);
   }
   return null;
 }

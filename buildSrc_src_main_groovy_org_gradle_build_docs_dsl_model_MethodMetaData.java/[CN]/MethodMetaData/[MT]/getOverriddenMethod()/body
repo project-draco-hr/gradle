@@ -1,0 +1,19 @@
+{
+  LinkedList<ClassMetaData> queue=new LinkedList<ClassMetaData>();
+  queue.add(ownerClass.getSuperClass());
+  queue.addAll(ownerClass.getInterfaces());
+  String overrideSignature=getOverrideSignature();
+  while (!queue.isEmpty()) {
+    ClassMetaData cl=queue.removeFirst();
+    if (cl == null) {
+      continue;
+    }
+    MethodMetaData overriddenMethod=cl.findDeclaredMethod(overrideSignature);
+    if (overriddenMethod != null) {
+      return overriddenMethod;
+    }
+    queue.add(cl.getSuperClass());
+    queue.addAll(cl.getInterfaces());
+  }
+  return null;
+}
