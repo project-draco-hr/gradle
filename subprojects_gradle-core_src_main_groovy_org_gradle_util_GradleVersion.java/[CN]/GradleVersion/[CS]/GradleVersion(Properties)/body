@@ -1,0 +1,36 @@
+{
+  version=properties.getProperty(VERSION);
+  buildTime=properties.getProperty(BUILD_TIME);
+  Matcher matcher=VERSION_PATTERN.matcher(version);
+  if (!matcher.matches()) {
+    throw new InvalidUserDataException(String.format("Unexpected Gradle version '%s'.",version));
+  }
+  versionPart=matcher.group(1);
+  if (matcher.group(3) != null) {
+    int stageNumber=0;
+    if (matcher.group(4).equals("milestone")) {
+      stageNumber=1;
+    }
+ else     if (matcher.group(4).equals("preview")) {
+      stageNumber=2;
+    }
+ else     if (matcher.group(4).equals("rc")) {
+      stageNumber=3;
+    }
+    stage=new Stage(stageNumber,Integer.parseInt(matcher.group(5)));
+  }
+ else {
+    stage=null;
+  }
+  if (matcher.group(7) != null) {
+    try {
+      snapshot=new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
+    }
+ catch (    ParseException e) {
+      throw UncheckedException.asUncheckedException(e);
+    }
+  }
+ else {
+    snapshot=null;
+  }
+}
