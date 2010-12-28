@@ -1,4 +1,11 @@
 {
-  TaskHistory history=taskHistoryCache.get(task.getPath());
-  return history == null ? new TaskHistory() : history;
+  ClassLoader original=serializer.getClassLoader();
+  serializer.setClassLoader(task.getClass().getClassLoader());
+  try {
+    TaskHistory history=taskHistoryCache.get(task.getPath());
+    return history == null ? new TaskHistory() : history;
+  }
+  finally {
+    serializer.setClassLoader(original);
+  }
 }
