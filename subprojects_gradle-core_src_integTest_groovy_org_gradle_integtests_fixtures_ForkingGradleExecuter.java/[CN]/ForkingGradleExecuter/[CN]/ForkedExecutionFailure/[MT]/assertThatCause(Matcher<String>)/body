@@ -1,14 +1,26 @@
 {
-  assertThat(getError(),containsLine(new BaseMatcher<String>(){
-    public boolean matches(    Object o){
-      String str=(String)o;
-      String prefix="Cause: ";
-      return str.startsWith(prefix) && matcher.matches(str.substring(prefix.length()));
+  Pattern causePattern=Pattern.compile("(?m)^Cause: ");
+  String error=getError();
+  java.util.regex.Matcher regExpMatcher=causePattern.matcher(error);
+  int pos=0;
+  while (pos < error.length()) {
+    if (!regExpMatcher.find(pos)) {
+      break;
     }
-    public void describeTo(    Description description){
-      matcher.describeTo(description);
+    int start=regExpMatcher.end();
+    String cause;
+    if (regExpMatcher.find(start)) {
+      cause=error.substring(start,regExpMatcher.start());
+      pos=regExpMatcher.start();
+    }
+ else {
+      cause=error.substring(start);
+      pos=error.length();
+    }
+    if (matcher.matches(cause)) {
+      return this;
     }
   }
-));
+  fail(String.format("No matching cause found in '%s'",error));
   return this;
 }
