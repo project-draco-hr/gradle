@@ -1,0 +1,20 @@
+{
+  Configuration configuration=project.getConfigurations().findByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME);
+  List<ExternalDependency> dependencies=new ArrayList<ExternalDependency>();
+  if (configuration != null) {
+    Set<File> classpath=configuration.getFiles();
+    for (    final File file : classpath) {
+      dependencies.add(new ExternalDependency(){
+        public File getFile(){
+          return file;
+        }
+      }
+);
+    }
+  }
+  List<EclipseProject> children=new ArrayList<EclipseProject>();
+  for (  Project child : project.getChildProjects().values()) {
+    children.add(build(child));
+  }
+  return new EclipseProjectImpl(project.getName(),children,dependencies);
+}
