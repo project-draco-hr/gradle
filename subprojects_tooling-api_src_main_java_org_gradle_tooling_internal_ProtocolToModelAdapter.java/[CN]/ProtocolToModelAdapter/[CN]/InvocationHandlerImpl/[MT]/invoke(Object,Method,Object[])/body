@@ -1,0 +1,22 @@
+{
+  if (method.equals(equalsMethod)) {
+    Object param=params[0];
+    if (param == null || !Proxy.isProxyClass(param.getClass())) {
+      return false;
+    }
+    InvocationHandler other=Proxy.getInvocationHandler(param);
+    return equals(other);
+  }
+ else   if (method.equals(hashCodeMethod)) {
+    return hashCode();
+  }
+  if (method.getName().matches("get\\w+")) {
+    if (properties.containsKey(method.getName())) {
+      return properties.get(method.getName());
+    }
+    Object value=doInvokeMethod(method,params);
+    properties.put(method.getName(),value);
+    return value;
+  }
+  return doInvokeMethod(method,params);
+}
