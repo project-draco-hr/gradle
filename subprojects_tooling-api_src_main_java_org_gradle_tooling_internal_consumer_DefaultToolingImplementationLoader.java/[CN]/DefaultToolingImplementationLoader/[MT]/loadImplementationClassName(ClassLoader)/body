@@ -1,0 +1,22 @@
+{
+  try {
+    InputStream inputStream=classLoader.getResourceAsStream("META-INF/services/org.gradle.tooling.internal.protocol.GradleConnectionFactoryVersion1");
+    try {
+      BufferedReader reader=new BufferedReader(new InputStreamReader(inputStream));
+      String line;
+      while ((line=reader.readLine()) != null) {
+        line=line.replaceAll("#.*","").trim();
+        if (!line.isEmpty()) {
+          return line;
+        }
+      }
+    }
+  finally {
+      inputStream.close();
+    }
+    throw new UnsupportedOperationException();
+  }
+ catch (  Throwable t) {
+    throw new GradleConnectionException(String.format("Could not determine class name of Tooling API implementation."),t);
+  }
+}
