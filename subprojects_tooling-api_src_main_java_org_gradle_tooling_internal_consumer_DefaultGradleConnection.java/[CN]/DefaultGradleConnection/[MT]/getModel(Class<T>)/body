@@ -1,0 +1,23 @@
+{
+  final BlockingQueue<Object> queue=new ArrayBlockingQueue<Object>(20);
+  getModel(viewType,new ResultHandler<T>(){
+    public void onComplete(    T result){
+      queue.add(result);
+    }
+    public void onFailure(    GradleConnectionException failure){
+      queue.add(failure);
+    }
+  }
+);
+  Object result;
+  try {
+    result=queue.take();
+  }
+ catch (  InterruptedException e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+  if (result instanceof GradleConnectionException) {
+    throw (GradleConnectionException)result;
+  }
+  return viewType.cast(result);
+}
