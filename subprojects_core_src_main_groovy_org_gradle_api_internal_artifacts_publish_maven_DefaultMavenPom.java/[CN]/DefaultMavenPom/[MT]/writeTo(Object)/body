@@ -1,18 +1,18 @@
 {
+  OutputStream stream=null;
   try {
     File file=fileResolver.resolve(path);
     if (file.getParentFile() != null) {
       file.getParentFile().mkdirs();
     }
-    FileWriter writer=new FileWriter(file);
-    try {
-      return writeTo(writer);
-    }
-  finally {
-      writer.close();
-    }
+    stream=new FileOutputStream(file);
+    getEffectivePom().writeNonEffectivePom(stream);
+    return this;
   }
  catch (  IOException e) {
     throw new UncheckedIOException(e);
+  }
+ finally {
+    IOUtils.closeQuietly(stream);
   }
 }

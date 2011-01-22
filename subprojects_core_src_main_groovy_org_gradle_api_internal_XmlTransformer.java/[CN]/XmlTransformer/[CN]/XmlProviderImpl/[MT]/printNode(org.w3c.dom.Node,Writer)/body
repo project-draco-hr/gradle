@@ -1,11 +1,22 @@
 {
+  removeEmptyTextNodes(node);
+  int indentAmount=determineIndentAmount();
   try {
     TransformerFactory factory=TransformerFactory.newInstance();
-    factory.setAttribute("indent-number",2);
+    try {
+      factory.setAttribute("indent-number",indentAmount);
+    }
+ catch (    IllegalArgumentException ignored) {
+    }
     javax.xml.transform.Transformer transformer=factory.newTransformer();
     transformer.setOutputProperty(OutputKeys.METHOD,"xml");
     transformer.setOutputProperty(OutputKeys.INDENT,"yes");
     transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION,"yes");
+    try {
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",String.valueOf(indentAmount));
+    }
+ catch (    IllegalArgumentException ignored) {
+    }
     transformer.transform(new DOMSource(node),new StreamResult(destination));
   }
  catch (  TransformerException e) {
