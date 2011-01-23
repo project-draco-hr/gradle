@@ -1,0 +1,13 @@
+{
+  CreateStartScripts createStartScripts=project.getTasks().add("createStartScripts",CreateStartScripts.class);
+  createStartScripts.setDescription("Creates OS start scripts to run the project as application");
+  createStartScripts.setGroup(APPLICATION_GROUP);
+  Jar jar=project.getTasks().withType(Jar.class).findByName("jar");
+  createStartScripts.setClasspath(jar.getOutputs().getFiles().plus(project.getConfigurations().getByName("runtime")));
+  createStartScripts.getConventionMapping().map("mainClassName",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return applicationPluginConvention.getMainClassName();
+    }
+  }
+);
+}
