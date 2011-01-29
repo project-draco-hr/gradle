@@ -1,17 +1,14 @@
 {
-  boolean debug=startParameter.getLogLevel() == LogLevel.DEBUG;
-  boolean stacktrace=startParameter != null && (startParameter.getShowStacktrace() != StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS || debug);
-  if (stacktrace) {
-    details.exception=ExceptionStyle.Sanitized;
+  if (startParameter.getShowStacktrace() == StartParameter.ShowStacktrace.ALWAYS || startParameter.getLogLevel() == LogLevel.DEBUG) {
+    details.exceptionStyle=ExceptionStyle.SANITIZED;
   }
-  boolean fullStacktrace=startParameter != null && (startParameter.getShowStacktrace() == StartParameter.ShowStacktrace.ALWAYS_FULL);
-  if (fullStacktrace) {
-    details.exception=ExceptionStyle.Full;
+  if (startParameter.getShowStacktrace() == StartParameter.ShowStacktrace.ALWAYS_FULL) {
+    details.exceptionStyle=ExceptionStyle.FULL;
   }
   if (failure instanceof TaskSelectionException) {
     formatTaskSelectionFailure((TaskSelectionException)failure,details);
   }
  else {
-    formatGenericFailure(failure,debug,stacktrace,fullStacktrace,details);
+    formatGenericFailure(failure,details);
   }
 }
