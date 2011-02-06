@@ -1,0 +1,21 @@
+{
+  for (  Object message : e.getErrorCollector().getErrors()) {
+    if (message instanceof SyntaxErrorMessage) {
+      try {
+        SyntaxErrorMessage syntaxErrorMessage=(SyntaxErrorMessage)message;
+        Field sourceField=SyntaxErrorMessage.class.getDeclaredField("source");
+        sourceField.setAccessible(true);
+        SourceUnit sourceUnit=(SourceUnit)sourceField.get(syntaxErrorMessage);
+        Field nameField=SourceUnit.class.getDeclaredField("name");
+        nameField.setAccessible(true);
+        nameField.set(sourceUnit,source.getDisplayName());
+      }
+ catch (      Exception failure) {
+        throw UncheckedException.asUncheckedException(failure);
+      }
+    }
+  }
+  SyntaxException syntaxError=e.getErrorCollector().getSyntaxError(0);
+  Integer lineNumber=syntaxError == null ? null : syntaxError.getLine();
+  throw new ScriptCompilationException(String.format("Could not compile %s.",source.getDisplayName()),e,source,lineNumber);
+}
