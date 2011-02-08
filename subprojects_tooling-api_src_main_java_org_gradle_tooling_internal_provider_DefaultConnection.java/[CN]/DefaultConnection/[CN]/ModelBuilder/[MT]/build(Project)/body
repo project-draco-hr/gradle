@@ -1,12 +1,24 @@
 {
   Configuration configuration=project.getConfigurations().findByName("testRuntime");
   List<ExternalDependencyVersion1> dependencies=new ArrayList<ExternalDependencyVersion1>();
+  final List<EclipseProjectDependencyVersion1> projectDependencies=new ArrayList<EclipseProjectDependencyVersion1>();
   if (configuration != null) {
     Set<File> classpath=configuration.getFiles();
     for (    final File file : classpath) {
       dependencies.add(new ExternalDependencyVersion1(){
         public File getFile(){
           return file;
+        }
+      }
+);
+    }
+    for (    final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
+      projectDependencies.add(new EclipseProjectDependencyVersion1(){
+        public EclipseProjectVersion1 getTargetProject(){
+          return projectMapping.get(projectDependency.getDependencyProject());
+        }
+        public String getPath(){
+          return projectDependency.getDependencyProject().getName();
         }
       }
 );
@@ -21,5 +33,7 @@
   for (  Project child : project.getChildProjects().values()) {
     children.add(build(child));
   }
-  return new DefaultEclipseProject(project.getName(),children,sourceDirectories,dependencies);
+  DefaultEclipseProject eclipseProject=new DefaultEclipseProject(project.getName(),children,sourceDirectories,dependencies,projectDependencies);
+  projectMapping.put(project,eclipseProject);
+  return eclipseProject;
 }
