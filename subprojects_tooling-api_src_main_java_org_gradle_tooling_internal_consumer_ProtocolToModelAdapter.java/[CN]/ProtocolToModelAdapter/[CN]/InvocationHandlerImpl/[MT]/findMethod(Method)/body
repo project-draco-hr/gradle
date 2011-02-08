@@ -1,5 +1,11 @@
 {
-  Method match=delegate.getClass().getMethod(method.getName(),method.getParameterTypes());
+  Method match;
+  try {
+    match=delegate.getClass().getMethod(method.getName(),method.getParameterTypes());
+  }
+ catch (  NoSuchMethodException e) {
+    throw new UnsupportedOperationException(String.format("Cannot map method %s.%s() to target object of type %s.",method.getDeclaringClass().getSimpleName(),method.getName(),delegate.getClass().getSimpleName()),e);
+  }
   LinkedList<Class<?>> queue=new LinkedList<Class<?>>();
   queue.add(delegate.getClass());
   while (!queue.isEmpty()) {
