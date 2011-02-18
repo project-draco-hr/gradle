@@ -15,7 +15,7 @@
     for (    final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
       projectDependencies.add(new EclipseProjectDependencyVersion1(){
         public EclipseProjectVersion1 getTargetProject(){
-          return projectMapping.get(projectDependency.getDependencyProject());
+          return projectMapping.get(projectDependency.getDependencyProject().getPath());
         }
         public String getPath(){
           return projectDependency.getDependencyProject().getName();
@@ -29,11 +29,14 @@
   sourceDirectories.add(sourceDirectory(project,"src/main/resources"));
   sourceDirectories.add(sourceDirectory(project,"src/test/java"));
   sourceDirectories.add(sourceDirectory(project,"src/test/resources"));
-  List<EclipseProjectVersion1> children=new ArrayList<EclipseProjectVersion1>();
+  List<DefaultEclipseProject> children=new ArrayList<DefaultEclipseProject>();
   for (  Project child : project.getChildProjects().values()) {
     children.add(build(child));
   }
-  DefaultEclipseProject eclipseProject=new DefaultEclipseProject(project.getName(),children,sourceDirectories,dependencies,projectDependencies);
-  projectMapping.put(project,eclipseProject);
+  DefaultEclipseProject eclipseProject=new DefaultEclipseProject(project.getName(),project.getPath(),children,sourceDirectories,dependencies,projectDependencies);
+  for (  DefaultEclipseProject child : children) {
+    child.setParent(eclipseProject);
+  }
+  addProject(project,eclipseProject);
   return eclipseProject;
 }
