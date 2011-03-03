@@ -5,64 +5,49 @@
   if (m.matches()) {
     return version;
   }
-  osgiVersion=version;
-  m=DATED_SNAPSHOT.matcher(osgiVersion);
-  if (m.matches()) {
-    String major=m.group(1);
-    String minor=(m.group(3) != null) ? m.group(3) : "0";
-    String service=(m.group(5) != null) ? m.group(5) : "0";
-    String qualifier=m.group(6).replaceAll("-","_").replaceAll("\\.","_");
-    osgiVersion=major + "." + minor+ "."+ service+ "."+ qualifier;
-  }
-  osgiVersion=osgiVersion.replaceFirst("-","\\.");
-  osgiVersion=osgiVersion.replaceAll("-","_");
-  m=OSGI_VERSION_PATTERN.matcher(osgiVersion);
-  if (m.matches()) {
-    return osgiVersion;
-  }
-  m=DOTS_IN_QUALIFIER.matcher(osgiVersion);
-  if (m.matches()) {
-    String s1=m.group(1);
-    String s2=m.group(2);
-    String s3=m.group(3);
-    String s4=m.group(4);
-    Matcher qualifierMatcher=ONLY_NUMBERS.matcher(s3);
-    if (!qualifierMatcher.matches()) {
-      osgiVersion=s1 + s2 + "."+ s3+ "_"+ s4;
-    }
-  }
-  m=NEED_TO_FILL_ZEROS.matcher(osgiVersion);
-  if (m.matches()) {
-    String major=m.group(1);
-    String minor=m.group(3);
-    String service=null;
-    String qualifier=m.group(5);
-    if (qualifier == null) {
-      osgiVersion=getVersion(major,minor,service,qualifier);
-    }
- else {
-      Matcher qualifierMatcher=ONLY_NUMBERS.matcher(qualifier);
-      if (qualifierMatcher.matches()) {
-        if (minor == null) {
-          minor=qualifier;
+  int group=0;
+  boolean groupToken=true;
+  String[] groups=new String[4];
+  groups[0]="0";
+  groups[1]="0";
+  groups[2]="0";
+  groups[3]="";
+  StringTokenizer st=new StringTokenizer(version,",./;'?:\\|=+-_*&^%$#@!~",true);
+  while (st.hasMoreTokens()) {
+    String token=st.nextToken();
+    if (groupToken) {
+      if (group < 3) {
+        if (ONLY_NUMBERS.matcher(token).matches()) {
+          groups[group++]=token;
+          groupToken=false;
         }
  else {
-          service=qualifier;
+          groups[3]=token + fillQualifier(st);
         }
-        osgiVersion=getVersion(major,minor,service,null);
       }
  else {
-        osgiVersion=getVersion(major,minor,service,qualifier);
+        groups[3]=token + fillQualifier(st);
+      }
+    }
+ else {
+      if (".".equals(token)) {
+        groupToken=true;
+      }
+ else {
+        groups[3]=fillQualifier(st);
       }
     }
   }
-  m=OSGI_VERSION_PATTERN.matcher(osgiVersion);
-  if (!m.matches()) {
-    String major="0";
-    String minor="0";
-    String service="0";
-    String qualifier=osgiVersion.replaceAll("\\.","_");
-    osgiVersion=major + "." + minor+ "."+ service+ "."+ qualifier;
+  String ver=groups[0] + "." + groups[1]+ "."+ groups[2];
+  String result;
+  if (groups[3].length() > 0) {
+    result=ver + "." + groups[3];
   }
-  return osgiVersion;
+ else {
+    result=ver;
+  }
+  if (!OSGI_VERSION_PATTERN.matcher(result).matches()) {
+    throw new GradleException("OSGi plugin unable to convert version to a compliant version");
+  }
+  return result;
 }
