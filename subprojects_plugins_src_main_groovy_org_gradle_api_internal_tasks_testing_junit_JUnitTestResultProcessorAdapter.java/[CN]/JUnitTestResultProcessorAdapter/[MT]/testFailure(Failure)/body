@@ -1,0 +1,16 @@
+{
+  TestDescriptorInternal testInternal;
+synchronized (lock) {
+    testInternal=executing.get(failure.getDescription());
+  }
+  boolean needEndEvent=false;
+  if (testInternal == null) {
+    needEndEvent=true;
+    testInternal=failureDescriptor(idGenerator.generateId(),failure.getDescription());
+    resultProcessor.started(testInternal,startEvent());
+  }
+  resultProcessor.failure(testInternal.getId(),failure.getException());
+  if (needEndEvent) {
+    resultProcessor.completed(testInternal.getId(),new TestCompleteEvent(timeProvider.getCurrentTime()));
+  }
+}
