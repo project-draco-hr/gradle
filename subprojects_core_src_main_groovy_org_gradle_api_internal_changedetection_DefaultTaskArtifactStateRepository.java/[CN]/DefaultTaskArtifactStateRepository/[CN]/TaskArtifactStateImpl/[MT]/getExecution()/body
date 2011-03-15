@@ -2,28 +2,5 @@
   if (!task.getOutputs().getHasOutput()) {
     return new NoDeclaredArtifactsExecution(task);
   }
-  Set<String> outputFiles=outputFiles(task);
-  TaskExecution bestMatch=null;
-  int bestMatchOverlap=0;
-  for (  TaskExecution configuration : history.configurations) {
-    if (outputFiles.size() == 0) {
-      if (configuration.getOutputFiles().size() == 0) {
-        bestMatch=configuration;
-        break;
-      }
-    }
-    Set<String> intersection=new HashSet<String>(outputFiles);
-    intersection.retainAll(configuration.getOutputFiles());
-    if (intersection.size() > bestMatchOverlap) {
-      bestMatch=configuration;
-      bestMatchOverlap=intersection.size();
-    }
-    if (bestMatchOverlap == outputFiles.size()) {
-      break;
-    }
-  }
-  if (bestMatch == null) {
-    return new HistoricExecution(history,task,null,upToDateRule);
-  }
-  return new HistoricExecution(history,task,bestMatch,upToDateRule);
+  return new HistoricExecution(task,history,upToDateRule);
 }

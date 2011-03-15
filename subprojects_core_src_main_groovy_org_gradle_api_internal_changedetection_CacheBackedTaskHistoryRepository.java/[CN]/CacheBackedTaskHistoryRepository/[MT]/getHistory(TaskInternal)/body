@@ -1,0 +1,23 @@
+{
+  if (taskHistoryCache == null) {
+    serializer=new DefaultSerializer<TaskHistory>();
+    taskHistoryCache=repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache(serializer);
+  }
+  final TaskHistory history=loadHistory(task);
+  final TaskExecution currentExecution=new TaskExecution();
+  currentExecution.setOutputFiles(outputFiles(task));
+  final TaskExecution previousExecution=findPreviousExecution(currentExecution,history);
+  history.addConfiguration(currentExecution);
+  return new History(){
+    public TaskExecution getPreviousExecution(){
+      return previousExecution;
+    }
+    public TaskExecution getCurrentExecution(){
+      return currentExecution;
+    }
+    public void update(){
+      taskHistoryCache.put(task.getPath(),history);
+    }
+  }
+;
+}
