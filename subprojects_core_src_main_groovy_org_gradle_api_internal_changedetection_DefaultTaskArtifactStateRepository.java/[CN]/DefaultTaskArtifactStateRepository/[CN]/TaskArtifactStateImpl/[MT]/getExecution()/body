@@ -3,17 +3,17 @@
     return new NoDeclaredArtifactsExecution(task);
   }
   Set<String> outputFiles=outputFiles(task);
-  TaskConfiguration bestMatch=null;
+  TaskExecution bestMatch=null;
   int bestMatchOverlap=0;
-  for (  TaskConfiguration configuration : history.configurations) {
+  for (  TaskExecution configuration : history.configurations) {
     if (outputFiles.size() == 0) {
-      if (configuration.outputFiles.size() == 0) {
+      if (configuration.getOutputFiles().size() == 0) {
         bestMatch=configuration;
         break;
       }
     }
     Set<String> intersection=new HashSet<String>(outputFiles);
-    intersection.retainAll(configuration.outputFiles);
+    intersection.retainAll(configuration.getOutputFiles());
     if (intersection.size() > bestMatchOverlap) {
       bestMatch=configuration;
       bestMatchOverlap=intersection.size();
@@ -23,7 +23,7 @@
     }
   }
   if (bestMatch == null) {
-    return new HistoricExecution(history,task,null,inputFilesSnapshotter,outputFilesSnapshotter);
+    return new HistoricExecution(history,task,null,upToDateRule);
   }
-  return new HistoricExecution(history,task,bestMatch,inputFilesSnapshotter,outputFilesSnapshotter);
+  return new HistoricExecution(history,task,bestMatch,upToDateRule);
 }
