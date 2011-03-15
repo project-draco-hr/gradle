@@ -4,9 +4,13 @@
     taskHistoryCache=repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache(serializer);
   }
   final TaskHistory history=loadHistory(task);
-  final TaskExecution currentExecution=new TaskExecution();
+  final LazyTaskExecution currentExecution=new LazyTaskExecution();
+  currentExecution.snapshotRepository=snapshotRepository;
   currentExecution.setOutputFiles(outputFiles(task));
-  final TaskExecution previousExecution=findPreviousExecution(currentExecution,history);
+  final LazyTaskExecution previousExecution=findPreviousExecution(currentExecution,history);
+  if (previousExecution != null) {
+    previousExecution.snapshotRepository=snapshotRepository;
+  }
   history.addConfiguration(currentExecution);
   return new History(){
     public TaskExecution getPreviousExecution(){
@@ -16,6 +20,12 @@
       return currentExecution;
     }
     public void update(){
+      if (currentExecution.inputFilesSnapshotId == null && currentExecution.inputFilesSnapshot != null) {
+        currentExecution.inputFilesSnapshotId=snapshotRepository.add(currentExecution.inputFilesSnapshot);
+      }
+      if (currentExecution.outputFilesSnapshotId == null && currentExecution.outputFilesSnapshot != null) {
+        currentExecution.outputFilesSnapshotId=snapshotRepository.add(currentExecution.outputFilesSnapshot);
+      }
       taskHistoryCache.put(task.getPath(),history);
     }
   }
