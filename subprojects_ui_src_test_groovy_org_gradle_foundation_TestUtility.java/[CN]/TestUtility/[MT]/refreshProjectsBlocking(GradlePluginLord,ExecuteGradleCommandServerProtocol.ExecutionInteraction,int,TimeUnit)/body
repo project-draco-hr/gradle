@@ -1,6 +1,7 @@
 {
   gradlePluginLord.startExecutionQueue();
   final CountDownLatch complete=new CountDownLatch(1);
+  final AtomicReference<String> errorOutput=new AtomicReference<String>();
   GradlePluginLord.RequestObserver observer=new GradlePluginLord.RequestObserver(){
     public void executionRequestAdded(    ExecutionRequest request){
     }
@@ -10,6 +11,9 @@
     public void aboutToExecuteRequest(    Request request){
     }
     public void requestExecutionComplete(    Request request,    int result,    String output){
+      if (result != 0) {
+        errorOutput.set(output);
+      }
       complete.countDown();
     }
   }
@@ -28,5 +32,8 @@
   if (!completed) {
     request.cancel();
     throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitValue + " "+ maximumWaitUnits+ ". Considering this failed.");
+  }
+  if (errorOutput.get() != null) {
+    throw new AssertionFailedError(String.format("Command failed with output:%n%s",errorOutput.get()));
   }
 }
