@@ -1,14 +1,15 @@
 {
-  File inputFile=getInputFile();
   T object;
-  if (inputFile.exists()) {
-    object=generator.read(inputFile);
+  if (preConfiguredDomainObject != null) {
+    object=preConfiguredDomainObject;
   }
  else {
-    object=generator.defaultInstance();
+    object=configureDomainObject();
   }
-  beforeConfigured.execute(object);
-  generator.configure(object);
-  afterConfigured.execute(object);
-  generator.write(object,getOutputFile());
+  try {
+    generator.write(object,getOutputFile());
+  }
+  finally {
+    preConfiguredDomainObject=null;
+  }
 }
