@@ -18,11 +18,16 @@
     boolean useDaemon=EXECUTER == Executer.daemon && getExecutable() == null;
     ForkingGradleExecuter forkingGradleExecuter=useDaemon ? new DaemonGradleExecuter(dist.getGradleHomeDir()) : new ForkingGradleExecuter(dist.getGradleHomeDir());
     copyTo(forkingGradleExecuter);
+    TestFile tmpDir=getTmpDir();
+    if (tmpDir != null) {
+      tmpDir.deleteDir().createDir();
+      forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s",tmpDir));
+    }
     returnedExecuter=forkingGradleExecuter;
   }
   boolean settingsFound=false;
-  for (File dir=new TestFile(getWorkingDir()); dir != null && dist.isFileUnderTest(dir) && !settingsFound; dir=dir.getParentFile()) {
-    if (new File(dir,"settings.gradle").isFile()) {
+  for (TestFile dir=new TestFile(getWorkingDir()); dir != null && dist.isFileUnderTest(dir) && !settingsFound; dir=dir.getParentFile()) {
+    if (dir.file("settings.gradle").isFile()) {
       settingsFound=true;
     }
   }

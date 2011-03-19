@@ -1,0 +1,31 @@
+{
+  File tmpDir=new File(libCacheDir,"jna");
+  tmpDir.mkdirs();
+  String libName=System.mapLibraryName("jnidispatch");
+  File libFile=new File(tmpDir,libName);
+  if (!libFile.exists()) {
+    String resourceName="/com/sun/jna/" + OperatingSystem.current().getNativePrefix() + "/"+ libName;
+    try {
+      InputStream lib=getClass().getResourceAsStream(resourceName);
+      if (lib == null) {
+        throw new GradleException(String.format("Could not locate JNA native lib resource '%s'.",resourceName));
+      }
+      try {
+        FileOutputStream outputStream=new FileOutputStream(libFile);
+        try {
+          IOUtils.copy(lib,outputStream);
+        }
+  finally {
+          outputStream.close();
+        }
+      }
+  finally {
+        lib.close();
+      }
+    }
+ catch (    IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+  System.setProperty("jna.boot.library.path",tmpDir.getAbsolutePath());
+}
