@@ -29,16 +29,13 @@
 );
     }
   }
-  List<EclipseSourceDirectoryVersion1> sourceDirectories=new ArrayList<EclipseSourceDirectoryVersion1>();
-  sourceDirectories.add(sourceDirectory(project,"src/main/java"));
-  sourceDirectories.add(sourceDirectory(project,"src/main/resources"));
-  sourceDirectories.add(sourceDirectory(project,"src/test/java"));
-  sourceDirectories.add(sourceDirectory(project,"src/test/resources"));
+  EclipseDomainModel eclipseDomainModel=project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel();
+  List<EclipseSourceDirectoryVersion1> sourceDirectories=new SourceDirectoriesFactory().create(project,eclipseDomainModel.getClasspath());
   List<DefaultEclipseProject> children=new ArrayList<DefaultEclipseProject>();
   for (  Project child : project.getChildProjects().values()) {
     children.add(build(child));
   }
-  String name=project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel().getProject().getName();
+  String name=eclipseDomainModel.getProject().getName();
   DefaultEclipseProject eclipseProject=new DefaultEclipseProject(name,project.getPath(),project.getProjectDir(),children,sourceDirectories,dependencies,projectDependencies);
   for (  DefaultEclipseProject child : children) {
     child.setParent(eclipseProject);
