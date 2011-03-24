@@ -2,11 +2,11 @@
   EclipseDomainModel eclipseDomainModel=project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel();
   Configuration configuration=project.getConfigurations().findByName("testRuntime");
   List<ExternalDependencyVersion1> dependencies=new ExternalDependenciesFactory().create(project,eclipseDomainModel.getClasspath());
-  final List<EclipseProjectDependencyVersion1> projectDependencies=new ArrayList<EclipseProjectDependencyVersion1>();
+  final List<EclipseProjectDependencyVersion2> projectDependencies=new ArrayList<EclipseProjectDependencyVersion2>();
   if (configuration != null) {
     for (    final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
-      projectDependencies.add(new EclipseProjectDependencyVersion1(){
-        public EclipseProjectVersion2 getTargetProject(){
+      projectDependencies.add(new EclipseProjectDependencyVersion2(){
+        public HierarchicalEclipseProjectVersion1 getTargetProject(){
           return projectMapping.get(projectDependency.getDependencyProject().getPath());
         }
         public String getPath(){
@@ -17,12 +17,13 @@
     }
   }
   List<EclipseSourceDirectoryVersion1> sourceDirectories=new SourceDirectoriesFactory().create(project,eclipseDomainModel.getClasspath());
+  List<TaskVersion1> tasks=new TasksFactory().create(project);
   List<DefaultEclipseProject> children=new ArrayList<DefaultEclipseProject>();
   for (  Project child : project.getChildProjects().values()) {
     children.add(build(child));
   }
   String name=eclipseDomainModel.getProject().getName();
-  DefaultEclipseProject eclipseProject=new DefaultEclipseProject(name,project.getPath(),project.getProjectDir(),children,sourceDirectories,dependencies,projectDependencies);
+  DefaultEclipseProject eclipseProject=new DefaultEclipseProject(name,project.getPath(),project.getProjectDir(),children,tasks,sourceDirectories,dependencies,projectDependencies);
   for (  DefaultEclipseProject child : children) {
     child.setParent(eclipseProject);
   }
