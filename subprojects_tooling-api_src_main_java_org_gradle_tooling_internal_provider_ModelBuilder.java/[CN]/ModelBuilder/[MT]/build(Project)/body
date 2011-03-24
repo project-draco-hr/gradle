@@ -1,21 +1,7 @@
 {
   EclipseDomainModel eclipseDomainModel=project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel();
-  Configuration configuration=project.getConfigurations().findByName("testRuntime");
   List<ExternalDependencyVersion1> dependencies=new ExternalDependenciesFactory().create(project,eclipseDomainModel.getClasspath());
-  final List<EclipseProjectDependencyVersion2> projectDependencies=new ArrayList<EclipseProjectDependencyVersion2>();
-  if (configuration != null) {
-    for (    final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
-      projectDependencies.add(new EclipseProjectDependencyVersion2(){
-        public HierarchicalEclipseProjectVersion1 getTargetProject(){
-          return get(projectDependency.getDependencyProject());
-        }
-        public String getPath(){
-          return projectDependency.getDependencyProject().getName();
-        }
-      }
-);
-    }
-  }
+  List<EclipseProjectDependencyVersion2> projectDependencies=new EclipseProjectDependenciesFactory().create(getProjectMapping(),eclipseDomainModel.getClasspath());
   List<EclipseSourceDirectoryVersion1> sourceDirectories=new SourceDirectoriesFactory().create(project,eclipseDomainModel.getClasspath());
   List<TaskVersion1> tasks=new TasksFactory().create(project);
   List<DefaultEclipseProject> children=buildChildren(project);
