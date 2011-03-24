@@ -1,7 +1,5 @@
 {
-  EclipseDomainModel eclipseDomainModel=project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel();
   Configuration configuration=project.getConfigurations().findByName("testRuntime");
-  List<ExternalDependencyVersion1> dependencies=new ExternalDependenciesFactory().create(project,eclipseDomainModel.getClasspath());
   final List<EclipseProjectDependencyVersion2> projectDependencies=new ArrayList<EclipseProjectDependencyVersion2>();
   if (configuration != null) {
     for (    final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
@@ -16,12 +14,12 @@
 );
     }
   }
-  List<EclipseSourceDirectoryVersion1> sourceDirectories=new SourceDirectoriesFactory().create(project,eclipseDomainModel.getClasspath());
-  List<TaskVersion1> tasks=new TasksFactory().create(project);
   List<DefaultEclipseProject> children=buildChildren(project);
-  org.gradle.plugins.ide.eclipse.model.Project internalProject=eclipseDomainModel.getProject();
-  String name=internalProject.getName();
-  String description=GUtil.elvis(internalProject.getComment(),null);
+  String name=project.getName();
+  String description=project.getDescription();
+  List<TaskVersion1> tasks=Collections.emptyList();
+  List<EclipseSourceDirectoryVersion1> sourceDirectories=Collections.emptyList();
+  List<ExternalDependencyVersion1> dependencies=Collections.emptyList();
   DefaultEclipseProject eclipseProject=new DefaultEclipseProject(name,project.getPath(),description,project.getProjectDir(),children,tasks,sourceDirectories,dependencies,projectDependencies);
   for (  DefaultEclipseProject child : children) {
     child.setParent(eclipseProject);
