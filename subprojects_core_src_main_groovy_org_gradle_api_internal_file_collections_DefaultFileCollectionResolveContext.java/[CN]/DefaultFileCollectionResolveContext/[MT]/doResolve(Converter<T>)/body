@@ -1,0 +1,49 @@
+{
+  List<T> result=new ArrayList<T>();
+  while (!queue.isEmpty()) {
+    Object element=queue.remove(0);
+    if (element instanceof DefaultFileCollectionResolveContext) {
+      DefaultFileCollectionResolveContext nestedContext=(DefaultFileCollectionResolveContext)element;
+      converter.convertInto(nestedContext,result);
+    }
+ else     if (element instanceof FileCollectionContainer) {
+      FileCollectionContainer fileCollection=(FileCollectionContainer)element;
+      resolveNested(fileCollection);
+    }
+ else     if (element instanceof FileCollection || element instanceof MinimalFileCollection || element instanceof MapFileTree) {
+      converter.convertInto(element,result);
+    }
+ else     if (element instanceof Closure) {
+      Closure closure=(Closure)element;
+      Object closureResult=closure.call();
+      if (closureResult != null) {
+        queue.add(0,closureResult);
+      }
+    }
+ else     if (element instanceof Callable) {
+      Callable callable=(Callable)element;
+      Object callableResult;
+      try {
+        callableResult=callable.call();
+      }
+ catch (      Exception e) {
+        throw UncheckedException.asUncheckedException(e);
+      }
+      if (callableResult != null) {
+        queue.add(0,callableResult);
+      }
+    }
+ else     if (element instanceof Iterable) {
+      Iterable<?> iterable=(Iterable)element;
+      GUtil.addToCollection(queue.subList(0,0),iterable);
+    }
+ else     if (element instanceof Object[]) {
+      Object[] array=(Object[])element;
+      GUtil.addToCollection(queue.subList(0,0),Arrays.asList(array));
+    }
+ else {
+      converter.convertInto(element,result);
+    }
+  }
+  return result;
+}

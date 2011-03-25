@@ -1,0 +1,30 @@
+{
+  if (element instanceof DefaultFileCollectionResolveContext) {
+    DefaultFileCollectionResolveContext nestedContext=(DefaultFileCollectionResolveContext)element;
+    result.addAll(nestedContext.resolveAsFileTrees());
+  }
+ else   if (element instanceof FileTree) {
+    FileTree fileTree=(FileTree)element;
+    result.add(fileTree);
+  }
+ else   if (element instanceof FileCollection) {
+    FileCollection fileCollection=(FileCollection)element;
+    result.add(fileCollection.getAsFileTree());
+  }
+ else   if (element instanceof MinimalFileCollection) {
+    MinimalFileCollection fileCollection=(MinimalFileCollection)element;
+    for (    File file : fileCollection.getFiles()) {
+      result.add(new SingletonFileTree(file,new DefaultTaskDependency()));
+    }
+  }
+ else   if (element instanceof MinimalFileTree) {
+    MinimalFileTree fileTree=(MinimalFileTree)element;
+    result.add(new FileTreeAdapter(fileTree));
+  }
+ else   if (element instanceof TaskDependency) {
+    result.add(new FileTreeAdapter(new EmptyFileTree((TaskDependency)element)));
+  }
+ else {
+    result.add(new SingletonFileTree(fileResolver.resolve(element),new DefaultTaskDependency()));
+  }
+}
