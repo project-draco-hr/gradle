@@ -3,11 +3,10 @@
     @Override public TaskDependency getBuildDependencies(){
       return AbstractFileCollection.this.getBuildDependencies();
     }
-    @Override protected void resolve(    FileCollectionResolveContext context){
-      TaskDependency taskDependency=AbstractFileCollection.this.getBuildDependencies();
-      for (      File file : AbstractFileCollection.this.getFiles()) {
-        context.add(new SingletonFileTree(file,taskDependency));
-      }
+    @Override public void resolve(    FileCollectionResolveContext context){
+      DefaultFileCollectionResolveContext nested=new DefaultFileCollectionResolveContext();
+      nested.add(AbstractFileCollection.this.getFiles());
+      context.add(nested.resolveAsFileTrees());
     }
     @Override public String getDisplayName(){
       return AbstractFileCollection.this.getDisplayName();
