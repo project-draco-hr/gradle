@@ -3,9 +3,12 @@
     DefaultFileCollectionResolveContext nestedContext=(DefaultFileCollectionResolveContext)element;
     result.addAll(nestedContext.resolveAsFileCollections());
   }
- else   if (element instanceof FileCollection) {
-    FileCollection fileCollection=(FileCollection)element;
+ else   if (element instanceof FileCollectionInternal) {
+    FileCollectionInternal fileCollection=(FileCollectionInternal)element;
     result.add(fileCollection);
+  }
+ else   if (element instanceof FileCollection) {
+    throw new UnsupportedOperationException("Cannot convert instance of FileCollection to FileCollectionInternal");
   }
  else   if (element instanceof MinimalFileCollection) {
     MinimalFileCollection fileCollection=(MinimalFileCollection)element;
@@ -16,7 +19,7 @@
     result.add(new FileTreeAdapter(fileTree));
   }
  else   if (element instanceof TaskDependency) {
-    result.add(new FileTreeAdapter(new EmptyFileTree((TaskDependency)element)));
+    return;
   }
  else {
     result.add(new FileCollectionAdapter(new ListBackedFileCollection(fileResolver.resolve(element))));

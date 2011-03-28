@@ -1,7 +1,9 @@
 {
-  final FileCollection filtered1=context.mock(FileCollection.class,"filtered1");
-  final FileCollection filtered2=context.mock(FileCollection.class,"filtered2");
+  final FileCollectionInternal filtered1=context.mock(FileCollectionInternal.class);
+  final FileCollectionInternal filtered2=context.mock(FileCollectionInternal.class);
   final Spec spec=context.mock(Spec.class);
+  FileCollection filtered=collection.filter(spec);
+  assertThat(filtered,instanceOf(CompositeFileCollection.class));
   context.checking(new Expectations(){
 {
       one(source1).filter(spec);
@@ -11,7 +13,5 @@
     }
   }
 );
-  FileCollection filtered=collection.filter(spec);
-  assertThat(filtered,instanceOf(CompositeFileCollection.class));
   assertThat(((CompositeFileCollection)filtered).getSourceCollections(),equalTo((Iterable)toList(filtered1,filtered2)));
 }
