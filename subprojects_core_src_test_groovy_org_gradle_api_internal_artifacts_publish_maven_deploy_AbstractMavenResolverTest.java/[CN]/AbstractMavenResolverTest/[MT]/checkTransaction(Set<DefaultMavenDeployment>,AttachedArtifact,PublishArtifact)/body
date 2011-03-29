@@ -1,10 +1,7 @@
 {
-  final GrabSettingsFileAction grabSettingsFileAction=new GrabSettingsFileAction();
   context.checking(new Expectations(){
 {
       one(getInstallDeployTask()).setProject(with(any(Project.class)));
-      one(getInstallDeployTask()).setSettingsFile(with(any(File.class)));
-      will(grabSettingsFileAction);
       for (      DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
         one(getInstallDeployTask()).setFile(defaultMavenDeployment.getMainArtifact().getFile());
         one(getInstallDeployTask()).addPom(with(pomMatcher(defaultMavenDeployment.getPomArtifact().getFile(),getInstallDeployTask().getProject())));
@@ -15,6 +12,8 @@
         one(loggingManagerMock).stop();
         will(returnValue(loggingManagerMock));
       }
+      one(getMavenResolver().mavenSettingsSupplier).supply(getInstallDeployTask());
+      one(getMavenResolver().mavenSettingsSupplier).done();
     }
   }
 );
@@ -22,6 +21,4 @@
   assertThat(attachedArtifact.getFile(),equalTo(classifierArtifact.getFile()));
   assertThat(attachedArtifact.getType(),equalTo(classifierArtifact.getType()));
   assertThat(attachedArtifact.getClassifier(),equalTo(classifierArtifact.getClassifier()));
-  assertThat(grabSettingsFileAction.getSettingsFile().exists(),equalTo(false));
-  assertThat(grabSettingsFileAction.getSettingsFileContent(),equalTo(AbstractMavenResolver.SETTINGS_XML));
 }

@@ -1,13 +1,12 @@
 {
   InstallDeployTaskSupport installDeployTaskSupport=createPreConfiguredTask(AntUtil.createProject());
   Set<DefaultMavenDeployment> defaultMavenDeployments=getArtifactPomContainer().createDeployableFilesInfos();
-  File emptySettingsXml=createEmptyMavenSettingsXml();
-  installDeployTaskSupport.setSettingsFile(emptySettingsXml);
+  mavenSettingsSupplier.supply(installDeployTaskSupport);
   for (  DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
     beforeDeploymentActions.execute(defaultMavenDeployment);
     addPomAndArtifact(installDeployTaskSupport,defaultMavenDeployment);
     execute(installDeployTaskSupport);
   }
-  emptySettingsXml.delete();
+  mavenSettingsSupplier.done();
   settings=((CustomInstallDeployTaskSupport)installDeployTaskSupport).getSettings();
 }
