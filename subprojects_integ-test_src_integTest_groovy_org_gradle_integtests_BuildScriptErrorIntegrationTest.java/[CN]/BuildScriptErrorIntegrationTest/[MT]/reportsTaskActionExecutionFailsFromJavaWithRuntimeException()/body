@@ -1,8 +1,0 @@
-{
-  testFile("buildSrc/src/main/java/org/gradle/BrokenTask.java").writelns("package org.gradle;","import org.gradle.api.Action;","import org.gradle.api.DefaultTask;","import org.gradle.api.Task;","public class BrokenTask extends DefaultTask {","    public BrokenTask() {","        doFirst(new Action<Task>() {","            public void execute(Task task) {","                throw new RuntimeException(\"broken action\");","            }","        });","    }","}");
-  File buildFile=testFile("build.gradle").write("task brokenJavaTask(type: org.gradle.BrokenTask)");
-  ExecutionFailure failure=usingBuildFile(buildFile).withTasks("brokenJavaTask").runWithFailure();
-  failure.assertHasFileName(String.format("Build file '%s'",buildFile));
-  failure.assertHasDescription("Execution failed for task ':brokenJavaTask'");
-  failure.assertHasCause("broken action");
-}

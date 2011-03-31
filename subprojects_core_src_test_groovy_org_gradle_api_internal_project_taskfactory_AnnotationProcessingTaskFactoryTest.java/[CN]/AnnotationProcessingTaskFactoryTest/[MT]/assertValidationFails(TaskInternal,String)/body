@@ -3,9 +3,17 @@
     task.execute();
     fail();
   }
- catch (  GradleException e) {
-    assertThat(e.getCause(),instanceOf(InvalidUserDataException.class));
-    assertThat(e.getCause().getMessage(),containsString("Some problems were found with the configuration of " + task));
-    assertThat(e.getCause().getMessage(),Matchers.containsLine("- " + expectedErrorMessage));
+ catch (  TaskValidationException e) {
+    if (expectedErrorMessages.length == 1) {
+      assertThat(e.getMessage(),containsString("A problem was found with the configuration of " + task));
+    }
+ else {
+      assertThat(e.getMessage(),containsString("Some problems were found with the configuration of " + task));
+    }
+    HashSet<String> actualMessages=new HashSet<String>();
+    for (    Throwable cause : e.getCauses()) {
+      actualMessages.add(cause.getMessage());
+    }
+    assertThat(actualMessages,equalTo(new HashSet<String>(Arrays.asList(expectedErrorMessages))));
   }
 }

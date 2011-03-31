@@ -1,13 +1,25 @@
 {
+  Throwable locationAware=null;
   Throwable result=null;
   Throwable contextMatch=null;
   for (Throwable current=exception; current != null; current=current.getCause()) {
-    if (current instanceof GradleScriptException || current instanceof TaskExecutionException) {
+    if (current instanceof LocationAwareException) {
+      locationAware=current;
+    }
+ else     if (current instanceof GradleScriptException || current instanceof TaskExecutionException) {
       result=current;
     }
-    if (current.getClass().getAnnotation(Contextual.class) != null) {
+ else     if (current.getClass().getAnnotation(Contextual.class) != null) {
       contextMatch=current;
     }
   }
-  return result != null ? result : contextMatch;
+  if (locationAware != null) {
+    return locationAware;
+  }
+ else   if (result != null) {
+    return result;
+  }
+ else {
+    return contextMatch;
+  }
 }
