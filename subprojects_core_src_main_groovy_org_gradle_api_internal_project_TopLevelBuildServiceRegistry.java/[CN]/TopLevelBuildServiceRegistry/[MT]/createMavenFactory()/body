@@ -1,5 +1,11 @@
 {
-  URL[] classPath=get(ClassPathRegistry.class).getClassPathUrls("GRADLE_CORE_IMPL");
   ClassLoader rootClassLoader=get(ClassLoaderFactory.class).getRootClassLoader();
-  return new DefaultMavenFactory(new ParentLastClassLoader(classPath,rootClassLoader));
+  URL[] classPath=get(ClassPathRegistry.class).getClassPathUrls("GRADLE_CORE_IMPL");
+  ClassLoader coreImplClassLoader=new URLClassLoader(classPath,rootClassLoader);
+  try {
+    return (MavenFactory)coreImplClassLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.DefaultMavenFactory").newInstance();
+  }
+ catch (  Exception e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
 }
