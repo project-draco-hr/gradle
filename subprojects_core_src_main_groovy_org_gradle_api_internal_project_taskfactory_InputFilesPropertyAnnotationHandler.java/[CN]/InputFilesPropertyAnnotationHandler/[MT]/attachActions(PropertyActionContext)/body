@@ -1,10 +1,13 @@
 {
-  if (context.getTarget().getAnnotation(SkipWhenEmpty.class) != null) {
-    context.setSkipAction(skipEmptyFileCollection);
-  }
+  final boolean isSourceFiles=context.getTarget().getAnnotation(SkipWhenEmpty.class) != null;
   context.setConfigureAction(new UpdateAction(){
     public void update(    Task task,    Callable<Object> futureValue){
-      task.getInputs().files(futureValue);
+      if (isSourceFiles) {
+        task.getInputs().source(futureValue);
+      }
+ else {
+        task.getInputs().files(futureValue);
+      }
     }
   }
 );

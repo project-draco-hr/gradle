@@ -1,8 +1,23 @@
 {
   context.setValidationAction(outputDirValidation);
   context.setConfigureAction(new UpdateAction(){
-    public void update(    Task task,    Callable<Object> futureValue){
+    public void update(    Task task,    final Callable<Object> futureValue){
       task.getOutputs().files(futureValue);
+      task.doFirst(new Action<Task>(){
+        public void execute(        Task task){
+          File fileValue;
+          try {
+            fileValue=(File)futureValue.call();
+          }
+ catch (          Exception e) {
+            throw UncheckedException.asUncheckedException(e);
+          }
+          if (!fileValue.isDirectory() && !fileValue.mkdirs()) {
+            throw new InvalidUserDataException(String.format("Cannot create directory '%s' specified for property '%s'.",fileValue,context.getName()));
+          }
+        }
+      }
+);
     }
   }
 );

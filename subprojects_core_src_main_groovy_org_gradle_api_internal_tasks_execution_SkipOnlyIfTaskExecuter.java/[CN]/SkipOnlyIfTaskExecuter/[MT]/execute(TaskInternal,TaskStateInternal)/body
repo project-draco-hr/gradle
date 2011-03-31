@@ -1,10 +1,16 @@
 {
-  logger.debug("Starting to execute {}",task);
+  boolean skip;
   try {
-    doExecute(task,state);
+    skip=!task.getOnlyIf().isSatisfiedBy(task);
   }
-  finally {
-    state.executed();
-    logger.debug("Finished executing {}",task);
+ catch (  Throwable t) {
+    state.executed(new GradleException(String.format("Could not evaluate onlyIf predicate for %s.",task),t));
+    return;
   }
+  if (skip) {
+    LOGGER.info("Skipping {} as task onlyIf is false.",task);
+    state.skipped("SKIPPED");
+    return;
+  }
+  executer.execute(task,state);
 }
