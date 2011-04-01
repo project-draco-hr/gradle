@@ -8,10 +8,14 @@
   }
   ScriptSource source=null;
   Integer lineNumber=null;
+  Throwable target=actualException;
   if (actualException instanceof ScriptCompilationException) {
     ScriptCompilationException scriptCompilationException=(ScriptCompilationException)actualException;
     source=scriptCompilationException.getScriptSource();
     lineNumber=scriptCompilationException.getLineNumber();
+  }
+  if (actualException instanceof ListenerNotificationException && actualException.getCause() != null) {
+    target=actualException.getCause();
   }
   if (source == null) {
     for (Throwable currentException=actualException; currentException != null; currentException=currentException.getCause()) {
@@ -24,11 +28,5 @@
       }
     }
   }
-  if (source == null) {
-    if (actualException instanceof TaskExecutionException) {
-      TaskExecutionException taskExecutionException=(TaskExecutionException)actualException;
-      source=((ProjectInternal)taskExecutionException.getTask().getProject()).getBuildScriptSource();
-    }
-  }
-  return generator.newInstance(actualException.getClass(),actualException,source,lineNumber);
+  return new LocationAwareException(actualException,target,source,lineNumber);
 }
