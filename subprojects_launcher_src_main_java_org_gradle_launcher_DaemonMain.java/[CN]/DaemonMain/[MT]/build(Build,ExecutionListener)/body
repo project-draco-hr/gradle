@@ -6,8 +6,11 @@
   LoggingManagerInternal loggingManager=loggingServices.getFactory(LoggingManagerInternal.class).create();
   loggingManager.setLevel(startParameter.getLogLevel());
   loggingManager.start();
-  Properties sysProperties=new Properties();
-  sysProperties.putAll(System.getProperties());
+  Properties originalSystemProperties=new Properties();
+  originalSystemProperties.putAll(System.getProperties());
+  Properties clientSystemProperties=new Properties();
+  clientSystemProperties.putAll(build.getSystemProperties());
+  System.setProperties(clientSystemProperties);
   try {
     RunBuildAction action=new RunBuildAction(startParameter,loggingServices,new DefaultBuildRequestMetaData(build.getClientMetaData(),build.getStartTime())){
       @Override GradleLauncherFactory createGradleLauncherFactory(      ServiceRegistry loggingServices){
@@ -23,5 +26,5 @@
     executionListener.onFailure(throwable);
   }
   loggingManager.stop();
-  System.setProperties(sysProperties);
+  System.setProperties(originalSystemProperties);
 }
