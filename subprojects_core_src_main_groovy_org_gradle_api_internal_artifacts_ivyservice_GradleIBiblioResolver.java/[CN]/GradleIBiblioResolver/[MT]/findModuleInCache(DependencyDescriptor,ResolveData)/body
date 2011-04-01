@@ -2,17 +2,21 @@
   setChangingPattern(null);
   ResolvedModuleRevision moduleRevision=super.findModuleInCache(dd,data);
   if (moduleRevision == null) {
+    logger.debug("Dependency not found in cache.");
     setChangingPattern(".*-SNAPSHOT");
     return null;
   }
   PropertiesFile cacheProperties=getCacheProperties(dd,moduleRevision);
   Long lastResolvedTime=getLastResolvedTime(cacheProperties);
   updateCachePropertiesToCurrentTime(cacheProperties);
+  logger.debug("Using the SnapshotTimeOutStrategy=" + snapshotTimeout.toString());
   if (snapshotTimeout.isCacheTimedOut(lastResolvedTime)) {
+    logger.debug("Cache has timed out.");
     setChangingPattern(".*-SNAPSHOT");
     return null;
   }
  else {
+    logger.debug("Dependency found in cache..");
     return moduleRevision;
   }
 }
