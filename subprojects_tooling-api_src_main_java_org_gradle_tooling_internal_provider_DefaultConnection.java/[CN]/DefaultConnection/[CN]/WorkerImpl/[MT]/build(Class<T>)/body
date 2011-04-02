@@ -5,16 +5,16 @@
     GradleLauncher gradleLauncher=GradleLauncher.newInstance(startParameter);
     ModelBuildingAdapter adapter=new ModelBuildingAdapter();
     gradleLauncher.addListener(adapter);
-    boolean minimalModelOnly=type.isAssignableFrom(HierarchicalEclipseProjectVersion1.class);
-    if (minimalModelOnly) {
-      adapter.setBuilder(new MinimalModelBuilder());
-      gradleLauncher.getBuildAnalysis().rethrowFailure();
+    boolean fullModel=EclipseProjectVersion3.class.isAssignableFrom(type);
+    boolean includeTasks=BuildableProjectVersion1.class.isAssignableFrom(type);
+    if (fullModel) {
+      adapter.setConfigurer(new EclipsePluginApplier());
     }
  else {
-      adapter.setConfigurer(new EclipsePluginApplier());
-      adapter.setBuilder(new ModelBuilder());
-      gradleLauncher.run().rethrowFailure();
+      adapter.setConfigurer(new MinimalModelConfigurer());
     }
+    adapter.setBuilder(new ModelBuilder(includeTasks));
+    gradleLauncher.run().rethrowFailure();
     return type.cast(adapter.getProject());
   }
   throw new UnsupportedOperationException();
