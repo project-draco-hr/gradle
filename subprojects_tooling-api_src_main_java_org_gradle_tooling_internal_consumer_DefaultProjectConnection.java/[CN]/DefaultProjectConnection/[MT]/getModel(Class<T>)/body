@@ -1,26 +1,5 @@
 {
-  if (closed.get()) {
-    throw new IllegalStateException("This connection has been closed.");
-  }
-  final BlockingQueue<Object> queue=new ArrayBlockingQueue<Object>(1);
-  getModel(viewType,new ResultHandler<T>(){
-    public void onComplete(    T result){
-      queue.add(result);
-    }
-    public void onFailure(    GradleConnectionException failure){
-      queue.add(failure);
-    }
-  }
-);
-  Object result;
-  try {
-    result=queue.take();
-  }
- catch (  InterruptedException e) {
-    throw UncheckedException.asUncheckedException(e);
-  }
-  if (result instanceof GradleConnectionException) {
-    throw (GradleConnectionException)result;
-  }
-  return viewType.cast(result);
+  BlockingResultHandler<T> handler=new BlockingResultHandler<T>(viewType);
+  getModel(viewType,handler);
+  return handler.getResult();
 }
