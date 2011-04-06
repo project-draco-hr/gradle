@@ -1,8 +1,10 @@
 {
   final FileVisitDetails dir1=file("a/b/c");
   final FileVisitDetails file1=file("a/b/c/file");
+  allowGetIncludeEmptyDirs();
   context.checking(new Expectations(){
 {
+      one(delegate).visitSpec(spec);
       one(delegate).visitDir(with(hasPath("a")));
       one(delegate).visitDir(with(hasPath("a/b")));
       one(delegate).visitDir(dir1);
@@ -10,18 +12,21 @@
     }
   }
 );
+  visitor.visitSpec(spec);
   visitor.visitDir(dir1);
   visitor.visitFile(file1);
   final FileVisitDetails dir2=file("a/b/d/e");
   final FileVisitDetails file2=file("a/b/d/e/file");
   context.checking(new Expectations(){
 {
+      one(delegate).visitSpec(spec);
       one(delegate).visitDir(with(hasPath("a/b/d")));
       one(delegate).visitDir(dir2);
       one(delegate).visitFile(file2);
     }
   }
 );
+  visitor.visitSpec(spec);
   visitor.visitDir(dir2);
   visitor.visitFile(file2);
 }
