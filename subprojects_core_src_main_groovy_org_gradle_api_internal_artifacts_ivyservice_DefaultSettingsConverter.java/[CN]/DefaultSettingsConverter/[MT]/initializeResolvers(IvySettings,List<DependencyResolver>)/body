@@ -1,8 +1,9 @@
 {
   for (  DependencyResolver dependencyResolver : allResolvers) {
     ivySettings.addResolver(dependencyResolver);
-    if (dependencyResolver.getRepositoryCacheManager() instanceof DefaultRepositoryCacheManager) {
-      ((DefaultRepositoryCacheManager)dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
+    RepositoryCacheManager cacheManager=dependencyResolver.getRepositoryCacheManager();
+    if (cacheManager != ivySettings.getDefaultRepositoryCacheManager() && !(cacheManager instanceof NoOpRepositoryCacheManager) && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
+      throw new IllegalStateException(String.format("Unexpected cache manager %s for repository %s (%s)",cacheManager,dependencyResolver.getName(),dependencyResolver));
     }
     if (dependencyResolver instanceof RepositoryResolver) {
       Repository repository=((RepositoryResolver)dependencyResolver).getRepository();
