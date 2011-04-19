@@ -1,0 +1,35 @@
+{
+  List<String> httpPatterns=new ArrayList<String>();
+  List<String> otherPatterns=new ArrayList<String>();
+  for (  String artifactPattern : artifactPatterns) {
+    try {
+      URI uri=new URI(artifactPattern.replaceAll("\\[.*\\]","token"));
+      if (uri.getScheme() != null && (uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https"))) {
+        httpPatterns.add(artifactPattern);
+        continue;
+      }
+    }
+ catch (    URISyntaxException e) {
+    }
+    otherPatterns.add(artifactPattern);
+  }
+  if (!otherPatterns.isEmpty()) {
+    URLResolver resolver=new URLResolver();
+    resolver.setName(name);
+    for (    String artifactPattern : otherPatterns) {
+      resolver.addArtifactPattern(artifactPattern);
+      resolver.addIvyPattern(artifactPattern);
+    }
+    resolvers.add(resolver);
+  }
+  if (!httpPatterns.isEmpty()) {
+    RepositoryResolver resolver=new RepositoryResolver();
+    resolver.setRepository(new CommonsHttpClientBackedRepository(username,password));
+    resolver.setName(name);
+    for (    String artifactPattern : httpPatterns) {
+      resolver.addArtifactPattern(artifactPattern);
+      resolver.addIvyPattern(artifactPattern);
+    }
+    resolvers.add(resolver);
+  }
+}
