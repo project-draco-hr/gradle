@@ -1,0 +1,17 @@
+{
+  Set<DirectoryTree> result=new LinkedHashSet<DirectoryTree>();
+  for (  Object path : source) {
+    if (path instanceof SourceDirectorySet) {
+      SourceDirectorySet nested=(SourceDirectorySet)path;
+      result.addAll(nested.getSrcDirTrees());
+    }
+ else {
+      File srcDir=fileResolver.resolve(path);
+      if (srcDir.exists() && !srcDir.isDirectory()) {
+        throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.",srcDir));
+      }
+      result.add(new DirectoryFileTree(srcDir,patterns));
+    }
+  }
+  return result;
+}
