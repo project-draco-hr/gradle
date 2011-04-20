@@ -1,0 +1,17 @@
+{
+  if (operationParameters.getStandardOutput() != null) {
+    gradleLauncher.addStandardOutputListener(new StreamBackedStandardOutputListener(operationParameters.getStandardOutput()));
+  }
+  if (operationParameters.getStandardError() != null) {
+    gradleLauncher.addStandardErrorListener(new StreamBackedStandardOutputListener(operationParameters.getStandardError()));
+  }
+  loggingServices.get(LoggingOutputInternal.class).addOutputEventListener(new OutputEventListener(){
+    public void onOutput(    OutputEvent event){
+      if (event instanceof ProgressStartEvent) {
+        ProgressStartEvent startEvent=(ProgressStartEvent)event;
+        operationParameters.getProgressListener().statusChanged(startEvent.getDescription());
+      }
+    }
+  }
+);
+}
