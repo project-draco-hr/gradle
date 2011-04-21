@@ -4,11 +4,15 @@
   }
   StartParameter startParameter=new ConnectionToStartParametersConverter().convert(operationParameters);
   GradleLauncher gradleLauncher=GradleLauncher.newInstance(startParameter);
-  configureLauncher(operationParameters,gradleLauncher);
   boolean projectDependenciesOnly=!EclipseProjectVersion3.class.isAssignableFrom(type);
   boolean includeTasks=BuildableProjectVersion1.class.isAssignableFrom(type);
   ModelBuildingAdapter adapter=new ModelBuildingAdapter(new EclipsePluginApplier(),new ModelBuilder(includeTasks,projectDependenciesOnly));
   gradleLauncher.addListener(adapter);
-  wrapAndRethrowFailure(gradleLauncher.getBuildAnalysis());
+  run(operationParameters,gradleLauncher,new BuildAction(){
+    public BuildResult execute(    GradleLauncher gradleLauncher){
+      return gradleLauncher.getBuildAnalysis();
+    }
+  }
+);
   return type.cast(adapter.getProject());
 }

@@ -1,0 +1,21 @@
+{
+  if (operationParameters.getStandardOutput() != null) {
+    gradleLauncher.addStandardOutputListener(new StreamBackedStandardOutputListener(operationParameters.getStandardOutput()));
+  }
+  if (operationParameters.getStandardError() != null) {
+    gradleLauncher.addStandardErrorListener(new StreamBackedStandardOutputListener(operationParameters.getStandardError()));
+  }
+  ProgressListenerVersion1 progressListener=operationParameters.getProgressListener();
+  LoggingOutputInternal loggingOutput=loggingServices.get(LoggingOutputInternal.class);
+  OutputEventListenerAdapter listener=new OutputEventListenerAdapter(progressListener);
+  loggingOutput.addOutputEventListener(listener);
+  try {
+    BuildResult result=action.execute(gradleLauncher);
+    if (result.getFailure() != null) {
+      throw new BuildExceptionVersion1(result.getFailure());
+    }
+  }
+  finally {
+    loggingOutput.removeOutputEventListener(listener);
+  }
+}
