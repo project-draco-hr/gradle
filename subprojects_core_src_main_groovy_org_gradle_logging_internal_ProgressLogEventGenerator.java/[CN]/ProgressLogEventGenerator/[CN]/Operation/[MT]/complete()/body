@@ -1,32 +1,26 @@
 {
-  boolean hasStatus=status.length() > 0;
-  boolean hasDescription=description.length() > 0;
+  boolean hasStatus=GUtil.isTrue(status);
 switch (state) {
 case None:
-    if (hasDescription && hasStatus) {
-      doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,new StyledTextOutputEvent.Span(description + ' '),new StyledTextOutputEvent.Span(Style.ProgressStatus,status),new StyledTextOutputEvent.Span(EOL)));
+    if (hasLoggingHeader && hasStatus) {
+      doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,new StyledTextOutputEvent.Span(loggingHeader + ' '),new StyledTextOutputEvent.Span(Style.ProgressStatus,status),new StyledTextOutputEvent.Span(EOL)));
     }
- else     if (hasDescription) {
-      doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,description + EOL));
-    }
- else     if (hasStatus) {
-      doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,new StyledTextOutputEvent.Span(Style.ProgressStatus,status),new StyledTextOutputEvent.Span(EOL)));
+ else     if (hasLoggingHeader) {
+      doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,loggingHeader + EOL));
     }
   break;
 case HeaderStarted:
+assert hasLoggingHeader;
 if (hasStatus) {
-  doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,new StyledTextOutputEvent.Span(" "),new StyledTextOutputEvent.Span(Style.ProgressStatus,status),new StyledTextOutputEvent.Span(EOL)));
+doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,new StyledTextOutputEvent.Span(" "),new StyledTextOutputEvent.Span(Style.ProgressStatus,status),new StyledTextOutputEvent.Span(EOL)));
 }
  else {
-  doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,EOL));
+doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,EOL));
 }
 break;
 case HeaderCompleted:
-if (hasDescription && hasStatus) {
-doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,new StyledTextOutputEvent.Span(description + ' '),new StyledTextOutputEvent.Span(Style.ProgressStatus,status),new StyledTextOutputEvent.Span(EOL)));
-}
- else if (hasStatus) {
-doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,new StyledTextOutputEvent.Span(Style.ProgressStatus,status),new StyledTextOutputEvent.Span(EOL)));
+if (hasLoggingHeader && hasStatus) {
+doOutput(new StyledTextOutputEvent(completeTime,category,LogLevel.LIFECYCLE,new StyledTextOutputEvent.Span(loggingHeader + ' '),new StyledTextOutputEvent.Span(Style.ProgressStatus,status),new StyledTextOutputEvent.Span(EOL)));
 }
 break;
 default :
