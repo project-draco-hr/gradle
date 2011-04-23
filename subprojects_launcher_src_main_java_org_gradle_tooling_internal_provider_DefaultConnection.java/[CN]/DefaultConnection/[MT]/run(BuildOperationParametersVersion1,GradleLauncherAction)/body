@@ -1,4 +1,6 @@
 {
+  StartParameter startParameter=new ConnectionToStartParametersConverter().convert(operationParameters);
+  GradleLauncher gradleLauncher=GradleLauncher.newInstance(startParameter);
   if (operationParameters.getStandardOutput() != null) {
     gradleLauncher.addStandardOutputListener(new StreamBackedStandardOutputListener(operationParameters.getStandardOutput()));
   }
@@ -10,7 +12,7 @@
   OutputEventListenerAdapter listener=new OutputEventListenerAdapter(progressListener);
   loggingOutput.addOutputEventListener(listener);
   try {
-    BuildResult result=action.execute(gradleLauncher);
+    BuildResult result=action.run(gradleLauncher);
     if (result.getFailure() != null) {
       throw new BuildExceptionVersion1(result.getFailure());
     }
