@@ -1,0 +1,28 @@
+{
+  StartParameter startParameter=new StartParameter();
+  if (action instanceof InitializationAware) {
+    InitializationAware initializationAware=(InitializationAware)action;
+    initializationAware.configureStartParameter(startParameter);
+  }
+  LoggingManagerInternal loggingManager=loggingServices.getFactory(LoggingManagerInternal.class).create();
+  loggingManager.setLevel(startParameter.getLogLevel());
+  loggingManager.start();
+  try {
+    GradleLauncher gradleLauncher=gradleLauncherFactory.newInstance(startParameter,parameters.getBuildRequestMetaData());
+    BuildResult buildResult=action.run(gradleLauncher);
+    Throwable failure=buildResult.getFailure();
+    if (failure != null) {
+      executionListener.onFailure(failure);
+    }
+    return action.getResult();
+  }
+ catch (  Throwable throwable) {
+    BuildExceptionReporter exceptionReporter=new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class),new StartParameter(),parameters.getClientMetaData());
+    exceptionReporter.reportException(throwable);
+    executionListener.onFailure(throwable);
+    return null;
+  }
+ finally {
+    loggingManager.stop();
+  }
+}
