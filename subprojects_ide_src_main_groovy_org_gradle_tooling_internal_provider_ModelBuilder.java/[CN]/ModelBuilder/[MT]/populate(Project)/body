@@ -1,0 +1,19 @@
+{
+  EclipseModel eclipseModel=project.getPlugins().getPlugin(EclipsePlugin.class).getModel();
+  EclipseClasspath classpath=eclipseModel.getClasspath();
+  classpath.setProjectDependenciesOnly(projectDependenciesOnly);
+  List<ClasspathEntry> entries=classpath.resolveDependencies();
+  List<ExternalDependencyVersion1> dependencies=new ExternalDependenciesFactory().create(project,entries);
+  List<EclipseProjectDependencyVersion2> projectDependencies=new EclipseProjectDependenciesFactory().create(projectMapping,entries);
+  List<EclipseSourceDirectoryVersion1> sourceDirectories=new SourceDirectoriesFactory().create(project,entries);
+  DefaultEclipseProject eclipseProject=projectMapping.get(project.getPath());
+  eclipseProject.setClasspath(dependencies);
+  eclipseProject.setProjectDependencies(projectDependencies);
+  eclipseProject.setSourceDirectories(sourceDirectories);
+  if (includeTasks) {
+    eclipseProject.setTasks(new TasksFactory().create(project,eclipseProject));
+  }
+  for (  Project childProject : project.getChildProjects().values()) {
+    populate(childProject);
+  }
+}
