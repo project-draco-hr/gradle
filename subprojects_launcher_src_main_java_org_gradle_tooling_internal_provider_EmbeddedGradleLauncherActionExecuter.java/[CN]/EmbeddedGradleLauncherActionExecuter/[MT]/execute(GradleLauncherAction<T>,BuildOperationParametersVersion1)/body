@@ -1,0 +1,13 @@
+{
+  StartParameter startParameter=new ConnectionToStartParametersConverter().convert(actionParameters);
+  if (action instanceof InitializationAware) {
+    InitializationAware initializationAware=(InitializationAware)action;
+    initializationAware.configureStartParameter(startParameter);
+  }
+  GradleLauncher gradleLauncher=gradleLauncherFactory.newInstance(startParameter);
+  BuildResult result=action.run(gradleLauncher);
+  if (result.getFailure() != null) {
+    throw new BuildExceptionVersion1(result.getFailure());
+  }
+  return action.getResult();
+}

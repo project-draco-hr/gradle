@@ -1,3 +1,11 @@
 {
-  return new LocalGradleLauncherActionExecuter(gradleLauncherFactory,loggingServices.get(LoggingOutputInternal.class));
+  GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
+  if (Boolean.FALSE.equals(operationParameters.isEmbedded())) {
+    DaemonClient client=new DaemonClient(new DaemonConnector(operationParameters.getGradleUserHomeDir()),new GradleLauncherMetaData(),loggingServices.get(OutputEventListener.class));
+    executer=new DaemonGradleLauncherActionExecuter(client);
+  }
+ else {
+    executer=new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
+  }
+  return new LoggingBridgingGradleLauncherActionExecuter(executer,loggingServices.getFactory(LoggingManagerInternal.class));
 }
