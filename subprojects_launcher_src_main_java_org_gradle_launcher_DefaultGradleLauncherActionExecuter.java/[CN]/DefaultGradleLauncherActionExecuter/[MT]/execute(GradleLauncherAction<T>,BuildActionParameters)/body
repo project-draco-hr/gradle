@@ -12,15 +12,17 @@
     BuildResult buildResult=action.run(gradleLauncher);
     Throwable failure=buildResult.getFailure();
     if (failure != null) {
-      executionListener.onFailure(failure);
+      throw new ReportedException(failure);
     }
     return action.getResult();
   }
- catch (  Throwable throwable) {
+ catch (  ReportedException e) {
+    throw e;
+  }
+catch (  Throwable throwable) {
     BuildExceptionReporter exceptionReporter=new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class),new StartParameter(),parameters.getClientMetaData());
     exceptionReporter.reportException(throwable);
-    executionListener.onFailure(throwable);
-    return null;
+    throw new ReportedException(throwable);
   }
  finally {
     loggingManager.stop();
