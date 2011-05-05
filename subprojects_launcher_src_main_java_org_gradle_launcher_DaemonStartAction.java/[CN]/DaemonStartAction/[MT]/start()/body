@@ -1,0 +1,32 @@
+{
+  try {
+    dir.mkdirs();
+    if (OperatingSystem.current().isWindows()) {
+      StringBuilder commandLine=new StringBuilder();
+      for (      String arg : args) {
+        commandLine.append('"');
+        commandLine.append(arg);
+        commandLine.append("\" ");
+      }
+      Kernel32 kernel32=INSTANCE;
+      StartupInfo startupInfo=new StartupInfo();
+      ProcessInfo processInformation=new ProcessInfo();
+      if (!kernel32.CreateProcessW(null,new WString(commandLine.toString()),null,null,false,DETACHED_PROCESS,null,new WString(dir.getAbsolutePath()),startupInfo,processInformation)) {
+        throw new IOException("Could not start process. Errno: " + kernel32.GetLastError());
+      }
+      kernel32.CloseHandle(processInformation.hProcess);
+      kernel32.CloseHandle(processInformation.hThread);
+    }
+ else {
+      ProcessBuilder builder=new ProcessBuilder(args);
+      builder.directory(dir);
+      Process process=builder.start();
+      process.getOutputStream().close();
+      process.getErrorStream().close();
+      process.getInputStream().close();
+    }
+  }
+ catch (  Exception e) {
+    throw new GradleException("Could not start Gradle daemon.",e);
+  }
+}
