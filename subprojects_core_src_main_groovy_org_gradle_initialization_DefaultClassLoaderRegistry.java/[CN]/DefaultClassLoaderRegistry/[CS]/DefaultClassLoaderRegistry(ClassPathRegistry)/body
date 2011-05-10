@@ -1,14 +1,17 @@
 {
-  ClassLoader antClassloader=Project.class.getClassLoader();
+  ClassLoader antClassLoader=Project.class.getClassLoader();
   File toolsJar=Jvm.current().getToolsJar();
   if (toolsJar != null) {
-    ClasspathUtil.addUrl((URLClassLoader)antClassloader,GFileUtils.toURLs(Collections.singleton(toolsJar)));
+    ClasspathUtil.addUrl((URLClassLoader)antClassLoader,GFileUtils.toURLs(Collections.singleton(toolsJar)));
   }
-  ClassLoader runtimeClassloader=getClass().getClassLoader();
-  URL[] pluginsClassPath=classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
-  pluginsClassLoader=new URLClassLoader(pluginsClassPath,runtimeClassloader);
+  ClassLoader runtimeClassLoader=getClass().getClassLoader();
   URL[] coreImplClassPath=classPathRegistry.getClassPathUrls("GRADLE_CORE_IMPL");
-  coreImplClassLoader=new URLClassLoader(coreImplClassPath,pluginsClassLoader);
+  coreImplClassLoader=new URLClassLoader(coreImplClassPath,runtimeClassLoader);
+  FilteringClassLoader coreImplExports=new FilteringClassLoader(coreImplClassLoader);
+  coreImplExports.allowPackage("org.gradle");
+  URL[] pluginsClassPath=classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
+  MultiParentClassLoader pluginsImports=new MultiParentClassLoader(runtimeClassLoader,coreImplExports);
+  pluginsClassLoader=new URLClassLoader(pluginsClassPath,pluginsImports);
   rootClassLoader=new FilteringClassLoader(pluginsClassLoader);
   rootClassLoader.allowPackage("org.gradle");
   rootClassLoader.allowResources("META-INF/gradle-plugins");
