@@ -6,7 +6,17 @@
   }
   ClassLoader runtimeClassloader=getClass().getClassLoader();
   URL[] pluginsClassPath=classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
-  rootClassLoader=new URLClassLoader(pluginsClassPath,runtimeClassloader);
+  pluginsClassLoader=new URLClassLoader(pluginsClassPath,runtimeClassloader);
   URL[] coreImplClassPath=classPathRegistry.getClassPathUrls("GRADLE_CORE_IMPL");
-  coreImplClassLoader=new URLClassLoader(coreImplClassPath,rootClassLoader);
+  coreImplClassLoader=new URLClassLoader(coreImplClassPath,pluginsClassLoader);
+  rootClassLoader=new FilteringClassLoader(pluginsClassLoader);
+  rootClassLoader.allowPackage("org.gradle");
+  rootClassLoader.allowResources("META-INF/gradle-plugins");
+  rootClassLoader.allowPackage("org.apache.tools.ant");
+  rootClassLoader.allowPackage("groovy");
+  rootClassLoader.allowPackage("org.codehaus.groovy");
+  rootClassLoader.allowPackage("org.apache.ivy");
+  rootClassLoader.allowPackage("org.slf4j");
+  rootClassLoader.allowPackage("org.apache.commons.logging");
+  rootClassLoader.allowPackage("org.apache.log4j");
 }
