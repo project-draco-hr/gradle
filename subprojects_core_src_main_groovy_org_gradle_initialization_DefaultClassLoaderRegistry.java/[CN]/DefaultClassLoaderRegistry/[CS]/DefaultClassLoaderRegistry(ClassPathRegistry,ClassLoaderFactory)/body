@@ -7,12 +7,12 @@
   ClassLoader runtimeClassLoader=getClass().getClassLoader();
   URL[] coreImplClassPath=classPathRegistry.getClassPathUrls("GRADLE_CORE_IMPL");
   coreImplClassLoader=new URLClassLoader(coreImplClassPath,runtimeClassLoader);
-  FilteringClassLoader coreImplExports=new FilteringClassLoader(coreImplClassLoader);
+  FilteringClassLoader coreImplExports=classLoaderFactory.createFilteringClassLoader(coreImplClassLoader);
   coreImplExports.allowPackage("org.gradle");
   URL[] pluginsClassPath=classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
   MultiParentClassLoader pluginsImports=new MultiParentClassLoader(runtimeClassLoader,coreImplExports);
   pluginsClassLoader=new URLClassLoader(pluginsClassPath,pluginsImports);
-  rootClassLoader=new FilteringClassLoader(pluginsClassLoader);
+  rootClassLoader=classLoaderFactory.createFilteringClassLoader(pluginsClassLoader);
   rootClassLoader.allowPackage("org.gradle");
   rootClassLoader.allowResources("META-INF/gradle-plugins");
   rootClassLoader.allowPackage("org.apache.tools.ant");
