@@ -3,7 +3,7 @@
   TcpIncomingConnector incomingConnector=new TcpIncomingConnector(executorFactory,getClass().getClassLoader());
   final CompletionHandler finished=new CompletionHandler();
   LOGGER.lifecycle("Awaiting requests.");
-  URI uri=incomingConnector.accept(new Action<ConnectEvent<Connection<Object>>>(){
+  Address address=incomingConnector.accept(new Action<ConnectEvent<Connection<Object>>>(){
     public void execute(    ConnectEvent<Connection<Object>> connectionConnectEvent){
       try {
         finished.onStartActivity();
@@ -16,7 +16,7 @@
     }
   }
 );
-  storeDaemonAddress(uri);
+  storeDaemonAddress(address);
   boolean stopped=finished.awaitStop();
   if (!stopped) {
     LOGGER.lifecycle("Time-out waiting for requests. Stopping.");
