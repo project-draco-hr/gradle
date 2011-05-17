@@ -3,16 +3,17 @@
   this.executor=executorFactory.create(displayName);
   this.sourceAddress=sourceAddress;
   this.destinationAddress=destinationAddress;
-  outgoingQueue=new AsyncDispatch<Object>(executor);
-  outgoingQueue.dispatchTo(wrapFailures(connection));
-  outgoingDispatch=new EndOfStreamDispatch(new ChannelMessageMarshallingDispatch(outgoingQueue));
-  incomingDemux=new IncomingDemultiplex();
-  incomingDispatch=new EndOfStreamFilter(incomingDemux,new Runnable(){
+  Dispatch<Object> outgoing=connection;
+  Receive<Object> incoming=new EndOfStreamReceive(connection);
+  Protocol<Object> endOfStream=new EndOfStreamHandshakeProtocol(new Runnable(){
     public void run(){
       requestStop();
     }
   }
 );
-  incomingReceive=new AsyncReceive<Object>(executor,wrapFailures(new ChannelMessageUnmarshallingDispatch(incomingDispatch)));
-  incomingReceive.receiveFrom(new EndOfStreamReceive(connection));
+  Protocol<Object> channel=new ChannelMultiplexProtocol();
+  failureHandler=new DiscardingFailureHandler<Object>(LoggerFactory.getLogger(DefaultMultiChannelConnector.class));
+  stack=new ProtocolStack<Object>(outgoing,incoming,executor,failureHandler,failureHandler,failureHandler,endOfStream,channel);
+  incomingDemux=new IncomingDemultiplex();
+  stack.receiveOn(incomingDemux);
 }
