@@ -9,9 +9,11 @@
           socket.close();
           continue;
         }
-        Address remoteAddress=new SocketInetAddress(remoteSocketAddress.getAddress(),remoteSocketAddress.getPort());
-        LOGGER.debug("Accepted connection from {}.",remoteAddress);
-        action.execute(new ConnectEvent<Connection<Object>>(new SocketConnection<Object>(socket,localAddress,remoteAddress,classLoader),localAddress,remoteAddress));
+        SocketConnection<T> connection=new SocketConnection<T>(socket,serializer);
+        Address localAddress=connection.getLocalAddress();
+        Address remoteAddress=connection.getRemoteAddress();
+        LOGGER.debug("Accepted connection from {} to {}.",remoteAddress,localAddress);
+        action.execute(new ConnectEvent<Connection<T>>(connection,localAddress,remoteAddress));
       }
     }
  catch (    ClosedChannelException e) {
