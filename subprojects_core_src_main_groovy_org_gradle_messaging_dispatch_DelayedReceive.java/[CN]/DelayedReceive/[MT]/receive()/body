@@ -1,0 +1,32 @@
+{
+  lock.lock();
+  try {
+    while (true) {
+      DelayedMessage message=queue.peek();
+      if (message == null && stopping) {
+        return null;
+      }
+      if (message == null) {
+        condition.await();
+        continue;
+      }
+      long now=timeProvider.getCurrentTime();
+      if (message.dispatchTime > now) {
+        condition.awaitUntil(new Date(message.dispatchTime));
+      }
+ else {
+        queue.poll();
+        if (queue.isEmpty()) {
+          condition.signalAll();
+        }
+        return message.message;
+      }
+    }
+  }
+ catch (  InterruptedException e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+ finally {
+    lock.unlock();
+  }
+}

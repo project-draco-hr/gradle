@@ -1,0 +1,14 @@
+{
+  long dispatchTime=timeProvider.getCurrentTime() + delayUnits.toMillis(delayValue);
+  lock.lock();
+  try {
+    if (stopping) {
+      throw new IllegalStateException("This dispatch has been stopped.");
+    }
+    queue.add(new DelayedMessage(dispatchTime,message));
+    condition.signalAll();
+  }
+  finally {
+    lock.unlock();
+  }
+}
