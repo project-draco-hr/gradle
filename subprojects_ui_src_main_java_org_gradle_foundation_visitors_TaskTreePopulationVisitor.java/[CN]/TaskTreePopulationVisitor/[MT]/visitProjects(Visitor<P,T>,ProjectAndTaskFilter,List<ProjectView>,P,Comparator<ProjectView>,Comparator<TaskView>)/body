@@ -1,0 +1,19 @@
+{
+  List<P> projectObjects=new ArrayList<P>();
+  sourceProjects=new ArrayList<ProjectView>(sourceProjects);
+  Collections.sort(sourceProjects,projectSorter);
+  Iterator<ProjectView> iterator=sourceProjects.iterator();
+  int index=0;
+  while (iterator.hasNext()) {
+    ProjectView project=iterator.next();
+    if (filter.doesAllowProject(project)) {
+      P userProjectObject=visitor.visitProject(project,index,parentProjectObject);
+      projectObjects.add(userProjectObject);
+      List<P> subProjectObjects=visitProjects(visitor,filter,project.getSubProjects(),userProjectObject,projectSorter,taskSorter);
+      List<T> taskObjects=visitTasks(visitor,filter,project,subProjectObjects.size(),userProjectObject,taskSorter);
+      visitor.completedVisitingProject(userProjectObject,subProjectObjects,taskObjects);
+    }
+    index++;
+  }
+  return projectObjects;
+}

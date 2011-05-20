@@ -1,6 +1,6 @@
 {
   this.interaction=interaction;
-  this.hasClickableFiles=hasClickableFiles;
+  this.allowsClickingFiles=allowsClickingFiles;
   this.font=font;
   document=new DefaultStyledDocument();
   textPane=new TextPane(document);
@@ -19,8 +19,22 @@
   scroll.getViewport().setBackground(background);
   resetFontStyles();
   textPane.addMouseListener(new MouseAdapter(){
-    @Override public void mouseReleased(    MouseEvent e){
+    /** 
+ * {@inheritDoc}
+ */
+    @Override public void mouseClicked(    MouseEvent e){
       handleClick(e.getButton() == MouseEvent.BUTTON3,e.getPoint());
+    }
+    @Override public void mouseReleased(    MouseEvent e){
+      if (e.getButton() == MouseEvent.BUTTON3) {
+        showPopup(e.getPoint());
+      }
+    }
+  }
+);
+  textPane.addKeyListener(new KeyAdapter(){
+    @Override public void keyPressed(    KeyEvent e){
+      handleKeyPress(e.getKeyCode());
     }
   }
 );

@@ -1,0 +1,20 @@
+{
+  FavoritesEditor editor=new FavoritesEditor();
+  FavoriteTask favoriteTask1=editor.addFavorite(mySubProject1Comple,true);
+  FavoriteTask favoriteTask2=editor.addFavorite(mySubSubProjectLib,false);
+  FavoriteTask favoriteTask3=editor.addFavorite(mySubSubProjectDoc,false);
+  editFavorite(editor,favoriteTask1,"name1",false);
+  editFavorite(editor,favoriteTask2,"name2",true);
+  editFavorite(editor,favoriteTask3,"name3",false);
+  List<FavoriteTask> tasksToCopy=new ArrayList<FavoriteTask>();
+  tasksToCopy.add(favoriteTask1);
+  tasksToCopy.add(favoriteTask2);
+  editor.duplicateFavorites(tasksToCopy,new TestEditFavoriteInteraction(new NameAndCommand("newname1","newcommand1")));
+  Assert.assertNotSame("Failed to cancel",5,editor.getFavoriteTasks().size());
+  Assert.assertEquals(4,editor.getFavoriteTasks().size());
+  FavoriteTask favoriteTask4=editor.getFavoriteTasks().get(3);
+  Assert.assertNotNull(favoriteTask4);
+  Assert.assertEquals("newcommand1",favoriteTask4.getFullCommandLine());
+  Assert.assertEquals("newname1",favoriteTask4.getDisplayName());
+  Assert.assertEquals(favoriteTask1.alwaysShowOutput(),favoriteTask4.alwaysShowOutput());
+}
