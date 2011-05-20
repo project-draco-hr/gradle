@@ -1,0 +1,16 @@
+{
+  try {
+    byte[] buffer=new byte[MAX_MESSAGE_SIZE];
+    DatagramPacket packet=new DatagramPacket(buffer,0,buffer.length);
+    socket.receive(packet);
+    ByteArrayInputStream inputStream=new ByteArrayInputStream(packet.getData(),packet.getOffset(),packet.getLength());
+    DataInputStream dataInputStream=new DataInputStream(inputStream);
+    return serializer.read(dataInputStream,localAddress,new SocketInetAddress(packet.getAddress(),packet.getPort()));
+  }
+ catch (  SocketException e) {
+    return null;
+  }
+catch (  Exception e) {
+    throw new MessageIOException(String.format("Could not receive multi-cast message on %s",address),e);
+  }
+}

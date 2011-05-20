@@ -1,0 +1,13 @@
+{
+  String channelKey=type.getName();
+  lock.lock();
+  try {
+    if (channels.add(channelKey)) {
+      protocolStack.dispatch(new ChannelAvailable(group,channelKey,address));
+    }
+    demultiplex.addIncomingChannel(channelKey,new MethodInvocationUnmarshallingDispatch(new ReflectionDispatch(handler),type.getClassLoader()));
+  }
+  finally {
+    lock.unlock();
+  }
+}

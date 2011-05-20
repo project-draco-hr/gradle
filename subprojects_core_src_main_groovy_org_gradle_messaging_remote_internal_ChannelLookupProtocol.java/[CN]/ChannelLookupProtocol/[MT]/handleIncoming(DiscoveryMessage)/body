@@ -1,0 +1,16 @@
+{
+  if (message instanceof ChannelAvailable) {
+    ChannelAvailable channelAvailable=(ChannelAvailable)message;
+    RequestDetails request=pending.remove(channelAvailable.getChannel());
+    if (request != null) {
+      LOGGER.debug("Channel discovered: {}.",channelAvailable);
+      request.handleResponse(channelAvailable);
+    }
+ else {
+      LOGGER.debug("Channel discovered: {}. Ignoring",channelAvailable);
+    }
+  }
+ else   if (!(message instanceof LookupRequest) && !(message instanceof ChannelUnavailable)) {
+    LOGGER.debug("Received unknown discovery message {}. Discarding.",message);
+  }
+}
