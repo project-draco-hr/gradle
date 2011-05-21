@@ -2,9 +2,13 @@
   final RuntimeException failure=new RuntimeException();
   context.checking(new Expectations(){
 {
+      allowing(messagingServices).get(MessagingClient.class);
+      will(returnValue(client));
+      one(client).getConnection(serverAddress);
+      will(returnValue(connection));
       one(action).execute(with(notNullValue(WorkerProcessContext.class)));
       will(throwException(failure));
-      one(client).stop();
+      one(messagingServices).stop();
     }
   }
 );

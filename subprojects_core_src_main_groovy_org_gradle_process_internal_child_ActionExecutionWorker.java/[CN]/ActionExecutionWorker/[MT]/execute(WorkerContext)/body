@@ -1,10 +1,12 @@
 {
-  final MessagingClient client=createClient();
+  MessagingServices messagingServices=createClient();
+  final MessagingClient client=messagingServices.get(MessagingClient.class);
+  final ObjectConnection clientConnection=client.getConnection(serverAddress);
   try {
     LOGGER.debug("Starting {}.",displayName);
     WorkerProcessContext context=new WorkerProcessContext(){
       public ObjectConnection getServerConnection(){
-        return client.getConnection();
+        return clientConnection;
       }
       public ClassLoader getApplicationClassLoader(){
         return workerContext.getApplicationClassLoader();
@@ -29,6 +31,6 @@
   }
   finally {
     LOGGER.debug("Stopping client connection.");
-    client.stop();
+    messagingServices.stop();
   }
 }

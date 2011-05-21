@@ -1,11 +1,14 @@
 {
-  final ObjectConnection connection=context.mock(ObjectConnection.class);
   final Collector<WorkerProcessContext> collector=collector();
   context.checking(new Expectations(){
 {
+      allowing(messagingServices).get(MessagingClient.class);
+      will(returnValue(client));
+      one(client).getConnection(serverAddress);
+      will(returnValue(connection));
       one(action).execute(with(notNullValue(WorkerProcessContext.class)));
       will(collectTo(collector));
-      one(client).stop();
+      one(messagingServices).stop();
     }
   }
 );
@@ -14,8 +17,6 @@
 {
       allowing(workerContext).getApplicationClassLoader();
       will(returnValue(appClassLoader));
-      allowing(client).getConnection();
-      will(returnValue(connection));
     }
   }
 );
