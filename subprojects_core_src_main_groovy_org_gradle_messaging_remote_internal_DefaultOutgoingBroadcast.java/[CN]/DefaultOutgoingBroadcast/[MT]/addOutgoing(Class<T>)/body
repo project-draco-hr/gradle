@@ -4,10 +4,12 @@
   try {
     AsyncDispatch<MethodInvocation> channel=channels.get(channelKey);
     if (channel == null) {
-      channel=new AsyncDispatch<MethodInvocation>(executor.create(String.format("outgoing %s",type.getSimpleName())));
+      StoppableExecutor executor=executorFactory.create(String.format("outgoing %s",type.getSimpleName()));
+      executors.add(executor);
+      channel=new AsyncDispatch<MethodInvocation>(executor);
       channels.put(channelKey,channel);
       if (pending.add(channelKey)) {
-        protocolStack.dispatch(new LookupRequest(group,channelKey));
+        protocolStack.getTop().dispatch(new LookupRequest(group,channelKey));
       }
     }
     return new ProxyDispatchAdapter<T>(type,channel).getSource();

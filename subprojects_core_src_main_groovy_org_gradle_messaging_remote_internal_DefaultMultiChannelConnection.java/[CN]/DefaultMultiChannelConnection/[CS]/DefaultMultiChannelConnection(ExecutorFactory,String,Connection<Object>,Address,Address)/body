@@ -1,10 +1,8 @@
 {
-  this.connection=connection;
+  this.connection=new AsyncConnectionAdapter<Object>(connection,new ObjectReceiveHandler(),executorFactory);
   this.executor=executorFactory.create(displayName);
   this.sourceAddress=sourceAddress;
   this.destinationAddress=destinationAddress;
-  Dispatch<Object> outgoing=connection;
-  Receive<Object> incoming=new EndOfStreamReceive(connection);
   Protocol<Object> endOfStream=new EndOfStreamHandshakeProtocol(new Runnable(){
     public void run(){
       requestStop();
@@ -13,7 +11,9 @@
 );
   Protocol<Object> channel=new ChannelMultiplexProtocol();
   failureHandler=new DiscardingFailureHandler<Object>(LoggerFactory.getLogger(DefaultMultiChannelConnector.class));
-  stack=new ProtocolStack<Object>(outgoing,incoming,executor,failureHandler,failureHandler,failureHandler,endOfStream,channel);
+  stack=new ProtocolStack<Object>(executor,failureHandler,failureHandler,endOfStream,channel);
+  this.connection.receiveOn(stack.getBottom());
+  stack.getBottom().receiveOn(connection);
   incomingDemux=new IncomingDemultiplex(executor);
-  stack.receiveOn(incomingDemux);
+  stack.getTop().receiveOn(incomingDemux);
 }
