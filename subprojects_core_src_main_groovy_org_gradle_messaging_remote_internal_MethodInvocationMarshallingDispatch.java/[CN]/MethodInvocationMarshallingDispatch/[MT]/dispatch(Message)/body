@@ -1,0 +1,21 @@
+{
+  if (!(message instanceof PayloadMessage)) {
+    dispatch.dispatch(message);
+    return;
+  }
+  PayloadMessage payloadMessage=(PayloadMessage)message;
+  if (!(payloadMessage.getNestedPayload() instanceof MethodInvocation)) {
+    dispatch.dispatch(message);
+    return;
+  }
+  MethodInvocation methodInvocation=(MethodInvocation)payloadMessage.getNestedPayload();
+  Method method=methodInvocation.getMethod();
+  Integer key=methods.get(method);
+  if (key == null) {
+    key=nextKey++;
+    methods.put(method,key);
+    dispatch.dispatch(new MethodMetaInfo(key,method));
+  }
+  Message transformedMessage=payloadMessage.withNestedPayload(new RemoteMethodInvocation(key,methodInvocation.getArguments()));
+  dispatch.dispatch(transformedMessage);
+}

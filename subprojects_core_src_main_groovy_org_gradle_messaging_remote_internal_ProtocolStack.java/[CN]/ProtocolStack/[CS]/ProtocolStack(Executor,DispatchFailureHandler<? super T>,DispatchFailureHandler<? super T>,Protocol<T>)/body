@@ -1,0 +1,35 @@
+{
+  this.outgoingDispatchFailureHandler=outgoingDispatchFailureHandler;
+  this.incomingDispatchFailureHandler=incomingDispatchFailureHandler;
+  this.callbackQueue=new DelayedReceive<Runnable>(new TrueTimeProvider());
+  protocolsStopped=new CountDownLatch(protocols.length);
+  incomingQueue=new AsyncDispatch<T>(executor);
+  outgoingQueue=new AsyncDispatch<T>(executor);
+  workQueue=new AsyncDispatch<Runnable>(executor);
+  workQueue.dispatchTo(new ExecuteRunnable());
+  stack.add(new TopStage());
+  for (  Protocol<T> protocol : protocols) {
+    stack.add(new ProtocolStage(protocol));
+  }
+  stack.add(new BottomStage());
+  for (int i=0; i < stack.size(); i++) {
+    Stage context=stack.get(i);
+    Stage outgoingStage=i == stack.size() - 1 ? null : stack.get(i + 1);
+    Stage incomingStage=i == 0 ? null : stack.get(i - 1);
+    context.attach(outgoingStage,incomingStage);
+  }
+  receiver=new AsyncReceive<Runnable>(executor);
+  receiver.dispatchTo(workQueue);
+  receiver.receiveFrom(callbackQueue);
+  bottomConnection=new BottomConnection();
+  topConnection=new TopConnection();
+  workQueue.dispatch(new Runnable(){
+    public void run(){
+      for (int i=stack.size() - 1; i >= 0; i--) {
+        Stage context=stack.get(i);
+        context.start();
+      }
+    }
+  }
+);
+}

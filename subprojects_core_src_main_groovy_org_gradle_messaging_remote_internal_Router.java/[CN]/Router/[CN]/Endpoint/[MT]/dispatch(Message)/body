@@ -1,0 +1,64 @@
+{
+  workQueue.dispatch(new Runnable(){
+    public void run(){
+      try {
+        Message routingTarget=message;
+        if (message instanceof ChannelMessage) {
+          ChannelMessage channelMessage=(ChannelMessage)message;
+          routingTarget=(Message)channelMessage.getPayload();
+        }
+        if (routingTarget instanceof RouteAvailableMessage) {
+          RouteAvailableMessage routeAvailableMessage=(RouteAvailableMessage)routingTarget;
+          LOGGER.debug("Received route available. Message: {}",routeAvailableMessage);
+          routes.put(routeAvailableMessage.getId(),new Route(Endpoint.this,message));
+        }
+ else         if (routingTarget instanceof RouteUnavailableMessage) {
+          RouteUnavailableMessage routeUnavailableMessage=(RouteUnavailableMessage)routingTarget;
+          LOGGER.debug("Received route unavailable. Message: {}",routeUnavailableMessage);
+          routes.remove(routeUnavailableMessage.getId());
+        }
+ else         if (routingTarget instanceof ReplyRoutableMessage) {
+          ReplyRoutableMessage replyRoutableMessage=(ReplyRoutableMessage)routingTarget;
+          if (!routes.containsKey(replyRoutableMessage.getSource())) {
+            LOGGER.debug("Added return route. Route: {}, message: {}",replyRoutableMessage.getSource(),replyRoutableMessage);
+            routes.put(replyRoutableMessage.getSource(),new Route(Endpoint.this,null));
+          }
+        }
+        if (routingTarget instanceof RoutableMessage) {
+          RoutableMessage routableMessage=(RoutableMessage)routingTarget;
+          Object destination=routableMessage.getDestination();
+          if (destination == null) {
+            broadcast(message);
+          }
+ else {
+            routes.get(destination).destination.receive(message);
+          }
+        }
+ else         if (routingTarget instanceof EndOfStreamEvent) {
+          LOGGER.debug("Received end of stream");
+          Iterator<Map.Entry<Object,Route>> iterator=routes.entrySet().iterator();
+          while (iterator.hasNext()) {
+            Map.Entry<Object,Route> entry=iterator.next();
+            if (entry.getValue().destination.equals(Endpoint.this)) {
+              LOGGER.debug("Removing route {}",entry.getKey());
+              Message unavailableMessage=entry.getValue().getUnavailableMessage();
+              if (unavailableMessage != null) {
+                broadcast(unavailableMessage);
+              }
+              iterator.remove();
+            }
+          }
+          localConnections.remove(Endpoint.this);
+          remoteConnections.remove(Endpoint.this);
+        }
+ else {
+          throw new UnsupportedOperationException(String.format("Received message which cannot be routed: %s.",message));
+        }
+      }
+ catch (      Throwable throwable) {
+        failureHandler.dispatchFailed(message,throwable);
+      }
+    }
+  }
+);
+}

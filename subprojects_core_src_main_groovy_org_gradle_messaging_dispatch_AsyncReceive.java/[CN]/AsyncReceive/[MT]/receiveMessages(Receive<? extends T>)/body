@@ -3,7 +3,7 @@
     Dispatch<? super T> dispatch;
     lock.lock();
     try {
-      while (this.dispatch == null && state == State.Init) {
+      while (dispatches.isEmpty() && state == State.Init) {
         try {
           condition.await();
         }
@@ -14,24 +14,27 @@
       if (state != State.Init) {
         return;
       }
-      dispatch=this.dispatch;
+      dispatch=dispatches.remove(0);
     }
   finally {
       lock.unlock();
     }
-    T message=receive.receive();
-    if (message == null) {
-      return;
-    }
-    dispatch.dispatch(message);
-    lock.lock();
     try {
-      if (state != State.Init) {
+      T message=receive.receive();
+      if (message == null) {
         return;
       }
+      dispatch.dispatch(message);
     }
   finally {
-      lock.unlock();
+      lock.lock();
+      try {
+        dispatches.add(dispatch);
+        condition.signalAll();
+      }
+  finally {
+        lock.unlock();
+      }
     }
   }
 }

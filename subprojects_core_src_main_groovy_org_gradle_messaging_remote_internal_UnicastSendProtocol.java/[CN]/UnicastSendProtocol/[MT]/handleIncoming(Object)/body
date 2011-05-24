@@ -1,0 +1,18 @@
+{
+  if (message instanceof ConsumerAvailable) {
+    ConsumerAvailable consumerAvailable=(ConsumerAvailable)message;
+    LOGGER.debug("Consumer available: {}",consumerAvailable);
+    consumerId=consumerAvailable.getId();
+    for (    Object queued : queue) {
+      context.dispatchOutgoing(new Request(consumerId,queued));
+    }
+    queue.clear();
+    if (stopping) {
+      LOGGER.debug("Queued messages dispatched. Stopping now.");
+      context.stopped();
+    }
+  }
+ else {
+    throw new IllegalArgumentException(String.format("Received unexpected incoming message: %s",message));
+  }
+}

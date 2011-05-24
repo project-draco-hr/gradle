@@ -1,0 +1,29 @@
+{
+  lock.lock();
+  try {
+    if (broadcastOutgoing == null) {
+      Protocol<ChannelMessage> unicastSendProtocol=new InstancePerChannelProtocolAdapter<Object>(Object.class,new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>(){
+        public Protocol<Object> newChannel(        Object channelKey){
+          return new BroadcastSendProtocol();
+        }
+      }
+);
+      Protocol<ChannelMessage> sendProtocol=new InstancePerChannelProtocolAdapter<Object>(Object.class,new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>(){
+        public Protocol<Object> newChannel(        Object channelKey){
+          return new SendProtocol(idGenerator.generateId(),nodeName);
+        }
+      }
+);
+      StoppableExecutor executor=executorFactory.create(displayName + " outgoing broadcast");
+      executors.add(executor);
+      broadcastOutgoing=new ProtocolStack<ChannelMessage>(executor,failureHandler,failureHandler,unicastSendProtocol,sendProtocol);
+      AsyncConnection<Message> outgoingEndpoint=router.createLocalConnection();
+      broadcastOutgoing.getBottom().dispatchTo(outgoingEndpoint);
+      outgoingEndpoint.dispatchTo(new TypeCastDispatch<ChannelMessage,Message>(ChannelMessage.class,broadcastOutgoing.getBottom()));
+    }
+    return broadcastOutgoing.getTop();
+  }
+  finally {
+    lock.unlock();
+  }
+}

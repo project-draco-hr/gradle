@@ -1,0 +1,17 @@
+{
+  if (queue.isEmpty()) {
+    LOGGER.debug("No outgoing messages queued. Stopping now.");
+    context.stopped();
+    return;
+  }
+  LOGGER.debug("Outgoing messages queued. Stopping later.");
+  stopping=true;
+  context.stopLater();
+  context.callbackLater(5,TimeUnit.SECONDS,new Runnable(){
+    public void run(){
+      LOGGER.debug("Timeout waiting for queued messages to be dispatched. Stopping now.");
+      context.stopped();
+    }
+  }
+);
+}

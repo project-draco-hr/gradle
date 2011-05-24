@@ -1,0 +1,13 @@
+{
+  stopping=true;
+  if (producers.isEmpty()) {
+    LOGGER.debug("No producers. Stopping now.");
+    stopped();
+    return;
+  }
+  LOGGER.debug("Waiting for producers to finish. Stopping later. Producers: {}",producers);
+  context.stopLater();
+  for (  Object producer : producers) {
+    context.dispatchIncoming(new ConsumerStopping(id,producer));
+  }
+}

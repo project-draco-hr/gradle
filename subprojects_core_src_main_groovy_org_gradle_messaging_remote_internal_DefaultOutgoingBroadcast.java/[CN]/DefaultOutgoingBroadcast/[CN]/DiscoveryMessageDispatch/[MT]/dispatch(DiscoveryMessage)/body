@@ -2,31 +2,20 @@
   if (message instanceof ChannelAvailable) {
     ChannelAvailable available=(ChannelAvailable)message;
     Address serviceAddress=available.getAddress();
-    AsyncDispatch<MethodInvocation> channel=null;
-    Connection<Object> connection=null;
     lock.lock();
     try {
-      if (pending.remove(available.getChannel())) {
-        channel=channels.get(available.getChannel());
+      if (!pending.remove(available.getChannel())) {
+        return;
       }
-      connection=connections.get(serviceAddress);
+      if (connections.contains(serviceAddress)) {
+        return;
+      }
+      connections.add(serviceAddress);
     }
   finally {
       lock.unlock();
     }
-    if (channel == null) {
-      return;
-    }
-    if (connection == null) {
-      connection=outgoingConnector.connect(serviceAddress);
-    }
-    lock.lock();
-    try {
-      connections.put(serviceAddress,connection);
-    }
-  finally {
-      lock.unlock();
-    }
-    channel.dispatchTo(new MethodInvocationMarshallingDispatch(new OutgoingMultiplex(available.getChannel(),connection)));
+    Connection<Message> syncConnection=outgoingConnector.connect(serviceAddress);
+    hub.addConnection(syncConnection);
   }
 }

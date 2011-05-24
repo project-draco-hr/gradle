@@ -5,9 +5,9 @@
     if (channels.add(channelKey)) {
       protocolStack.getTop().dispatch(new ChannelAvailable(group,channelKey,address));
     }
-    demultiplex.addIncomingChannel(channelKey,new MethodInvocationUnmarshallingDispatch(new ReflectionDispatch(handler),type.getClassLoader()));
   }
   finally {
     lock.unlock();
   }
+  hub.addIncoming(channelKey,new TypeCastDispatch<MethodInvocation,Object>(MethodInvocation.class,new ReflectionDispatch(handler)));
 }

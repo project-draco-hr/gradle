@@ -1,0 +1,13 @@
+{
+  lock.lock();
+  try {
+    AsyncConnectionAdapter<Message> asyncConnection=new AsyncConnectionAdapter<Message>(connection,new EndOfStreamReceiveHandler(),executorFactory);
+    connections.add(asyncConnection);
+    AsyncConnection<Message> incomingEndpoint=router.createRemoteConnection();
+    incomingEndpoint.dispatchTo(new MethodInvocationMarshallingDispatch(asyncConnection));
+    asyncConnection.dispatchTo(new MethodInvocationUnmarshallingDispatch(incomingEndpoint,messagingClassLoader));
+  }
+  finally {
+    lock.unlock();
+  }
+}
