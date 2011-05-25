@@ -4,7 +4,7 @@
     ConsumerAvailable consumerAvailable=(ConsumerAvailable)message;
     pending.put(consumerAvailable.getId(),consumerAvailable);
     consumers.add(consumerAvailable.getId());
-    context.dispatchOutgoing(new ProducerReady(id,consumerAvailable.getId(),displayName));
+    context.dispatchOutgoing(new ProducerReady(id,consumerAvailable.getId()));
   }
  else   if (message instanceof ConsumerReady) {
     LOGGER.debug("Consumer ready: {}",message);
@@ -21,10 +21,7 @@
     LOGGER.debug("Consumer stopped: {}",message);
     ConsumerStopped consumerStopped=(ConsumerStopped)message;
     consumers.remove(consumerStopped.getConsumerId());
-    if (consumers.isEmpty() && stopping) {
-      LOGGER.debug("All consumers stopped. Stopping.");
-      context.stopped();
-    }
+    maybeStop();
   }
  else   if (message instanceof ConsumerUnavailable) {
     LOGGER.debug("Consumer unavailable: {}",message);
@@ -33,10 +30,7 @@
     if (pending.remove(consumerUnavailable.getId()) == null) {
       context.dispatchIncoming(new ConsumerUnavailable(consumerUnavailable.getId()));
     }
-    if (consumers.isEmpty() && stopping) {
-      LOGGER.debug("All consumers stopped. Stopping.");
-      context.stopped();
-    }
+    maybeStop();
   }
  else {
     throw new IllegalArgumentException(String.format("Unexpected incoming message received: %s",message));

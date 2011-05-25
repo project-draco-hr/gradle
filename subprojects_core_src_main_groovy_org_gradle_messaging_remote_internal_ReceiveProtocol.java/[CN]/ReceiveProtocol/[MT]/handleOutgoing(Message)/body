@@ -1,27 +1,8 @@
 {
-  if (message instanceof ProducerReady) {
-    LOGGER.debug("Producer ready: {}",message);
-    ProducerReady producerReady=(ProducerReady)message;
-    producers.add(producerReady.getProducerId());
-    context.dispatchIncoming(new ConsumerReady(id,producerReady.getProducerId()));
-  }
- else   if (message instanceof ProducerStopped) {
-    LOGGER.debug("Producer stopped: {}",message);
-    ProducerStopped producerStopped=(ProducerStopped)message;
-    producers.remove(producerStopped.getProducerId());
-    context.dispatchIncoming(new ConsumerStopped(id,producerStopped.getProducerId()));
-    if (stopping && producers.isEmpty()) {
-      LOGGER.debug("All producers finished. Stopping now.");
-      stopped();
-    }
-  }
- else   if (message instanceof ConsumerAvailable || message instanceof ConsumerUnavailable) {
-    return;
-  }
- else   if (message instanceof RoutableMessage) {
-    context.dispatchOutgoing(message);
+  if (message instanceof WorkerStopping) {
+    maybeStop();
   }
  else {
-    throw new IllegalArgumentException(String.format("Unexpected incoming message received: %s",message));
+    throw new IllegalArgumentException(String.format("Unexpected outgoing message dispatched: %s",message));
   }
 }

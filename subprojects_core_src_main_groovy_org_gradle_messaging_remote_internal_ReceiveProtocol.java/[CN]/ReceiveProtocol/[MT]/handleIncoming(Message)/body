@@ -1,3 +1,28 @@
 {
-  context.dispatchIncoming(message);
+  if (message instanceof ProducerReady) {
+    LOGGER.debug("Producer ready: {}",message);
+    ProducerReady producerReady=(ProducerReady)message;
+    producers.add(producerReady.getProducerId());
+    context.dispatchOutgoing(new ConsumerReady(id,producerReady.getProducerId()));
+  }
+ else   if (message instanceof ProducerStopped) {
+    LOGGER.debug("Producer stopped: {}",message);
+    ProducerStopped producerStopped=(ProducerStopped)message;
+    context.dispatchOutgoing(new ConsumerStopped(id,producerStopped.getProducerId()));
+    removeProducer(producerStopped.getProducerId());
+  }
+ else   if (message instanceof ProducerUnavailable) {
+    LOGGER.debug("Producer unavailable: {}",message);
+    ProducerUnavailable producerUnavailable=(ProducerUnavailable)message;
+    removeProducer(producerUnavailable.getId());
+  }
+ else   if (message instanceof ProducerAvailable || message instanceof ConsumerAvailable || message instanceof ConsumerUnavailable) {
+    return;
+  }
+ else   if (message instanceof Request) {
+    context.dispatchIncoming(message);
+  }
+ else {
+    throw new IllegalArgumentException(String.format("Unexpected incoming message received: %s",message));
+  }
 }

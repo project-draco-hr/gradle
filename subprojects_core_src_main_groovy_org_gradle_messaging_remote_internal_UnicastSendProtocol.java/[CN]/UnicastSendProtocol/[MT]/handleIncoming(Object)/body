@@ -3,6 +3,7 @@
     ConsumerAvailable consumerAvailable=(ConsumerAvailable)message;
     LOGGER.debug("Consumer available: {}",consumerAvailable);
     consumerId=consumerAvailable.getId();
+    consumerDisplayName=consumerAvailable.getDisplayName();
     for (    Object queued : queue) {
       context.dispatchOutgoing(new Request(consumerId,queued));
     }
@@ -11,6 +12,9 @@
       LOGGER.debug("Queued messages dispatched. Stopping now.");
       context.stopped();
     }
+  }
+ else   if (message instanceof ConsumerUnavailable) {
+    consumerId=BROKEN_CONSUMER;
   }
  else {
     throw new IllegalArgumentException(String.format("Received unexpected incoming message: %s",message));
