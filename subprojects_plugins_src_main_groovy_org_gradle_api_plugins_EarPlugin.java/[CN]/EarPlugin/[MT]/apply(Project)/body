@@ -1,0 +1,71 @@
+{
+  project.getPlugins().apply(BasePlugin.class);
+  final EarPluginConvention pluginConvention=new EarPluginConvention(project);
+  project.getConvention().getPlugins().put("ear",pluginConvention);
+  configureConfigurations(project);
+  final JavaPluginConvention javaPlugin=project.getConvention().findPlugin(JavaPluginConvention.class);
+  if (javaPlugin != null) {
+    SourceSet sourceSet=javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+    sourceSet.getResources().srcDir(pluginConvention.getAppDir());
+  }
+  project.getTasks().withType(Ear.class,new Action<Ear>(){
+    public void execute(    final Ear task){
+      task.dependsOn(new Callable<FileCollection>(){
+        public FileCollection call() throws Exception {
+          if (javaPlugin != null) {
+            return javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+          }
+          return null;
+        }
+      }
+);
+      task.from(new Callable<FileCollection>(){
+        public FileCollection call() throws Exception {
+          FileCollection files;
+          if (javaPlugin == null) {
+            files=project.fileTree(pluginConvention.getAppDir());
+          }
+ else {
+            files=javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
+          }
+          return files.plus(project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME));
+        }
+      }
+);
+      task.getLib().from(new Callable<FileCollection>(){
+        public FileCollection call() throws Exception {
+          return project.getConfigurations().getByName(EARLIB_CONFIGURATION_NAME);
+        }
+      }
+);
+    }
+  }
+);
+  Ear ear=project.getTasks().add(EAR_TASK_NAME,Ear.class);
+  ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
+  ear.conventionMapping("libDirName",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return pluginConvention.getLibDirName();
+    }
+  }
+);
+  ear.conventionMapping("deploymentDescriptor",new ConventionValue(){
+    public Object getValue(    Convention convention,    IConventionAware conventionAwareObject){
+      return pluginConvention.getDeploymentDescriptor();
+    }
+  }
+);
+  DeploymentDescriptor deploymentDescriptor=pluginConvention.getDeploymentDescriptor();
+  if (deploymentDescriptor != null) {
+    if (deploymentDescriptor.getDisplayName() == null) {
+      deploymentDescriptor.setDisplayName(project.getName());
+    }
+    if (deploymentDescriptor.getDescription() == null) {
+      deploymentDescriptor.setDescription(project.getDescription());
+    }
+  }
+  ear.setGroup(BasePlugin.BUILD_GROUP);
+  Configuration archivesConfiguration=project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
+  disableJarTaskAndRemoveFromArchivesConfiguration(project,archivesConfiguration);
+  archivesConfiguration.addArtifact(new ArchivePublishArtifact(ear));
+}
