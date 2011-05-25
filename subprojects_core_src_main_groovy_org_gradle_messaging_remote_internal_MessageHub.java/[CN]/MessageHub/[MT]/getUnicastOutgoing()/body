@@ -2,13 +2,13 @@
   lock.lock();
   try {
     if (unicastOutgoing == null) {
-      Protocol<ChannelMessage> unicastSendProtocol=new InstancePerChannelProtocolAdapter<Object>(Object.class,new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>(){
+      Protocol<Message> unicastSendProtocol=new InstancePerChannelProtocolAdapter<Object>(Object.class,new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>(){
         public Protocol<Object> newChannel(        Object channelKey){
           return new UnicastSendProtocol();
         }
       }
 );
-      Protocol<ChannelMessage> sendProtocol=new InstancePerChannelProtocolAdapter<Object>(Object.class,new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>(){
+      Protocol<Message> sendProtocol=new InstancePerChannelProtocolAdapter<Object>(Object.class,new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>(){
         public Protocol<Object> newChannel(        Object channelKey){
           return new SendProtocol(idGenerator.generateId(),nodeName);
         }
@@ -16,10 +16,10 @@
 );
       StoppableExecutor executor=executorFactory.create(displayName + " outgoing unicast");
       executors.add(executor);
-      unicastOutgoing=new ProtocolStack<ChannelMessage>(executor,failureHandler,failureHandler,unicastSendProtocol,sendProtocol);
+      unicastOutgoing=new ProtocolStack<Message>(executor,failureHandler,failureHandler,unicastSendProtocol,sendProtocol,new ConnectionDisconnectProtocol());
       AsyncConnection<Message> outgoingEndpoint=router.createLocalConnection();
       unicastOutgoing.getBottom().dispatchTo(outgoingEndpoint);
-      outgoingEndpoint.dispatchTo(new TypeCastDispatch<ChannelMessage,Message>(ChannelMessage.class,unicastOutgoing.getBottom()));
+      outgoingEndpoint.dispatchTo(unicastOutgoing.getBottom());
     }
     return unicastOutgoing.getTop();
   }
