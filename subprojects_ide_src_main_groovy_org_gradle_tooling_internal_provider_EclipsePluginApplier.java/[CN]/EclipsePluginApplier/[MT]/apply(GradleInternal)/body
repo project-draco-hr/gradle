@@ -1,8 +1,13 @@
 {
+  EclipsePluginApplierResult applierResult=new EclipsePluginApplierResult();
   ProjectInternal root=gradle.getRootProject();
   Set<Project> allprojects=root.getAllprojects();
   for (  Project p : allprojects) {
-    p.getPlugins().apply(EclipsePlugin.class);
+    if (!p.getPlugins().hasPlugin(EclipsePlugin.class)) {
+      EclipsePlugin plugin=p.getPlugins().apply(EclipsePlugin.class);
+      applierResult.rememberTasks(p.getPath(),plugin.getTaskNames());
+    }
   }
   root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
+  return applierResult;
 }
