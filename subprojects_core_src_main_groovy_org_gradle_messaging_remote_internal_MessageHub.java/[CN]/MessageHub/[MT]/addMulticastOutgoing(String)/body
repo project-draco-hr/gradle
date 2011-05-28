@@ -1,3 +1,21 @@
 {
-  return new OutgoingMultiplex(channel,getMulticastOutgoing());
+  lock.lock();
+  try {
+    ProtocolStack<Message> outgoing=outgoingBroadcasts.get(channel);
+    if (outgoing == null) {
+      Protocol<Message> broadcastProtocol=new BroadcastSendProtocol();
+      Protocol<Message> sendProtocol=new SendProtocol(idGenerator.generateId(),nodeName,channel);
+      StoppableExecutor executor=executorFactory.create(displayName + " outgoing broadcast " + channel);
+      executors.add(executor);
+      outgoing=new ProtocolStack<Message>(executor,failureHandler,failureHandler,broadcastProtocol,sendProtocol,new ConnectionDisconnectProtocol());
+      outgoingBroadcasts.put(channel,outgoing);
+      AsyncConnection<Message> outgoingEndpoint=router.createLocalConnection();
+      outgoing.getBottom().dispatchTo(outgoingEndpoint);
+      outgoingEndpoint.dispatchTo(outgoing.getBottom());
+    }
+    return new OutgoingMultiplex(channel,outgoing.getTop());
+  }
+  finally {
+    lock.unlock();
+  }
 }

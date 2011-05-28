@@ -2,18 +2,8 @@
   lock.lock();
   try {
     final Object id=idGenerator.generateId();
-    Protocol<Message> workerProtocol=new InstancePerChannelProtocolAdapter<Object>(Object.class,new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>(){
-      public Protocol<Object> newChannel(      Object channelKey){
-        return new WorkerProtocol(dispatch);
-      }
-    }
-,channel);
-    Protocol<Message> receiveProtocol=new InstancePerChannelProtocolAdapter<Message>(Message.class,new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Message>(){
-      public Protocol<Message> newChannel(      Object channelKey){
-        return new ReceiveProtocol(id,nodeName);
-      }
-    }
-,channel);
+    Protocol<Message> workerProtocol=new WorkerProtocol(dispatch);
+    Protocol<Message> receiveProtocol=new ReceiveProtocol(id,nodeName,channel);
     ProtocolStack<Message> stack=new ProtocolStack<Message>(incomingExecutor,failureHandler,failureHandler,workerProtocol,receiveProtocol,new ConnectionDisconnectProtocol());
     handlers.add(stack);
     AsyncConnection<Message> incomingEndpoint=router.createLocalConnection();

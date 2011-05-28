@@ -1,0 +1,17 @@
+{
+  if (message instanceof Request) {
+    Request request=(Request)message;
+    if (consumerId == null) {
+      queue.add(request.getPayload());
+    }
+ else     if (consumerId == BROKEN_CONSUMER) {
+      LOGGER.warn("Discarding message {}, as {} is no longer available.",message,consumerDisplayName);
+    }
+ else {
+      context.dispatchOutgoing(new Request(consumerId,request.getPayload()));
+    }
+  }
+ else {
+    throw new IllegalArgumentException(String.format("Unexpected outgoing message dispatched: %s",message));
+  }
+}

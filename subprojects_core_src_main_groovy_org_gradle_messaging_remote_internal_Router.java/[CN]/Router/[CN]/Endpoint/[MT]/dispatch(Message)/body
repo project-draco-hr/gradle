@@ -2,45 +2,30 @@
   workQueue.dispatch(new Runnable(){
     public void run(){
       try {
-        Message routingTarget=message;
-        if (message instanceof ChannelMessage) {
-          ChannelMessage channelMessage=(ChannelMessage)message;
-          routingTarget=(Message)channelMessage.getPayload();
-        }
-        if (routingTarget instanceof RouteAvailableMessage) {
-          RouteAvailableMessage routeAvailableMessage=(RouteAvailableMessage)routingTarget;
+        if (message instanceof RouteAvailableMessage) {
+          RouteAvailableMessage routeAvailableMessage=(RouteAvailableMessage)message;
           LOGGER.debug("Received route available. Message: {}",routeAvailableMessage);
-          Route route=new Route(routeAvailableMessage.getId(),Endpoint.this,message);
+          Route route=new Route(routeAvailableMessage.getId(),Endpoint.this,routeAvailableMessage);
           routes.add(route);
-          allRoutes.put(routeAvailableMessage.getId(),route);
+          owner.addRoute(route);
         }
- else         if (routingTarget instanceof RouteUnavailableMessage) {
-          RouteUnavailableMessage routeUnavailableMessage=(RouteUnavailableMessage)routingTarget;
+ else         if (message instanceof RouteUnavailableMessage) {
+          RouteUnavailableMessage routeUnavailableMessage=(RouteUnavailableMessage)message;
           LOGGER.debug("Received route unavailable. Message: {}",routeUnavailableMessage);
-          Route route=allRoutes.remove(routeUnavailableMessage.getId());
+          Route route=owner.removeRoute(routeUnavailableMessage.getId());
           routes.remove(route);
         }
-        if (routingTarget instanceof RoutableMessage) {
-          RoutableMessage routableMessage=(RoutableMessage)routingTarget;
-          Object destination=routableMessage.getDestination();
-          if (destination == null) {
-            broadcast(message);
-          }
- else {
-            allRoutes.get(destination).destination.receive(message);
-          }
+ else         if (message instanceof RoutableMessage) {
+          RoutableMessage routableMessage=(RoutableMessage)message;
+          peerGroup.send(routableMessage.getDestination(),message);
         }
- else         if (routingTarget instanceof EndOfStreamEvent) {
+ else         if (message instanceof EndOfStreamEvent) {
           for (          Route route : routes) {
             LOGGER.debug("Removing route {} due to end of stream.",route.id);
-            Message unavailableMessage=route.getUnavailableMessage();
-            broadcast(unavailableMessage);
-            allRoutes.remove(route.id);
+            owner.removeRoute(route.id);
           }
-          localConnections.remove(Endpoint.this);
-          remoteConnections.remove(Endpoint.this);
-          routes.clear();
-          receive(message);
+          owner.removeEndpoint(Endpoint.this);
+          dispatchIncoming(message);
         }
  else {
           throw new UnsupportedOperationException(String.format("Received message which cannot be routed: %s.",message));
