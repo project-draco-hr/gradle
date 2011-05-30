@@ -1,0 +1,19 @@
+{
+  ServerSocketChannel serverSocket;
+  int localPort;
+  try {
+    serverSocket=ServerSocketChannel.open();
+    serverSockets.add(serverSocket);
+    serverSocket.socket().bind(new InetSocketAddress(0));
+    localPort=serverSocket.socket().getLocalPort();
+  }
+ catch (  Exception e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+  Object id=idGenerator.generateId();
+  List<InetAddress> addresses=allowRemote ? remoteAddresses : localAddresses;
+  Address address=new MultiChoiceAddress(id,localPort,addresses);
+  LOGGER.debug("Listening on {}.",address);
+  executor.execute(new Receiver(serverSocket,action,allowRemote));
+  return address;
+}

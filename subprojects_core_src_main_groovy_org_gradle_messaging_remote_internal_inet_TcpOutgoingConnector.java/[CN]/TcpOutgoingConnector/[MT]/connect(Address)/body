@@ -1,31 +1,32 @@
 {
-  if (!(destinationAddress instanceof SocketInetAddress)) {
+  if (!(destinationAddress instanceof MultiChoiceAddress)) {
     throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.",destinationAddress));
   }
-  SocketInetAddress socketInetAddress=(SocketInetAddress)destinationAddress;
-  List<InetAddress> loopBackAddresses=findLocalAddresses();
+  MultiChoiceAddress address=(MultiChoiceAddress)destinationAddress;
+  LOGGER.debug("Attempting to connect to {}.",address);
+  List<InetAddress> candidateAddresses=address.getCandidates();
   try {
     SocketException lastFailure=null;
-    for (    InetAddress address : loopBackAddresses) {
-      LOGGER.debug("Trying to connect to address {}.",address);
+    for (    InetAddress candidate : candidateAddresses) {
+      LOGGER.debug("Trying to connect to address {}.",candidate);
       SocketChannel socketChannel;
       try {
-        socketChannel=SocketChannel.open(new InetSocketAddress(address,socketInetAddress.getPort()));
+        socketChannel=SocketChannel.open(new InetSocketAddress(candidate,address.getPort()));
       }
  catch (      SocketException e) {
-        LOGGER.debug("Cannot connect to address {}, skipping.",address);
+        LOGGER.debug("Cannot connect to address {}, skipping.",candidate);
         lastFailure=e;
         continue;
       }
-      LOGGER.debug("Connected to address {}.",address);
+      LOGGER.debug("Connected to address {}.",candidate);
       return new SocketConnection<T>(socketChannel,serializer);
     }
     throw lastFailure;
   }
  catch (  java.net.ConnectException e) {
-    throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",destinationAddress,loopBackAddresses),e);
+    throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",destinationAddress,candidateAddresses),e);
   }
 catch (  Exception e) {
-    throw new GradleException(String.format("Could not connect to server %s. Tried addresses: %s.",destinationAddress,loopBackAddresses),e);
+    throw new GradleException(String.format("Could not connect to server %s. Tried addresses: %s.",destinationAddress,candidateAddresses),e);
   }
 }

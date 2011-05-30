@@ -1,0 +1,23 @@
+{
+  try {
+    List<InetAddress> addresses=new ArrayList<InetAddress>();
+    Enumeration<NetworkInterface> interfaces=NetworkInterface.getNetworkInterfaces();
+    while (interfaces.hasMoreElements()) {
+      NetworkInterface networkInterface=interfaces.nextElement();
+      Enumeration<InetAddress> candidates=networkInterface.getInetAddresses();
+      while (candidates.hasMoreElements()) {
+        InetAddress candidate=candidates.nextElement();
+        if (!candidate.isLoopbackAddress()) {
+          addresses.add(candidate);
+        }
+      }
+    }
+    if (addresses.isEmpty()) {
+      addresses.add(InetAddress.getLocalHost());
+    }
+    return addresses;
+  }
+ catch (  Exception e) {
+    throw new GradleException("Could not determine the remote IP addresses for this machine.",e);
+  }
+}

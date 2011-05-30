@@ -1,8 +1,16 @@
 {
-  int length=inputStream.readInt();
-  byte[] binAddress=new byte[length];
-  inputStream.readFully(binAddress);
-  InetAddress inetAddress=InetAddress.getByAddress(binAddress);
+  long mostSigUuidBits=inputStream.readLong();
+  long leastSigUuidBits=inputStream.readLong();
+  UUID uuid=new UUID(mostSigUuidBits,leastSigUuidBits);
   int port=inputStream.readInt();
-  return new SocketInetAddress(inetAddress,port);
+  int addressCount=inputStream.readInt();
+  List<InetAddress> addresses=new ArrayList<InetAddress>();
+  for (int i=0; i < addressCount; i++) {
+    int length=inputStream.readInt();
+    byte[] binAddress=new byte[length];
+    inputStream.readFully(binAddress);
+    InetAddress inetAddress=InetAddress.getByAddress(binAddress);
+    addresses.add(inetAddress);
+  }
+  return new MultiChoiceAddress(uuid,port,addresses);
 }
