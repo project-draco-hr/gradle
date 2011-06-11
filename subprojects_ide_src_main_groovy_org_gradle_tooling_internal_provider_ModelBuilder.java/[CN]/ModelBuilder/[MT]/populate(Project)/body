@@ -28,6 +28,13 @@
   ReflectionUtil.setProperty(eclipseProject,"classpath",externalDependencies);
   ReflectionUtil.setProperty(eclipseProject,"projectDependencies",projectDependencies);
   ReflectionUtil.setProperty(eclipseProject,"sourceDirectories",sourceDirectories);
+  if (ReflectionUtil.hasProperty(eclipseProject,"linkedResources")) {
+    List<DefaultEclipseLinkedResource> linkedResources=new LinkedList<DefaultEclipseLinkedResource>();
+    for (    Link r : eclipseModel.getProject().getLinkedResources()) {
+      linkedResources.add(new DefaultEclipseLinkedResource(r.getName(),r.getType(),r.getLocation(),r.getLocationUri()));
+    }
+    ReflectionUtil.setProperty(eclipseProject,"linkedResources",linkedResources);
+  }
   List out=new ArrayList();
   for (  final Task t : tasksFactory.getTasks(project)) {
     out.add(ReflectionUtil.newInstance(versionedTypes.forTask,eclipseProject,t.getPath(),t.getName(),t.getDescription()));
