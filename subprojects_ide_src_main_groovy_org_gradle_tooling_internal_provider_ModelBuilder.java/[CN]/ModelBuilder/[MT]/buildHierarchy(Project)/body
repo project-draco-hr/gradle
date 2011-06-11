@@ -1,5 +1,5 @@
 {
-  List<DefaultEclipseProject> children=new ArrayList<DefaultEclipseProject>();
+  List children=new ArrayList();
   for (  Project child : project.getChildProjects().values()) {
     children.add(buildHierarchy(child));
   }
@@ -7,9 +7,9 @@
   org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject=eclipseModel.getProject();
   String name=internalProject.getName();
   String description=GUtil.elvis(internalProject.getComment(),null);
-  DefaultEclipseProject eclipseProject=new DefaultEclipseProject(name,project.getPath(),description,project.getProjectDir(),children);
-  for (  DefaultEclipseProject child : children) {
-    child.setParent(eclipseProject);
+  Object eclipseProject=ReflectionUtil.newInstance(DefaultEclipseProject.class,name,project.getPath(),description,project.getProjectDir(),children);
+  for (  Object child : children) {
+    ReflectionUtil.setProperty(child,"parent",eclipseProject);
   }
   addProject(project,eclipseProject);
   return eclipseProject;
