@@ -4,8 +4,8 @@
   classpath.setProjectDependenciesOnly(projectDependenciesOnly);
   List<ClasspathEntry> entries=classpath.resolveDependencies();
   final List<ExternalDependencyVersion1> externalDependencies=new LinkedList<ExternalDependencyVersion1>();
-  final List<EclipseProjectDependencyVersion2> projectDependencies=new LinkedList<EclipseProjectDependencyVersion2>();
-  final List<EclipseSourceDirectoryVersion1> sourceDirectories=new ArrayList<EclipseSourceDirectoryVersion1>();
+  final List projectDependencies=new LinkedList();
+  final List<EclipseSourceDirectoryVersion1> sourceDirectories=new LinkedList<EclipseSourceDirectoryVersion1>();
   for (  ClasspathEntry entry : entries) {
     if (entry instanceof Library) {
       Library library=(Library)entry;
@@ -17,8 +17,7 @@
  else     if (entry instanceof ProjectDependency) {
       final ProjectDependency projectDependency=(ProjectDependency)entry;
       final String path=StringUtils.removeStart(projectDependency.getPath(),"/");
-      DefaultEclipseProjectDependency dep=ReflectionUtil.newInstance(DefaultEclipseProjectDependency.class,path,projectMapping.get(projectDependency.getGradlePath()));
-      projectDependencies.add(dep);
+      projectDependencies.add(ReflectionUtil.newInstance(versionedTypes.forProjectDependency,path,projectMapping.get(projectDependency.getGradlePath())));
     }
  else     if (entry instanceof SourceFolder) {
       String path=((SourceFolder)entry).getPath();
@@ -31,7 +30,7 @@
   ReflectionUtil.setProperty(eclipseProject,"sourceDirectories",sourceDirectories);
   List out=new ArrayList();
   for (  final Task t : tasksFactory.getTasks(project)) {
-    out.add(ReflectionUtil.newInstance(DefaultTask.class,eclipseProject,t.getPath(),t.getName(),t.getDescription()));
+    out.add(ReflectionUtil.newInstance(versionedTypes.forTask,eclipseProject,t.getPath(),t.getName(),t.getDescription()));
   }
   ReflectionUtil.setProperty(eclipseProject,"tasks",out);
   for (  Project childProject : project.getChildProjects().values()) {
