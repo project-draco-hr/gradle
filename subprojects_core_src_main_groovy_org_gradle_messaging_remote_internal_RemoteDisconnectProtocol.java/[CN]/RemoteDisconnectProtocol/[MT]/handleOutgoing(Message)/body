@@ -1,0 +1,17 @@
+{
+  if (message instanceof EndOfStreamEvent) {
+    if (stopping) {
+      context.stopped();
+      return;
+    }
+    context.dispatchOutgoing(message);
+    outgoingStopped=true;
+    finished=true;
+  }
+ else   if (!outgoingStopped) {
+    context.dispatchOutgoing(message);
+  }
+ else {
+    LOGGER.debug("Discarding outgoing message {} as output has been finished.",message);
+  }
+}
