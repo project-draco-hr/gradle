@@ -1,0 +1,18 @@
+{
+  if (message instanceof MessageCredits) {
+    MessageCredits credits=(MessageCredits)message;
+    remainingOutgoingCredits+=credits.getCredits();
+    while (!queue.isEmpty() && remainingOutgoingCredits > 0) {
+      remainingOutgoingCredits--;
+      context.dispatchIncoming(queue.removeFirst());
+    }
+    if (stopping && queue.isEmpty()) {
+      context.stopped();
+      return;
+    }
+    maybeGrantIncomingCredits();
+  }
+ else {
+    context.dispatchOutgoing(message);
+  }
+}
