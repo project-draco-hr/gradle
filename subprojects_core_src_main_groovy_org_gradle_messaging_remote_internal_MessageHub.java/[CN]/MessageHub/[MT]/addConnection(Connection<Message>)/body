@@ -1,7 +1,8 @@
 {
   lock.lock();
   try {
-    AsyncConnectionAdapter<Message> asyncConnection=new AsyncConnectionAdapter<Message>(connection,failureHandler,executorFactory,new RemoteDisconnectProtocol());
+    Connection<Message> wrapper=new EndOfStreamConnection(connection);
+    AsyncConnectionAdapter<Message> asyncConnection=new AsyncConnectionAdapter<Message>(wrapper,failureHandler,executorFactory,new RemoteDisconnectProtocol());
     connections.add(asyncConnection);
     AsyncConnection<Message> incomingEndpoint=router.createRemoteConnection();
     incomingEndpoint.dispatchTo(new MethodInvocationMarshallingDispatch(asyncConnection));
