@@ -2,7 +2,14 @@
   if (incomingFinished) {
     return null;
   }
-  Message result=super.receive();
+  Message result;
+  try {
+    result=super.receive();
+  }
+ catch (  Throwable e) {
+    LOGGER.error("Could not receive message from connection. Discarding connection.",e);
+    result=null;
+  }
   if (result instanceof EndOfStreamEvent) {
     incomingFinished=true;
   }

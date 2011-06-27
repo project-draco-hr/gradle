@@ -1,7 +1,9 @@
 {
-  stopPending=false;
-  if (!stopped) {
-    stopped=true;
+  if (state == StageState.Init) {
+    throw new IllegalStateException(String.format("Cannot stop when in %s state.",state));
+  }
+  if (state != StageState.Stopped) {
+    state=StageState.Stopped;
     protocolsStopped.countDown();
     contextQueue.add(new Runnable(){
       public void run(){
