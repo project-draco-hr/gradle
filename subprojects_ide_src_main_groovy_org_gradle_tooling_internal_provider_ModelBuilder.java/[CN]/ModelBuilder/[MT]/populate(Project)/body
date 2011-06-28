@@ -4,7 +4,7 @@
   classpath.setProjectDependenciesOnly(projectDependenciesOnly);
   List<ClasspathEntry> entries=classpath.resolveDependencies();
   final List<ExternalDependencyVersion1> externalDependencies=new LinkedList<ExternalDependencyVersion1>();
-  final List projectDependencies=new LinkedList();
+  final List<EclipseProjectDependencyVersion2> projectDependencies=new LinkedList<EclipseProjectDependencyVersion2>();
   final List<EclipseSourceDirectoryVersion1> sourceDirectories=new LinkedList<EclipseSourceDirectoryVersion1>();
   for (  ClasspathEntry entry : entries) {
     if (entry instanceof Library) {
@@ -17,14 +17,14 @@
  else     if (entry instanceof ProjectDependency) {
       final ProjectDependency projectDependency=(ProjectDependency)entry;
       final String path=StringUtils.removeStart(projectDependency.getPath(),"/");
-      projectDependencies.add(ReflectionUtil.newInstance(versionedTypes.forProjectDependency,path,projectMapping.get(projectDependency.getGradlePath())));
+      projectDependencies.add(new DefaultEclipseProjectDependency(path,projectMapping.get(projectDependency.getGradlePath())));
     }
  else     if (entry instanceof SourceFolder) {
       String path=((SourceFolder)entry).getPath();
       sourceDirectories.add(new DefaultEclipseSourceDirectory(path,project.file(path)));
     }
   }
-  final Object eclipseProject=projectMapping.get(project.getPath());
+  final EclipseProjectVersion3 eclipseProject=projectMapping.get(project.getPath());
   ReflectionUtil.setProperty(eclipseProject,"classpath",externalDependencies);
   ReflectionUtil.setProperty(eclipseProject,"projectDependencies",projectDependencies);
   ReflectionUtil.setProperty(eclipseProject,"sourceDirectories",sourceDirectories);
@@ -35,9 +35,9 @@
     }
     ReflectionUtil.setProperty(eclipseProject,"linkedResources",linkedResources);
   }
-  List out=new ArrayList();
+  List<EclipseTaskVersion1> out=new ArrayList<EclipseTaskVersion1>();
   for (  final Task t : tasksFactory.getTasks(project)) {
-    out.add(ReflectionUtil.newInstance(versionedTypes.forTask,eclipseProject,t.getPath(),t.getName(),t.getDescription()));
+    out.add(new DefaultEclipseTask(eclipseProject,t.getPath(),t.getName(),t.getDescription()));
   }
   ReflectionUtil.setProperty(eclipseProject,"tasks",out);
   for (  Project childProject : project.getChildProjects().values()) {
