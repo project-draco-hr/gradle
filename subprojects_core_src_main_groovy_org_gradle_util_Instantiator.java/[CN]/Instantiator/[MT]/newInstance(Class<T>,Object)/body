@@ -1,0 +1,23 @@
+{
+  try {
+    List<Constructor<?>> matches=new ArrayList<Constructor<?>>();
+    for (    Constructor<?> constructor : type.getConstructors()) {
+      if (isMatch(constructor,params)) {
+        matches.add(constructor);
+      }
+    }
+    if (matches.isEmpty()) {
+      throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters %s.",type,Arrays.toString(params)));
+    }
+    if (matches.size() > 1) {
+      throw new IllegalArgumentException(String.format("Found multiple public constructors for %s which accept parameters %s.",type,Arrays.toString(params)));
+    }
+    return type.cast(matches.get(0).newInstance(params));
+  }
+ catch (  InvocationTargetException e) {
+    throw UncheckedException.asUncheckedException(e.getCause());
+  }
+catch (  Exception e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+}
