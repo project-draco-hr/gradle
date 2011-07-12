@@ -2,8 +2,8 @@
   for (  DependencyResolver dependencyResolver : allResolvers) {
     ivySettings.addResolver(dependencyResolver);
     RepositoryCacheManager cacheManager=dependencyResolver.getRepositoryCacheManager();
-    if (cacheManager != ivySettings.getDefaultRepositoryCacheManager() && !(cacheManager instanceof NoOpRepositoryCacheManager) && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
-      throw new IllegalStateException(String.format("For consistency reasons, gradle requires all remote resolver resolvers to share the same instance of the repository cache manager." + " Unexpected cache manager %s for repository %s (%s)",cacheManager,dependencyResolver.getName(),dependencyResolver));
+    if (!(cacheManager instanceof NoOpRepositoryCacheManager) && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
+      ((AbstractResolver)dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
     }
     if (dependencyResolver instanceof RepositoryResolver) {
       Repository repository=((RepositoryResolver)dependencyResolver).getRepository();
