@@ -1,9 +1,10 @@
 {
-  if (!type.isAssignableFrom(EclipseProjectVersion3.class)) {
-    throw new UnsupportedOperationException(String.format("Do not know how to build a model of type '%s'.",type.getSimpleName()));
+  List<? extends BuildsModel> modelBuilders=asList(new ModelBuilder(),new IdeaModelBuilder());
+  for (  BuildsModel builder : modelBuilders) {
+    if (builder.canBuild(type)) {
+      modelBuildingAdapter=new ModelBuildingAdapter(builder);
+      return;
+    }
   }
-  boolean projectDependenciesOnly=!EclipseProjectVersion3.class.isAssignableFrom(type);
-  boolean includeTasks=BuildableProjectVersion1.class.isAssignableFrom(type);
-  ModelBuilder defaultBuilder=new ModelBuilder(includeTasks,projectDependenciesOnly);
-  modelBuildingAdapter=new ModelBuildingAdapter(defaultBuilder);
+  throw new UnsupportedOperationException(String.format("Do not know how to build a model of type '%s'.",type.getSimpleName()));
 }
