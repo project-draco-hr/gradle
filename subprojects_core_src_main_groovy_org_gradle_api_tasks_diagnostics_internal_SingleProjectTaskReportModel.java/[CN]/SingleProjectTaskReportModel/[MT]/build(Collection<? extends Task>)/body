@@ -8,7 +8,7 @@
   GraphAggregator<Task> aggregator=new GraphAggregator<Task>(new DirectedGraph<Task,Object>(){
     public void getNodeValues(    Task node,    Collection<Object> values,    Collection<Task> connectedNodes){
       for (      Task dep : node.getTaskDependencies().getDependencies(node)) {
-        if (tasks.contains(dep)) {
+        if (containsTaskWithPath(tasks,dep.getPath())) {
           connectedNodes.add(dep);
         }
       }
@@ -25,7 +25,7 @@
         children.add(new TaskDetailsImpl(node,factory.create(node),Collections.<TaskDetails>emptySet(),Collections.<TaskDetails>emptySet()));
       }
       for (      Task dep : node.getTaskDependencies().getDependencies(node)) {
-        if (topLevelTasks.contains(dep) || !tasks.contains(dep)) {
+        if (topLevelTasks.contains(dep) || !containsTaskWithPath(tasks,dep.getPath())) {
           dependencies.add(factory.create(dep));
         }
       }

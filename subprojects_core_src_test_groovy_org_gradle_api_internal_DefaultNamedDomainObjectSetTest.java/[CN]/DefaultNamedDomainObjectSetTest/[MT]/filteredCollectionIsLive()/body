@@ -1,0 +1,22 @@
+{
+  final Bean bean1=new Bean("a");
+  Bean bean2=new Bean("b");
+  Bean bean3=new Bean("c");
+  Bean bean4=new Bean("d");
+  Spec<Bean> spec=new Spec<Bean>(){
+    public boolean isSatisfiedBy(    Bean element){
+      return element != bean1;
+    }
+  }
+;
+  container.add(bean1);
+  DomainObjectCollection<Bean> filteredCollection=container.matching(spec);
+  assertTrue(filteredCollection.isEmpty());
+  container.add(bean2);
+  container.add(bean3);
+  assertThat(toList(filteredCollection),equalTo(toList(bean2,bean3)));
+  container.add(bean4);
+  assertThat(toList(filteredCollection),equalTo(toList(bean2,bean3,bean4)));
+  assertThat(container.removeByName("b"),sameInstance(bean2));
+  assertThat(toList(filteredCollection),equalTo(toList(bean3,bean4)));
+}
