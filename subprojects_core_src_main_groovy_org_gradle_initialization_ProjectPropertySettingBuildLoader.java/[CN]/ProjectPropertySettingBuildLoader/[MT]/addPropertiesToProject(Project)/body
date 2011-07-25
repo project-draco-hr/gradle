@@ -1,0 +1,16 @@
+{
+  Properties projectProperties=new Properties();
+  File projectPropertiesFile=new File(project.getProjectDir(),Project.GRADLE_PROPERTIES);
+  LOGGER.debug("Looking for project properties from: {}",projectPropertiesFile);
+  if (projectPropertiesFile.isFile()) {
+    projectProperties=GUtil.loadProperties(projectPropertiesFile);
+    LOGGER.debug("Adding project properties (if not overwritten by user properties): {}",projectProperties.keySet());
+  }
+ else {
+    LOGGER.debug("project property file does not exists. We continue!");
+  }
+  Map<String,String> mergedProperties=propertiesLoader.mergeProperties(new HashMap(projectProperties));
+  for (  Object key : mergedProperties.keySet()) {
+    project.setProperty((String)key,mergedProperties.get(key));
+  }
+}
