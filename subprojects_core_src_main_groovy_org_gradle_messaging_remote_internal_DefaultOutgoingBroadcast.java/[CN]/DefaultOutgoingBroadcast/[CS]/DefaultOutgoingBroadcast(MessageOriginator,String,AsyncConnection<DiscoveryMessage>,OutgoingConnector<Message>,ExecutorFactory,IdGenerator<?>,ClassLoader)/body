@@ -1,0 +1,13 @@
+{
+  this.messageOriginator=messageOriginator;
+  this.group=group;
+  this.outgoingConnector=outgoingConnector;
+  DispatchFailureHandler<Object> failureHandler=new DiscardingFailureHandler<Object>(LOGGER);
+  hub=new MessageHub("outgoing broadcast",messageOriginator.getName(),executorFactory,idGenerator,messagingClassLoader);
+  executor=executorFactory.create("broadcast lookup");
+  discoveryBroadcast=new ProtocolStack<DiscoveryMessage>(executor,failureHandler,failureHandler,new ChannelLookupProtocol());
+  connection.dispatchTo(new GroupMessageFilter(group,discoveryBroadcast.getBottom()));
+  discoveryBroadcast.getBottom().dispatchTo(connection);
+  discoveryBroadcast.getTop().dispatchTo(new DiscoveryMessageDispatch());
+  LOGGER.info("Created OutgoingBroadcast with {}",messageOriginator);
+}
