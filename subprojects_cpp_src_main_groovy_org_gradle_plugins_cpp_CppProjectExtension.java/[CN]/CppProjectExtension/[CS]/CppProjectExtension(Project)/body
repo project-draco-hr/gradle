@@ -1,7 +1,22 @@
 {
   this.project=(ProjectInternal)project;
   ClassGenerator classGenerator=this.project.getServices().get(ClassGenerator.class);
-  this.sourceSets=classGenerator.newInstance(FactoryNamedDomainObjectContainer.class,CppSourceSet.class,classGenerator,new ReflectiveNamedDomainObjectFactory<CppSourceSet>(DefaultCppSourceSet.class,classGenerator,this.project.getFileResolver()));
+  this.sourceSets=classGenerator.newInstance(FactoryNamedDomainObjectContainer.class,NativeSourceSet.class,classGenerator,new ReflectiveNamedDomainObjectFactory<NativeSourceSet>(DefaultNativeSourceSet.class,classGenerator,classGenerator,this.project.getFileResolver()));
+  sourceSets.all(new Action<NativeSourceSet>(){
+    public void execute(    final NativeSourceSet ss){
+      ss.addRule(new Rule(){
+        public String getDescription(){
+          return "create all";
+        }
+        public void apply(        String domainObjectName){
+          System.out.println("creating: " + domainObjectName);
+          ss.create(domainObjectName);
+        }
+      }
+);
+    }
+  }
+);
   this.libraries=classGenerator.newInstance(FactoryNamedDomainObjectContainer.class,DefaultCppLibrary.class,classGenerator);
   this.executables=classGenerator.newInstance(FactoryNamedDomainObjectContainer.class,DefaultCppExecutable.class,classGenerator);
 }
