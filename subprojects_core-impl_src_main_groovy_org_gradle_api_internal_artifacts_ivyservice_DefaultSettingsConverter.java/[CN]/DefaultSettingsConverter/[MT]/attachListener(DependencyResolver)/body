@@ -1,0 +1,20 @@
+{
+  if (dependencyResolver instanceof RepositoryResolver) {
+    Repository repository=((RepositoryResolver)dependencyResolver).getRepository();
+    if (!repository.hasTransferListener(transferListener)) {
+      repository.addTransferListener(transferListener);
+    }
+  }
+  if (dependencyResolver instanceof DualResolver) {
+    DualResolver dualResolver=(DualResolver)dependencyResolver;
+    attachListener(dualResolver.getIvyResolver());
+    attachListener(dualResolver.getArtifactResolver());
+  }
+  if (dependencyResolver instanceof ChainResolver) {
+    ChainResolver chainResolver=(ChainResolver)dependencyResolver;
+    List<DependencyResolver> resolvers=chainResolver.getResolvers();
+    for (    DependencyResolver resolver : resolvers) {
+      attachListener(resolver);
+    }
+  }
+}
