@@ -7,9 +7,32 @@
   ProjectConnection connection=connector.connect();
   try {
     IdeaProject project=connection.getModel(IdeaProject.class);
-    System.out.println("Project: " + project.getName());
-    IdeaModule module=project.getChildren().getAt(0);
-    System.out.println("Module: " + module.getName());
+    System.out.println("***");
+    System.out.println("Project details: ");
+    System.out.println(project);
+    System.out.println("***");
+    System.out.println("Project modules: ");
+    for (    IdeaModule module : project.getChildren()) {
+      System.out.println("  " + module);
+      System.out.println("  module details:");
+      System.out.println("    dependencies:");
+      for (      IdeaDependency dependency : module.getDependencies()) {
+        if (dependency instanceof IdeaLibraryDependency) {
+          System.out.println("      library: " + dependency);
+        }
+ else         if (dependency instanceof IdeaModuleDependency) {
+          System.out.println("      module: " + dependency);
+        }
+      }
+      System.out.println("    exclude dirs:");
+      for (      File dir : module.getExcludeDirectories()) {
+        System.out.println("      " + dir);
+      }
+      System.out.println("    source dirs:");
+      for (      IdeaSourceDirectory dir : module.getSourceDirectories()) {
+        System.out.println("      " + dir);
+      }
+    }
   }
   finally {
     connection.close();
