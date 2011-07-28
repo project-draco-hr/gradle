@@ -1,15 +1,15 @@
 {
   String implementationClassName;
   try {
-    implementationClassName=findServiceImplementationClassName(serviceType,classLoader);
+    implementationClassName=findServiceImplementationClassName(serviceType);
   }
  catch (  Exception e) {
     throw new RuntimeException(String.format("Could not determine implementation class for service '%s'.",serviceType.getName()),e);
   }
+  if (implementationClassName == null) {
+    return null;
+  }
   try {
-    if (implementationClassName == null) {
-      return null;
-    }
     Class<?> implClass=classLoader.loadClass(implementationClassName);
     if (!serviceType.isAssignableFrom(implClass)) {
       throw new RuntimeException(String.format("Implementation class '%s' is not assignable to service class '%s'.",implementationClassName,serviceType.getName()));
