@@ -1,0 +1,20 @@
+{
+  final Runnable action=context.mock(Runnable.class);
+  final RuntimeException failure=new RuntimeException();
+  container.beforeChange(action);
+  context.checking(new Expectations(){
+{
+      one(action).run();
+      will(throwException(failure));
+    }
+  }
+);
+  try {
+    container.add("a");
+    fail();
+  }
+ catch (  RuntimeException e) {
+    assertThat(e,sameInstance(failure));
+  }
+  assertThat(container,not(hasItem((CharSequence)"a")));
+}
