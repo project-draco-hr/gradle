@@ -1,13 +1,19 @@
 {
   File canonicalDir=GFileUtils.canonicalise(cacheDir);
-  final DefaultPersistentDirectoryCache cache=new DefaultPersistentDirectoryCache(canonicalDir,usage,properties);
-  return new CacheReference<PersistentCache>(){
-    public PersistentCache getCache(){
-      return cache;
+  CacheReferenceImpl cacheReference=caches.get(canonicalDir);
+  if (cacheReference == null) {
+    DefaultPersistentDirectoryCache cache=createCache(usage,properties,canonicalDir);
+    cacheReference=new CacheReferenceImpl(cache,properties);
+    caches.put(canonicalDir,cacheReference);
+  }
+ else {
+    if (usage != CacheUsage.ON) {
+      throw new IllegalStateException(String.format("Cannot rebuild cache '%s' as it is already open.",cacheDir));
     }
-    public void release(){
-      cache.close();
+    if (!properties.equals(cacheReference.properties)) {
+      throw new IllegalStateException(String.format("Cache '%s' is already open with different state.",cacheDir));
     }
   }
-;
+  cacheReference.addReference();
+  return cacheReference;
 }
