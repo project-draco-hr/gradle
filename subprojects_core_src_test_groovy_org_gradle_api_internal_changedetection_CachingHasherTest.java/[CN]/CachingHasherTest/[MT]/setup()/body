@@ -1,13 +1,12 @@
 {
   context.checking(new Expectations(){
 {
-      CacheBuilder<PersistentCache> cacheBuilder=context.mock(CacheBuilder.class);
-      PersistentCache persistentCache=context.mock(PersistentCache.class);
-      one(cacheRepository).cache("fileHashes");
+      ObjectCacheBuilder<CachingHasher.FileInfo,PersistentIndexedCache<File,CachingHasher.FileInfo>> cacheBuilder=context.mock(ObjectCacheBuilder.class);
+      one(cacheRepository).indexedCache(File.class,CachingHasher.FileInfo.class,"fileHashes");
+      will(returnValue(cacheBuilder));
+      one(cacheBuilder).withSerializer(with(notNullValue(Serializer.class)));
       will(returnValue(cacheBuilder));
       one(cacheBuilder).open();
-      will(returnValue(persistentCache));
-      one(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
       will(returnValue(cache));
     }
   }
