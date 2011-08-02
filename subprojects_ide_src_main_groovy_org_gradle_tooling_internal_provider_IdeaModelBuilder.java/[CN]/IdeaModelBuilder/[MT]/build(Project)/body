@@ -2,10 +2,13 @@
   IdeaModel ideaModel=project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
   IdeaProject projectModel=ideaModel.getProject();
   DefaultIdeaProject out=new DefaultIdeaProject().setName(projectModel.getName()).setJdkName(projectModel.getJdkName()).setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getFormatted()));
-  List<DefaultIdeaModule> modules=new LinkedList<DefaultIdeaModule>();
+  Map<String,DefaultIdeaModule> modules=new HashMap<String,DefaultIdeaModule>();
   for (  IdeaModule module : projectModel.getModules()) {
     appendModule(modules,module,out);
   }
-  out.setChildren(modules);
+  for (  IdeaModule module : projectModel.getModules()) {
+    buildDependencies(modules,module);
+  }
+  out.setChildren(modules.values());
   return out;
 }
