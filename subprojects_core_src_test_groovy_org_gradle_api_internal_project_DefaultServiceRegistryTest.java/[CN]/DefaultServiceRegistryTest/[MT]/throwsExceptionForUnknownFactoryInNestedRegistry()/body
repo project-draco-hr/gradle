@@ -1,0 +1,18 @@
+{
+  final ServiceRegistry nested=context.mock(ServiceRegistry.class);
+  registry.add(nested);
+  context.checking(new Expectations(){
+{
+      one(nested).getFactory(Runnable.class);
+      will(throwException(new UnknownServiceException(Runnable.class,"fail")));
+    }
+  }
+);
+  try {
+    registry.getFactory(Runnable.class);
+    fail();
+  }
+ catch (  IllegalArgumentException e) {
+    assertThat(e.getMessage(),equalTo("No factory for objects of type Runnable available in TestRegistry."));
+  }
+}
