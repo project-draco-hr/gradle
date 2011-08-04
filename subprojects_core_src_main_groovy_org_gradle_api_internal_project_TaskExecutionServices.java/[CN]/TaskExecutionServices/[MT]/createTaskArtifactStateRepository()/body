@@ -1,6 +1,7 @@
 {
   CacheRepository cacheRepository=get(CacheRepository.class);
-  FileSnapshotter fileSnapshotter=new DefaultFileSnapshotter(new CachingHasher(new DefaultHasher(),cacheRepository));
-  FileSnapshotter outputFilesSnapshotter=new OutputFilesSnapshotter(fileSnapshotter,new RandomLongIdGenerator(),cacheRepository);
-  return new FileCacheBroadcastTaskArtifactStateRepository(new ShortCircuitTaskArtifactStateRepository(get(StartParameter.class),new DefaultTaskArtifactStateRepository(cacheRepository,fileSnapshotter,outputFilesSnapshotter)),new DefaultFileCacheListener());
+  FileSnapshotter fileSnapshotter=new DefaultFileSnapshotter(new CachingHasher(new DefaultHasher(),cacheRepository,gradle));
+  FileSnapshotter outputFilesSnapshotter=new OutputFilesSnapshotter(fileSnapshotter,new RandomLongIdGenerator(),cacheRepository,gradle);
+  TaskHistoryRepository taskHistoryRepository=new CacheBackedTaskHistoryRepository(cacheRepository,new CacheBackedFileSnapshotRepository(cacheRepository,gradle),gradle);
+  return new FileCacheBroadcastTaskArtifactStateRepository(new ShortCircuitTaskArtifactStateRepository(get(StartParameter.class),new DefaultTaskArtifactStateRepository(taskHistoryRepository,fileSnapshotter,outputFilesSnapshotter)),new DefaultFileCacheListener());
 }
