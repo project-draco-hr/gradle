@@ -1,0 +1,35 @@
+{
+  if (!dir.isDirectory()) {
+    dir.mkdirs();
+  }
+  try {
+    lockFile.createNewFile();
+    RandomAccessFile lockFileAccess=new RandomAccessFile(lockFile,"rw");
+    try {
+      FileChannel lockChannel=lockFileAccess.getChannel();
+      FileLock sharedLock=lock(lockChannel,LockMode.Shared);
+      boolean valid;
+      try {
+        valid=determineIfCacheIsValid(cacheUsage,properties);
+      }
+  finally {
+        sharedLock.release();
+      }
+      if (!valid) {
+        FileLock exclusiveLock=lock(lockChannel,LockMode.Exclusive);
+        try {
+          buildCacheDir(initAction);
+        }
+  finally {
+          exclusiveLock.release();
+        }
+      }
+    }
+  finally {
+      lockFileAccess.close();
+    }
+  }
+ catch (  Exception e) {
+    throw new UncheckedIOException(String.format("Could not open %s.",this),e);
+  }
+}
