@@ -1,25 +1,31 @@
 {
-  final Collector<TestScript> collector=collector();
+  final Collector<TestScript> testScriptCollector=collector();
+  final Collector<Action<PersistentCache>> initActionCollector=collector();
   context.checking(new Expectations(){
 {
-      one(cacheRepositoryMock).cache("scripts/class-name");
+      one(cacheRepositoryMock).cache("scripts/class-name/Script");
       will(returnValue(cacheBuilder));
       one(cacheBuilder).withProperties(expectedCacheProperties);
       will(returnValue(cacheBuilder));
+      one(cacheBuilder).withInitializer(with(notNullValue(Action.class)));
+      will(collectTo(initActionCollector).then(returnValue(cacheBuilder)));
       one(cacheBuilder).open();
-      will(returnValue(cacheMock));
-      allowing(cacheMock).isValid();
-      will(returnValue(false));
+      will(new CustomAction("run initializer"){
+        public Object invoke(        Invocation invocation) throws Throwable {
+          initActionCollector.get().execute(cacheMock);
+          return cacheMock;
+        }
+      }
+);
       one(scriptCompilationHandlerMock).compileToDir(expectedSource,testClassLoader,expectedScriptCacheDir,null,expectedScriptBaseClass);
-      one(cacheMock).markValid();
       one(scriptCompilationHandlerMock).loadFromDir(expectedSource,testClassLoader,expectedScriptCacheDir,expectedScriptBaseClass);
       will(returnValue(TestScript.class));
       one(scriptRunnerFactoryMock).create(with(notNullValue(TestScript.class)));
-      will(collectTo(collector).then(returnValue(expectedScriptRunner)));
+      will(collectTo(testScriptCollector).then(returnValue(expectedScriptRunner)));
     }
   }
 );
   assertSame(expectedScriptRunner,scriptProcessor.createCompiler(source).compile(expectedScriptBaseClass));
-  assertSame(testClassLoader,collector.get().getContextClassloader());
-  assertEquals(expectedSource,collector.get().getScriptSource());
+  assertSame(testClassLoader,testScriptCollector.get().getContextClassloader());
+  assertEquals(expectedSource,testScriptCollector.get().getScriptSource());
 }

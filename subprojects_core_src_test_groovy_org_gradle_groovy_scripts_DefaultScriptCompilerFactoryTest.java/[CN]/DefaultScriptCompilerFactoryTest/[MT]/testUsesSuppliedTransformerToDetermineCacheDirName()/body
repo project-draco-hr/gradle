@@ -1,19 +1,18 @@
 {
   final Transformer transformer=context.mock(Transformer.class);
-  final File expectedCacheDir=new TestFile(expectedScriptCacheDir.getParentFile(),"transformer_Script").createDir();
   context.checking(new Expectations(){
 {
       allowing(transformer).getId();
       will(returnValue("transformer"));
-      one(cacheRepositoryMock).cache("scripts/class-name");
+      one(cacheRepositoryMock).cache("scripts/class-name/Script/transformer");
       will(returnValue(cacheBuilder));
       one(cacheBuilder).withProperties(expectedCacheProperties);
       will(returnValue(cacheBuilder));
+      one(cacheBuilder).withInitializer(with(notNullValue(Action.class)));
+      will(returnValue(cacheBuilder));
       one(cacheBuilder).open();
       will(returnValue(cacheMock));
-      allowing(cacheMock).isValid();
-      will(returnValue(true));
-      one(scriptCompilationHandlerMock).loadFromDir(expectedSource,testClassLoader,expectedCacheDir,expectedScriptBaseClass);
+      one(scriptCompilationHandlerMock).loadFromDir(expectedSource,testClassLoader,expectedScriptCacheDir,expectedScriptBaseClass);
       will(returnValue(TestScript.class));
       one(scriptRunnerFactoryMock).create(with(notNullValue(TestScript.class)));
       will(returnValue(expectedScriptRunner));

@@ -2,19 +2,15 @@
   Map<String,Object> properties=new HashMap<String,Object>();
   properties.put("source.filename",source.getFileName());
   properties.put("source.hash",HashUtil.createHash(source.getResource().getText()));
-  PersistentCache cache=cacheRepository.cache(String.format("scripts/%s",source.getClassName())).withProperties(properties).open();
-  File classesDir;
+  String cacheName;
   if (transformer != null) {
-    String subdirName=String.format("%s_%s",transformer.getId(),scriptBaseClass.getSimpleName());
-    classesDir=new File(cache.getBaseDir(),subdirName);
+    cacheName=String.format("scripts/%s/%s/%s",source.getClassName(),scriptBaseClass.getSimpleName(),transformer.getId());
   }
  else {
-    classesDir=new File(cache.getBaseDir(),scriptBaseClass.getSimpleName());
+    cacheName=String.format("scripts/%s/%s",source.getClassName(),scriptBaseClass.getSimpleName());
   }
-  if (!cache.isValid() || !classesDir.exists()) {
-    scriptCompilationHandler.compileToDir(source,classLoader,classesDir,transformer,scriptBaseClass);
-    cache.markValid();
-  }
+  PersistentCache cache=cacheRepository.cache(cacheName).withProperties(properties).withInitializer(new CacheInitializer(scriptBaseClass,classLoader)).open();
+  File classesDir=classesDir(cache,scriptBaseClass);
   Class<? extends T> scriptClass=scriptCompilationHandler.loadFromDir(source,classLoader,classesDir,scriptBaseClass);
   Instantiator instantiator=new DirectInstantiator();
   return instantiator.newInstance(scriptClass);
