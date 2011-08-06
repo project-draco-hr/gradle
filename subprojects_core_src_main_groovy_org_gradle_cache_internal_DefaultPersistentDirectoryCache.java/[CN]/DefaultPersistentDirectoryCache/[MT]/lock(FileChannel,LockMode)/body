@@ -1,12 +1,14 @@
 {
-  long timeout=System.currentTimeMillis() + 20000;
+  LOGGER.debug("Waiting to acquire {} lock on {}.",lockMode,this);
+  long timeout=System.currentTimeMillis() + LOCK_TIMEOUT;
   do {
     FileLock fileLock=lockChannel.tryLock(0,Long.MAX_VALUE,lockMode == LockMode.Shared);
     if (fileLock != null) {
+      LOGGER.debug("Lock acquired.");
       return fileLock;
     }
     Thread.sleep(200L);
   }
  while (System.currentTimeMillis() < timeout);
-  throw new GradleException(String.format("Timeout waiting to acquire %s lock on %s. It is currently in use by another Gradle instance.",lockMode.toString().toLowerCase(),this));
+  throw new CacheOpenException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.",this));
 }

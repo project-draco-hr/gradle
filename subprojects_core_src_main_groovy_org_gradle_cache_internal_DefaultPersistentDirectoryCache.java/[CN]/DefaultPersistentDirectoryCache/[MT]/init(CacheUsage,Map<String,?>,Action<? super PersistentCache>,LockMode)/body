@@ -1,0 +1,46 @@
+{
+  if (!dir.isDirectory()) {
+    dir.mkdirs();
+  }
+  try {
+    lockFile.createNewFile();
+    lockFileAccess=new RandomAccessFile(lockFile,"rw");
+    try {
+      FileChannel lockChannel=lockFileAccess.getChannel();
+      FileLock validateLock=lock(lockChannel,lockMode);
+      boolean valid=determineIfCacheIsValid(cacheUsage,properties);
+      if (valid) {
+        this.fileLock=validateLock;
+        return;
+      }
+      FileLock initialiseLock;
+      if (lockMode == LockMode.Exclusive) {
+        initialiseLock=validateLock;
+      }
+ else {
+        LOGGER.debug("Releasing lock on {}.",this);
+        validateLock.release();
+        initialiseLock=lock(lockChannel,LockMode.Exclusive);
+      }
+      buildCacheDir(initAction);
+      if (lockMode == LockMode.Exclusive) {
+        this.fileLock=initialiseLock;
+      }
+ else {
+        LOGGER.debug("Releasing lock on {}.",this);
+        initialiseLock.release();
+        this.fileLock=lock(lockChannel,lockMode);
+      }
+    }
+ catch (    Throwable throwable) {
+      lockFileAccess.close();
+      throw throwable;
+    }
+  }
+ catch (  CacheOpenException e) {
+    throw e;
+  }
+catch (  Throwable e) {
+    throw new CacheOpenException(String.format("Could not open %s.",this),e);
+  }
+}
