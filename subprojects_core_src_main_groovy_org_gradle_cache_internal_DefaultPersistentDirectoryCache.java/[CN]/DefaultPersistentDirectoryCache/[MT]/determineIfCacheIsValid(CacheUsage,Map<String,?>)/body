@@ -2,7 +2,16 @@
   if (cacheUsage != CacheUsage.ON) {
     return false;
   }
-  if (!propertiesFile.isFile()) {
+  lockFileAccess.seek(0);
+  try {
+    if (lockFileAccess.readByte() != LOCK_PROTOCOL) {
+      return false;
+    }
+    if (!lockFileAccess.readBoolean()) {
+      return false;
+    }
+  }
+ catch (  EOFException e) {
     return false;
   }
   Properties currentProperties=GUtil.loadProperties(propertiesFile);
