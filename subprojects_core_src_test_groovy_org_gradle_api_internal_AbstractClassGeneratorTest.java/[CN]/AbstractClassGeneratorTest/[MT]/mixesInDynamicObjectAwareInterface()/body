@@ -2,7 +2,10 @@
   Class<? extends Bean> generatedClass=generator.generate(Bean.class);
   assertTrue(DynamicObjectAware.class.isAssignableFrom(generatedClass));
   Bean bean=generatedClass.newInstance();
-  ((DynamicObjectAware)bean).getAsDynamicObject().setProperty("prop","value");
+  DynamicObjectAware dynamicBean=(DynamicObjectAware)bean;
+  dynamicBean.getAsDynamicObject().setProperty("prop","value");
   assertThat(bean.getProp(),equalTo("value"));
   assertThat(bean.doStuff("some value"),equalTo("{some value}"));
+  assertThat(dynamicBean.getConvention(),notNullValue());
+  assertThat(dynamicBean.getExtensions(),sameInstance((ExtensionContainer)dynamicBean.getConvention()));
 }
