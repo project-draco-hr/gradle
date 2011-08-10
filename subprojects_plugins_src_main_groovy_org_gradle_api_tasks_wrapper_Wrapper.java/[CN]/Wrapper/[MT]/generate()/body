@@ -1,18 +1,22 @@
 {
   File jarFileDestination=getJarFile();
-  File propertiesFileDestination=getPropertiesFile();
-  File scriptFileDestination=getScriptFile();
-  FileResolver resolver=getServices().get(FileResolver.class).withBaseDir(scriptFileDestination.getParentFile());
+  File unixScript=getScriptFile();
+  FileResolver resolver=getServices().get(FileResolver.class).withBaseDir(unixScript.getParentFile());
   String jarFileRelativePath=resolver.resolveAsRelativePath(jarFileDestination);
-  String propertiesFileRelativePath=resolver.resolveAsRelativePath(propertiesFileDestination);
-  propertiesFileDestination.delete();
-  jarFileDestination.delete();
-  scriptFileDestination.delete();
-  writeProperties(propertiesFileDestination);
+  writeProperties(getPropertiesFile());
   URL jarFileSource=getClass().getResource("/gradle-wrapper.jar");
   if (jarFileSource == null) {
     throw new GradleException("Cannot locate wrapper JAR resource.");
   }
   GFileUtils.copyURLToFile(jarFileSource,jarFileDestination);
-  wrapperScriptGenerator.generate(jarFileRelativePath,scriptFileDestination);
+  StartScriptGenerator generator=new StartScriptGenerator();
+  generator.setApplicationName("Gradle");
+  generator.setMainClassName(GradleWrapperMain.class.getName());
+  generator.setClasspath(WrapUtil.toList(jarFileRelativePath));
+  generator.setOptsEnvironmentVar("GRADLE_OPTS");
+  generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");
+  generator.setAppNameSystemProperty("org.gradle.appname");
+  generator.setScriptRelPath(unixScript.getName());
+  generator.generateUnixScript(unixScript);
+  generator.generateWindowsScript(getBatchScript());
 }
