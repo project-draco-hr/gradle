@@ -1,21 +1,7 @@
 {
-  final TaskArtifactState state=repository.getStateFor(task);
-  return new TaskArtifactState(){
-    public boolean isUpToDate(){
-      return !startParameter.isNoOpt() && task.getOutputs().getUpToDateSpec().isSatisfiedBy(task) && state.isUpToDate();
-    }
-    public TaskExecutionHistory getExecutionHistory(){
-      return state.getExecutionHistory();
-    }
-    public void beforeTask(){
-      state.beforeTask();
-    }
-    public void afterTask(){
-      state.afterTask();
-    }
-    public void finished(){
-      state.finished();
-    }
+  if (task.getOutputs().getHasOutput()) {
+    return new ShortCircuitArtifactState(task,repository.getStateFor(task));
   }
-;
+  LOGGER.info(String.format("%s has not declared any outputs, assuming that it is out-of-date.",StringUtils.capitalize(task.toString())));
+  return new NoHistoryArtifactState();
 }
