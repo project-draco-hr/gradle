@@ -1,5 +1,10 @@
 {
-  Properties properties=GUtil.loadProperties(classLoader.getResource(String.format("%s-classpath.properties",projectName)));
+  String resource=String.format("%s-classpath.properties",projectName);
+  URL url=classLoader.getResource(resource);
+  if (url == null) {
+    throw new GradleException(String.format("Cannot find classpath resource '%s'.",resource));
+  }
+  Properties properties=GUtil.loadProperties(url);
   patterns.addAll(jarNames(Arrays.asList(properties.getProperty("runtime").split(","))));
   patterns.addAll(toPatterns(projectName));
 }
