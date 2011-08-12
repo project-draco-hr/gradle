@@ -1,0 +1,14 @@
+{
+  LOGGER.debug("Waiting to acquire {} lock on {}.",lockMode,displayName);
+  long timeout=System.currentTimeMillis() + LOCK_TIMEOUT;
+  do {
+    java.nio.channels.FileLock fileLock=lockFileAccess.getChannel().tryLock(0,Long.MAX_VALUE,lockMode == LockMode.Shared);
+    if (fileLock != null) {
+      LOGGER.debug("Lock acquired.");
+      return fileLock;
+    }
+    Thread.sleep(200L);
+  }
+ while (System.currentTimeMillis() < timeout);
+  throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.",displayName));
+}
