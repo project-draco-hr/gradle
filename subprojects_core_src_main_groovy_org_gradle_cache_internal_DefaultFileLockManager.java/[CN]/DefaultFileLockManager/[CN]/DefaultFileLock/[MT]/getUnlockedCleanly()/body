@@ -1,20 +1,20 @@
 {
-  try {
-    lockFileAccess.seek(0);
-    try {
-      if (lockFileAccess.readByte() != LOCK_PROTOCOL) {
-        throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.",lockFile,displayName));
+  return readFromFile(new Callable<Boolean>(){
+    public Boolean call() throws Exception {
+      lockFileAccess.seek(0);
+      try {
+        if (lockFileAccess.readByte() != LOCK_PROTOCOL) {
+          throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.",lockFile,displayName));
+        }
+        if (!lockFileAccess.readBoolean()) {
+          return false;
+        }
       }
-      if (!lockFileAccess.readBoolean()) {
+ catch (      EOFException e) {
         return false;
       }
+      return true;
     }
- catch (    EOFException e) {
-      return false;
-    }
-    return true;
   }
- catch (  IOException e) {
-    throw UncheckedException.asUncheckedException(e);
-  }
+);
 }
