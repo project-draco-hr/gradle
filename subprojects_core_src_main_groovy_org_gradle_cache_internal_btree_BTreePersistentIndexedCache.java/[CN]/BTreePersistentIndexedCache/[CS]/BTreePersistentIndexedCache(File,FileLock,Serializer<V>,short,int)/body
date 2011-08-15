@@ -1,9 +1,9 @@
 {
+  this.cacheFile=cacheFile;
   this.serializer=serializer;
   this.maxChildIndexEntries=maxChildIndexEntries;
   this.minIndexChildNodes=maxChildIndexEntries / 2;
-  cacheFile=new File(cacheDir,"cache.bin");
-  BlockStore cachingStore=new CachingBlockStore(new FileBackedBlockStore(cacheFile),IndexBlock.class,FreeListBlockStore.FreeListBlock.class);
+  BlockStore cachingStore=new CachingBlockStore(new LockingBlockStore(new FileBackedBlockStore(cacheFile),fileLock),IndexBlock.class,FreeListBlockStore.FreeListBlock.class);
   store=new StateCheckBlockStore(new FreeListBlockStore(cachingStore,maxFreeListEntries));
   try {
     open();
