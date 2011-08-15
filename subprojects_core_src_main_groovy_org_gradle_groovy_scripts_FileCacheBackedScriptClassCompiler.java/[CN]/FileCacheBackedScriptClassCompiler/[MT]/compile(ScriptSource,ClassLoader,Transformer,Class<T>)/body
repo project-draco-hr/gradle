@@ -1,0 +1,9 @@
+{
+  Map<String,Object> properties=new HashMap<String,Object>();
+  properties.put("source.filename",source.getFileName());
+  properties.put("source.hash",HashUtil.createHash(source.getResource().getText()));
+  String cacheName=String.format("scripts/%s/%s/%s",source.getClassName(),scriptBaseClass.getSimpleName(),transformer.getId());
+  PersistentCache cache=cacheRepository.cache(cacheName).withProperties(properties).withInitializer(new CacheInitializer(source,classLoader,transformer,scriptBaseClass)).open();
+  File classesDir=classesDir(cache);
+  return scriptCompilationHandler.loadFromDir(source,classLoader,classesDir,scriptBaseClass);
+}
