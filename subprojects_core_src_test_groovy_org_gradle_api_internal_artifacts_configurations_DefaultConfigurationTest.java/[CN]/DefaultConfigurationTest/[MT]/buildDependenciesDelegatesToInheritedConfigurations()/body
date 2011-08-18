@@ -1,17 +1,20 @@
 {
   final Task target=context.mock(Task.class,"target");
   final Task otherConfTaskMock=context.mock(Task.class,"otherConfTask");
-  final TaskDependency otherConfTaskDependencyMock=context.mock(TaskDependency.class,"otherConfTaskDep");
+  final TaskDependency dependencyTaskDependencyStub=context.mock(TaskDependency.class,"otherConfTaskDep");
   final Configuration otherConfiguration=context.mock(Configuration.class,"otherConf");
+  final FileCollectionDependency fileCollectionDependencyStub=context.mock(FileCollectionDependency.class);
+  final DependencySet inherited=new DefaultDependencySet("dependencies",toDomainObjectSet(Dependency.class,fileCollectionDependencyStub));
   context.checking(new Expectations(){
 {
-      allowing(otherConfiguration).getBuildDependencies();
-      will(returnValue(otherConfTaskDependencyMock));
       allowing(otherConfiguration).getHierarchy();
       will(returnValue(toSet()));
       allowing(otherConfiguration).getAllArtifacts();
       allowing(otherConfiguration).getAllDependencies();
-      allowing(otherConfTaskDependencyMock).getDependencies(target);
+      will(returnValue(inherited));
+      allowing(fileCollectionDependencyStub).getBuildDependencies();
+      will(returnValue(dependencyTaskDependencyStub));
+      allowing(dependencyTaskDependencyStub).getDependencies(target);
       will(returnValue(toSet(otherConfTaskMock)));
     }
   }

@@ -11,6 +11,7 @@
   final Configuration dependentConfig=context.mock(Configuration.class);
   final ProjectDependency projectDependency=context.mock(ProjectDependency.class);
   final Set<ProjectDependency> projectDependencies=toDomainObjectSet(ProjectDependency.class,projectDependency);
+  final DependencySet otherDependencies=context.mock(DependencySet.class);
   context.checking(new Expectations(){
 {
       allowing(tdTask).getProject();
@@ -25,7 +26,9 @@
       will(returnValue(configurationContainer));
       allowing(configurationContainer).findByName(configName);
       will(returnValue(dependentConfig));
-      allowing(dependentConfig).getAllDependencies(ProjectDependency.class);
+      allowing(dependentConfig).getAllDependencies();
+      will(returnValue(otherDependencies));
+      allowing(otherDependencies).withType(ProjectDependency.class);
       will(returnValue(projectDependencies));
       allowing(projectDependency).getDependencyProject();
       will(returnValue(taskProject));

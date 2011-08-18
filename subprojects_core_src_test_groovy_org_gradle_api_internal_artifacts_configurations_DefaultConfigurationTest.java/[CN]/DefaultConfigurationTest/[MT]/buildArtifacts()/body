@@ -2,20 +2,23 @@
   final Task otherConfTaskMock=context.mock(Task.class,"otherConfTask");
   final Task artifactTaskMock=context.mock(Task.class,"artifactTask");
   final Configuration otherConfiguration=context.mock(Configuration.class);
-  final TaskDependency otherConfTaskDependencyMock=context.mock(TaskDependency.class,"otherConfTaskDep");
+  final TaskDependency otherArtifactTaskDependencyMock=context.mock(TaskDependency.class,"otherConfTaskDep");
   final TaskDependency artifactTaskDependencyMock=context.mock(TaskDependency.class,"artifactTaskDep");
+  final PublishArtifact otherArtifact=context.mock(PublishArtifact.class,"otherArtifact");
+  final ArtifactSet inheritedArtifacts=new DefaultArtifactSet("artifacts",toDomainObjectSet(PublishArtifact.class,otherArtifact));
   DefaultPublishArtifact artifact=HelperUtil.createPublishArtifact("name1","ext1","type1","classifier1");
   artifact.setTaskDependency(artifactTaskDependencyMock);
   configuration.addArtifact(artifact);
   context.checking(new Expectations(){
 {
-      allowing(otherConfiguration).getBuildArtifacts();
-      will(returnValue(otherConfTaskDependencyMock));
       allowing(otherConfiguration).getHierarchy();
       will(returnValue(toSet()));
       allowing(otherConfiguration).getAllArtifacts();
+      will(returnValue(inheritedArtifacts));
       allowing(otherConfiguration).getAllDependencies();
-      allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
+      allowing(otherArtifact).getBuildDependencies();
+      will(returnValue(otherArtifactTaskDependencyMock));
+      allowing(otherArtifactTaskDependencyMock).getDependencies(with(any(Task.class)));
       will(returnValue(toSet(otherConfTaskMock)));
       allowing(artifactTaskDependencyMock).getDependencies(with(any(Task.class)));
       will(returnValue(toSet(artifactTaskMock)));

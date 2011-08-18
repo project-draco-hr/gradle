@@ -3,6 +3,14 @@
   this.name=name;
   this.configurationsProvider=configurationsProvider;
   this.ivyService=ivyService;
-  dependencies.beforeChange(new VetoContainerChangeAction());
-  artifacts.beforeChange(new VetoContainerChangeAction());
+  DefaultDomainObjectSet<Dependency> ownDependencies=new DefaultDomainObjectSet<Dependency>(Dependency.class);
+  ownDependencies.beforeChange(new VetoContainerChangeAction());
+  dependencies=new DefaultDependencySet(String.format("%s dependencies",getDisplayName()),ownDependencies);
+  inheritedDependencies=new CompositeDomainObjectSet<Dependency>(Dependency.class,ownDependencies);
+  allDependencies=new DefaultDependencySet(String.format("%s all dependencies",getDisplayName()),inheritedDependencies);
+  DefaultDomainObjectSet<PublishArtifact> ownArtifacts=new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
+  ownArtifacts.beforeChange(new VetoContainerChangeAction());
+  artifacts=new DefaultArtifactSet(String.format("%s artifacts",getDisplayName()),ownArtifacts);
+  inheritedArtifacts=new CompositeDomainObjectSet<PublishArtifact>(PublishArtifact.class,ownArtifacts);
+  allArtifacts=new DefaultArtifactSet(String.format("%s all artifacts",getDisplayName()),inheritedArtifacts);
 }
