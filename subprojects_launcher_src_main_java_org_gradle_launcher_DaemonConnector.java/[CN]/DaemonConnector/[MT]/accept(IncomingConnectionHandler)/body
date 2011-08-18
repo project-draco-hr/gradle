@@ -1,27 +1,21 @@
 {
   DefaultExecutorFactory executorFactory=new DefaultExecutorFactory();
   TcpIncomingConnector<Object> incomingConnector=new TcpIncomingConnector<Object>(executorFactory,new DefaultMessageSerializer<Object>(getClass().getClassLoader()),new InetAddressFactory(),new UUIDGenerator());
-  final CompletionHandler finished=new CompletionHandler();
+  final DaemonRegistry.RegistryFile registryFile=daemonRegistry.createRegistryFileHandle();
+  final CompletionHandler finished=new CompletionHandler(idleDaemonTimeout,registryFile);
   LOGGER.lifecycle("Awaiting requests.");
   Action<ConnectEvent<Connection<Object>>> connectEvent=new Action<ConnectEvent<Connection<Object>>>(){
     public void execute(    ConnectEvent<Connection<Object>> connectionConnectEvent){
-      try {
-        finished.onStartActivity();
-        handler.handle(connectionConnectEvent.getConnection(),finished);
-      }
-  finally {
-        finished.onActivityComplete();
-        connectionConnectEvent.getConnection().stop();
-      }
+      handler.handle(connectionConnectEvent.getConnection(),finished);
     }
   }
 ;
   Address address=incomingConnector.accept(connectEvent,false);
-  openRegistry().set(address);
+  storeDaemonAddress(address,registryFile.getFile());
   boolean stopped=finished.awaitStop();
   if (!stopped) {
     LOGGER.lifecycle("Time-out waiting for requests. Stopping.");
   }
+  registryFile.getFile().delete();
   new CompositeStoppable(incomingConnector,executorFactory).stop();
-  openRegistry().set(null);
 }
