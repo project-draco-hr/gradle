@@ -28,6 +28,18 @@
     public void add(    MethodVisitor visitor){
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"mapping",mappingFieldSignature);
+      visitor.visitInsn(Opcodes.DUP);
+      Label nullBranch=new Label();
+      visitor.visitJumpInsn(Opcodes.IFNULL,nullBranch);
+      visitor.visitInsn(Opcodes.ARETURN);
+      visitor.visitLabel(nullBranch);
+      Type conventionAwareHelperType=Type.getType(ConventionAwareHelper.class);
+      String constructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(IConventionAware.class)});
+      visitor.visitTypeInsn(Opcodes.NEW,conventionAwareHelperType.getInternalName());
+      visitor.visitInsn(Opcodes.DUP);
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,conventionAwareHelperType.getInternalName(),"<init>",constructorDesc);
+      visitor.visitInsn(Opcodes.ARETURN);
     }
   }
 );
