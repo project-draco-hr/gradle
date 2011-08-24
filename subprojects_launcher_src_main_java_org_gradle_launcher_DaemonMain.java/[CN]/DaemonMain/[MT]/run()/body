@@ -1,8 +1,36 @@
 {
-  connector.accept(new IncomingConnectionHandler(){
-    public void handle(    Connection<Object> connection,    Stoppable serverControl){
-      doRun(connection,serverControl);
+  String timeoutProperty=startParameter.getSystemPropertiesArgs().get("idleDaemonTimeout");
+  int idleDaemonTimeout=(timeoutProperty != null) ? Integer.parseInt(timeoutProperty) : 3 * 60 * 60* 1000;
+  final StoppableExecutor executor=executorFactory.create("DaemonMain executor");
+  connector.accept(idleDaemonTimeout,new IncomingConnectionHandler(){
+    public void handle(    final Connection<Object> connection,    final CompletionHandler serverControl){
+      executor.execute(new Runnable(){
+        public void run(){
+          Command command=null;
+          try {
+            command=lockAndReceive(connection,serverControl);
+            if (command == null) {
+              LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
+              unlock(serverControl);
+              connection.stop();
+            }
+          }
+ catch (          BusyException e) {
+            connection.dispatch(new CommandComplete(e));
+            return;
+          }
+          try {
+            doRun(connection,serverControl,command);
+          }
+  finally {
+            unlock(serverControl);
+            connection.stop();
+          }
+        }
+      }
+);
     }
   }
 );
+  executorFactory.stop();
 }
