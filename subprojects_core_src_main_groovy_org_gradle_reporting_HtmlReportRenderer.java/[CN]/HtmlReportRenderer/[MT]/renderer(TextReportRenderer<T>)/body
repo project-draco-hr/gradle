@@ -1,0 +1,18 @@
+{
+  return new TextReportRenderer<T>(){
+    @Override protected void writeTo(    T model,    Writer out) throws Exception {
+      renderer.writeTo(model,out);
+    }
+    @Override public void writeTo(    T model,    File file){
+      super.writeTo(model,file);
+      for (      URL resource : resources) {
+        String name=StringUtils.substringAfterLast(resource.getPath(),"/");
+        File destFile=new File(file.getParentFile(),name);
+        if (!destFile.exists()) {
+          GFileUtils.copyURLToFile(resource,destFile);
+        }
+      }
+    }
+  }
+;
+}
