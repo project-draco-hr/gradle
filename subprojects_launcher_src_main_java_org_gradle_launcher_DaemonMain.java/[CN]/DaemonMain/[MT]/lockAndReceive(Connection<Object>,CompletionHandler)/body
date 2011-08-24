@@ -1,0 +1,15 @@
+{
+  try {
+    serverControl.onStartActivity();
+    return (Command)connection.receive();
+  }
+ catch (  BusyException busy) {
+    Command command=(Command)connection.receive();
+    if (command instanceof Stop) {
+      LOGGER.info("The daemon is busy and Stop command was received. Stopping...");
+      return command;
+    }
+    LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
+    throw busy;
+  }
+}

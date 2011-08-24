@@ -1,7 +1,14 @@
 {
   LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");
   LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
-  Connection<Object> connection=connector.connect();
-  Result result=(Result)run(new Build(action,parameters),connection);
-  return (T)result.getResult();
+  while (true) {
+    Connection<Object> connection=connector.connect();
+    try {
+      Result result=(Result)run(new Build(action,parameters),connection);
+      return (T)result.getResult();
+    }
+ catch (    BusyException e) {
+      continue;
+    }
+  }
 }
