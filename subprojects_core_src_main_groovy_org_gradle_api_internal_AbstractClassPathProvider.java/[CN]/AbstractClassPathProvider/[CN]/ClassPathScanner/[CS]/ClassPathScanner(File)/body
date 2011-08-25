@@ -1,4 +1,14 @@
 {
   this.classesDir=classesDir;
-  this.classpath=ClasspathUtil.getClasspath(getClass().getClassLoader());
+  this.classpath=new ArrayList<File>();
+  for (  URL url : ClasspathUtil.getClasspath(getClass().getClassLoader())) {
+    if (url.getProtocol().equals("file")) {
+      try {
+        classpath.add(new File(url.toURI()));
+      }
+ catch (      URISyntaxException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
 }
