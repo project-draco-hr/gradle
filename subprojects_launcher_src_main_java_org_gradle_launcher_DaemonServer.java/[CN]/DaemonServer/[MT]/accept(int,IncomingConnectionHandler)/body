@@ -1,8 +1,8 @@
 {
   DefaultExecutorFactory executorFactory=new DefaultExecutorFactory();
   TcpIncomingConnector<Object> incomingConnector=new TcpIncomingConnector<Object>(executorFactory,new DefaultMessageSerializer<Object>(getClass().getClassLoader()),new InetAddressFactory(),new UUIDGenerator());
-  final PersistentDaemonRegistry.Registry registry=daemonRegistry.newRegistry();
-  final CompletionHandler finished=new CompletionHandler(idleDaemonTimeout,registry);
+  final DaemonRegistry.Entry registryEntry=daemonRegistry.newEntry();
+  final CompletionHandler finished=new CompletionHandler(idleDaemonTimeout,registryEntry);
   LOGGER.lifecycle("Awaiting requests.");
   Action<ConnectEvent<Connection<Object>>> connectEvent=new Action<ConnectEvent<Connection<Object>>>(){
     public void execute(    ConnectEvent<Connection<Object>> connectionConnectEvent){
@@ -11,11 +11,11 @@
   }
 ;
   Address address=incomingConnector.accept(connectEvent,false);
-  registry.store(address);
+  registryEntry.store(address);
   boolean stopped=finished.awaitStop();
   if (!stopped) {
     LOGGER.lifecycle("Time-out waiting for requests. Stopping.");
   }
-  registry.remove();
+  registryEntry.remove();
   new CompositeStoppable(incomingConnector,executorFactory).stop();
 }
