@@ -1,0 +1,23 @@
+{
+  URI rootUri=getUrl();
+  IBiblioResolver resolver;
+  if (rootUri.getScheme().equalsIgnoreCase("file")) {
+    resolver=new IBiblioResolver();
+    resolver.setRepository(new FileRepository());
+    resolver.setRoot(rootUri.getPath());
+    resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
+  }
+ else {
+    IBiblioWharfResolver wharfResolver=new IBiblioWharfResolver();
+    wharfResolver.setSnapshotTimeout(IBiblioWharfResolver.DAILY);
+    resolver=wharfResolver;
+    resolver.setRoot(rootUri.toString());
+  }
+  resolver.setUsepoms(true);
+  resolver.setName(name);
+  resolver.setPattern(ResolverContainer.MAVEN_REPO_PATTERN);
+  resolver.setM2compatible(true);
+  resolver.setUseMavenMetadata(true);
+  resolver.setChecksums("");
+  resolvers.add(resolver);
+}
