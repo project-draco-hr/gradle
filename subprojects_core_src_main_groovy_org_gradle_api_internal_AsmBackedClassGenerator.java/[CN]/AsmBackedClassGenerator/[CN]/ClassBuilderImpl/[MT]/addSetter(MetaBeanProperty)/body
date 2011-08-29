@@ -2,13 +2,12 @@
   MetaMethod setter=property.getSetter();
   Type paramType=Type.getType(setter.getParameterTypes()[0].getTheClass());
   Type returnType=Type.getType(setter.getReturnType());
-  boolean isVoid=setter.getReturnType().equals(Void.TYPE);
-  String methodDescriptor=Type.getMethodDescriptor(returnType,new Type[]{paramType});
-  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,setter.getName(),methodDescriptor,null,new String[0]);
+  String setterDescriptor=Type.getMethodDescriptor(returnType,new Type[]{paramType});
+  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,setter.getName(),setterDescriptor,null,new String[0]);
   methodVisitor.visitCode();
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,1);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),setter.getName(),methodDescriptor);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),setter.getName(),setterDescriptor);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
   methodVisitor.visitLdcInsn(true);
   methodVisitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),String.format("%sSet",property.getName()),Type.BOOLEAN_TYPE.getDescriptor());

@@ -69,6 +69,19 @@
           continue;
         }
         builder.addSetter(metaBeanProperty);
+        if (Iterable.class.isAssignableFrom(property.getType())) {
+          continue;
+        }
+        boolean hasSetMethod=false;
+        for (        MetaMethod metaMethod : metaClass.getMethods()) {
+          if (metaMethod.getName().equals(property.getName()) && metaMethod.getParameterTypes().length == 1) {
+            builder.overrideSetMethod(metaBeanProperty,metaMethod);
+            hasSetMethod=true;
+          }
+        }
+        if (!hasSetMethod) {
+          builder.addSetMethod(metaBeanProperty);
+        }
       }
     }
     for (    Constructor<?> constructor : type.getConstructors()) {
@@ -82,5 +95,6 @@
     throw new GradleException(String.format("Could not generate a proxy class for class %s.",type.getName()),e);
   }
   cache.put(type,subclass);
+  cache.put(subclass,subclass);
   return subclass;
 }
