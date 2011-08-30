@@ -1,0 +1,15 @@
+{
+  Map<String,Object> modifiedArgs=new HashMap<String,Object>(args);
+  if (modifiedArgs.containsKey("urls")) {
+    List<Object> urls=toList(modifiedArgs.remove("urls"));
+    if (!urls.isEmpty()) {
+      modifiedArgs.put("url",urls.get(0));
+      List<Object> extraUrls=urls.subList(1,urls.size());
+      modifiedArgs.put("artifactUrls",extraUrls);
+    }
+  }
+  MavenArtifactRepository repository=getResolverFactory().createMavenRepository();
+  ConfigureUtil.configureByMap(modifiedArgs,repository);
+  addRepository(repository,configClosure,"maven");
+  return toResolver(DependencyResolver.class,repository);
+}
