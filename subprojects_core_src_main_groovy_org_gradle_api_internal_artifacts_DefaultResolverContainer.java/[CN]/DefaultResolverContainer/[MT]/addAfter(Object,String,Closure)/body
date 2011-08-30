@@ -1,18 +1,16 @@
 {
   if (!GUtil.isTrue(beforeResolverName)) {
-    throw new InvalidUserDataException("You must specify userDescription and beforeResolverName");
+    throw new InvalidUserDataException("You must specify beforeResolverName");
   }
-  if (findByName(beforeResolverName) == null) {
-    throw new InvalidUserDataException("Resolver $beforeResolverName does not exists!");
-  }
-  return addInternal(userDescription,configureClosure,new OrderAction(){
-    public void apply(    String resolverName){
-      int insertPos=resolverNames.indexOf(beforeResolverName) + 1;
-      if (insertPos == resolverNames.size()) {
-        resolverNames.add(resolverName);
+  final ArtifactRepository before=getByName(beforeResolverName);
+  return addInternal(userDescription,configureClosure,new Action<ArtifactRepository>(){
+    public void execute(    ArtifactRepository repository){
+      int insertPos=repositories.indexOf(before) + 1;
+      if (insertPos == repositories.size()) {
+        repositories.add(repository);
       }
  else {
-        resolverNames.add(insertPos,resolverName);
+        repositories.add(insertPos,repository);
       }
     }
   }

@@ -10,6 +10,8 @@
   }
   MavenArtifactRepository repository=getResolverFactory().createMavenRepository();
   ConfigureUtil.configureByMap(modifiedArgs,repository);
-  addRepository(repository,configClosure,"maven");
-  return toResolver(DependencyResolver.class,repository);
+  DependencyResolver resolver=toResolver(DependencyResolver.class,repository);
+  ConfigureUtil.configure(configClosure,resolver);
+  addRepository(new FixedResolverArtifactRepository(resolver),"maven");
+  return resolver;
 }
