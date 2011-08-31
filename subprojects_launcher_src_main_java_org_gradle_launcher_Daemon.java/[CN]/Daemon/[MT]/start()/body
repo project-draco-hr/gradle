@@ -1,0 +1,74 @@
+{
+  lifecycleLock.lock();
+  try {
+    if (stopped) {
+      throw new IllegalStateException("cannot start daemon as it has already been used");
+    }
+    if (started) {
+      throw new IllegalStateException("cannot start daemon as it is already running");
+    }
+    connectorAddress=connector.start(new IncomingConnectionHandler(){
+      public void handle(      final Connection<Object> connection){
+        handlersExecutor.execute(new Runnable(){
+          public void run(){
+            Command command=null;
+            try {
+              command=lockAndReceive(connection,control);
+              if (command == null || command instanceof Stop) {
+                if (command == null) {
+                  LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
+                }
+                unlock(control);
+                connection.stop();
+                stopLatch.countDown();
+                return;
+              }
+            }
+ catch (            BusyException e) {
+              connection.dispatch(new CommandComplete(e));
+              return;
+            }
+            try {
+              doRun(connection,control,command);
+            }
+  finally {
+              unlock(control);
+              connection.stop();
+            }
+          }
+        }
+);
+      }
+    }
+);
+    control.setActivityListener(new CompletionHandler.ActivityListener(){
+      public void onStart(){
+        daemonRegistry.markBusy(connectorAddress);
+      }
+      public void onComplete(){
+        daemonRegistry.markIdle(connectorAddress);
+      }
+    }
+);
+    stopperExecutor.execute(new Runnable(){
+      public void run(){
+        try {
+          stopLatch.await();
+        }
+ catch (        InterruptedException e) {
+          return;
+        }
+        daemonRegistry.remove(connectorAddress);
+        connector.stop();
+        handlersExecutor.stop();
+        control.stop();
+      }
+    }
+);
+    daemonRegistry.store(connectorAddress);
+    started=true;
+  }
+  finally {
+    lifecycleLock.unlock();
+  }
+}

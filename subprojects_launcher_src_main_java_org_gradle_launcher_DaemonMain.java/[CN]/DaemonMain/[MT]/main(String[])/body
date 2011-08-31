@@ -1,7 +1,19 @@
 {
   StartParameter startParameter=new DefaultCommandLineConverter().convert(Arrays.asList(args));
-  DaemonServerConnector connector=new DaemonServerConnector(new PersistentDaemonRegistry(startParameter.getGradleUserHomeDir()));
   redirectOutputsAndInput(startParameter);
   LoggingServiceRegistry loggingServices=LoggingServiceRegistry.newChildProcessLogging();
-  new Daemon(loggingServices,connector,startParameter).run();
+  DaemonServerConnector connector=new DaemonServerConnector();
+  DaemonRegistry daemonRegistry=new PersistentDaemonRegistry(startParameter.getGradleUserHomeDir());
+  int idleTimeout=getIdleTimeout(startParameter);
+  LOGGER.info("Daemon idle timeout is configured to: " + idleTimeout / 1000 + " secs");
+  Daemon daemon=new Daemon(loggingServices,connector,daemonRegistry);
+  daemon.start();
+  boolean wasStopped=daemon.awaitStopOrIdleTimeout(idleTimeout);
+  if (wasStopped) {
+    LOGGER.info("Daemon stopping due to stop request");
+  }
+ else {
+    LOGGER.info("Daemon hit idle timeout (" + idleTimeout / 1000 + " secs), stopping");
+    daemon.stop();
+  }
 }
