@@ -14,13 +14,10 @@
             Command command=null;
             try {
               command=lockAndReceive(connection,control);
-              if (command == null || command instanceof Stop) {
-                if (command == null) {
-                  LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
-                }
+              if (command == null) {
+                LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
                 unlock(control);
                 connection.stop();
-                stopLatch.countDown();
                 return;
               }
             }
@@ -66,9 +63,15 @@
     }
 );
     daemonRegistry.store(connectorAddress);
+    control.start();
     started=true;
+    LOGGER.lifecycle("Daemon started at: " + new Date() + ", with address: "+ connectorAddress);
   }
-  finally {
+ catch (  Exception e) {
+    LOGGER.warn("exception starting daemon",e);
+    stopLatch.countDown();
+  }
+ finally {
     lifecycleLock.unlock();
   }
 }
