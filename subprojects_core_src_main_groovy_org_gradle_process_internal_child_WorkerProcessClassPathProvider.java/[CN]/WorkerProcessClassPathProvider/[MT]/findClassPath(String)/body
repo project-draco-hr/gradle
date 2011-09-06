@@ -1,12 +1,22 @@
 {
-  if (!name.equals("WORKER_MAIN")) {
-    return super.findClassPath(name);
+  if (name.equals("WORKER_PROCESS")) {
+    Set<File> classpath=new LinkedHashSet<File>();
+    classpath.addAll(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
+    classpath.addAll(moduleRegistry.getModule("gradle-cli").getImplementationClasspath());
+    classpath.addAll(moduleRegistry.getExternalModule("slf4j-api").getClasspath());
+    classpath.addAll(moduleRegistry.getExternalModule("logback-classic").getClasspath());
+    classpath.addAll(moduleRegistry.getExternalModule("logback-core").getClasspath());
+    classpath.addAll(moduleRegistry.getExternalModule("jul-to-slf4j").getClasspath());
+    return classpath;
   }
+  if (name.equals("WORKER_MAIN")) {
 synchronized (lock) {
-    if (workerClassPath == null) {
-      PersistentCache cache=cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
-      workerClassPath=Collections.singleton(classesDir(cache));
+      if (workerClassPath == null) {
+        PersistentCache cache=cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
+        workerClassPath=Collections.singleton(classesDir(cache));
+      }
+      return workerClassPath;
     }
-    return workerClassPath;
   }
+  return null;
 }

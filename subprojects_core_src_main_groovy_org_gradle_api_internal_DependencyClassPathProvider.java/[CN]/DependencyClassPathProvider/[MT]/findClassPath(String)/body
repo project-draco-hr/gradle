@@ -1,10 +1,13 @@
 {
   if (name.equals(GRADLE_API.name())) {
     Set<File> classpath=new LinkedHashSet<File>();
-    getRuntimeClasspath("gradle-core",classpath);
-    getRuntimeClasspath("gradle-core-impl",classpath);
-    getRuntimeClasspath("gradle-plugins",classpath);
+    classpath.addAll(moduleRegistry.getModule("gradle-core").getClasspath());
+    classpath.addAll(moduleRegistry.getModule("gradle-core-impl").getClasspath());
+    classpath.addAll(moduleRegistry.getModule("gradle-plugins").getClasspath());
     return classpath;
   }
-  return super.findClassPath(name);
+  if (name.equals(LOCAL_GROOVY.name())) {
+    return moduleRegistry.getExternalModule("groovy-all").getClasspath();
+  }
+  return null;
 }

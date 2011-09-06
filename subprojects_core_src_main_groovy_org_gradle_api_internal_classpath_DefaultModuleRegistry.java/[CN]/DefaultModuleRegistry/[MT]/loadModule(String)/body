@@ -1,24 +1,27 @@
 {
-  List<File> implementationClasspath=new ArrayList<File>();
-  String resource=String.format("%s-classpath.properties",name);
+  Set<File> implementationClasspath=new LinkedHashSet<File>();
+  String resource=String.format("%s-classpath.properties",moduleName);
   Properties properties;
   URL url=classLoader.getResource(resource);
   if (url != null) {
     properties=GUtil.loadProperties(url);
-    findImplementationClasspath(name,implementationClasspath);
+    findImplementationClasspath(moduleName,implementationClasspath);
     implementationClasspath.add(ClasspathUtil.getClasspathForResource(classLoader,resource));
   }
  else   if (distDir != null) {
-    File jarFile=findModuleJar(name);
+    File jarFile=findModuleJar(moduleName);
     implementationClasspath.add(jarFile);
     properties=loadModuleProperties(jarFile,resource);
   }
  else {
     throw new IllegalArgumentException(String.format("Cannot locate classpath manifest '%s' in classpath.",resource));
   }
-  List<File> runtimeClasspath=new ArrayList<File>();
-  for (  String jarName : properties.getProperty("runtime").split(",")) {
-    runtimeClasspath.add(findDependencyJar(jarName));
+  Set<File> runtimeClasspath=new LinkedHashSet<File>();
+  String runtime=properties.getProperty("runtime").trim();
+  if (runtime.length() > 0) {
+    for (    String jarName : runtime.split(",")) {
+      runtimeClasspath.add(findDependencyJar(moduleName,jarName));
+    }
   }
   return new DefaultModule(implementationClasspath,runtimeClasspath);
 }
