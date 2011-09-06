@@ -1,27 +1,19 @@
 {
-  Set<File> implementationClasspath=new LinkedHashSet<File>();
-  String resource=String.format("%s-classpath.properties",moduleName);
-  Properties properties;
-  URL url=classLoader.getResource(resource);
-  if (url != null) {
-    properties=GUtil.loadProperties(url);
+  String resourceName=String.format("%s-classpath.properties",moduleName);
+  URL propertiesUrl=classLoader.getResource(resourceName);
+  if (propertiesUrl != null) {
+    Set<File> implementationClasspath=new LinkedHashSet<File>();
     findImplementationClasspath(moduleName,implementationClasspath);
-    implementationClasspath.add(ClasspathUtil.getClasspathForResource(classLoader,resource));
+    implementationClasspath.add(ClasspathUtil.getClasspathForResource(propertiesUrl,resourceName));
+    Properties properties=GUtil.loadProperties(propertiesUrl);
+    return module(moduleName,properties,implementationClasspath);
   }
- else   if (distDir != null) {
-    File jarFile=findModuleJar(moduleName);
-    implementationClasspath.add(jarFile);
-    properties=loadModuleProperties(jarFile,resource);
+  if (distDir == null) {
+    throw new IllegalArgumentException(String.format("Cannot locate classpath manifest for module '%s' in classpath.",moduleName));
   }
- else {
-    throw new IllegalArgumentException(String.format("Cannot locate classpath manifest '%s' in classpath.",resource));
-  }
-  Set<File> runtimeClasspath=new LinkedHashSet<File>();
-  String runtime=properties.getProperty("runtime").trim();
-  if (runtime.length() > 0) {
-    for (    String jarName : runtime.split(",")) {
-      runtimeClasspath.add(findDependencyJar(moduleName,jarName));
-    }
-  }
-  return new DefaultModule(implementationClasspath,runtimeClasspath);
+  Set<File> implementationClasspath=new LinkedHashSet<File>();
+  File jarFile=findModuleJar(moduleName);
+  implementationClasspath.add(jarFile);
+  Properties properties=loadModuleProperties(moduleName,jarFile);
+  return module(moduleName,properties,implementationClasspath);
 }
