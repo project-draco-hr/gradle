@@ -4,8 +4,14 @@
   if (deprecationChecksOn) {
     result.assertOutputHasNoDeprecationWarnings();
   }
-  if (tempFileChecksOn && getExecutable() == null) {
-    getTmpDir().assertIsEmptyDir();
+  if (getExecutable() == null) {
+    List<String> unexpectedFiles=new ArrayList<String>();
+    for (    File file : getTmpDir().listFiles()) {
+      if (!file.getName().matches("maven-artifact\\d+.tmp")) {
+        unexpectedFiles.add(file.getName());
+      }
+    }
+    Assert.assertThat(unexpectedFiles,Matchers.isEmpty());
   }
   return result;
 }
