@@ -1,9 +1,19 @@
 {
   if (t instanceof MultiCauseException) {
     MultiCauseException multiCauseException=(MultiCauseException)t;
-    causes.addAll(multiCauseException.getCauses());
+    List<? extends Throwable> causes=multiCauseException.getCauses();
+    for (    Throwable cause : causes) {
+      dest.add(cause);
+      if (cause.getClass().getAnnotation(Contextual.class) != null) {
+        addCauses(cause,dest);
+      }
+    }
   }
  else   if (t.getCause() != null) {
-    causes.add(t.getCause());
+    Throwable cause=t.getCause();
+    dest.add(cause);
+    if (cause.getClass().getAnnotation(Contextual.class) != null) {
+      addCauses(cause,dest);
+    }
   }
 }

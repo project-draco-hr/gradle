@@ -1,19 +1,16 @@
 {
   ModuleDescriptor moduleDescriptor=createAnonymousModuleDescriptor();
   prepareTestsThatRetrieveDependencies(moduleDescriptor);
-  prepareResolveReportWithError();
+  Exception failure=new Exception("broken");
+  prepareResolveReportWithError(failure);
   ResolvedConfiguration configuration=ivyDependencyResolver.resolve(configurationStub,ivyStub,moduleDescriptor);
-  context.checking(new Expectations(){
-{
-      allowing(configurationStub).getAllDependencies();
-    }
-  }
-);
+  assertTrue(configuration.hasError());
   try {
-    configuration.getFiles(Specs.SATISFIES_ALL);
+    configuration.rethrowFailure();
     fail();
   }
- catch (  GradleException e) {
+ catch (  ResolveException e) {
     assertThat(e.getMessage(),startsWith("Could not resolve all dependencies for <configuration>"));
+    assertThat(e.getCause(),sameInstance((Throwable)failure));
   }
 }

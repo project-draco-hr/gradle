@@ -1,9 +1,10 @@
 {
   if (hasError) {
-    Formatter formatter=new Formatter();
-    for (    String msg : problemMessages) {
-      formatter.format("    - %s%n",msg);
+    List<Throwable> unresolvedFailures=new ArrayList<Throwable>();
+    IvyNode[] unresolved=resolveReport.getConfigurationReport(configuration.getName()).getUnresolvedDependencies();
+    for (    IvyNode node : unresolved) {
+      unresolvedFailures.add(node.getProblem());
     }
-    throw new ResolveException(configuration,formatter.toString());
+    throw new ResolveException(configuration,problemMessages,unresolvedFailures);
   }
 }
