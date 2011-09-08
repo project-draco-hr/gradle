@@ -42,11 +42,17 @@
     }
 );
     control.setActivityListener(new CompletionHandler.ActivityListener(){
-      public void onStart(){
+      public void onStartActivity(){
         daemonRegistry.markBusy(connectorAddress);
       }
-      public void onComplete(){
+      public void onCompleteActivity(){
         daemonRegistry.markIdle(connectorAddress);
+      }
+      public void onStart(){
+        daemonRegistry.store(connectorAddress);
+      }
+      public void onStop(){
+        daemonRegistry.remove(connectorAddress);
       }
     }
 );
@@ -59,13 +65,11 @@
           return;
         }
         connector.stop();
-        daemonRegistry.remove(connectorAddress);
         control.stop();
         handlersExecutor.stop();
       }
     }
 );
-    daemonRegistry.store(connectorAddress);
     control.start();
     started=true;
     LOGGER.lifecycle("Daemon started at: " + new Date() + ", with address: "+ connectorAddress);
