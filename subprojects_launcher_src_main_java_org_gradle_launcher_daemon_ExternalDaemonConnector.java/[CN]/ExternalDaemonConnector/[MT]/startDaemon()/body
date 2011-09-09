@@ -1,5 +1,10 @@
 {
-  Set<File> bootstrapClasspath=new DefaultClassPathRegistry(new DefaultClassPathProvider(new DefaultModuleRegistry())).getClassPathFiles("GRADLE_BOOTSTRAP");
+  DefaultModuleRegistry registry=new DefaultModuleRegistry();
+  Set<File> bootstrapClasspath=new LinkedHashSet<File>();
+  bootstrapClasspath.addAll(registry.getModule("gradle-launcher").getImplementationClasspath());
+  if (registry.getGradleHome() == null) {
+    bootstrapClasspath.addAll(registry.getFullClasspath());
+  }
   if (bootstrapClasspath.isEmpty()) {
     throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
   }

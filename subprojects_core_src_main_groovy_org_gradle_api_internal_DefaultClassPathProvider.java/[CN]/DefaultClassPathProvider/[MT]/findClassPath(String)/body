@@ -1,6 +1,31 @@
 {
+  if (name.equals("GRADLE_RUNTIME")) {
+    Set<File> classpath=new LinkedHashSet<File>();
+    for (    Module module : moduleRegistry.getModule("gradle-launcher").getAllRequiredModules()) {
+      classpath.addAll(module.getClasspath());
+    }
+    return classpath;
+  }
+  if (name.equals("GRADLE_PLUGINS")) {
+    Set<File> classpath=new LinkedHashSet<File>();
+    Properties properties=loadPluginProperties();
+    for (    String pluginModule : properties.getProperty("plugins").split(",")) {
+      try {
+        classpath.addAll(moduleRegistry.getModule(pluginModule).getClasspath());
+      }
+ catch (      UnknownModuleException e) {
+      }
+    }
+    return classpath;
+  }
+  if (name.equals("GRADLE_CORE_IMPL")) {
+    return moduleRegistry.getModule("gradle-core-impl").getClasspath();
+  }
   if (name.equals("GRADLE_CORE")) {
     return moduleRegistry.getModule("gradle-core").getImplementationClasspath();
+  }
+  if (name.equals("COMMONS_CLI")) {
+    return moduleRegistry.getExternalModule("commons-cli").getClasspath();
   }
   if (name.equals("ANT")) {
     Set<File> classpath=new LinkedHashSet<File>();
@@ -8,8 +33,5 @@
     classpath.addAll(moduleRegistry.getExternalModule("ant-launcher").getClasspath());
     return classpath;
   }
-  if (name.equals("COMMONS_CLI")) {
-    return moduleRegistry.getExternalModule("commons-cli").getClasspath();
-  }
-  return super.findClassPath(name);
+  return null;
 }
