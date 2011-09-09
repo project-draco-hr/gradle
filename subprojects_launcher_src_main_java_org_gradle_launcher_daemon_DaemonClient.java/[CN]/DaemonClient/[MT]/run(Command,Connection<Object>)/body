@@ -2,7 +2,13 @@
   try {
     connection.dispatch(command);
     while (true) {
-      Object object=connection.receive();
+      Object object=null;
+      try {
+        object=connection.receive();
+      }
+ catch (      Exception e) {
+        LOGGER.warn("Client was unable to receive the message from daemon. Will retry...",e);
+      }
       if (object instanceof CommandComplete) {
         CommandComplete commandComplete=(CommandComplete)object;
         if (commandComplete.getFailure() != null) {
