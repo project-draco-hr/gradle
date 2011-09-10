@@ -1,12 +1,11 @@
 {
   project.getPlugins().apply(BasePlugin.class);
-  MavenPluginConvention pluginConvention=addConventionObject(project);
-  setConventionMapping(project,pluginConvention);
+  final MavenPluginConvention pluginConvention=addConventionObject(project);
   project.getTasks().withType(Upload.class,new Action<Upload>(){
     public void execute(    Upload upload){
       RepositoryHandler repositories=upload.getRepositories();
       DefaultRepositoryHandler handler=(DefaultRepositoryHandler)repositories;
-      DefaultMavenRepositoryHandlerConvention repositoryConvention=new DefaultMavenRepositoryHandlerConvention(handler);
+      DefaultMavenRepositoryHandlerConvention repositoryConvention=new DefaultMavenRepositoryHandlerConvention(handler,pluginConvention,pluginConvention.getConf2ScopeMappings(),project.getConfigurations());
       ((DynamicObjectAware)repositories).getConvention().getPlugins().put("maven",repositoryConvention);
     }
   }
@@ -14,14 +13,14 @@
   PluginContainer plugins=project.getPlugins();
   plugins.withType(JavaPlugin.class,new Action<JavaPlugin>(){
     public void execute(    JavaPlugin javaPlugin){
-      configureJavaScopeMappings(project.getRepositories(),project.getConfigurations());
+      configureJavaScopeMappings(project.getConfigurations(),pluginConvention.getConf2ScopeMappings());
       configureInstall(project);
     }
   }
 );
   plugins.withType(WarPlugin.class,new Action<WarPlugin>(){
     public void execute(    WarPlugin warPlugin){
-      configureWarScopeMappings(project.getRepositories(),project.getConfigurations());
+      configureWarScopeMappings(project.getConfigurations(),pluginConvention.getConf2ScopeMappings());
     }
   }
 );
