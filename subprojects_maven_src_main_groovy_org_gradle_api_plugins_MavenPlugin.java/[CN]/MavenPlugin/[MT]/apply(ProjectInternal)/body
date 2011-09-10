@@ -2,6 +2,15 @@
   project.getPlugins().apply(BasePlugin.class);
   MavenPluginConvention pluginConvention=addConventionObject(project);
   setConventionMapping(project,pluginConvention);
+  project.getTasks().withType(Upload.class,new Action<Upload>(){
+    public void execute(    Upload upload){
+      RepositoryHandler repositories=upload.getRepositories();
+      DefaultRepositoryHandler handler=(DefaultRepositoryHandler)repositories;
+      DefaultMavenRepositoryHandlerConvention repositoryConvention=new DefaultMavenRepositoryHandlerConvention(handler);
+      ((DynamicObjectAware)repositories).getConvention().getPlugins().put("maven",repositoryConvention);
+    }
+  }
+);
   PluginContainer plugins=project.getPlugins();
   plugins.withType(JavaPlugin.class,new Action<JavaPlugin>(){
     public void execute(    JavaPlugin javaPlugin){
