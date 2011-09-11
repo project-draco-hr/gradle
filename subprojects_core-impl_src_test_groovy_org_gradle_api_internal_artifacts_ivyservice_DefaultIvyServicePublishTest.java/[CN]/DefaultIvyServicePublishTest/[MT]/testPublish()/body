@@ -1,21 +1,23 @@
 {
   final IvySettings ivySettingsDummy=new IvySettings();
-  final Configuration configuration=context.mock(Configuration.class);
+  final ConfigurationInternal configuration=context.mock(ConfigurationInternal.class);
   final Set<Configuration> configurations=createConfiguration();
   final File someDescriptorDestination=new File("somePath");
   final List<DependencyResolver> publishResolversDummy=createPublishResolversDummy();
   final Module moduleDummy=context.mock(Module.class,"moduleForResolve");
   final DefaultIvyService ivyService=createIvyService();
-  setUpForPublish(configurations,publishResolversDummy,moduleDummy,ivyService,ivySettingsDummy);
+  setUpForPublish(configurations,publishResolversDummy,moduleDummy,ivySettingsDummy);
   final Set<String> expectedConfigurations=Configurations.getNames(configurations,true);
   context.checking(new Expectations(){
 {
       allowing(configuration).getHierarchy();
       will(returnValue(configurations));
+      allowing(configuration).getModule();
+      will(returnValue(moduleDummy));
       allowing(resolverProvider).getResolvers();
       will(returnValue(publishResolversDummy));
       one(fileModuleDescriptorMock).toIvyFile(someDescriptorDestination);
-      one(ivyService.getDependencyPublisher()).publish(expectedConfigurations,publishResolversDummy,publishModuleDescriptorDummy,someDescriptorDestination,publishEngineDummy);
+      one(ivyDependencyPublisherMock).publish(expectedConfigurations,publishResolversDummy,publishModuleDescriptorDummy,someDescriptorDestination,publishEngineDummy);
     }
   }
 );

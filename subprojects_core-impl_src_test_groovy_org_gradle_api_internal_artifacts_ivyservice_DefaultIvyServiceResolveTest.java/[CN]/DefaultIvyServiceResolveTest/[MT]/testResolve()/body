@@ -2,7 +2,6 @@
   final ConfigurationInternal configurationDummy=context.mock(ConfigurationInternal.class);
   final Set<? extends Configuration> configurations=WrapUtil.toSet(configurationDummy);
   final ResolvedConfiguration resolvedConfiguration=context.mock(ResolvedConfiguration.class);
-  final ModuleDescriptor moduleDescriptorDummy=HelperUtil.createModuleDescriptor(WrapUtil.toSet("someConf"));
   final Ivy ivyStub=context.mock(Ivy.class);
   final IvySettings ivySettingsDummy=new IvySettings();
   context.checking(new Expectations(){
@@ -13,13 +12,11 @@
       will(returnValue(configurations));
       allowing(ivyStub).getSettings();
       will(returnValue(ivySettingsDummy));
-      allowing(ivyService.getDependencyResolver()).resolve(configurationDummy,ivyStub,moduleDescriptorDummy);
+      allowing(ivyDependencyResolverMock).resolve(configurationDummy,ivyStub);
       will(returnValue(resolvedConfiguration));
-      allowing(ivyService.getResolveModuleDescriptorConverter()).convert(WrapUtil.toSet(configurationDummy),moduleDummy,ivySettingsDummy);
-      will(returnValue(moduleDescriptorDummy));
       allowing(resolverProvider).getResolvers();
       will(returnValue(WrapUtil.toList(resolverMock)));
-      allowing(ivyService.getSettingsConverter()).convertForResolve(WrapUtil.toList(internalRepositoryDummy,resolverMock),clientModuleRegistryDummy);
+      allowing(settingsConverterMock).convertForResolve(WrapUtil.toList(internalRepositoryDummy,resolverMock),clientModuleRegistryDummy);
       will(returnValue(ivySettingsDummy));
     }
   }
