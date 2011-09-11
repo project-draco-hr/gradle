@@ -52,7 +52,9 @@
         daemonRegistry.store(connectorAddress);
       }
       public void onStop(){
+        LOGGER.info("Removing our presence to clients, eg. removing this address from the registry: " + connectorAddress);
         daemonRegistry.remove(connectorAddress);
+        LOGGER.info("Address removed from registry.");
       }
     }
 );
@@ -64,9 +66,13 @@
  catch (        InterruptedException e) {
           return;
         }
+        LOGGER.info("Received Stop request. Daemon is stopping accepting new connections...");
         connector.stop();
+        LOGGER.info("Waking and signalling stop to the main daemon thread...");
         control.stop();
+        LOGGER.info("Gracefully stopping the connection handling thread...");
         handlersExecutor.stop();
+        LOGGER.info("Daemon is stopped!");
       }
     }
 );
