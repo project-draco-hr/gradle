@@ -2,26 +2,12 @@
   if (artifactPatterns.isEmpty()) {
     throw new InvalidUserDataException("You must specify at least one artifact pattern for an Ivy repository.");
   }
-  for (  String artifactPattern : artifactPatterns) {
-    int pos=artifactPattern.indexOf('[');
-    String basePath=pos < 0 ? artifactPattern : artifactPattern.substring(0,pos);
-    URI baseUri=resolver.resolveUri(basePath);
-    String pattern=pos < 0 ? "" : artifactPattern.substring(pos);
-    String absolutePattern=baseUri.toString() + pattern;
-    RepositoryResolver resolver;
-    if ("http".equalsIgnoreCase(baseUri.getScheme()) || "https".equalsIgnoreCase(baseUri.getScheme())) {
-      resolver=http();
-    }
- else     if ("file".equalsIgnoreCase(baseUri.getScheme())) {
-      absolutePattern=baseUri.getPath() + '/' + pattern;
-      resolver=file();
-    }
- else {
-      resolver=url();
-    }
-    resolver.setName(name);
-    resolver.addArtifactPattern(absolutePattern);
-    resolver.addIvyPattern(absolutePattern);
-    resolvers.add(resolver);
+  List<ResolvedPattern> resolvedPatterns=resolvePatterns(artifactPatterns);
+  RepositoryResolver resolver=createResolver(resolvedPatterns);
+  resolver.setName(name);
+  for (  ResolvedPattern resolvedPattern : resolvedPatterns) {
+    resolver.addArtifactPattern(resolvedPattern.absolutePattern);
+    resolver.addIvyPattern(resolvedPattern.absolutePattern);
   }
+  resolvers.add(resolver);
 }
