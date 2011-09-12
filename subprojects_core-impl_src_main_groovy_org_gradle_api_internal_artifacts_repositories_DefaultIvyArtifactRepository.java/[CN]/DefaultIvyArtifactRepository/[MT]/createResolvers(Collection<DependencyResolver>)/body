@@ -2,12 +2,16 @@
   if (artifactPatterns.isEmpty()) {
     throw new InvalidUserDataException("You must specify at least one artifact pattern for an Ivy repository.");
   }
-  List<ResolvedPattern> resolvedPatterns=resolvePatterns(artifactPatterns);
-  RepositoryResolver resolver=createResolver(resolvedPatterns);
+  List<ResolvedPattern> resolvedArtifactPatterns=resolvePatterns(artifactPatterns);
+  List<ResolvedPattern> resolvedIvyPatterns=ivyPatterns.isEmpty() ? resolvedArtifactPatterns : resolvePatterns(ivyPatterns);
+  Set<String> schemes=getUniqueSchemes(resolvedArtifactPatterns,resolvedIvyPatterns);
+  RepositoryResolver resolver=createResolver(schemes);
   resolver.setName(name);
-  for (  ResolvedPattern resolvedPattern : resolvedPatterns) {
+  for (  ResolvedPattern resolvedPattern : resolvedArtifactPatterns) {
     resolver.addArtifactPattern(resolvedPattern.absolutePattern);
-    resolver.addIvyPattern(resolvedPattern.absolutePattern);
+  }
+  for (  ResolvedPattern resolvedIvyPattern : resolvedIvyPatterns) {
+    resolver.addIvyPattern(resolvedIvyPattern.absolutePattern);
   }
   resolvers.add(resolver);
 }
