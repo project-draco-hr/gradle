@@ -1,9 +1,9 @@
 {
-  if (artifactPatterns.isEmpty()) {
-    throw new InvalidUserDataException("You must specify at least one artifact pattern for an Ivy repository.");
+  List<ResolvedPattern> resolvedArtifactPatterns=resolvePatterns(artifactPatterns,DEFAULT_ARTIFACT_PATTERN);
+  List<ResolvedPattern> resolvedIvyPatterns=GUtil.elvis(resolvePatterns(ivyPatterns,DEFAULT_IVY_PATTERN),resolvedArtifactPatterns);
+  if (resolvedArtifactPatterns.isEmpty()) {
+    throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
   }
-  List<ResolvedPattern> resolvedArtifactPatterns=resolvePatterns(artifactPatterns);
-  List<ResolvedPattern> resolvedIvyPatterns=ivyPatterns.isEmpty() ? resolvedArtifactPatterns : resolvePatterns(ivyPatterns);
   Set<String> schemes=getUniqueSchemes(resolvedArtifactPatterns,resolvedIvyPatterns);
   RepositoryResolver resolver=createResolver(schemes);
   resolver.setName(name);
