@@ -1,0 +1,30 @@
+{
+  Command command=(Command)connection.receive();
+  if (command == null) {
+    LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
+    connection.stop();
+    return;
+  }
+  if (command instanceof Stop) {
+    LOGGER.lifecycle("Stopping");
+    connection.dispatch(new CommandComplete(null));
+    stopLatch.countDown();
+    stopperExecutor.stop();
+    return;
+  }
+  try {
+    control.onStartActivity();
+  }
+ catch (  BusyException e) {
+    LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
+    connection.dispatch(new CommandComplete(e));
+    return;
+  }
+  try {
+    doRun(connection,command);
+  }
+  finally {
+    control.onActivityComplete();
+    connection.stop();
+  }
+}
