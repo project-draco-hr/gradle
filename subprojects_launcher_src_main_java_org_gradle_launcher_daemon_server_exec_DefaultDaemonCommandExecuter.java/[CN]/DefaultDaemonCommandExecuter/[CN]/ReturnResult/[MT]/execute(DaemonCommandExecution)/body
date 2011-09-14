@@ -1,0 +1,15 @@
+{
+  execution.proceed();
+  Object toReturn=null;
+  Throwable exception=execution.getException();
+  if (exception != null) {
+    if (!(exception instanceof ReportedException)) {
+      LOGGER.error("Could not execute build.",exception);
+    }
+    toReturn=new CommandComplete(UncheckedException.asUncheckedException(exception));
+  }
+ else {
+    toReturn=new Result(execution.getResult());
+  }
+  execution.getConnection().dispatch(toReturn);
+}
