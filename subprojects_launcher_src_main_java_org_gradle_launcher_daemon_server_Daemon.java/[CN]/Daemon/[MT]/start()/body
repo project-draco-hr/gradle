@@ -1,7 +1,7 @@
 {
   lifecycleLock.lock();
   try {
-    if (started) {
+    if (stateCoordinator.isStarted()) {
       throw new IllegalStateException("cannot start daemon as it is already running");
     }
     connectorAddress=connector.start(new IncomingConnectionHandler(){
@@ -21,7 +21,6 @@
       }
     }
 );
-    control.setActivityListener(new DomainRegistryUpdater(daemonRegistry,connectorAddress));
     stopperExecutor.execute(new Runnable(){
       public void run(){
         try {
@@ -30,16 +29,12 @@
  catch (        InterruptedException e) {
           return;
         }
-        LOGGER.info("Stop requested. Daemon is stopping accepting new connections...");
-        connector.stop();
-        LOGGER.info("Waking and signalling stop to the main daemon thread...");
-        control.stop();
+        onStop();
       }
     }
 );
-    control.start();
-    started=true;
-    LOGGER.lifecycle("Daemon started at: " + new Date() + ", with address: "+ connectorAddress);
+    registryUpdater=new DomainRegistryUpdater(daemonRegistry,connectorAddress);
+    onStart();
   }
  catch (  Exception e) {
     LOGGER.warn("exception starting daemon",e);
