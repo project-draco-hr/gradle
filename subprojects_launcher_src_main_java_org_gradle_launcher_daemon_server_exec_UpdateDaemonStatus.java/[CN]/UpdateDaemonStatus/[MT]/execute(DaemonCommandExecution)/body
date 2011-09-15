@@ -1,12 +1,11 @@
 {
-  try {
-    execution.getDaemonStateCoordinator().onStartActivity();
+  DaemonStateCoordinator stateCoordinator=execution.getDaemonStateCoordinator();
+  DaemonCommandExecution existingExecution=stateCoordinator.onStartCommand(execution);
+  if (existingExecution != null) {
+    execution.getConnection().dispatch(new DaemonBusy(existingExecution.getCommand()));
   }
- catch (  BusyException e) {
-    LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
-    execution.setException(e);
-    return;
+ else {
+    execution.proceed();
+    stateCoordinator.onFinishCommand();
   }
-  execution.proceed();
-  execution.getDaemonStateCoordinator().onActivityComplete();
 }

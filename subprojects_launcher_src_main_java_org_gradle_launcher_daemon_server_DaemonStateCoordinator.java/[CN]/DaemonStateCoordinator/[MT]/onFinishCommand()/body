@@ -1,0 +1,16 @@
+{
+  lock.lock();
+  try {
+    DaemonCommandExecution execution=currentCommandExecution;
+    if (execution != null) {
+      currentCommandExecution=null;
+      updateActivityTimestamp();
+      onFinishCommand.run();
+      condition.signalAll();
+    }
+    return execution;
+  }
+  finally {
+    lock.unlock();
+  }
+}

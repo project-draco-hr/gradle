@@ -3,19 +3,18 @@
   LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
   while (true) {
     Connection<Object> connection=connector.connect();
-    try {
-      Result result=runBuild(new Build(action,parameters),connection);
-      if (result instanceof Failure) {
-        throw ((Failure)result).getValue();
-      }
- else       if (result instanceof Success) {
-        return (T)result.getValue();
-      }
- else {
-        throw new IllegalStateException(String.format("Daemon returned %s which is neither Success or Failure result",result));
-      }
+    Result result=runBuild(new Build(action,parameters),connection);
+    if (result instanceof DaemonBusy) {
+      continue;
     }
- catch (    BusyException e) {
+ else     if (result instanceof Failure) {
+      throw ((Failure)result).getValue();
+    }
+ else     if (result instanceof Success) {
+      return (T)result.getValue();
+    }
+ else {
+      throw new IllegalStateException(String.format("Daemon returned %s for which there is no strategy to handle (i.e. is an unknown Result type)",result));
     }
   }
 }
