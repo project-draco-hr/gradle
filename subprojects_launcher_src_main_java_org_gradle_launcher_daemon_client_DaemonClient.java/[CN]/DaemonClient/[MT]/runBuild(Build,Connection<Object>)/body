@@ -3,22 +3,17 @@
     connection.dispatch(build);
     while (true) {
       Object object=connection.receive();
-      if (object instanceof CommandComplete) {
-        CommandComplete commandComplete=(CommandComplete)object;
-        if (commandComplete.getFailure() != null) {
-          throw commandComplete.getFailure();
-        }
-        return commandComplete;
-      }
- else       if (object instanceof OutputEvent) {
-        OutputEvent outputEvent=(OutputEvent)object;
-        outputEventListener.onOutput(outputEvent);
-      }
- else       if (object == null) {
+      if (object == null) {
         throw new IllegalStateException(String.format("Daemon returned null after we sent %s",build));
       }
+ else       if (object instanceof OutputEvent) {
+        outputEventListener.onOutput((OutputEvent)object);
+      }
+ else       if (object instanceof Result) {
+        return (Result)object;
+      }
  else {
-        throw new IllegalStateException(String.format("Daemon returned %s (type: %s) which there is no strategy to respond to",object,object.getClass()));
+        throw new IllegalStateException(String.format("Daemon returned %s (type: %s) for which there is no strategy to handle",object,object.getClass()));
       }
     }
   }

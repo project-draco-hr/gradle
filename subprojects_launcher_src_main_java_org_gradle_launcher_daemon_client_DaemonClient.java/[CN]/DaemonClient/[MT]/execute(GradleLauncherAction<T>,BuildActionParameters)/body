@@ -4,8 +4,16 @@
   while (true) {
     Connection<Object> connection=connector.connect();
     try {
-      Result result=(Result)runBuild(new Build(action,parameters),connection);
-      return (T)result.getResult();
+      Result result=runBuild(new Build(action,parameters),connection);
+      if (result instanceof Failure) {
+        throw ((Failure)result).getValue();
+      }
+ else       if (result instanceof Success) {
+        return (T)result.getValue();
+      }
+ else {
+        throw new IllegalStateException(String.format("Daemon returned %s which is neither Success or Failure result",result));
+      }
     }
  catch (    BusyException e) {
     }
