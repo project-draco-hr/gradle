@@ -1,2 +1,38 @@
 {
+  lock.lock();
+  try {
+    LOGGER.lifecycle("waiting for daemon to stop or be idle for {}ms",timeout);
+    while (true) {
+      if (isStopped()) {
+        return true;
+      }
+ else       if (hasBeenIdleFor(timeout)) {
+        return false;
+      }
+      try {
+        if (!isStarted()) {
+          LOGGER.lifecycle("waiting for daemon to stop or idle timeout, daemon has not yet started, sleeping until then");
+          condition.await();
+        }
+ else         if (isBusy()) {
+          LOGGER.lifecycle("waiting for daemon to stop or idle timeout, daemon is busy, sleeping until it finishes");
+          condition.await();
+        }
+ else         if (isIdle()) {
+          Date waitUntil=new Date(lastActivityAt + timeout);
+          LOGGER.lifecycle("waiting for daemon to stop or idle timeout, daemon is idle, sleeping until daemon state change or idle timeout at {}",waitUntil);
+          condition.awaitUntil(waitUntil);
+        }
+ else {
+          throw new IllegalStateException("waiting for daemon to stop or idle timeout, daemon has started but is not busy or idle, this shouldn't happen");
+        }
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.asUncheckedException(e);
+      }
+    }
+  }
+  finally {
+    lock.unlock();
+  }
 }
