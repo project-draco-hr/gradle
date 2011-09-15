@@ -1,7 +1,7 @@
 {
   lifecycleLock.lock();
   try {
-    if (stateCoordinator.isStarted()) {
+    if (stateCoordinator != null) {
       throw new IllegalStateException("cannot start daemon as it is already running");
     }
     connectorAddress=connector.start(new IncomingConnectionHandler(){
@@ -21,26 +21,38 @@
       }
     }
 );
-    stopperExecutor.execute(new Runnable(){
+    registryUpdater=new DomainRegistryUpdater(daemonRegistry,connectorAddress);
+    Runnable startHandler=new Runnable(){
       public void run(){
-        try {
-          stopLatch.await();
-        }
- catch (        InterruptedException e) {
-          return;
-        }
-        onStop();
+        LOGGER.lifecycle("Daemon starting at: " + new Date() + ", with address: "+ connectorAddress);
+        registryUpdater.onStart();
       }
     }
-);
-    registryUpdater=new DomainRegistryUpdater(daemonRegistry,connectorAddress);
-    onStart();
+;
+    Runnable startActivityHandler=new Runnable(){
+      public void run(){
+        registryUpdater.onStartActivity();
+      }
+    }
+;
+    Runnable completeActivityHandler=new Runnable(){
+      public void run(){
+        registryUpdater.onCompleteActivity();
+      }
+    }
+;
+    Runnable stopHandler=new Runnable(){
+      public void run(){
+        LOGGER.info("Stop requested. Daemon is stopping accepting new connections...");
+        registryUpdater.onStop();
+        connector.stop();
+      }
+    }
+;
+    stateCoordinator=new DaemonStateCoordinator(startHandler,startActivityHandler,completeActivityHandler,stopHandler);
+    stateCoordinator.start();
   }
- catch (  Exception e) {
-    LOGGER.warn("exception starting daemon",e);
-    stopLatch.countDown();
-  }
- finally {
+  finally {
     lifecycleLock.unlock();
   }
 }

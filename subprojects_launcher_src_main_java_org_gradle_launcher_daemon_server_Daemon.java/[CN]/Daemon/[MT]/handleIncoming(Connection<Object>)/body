@@ -8,12 +8,11 @@
   if (command instanceof Stop) {
     LOGGER.lifecycle("Stopping");
     connection.dispatch(new CommandComplete(null));
-    stopLatch.countDown();
-    stopperExecutor.stop();
+    stateCoordinator.requestStop();
     return;
   }
   try {
-    onStartActivity();
+    stateCoordinator.onStartActivity();
   }
  catch (  BusyException e) {
     LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
@@ -24,7 +23,7 @@
     commandExecuter.executeCommand(connection,command);
   }
   finally {
-    onCompleteActivity();
+    stateCoordinator.onActivityComplete();
     connection.stop();
   }
 }
