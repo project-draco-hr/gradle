@@ -1,7 +1,10 @@
 {
-  Set<ResolvedArtifact> someModuleArtifacts=WrapUtil.<ResolvedArtifact>toSet(createArtifact("moduleArtifact"));
-  Set<ResolvedArtifact> someChildModuleArtifacts=WrapUtil.<ResolvedArtifact>toSet(createArtifact("childModuleArtifact"));
-  DefaultResolvedDependency resolvedDependency=new DefaultResolvedDependency("someGroup","someName","someVersion","someConfiguration",someModuleArtifacts);
-  resolvedDependency.getChildren().add(new DefaultResolvedDependency("someGroup","someChild","someVersion","someChildConfiguration",someChildModuleArtifacts));
-  assertThat(resolvedDependency.getAllModuleArtifacts(),equalTo(GUtil.addSets(someChildModuleArtifacts,someModuleArtifacts)));
+  ResolvedArtifact moduleArtifact=createArtifact("moduleArtifact");
+  ResolvedArtifact childModuleArtifact=createArtifact("childModuleArtifact");
+  DefaultResolvedDependency resolvedDependency=new DefaultResolvedDependency("someGroup","someName","someVersion","someConfiguration");
+  resolvedDependency.addModuleArtifact(moduleArtifact);
+  DefaultResolvedDependency childDependency=new DefaultResolvedDependency("someGroup","someChild","someVersion","someChildConfiguration");
+  childDependency.addModuleArtifact(childModuleArtifact);
+  resolvedDependency.getChildren().add(childDependency);
+  assertThat(resolvedDependency.getAllModuleArtifacts(),equalTo(WrapUtil.toSet(moduleArtifact,childModuleArtifact)));
 }

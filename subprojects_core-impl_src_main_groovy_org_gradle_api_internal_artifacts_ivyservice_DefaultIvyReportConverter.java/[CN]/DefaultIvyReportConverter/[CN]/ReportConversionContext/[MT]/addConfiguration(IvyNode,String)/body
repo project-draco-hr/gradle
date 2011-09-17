@@ -3,13 +3,14 @@
   Set<String> configurations=getConfigurationHierarchy(ivyNode,configuration);
   DefaultResolvedDependency resolvedDependency;
   if (actualId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY) != null) {
-    resolvedDependency=new DefaultResolvedDependency(actualId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY),actualId.getOrganisation(),actualId.getName(),actualId.getRevision(),configuration,getArtifacts(ivyNode));
+    resolvedDependency=new DefaultResolvedDependency(actualId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY),actualId.getOrganisation(),actualId.getName(),actualId.getRevision(),configuration);
   }
  else {
-    resolvedDependency=new DefaultResolvedDependency(actualId.getOrganisation(),actualId.getName(),actualId.getRevision(),configuration,getArtifacts(ivyNode));
+    resolvedDependency=new DefaultResolvedDependency(actualId.getOrganisation(),actualId.getName(),actualId.getRevision(),configuration);
   }
-  for (  ResolvedArtifact resolvedArtifact : resolvedDependency.getModuleArtifacts()) {
-    ((DefaultResolvedArtifact)resolvedArtifact).setResolvedDependency(resolvedDependency);
+  Set<ResolvedArtifact> moduleArtifacts=getArtifacts(resolvedDependency,ivyNode);
+  for (  ResolvedArtifact artifact : moduleArtifacts) {
+    resolvedDependency.addModuleArtifact(artifact);
   }
   ConfigurationDetails configurationDetails=new ConfigurationDetails(resolvedDependency,ivyNode,configurations);
   this.configurations.put(resolvedDependency.getId(),configurationDetails);
