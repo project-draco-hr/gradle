@@ -4,15 +4,16 @@
   for (  URL url : ClasspathUtil.getClasspath(classLoader)) {
     if (url.getProtocol().equals("file")) {
       try {
-        File entry=new File(url.toURI());
-        classpath.add(entry);
-        if (entry.isFile()) {
-          classpathJars.put(entry.getName(),entry);
-        }
+        addClasspathEntry(new File(url.toURI()));
       }
  catch (      URISyntaxException e) {
         throw new UncheckedIOException(e);
       }
+    }
+  }
+  if (classLoader == ClassLoader.getSystemClassLoader()) {
+    for (    String value : System.getProperty("java.class.path").split(File.pathSeparator)) {
+      addClasspathEntry(new File(value));
     }
   }
   if (distDir != null) {
