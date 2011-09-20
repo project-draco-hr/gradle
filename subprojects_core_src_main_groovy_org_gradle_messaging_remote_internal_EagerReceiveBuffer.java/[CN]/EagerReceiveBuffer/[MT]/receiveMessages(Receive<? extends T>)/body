@@ -8,11 +8,14 @@
       LOGGER.error("receiver {} threw exception {}",receiver,e);
       return;
     }
-    if (message == null) {
-      return;
-    }
     lock.lock();
     try {
+      if (message == null) {
+        if (numActiveReceivers == 1) {
+          onReceiversExhausted();
+        }
+        return;
+      }
       while (queue.size() == bufferSize && state == State.Started) {
         try {
           notFullOrStop.await();

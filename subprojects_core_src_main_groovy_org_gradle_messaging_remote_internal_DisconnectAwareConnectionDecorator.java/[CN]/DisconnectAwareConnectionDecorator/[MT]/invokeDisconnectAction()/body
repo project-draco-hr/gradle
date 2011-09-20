@@ -1,0 +1,28 @@
+{
+  if (!stopped) {
+    try {
+      actionSetLatch.await();
+    }
+ catch (    InterruptedException e) {
+      throw UncheckedException.asUncheckedException(e);
+    }
+    actionLock.lock();
+    try {
+      if (disconnectAction != null) {
+        LOGGER.debug("about to invoke disconnection handler {}",disconnectAction);
+        try {
+          disconnectAction.run();
+        }
+ catch (        Exception e) {
+          e.printStackTrace();
+          LOGGER.error("disconnection handler threw exception",e);
+          throw UncheckedException.asUncheckedException(e);
+        }
+        LOGGER.info("completed disconnection handler {}",disconnectAction);
+      }
+    }
+  finally {
+      actionLock.unlock();
+    }
+  }
+}
