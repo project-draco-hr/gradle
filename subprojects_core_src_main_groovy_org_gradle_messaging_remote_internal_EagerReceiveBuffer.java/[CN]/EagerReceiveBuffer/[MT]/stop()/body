@@ -1,0 +1,17 @@
+{
+  lock.lock();
+  try {
+    doRequestStop();
+    while (numActiveReceivers > 0) {
+      notEmptyOrNoReceivers.await();
+    }
+    executor.stop();
+    setState(State.Stopped);
+  }
+ catch (  InterruptedException e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+ finally {
+    lock.unlock();
+  }
+}

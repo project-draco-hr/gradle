@@ -1,0 +1,34 @@
+{
+  while (true) {
+    T message=null;
+    try {
+      message=receiver.receive();
+    }
+ catch (    Exception e) {
+      LOGGER.error("receiver {} threw exception {}",receiver,e);
+      return;
+    }
+    if (message == null) {
+      return;
+    }
+    lock.lock();
+    try {
+      while (queue.size() == bufferSize && state == State.Started) {
+        try {
+          notFullOrStop.await();
+        }
+ catch (        InterruptedException e) {
+          throw UncheckedException.asUncheckedException(e);
+        }
+      }
+      queue.add(message);
+      notEmptyOrNoReceivers.signalAll();
+      if (state != State.Started) {
+        return;
+      }
+    }
+  finally {
+      lock.unlock();
+    }
+  }
+}
