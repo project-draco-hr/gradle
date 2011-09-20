@@ -1,11 +1,18 @@
 {
   IvySettings ivySettings=new IvySettings();
-  PersistentCache cache=cacheRepository.store(String.format("artifacts/%d",CACHE_LAYOUT_VERSION)).withVersionStrategy(VersionStrategy.SharedCache).open();
-  ivySettings.setDefaultCache(cache.getBaseDir());
+  ivySettings.setDefaultCache(cacheMetaData.getCacheDir());
   ivySettings.setDefaultCacheIvyPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_IVY_PATTERN);
   ivySettings.setDefaultCacheArtifactPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
   ivySettings.setVariable("ivy.log.modules.in.use","false");
   WharfCacheManager cacheManager=WharfCacheManager.newInstance(ivySettings);
+  try {
+    Field field=WharfCacheManager.class.getDeclaredField("lockFactory");
+    field.setAccessible(true);
+    field.set(cacheManager,lockHolderFactory);
+  }
+ catch (  Exception e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
   ivySettings.setDefaultRepositoryCacheManager(cacheManager);
   return ivySettings;
 }

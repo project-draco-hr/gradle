@@ -15,15 +15,13 @@
     }
   }
 );
-  final ResolveEngine resolveEngineMock=context.mock(ResolveEngine.class,"engine" + name);
-  final ArtifactDownloadReport artifactDownloadReport=new ArtifactDownloadReport(artifactStub);
-  artifactDownloadReport.setLocalFile(file);
+  final FileSource artifactSource=context.mock(FileSource.class);
   context.checking(new Expectations(){
 {
-      one(resolveEngineMock).download(with(equal(artifactStub)),with(any(DownloadOptions.class)));
-      will(returnValue(artifactDownloadReport));
+      allowing(artifactSource).get();
+      will(returnValue(file));
     }
   }
 );
-  return new DefaultResolvedArtifact(context.mock(ResolvedDependency.class),artifactStub,resolveEngineMock);
+  return new DefaultResolvedArtifact(context.mock(ResolvedDependency.class),artifactStub,artifactSource);
 }

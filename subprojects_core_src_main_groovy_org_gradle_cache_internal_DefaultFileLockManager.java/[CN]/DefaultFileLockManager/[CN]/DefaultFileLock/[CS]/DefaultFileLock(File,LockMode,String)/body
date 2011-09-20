@@ -1,20 +1,21 @@
 {
+  this.target=target;
   this.mode=mode;
   this.displayName=displayName;
-  lockFile=new File(target.getParentFile(),target.getName() + ".lock");
-  try {
-    lockFile.getParentFile().mkdirs();
-    lockFile.createNewFile();
-    lockFileAccess=new RandomAccessFile(lockFile,"rw");
-    try {
-      lock=lock(mode);
-    }
- catch (    Throwable t) {
-      lockFileAccess.close();
-      throw t;
-    }
+  if (target.isDirectory()) {
+    lockFile=new File(target,target.getName() + ".lock");
   }
- catch (  Throwable throwable) {
-    throw UncheckedException.asUncheckedException(throwable);
+ else {
+    lockFile=new File(target.getParentFile(),target.getName() + ".lock");
+  }
+  lockFile.getParentFile().mkdirs();
+  lockFile.createNewFile();
+  lockFileAccess=new RandomAccessFile(lockFile,"rw");
+  try {
+    lock=lock(mode);
+  }
+ catch (  Throwable t) {
+    lockFileAccess.close();
+    throw t;
   }
 }

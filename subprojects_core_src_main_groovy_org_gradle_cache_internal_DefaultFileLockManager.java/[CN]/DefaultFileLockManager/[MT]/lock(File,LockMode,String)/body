@@ -1,3 +1,13 @@
 {
-  return new DefaultFileLock(target,mode,displayName);
+  File canonicalTarget=GFileUtils.canonicalise(target);
+  if (!lockedFiles.add(canonicalTarget)) {
+    throw new IllegalStateException(String.format("Cannot lock file '%s' as it has already been locked by this process.",target));
+  }
+  try {
+    return new DefaultFileLock(canonicalTarget,mode,displayName);
+  }
+ catch (  Throwable t) {
+    lockedFiles.remove(canonicalTarget);
+    throw UncheckedException.asUncheckedException(t);
+  }
 }
