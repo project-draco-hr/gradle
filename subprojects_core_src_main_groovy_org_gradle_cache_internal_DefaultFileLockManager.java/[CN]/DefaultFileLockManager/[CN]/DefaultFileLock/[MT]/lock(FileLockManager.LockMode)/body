@@ -1,14 +1,54 @@
 {
   LOGGER.debug("Waiting to acquire {} lock on {}.",lockMode,displayName);
   long timeout=System.currentTimeMillis() + LOCK_TIMEOUT;
-  do {
-    java.nio.channels.FileLock fileLock=lockFileAccess.getChannel().tryLock(0,Long.MAX_VALUE,lockMode == LockMode.Shared);
-    if (fileLock != null) {
-      LOGGER.debug("Lock acquired.");
-      return fileLock;
+  java.nio.channels.FileLock stateRegionLock=lockStateRegion(lockMode,timeout);
+  if (stateRegionLock == null) {
+    String ownerPid="unknown";
+    String ownerProcess="unknown";
+    java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Shared,timeout);
+    if (informationRegionLock == null) {
+      LOGGER.debug("Could not lock information region for {}. Ignoring.",displayName);
     }
-    Thread.sleep(200L);
+ else {
+      try {
+        if (lockFileAccess.length() < INFORMATION_REGION_POS) {
+          LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.",displayName);
+        }
+ else {
+          lockFileAccess.seek(INFORMATION_REGION_POS);
+          ownerPid=lockFileAccess.readUTF();
+          ownerProcess=lockFileAccess.readUTF();
+        }
+      }
+  finally {
+        informationRegionLock.release();
+      }
+    }
+    throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nLock file: %s",displayName,ownerProcess,ownerPid,lockFile));
   }
- while (System.currentTimeMillis() < timeout);
-  throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.",displayName));
+  if (!stateRegionLock.isShared()) {
+    try {
+      if (lockFileAccess.length() < INFORMATION_REGION_POS) {
+        markDirty();
+      }
+      java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Exclusive,timeout);
+      if (informationRegionLock == null) {
+        throw new IllegalStateException(String.format("Timeout waiting to lock the information region for lock %s",displayName));
+      }
+      try {
+        lockFileAccess.seek(INFORMATION_REGION_POS);
+        lockFileAccess.writeUTF(metaDataProvider.getProcessIdentifier());
+        lockFileAccess.writeUTF(metaDataProvider.getProcessDisplayName());
+      }
+  finally {
+        informationRegionLock.release();
+      }
+    }
+ catch (    Throwable t) {
+      stateRegionLock.release();
+      throw t;
+    }
+  }
+  LOGGER.debug("Lock acquired.");
+  return stateRegionLock;
 }
