@@ -13,7 +13,7 @@
   GradleExecuter returnedExecuter=inProcessGradleExecuter;
   TestFile tmpDir=getTmpDir();
   tmpDir.deleteDir().createDir();
-  if (executerType != Executer.embedded || !inProcessGradleExecuter.canExecute()) {
+  if (executerType.forks || !inProcessGradleExecuter.canExecute()) {
     boolean useDaemon=executerType == Executer.daemon && getExecutable() == null;
     ForkingGradleExecuter forkingGradleExecuter=useDaemon ? new DaemonGradleExecuter(dist.getGradleHomeDir()) : new ForkingGradleExecuter(dist.getGradleHomeDir());
     copyTo(forkingGradleExecuter);
@@ -23,6 +23,11 @@
   }
  else {
     System.setProperty("java.io.tmpdir",tmpDir.getAbsolutePath());
+  }
+  if (executerType == Executer.embeddedDaemon) {
+    GradleExecuter embeddedDaemonExecutor=new EmbeddedDaemonGradleExecuter();
+    copyTo(embeddedDaemonExecutor);
+    returnedExecuter=embeddedDaemonExecutor;
   }
   boolean settingsFound=false;
   for (TestFile dir=new TestFile(getWorkingDir()); dir != null && dist.isFileUnderTest(dir) && !settingsFound; dir=dir.getParentFile()) {
