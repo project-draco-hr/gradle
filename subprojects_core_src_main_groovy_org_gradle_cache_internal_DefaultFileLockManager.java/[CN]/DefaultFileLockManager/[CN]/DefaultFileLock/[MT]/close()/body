@@ -1,10 +1,24 @@
 {
+  if (lockFileAccess == null) {
+    return;
+  }
   try {
     LOGGER.debug("Releasing lock on {}.",displayName);
     lockedFiles.remove(target);
-    lockFileAccess.close();
+    try {
+      if (!lock.isShared()) {
+        lockFileAccess.setLength(INFORMATION_REGION_POS);
+      }
+    }
+  finally {
+      lockFileAccess.close();
+    }
   }
  catch (  IOException e) {
     throw UncheckedException.asUncheckedException(e);
+  }
+ finally {
+    lock=null;
+    lockFileAccess=null;
   }
 }

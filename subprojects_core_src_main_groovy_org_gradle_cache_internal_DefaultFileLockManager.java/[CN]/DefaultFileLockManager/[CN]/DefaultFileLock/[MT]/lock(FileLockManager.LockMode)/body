@@ -16,6 +16,9 @@
         }
  else {
           lockFileAccess.seek(INFORMATION_REGION_POS);
+          if (lockFileAccess.readByte() != INFORMATION_REGION_PROTOCOL) {
+            throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.",lockFile,displayName));
+          }
           ownerPid=lockFileAccess.readUTF();
           ownerProcess=lockFileAccess.readUTF();
         }
@@ -38,10 +41,18 @@
     }
     throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nLock file: %s%n%s",displayName,ownerProcess,ownerPid,lockFile,extra));
   }
-  if (!stateRegionLock.isShared()) {
-    try {
-      if (lockFileAccess.length() < INFORMATION_REGION_POS) {
-        markDirty();
+  try {
+    if (lockFileAccess.length() > 0) {
+      lockFileAccess.seek(STATE_REGION_POS);
+      if (lockFileAccess.readByte() != STATE_REGION_PROTOCOL) {
+        throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.",lockFile,displayName));
+      }
+    }
+    if (!stateRegionLock.isShared()) {
+      if (lockFileAccess.length() < STATE_REGION_SIZE) {
+        lockFileAccess.seek(STATE_REGION_POS);
+        lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
+        lockFileAccess.writeBoolean(false);
       }
       java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Exclusive,timeout);
       if (informationRegionLock == null) {
@@ -49,17 +60,19 @@
       }
       try {
         lockFileAccess.seek(INFORMATION_REGION_POS);
+        lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
         lockFileAccess.writeUTF(metaDataProvider.getProcessIdentifier());
         lockFileAccess.writeUTF(metaDataProvider.getProcessDisplayName());
+        lockFileAccess.setLength(lockFileAccess.getFilePointer());
       }
   finally {
         informationRegionLock.release();
       }
     }
- catch (    Throwable t) {
-      stateRegionLock.release();
-      throw t;
-    }
+  }
+ catch (  Throwable t) {
+    stateRegionLock.release();
+    throw t;
   }
   LOGGER.debug("Lock acquired.");
   return stateRegionLock;
