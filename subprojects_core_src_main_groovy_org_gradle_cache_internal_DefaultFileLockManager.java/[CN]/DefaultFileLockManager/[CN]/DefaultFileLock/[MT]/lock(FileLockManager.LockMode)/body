@@ -5,6 +5,7 @@
   if (stateRegionLock == null) {
     String ownerPid="unknown";
     String ownerProcess="unknown";
+    String ownerOperation="unknown";
     java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Shared,timeout);
     if (informationRegionLock == null) {
       LOGGER.debug("Could not lock information region for {}. Ignoring.",displayName);
@@ -21,6 +22,7 @@
           }
           ownerPid=lockFileAccess.readUTF();
           ownerProcess=lockFileAccess.readUTF();
+          ownerOperation=lockFileAccess.readUTF();
         }
       }
   finally {
@@ -39,7 +41,7 @@
       builder.build().start().waitForFinish();
       extra=new String(outstr.toByteArray());
     }
-    throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nLock file: %s%n%s",displayName,ownerProcess,ownerPid,lockFile,extra));
+    throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nOperation: %s%nOur operation: %s%nLock file: %s%n%s",displayName,ownerProcess,ownerPid,ownerOperation,operationDisplayName,lockFile,extra));
   }
   try {
     if (lockFileAccess.length() > 0) {
@@ -63,6 +65,7 @@
         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
         lockFileAccess.writeUTF(metaDataProvider.getProcessIdentifier());
         lockFileAccess.writeUTF(metaDataProvider.getProcessDisplayName());
+        lockFileAccess.writeUTF(operationDisplayName);
         lockFileAccess.setLength(lockFileAccess.getFilePointer());
       }
   finally {
