@@ -1,0 +1,17 @@
+{
+  lock.lock();
+  try {
+    ArtifactLock artifactLock=locks.get(protectedFile);
+    if (artifactLock == null || artifactLock.refCount <= 0) {
+      throw new IllegalStateException("Cannot release artifact file lock, as the file is not locked.");
+    }
+    artifactLock.refCount--;
+    if (artifactLock.refCount == 0) {
+      locks.remove(protectedFile);
+      artifactLock.lock.close();
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+}

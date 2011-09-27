@@ -1,21 +1,12 @@
 {
-  boolean wasUnlocked=locked.compareAndSet(false,true);
-  if (!wasUnlocked) {
-    throw new IllegalStateException("Cannot lock the artifact cache, as it is already locked by this process.");
-  }
+  lockCache(operationDisplayName);
   try {
-    FileLock lock=fileLockManager.lock(cacheMetaData.getCacheDir(),FileLockManager.LockMode.Exclusive,"artifact cache",operationDisplayName);
-    try {
-      return action.call();
-    }
- catch (    Exception e) {
-      throw UncheckedException.asUncheckedException(e);
-    }
- finally {
-      lock.close();
-    }
+    return action.call();
   }
-  finally {
-    locked.set(false);
+ catch (  Exception e) {
+    throw UncheckedException.asUncheckedException(e);
+  }
+ finally {
+    unlockCache();
   }
 }

@@ -1,0 +1,18 @@
+{
+  lock.lock();
+  try {
+    if (!locked) {
+      throw new IllegalStateException("Cannot acquire artifact lock, as the artifact cache is not locked by this process.");
+    }
+    ArtifactLock artifactLock=locks.get(protectedFile);
+    if (artifactLock == null) {
+      FileLock fileLock=fileLockManager.lock(protectedFile,FileLockManager.LockMode.Exclusive,String.format("artifact file %s",protectedFile),operationDisplayName);
+      artifactLock=new ArtifactLock(fileLock);
+      locks.put(protectedFile,artifactLock);
+    }
+    artifactLock.refCount++;
+  }
+  finally {
+    lock.unlock();
+  }
+}

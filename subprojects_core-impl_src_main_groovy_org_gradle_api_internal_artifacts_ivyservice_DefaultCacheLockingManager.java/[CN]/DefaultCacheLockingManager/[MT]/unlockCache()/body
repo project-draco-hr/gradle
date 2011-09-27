@@ -1,0 +1,14 @@
+{
+  lock.lock();
+  try {
+    if (!locks.isEmpty()) {
+      new CompositeStoppable().addCloseables(locks.values()).stop();
+      throw new IllegalStateException("Some artifact file locks were not released.");
+    }
+  }
+  finally {
+    locked=false;
+    locks.clear();
+    lock.unlock();
+  }
+}
