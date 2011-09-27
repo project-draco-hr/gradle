@@ -8,14 +8,14 @@
   if (commandLine.hasOption(GUI)) {
     return new ActionAdapter(new ShowGuiAction());
   }
-  StartParameter startParameter=new StartParameter();
+  final StartParameter startParameter=new StartParameter();
   startParameterConverter.convert(commandLine,startParameter);
   DaemonConnector connector=new ExternalDaemonConnector(startParameter.getGradleUserHomeDir());
   GradleLauncherMetaData clientMetaData=clientMetaData();
   long startTime=ManagementFactory.getRuntimeMXBean().getStartTime();
   DaemonClient client=new DaemonClient(connector,clientMetaData,loggingServices.get(OutputEventListener.class));
   if (commandLine.hasOption(FOREGROUND)) {
-    return new ActionAdapter(new Daemon(new DaemonTcpServerConnector(),connector.getDaemonRegistry(),new DefaultDaemonCommandExecuter(loggingServices)));
+    return new ActionAdapter(new DaemonMain(startParameter));
   }
   if (commandLine.hasOption(STOP)) {
     return new ActionAdapter(new StopDaemonAction(client));
