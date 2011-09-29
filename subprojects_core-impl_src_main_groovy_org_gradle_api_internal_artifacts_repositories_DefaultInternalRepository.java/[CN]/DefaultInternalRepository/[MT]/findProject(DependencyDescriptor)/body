@@ -5,7 +5,10 @@
   }
   ProjectInternal project=projectFinder.getProject(projectPathValue);
   Module projectModule=project.getModule();
-  ModuleDescriptor projectDescriptor=moduleDescriptorConverter.convert(project.getConfigurations(),projectModule,new IvyConfig(IvyContext.getContext().getIvy().getSettings()));
+  IvySettings ivySettings=IvyContext.getContext().getIvy().getSettings();
+  VersionConflictStrategy whateverStrategy=VersionConflictStrategy.LATEST;
+  IvyConfig ivyConfig=new IvyConfig(ivySettings,whateverStrategy);
+  ModuleDescriptor projectDescriptor=moduleDescriptorConverter.convert(project.getConfigurations(),projectModule,ivyConfig);
   for (  DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
     for (    Artifact artifact : projectDescriptor.getAllArtifacts()) {
       if (artifact.getName().equals(artifactDescriptor.getName()) && artifact.getExt().equals(artifactDescriptor.getExt())) {
