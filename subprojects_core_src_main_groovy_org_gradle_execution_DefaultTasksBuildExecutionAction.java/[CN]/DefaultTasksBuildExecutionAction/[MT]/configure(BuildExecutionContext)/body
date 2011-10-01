@@ -1,0 +1,17 @@
+{
+  StartParameter startParameter=context.getGradle().getStartParameter();
+  if (!startParameter.getTaskNames().isEmpty()) {
+    context.proceed();
+    return;
+  }
+  ProjectInternal project=context.getGradle().getDefaultProject();
+  List<String> defaultTasks=project.getDefaultTasks();
+  String displayName=String.format("project default tasks %s",GUtil.toString(defaultTasks));
+  if (defaultTasks.size() == 0) {
+    defaultTasks=Arrays.asList(ImplicitTasksConfigurer.HELP_TASK);
+    displayName=String.format("default task %s",GUtil.toString(defaultTasks));
+  }
+  startParameter.setTaskNames(defaultTasks);
+  context.proceed();
+  context.setDisplayName(displayName);
+}

@@ -1,0 +1,20 @@
+{
+  final Task task1=task("someTask");
+  final Task task2=task("someTasks");
+  context.checking(new Expectations(){
+{
+      allowing(startParameter).getTaskNames();
+      will(returnValue(toList("soTa")));
+      one(resolver).selectAll("soTa",project);
+      will(returnValue(tasks(task1,task2)));
+    }
+  }
+);
+  try {
+    action.configure(executionContext);
+    fail();
+  }
+ catch (  TaskSelectionException e) {
+    assertThat(e.getMessage(),equalTo("Task 'soTa' is ambiguous in [project]. Candidates are: 'someTask', 'someTasks'."));
+  }
+}

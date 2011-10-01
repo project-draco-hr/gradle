@@ -1,0 +1,19 @@
+{
+  final Task task1=task("someTask");
+  final Task task2=task("other");
+  context.checking(new Expectations(){
+{
+      allowing(startParameter).getTaskNames();
+      will(returnValue(toList("anPr:soTa")));
+      one(project).getChildProjects();
+      will(returnValue(toMap("anotherProject",otherProject)));
+      one(resolver).select("soTa",otherProject);
+      will(returnValue(tasks(task1,task2)));
+      one(taskExecuter).addTasks(toSet(task1));
+      one(executionContext).setDisplayName("primary task ':anotherProject:someTask'");
+      one(executionContext).proceed();
+    }
+  }
+);
+  action.configure(executionContext);
+}

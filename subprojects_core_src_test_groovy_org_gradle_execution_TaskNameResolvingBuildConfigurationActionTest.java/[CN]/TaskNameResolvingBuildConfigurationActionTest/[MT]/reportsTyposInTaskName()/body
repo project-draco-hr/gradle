@@ -1,0 +1,22 @@
+{
+  final Task task1=task("someTask");
+  final Task task2=task("someTasks");
+  final Task task3=task("sometask");
+  final Task task4=task("other");
+  context.checking(new Expectations(){
+{
+      allowing(startParameter).getTaskNames();
+      will(returnValue(toList("ssomeTask")));
+      one(resolver).selectAll("ssomeTask",project);
+      will(returnValue(tasks(task1,task2,task3,task4)));
+    }
+  }
+);
+  try {
+    action.configure(executionContext);
+    fail();
+  }
+ catch (  TaskSelectionException e) {
+    assertThat(e.getMessage(),equalTo("Task 'ssomeTask' not found in [project]. Some candidates are: 'someTask', 'someTasks', 'sometask'."));
+  }
+}

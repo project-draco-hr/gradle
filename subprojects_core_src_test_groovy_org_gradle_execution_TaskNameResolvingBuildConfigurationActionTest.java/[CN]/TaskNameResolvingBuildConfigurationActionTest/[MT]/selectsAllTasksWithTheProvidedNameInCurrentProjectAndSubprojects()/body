@@ -1,0 +1,18 @@
+{
+  final Task task1=task("name");
+  final Task task2=task("name");
+  final Task task3=task("other");
+  context.checking(new Expectations(){
+{
+      allowing(startParameter).getTaskNames();
+      will(returnValue(toList("name")));
+      one(resolver).selectAll("name",project);
+      will(returnValue(tasks(task1,task2,task3)));
+      one(taskExecuter).addTasks(toSet(task1,task2));
+      one(executionContext).setDisplayName("primary task 'name'");
+      one(executionContext).proceed();
+    }
+  }
+);
+  action.configure(executionContext);
+}

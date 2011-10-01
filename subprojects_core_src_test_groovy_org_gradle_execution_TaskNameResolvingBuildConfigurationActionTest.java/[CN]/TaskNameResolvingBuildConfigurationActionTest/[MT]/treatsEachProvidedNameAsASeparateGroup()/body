@@ -1,0 +1,24 @@
+{
+  final Task task1=task("name1");
+  final Task task2=task("name2");
+  context.checking(new Expectations(){
+{
+      allowing(startParameter).getTaskNames();
+      will(returnValue(toList("child:name1","name2")));
+      one(project).getChildProjects();
+      will(returnValue(toMap("child",otherProject)));
+      one(resolver).select("name1",otherProject);
+      will(returnValue(tasks(task1)));
+      one(resolver).selectAll("name2",project);
+      will(returnValue(tasks(task2)));
+      Sequence sequence=context.sequence("tasks");
+      one(taskExecuter).addTasks(toSet(task1));
+      inSequence(sequence);
+      one(taskExecuter).addTasks(toSet(task2));
+      inSequence(sequence);
+      ignoring(executionContext);
+    }
+  }
+);
+  action.configure(executionContext);
+}

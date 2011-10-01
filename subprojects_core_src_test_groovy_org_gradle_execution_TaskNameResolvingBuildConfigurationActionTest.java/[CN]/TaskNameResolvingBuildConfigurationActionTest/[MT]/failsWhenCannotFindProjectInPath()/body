@@ -1,0 +1,18 @@
+{
+  context.checking(new Expectations(){
+{
+      allowing(startParameter).getTaskNames();
+      will(returnValue(toList("a:b","name2")));
+      one(project).getChildProjects();
+      will(returnValue(GUtil.map("aa",otherProject,"ab",otherProject)));
+    }
+  }
+);
+  try {
+    action.configure(executionContext);
+    fail();
+  }
+ catch (  TaskSelectionException e) {
+    assertThat(e.getMessage(),equalTo("Project 'a' is ambiguous in [project]. Candidates are: 'aa', 'ab'."));
+  }
+}

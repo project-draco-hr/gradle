@@ -1,0 +1,16 @@
+{
+  GradleInternal gradle=context.getGradle();
+  List<String> taskNames=gradle.getStartParameter().getTaskNames();
+  Multimap<String,Task> selectedTasks=doSelect(gradle,taskNames,taskNameResolver);
+  TaskGraphExecuter executer=gradle.getTaskGraph();
+  for (  String name : selectedTasks.keySet()) {
+    executer.addTasks(selectedTasks.get(name));
+  }
+  if (selectedTasks.keySet().size() == 1) {
+    context.setDisplayName(String.format("primary task %s",GUtil.toString(selectedTasks.keySet())));
+  }
+ else {
+    context.setDisplayName(String.format("primary tasks %s",GUtil.toString(selectedTasks.keySet())));
+  }
+  context.proceed();
+}

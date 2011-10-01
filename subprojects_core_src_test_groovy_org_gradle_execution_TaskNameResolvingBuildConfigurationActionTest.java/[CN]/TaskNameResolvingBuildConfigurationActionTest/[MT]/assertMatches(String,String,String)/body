@@ -1,0 +1,25 @@
+{
+  final Set<Task> tasks=new HashSet<Task>();
+  final Task task1=task(matches);
+  tasks.add(task1);
+  final Task task2=task(matches);
+  tasks.add(task2);
+  for (  String name : otherNames) {
+    tasks.add(task(name));
+  }
+  tasks.add(task("."));
+  tasks.add(task("other"));
+  context.checking(new Expectations(){
+{
+      one(startParameter).getTaskNames();
+      will(returnValue(toList(pattern)));
+      one(resolver).selectAll(pattern,project);
+      will(returnValue(tasks(tasks)));
+      one(taskExecuter).addTasks(toSet(task1,task2));
+      one(executionContext).setDisplayName(String.format("primary task '%s'",matches));
+      one(executionContext).proceed();
+    }
+  }
+);
+  action.configure(executionContext);
+}

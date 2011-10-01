@@ -1,0 +1,21 @@
+{
+  final Task task1=task("b");
+  final Task task2=task("a");
+  context.checking(new Expectations(){
+{
+      allowing(startParameter).getTaskNames();
+      will(returnValue(toList(":a:b")));
+      one(project).getRootProject();
+      will(returnValue(rootProject));
+      one(rootProject).getChildProjects();
+      will(returnValue(toMap("a",otherProject)));
+      one(resolver).select("b",otherProject);
+      will(returnValue(tasks(task1,task2)));
+      one(taskExecuter).addTasks(toSet(task1));
+      one(executionContext).setDisplayName("primary task ':a:b'");
+      one(executionContext).proceed();
+    }
+  }
+);
+  action.configure(executionContext);
+}
