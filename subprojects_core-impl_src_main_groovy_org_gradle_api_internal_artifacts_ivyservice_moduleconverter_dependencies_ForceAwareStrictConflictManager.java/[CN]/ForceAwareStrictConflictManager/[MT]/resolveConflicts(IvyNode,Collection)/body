@@ -1,0 +1,22 @@
+{
+  VersionMatcher versionMatcher=getSettings().getVersionMatcher();
+  if (conflicts.size() < 2) {
+    return conflicts;
+  }
+  IvyNode lastNode=null;
+  for (  Object conflict : conflicts) {
+    IvyNode node=(IvyNode)conflict;
+    if (versionMatcher.isDynamic(node.getResolvedId())) {
+      return null;
+    }
+    DependencyDescriptor dd=node.getDependencyDescriptor(parent);
+    if (dd != null && dd.isForce()) {
+      return Collections.singleton(node);
+    }
+    if (lastNode != null && !lastNode.equals(node)) {
+      throw new StrictConflictException(lastNode,node);
+    }
+    lastNode=node;
+  }
+  return Collections.singleton(lastNode);
+}
