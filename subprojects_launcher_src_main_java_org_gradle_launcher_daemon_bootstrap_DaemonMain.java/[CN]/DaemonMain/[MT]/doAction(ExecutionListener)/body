@@ -24,12 +24,13 @@
   LOGGER.lifecycle("Starting daemon[pid = {}] with settings: idleTimeout = {} secs, registryDir = {}",pid,idleTimeoutSecs,registryDir);
   Daemon daemon=new Daemon(connector,daemonRegistry,new DefaultDaemonCommandExecuter(loggingServices));
   daemon.start();
-  boolean wasStopped=daemon.awaitStopOrIdleTimeout(idleTimeout);
-  if (wasStopped) {
-    LOGGER.info("Daemon stopping due to stop request");
-  }
- else {
+  try {
+    daemon.awaitIdleTimeout(idleTimeout);
     LOGGER.info("Daemon hit idle timeout (" + idleTimeoutSecs + " secs), stopping");
     daemon.stop();
+  }
+ catch (  DaemonStoppedException e) {
+    LOGGER.info("Daemon stopping due to stop request");
+    listener.onFailure(e);
   }
 }
