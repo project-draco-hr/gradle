@@ -1,0 +1,16 @@
+{
+  final Task a=task("a",task("a-dep"));
+  Task b=task("b");
+  Task c=task("c",a,b);
+  Spec<Task> spec=new Spec<Task>(){
+    public boolean isSatisfiedBy(    Task element){
+      return element != a;
+    }
+  }
+;
+  taskExecuter.useFilter(spec);
+  taskExecuter.addTasks(toList(c));
+  assertThat(taskExecuter.getAllTasks(),equalTo(toList(b,c)));
+  taskExecuter.execute();
+  assertThat(executedTasks,equalTo(toList(b,c)));
+}

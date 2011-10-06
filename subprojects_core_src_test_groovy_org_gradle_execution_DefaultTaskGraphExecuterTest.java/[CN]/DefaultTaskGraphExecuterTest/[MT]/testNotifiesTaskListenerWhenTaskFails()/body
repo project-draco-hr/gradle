@@ -1,13 +1,7 @@
 {
   final TaskExecutionListener listener=context.mock(TaskExecutionListener.class);
   final RuntimeException failure=new RuntimeException();
-  final Task a=createTask("a");
-  a.doLast(new Action<Task>(){
-    public void execute(    Task task){
-      throw failure;
-    }
-  }
-);
+  final Task a=brokenTask("a",failure);
   taskExecuter.addTaskExecutionListener(listener);
   taskExecuter.addTasks(toList(a));
   context.checking(new Expectations(){
@@ -21,7 +15,8 @@
     taskExecuter.execute();
     fail();
   }
- catch (  TaskExecutionException e) {
-    assertThat(e.getCause(),sameInstance((Throwable)failure));
+ catch (  RuntimeException e) {
+    assertThat(e,sameInstance(failure));
   }
+  assertThat(executedTasks,equalTo(toList(a)));
 }

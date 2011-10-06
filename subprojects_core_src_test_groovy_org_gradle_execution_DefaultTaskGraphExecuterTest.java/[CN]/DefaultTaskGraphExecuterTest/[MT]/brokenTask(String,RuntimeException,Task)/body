@@ -1,0 +1,16 @@
+{
+  final TaskInternal task=createTask(name);
+  dependsOn(task,dependsOn);
+  context.checking(new Expectations(){
+{
+      atMost(1).of(task).executeWithoutThrowingTaskFailure();
+      will(new ExecuteTaskAction(task));
+      allowing(task.getState()).getFailure();
+      will(returnValue(failure));
+      allowing(task.getState()).rethrowFailure();
+      will(throwException(failure));
+    }
+  }
+);
+  return task;
+}

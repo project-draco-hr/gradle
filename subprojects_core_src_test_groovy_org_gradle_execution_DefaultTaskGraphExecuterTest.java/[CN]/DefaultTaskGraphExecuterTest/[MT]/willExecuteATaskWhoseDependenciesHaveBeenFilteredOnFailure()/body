@@ -1,0 +1,23 @@
+{
+  final TaskFailureHandler handler=context.mock(TaskFailureHandler.class);
+  final RuntimeException failure=new RuntimeException();
+  final Task a=brokenTask("a",failure);
+  final Task b=task("b");
+  final Task c=task("c",b);
+  taskExecuter.useFailureHandler(handler);
+  taskExecuter.useFilter(new Spec<Task>(){
+    public boolean isSatisfiedBy(    Task element){
+      return element != b;
+    }
+  }
+);
+  taskExecuter.addTasks(toList(a,c));
+  context.checking(new Expectations(){
+{
+      ignoring(handler);
+    }
+  }
+);
+  taskExecuter.execute();
+  assertThat(executedTasks,equalTo(toList(a,c)));
+}

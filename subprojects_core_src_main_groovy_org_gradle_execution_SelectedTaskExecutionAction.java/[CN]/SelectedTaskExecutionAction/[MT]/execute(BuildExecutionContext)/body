@@ -1,3 +1,13 @@
 {
-  context.getGradle().getTaskGraph().execute();
+  GradleInternal gradle=context.getGradle();
+  TaskGraphExecuter taskGraph=gradle.getTaskGraph();
+  if (gradle.getStartParameter().isContinueOnFailure()) {
+    MultipleFailuresHandler handler=new MultipleFailuresHandler();
+    taskGraph.useFailureHandler(handler);
+    taskGraph.execute();
+    handler.rethrowFailures();
+  }
+ else {
+    taskGraph.execute();
+  }
 }

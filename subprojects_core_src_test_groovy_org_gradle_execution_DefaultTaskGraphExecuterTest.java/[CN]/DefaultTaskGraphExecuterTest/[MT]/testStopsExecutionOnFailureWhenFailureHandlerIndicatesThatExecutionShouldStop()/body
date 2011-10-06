@@ -1,0 +1,24 @@
+{
+  final TaskFailureHandler handler=context.mock(TaskFailureHandler.class);
+  final RuntimeException failure=new RuntimeException();
+  final RuntimeException wrappedFailure=new RuntimeException();
+  final Task a=brokenTask("a",failure);
+  final Task b=task("b");
+  taskExecuter.useFailureHandler(handler);
+  taskExecuter.addTasks(toList(a,b));
+  context.checking(new Expectations(){
+{
+      one(handler).onTaskFailure(a);
+      will(throwException(wrappedFailure));
+    }
+  }
+);
+  try {
+    taskExecuter.execute();
+    fail();
+  }
+ catch (  RuntimeException e) {
+    assertThat(e,sameInstance(wrappedFailure));
+  }
+  assertThat(executedTasks,equalTo(toList(a)));
+}

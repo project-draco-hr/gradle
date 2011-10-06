@@ -1,0 +1,17 @@
+{
+  final TaskFailureHandler handler=context.mock(TaskFailureHandler.class);
+  final RuntimeException failure=new RuntimeException();
+  final Task a=brokenTask("a",failure);
+  final Task b=task("b",a);
+  final Task c=task("c");
+  taskExecuter.useFailureHandler(handler);
+  taskExecuter.addTasks(toList(b,c));
+  context.checking(new Expectations(){
+{
+      one(handler).onTaskFailure(a);
+    }
+  }
+);
+  taskExecuter.execute();
+  assertThat(executedTasks,equalTo(toList(a,c)));
+}

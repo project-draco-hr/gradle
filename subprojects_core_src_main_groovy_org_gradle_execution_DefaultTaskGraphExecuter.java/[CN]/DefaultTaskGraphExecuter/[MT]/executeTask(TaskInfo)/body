@@ -1,0 +1,21 @@
+{
+  TaskInternal task=taskInfo.task;
+  for (  TaskInfo dependency : taskInfo.dependencies) {
+    if (!dependency.executed) {
+      return;
+    }
+  }
+  taskListeners.getSource().beforeExecute(task);
+  try {
+    task.executeWithoutThrowingTaskFailure();
+    if (task.getState().getFailure() != null) {
+      failureHandler.onTaskFailure(task);
+    }
+ else {
+      taskInfo.executed=true;
+    }
+  }
+  finally {
+    taskListeners.getSource().afterExecute(task,task.getState());
+  }
+}
