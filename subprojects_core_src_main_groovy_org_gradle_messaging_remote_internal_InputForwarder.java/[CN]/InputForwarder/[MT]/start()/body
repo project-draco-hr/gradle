@@ -1,0 +1,54 @@
+{
+  lifecycleLock.lock();
+  try {
+    if (started) {
+      throw new IllegalStateException("input forwarder has already been started");
+    }
+    disconnectableInput=new DisconnectableInputStream(input,executorFactory,bufferSize);
+    outputBuffer=new LineBufferingOutputStream(forwardTo,true,bufferSize);
+    forwardingExecuter=executorFactory.create("forward input");
+    forwardingExecuter.execute(new Runnable(){
+      public void run(){
+        byte[] buffer=new byte[bufferSize];
+        int readCount;
+        try {
+          while (true) {
+            try {
+              readCount=disconnectableInput.read(buffer,0,bufferSize);
+              if (readCount < 0) {
+                break;
+              }
+            }
+ catch (            AsynchronousCloseException e) {
+              break;
+            }
+catch (            IOException e) {
+              throw UncheckedException.asUncheckedException(e);
+            }
+            try {
+              outputBuffer.write(buffer,0,readCount);
+            }
+ catch (            IOException e) {
+              throw UncheckedException.asUncheckedException(e);
+            }
+          }
+        }
+  finally {
+          try {
+            outputBuffer.close();
+          }
+ catch (          IOException e) {
+            throw UncheckedException.asUncheckedException(e);
+          }
+        }
+        onFinish.run();
+      }
+    }
+);
+    started=true;
+  }
+  finally {
+    lifecycleLock.unlock();
+  }
+  return this;
+}
