@@ -1,12 +1,13 @@
 {
-  if (conflictStrategy.getType() instanceof LatestStrategyType) {
+  if (resolutionStrategy.getConflictResolution() instanceof LatestConflictResolution) {
     return new LatestConflictManager(new LatestRevisionStrategy());
   }
- else   if (conflictStrategy.getType() instanceof StrictStrategyType) {
-    DependencySelector selector=new DependencySelector(((StrictStrategyType)conflictStrategy.getType()).getForce());
+ else   if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
+    DependencySet forcedVersions=((StrictConflictResolution)resolutionStrategy.getConflictResolution()).getForcedVersions();
+    DependencySelector selector=new DependencySelector(forcedVersions);
     return new ForceAwareStrictConflictManager(selector);
   }
  else {
-    throw new RuntimeException("I don't know what ivy conflict manager to use for this VersionConflictStrategy: " + conflictStrategy);
+    throw new RuntimeException("I don't know what ivy conflict manager to use for: " + resolutionStrategy);
   }
 }
