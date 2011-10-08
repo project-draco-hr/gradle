@@ -5,14 +5,9 @@
   ivySettings.setDefaultCacheArtifactPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
   ivySettings.setVariable("ivy.log.modules.in.use","false");
   WharfCacheManager cacheManager=WharfCacheManager.newInstance(ivySettings);
-  try {
-    Field field=WharfCacheManager.class.getDeclaredField("lockFactory");
-    field.setAccessible(true);
-    field.set(cacheManager,lockHolderFactory);
-  }
- catch (  Exception e) {
-    throw UncheckedException.asUncheckedException(e);
-  }
+  cacheManager.setLockFactory(lockHolderFactory);
+  cacheManager.setMrmMarshaller(new DefaultMrmMarshaller(lockHolderFactory));
+  cacheManager.setWharfResolverMarshaller(new DefaultWharfResolverMarshaller(lockHolderFactory));
   ivySettings.setDefaultRepositoryCacheManager(cacheManager);
   ResolutionCacheManager resolutionCacheManager=new TempFileResolutionCacheManager(cacheMetaData.getCacheDir());
   ivySettings.setResolutionCacheManager(resolutionCacheManager);

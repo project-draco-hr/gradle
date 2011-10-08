@@ -1,0 +1,18 @@
+{
+  File file=getCacheFile(baseDir);
+  LockHolder lockHolder=lockHolderFactory.getOrCreateLockHolder(file);
+  if (!lockHolder.acquireLock()) {
+    throw new RuntimeException(String.format("Could not acquire lock for %s",file));
+  }
+  try {
+    PersistentStateCache<Set<WharfResolverMetadata>> cache=new SimpleStateCache<Set<WharfResolverMetadata>>(file,new NoOpFileLock(),new DefaultSerializer<Set<WharfResolverMetadata>>());
+    Set<WharfResolverMetadata> result=cache.get();
+    if (result == null) {
+      return new HashSet<WharfResolverMetadata>();
+    }
+    return result;
+  }
+  finally {
+    lockHolder.releaseLock();
+  }
+}
