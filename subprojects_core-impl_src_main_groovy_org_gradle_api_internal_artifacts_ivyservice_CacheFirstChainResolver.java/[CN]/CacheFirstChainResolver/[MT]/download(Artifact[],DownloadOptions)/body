@@ -1,0 +1,17 @@
+{
+  DownloadReport overallReport=new DownloadReport();
+  for (  Artifact artifact : artifacts) {
+    DependencyResolver resolver=resolversByRevision.get(artifact.getModuleRevisionId());
+    DownloadReport downloadReport;
+    Artifact[] singleArtifact={artifact};
+    if (resolver != null && resolver != this) {
+      downloadReport=resolver.download(singleArtifact,options);
+    }
+ else {
+      downloadReport=super.download(singleArtifact,options);
+    }
+    ArtifactDownloadReport artifactDownloadReport=downloadReport.getArtifactReport(artifact);
+    overallReport.addArtifactReport(artifactDownloadReport);
+  }
+  return overallReport;
+}
