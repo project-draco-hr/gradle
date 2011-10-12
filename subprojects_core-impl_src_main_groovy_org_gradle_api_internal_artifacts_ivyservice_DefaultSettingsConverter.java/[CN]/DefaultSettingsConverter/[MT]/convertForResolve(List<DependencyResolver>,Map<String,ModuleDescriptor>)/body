@@ -2,8 +2,9 @@
   if (resolveSettings == null) {
     resolveSettings=settingsFactory.create();
     userResolverChain=createUserResolverChain();
-    DependencyResolver clientModuleResolver=createClientModuleResolver(clientModuleRegistry,userResolverChain);
-    DependencyResolver outerChain=createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver,userResolverChain));
+    ClientModuleResolver clientModuleResolver=createClientModuleResolver(clientModuleRegistry,userResolverChain);
+    DependencyResolver outerChain=new ClientModuleResolverChain(clientModuleResolver,userResolverChain);
+    outerChain.setName(CLIENT_MODULE_CHAIN_NAME);
     entryPointResolver=new EntryPointResolver(outerChain);
     entryPointResolver.setName(ENTRY_POINT_RESOLVER);
     initializeResolvers(resolveSettings,WrapUtil.toList(userResolverChain,clientModuleResolver,outerChain,entryPointResolver));
