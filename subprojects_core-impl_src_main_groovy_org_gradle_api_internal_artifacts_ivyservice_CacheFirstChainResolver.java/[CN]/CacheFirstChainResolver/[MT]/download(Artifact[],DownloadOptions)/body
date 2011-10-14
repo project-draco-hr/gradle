@@ -2,17 +2,13 @@
   DownloadReport overallReport=new DownloadReport();
   for (  Artifact artifact : artifacts) {
     DependencyResolver artifactResolver=artifactResolvers.get(artifact.getModuleRevisionId());
-    DownloadReport downloadReport;
-    Artifact[] singleArtifact={artifact};
+    ArtifactDownloadReport artifactDownloadReport;
     if (artifactResolver != null && artifactResolver != this) {
-      LOGGER.debug("Attempting to download artifact {} using resolver {}",artifact,artifactResolver);
-      downloadReport=artifactResolver.download(singleArtifact,options);
+      artifactDownloadReport=downloadFromSingleRepository(artifactResolver,artifact,options);
     }
  else {
-      LOGGER.debug("Attempting to download {} using all resolvers",artifact);
-      downloadReport=super.download(singleArtifact,options);
+      artifactDownloadReport=downloadFromAnyRepository(artifact,options);
     }
-    ArtifactDownloadReport artifactDownloadReport=downloadReport.getArtifactReport(artifact);
     overallReport.addArtifactReport(artifactDownloadReport);
   }
   return overallReport;
