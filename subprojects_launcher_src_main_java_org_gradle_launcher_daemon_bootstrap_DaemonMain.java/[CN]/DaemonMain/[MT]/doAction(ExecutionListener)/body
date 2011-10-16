@@ -1,28 +1,27 @@
 {
+  File registryDir=startParameter.getGradleUserHomeDir();
+  LoggingServiceRegistry loggingServices=LoggingServiceRegistry.newChildProcessLogging();
+  DaemonServices daemonServices=new DaemonServices(registryDir,loggingServices);
   if (redirectIo) {
     try {
-      redirectOutputsAndInput(startParameter);
+      redirectOutputsAndInput(daemonServices.get(DaemonDir.class));
     }
  catch (    IOException e) {
       listener.onFailure(e);
       return;
     }
   }
-  final Long pid=new LenientEnvHacker().getPid();
+  final Long pid=daemonServices.get(ProcessEnvironment.class).getPid();
+  int idleTimeout=getIdleTimeout(startParameter);
+  float idleTimeoutSecs=idleTimeout / 1000;
+  LOGGER.lifecycle("Starting daemon[pid = {}] with settings: idleTimeout = {} secs, registryDir = {}",pid,idleTimeoutSecs,registryDir);
   Runtime.getRuntime().addShutdownHook(new Thread(){
     public void run(){
       LOGGER.info("Daemon[pid = {}] finishing",pid);
     }
   }
 );
-  LoggingServiceRegistry loggingServices=LoggingServiceRegistry.newChildProcessLogging();
-  DaemonServerConnector connector=new DaemonTcpServerConnector();
-  File registryDir=startParameter.getGradleUserHomeDir();
-  DaemonRegistry daemonRegistry=new PersistentDaemonRegistry(registryDir);
-  int idleTimeout=getIdleTimeout(startParameter);
-  float idleTimeoutSecs=idleTimeout / 1000;
-  LOGGER.lifecycle("Starting daemon[pid = {}] with settings: idleTimeout = {} secs, registryDir = {}",pid,idleTimeoutSecs,registryDir);
-  Daemon daemon=new Daemon(connector,daemonRegistry,new DefaultDaemonCommandExecuter(loggingServices));
+  Daemon daemon=daemonServices.get(Daemon.class);
   daemon.start();
   try {
     daemon.awaitIdleTimeout(idleTimeout);

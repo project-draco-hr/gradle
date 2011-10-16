@@ -1,0 +1,19 @@
+{
+  List<Exception> errors=new ArrayList<Exception>();
+  ResolvedModuleRevision mr=null;
+  ResolveData data=new ResolveData(originalData,originalData.isValidate());
+  for (  DependencyResolver resolver : getResolvers()) {
+    try {
+      mr=resolver.getDependency(dd,data);
+      data.setCurrentResolvedModuleRevision(mr);
+    }
+ catch (    Exception ex) {
+      Message.verbose("problem occurred while resolving " + dd + " with "+ resolver+ ": "+ StringUtils.getStackTrace(ex));
+      errors.add(ex);
+    }
+  }
+  if (mr == null && !errors.isEmpty()) {
+    throwResolutionFailure(dd,errors);
+  }
+  return mr;
+}

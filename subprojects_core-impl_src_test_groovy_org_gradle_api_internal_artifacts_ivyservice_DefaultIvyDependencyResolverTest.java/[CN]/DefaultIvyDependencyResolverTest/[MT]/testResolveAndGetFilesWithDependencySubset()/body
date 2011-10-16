@@ -9,7 +9,9 @@
   ResolvedDependency resolvedDependency3=context.mock(ResolvedDependency.class,"resolved3");
   final IvyConversionResult conversionResultStub=context.mock(IvyConversionResult.class);
   final DependencySet dependencies=context.mock(DependencySet.class);
-  final Map<Dependency,Set<ResolvedDependency>> firstLevelResolvedDependencies=GUtil.map(moduleDependencyDummy1,toSet(resolvedDependency1,resolvedDependency2),moduleDependencyDummy2,toSet(resolvedDependency3));
+  final Map<Dependency,Set<ResolvedDependency>> firstLevelResolvedDependencies=new LinkedHashMap<Dependency,Set<ResolvedDependency>>();
+  firstLevelResolvedDependencies.put(moduleDependencyDummy1,toSet(resolvedDependency1,resolvedDependency2));
+  firstLevelResolvedDependencies.put(moduleDependencyDummy2,toSet(resolvedDependency3));
   context.checking(new Expectations(){
 {
       allowing(resolvedDependency1).getParentArtifacts(root);
@@ -17,13 +19,13 @@
       allowing(resolvedDependency1).getModuleArtifacts();
       will(returnValue(toSet(createResolvedArtifact(context,"dep1","someType","someExtension",new File("dep1")))));
       allowing(resolvedDependency1).getChildren();
-      will(returnValue(toSet()));
+      will(returnValue(emptySet()));
       allowing(resolvedDependency2).getParentArtifacts(root);
-      will(returnValue(toSet()));
+      will(returnValue(emptySet()));
       allowing(resolvedDependency2).getModuleArtifacts();
       will(returnValue(toSet(createResolvedArtifact(context,"dep2","someType","someExtension",new File("dep2")))));
       allowing(resolvedDependency2).getChildren();
-      will(returnValue(toSet()));
+      will(returnValue(emptySet()));
       allowing(configurationStub).getAllDependencies();
       will(returnValue(dependencies));
       allowing(dependencies).withType(ModuleDependency.class);

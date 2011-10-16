@@ -1,11 +1,17 @@
 {
-  if (OperatingSystem.current().isUnix()) {
-    return new Unix();
-  }
- else   if (OperatingSystem.current().isWindows()) {
-    return new Windows();
-  }
+  try {
+    if (OperatingSystem.current().isUnix()) {
+      return new Unix();
+    }
+ else     if (OperatingSystem.current().isWindows()) {
+      return new Windows();
+    }
  else {
-    throw new NativeIntegrationException("We don't support this operating system: " + OperatingSystem.current());
+      LOGGER.warn("Unable to initialize native environment. Updating env variables and working directory will not be possible. Operating system: {}",OperatingSystem.current());
+      return new UnsupportedEnvironment();
+    }
+  }
+ catch (  NoClassDefFoundError e) {
+    return new UnsupportedEnvironment();
   }
 }
