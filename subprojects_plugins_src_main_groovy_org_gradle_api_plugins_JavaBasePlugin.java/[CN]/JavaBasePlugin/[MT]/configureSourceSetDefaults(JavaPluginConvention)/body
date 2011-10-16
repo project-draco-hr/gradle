@@ -3,6 +3,11 @@
     public void execute(    final SourceSet sourceSet){
       final Project project=pluginConvention.getProject();
       ConventionMapping outputConventionMapping=((IConventionAware)sourceSet.getOutput()).getConventionMapping();
+      ConfigurationContainer configurations=project.getConfigurations();
+      Configuration compileConfiguration=configurations.add(sourceSet.getCompileConfigurationName()).setVisible(false).setDescription(String.format("Classpath for compiling the %s sources.",sourceSet.getName()));
+      Configuration runtimeConfiguration=configurations.add(sourceSet.getRuntimeConfigurationName()).setVisible(false).extendsFrom(compileConfiguration).setDescription(String.format("Classpath for running the compiled %s classes.",sourceSet.getName()));
+      sourceSet.setCompileClasspath(compileConfiguration);
+      sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
       outputConventionMapping.map("classesDir",new ConventionValue(){
         public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
           String classesDirName=String.format("classes/%s",sourceSet.getName());
