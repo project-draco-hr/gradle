@@ -1,0 +1,53 @@
+{
+  if (receivers.size() == 0) {
+    throw new IllegalArgumentException("eager receive buffer created with no receivers");
+  }
+  if (bufferSize < 1) {
+    throw new IllegalArgumentException("eager receive buffer size must be positive (value given: " + bufferSize + ")");
+  }
+  this.executor=executor;
+  this.bufferSize=bufferSize;
+  this.receivers=receivers;
+  this.onReceiversExhausted=onReceiversExhausted;
+  Dispatch<T> dispatch=new Dispatch<T>(){
+    public void dispatch(    T message){
+      lock.lock();
+      try {
+        while (queue.size() == bufferSize && state == State.Started) {
+          try {
+            notFullOrStop.await();
+          }
+ catch (          InterruptedException e) {
+            throw UncheckedException.asUncheckedException(e);
+          }
+        }
+        queue.add(message);
+        notEmptyOrNoReceivers.signalAll();
+      }
+  finally {
+        lock.unlock();
+      }
+    }
+  }
+;
+  this.asyncReceive=new AsyncReceive(executor,dispatch,new Runnable(){
+    public void run(){
+      lock.lock();
+      try {
+        hasActiveReceivers=false;
+        if (onReceiversExhausted != null) {
+          onReceiversExhausted.run();
+        }
+        notEmptyOrNoReceivers.signalAll();
+      }
+ catch (      Throwable t) {
+        t.printStackTrace();
+      }
+ finally {
+        lock.unlock();
+        onReceiversExhaustedFinishedLatch.countDown();
+      }
+    }
+  }
+);
+}

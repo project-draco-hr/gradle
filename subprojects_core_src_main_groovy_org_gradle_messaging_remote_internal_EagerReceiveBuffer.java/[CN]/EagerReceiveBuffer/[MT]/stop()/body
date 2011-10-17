@@ -2,16 +2,22 @@
   lock.lock();
   try {
     doRequestStop();
-    while (numActiveReceivers > 0) {
-      notEmptyOrNoReceivers.await();
-    }
-    executor.stop();
-    setState(State.Stopped);
+  }
+  finally {
+    lock.unlock();
+  }
+  try {
+    onReceiversExhaustedFinishedLatch.await();
   }
  catch (  InterruptedException e) {
     throw UncheckedException.asUncheckedException(e);
   }
- finally {
+  lock.lock();
+  try {
+    asyncReceive.stop();
+    setState(State.Stopped);
+  }
+  finally {
     lock.unlock();
   }
 }
