@@ -1,0 +1,18 @@
+{
+  if (resolveSettings == null) {
+    resolveSettings=settingsFactory.create();
+    dynamicRevisionCache=dynamicRevisionCacheFactory.create(resolveSettings.getDefaultCache());
+    userResolverChain=createUserResolverChain();
+    ClientModuleResolver clientModuleResolver=createClientModuleResolver(clientModuleRegistry,userResolverChain);
+    DependencyResolver outerChain=new ClientModuleResolverChain(clientModuleResolver,userResolverChain);
+    outerChain.setName(CLIENT_MODULE_CHAIN_NAME);
+    entryPointResolver=new EntryPointResolver(outerChain);
+    entryPointResolver.setName(ENTRY_POINT_RESOLVER);
+    initializeResolvers(resolveSettings,WrapUtil.toList(userResolverChain,clientModuleResolver,outerChain,entryPointResolver));
+  }
+  new EntryPointResolverConfigurer().configureResolver(entryPointResolver,resolutionStrategy);
+  userResolverChain.setDynamicRevisionExpiryPolicy(resolutionStrategy.getDynamicRevisionExpiry());
+  replaceResolvers(dependencyResolvers,userResolverChain);
+  resolveSettings.setDefaultResolver(entryPointResolver.getName());
+  return resolveSettings;
+}
