@@ -6,8 +6,15 @@
   copiedConfiguration.transitive=transitive;
   copiedConfiguration.description=description;
   copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
-  for (  ExcludeRule excludeRule : getExcludeRules()) {
-    copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
+  Set<Configuration> excludeRuleSources=new LinkedHashSet<Configuration>();
+  excludeRuleSources.add(this);
+  if (recursive) {
+    excludeRuleSources.addAll(getHierarchy());
+  }
+  for (  Configuration excludeRuleSource : excludeRuleSources) {
+    for (    ExcludeRule excludeRule : excludeRuleSource.getExcludeRules()) {
+      copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
+    }
   }
   DomainObjectSet<Dependency> copiedDependencies=copiedConfiguration.getDependencies();
   for (  Dependency dependency : dependencies) {
