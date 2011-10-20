@@ -1,0 +1,17 @@
+{
+  lock.lock();
+  try {
+    if (!locked) {
+      throw new IllegalStateException("Cannot acquire artifact lock, as the artifact cache is not locked by this process.");
+    }
+    FileLock metadataFileLock=metadataLocks.get(metadataFile);
+    if (metadataFileLock == null) {
+      metadataFileLock=fileLockManager.lock(metadataFile,FileLockManager.LockMode.Exclusive,String.format("metadata file %s",metadataFile.getName()),operationDisplayName);
+      metadataLocks.put(metadataFile,metadataFileLock);
+    }
+    return metadataFileLock;
+  }
+  finally {
+    lock.unlock();
+  }
+}
