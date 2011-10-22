@@ -1,15 +1,23 @@
 {
-  Map<String,ConfigurationDetails> resolvedDependencies=context.handledNodes.get(ivyNode.getId());
-  for (  IvyNodeCallers.Caller caller : ivyNode.getCallers(context.conf)) {
-    Set<String> dependencyConfigurationsForNode=getDependencyConfigurationsByCaller(ivyNode,caller);
-    IvyNode parentNode=isRootCaller(context.configurationResolveReport,caller) ? ivyNode.getRoot() : context.configurationResolveReport.getDependency(caller.getModuleRevisionId());
-    if (!isResolvedNode(parentNode,context.conf)) {
-      continue;
+  Collection<Usage> usages=getUsages(childNode,context);
+  for (  Usage usage : usages) {
+    ModuleRevisionId parentId=usage.dependencyDescriptor.getParentRevisionId();
+    Set<ConfigurationDetails> parentConfigurations;
+    if (parentId.equals(context.configurationResolveReport.getModuleDescriptor().getModuleRevisionId())) {
+      parentConfigurations=context.findExtendingConfigurations(parentId,context.conf);
     }
-    Map<String,ConfigurationDetails> parentResolvedDependencies=context.handledNodes.get(parentNode.getId());
-    if (parentResolvedDependencies == null) {
-      throw new IllegalStateException(String.format("Could not find caller node %s for node %s. Available nodes: %s",parentNode.getId(),ivyNode.getId(),context.handledNodes.keySet()));
+ else {
+      parentConfigurations=context.findExtendingConfigurations(parentId,usage.dependerConfig);
     }
-    createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode,resolvedDependencies,context.resolvedArtifacts,parentNode,caller,dependencyConfigurationsForNode,parentResolvedDependencies.values());
+    Set<String> childConfigs=getRealConfigurations(childNode,Arrays.asList(usage.dependencyDescriptor.getDependencyConfigurations(usage.dependerConfig)));
+    for (    ConfigurationDetails parentConfiguration : parentConfigurations) {
+      for (      String childConfigName : childConfigs) {
+        ConfigurationDetails childConfiguration=context.getConfiguration(childNode,childConfigName);
+        parentConfiguration.dependency.addChild(childConfiguration.dependency);
+        Set<ResolvedArtifact> parentSpecificResolvedArtifacts=getParentSpecificArtifacts(childNode,childConfiguration,usage);
+        childConfiguration.dependency.addParentSpecificArtifacts(parentConfiguration.dependency,parentSpecificResolvedArtifacts);
+        context.resolvedArtifacts.addAll(parentSpecificResolvedArtifacts);
+      }
+    }
   }
 }

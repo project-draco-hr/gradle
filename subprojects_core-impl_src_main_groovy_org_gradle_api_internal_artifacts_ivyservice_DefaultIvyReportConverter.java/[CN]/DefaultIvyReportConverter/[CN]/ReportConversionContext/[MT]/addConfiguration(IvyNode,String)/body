@@ -1,23 +1,21 @@
 {
   ModuleRevisionId actualId=ivyNode.getResolvedId();
-  Set<String> configurations=getConfigurationHierarchy(ivyNode,configuration);
-  DefaultResolvedDependency resolvedDependency;
-  if (actualId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY) != null) {
-    resolvedDependency=new DefaultResolvedDependency(actualId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY),actualId.getOrganisation(),actualId.getName(),actualId.getRevision(),configuration);
+  Map<String,ConfigurationDetails> configurationsForNode=handledNodes.get(actualId);
+  if (configurationsForNode == null) {
+    configurationsForNode=new LinkedHashMap<String,ConfigurationDetails>();
+    handledNodes.put(actualId,configurationsForNode);
   }
- else {
-    resolvedDependency=new DefaultResolvedDependency(actualId.getOrganisation(),actualId.getName(),actualId.getRevision(),configuration);
+  ConfigurationDetails configurationDetails=configurationsForNode.get(configuration);
+  if (configurationDetails != null) {
+    return configurationDetails;
   }
-  Set<ResolvedArtifact> moduleArtifacts=getArtifacts(resolvedDependency,ivyNode);
-  for (  ResolvedArtifact artifact : moduleArtifacts) {
-    resolvedDependency.addModuleArtifact(artifact);
-  }
-  ConfigurationDetails configurationDetails=new ConfigurationDetails(resolvedDependency,ivyNode,configurations);
-  this.configurations.put(resolvedDependency.getId(),configurationDetails);
+  configurationDetails=createConfiguration(ivyNode,configuration);
+  this.configurations.put(configurationDetails.dependency.getId(),configurationDetails);
+  configurationsForNode.put(configuration,configurationDetails);
   ResolvedConfigurationIdentifier originalId=new ResolvedConfigurationIdentifier(ivyNode.getId(),configuration);
   if (firstLevelDependenciesModuleRevisionIds.containsKey(originalId)) {
     ModuleDependency firstLevelNode=firstLevelDependenciesModuleRevisionIds.get(originalId);
-    firstLevelResolvedDependencies.get(firstLevelNode).add(resolvedDependency);
+    firstLevelResolvedDependencies.get(firstLevelNode).add(configurationDetails.dependency);
   }
   return configurationDetails;
 }
