@@ -2,14 +2,7 @@
   LOGGER.debug("Attempting to get resource {}.",source);
   GetMethod method=new GetMethod(source);
   configureMethod(method);
-  int result=client.executeMethod(method);
-  if (result == 404) {
-    return new MissingResource(source);
-  }
-  if (!wasSuccessful(result)) {
-    throw new IOException(String.format("Could not GET '%s'. Received status code %s from server: %s",source,result,method.getStatusText()));
-  }
-  HttpResource resource=new HttpResource(source,method);
+  Resource resource=createLazyResource(source,method);
   resources.put(source,resource);
   return resource;
 }
