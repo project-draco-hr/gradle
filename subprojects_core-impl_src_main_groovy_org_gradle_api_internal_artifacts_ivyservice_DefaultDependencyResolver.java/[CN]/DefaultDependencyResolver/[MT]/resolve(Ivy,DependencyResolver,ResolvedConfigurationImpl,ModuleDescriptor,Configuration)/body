@@ -1,0 +1,50 @@
+{
+  System.out.println("-> RESOLVE " + configuration);
+  List<Throwable> failures=new ArrayList<Throwable>();
+  ConfigurationContainer container=new ConfigurationContainer();
+  ConfigurationResolveState root=container.getConfiguration(moduleDescriptor,configuration.getName());
+  List<DependencyResolveState> queue=new ArrayList<DependencyResolveState>();
+  root.addOutgoingDependencies(queue);
+  ResolveOptions options=new ResolveOptions();
+  options.setDownload(false);
+  options.setConfs(WrapUtil.toArray(configuration.getName()));
+  ResolveData resolveData=new ResolveData(ivy.getResolveEngine(),options);
+  while (!queue.isEmpty()) {
+    DependencyResolveState dependency=queue.remove(0);
+    System.out.println("resolving " + dependency);
+    IvyContext context=IvyContext.pushNewCopyContext();
+    ResolvedModuleRevision resolvedRevision;
+    try {
+      context.setIvy(ivy);
+      context.setResolveData(resolveData);
+      context.setDependencyDescriptor(dependency.descriptor);
+      try {
+        resolvedRevision=resolver.getDependency(dependency.descriptor,resolveData);
+        if (resolvedRevision == null) {
+          throw new RuntimeException(String.format("%s not found.",StringUtils.capitalize(dependency.toString())));
+        }
+      }
+ catch (      Throwable t) {
+        failures.add(t);
+        continue;
+      }
+    }
+  finally {
+      IvyContext.popContext();
+    }
+    System.out.println("  found module " + resolvedRevision.getId());
+    for (    String targetConfigurationName : dependency.getTargetConfigurations(resolvedRevision.getDescriptor(),resolveData)) {
+      ConfigurationResolveState targetConfiguration=container.getConfiguration(resolvedRevision.getDescriptor(),targetConfigurationName);
+      DefaultResolvedDependency owner=targetConfiguration.getResult();
+      for (      Artifact artifact : targetConfiguration.getArtifacts()) {
+        System.out.println("      added artifact " + artifact);
+        result.addArtifact(resolvedArtifactFactory.create(owner,artifact,resolvedRevision.getArtifactResolver()));
+      }
+      System.out.println("    refers to config " + targetConfiguration);
+      targetConfiguration.addOutgoingDependencies(queue);
+    }
+  }
+  if (!failures.isEmpty()) {
+    throw new ResolveException(configuration,Collections.<String>emptyList(),failures);
+  }
+}
