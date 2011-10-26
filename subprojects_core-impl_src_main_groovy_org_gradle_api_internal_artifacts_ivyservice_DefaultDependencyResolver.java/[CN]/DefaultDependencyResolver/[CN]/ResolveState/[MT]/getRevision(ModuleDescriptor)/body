@@ -1,0 +1,17 @@
+{
+  ModuleRevisionResolveState moduleRevision=revisions.get(descriptor.getModuleRevisionId());
+  if (moduleRevision == null) {
+    moduleRevision=new ModuleRevisionResolveState(descriptor);
+    revisions.put(descriptor.getModuleRevisionId(),moduleRevision);
+    ModuleId moduleId=descriptor.getModuleRevisionId().getModuleId();
+    modules.put(moduleId,moduleRevision);
+    Set<ModuleRevisionResolveState> revisionsForModule=modules.get(moduleId);
+    if (revisionsForModule.size() > 1) {
+      System.out.println("-> conflicts " + revisionsForModule);
+      for (      ModuleRevisionResolveState revision : revisionsForModule) {
+        revision.status=Status.Conflict;
+      }
+    }
+  }
+  return moduleRevision;
+}

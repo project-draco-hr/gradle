@@ -4,6 +4,11 @@
   ModuleDescriptor moduleDescriptor=moduleDescriptorConverter.convert(configuration.getAll(),configuration.getModule(),ivyConfig);
   DependencyResolver resolver=ivy.getSettings().getDefaultResolver();
   ResolvedConfigurationImpl result=new ResolvedConfigurationImpl();
-  resolve(ivy,resolver,result,moduleDescriptor,configuration);
+  ResolveOptions options=new ResolveOptions();
+  options.setDownload(false);
+  options.setConfs(WrapUtil.toArray(configuration.getName()));
+  ResolveData resolveData=new ResolveData(ivy.getResolveEngine(),options);
+  DependencyToModuleResolver dependencyResolver=new IvyResolverBackedDependencyToModuleResolver(ivy,resolveData,resolver);
+  resolve(dependencyResolver,result,moduleDescriptor,configuration,resolveData,resolver);
   return result;
 }
