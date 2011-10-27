@@ -1,0 +1,56 @@
+{
+  System.out.println("-> RESOLVE " + root);
+  List<Throwable> failures=new ArrayList<Throwable>();
+  SetMultimap<ModuleId,DependencyResolvePath> conflicts=LinkedHashMultimap.create();
+  List<DependencyResolvePath> queue=new ArrayList<DependencyResolvePath>();
+  root.addOutgoingDependencies(new RootPath(),queue);
+  while (!queue.isEmpty() || !conflicts.isEmpty()) {
+    if (queue.isEmpty()) {
+      ModuleId moduleId=conflicts.keySet().iterator().next();
+      Set<ModuleRevisionResolveState> candidates=resolveState.getRevisions(moduleId);
+      System.out.println("selecting moduleId from conflicts " + candidates);
+      List<ModuleResolveStateBackedArtifactInfo> artifactInfos=new ArrayList<ModuleResolveStateBackedArtifactInfo>();
+      for (      final ModuleRevisionResolveState moduleRevision : candidates) {
+        artifactInfos.add(new ModuleResolveStateBackedArtifactInfo(moduleRevision));
+      }
+      List<ModuleResolveStateBackedArtifactInfo> sorted=new LatestRevisionStrategy().sort(artifactInfos.toArray(new ArtifactInfo[artifactInfos.size()]));
+      ModuleRevisionResolveState selected=sorted.get(sorted.size() - 1).moduleRevision;
+      System.out.println("  selected " + selected);
+      selected.status=Status.Include;
+      for (      ModuleRevisionResolveState candidate : candidates) {
+        if (candidate != selected) {
+          candidate.status=Status.Evict;
+          for (          DependencyResolvePath path : candidate.outgoingPaths) {
+            path.restart(selected,queue);
+          }
+        }
+      }
+      Set<DependencyResolvePath> paths=conflicts.removeAll(moduleId);
+      for (      DependencyResolvePath path : paths) {
+        path.restart(selected,queue);
+      }
+      continue;
+    }
+    DependencyResolvePath path=queue.remove(0);
+    System.out.println("* path " + path);
+    try {
+      path.resolve(resolver,resolveState);
+    }
+ catch (    Throwable t) {
+      failures.add(t);
+      continue;
+    }
+    if (path.targetModuleRevision.status == Status.Conflict) {
+      conflicts.put(path.resolvedRevision.getId().getModuleId(),path);
+    }
+ else {
+      path.addOutgoingDependencies(resolveData,resolveState,queue);
+    }
+  }
+  if (!failures.isEmpty()) {
+    throw new ResolveException(configuration,Collections.<String>emptyList(),failures);
+  }
+  for (  ConfigurationResolveState resolvedConfiguration : resolveState.getConfigurations()) {
+    resolvedConfiguration.attachToParents(resolvedArtifactFactory,artifactResolver,result);
+  }
+}

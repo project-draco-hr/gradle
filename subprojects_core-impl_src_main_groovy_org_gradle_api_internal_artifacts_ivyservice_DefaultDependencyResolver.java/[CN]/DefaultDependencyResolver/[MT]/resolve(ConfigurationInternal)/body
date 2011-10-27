@@ -3,12 +3,15 @@
   IvyConfig ivyConfig=new IvyConfig(ivy.getSettings(),configuration.getResolutionStrategy());
   ModuleDescriptor moduleDescriptor=moduleDescriptorConverter.convert(configuration.getAll(),configuration.getModule(),ivyConfig);
   DependencyResolver resolver=ivy.getSettings().getDefaultResolver();
-  ResolvedConfigurationImpl result=new ResolvedConfigurationImpl();
   ResolveOptions options=new ResolveOptions();
   options.setDownload(false);
   options.setConfs(WrapUtil.toArray(configuration.getName()));
   ResolveData resolveData=new ResolveData(ivy.getResolveEngine(),options);
   DependencyToModuleResolver dependencyResolver=new IvyResolverBackedDependencyToModuleResolver(ivy,resolveData,resolver);
-  resolve(dependencyResolver,result,moduleDescriptor,configuration,resolveData,resolver);
+  IvyResolverBackedArtifactToFileResolver artifactResolver=new IvyResolverBackedArtifactToFileResolver(resolver);
+  ResolveState resolveState=new ResolveState();
+  ConfigurationResolveState root=resolveState.getConfiguration(moduleDescriptor,configuration.getName());
+  ResolvedConfigurationImpl result=new ResolvedConfigurationImpl(root.getResult());
+  resolve(dependencyResolver,result,root,resolveState,resolveData,artifactResolver,configuration);
   return result;
 }
