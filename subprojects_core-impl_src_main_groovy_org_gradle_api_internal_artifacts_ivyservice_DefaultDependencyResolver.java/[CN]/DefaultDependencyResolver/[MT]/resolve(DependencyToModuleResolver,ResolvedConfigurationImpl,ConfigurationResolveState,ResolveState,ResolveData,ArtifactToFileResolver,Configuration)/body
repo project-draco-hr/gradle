@@ -1,6 +1,5 @@
 {
   System.out.println("-> RESOLVE " + root);
-  List<Throwable> failures=new ArrayList<Throwable>();
   SetMultimap<ModuleId,DependencyResolvePath> conflicts=LinkedHashMultimap.create();
   List<DependencyResolvePath> queue=new ArrayList<DependencyResolvePath>();
   root.addOutgoingDependencies(new RootPath(),queue);
@@ -37,19 +36,15 @@
       path.resolve(resolver,resolveState);
     }
  catch (    Throwable t) {
-      failures.add(t);
-      result.addUnresolvedDependency(path.descriptor,t);
+      result.addUnresolvedDependency(path.dependency.descriptor,t);
       continue;
     }
     if (path.targetModuleRevision.status == Status.Conflict) {
-      conflicts.put(path.resolvedRevision.getId().getModuleId(),path);
+      conflicts.put(path.targetModuleRevision.descriptor.getModuleRevisionId().getModuleId(),path);
     }
  else {
       path.addOutgoingDependencies(resolveData,resolveState,queue);
     }
-  }
-  if (!failures.isEmpty()) {
-    throw new ResolveException(configuration,Collections.<String>emptyList(),failures);
   }
   for (  ConfigurationResolveState resolvedConfiguration : resolveState.getConfigurations()) {
     resolvedConfiguration.attachToParents(resolvedArtifactFactory,artifactResolver,result);
