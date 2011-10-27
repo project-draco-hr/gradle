@@ -4,7 +4,13 @@
   DefaultResolvedDependency parent=from.getResult();
   DefaultResolvedDependency child=childConfiguration.getResult();
   parent.addChild(child);
-  child.addParentSpecificArtifacts(parent,childConfiguration.getArtifacts(resolvedArtifactFactory,resolver));
+  Set<ResolvedArtifact> artifacts=getArtifacts(childConfiguration,resolvedArtifactFactory,resolver);
+  if (!artifacts.isEmpty()) {
+    child.addParentSpecificArtifacts(parent,artifacts);
+  }
+ else {
+    child.addParentSpecificArtifacts(parent,childConfiguration.getArtifacts(resolvedArtifactFactory,resolver));
+  }
   if (parent == result.getRoot()) {
     EnhancedDependencyDescriptor enhancedDependencyDescriptor=(EnhancedDependencyDescriptor)descriptor;
     result.addFirstLevelDependency(enhancedDependencyDescriptor.getModuleDependency(),child);
