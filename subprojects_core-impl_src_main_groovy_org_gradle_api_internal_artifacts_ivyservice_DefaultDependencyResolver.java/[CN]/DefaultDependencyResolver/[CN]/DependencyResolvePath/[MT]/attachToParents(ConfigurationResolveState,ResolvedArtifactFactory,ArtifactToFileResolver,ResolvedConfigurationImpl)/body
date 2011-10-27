@@ -5,11 +5,12 @@
   DefaultResolvedDependency child=childConfiguration.getResult();
   parent.addChild(child);
   Set<ResolvedArtifact> artifacts=getArtifacts(childConfiguration,resolvedArtifactFactory,resolver);
-  if (!artifacts.isEmpty()) {
-    child.addParentSpecificArtifacts(parent,artifacts);
+  if (artifacts.isEmpty()) {
+    artifacts=childConfiguration.getArtifacts(resolvedArtifactFactory,resolver);
   }
- else {
-    child.addParentSpecificArtifacts(parent,childConfiguration.getArtifacts(resolvedArtifactFactory,resolver));
+  child.addParentSpecificArtifacts(parent,artifacts);
+  for (  ResolvedArtifact artifact : artifacts) {
+    result.addArtifact(artifact);
   }
   if (parent == result.getRoot()) {
     EnhancedDependencyDescriptor enhancedDependencyDescriptor=(EnhancedDependencyDescriptor)descriptor;
