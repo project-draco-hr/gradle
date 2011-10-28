@@ -1,6 +1,18 @@
 {
   if (targetModuleRevision == null) {
-    dependency.resolve(resolver,resolveState);
+    try {
+      dependency.resolve(resolver,resolveState);
+    }
+ catch (    ModuleNotFoundException e) {
+      Formatter formatter=new Formatter();
+      formatter.format("Module %s not found. It is required by:",dependency.getDependencyId());
+      Set<ModuleRevisionResolveState> modules=new LinkedHashSet<ModuleRevisionResolveState>();
+      addPathAsModules(modules);
+      for (      ModuleRevisionResolveState module : modules) {
+        formatter.format("%n    %s",module.getId());
+      }
+      throw new ModuleNotFoundException(formatter.toString(),e);
+    }
     targetModuleRevision=dependency.targetModuleRevision;
   }
 }
