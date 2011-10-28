@@ -3,16 +3,8 @@
     System.out.println("    skipping " + incomingPath + " as it already traverses "+ this);
     return;
   }
-  incomingPaths.add(incomingPath);
   for (  DependencyResolveState dependency : moduleRevision.getDependencies()) {
-    Set<String> targetConfigurations=new LinkedHashSet<String>();
-    for (    String moduleConfiguration : dependency.descriptor.getModuleConfigurations()) {
-      if (heirarchy.contains(moduleConfiguration)) {
-        for (        String targetConfiguration : dependency.descriptor.getDependencyConfigurations(moduleConfiguration)) {
-          targetConfigurations.add(targetConfiguration);
-        }
-      }
-    }
+    Set<String> targetConfigurations=dependency.getTargetConfigurations(this);
     if (!targetConfigurations.isEmpty()) {
       DependencyResolvePath dependencyResolvePath=new DependencyResolvePath(incomingPath,this,dependency,targetConfigurations);
       dependencies.add(dependencyResolvePath);

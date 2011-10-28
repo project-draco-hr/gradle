@@ -1,19 +1,20 @@
 {
-  if (isExcluded(targetModuleRevision)) {
+  if (excludes(targetModuleRevision)) {
     return;
   }
-  targetModuleRevision.addOutgoingPath(this);
+  targetModuleRevision.addIncomingPaths(this);
   ModuleDescriptor targetDescriptor=targetModuleRevision.descriptor;
   IvyNode node=new IvyNode(resolveData,targetDescriptor);
   Set<String> targets=new LinkedHashSet<String>();
   for (  String targetConfiguration : targetConfigurations) {
-    for (    String realConfig : node.getRealConfs(targetConfiguration)) {
-      targets.add(realConfig);
-    }
+    Collections.addAll(targets,node.getRealConfs(targetConfiguration));
   }
   for (  String targetConfigurationName : targets) {
     ConfigurationResolveState targetConfiguration=resolveState.getConfiguration(targetDescriptor,targetConfigurationName);
     System.out.println("    refers to config " + targetConfiguration);
-    targetConfiguration.addOutgoingDependencies(this,queue);
+    targetConfiguration.addIncomingPath(this);
+    if (dependency.descriptor.isTransitive()) {
+      targetConfiguration.addOutgoingDependencies(this,queue);
+    }
   }
 }
