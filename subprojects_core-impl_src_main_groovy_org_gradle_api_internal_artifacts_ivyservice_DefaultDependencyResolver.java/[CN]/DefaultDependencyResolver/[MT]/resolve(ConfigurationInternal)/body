@@ -11,8 +11,16 @@
   IvyResolverBackedArtifactToFileResolver artifactResolver=new IvyResolverBackedArtifactToFileResolver(resolver);
   ResolveState resolveState=new ResolveState();
   ConfigurationResolveState root=resolveState.getConfiguration(moduleDescriptor,configuration.getName());
+  ModuleConflictResolver conflictResolver;
+  if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
+    conflictResolver=new StrictConflictResolver();
+  }
+ else {
+    conflictResolver=new LatestModuleConflictResolver();
+  }
+  conflictResolver=new ForcedVersionConflictResolver(conflictResolver);
   ResolvedConfigurationImpl result=new ResolvedConfigurationImpl(configuration,root.getResult());
-  resolve(dependencyResolver,result,root,resolveState,resolveData,artifactResolver);
+  resolve(dependencyResolver,result,root,resolveState,resolveData,artifactResolver,conflictResolver);
   System.out.println("-> RESULT");
   for (  ResolvedArtifact artifact : result.getResolvedArtifacts()) {
     System.out.println("  " + artifact.getModule().getId() + " "+ artifact.getName());
