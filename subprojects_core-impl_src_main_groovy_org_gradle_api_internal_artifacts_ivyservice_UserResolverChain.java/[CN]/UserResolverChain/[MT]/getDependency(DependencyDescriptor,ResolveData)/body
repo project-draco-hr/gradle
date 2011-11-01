@@ -1,18 +1,17 @@
 {
-  for (  DependencyResolver resolver : getResolvers()) {
-    DependencyDescriptor resolvedDynamicDependency=dynamicRevisions.maybeResolveDynamicRevision(resolver,dd);
-    ResolvedModuleRevision cachedModule=findModuleInCache(resolver,resolvedDynamicDependency,data);
-    if (cachedModule != null) {
-      LOGGER.debug("Found module {} in resolver cache {}",cachedModule,resolver.getName());
-      artifactResolvers.put(cachedModule.getId(),resolver);
-      return cachedModule;
-    }
+  List<ModuleResolution> resolutionList=createResolutionList(dd,data);
+  ModuleResolution latestCached=lookupAllInCacheAndGetLatest(resolutionList);
+  if (latestCached != null) {
+    LOGGER.debug("Found module {} in resolver cache {}",latestCached.getModule(),latestCached.resolver.getName());
+    rememberResolverToUseForArtifactDownload(latestCached.resolver,latestCached.getModule());
+    return latestCached.getModule();
   }
-  ResolvedModuleRevision downloadedModule=getModuleRevisionFromAnyRepository(dd,data);
-  if (downloadedModule != null) {
+  ModuleResolution latestResolved=resolveAllAndGetLatest(resolutionList);
+  if (latestResolved != null) {
+    ResolvedModuleRevision downloadedModule=latestResolved.getModule();
     LOGGER.debug("Found module {} using resolver {}",downloadedModule,downloadedModule.getArtifactResolver());
-    artifactResolvers.put(downloadedModule.getId(),downloadedModule.getArtifactResolver());
-    dynamicRevisions.maybeSaveDynamicRevision(dd,downloadedModule);
+    rememberResolverToUseForArtifactDownload(downloadedModule.getArtifactResolver(),downloadedModule);
+    return downloadedModule;
   }
-  return downloadedModule;
+  return null;
 }
