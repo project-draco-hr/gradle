@@ -1,0 +1,29 @@
+{
+  this.target=target;
+  if (isEnabled()) {
+    List<? extends Class<?>> targetClasses=loadTargetClasses();
+    RunnerBuilder runnerBuilder=new RunnerBuilder(){
+      @Override public Runner runnerForClass(      Class<?> testClass){
+        try {
+          return new BlockJUnit4ClassRunner(testClass){
+            @Override protected Statement methodInvoker(            FrameworkMethod method,            Object test){
+              Statement statement=super.methodInvoker(method,test);
+              return Execution.this.methodInvoker(statement,method,test);
+            }
+          }
+;
+        }
+ catch (        InitializationError initializationError) {
+          return new ErrorReportingRunner(testClass,initializationError);
+        }
+      }
+    }
+;
+    try {
+      runner=new Suite(runnerBuilder,targetClasses.toArray(new Class<?>[targetClasses.size()]));
+    }
+ catch (    InitializationError initializationError) {
+      runner=new ErrorReportingRunner(target,initializationError);
+    }
+  }
+}
