@@ -5,13 +5,18 @@
     RunnerBuilder runnerBuilder=new RunnerBuilder(){
       @Override public Runner runnerForClass(      Class<?> testClass){
         try {
-          return new BlockJUnit4ClassRunner(testClass){
-            @Override protected Statement methodInvoker(            FrameworkMethod method,            Object test){
-              Statement statement=super.methodInvoker(method,test);
-              return Execution.this.methodInvoker(statement,method,test);
+          for (Class<?> candidate=testClass; candidate != null; candidate=candidate.getSuperclass()) {
+            RunWith runWith=candidate.getAnnotation(RunWith.class);
+            if (runWith != null && !AbstractCompatibilityTestRunner.class.isAssignableFrom(runWith.value())) {
+              try {
+                return (Runner)runWith.value().getConstructors()[0].newInstance(testClass);
+              }
+ catch (              Exception e) {
+                return new ErrorReportingRunner(testClass,e);
+              }
             }
           }
-;
+          return new BlockJUnit4ClassRunner(testClass);
         }
  catch (        InitializationError initializationError) {
           return new ErrorReportingRunner(testClass,initializationError);
