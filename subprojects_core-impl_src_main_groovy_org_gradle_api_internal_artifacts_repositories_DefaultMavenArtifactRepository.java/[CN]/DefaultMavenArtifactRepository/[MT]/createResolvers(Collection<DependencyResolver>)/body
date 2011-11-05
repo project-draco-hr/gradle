@@ -3,42 +3,26 @@
   if (rootUri == null) {
     throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
   }
-  MavenResolver resolver;
+  MavenResolver resolver=new MavenResolver();
+  resolver.setName(name);
+  resolver.setM2compatible(true);
+  resolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
   if (rootUri.getScheme().equalsIgnoreCase("file")) {
-    resolver=new MavenResolver();
     resolver.setRepository(new FileRepository());
-    resolver.setRoot(new File(rootUri).getAbsolutePath());
     resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
+    resolver.setRoot(getFilePath(rootUri));
+    Collection<URI> artifactUrls=getArtifactUrls();
+    for (    URI repoUrl : artifactUrls) {
+      resolver.addArtifactUrl(getFilePath(repoUrl));
+    }
   }
  else {
-    resolver=new MavenResolver();
-    resolver.setRoot(rootUri.toString());
+    resolver.setRepository(new CommonsHttpClientBackedRepository(null,null));
+    resolver.setRoot(getUriPath(rootUri));
+    Collection<URI> artifactUrls=getArtifactUrls();
+    for (    URI repoUrl : artifactUrls) {
+      resolver.addArtifactUrl(getUriPath(repoUrl));
+    }
   }
-  resolver.setUsepoms(true);
-  resolver.setName(name);
-  resolver.setPattern(ArtifactRepositoryContainer.MAVEN_REPO_PATTERN);
-  resolver.setM2compatible(true);
-  resolver.setUseMavenMetadata(true);
-  resolver.setChecksums("");
-  Collection<URI> artifactUrls=getArtifactUrls();
-  if (artifactUrls.isEmpty()) {
-    resolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
-    resolvers.add(resolver);
-    return;
-  }
-  resolver.setName(name + "_poms");
-  URLResolver artifactResolver=new UrlWharfResolver();
-  artifactResolver.setName(name + "_jars");
-  artifactResolver.setM2compatible(true);
-  artifactResolver.setChecksums("");
-  artifactResolver.addArtifactPattern(rootUri.toString() + '/' + ArtifactRepositoryContainer.MAVEN_REPO_PATTERN);
-  for (  URI repoUrl : artifactUrls) {
-    artifactResolver.addArtifactPattern(repoUrl.toString() + '/' + ArtifactRepositoryContainer.MAVEN_REPO_PATTERN);
-  }
-  DualResolver dualResolver=new DualResolver();
-  dualResolver.setName(name);
-  dualResolver.setIvyResolver(resolver);
-  dualResolver.setArtifactResolver(artifactResolver);
-  dualResolver.setDescriptor(DualResolver.DESCRIPTOR_OPTIONAL);
-  resolvers.add(dualResolver);
+  resolvers.add(resolver);
 }
