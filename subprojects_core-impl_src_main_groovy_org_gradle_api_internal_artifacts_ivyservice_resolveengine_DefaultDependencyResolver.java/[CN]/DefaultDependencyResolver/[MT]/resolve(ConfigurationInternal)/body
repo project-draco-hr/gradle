@@ -1,7 +1,6 @@
 {
   LOGGER.debug("Resolving {}",configuration);
   Ivy ivy=ivyFactory.create(configuration.getResolutionStrategy());
-  ModuleDescriptor moduleDescriptor=moduleDescriptorConverter.convert(configuration.getAll(),configuration.getModule());
   DependencyResolver resolver=ivy.getSettings().getDefaultResolver();
   ResolveOptions options=new ResolveOptions();
   options.setDownload(false);
@@ -16,10 +15,7 @@
  else {
     conflictResolver=new LatestModuleConflictResolver();
   }
-  ForcedModuleConflictResolver outerConflictResolver=new ForcedModuleConflictResolver(conflictResolver);
-  ResolveState resolveState=new ResolveState(moduleDescriptor,configuration.getName());
-  DefaultLenientConfiguration result=new DefaultLenientConfiguration(configuration,resolveState.root.getResult());
-  GraphBuilder builder=new GraphBuilder();
-  builder.resolve(dependencyResolver,result,resolveState,resolveData,artifactResolver,outerConflictResolver,resolvedArtifactFactory);
+  DependencyGraphBuilder builder=new DependencyGraphBuilder(moduleDescriptorConverter,resolvedArtifactFactory);
+  DefaultLenientConfiguration result=builder.resolve(configuration,resolveData,dependencyResolver,artifactResolver,conflictResolver);
   return new DefaultResolvedConfiguration(result);
 }
