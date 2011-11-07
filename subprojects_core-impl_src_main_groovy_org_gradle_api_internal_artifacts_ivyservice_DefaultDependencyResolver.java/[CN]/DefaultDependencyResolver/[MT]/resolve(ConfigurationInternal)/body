@@ -1,4 +1,5 @@
 {
+  LOGGER.debug("Resolving {}",configuration);
   Ivy ivy=ivyFactory.create(configuration.getResolutionStrategy());
   ModuleDescriptor moduleDescriptor=moduleDescriptorConverter.convert(configuration.getAll(),configuration.getModule());
   DependencyResolver resolver=ivy.getSettings().getDefaultResolver();
@@ -8,8 +9,6 @@
   ResolveData resolveData=new ResolveData(ivy.getResolveEngine(),options);
   DependencyToModuleResolver dependencyResolver=new IvyResolverBackedDependencyToModuleResolver(ivy,resolveData,resolver);
   IvyResolverBackedArtifactToFileResolver artifactResolver=new IvyResolverBackedArtifactToFileResolver(resolver);
-  ResolveState resolveState=new ResolveState();
-  ConfigurationResolveState root=resolveState.getConfiguration(moduleDescriptor,configuration.getName());
   ModuleConflictResolver conflictResolver;
   if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
     conflictResolver=new StrictConflictResolver();
@@ -18,7 +17,9 @@
     conflictResolver=new LatestModuleConflictResolver();
   }
   conflictResolver=new ForcedModuleConflictResolver(conflictResolver);
-  ResolvedConfigurationImpl result=new ResolvedConfigurationImpl(configuration,root.getResult());
-  resolve(dependencyResolver,result,root,resolveState,resolveData,artifactResolver,conflictResolver);
+  ResolveState resolveState=new ResolveState(moduleDescriptor,configuration.getName());
+  BuildableResolvedConfiguration result=new BuildableResolvedConfiguration(configuration,resolveState.root.getResult());
+  GraphBuilder builder=new GraphBuilder();
+  builder.resolve(dependencyResolver,result,resolveState,resolveData,artifactResolver,conflictResolver,resolvedArtifactFactory);
   return result;
 }

@@ -1,13 +1,12 @@
 {
-  LOGGER.debug("Resolving {}",root);
   SetMultimap<ModuleId,DependencyResolvePath> conflicts=LinkedHashMultimap.create();
   List<DependencyResolvePath> queue=new ArrayList<DependencyResolvePath>();
-  root.addOutgoingDependencies(new RootPath(),queue);
+  resolveState.root.addOutgoingDependencies(new RootPath(),queue);
   while (!queue.isEmpty() || !conflicts.isEmpty()) {
     if (queue.isEmpty()) {
       ModuleId moduleId=conflicts.keySet().iterator().next();
       Set<ModuleRevisionResolveState> candidates=resolveState.getRevisions(moduleId);
-      ModuleRevisionResolveState selected=conflictResolver.select(candidates,root.moduleRevision);
+      ModuleRevisionResolveState selected=conflictResolver.select(candidates,resolveState.root.moduleRevision);
       LOGGER.debug("Selected {} from conflicting modules {}.",selected,candidates);
       selected.status=Status.Include;
       for (      ModuleRevisionResolveState candidate : candidates) {
@@ -27,7 +26,7 @@
     DependencyResolvePath path=queue.remove(0);
     LOGGER.debug("Visiting path {}.",path);
     try {
-      path.resolve(resolver,resolveState);
+      path.resolve(dependencyResolver,resolveState);
     }
  catch (    Throwable t) {
       result.addUnresolvedDependency(path.dependency.descriptor,t);
