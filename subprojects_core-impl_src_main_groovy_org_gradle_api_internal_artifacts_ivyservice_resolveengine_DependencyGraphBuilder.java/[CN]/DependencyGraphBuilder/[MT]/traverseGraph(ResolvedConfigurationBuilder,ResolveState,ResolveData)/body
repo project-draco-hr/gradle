@@ -3,7 +3,25 @@
   List<DependencyResolvePath> queue=new ArrayList<DependencyResolvePath>();
   resolveState.root.addOutgoingDependencies(new RootPath(),queue);
   while (!queue.isEmpty() || !conflicts.isEmpty()) {
-    if (queue.isEmpty()) {
+    if (!queue.isEmpty()) {
+      DependencyResolvePath path=queue.remove(0);
+      LOGGER.debug("Visiting path {}.",path);
+      try {
+        path.resolve(dependencyResolver,resolveState);
+      }
+ catch (      Throwable t) {
+        result.addUnresolvedDependency(new DefaultUnresolvedDependency(path.dependency.descriptor.getDependencyRevisionId().toString(),t));
+        continue;
+      }
+      if (path.targetModuleRevision.status == Status.Conflict) {
+        LOGGER.debug("Found a conflict. Park this path.");
+        conflicts.put(path.targetModuleRevision.id.getModuleId(),path);
+      }
+ else {
+        path.addOutgoingDependencies(resolveData,resolveState,queue);
+      }
+    }
+ else {
       ModuleId moduleId=conflicts.keySet().iterator().next();
       Set<ModuleRevisionResolveState> candidates=resolveState.getRevisions(moduleId);
       ModuleRevisionResolveState selected=conflictResolver.select(candidates,resolveState.root.moduleRevision);
@@ -21,26 +39,6 @@
       for (      DependencyResolvePath path : paths) {
         path.restart(selected,queue);
       }
-      continue;
     }
-    DependencyResolvePath path=queue.remove(0);
-    LOGGER.debug("Visiting path {}.",path);
-    try {
-      path.resolve(dependencyResolver,resolveState);
-    }
- catch (    Throwable t) {
-      result.addUnresolvedDependency(new DefaultUnresolvedDependency(path.dependency.descriptor.getDependencyRevisionId().toString(),t));
-      continue;
-    }
-    if (path.targetModuleRevision.status == Status.Conflict) {
-      LOGGER.debug("Found a conflict. Park this path.");
-      conflicts.put(path.targetModuleRevision.id.getModuleId(),path);
-    }
- else {
-      path.addOutgoingDependencies(resolveData,resolveState,queue);
-    }
-  }
-  for (  ConfigurationResolveState resolvedConfiguration : resolveState.getConfigurations()) {
-    resolvedConfiguration.attachToParents(resolvedArtifactFactory,artifactResolver,result);
   }
 }
