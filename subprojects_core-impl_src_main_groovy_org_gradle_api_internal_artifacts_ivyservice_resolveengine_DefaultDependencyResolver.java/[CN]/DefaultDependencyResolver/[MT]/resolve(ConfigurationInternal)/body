@@ -6,7 +6,8 @@
   options.setDownload(false);
   options.setConfs(WrapUtil.toArray(configuration.getName()));
   ResolveData resolveData=new ResolveData(ivy.getResolveEngine(),options);
-  DependencyToModuleResolver dependencyResolver=new IvyResolverBackedDependencyToModuleResolver(ivy,resolveData,resolver);
+  VersionMatcher versionMatcher=ivy.getSettings().getVersionMatcher();
+  DependencyToModuleResolver dependencyResolver=new IvyResolverBackedDependencyToModuleResolver(ivy,resolveData,resolver,versionMatcher);
   IvyResolverBackedArtifactToFileResolver artifactResolver=new IvyResolverBackedArtifactToFileResolver(resolver);
   ModuleConflictResolver conflictResolver;
   if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
@@ -15,7 +16,7 @@
  else {
     conflictResolver=new LatestModuleConflictResolver();
   }
-  DependencyGraphBuilder builder=new DependencyGraphBuilder(moduleDescriptorConverter,resolvedArtifactFactory,artifactResolver,dependencyResolver,conflictResolver,ivy.getSettings().getVersionMatcher());
+  DependencyGraphBuilder builder=new DependencyGraphBuilder(moduleDescriptorConverter,resolvedArtifactFactory,artifactResolver,dependencyResolver,conflictResolver);
   DefaultLenientConfiguration result=builder.resolve(configuration,resolveData);
   return new DefaultResolvedConfiguration(result);
 }
