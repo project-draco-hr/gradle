@@ -3,14 +3,14 @@
     return (Dependency)dependencyNotation;
   }
   Dependency dependency=null;
-  for (  IDependencyImplementationFactory factory : dependencyFactories) {
+  for (  NotationParser<? extends Dependency> notationParser : notationParsers) {
     try {
-      dependency=factory.createDependency(Dependency.class,dependencyNotation);
-      break;
+      if (notationParser.canParse(dependencyNotation)) {
+        dependency=notationParser.parseNotation(dependencyNotation);
+        break;
+      }
     }
- catch (    IllegalDependencyNotation e) {
-    }
-catch (    Exception e) {
+ catch (    Exception e) {
       throw new GradleException(String.format("Could not create a dependency using notation: %s",dependencyNotation),e);
     }
   }
