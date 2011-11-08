@@ -1,5 +1,6 @@
 {
   Instantiator instantiator=get(Instantiator.class);
   DefaultProjectDependencyFactory projectDependencyFactory=new DefaultProjectDependencyFactory(get(StartParameter.class).getProjectDependenciesBuildInstruction(),instantiator);
-  return new DefaultDependencyFactory(WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(instantiator),new SelfResolvingDependencyFactory(instantiator),new ClassPathDependencyFactory(instantiator,get(ClassPathRegistry.class),new IdentityFileResolver()),projectDependencyFactory),new DefaultClientModuleFactory(instantiator),projectDependencyFactory);
+  Set<IDependencyImplementationFactory> dependencyFactories=WrapUtil.toSet(new ModuleDependencyFactory(instantiator),new SelfResolvingDependencyFactory(instantiator),new ClassPathDependencyFactory(instantiator,get(ClassPathRegistry.class),new IdentityFileResolver()),projectDependencyFactory);
+  return new DefaultDependencyFactory(new DependencyNotationParser(dependencyFactories),new DefaultClientModuleFactory(instantiator),projectDependencyFactory);
 }

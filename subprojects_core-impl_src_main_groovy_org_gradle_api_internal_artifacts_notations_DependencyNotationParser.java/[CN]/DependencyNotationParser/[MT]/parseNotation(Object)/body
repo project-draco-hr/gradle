@@ -1,0 +1,21 @@
+{
+  if (dependencyNotation instanceof Dependency) {
+    return (Dependency)dependencyNotation;
+  }
+  Dependency dependency=null;
+  for (  IDependencyImplementationFactory factory : dependencyFactories) {
+    try {
+      dependency=factory.createDependency(Dependency.class,dependencyNotation);
+      break;
+    }
+ catch (    IllegalDependencyNotation e) {
+    }
+catch (    Exception e) {
+      throw new GradleException(String.format("Could not create a dependency using notation: %s",dependencyNotation),e);
+    }
+  }
+  if (dependency == null) {
+    throw new InvalidUserDataException(String.format("The dependency notation: %s is invalid.",dependencyNotation));
+  }
+  return dependency;
+}
