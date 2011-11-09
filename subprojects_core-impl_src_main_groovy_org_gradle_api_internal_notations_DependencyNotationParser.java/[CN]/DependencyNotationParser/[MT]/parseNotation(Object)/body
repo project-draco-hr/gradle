@@ -1,21 +1,8 @@
 {
-  if (dependencyNotation instanceof Dependency) {
-    return (Dependency)dependencyNotation;
+  try {
+    return parser.parseSingleNotation(dependencyNotation);
   }
-  Dependency dependency=null;
-  for (  NotationParser<? extends Dependency> notationParser : notationParsers) {
-    try {
-      if (notationParser.canParse(dependencyNotation)) {
-        dependency=notationParser.parseNotation(dependencyNotation);
-        break;
-      }
-    }
- catch (    Exception e) {
-      throw new GradleException(String.format("Could not create a dependency using notation: %s",dependencyNotation),e);
-    }
+ catch (  Exception e) {
+    throw new GradleException(String.format("Could not create a dependency using notation: %s",dependencyNotation),e);
   }
-  if (dependency == null) {
-    throw new InvalidUserDataException(String.format("The dependency notation: %s is invalid.",dependencyNotation));
-  }
-  return dependency;
 }
