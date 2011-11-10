@@ -1,10 +1,10 @@
 {
   Instantiator instantiator=get(Instantiator.class);
   ProjectDependencyFactory projectDependencyFactory=new ProjectDependencyFactory(get(StartParameter.class).getProjectDependenciesBuildInstruction(),instantiator);
-  ProjectDependencyNotationParser projParser=new ProjectDependencyNotationParser(get(StartParameter.class).getProjectDependenciesBuildInstruction(),instantiator);
-  NotationParser<? extends Dependency> moduleMapParser=new ModuleDependencyMapNotationParser(instantiator,DefaultExternalModuleDependency.class);
+  DependencyProjectNotationParser projParser=new DependencyProjectNotationParser(get(StartParameter.class).getProjectDependenciesBuildInstruction(),instantiator);
+  NotationParser<? extends Dependency> moduleMapParser=new DependencyMapNotationParser(instantiator,DefaultExternalModuleDependency.class);
   NotationParser<? extends Dependency> selfResolvingDependencyFactory=new DependencyFilesNotationParser(instantiator);
-  Set<NotationParser<? extends Dependency>> notationParsers=WrapUtil.toSet(new ModuleDependencyStringNotationParser(instantiator),moduleMapParser,selfResolvingDependencyFactory,new DependencyClassPathNotationParser(instantiator,get(ClassPathRegistry.class),new IdentityFileResolver()),projParser);
+  Set<NotationParser<? extends Dependency>> notationParsers=WrapUtil.toSet(new DependencyStringNotationParser(instantiator),moduleMapParser,selfResolvingDependencyFactory,new DependencyClassPathNotationParser(instantiator,get(ClassPathRegistry.class),new IdentityFileResolver()),projParser);
   DependencyNotationParser dependencyNotationParser=new DependencyNotationParser(notationParsers);
   return new DefaultDependencyFactory(dependencyNotationParser,new DefaultClientModuleFactory(instantiator),projectDependencyFactory);
 }
