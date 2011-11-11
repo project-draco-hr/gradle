@@ -12,7 +12,11 @@
   for (  String version : versions) {
     BasicGradleDistribution previous=current.previousVersion(version);
     if (!previous.worksWith(Jvm.current())) {
-      System.out.println("Skipping " + previous + " as it does not work with JVM "+ Jvm.current());
+      executions.add(new IgnoredVersion(previous,"does not work with current JVM"));
+      continue;
+    }
+    if (!previous.worksWith(OperatingSystem.current())) {
+      executions.add(new IgnoredVersion(previous,"does not work with current OS"));
       continue;
     }
     this.previous.add(previous);
