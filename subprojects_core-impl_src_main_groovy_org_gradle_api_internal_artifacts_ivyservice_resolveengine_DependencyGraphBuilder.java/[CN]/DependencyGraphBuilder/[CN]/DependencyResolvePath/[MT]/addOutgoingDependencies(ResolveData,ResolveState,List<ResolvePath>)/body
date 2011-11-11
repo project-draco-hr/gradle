@@ -1,2 +1,19 @@
 {
+  ModuleDescriptor targetDescriptor=targetModuleRevision.descriptor;
+  if (targetDescriptor == null) {
+    throw new IllegalStateException(String.format("No descriptor for %s.",targetModuleRevision));
+  }
+  IvyNode node=new IvyNode(resolveData,targetDescriptor);
+  Set<String> targets=new LinkedHashSet<String>();
+  for (  String targetConfiguration : targetConfigurations) {
+    Collections.addAll(targets,node.getRealConfs(targetConfiguration));
+  }
+  for (  String targetConfigurationName : targets) {
+    ConfigurationResolveState targetConfiguration=resolveState.getConfiguration(targetDescriptor,targetConfigurationName);
+    LOGGER.debug("{} is outgoing to {}.",this,targetConfiguration);
+    targetConfiguration.addIncomingPath(this);
+    if (from.isTransitive() && dependency.isTransitive()) {
+      targetConfiguration.addOutgoingDependencies(this,queue);
+    }
+  }
 }
