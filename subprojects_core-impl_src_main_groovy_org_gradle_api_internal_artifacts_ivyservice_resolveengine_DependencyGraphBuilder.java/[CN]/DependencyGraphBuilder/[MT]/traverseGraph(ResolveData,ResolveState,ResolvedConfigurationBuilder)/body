@@ -3,7 +3,7 @@
   SetMultimap<ModuleId,DefaultModuleRevisionResolveState> allVersions=LinkedHashMultimap.create();
   Set<ModuleId> conflicts=new LinkedHashSet<ModuleId>();
   List<ResolvePath> queue=new ArrayList<ResolvePath>();
-  resolveState.root.addOutgoingDependencies(new RootPath(),queue);
+  resolveState.root.addOutgoingDependencies(new RootPath(),resolveState,queue);
   while (!queue.isEmpty() || !pendingConflictResolution.isEmpty()) {
     if (!queue.isEmpty()) {
       ResolvePath path=queue.remove(0);
@@ -46,8 +46,7 @@
         }
         path.resolveMetaData(resolveState);
       }
- catch (      ModuleRevisionResolveException t) {
-        result.addUnresolvedDependency(path.asUnresolvedDependency(t));
+ catch (      ModuleVersionResolveException t) {
         continue;
       }
       path.addOutgoingDependencies(resolveData,resolveState,queue);
