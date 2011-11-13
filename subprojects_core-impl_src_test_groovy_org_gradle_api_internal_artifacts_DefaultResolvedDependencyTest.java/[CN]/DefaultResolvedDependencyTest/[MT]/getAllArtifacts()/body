@@ -1,16 +1,13 @@
 {
-  Set<ResolvedArtifact> someModuleArtifacts=WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
-  ResolvedArtifact childModuleResolvedArtifact=createArtifact("someChildModuleResolvedArtifact");
-  DefaultResolvedDependency resolvedDependency=createResolvedDependency(someModuleArtifacts);
-  Set<ResolvedArtifact> parent1SpecificArtifacts=WrapUtil.toSet(createArtifact("parent1Specific"));
+  DefaultResolvedDependency resolvedDependency=createResolvedDependency();
+  Set<ResolvedArtifact> parent1SpecificArtifacts=toSet(createArtifact("parent1Specific"));
   DefaultResolvedDependency parentResolvedDependency1=createAndAddParent("parent1",resolvedDependency,parent1SpecificArtifacts);
-  createAndAddParent("parent2",resolvedDependency,WrapUtil.toSet(createArtifact("parent2Specific")));
+  createAndAddParent("parent2",resolvedDependency,toSet(createArtifact("parent2Specific")));
   DefaultResolvedDependency child=new DefaultResolvedDependency("someGroup","someChild","someVersion","someChildConfiguration");
-  child.addModuleArtifact(childModuleResolvedArtifact);
   resolvedDependency.getChildren().add(child);
-  Set<ResolvedArtifact> childParent1SpecificArtifacts=WrapUtil.toSet(createArtifact("childParent1Specific"));
+  Set<ResolvedArtifact> childParent1SpecificArtifacts=toSet(createArtifact("childParent1Specific"));
   createAndAddParent("childParent1",child,childParent1SpecificArtifacts);
-  Set<ResolvedArtifact> childParent2SpecificArtifacts=WrapUtil.toSet(createArtifact("childParent2Specific"));
+  Set<ResolvedArtifact> childParent2SpecificArtifacts=toSet(createArtifact("childParent2Specific"));
   createAndAddParent("childParent2",child,childParent2SpecificArtifacts);
-  assertThat(resolvedDependency.getAllArtifacts(parentResolvedDependency1),equalTo(GUtil.addSets(someModuleArtifacts,parent1SpecificArtifacts,WrapUtil.toSet(childModuleResolvedArtifact),childParent1SpecificArtifacts,childParent2SpecificArtifacts)));
+  assertThat(resolvedDependency.getAllArtifacts(parentResolvedDependency1),equalTo(GUtil.addSets(parent1SpecificArtifacts,childParent1SpecificArtifacts,childParent2SpecificArtifacts)));
 }
