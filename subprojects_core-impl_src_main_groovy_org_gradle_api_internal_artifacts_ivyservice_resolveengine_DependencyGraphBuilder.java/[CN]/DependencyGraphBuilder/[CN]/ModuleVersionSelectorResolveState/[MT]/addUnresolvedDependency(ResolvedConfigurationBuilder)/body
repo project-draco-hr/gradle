@@ -1,0 +1,22 @@
+{
+  if (failure == null) {
+    return;
+  }
+  Set<List<ModuleRevisionId>> paths=new LinkedHashSet<List<ModuleRevisionId>>();
+  for (  DependencyResolvePath incomingPath : incomingPaths) {
+    if (!incomingPath.isSelected()) {
+      continue;
+    }
+    if (paths.size() >= 5) {
+      break;
+    }
+    List<ModuleRevisionId> path=new ArrayList<ModuleRevisionId>();
+    incomingPath.buildPathFromRoot(path);
+    paths.add(path);
+  }
+  if (paths.isEmpty()) {
+    LOGGER.debug("Discarding failure for evicted module version {}: {}.",this,failure);
+    return;
+  }
+  result.addUnresolvedDependency(new DefaultUnresolvedDependency(descriptor.getDependencyRevisionId().toString(),failure.withIncomingPaths(paths)));
+}
