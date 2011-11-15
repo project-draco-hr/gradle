@@ -1,7 +1,5 @@
 {
-  File registryDir=startParameter.getGradleUserHomeDir();
-  LoggingServiceRegistry loggingServices=LoggingServiceRegistry.newChildProcessLogging();
-  DaemonServices daemonServices=new DaemonServices(registryDir,loggingServices);
+  DaemonServices daemonServices=new DaemonServices(startParameter,LoggingServiceRegistry.newChildProcessLogging());
   if (redirectIo) {
     try {
       redirectOutputsAndInput(daemonServices.get(DaemonDir.class));
@@ -11,10 +9,9 @@
       return;
     }
   }
-  final Long pid=daemonServices.get(ProcessEnvironment.class).getPid();
-  int idleTimeout=getIdleTimeout(startParameter);
-  float idleTimeoutSecs=idleTimeout / 1000;
-  LOGGER.lifecycle("Starting daemon[pid = {}] with settings: idleTimeout = {} secs, registryDir = {}",pid,idleTimeoutSecs,registryDir);
+  final DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
+  final Long pid=daemonContext.getPid();
+  int idleTimeout=daemonContext.getIdleTimeout();
   Runtime.getRuntime().addShutdownHook(new Thread(){
     public void run(){
       LOGGER.info("Daemon[pid = {}] finishing",pid);
@@ -25,7 +22,7 @@
   daemon.start();
   try {
     daemon.awaitIdleTimeout(idleTimeout);
-    LOGGER.info("Daemon hit idle timeout (" + idleTimeoutSecs + " secs), stopping");
+    LOGGER.info("Daemon hit idle timeout (" + idleTimeout + "ms), stopping");
     daemon.stop();
   }
  catch (  DaemonStoppedException e) {

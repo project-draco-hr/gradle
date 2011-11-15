@@ -1,0 +1,14 @@
+{
+  Pattern pattern=Pattern.compile("^.*DefaultDaemonContext\\[javaHome=([^\\n]+),userHomeDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)].*",Pattern.MULTILINE + Pattern.DOTALL);
+  Matcher matcher=pattern.matcher(source);
+  if (matcher.matches()) {
+    String javaHome=matcher.group(1);
+    String userHomeDir=matcher.group(2);
+    Long pid=Long.parseLong(matcher.group(3));
+    Integer idleTimeout=Integer.decode(matcher.group(4));
+    return new DefaultDaemonContext(new File(javaHome),new File(userHomeDir),pid,idleTimeout);
+  }
+ else {
+    throw new IllegalStateException("unable to parse DefaultDaemonContext from source: " + source);
+  }
+}
