@@ -7,6 +7,13 @@
  catch (  IOException e) {
     throw new GradleException("unable to wire client stdin to daemon stdin",e);
   }
+  final CountDownLatch inputOrConnectionClosedLatch=new CountDownLatch(1);
+  final Runnable countDownInputOrConnectionClosedLatch=new Runnable(){
+    public void run(){
+      inputOrConnectionClosedLatch.countDown();
+    }
+  }
+;
   Dispatch<Object> dispatcher=new Dispatch<Object>(){
     public void dispatch(    Object command){
       if (command instanceof ForwardInput) {
@@ -27,6 +34,9 @@
  catch (        IOException e) {
           LOGGER.warn("IO exception closing output stream connected to replacement stdin",e);
         }
+ finally {
+          countDownInputOrConnectionClosedLatch.run();
+        }
       }
  else {
         LOGGER.warn("while listening for IOCommands, received unexpected command: {}",command);
@@ -35,7 +45,7 @@
   }
 ;
   StoppableExecutor inputReceiverExecuter=executorFactory.create("daemon client input forwarder");
-  AsyncReceive<Object> inputReceiver=new AsyncReceive<Object>(inputReceiverExecuter,dispatcher);
+  AsyncReceive<Object> inputReceiver=new AsyncReceive<Object>(inputReceiverExecuter,dispatcher,countDownInputOrConnectionClosedLatch);
   inputReceiver.receiveFrom(execution.getConnection());
   try {
     new StdinSwapper().swap(replacementStdin,new Callable<Void>(){
@@ -51,6 +61,12 @@
     throw UncheckedException.asUncheckedException(e);
   }
  finally {
+    try {
+      inputOrConnectionClosedLatch.await();
+    }
+ catch (    InterruptedException e) {
+      throw UncheckedException.asUncheckedException(e);
+    }
     inputReceiver.stop();
   }
 }
