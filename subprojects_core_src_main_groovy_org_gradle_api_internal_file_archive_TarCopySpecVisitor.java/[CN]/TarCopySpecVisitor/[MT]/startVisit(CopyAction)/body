@@ -2,21 +2,11 @@
   TarCopyAction archiveAction=(TarCopyAction)action;
   try {
     tarFile=archiveAction.getArchivePath();
-    OutputStream outStr=new FileOutputStream(tarFile);
-switch (archiveAction.getCompression()) {
-case GZIP:
-      outStr=new GZIPOutputStream(outStr);
-    break;
-case BZIP2:
-  outStr.write('B');
-outStr.write('Z');
-outStr=new CBZip2OutputStream(outStr);
-break;
-}
-tarOutStr=new TarOutputStream(outStr);
-tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
-}
- catch (Exception e) {
-throw new GradleException(String.format("Could not create TAR '%s'.",tarFile),e);
-}
+    OutputStream outStr=archiveAction.getCompressor().compress(tarFile);
+    tarOutStr=new TarOutputStream(outStr);
+    tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
+  }
+ catch (  Exception e) {
+    throw new GradleException(String.format("Could not create TAR '%s'.",tarFile),e);
+  }
 }
