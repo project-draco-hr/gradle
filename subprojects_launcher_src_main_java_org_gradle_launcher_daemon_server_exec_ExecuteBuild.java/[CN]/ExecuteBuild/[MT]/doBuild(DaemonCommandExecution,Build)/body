@@ -1,11 +1,10 @@
 {
-  DefaultGradleLauncherActionExecuter executer=new DefaultGradleLauncherActionExecuter(launcherFactory,loggingServices,execution.getDaemonContext());
+  LOGGER.info("executing build with daemon context: {}",execution.getDaemonContext());
   try {
-    Object result=executer.execute(build.getAction(),build.getParameters());
-    execution.setResult(result);
+    execution.setResult(build.run(launcherFactory));
   }
- catch (  Throwable e) {
-    execution.setException(e);
+ catch (  GradleException e) {
+    execution.setException(new ReportedException(e));
   }
   execution.proceed();
 }
