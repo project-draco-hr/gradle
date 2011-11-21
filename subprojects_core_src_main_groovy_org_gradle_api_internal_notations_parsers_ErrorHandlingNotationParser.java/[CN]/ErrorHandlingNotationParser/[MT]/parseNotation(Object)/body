@@ -1,0 +1,26 @@
+{
+  Object brokenNotation;
+  try {
+    return delegate.parseNotation(notation);
+  }
+ catch (  UnsupportedNotationException e) {
+    brokenNotation=e.getNotation();
+  }
+  Formatter message=new Formatter();
+  if (brokenNotation == null) {
+    message.format("Cannot convert a null value to an object of type %s.%n",targetTypeDisplayName);
+  }
+ else {
+    message.format("Cannot convert the provided notation to an object of type %s: %s.%n",targetTypeDisplayName,brokenNotation);
+  }
+  message.format("The following types/formats are supported:");
+  List<String> formats=new ArrayList<String>();
+  describe(formats);
+  for (  String format : formats) {
+    message.format("%n  - %s",format);
+  }
+  if (GUtil.isTrue(invalidNotationMessage)) {
+    message.format("%n%s",invalidNotationMessage);
+  }
+  throw new InvalidUserDataException(message.toString());
+}
