@@ -3,11 +3,15 @@
   try {
     symlink=generateUniqueTempFileName();
     int errorCode=PosixUtil.current().symlink(file.getPath(),symlink.getPath());
-    return errorCode == 0 && hasContent(symlink,secret);
+    if (errorCode != 0) {
+      LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it is.");
+      return true;
+    }
+    return hasContent(symlink,secret);
   }
  catch (  IOException e) {
-    LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it isn't.");
-    return false;
+    LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it is.");
+    return true;
   }
  finally {
     FileUtils.deleteQuietly(symlink);
