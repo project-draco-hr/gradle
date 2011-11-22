@@ -17,6 +17,6 @@
   if (startParameter.isProfile()) {
     listenerManager.addListener(new ProfileListener(requestMetaData.getBuildTimeClock().getStartTime()));
   }
-  DefaultGradle gradle=new DefaultGradle(tracker.getCurrentBuild(),startParameter,serviceRegistry);
+  GradleInternal gradle=serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class,tracker.getCurrentBuild(),startParameter,serviceRegistry);
   return new DefaultGradleLauncher(gradle,serviceRegistry.get(InitScriptHandler.class),new SettingsHandler(new EmbeddedScriptSettingsFinder(new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(new MasterDirSettingsFinderStrategy(),new ParentDirSettingsFinderStrategy()))),serviceRegistry.get(SettingsProcessor.class),new BuildSourceBuilder(this,serviceRegistry.get(ClassLoaderRegistry.class),serviceRegistry.get(CacheRepository.class))),serviceRegistry.get(BuildLoader.class),serviceRegistry.get(BuildConfigurer.class),gradle.getBuildListenerBroadcaster(),serviceRegistry.get(ExceptionAnalyser.class),loggingManager,serviceRegistry.get(BuildExecuter.class));
 }
