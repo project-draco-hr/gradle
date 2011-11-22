@@ -1,0 +1,17 @@
+{
+  File file=null;
+  FileChannel channel=null;
+  try {
+    file=File.createTempFile("gradle_file_lock_check",null,null);
+    channel=new FileOutputStream(file).getChannel();
+    return channel.tryLock() == null;
+  }
+ catch (  IOException e) {
+    logger.warn("Failed to determine if current file system implicitly locks file on open. Assuming it doesn't.");
+    return false;
+  }
+ finally {
+    Closeables.closeQuietly(channel);
+    FileUtils.deleteQuietly(file);
+  }
+}
