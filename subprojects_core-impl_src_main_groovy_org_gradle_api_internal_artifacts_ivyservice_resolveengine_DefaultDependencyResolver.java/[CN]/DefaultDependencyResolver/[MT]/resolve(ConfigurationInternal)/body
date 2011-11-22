@@ -1,15 +1,9 @@
 {
   LOGGER.debug("Resolving {}",configuration);
-  Ivy ivy=ivyFactory.create(configuration.getResolutionStrategy());
-  DependencyResolver resolver=ivy.getSettings().getDefaultResolver();
-  ResolveOptions options=new ResolveOptions();
-  options.setDownload(false);
-  options.setConfs(WrapUtil.toArray(configuration.getName()));
-  ResolveData resolveData=new ResolveData(ivy.getResolveEngine(),options);
-  VersionMatcher versionMatcher=ivy.getSettings().getVersionMatcher();
-  DependencyToModuleResolver dependencyResolver=new IvyResolverBackedDependencyToModuleResolver(ivy,resolveData,resolver,versionMatcher);
-  dependencyResolver=new VersionForcingDependencyToModuleResolver(dependencyResolver,configuration.getResolutionStrategy().getForcedModules());
-  IvyResolverBackedArtifactToFileResolver artifactResolver=new IvyResolverBackedArtifactToFileResolver(resolver);
+  IvyAdapter ivyAdapter=ivyFactory.create(configuration.getResolutionStrategy());
+  ResolveData resolveData=ivyAdapter.getResolveData(configuration.getName());
+  DependencyToModuleResolver dependencyResolver=ivyAdapter.getDependencyToModuleResolver(resolveData);
+  ArtifactToFileResolver artifactResolver=ivyAdapter.getArtifactToFileResolver();
   ModuleConflictResolver conflictResolver;
   if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
     conflictResolver=new StrictConflictResolver();
