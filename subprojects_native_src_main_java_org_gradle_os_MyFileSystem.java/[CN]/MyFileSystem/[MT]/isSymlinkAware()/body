@@ -1,11 +1,17 @@
 {
+  File file=null;
+  File symlink=null;
   try {
-    File source=File.createTempFile("gradle_symlink_check",null,null);
-    File target=File.createTempFile("gradle_symlink_check",null,null);
-    return PosixUtil.current().symlink(source.getPath(),target.getPath()) == 0;
+    file=File.createTempFile("gradle_symlink_check",null,null);
+    symlink=new File(SystemProperties.getJavaIoTmpDir(),UUID.randomUUID().toString());
+    return PosixUtil.current().symlink(file.getPath(),symlink.getPath()) == 0;
   }
  catch (  IOException e) {
     logger.warn("Failed to determine if current file system is symlink-aware. Assuming it isn't.");
     return false;
+  }
+ finally {
+    GFileUtils.deleteQuietly(file);
+    GFileUtils.deleteQuietly(symlink);
   }
 }
