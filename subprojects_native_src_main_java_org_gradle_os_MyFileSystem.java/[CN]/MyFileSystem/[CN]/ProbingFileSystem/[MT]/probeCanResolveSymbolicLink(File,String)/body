@@ -1,0 +1,19 @@
+{
+  File link=null;
+  try {
+    link=generateUniqueTempFileName();
+    int returnCode=PosixUtil.current().symlink(file.getPath(),link.getPath());
+    if (returnCode != 0) {
+      LOGGER.warn("Failed to determine if file system can resolve symbolic links. Assuming it can.");
+      return true;
+    }
+    return hasContent(link,content);
+  }
+ catch (  IOException e) {
+    LOGGER.warn("Failed to determine if file system can resolve symbolic links. Assuming it can.");
+    return true;
+  }
+ finally {
+    FileUtils.deleteQuietly(link);
+  }
+}
