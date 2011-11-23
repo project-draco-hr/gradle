@@ -1,6 +1,7 @@
 {
   DependencyToModuleResolver clientModuleResolver=new ClientModuleResolver(clientModuleRegistry);
-  IvyResolverBackedDependencyToModuleResolver ivyBackedResolver=new IvyResolverBackedDependencyToModuleResolver(ivy,resolveData,userResolver,versionMatcher);
-  PrimaryResolverChain primaryResolverChain=new PrimaryResolverChain(clientModuleResolver,internalRepository,ivyBackedResolver,null);
-  return new VersionForcingDependencyToModuleResolver(primaryResolverChain,this.resolutionStrategy.getForcedModules());
+  DependencyToModuleResolver projectModuleResolver=new ProjectDependencyResolver(projectModuleRegistry);
+  DependencyToModuleResolver ivyBackedResolver=new IvyResolverBackedDependencyToModuleResolver(ivy,resolveData,userResolver,versionMatcher);
+  DependencyToModuleResolverChain dependencyToModuleResolverChain=new DependencyToModuleResolverChain(clientModuleResolver,projectModuleResolver,ivyBackedResolver);
+  return new VersionForcingDependencyToModuleResolver(dependencyToModuleResolverChain,this.resolutionStrategy.getForcedModules());
 }
