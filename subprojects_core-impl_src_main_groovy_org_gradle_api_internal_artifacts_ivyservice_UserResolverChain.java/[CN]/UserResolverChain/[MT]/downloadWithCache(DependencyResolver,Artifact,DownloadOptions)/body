@@ -1,0 +1,20 @@
+{
+  if (artifactResolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager) {
+    return downloadWithoutCache(artifactResolver,artifact,options);
+  }
+  ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution=artifactResolutionCache.getCachedArtifactResolution(artifactResolver,artifact.getId());
+  if (cachedArtifactResolution != null) {
+    if (cachedArtifactResolution.getArtifactFile() == null) {
+      return emptyDownloadReport(artifact);
+    }
+    if (cachedArtifactResolution.getArtifactFile().exists()) {
+      ArtifactDownloadReport downloadReport=new ArtifactDownloadReport(artifact);
+      downloadReport.setDownloadStatus(DownloadStatus.NO);
+      downloadReport.setLocalFile(cachedArtifactResolution.getArtifactFile());
+      return downloadReport;
+    }
+  }
+  ArtifactDownloadReport artifactReport=downloadWithoutCache(artifactResolver,artifact,options);
+  artifactResolutionCache.recordArtifactResolution(artifactResolver,artifact.getId(),artifactReport.getLocalFile());
+  return artifactReport;
+}

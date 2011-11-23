@@ -1,14 +1,10 @@
 {
-  Artifact[] singleArtifact={artifact};
   LOGGER.debug("Attempting to download {} using all resolvers",artifact);
   for (  DependencyResolver resolver : getResolvers()) {
-    DownloadReport downloadReport=resolver.download(singleArtifact,options);
-    ArtifactDownloadReport artifactDownload=downloadReport.getArtifactReport(artifact);
+    ArtifactDownloadReport artifactDownload=downloadWithCache(resolver,artifact,options);
     if (artifactDownload.getDownloadStatus() != DownloadStatus.FAILED) {
       return artifactDownload;
     }
   }
-  ArtifactDownloadReport failedDownload=new ArtifactDownloadReport(artifact);
-  failedDownload.setDownloadStatus(DownloadStatus.FAILED);
-  return failedDownload;
+  return emptyDownloadReport(artifact);
 }
