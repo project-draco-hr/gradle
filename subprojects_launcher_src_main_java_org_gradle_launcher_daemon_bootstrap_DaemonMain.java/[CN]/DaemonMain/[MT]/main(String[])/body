@@ -1,4 +1,16 @@
 {
-  StartParameter startParameter=new DefaultCommandLineConverter().convert(Arrays.asList(args));
-  new DaemonMain(startParameter,true).run();
+  if (args.length == 0) {
+    invalidArgs("At least one arg required (daemon registry base dir path)");
+  }
+  File daemonBaseDir=new File(args[0]);
+  Integer idleTimeoutMs=null;
+  if (args.length > 1) {
+    try {
+      idleTimeoutMs=Integer.parseInt(args[1]);
+    }
+ catch (    NumberFormatException e) {
+      invalidArgs("Second (option) argument must be a whole number (i.e. daemon idle timeout in ms)");
+    }
+  }
+  new DaemonMain(daemonBaseDir,true,idleTimeoutMs).run();
 }
