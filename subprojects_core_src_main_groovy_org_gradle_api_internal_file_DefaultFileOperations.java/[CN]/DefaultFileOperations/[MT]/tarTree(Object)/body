@@ -1,5 +1,14 @@
 {
-  TarFileTree tarTree=new TarFileTree(file(tarPath),getExpandDir());
-  FileTreeAdapter fileTree=new FileTreeAdapter(tarTree);
-  return new ArchiveFileTreeAdapter(fileTree,tarTree);
+  DescribedReadableResource res;
+  if (tarPath instanceof DescribedReadableResource) {
+    res=(DescribedReadableResource)tarPath;
+  }
+ else   if (tarPath instanceof ReadableResource) {
+    res=new AnonymousDescribedReadableResource((ReadableResource)tarPath);
+  }
+ else {
+    res=new MaybeCompressedFileResource(file(tarPath));
+  }
+  TarFileTree tarTree=new TarFileTree(res,getExpandDir());
+  return new FileTreeAdapter(tarTree);
 }
