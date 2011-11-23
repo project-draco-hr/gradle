@@ -19,6 +19,10 @@
     copyTo(forkingGradleExecuter);
     forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s",tmpDir));
     forkingGradleExecuter.addGradleOpts(String.format("-Dorg.gradle.daemon.idletimeout=%s",5 * 60 * 1000));
+    String customDaemonRegistryDir=System.getProperty(DAEMON_REGISTRY_SYS_PROP);
+    if (customDaemonRegistryDir != null && !dist.isUsingOwnUserHomeDir()) {
+      forkingGradleExecuter.addGradleOpts(DaemonDir.toCliArg(customDaemonRegistryDir));
+    }
     returnedExecuter=forkingGradleExecuter;
   }
   if (executerType == Executer.embeddedDaemon) {
