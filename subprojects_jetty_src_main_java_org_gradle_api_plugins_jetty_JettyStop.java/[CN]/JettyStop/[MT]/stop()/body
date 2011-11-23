@@ -5,6 +5,10 @@
   if (getStopKey() == null) {
     throw new InvalidUserDataException("Please specify a valid stopKey");
   }
+  ProgressLogger progressLogger=getServices().get(ProgressLoggerFactory.class).newOperation(JettyStop.class);
+  progressLogger.setDescription("Stop Jetty server");
+  progressLogger.setShortDescription("Stopping Jetty");
+  progressLogger.started();
   try {
     Socket s=new Socket(InetAddress.getByName("127.0.0.1"),getStopPort());
     s.setSoLinger(false,0);
@@ -18,5 +22,8 @@
   }
 catch (  Exception e) {
     logger.error("Exception during stopping",e);
+  }
+ finally {
+    progressLogger.completed();
   }
 }

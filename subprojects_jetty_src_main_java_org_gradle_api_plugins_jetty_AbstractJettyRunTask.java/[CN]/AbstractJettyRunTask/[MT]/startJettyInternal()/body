@@ -1,6 +1,10 @@
 {
+  ProgressLoggerFactory progressLoggerFactory=getServices().get(ProgressLoggerFactory.class);
+  ProgressLogger progressLogger=progressLoggerFactory.newOperation(AbstractJettyRunTask.class);
+  progressLogger.setDescription("Start Jetty server");
+  progressLogger.setShortDescription("Starting Jetty");
+  progressLogger.started();
   try {
-    logger.debug("Starting Jetty Server ...");
     setServer(createServer());
     applyJettyXml();
     JettyPluginServer plugin=getServer();
@@ -24,7 +28,9 @@
     plugin.setUserRealms(configuredRealms);
     finishConfigurationBeforeStart();
     server.start();
-    logger.info("Started Jetty Server");
+    if (daemon) {
+      return;
+    }
     if (getStopPort() != null && getStopPort() > 0 && getStopKey() != null) {
       Monitor monitor=new Monitor(getStopPort(),getStopKey(),new Server[]{(Server)server.getProxiedObject()},!daemon);
       monitor.start();
@@ -32,16 +38,24 @@
     configureScanner();
     startScanner();
     startConsoleScanner();
-    if (!daemon) {
-      server.join();
-    }
   }
  catch (  Exception e) {
-    throw new GradleException("An error occurred starting the Jetty server.",e);
+    throw new GradleException("Could not start the Jetty server.",e);
   }
  finally {
-    if (!daemon) {
-      logger.info("Jetty server exiting.");
-    }
+    progressLogger.completed();
+  }
+  progressLogger=progressLoggerFactory.newOperation(AbstractJettyRunTask.class);
+  progressLogger.setDescription("Jetty listening on port " + getHttpPort());
+  progressLogger.setShortDescription("Listening on port " + getHttpPort());
+  progressLogger.started();
+  try {
+    server.join();
+  }
+ catch (  Exception e) {
+    throw new GradleException("Failed to wait for the Jetty server to stop.",e);
+  }
+ finally {
+    progressLogger.completed();
   }
 }
