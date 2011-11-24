@@ -1,0 +1,18 @@
+{
+  Type actionImplType=Type.getType(ClosureBackedAction.class);
+  Type closureType=Type.getType(Closure.class);
+  String methodDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{closureType});
+  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,method.getName(),methodDescriptor,null,new String[0]);
+  methodVisitor.visitCode();
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitTypeInsn(Opcodes.NEW,actionImplType.getInternalName());
+  methodVisitor.visitInsn(Opcodes.DUP);
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,1);
+  String constuctorDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{closureType});
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,actionImplType.getInternalName(),"<init>",constuctorDescriptor);
+  methodDescriptor=Type.getMethodDescriptor(Type.getType(method.getReturnType()),new Type[]{Type.getType(method.getParameterTypes()[0].getTheClass())});
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),method.getName(),methodDescriptor);
+  methodVisitor.visitInsn(Opcodes.RETURN);
+  methodVisitor.visitMaxs(0,0);
+  methodVisitor.visitEnd();
+}
