@@ -1,4 +1,10 @@
 {
-  CacheMetadataOptions cacheOptions=getCacheMetadataOptions(resolver,resolveData);
-  return resolver.getRepositoryCacheManager().findModuleInCache(dd,dd.getDependencyRevisionId(),cacheOptions,resolver.getName());
+  if (resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager || dd.isChanging()) {
+    return null;
+  }
+  ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor=moduleDescriptorCache.getCachedModuleDescriptor(resolver,dd.getDependencyRevisionId());
+  if (cachedModuleDescriptor == null) {
+    return null;
+  }
+  return new ResolvedModuleRevision(resolver,resolver,cachedModuleDescriptor.getModule(),null);
 }
