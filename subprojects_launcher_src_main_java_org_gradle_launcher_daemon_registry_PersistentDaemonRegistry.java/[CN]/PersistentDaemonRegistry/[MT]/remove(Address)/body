@@ -1,10 +1,16 @@
 {
-  cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>(){
-    public DaemonRegistryContent update(    DaemonRegistryContent oldValue){
-      assertCacheNotEmpty(oldValue);
-      oldValue.removeInfo(address);
-      return oldValue;
+  lock.lock();
+  try {
+    cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>(){
+      public DaemonRegistryContent update(      DaemonRegistryContent oldValue){
+        assertCacheNotEmpty(oldValue);
+        oldValue.removeInfo(address);
+        return oldValue;
+      }
     }
-  }
 );
+  }
+  finally {
+    lock.unlock();
+  }
 }

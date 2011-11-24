@@ -1,13 +1,19 @@
 {
-  cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>(){
-    public DaemonRegistryContent update(    DaemonRegistryContent oldValue){
-      if (oldValue == null) {
-        oldValue=new DaemonRegistryContent();
+  lock.lock();
+  try {
+    cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>(){
+      public DaemonRegistryContent update(      DaemonRegistryContent oldValue){
+        if (oldValue == null) {
+          oldValue=new DaemonRegistryContent();
+        }
+        DaemonInfo daemonInfo=new DaemonInfo(address,daemonContext,password).setIdle(true);
+        oldValue.setStatus(address,daemonInfo);
+        return oldValue;
       }
-      DaemonInfo daemonInfo=new DaemonInfo(address,daemonContext,password).setIdle(true);
-      oldValue.setStatus(address,daemonInfo);
-      return oldValue;
     }
-  }
 );
+  }
+  finally {
+    lock.unlock();
+  }
 }
