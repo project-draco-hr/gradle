@@ -1,4 +1,11 @@
 {
-  ChangingDependencyDescriptorInvocationHandler invocationHandler=new ChangingDependencyDescriptorInvocationHandler(delegate,isChanging);
-  return DependencyDescriptor.class.cast(Proxy.newProxyInstance(DependencyDescriptor.class.getClassLoader(),new Class<?>[]{DependencyDescriptor.class},invocationHandler));
+  try {
+    Field field=DefaultDependencyDescriptor.class.getDeclaredField("isChanging");
+    field.setAccessible(true);
+    field.set(delegate,isChanging);
+    return delegate;
+  }
+ catch (  Exception e) {
+    throw new GradleException("Could not get cache options from AbstractResolver",e);
+  }
 }

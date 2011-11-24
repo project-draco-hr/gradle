@@ -1,0 +1,16 @@
+{
+  ModuleRevisionId moduleRevisionId=dd.getDependencyRevisionId();
+  ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor=moduleDescriptorCache.getCachedModuleDescriptor(resolver,moduleRevisionId);
+  if (cachedModuleDescriptor == null) {
+    return null;
+  }
+  if (cachedModuleDescriptor.isChangingModule()) {
+    if (cachePolicy.mustRefreshChangingModule(cachedModuleDescriptor.getModuleVersion(),cachedModuleDescriptor.getAgeMillis())) {
+      LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}'",moduleRevisionId);
+      return null;
+    }
+    LOGGER.debug("Found cached version of changing module: '{}'",moduleRevisionId);
+  }
+  LOGGER.debug("Using cached module metadata for '{}'",moduleRevisionId);
+  return new ResolvedModuleRevision(resolver,resolver,cachedModuleDescriptor.getModuleDescriptor(),null);
+}

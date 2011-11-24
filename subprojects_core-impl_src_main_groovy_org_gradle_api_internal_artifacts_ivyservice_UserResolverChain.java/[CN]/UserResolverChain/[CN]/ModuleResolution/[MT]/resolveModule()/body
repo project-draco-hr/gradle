@@ -1,10 +1,11 @@
 {
   try {
-    resolvedModule=resolver.getDependency(dependencyDescriptor,resolveData);
-    dynamicRevisions.maybeSaveDynamicRevision(dependencyDescriptor,resolvedModule);
-    if (resolvedModule != null) {
-      moduleDescriptorCache.cacheModuleDescriptor(resolver,resolvedModule.getDescriptor(),false);
+    resolvedModule=resolver.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDescriptor,true),resolveData);
+    if (resolvedModule == null || isLocalResolver(resolver)) {
+      return;
     }
+    dynamicRevisions.maybeSaveDynamicRevision(dependencyDescriptor,resolvedModule);
+    moduleDescriptorCache.cacheModuleDescriptor(resolver,resolvedModule.getDescriptor(),isChangingModule(dependencyDescriptor,resolvedModule));
   }
  catch (  ParseException e) {
     throw new RuntimeException(e);
