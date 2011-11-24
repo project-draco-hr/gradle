@@ -1,9 +1,11 @@
 {
   Set<File> classpath=new LinkedHashSet<File>(distribution.getToolingImplementationClasspath());
-  ConnectionVersion4 connection=connections.get(classpath);
-  if (connection == null) {
-    connection=loader.create(distribution);
-    connections.put(classpath,connection);
+synchronized (connections) {
+    ConnectionVersion4 connection=connections.get(classpath);
+    if (connection == null) {
+      connection=loader.create(distribution);
+      connections.put(classpath,connection);
+    }
+    return connection;
   }
-  return connection;
 }
