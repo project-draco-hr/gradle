@@ -1,20 +1,19 @@
 {
   if (dependencyResolvers.isLocalResolver(artifactResolver)) {
-    return downloadWithoutCache(artifactResolver,artifact,options);
+    return downloadFromResolver(artifactResolver,artifact,options).getLocalFile();
   }
   ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution=artifactResolutionCache.getCachedArtifactResolution(artifactResolver,artifact.getId());
   if (cachedArtifactResolution != null) {
     if (cachedArtifactResolution.getArtifactFile() == null) {
-      LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache",artifact.getId());
-      return null;
+      if (!cachePolicy.mustRefreshMissingArtifact(cachedArtifactResolution.getAgeMillis())) {
+        LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache",artifact.getId());
+        return null;
+      }
     }
-    if (cachedArtifactResolution.getArtifactFile().exists()) {
+ else     if (cachedArtifactResolution.getArtifactFile().exists()) {
       LOGGER.debug("Found artifact '{}' in resolver cache: {}",artifact.getId(),cachedArtifactResolution.getArtifactFile());
       return cachedArtifactResolution.getArtifactFile();
     }
   }
-  File artifactFile=downloadWithoutCache(artifactResolver,artifact,options);
-  LOGGER.debug("Downloaded artifact '{}' from resolver: {}",artifact.getId(),artifactFile);
-  artifactResolutionCache.recordArtifactResolution(artifactResolver,artifact.getId(),artifactFile);
-  return artifactFile;
+  return downloadArtifact(artifactResolver,artifact,options);
 }
