@@ -1,9 +1,11 @@
 {
   for (  DependencyResolver dependencyResolver : allResolvers) {
     ivySettings.addResolver(dependencyResolver);
-    RepositoryCacheManager cacheManager=dependencyResolver.getRepositoryCacheManager();
-    if (!(cacheManager instanceof NoOpRepositoryCacheManager) && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
-      ((AbstractResolver)dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
+    RepositoryCacheManager existingCacheManager=dependencyResolver.getRepositoryCacheManager();
+    if (!(existingCacheManager instanceof NoOpRepositoryCacheManager) && !(existingCacheManager instanceof LocalFileRepositoryCacheManager)) {
+      String resolverId=new WharfResolverMetadata(dependencyResolver).getId();
+      RemoteFileRepositoryCacheManager cacheManager=new RemoteFileRepositoryCacheManager("cache-" + dependencyResolver.getName(),new File(ivySettings.getDefaultCache(),resolverId));
+      ((AbstractResolver)dependencyResolver).setRepositoryCacheManager(cacheManager);
     }
     attachListener(dependencyResolver);
   }

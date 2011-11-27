@@ -1,0 +1,38 @@
+{
+  final ArtifactDownloadReport adr=new ArtifactDownloadReport(artifact);
+  DownloadListener listener=options.getListener();
+  if (listener != null) {
+    listener.needArtifact(this,artifact);
+  }
+  long start=System.currentTimeMillis();
+  File archiveFile=getArchiveFileInCache(artifact);
+  try {
+    ResolvedResource artifactRef=resourceResolver.resolve(artifact);
+    if (artifactRef != null) {
+      ArtifactOrigin origin=new ArtifactOrigin(artifact,artifactRef.getResource().isLocal(),artifactRef.getResource().getName());
+      if (listener != null) {
+        listener.startArtifactDownload(this,artifactRef,artifact,origin);
+      }
+      resourceDownloader.download(artifact,artifactRef.getResource(),archiveFile);
+      adr.setSize(archiveFile.length());
+      adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
+      adr.setDownloadStatus(DownloadStatus.SUCCESSFUL);
+      adr.setArtifactOrigin(origin);
+      adr.setLocalFile(archiveFile);
+    }
+ else {
+      adr.setDownloadStatus(DownloadStatus.FAILED);
+      adr.setDownloadDetails(ArtifactDownloadReport.MISSING_ARTIFACT);
+      adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
+    }
+  }
+ catch (  Exception ex) {
+    adr.setDownloadStatus(DownloadStatus.FAILED);
+    adr.setDownloadDetails(ex.getMessage());
+    adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
+  }
+  if (listener != null) {
+    listener.endArtifactDownload(this,artifact,adr,archiveFile);
+  }
+  return adr;
+}
