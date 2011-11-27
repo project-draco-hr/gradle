@@ -5,7 +5,6 @@
     listener.needArtifact(this,artifact);
   }
   long start=System.currentTimeMillis();
-  File archiveFile=getArchiveFileInCache(artifact);
   try {
     ResolvedResource artifactRef=resourceResolver.resolve(artifact);
     if (artifactRef != null) {
@@ -13,12 +12,12 @@
       if (listener != null) {
         listener.startArtifactDownload(this,artifactRef,artifact,origin);
       }
-      resourceDownloader.download(artifact,artifactRef.getResource(),archiveFile);
-      adr.setSize(archiveFile.length());
+      File artifactFile=downloadArtifactFile(artifact,resourceDownloader,artifactRef);
+      adr.setSize(artifactFile.length());
       adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
       adr.setDownloadStatus(DownloadStatus.SUCCESSFUL);
       adr.setArtifactOrigin(origin);
-      adr.setLocalFile(archiveFile);
+      adr.setLocalFile(artifactFile);
     }
  else {
       adr.setDownloadStatus(DownloadStatus.FAILED);
@@ -32,7 +31,7 @@
     adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
   }
   if (listener != null) {
-    listener.endArtifactDownload(this,artifact,adr,archiveFile);
+    listener.endArtifactDownload(this,artifact,adr,adr.getLocalFile());
   }
   return adr;
 }
