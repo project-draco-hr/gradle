@@ -1,11 +1,16 @@
 {
   try {
-    resolvedModule=resolver.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDescriptor,true),resolveData);
-    if (resolvedModule == null || isLocalResolver(resolver)) {
+    resolvedModule=resolver.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor,true),resolveData);
+    if (bypassCache()) {
       return;
     }
-    moduleResolutionCache.cacheModuleResolution(resolver,requestedDependencyDescriptor.getDependencyRevisionId(),resolvedModule.getId());
-    moduleDescriptorCache.cacheModuleDescriptor(resolver,resolvedModule.getDescriptor(),isChangingModule(requestedDependencyDescriptor,resolvedModule));
+    if (resolvedModule == null) {
+      moduleDescriptorCache.cacheModuleDescriptor(resolver,resolvedDependencyDescriptor.getDependencyRevisionId(),null,requestedDependencyDescriptor.isChanging());
+    }
+ else {
+      moduleResolutionCache.cacheModuleResolution(resolver,requestedDependencyDescriptor.getDependencyRevisionId(),resolvedModule.getId());
+      moduleDescriptorCache.cacheModuleDescriptor(resolver,resolvedModule.getId(),resolvedModule.getDescriptor(),isChangingModule(requestedDependencyDescriptor,resolvedModule));
+    }
   }
  catch (  ParseException e) {
     throw new RuntimeException(e);

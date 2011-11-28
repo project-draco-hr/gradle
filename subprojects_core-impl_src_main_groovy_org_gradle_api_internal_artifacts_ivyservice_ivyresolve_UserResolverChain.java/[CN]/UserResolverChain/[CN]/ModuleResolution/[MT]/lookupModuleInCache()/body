@@ -1,8 +1,28 @@
 {
-  if (isLocalResolver(resolver)) {
-    resolvedDescriptor=requestedDependencyDescriptor;
-    return;
+  if (bypassCache()) {
+    return false;
   }
-  resolvedDescriptor=maybeResolveDynamicRevision(resolver,requestedDependencyDescriptor);
-  resolvedModule=searchForModuleInCache(resolver,resolvedDescriptor);
+  ModuleRevisionId resolvedModuleVersionId=resolvedDependencyDescriptor.getDependencyRevisionId();
+  ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor=moduleDescriptorCache.getCachedModuleDescriptor(resolver,resolvedModuleVersionId);
+  if (cachedModuleDescriptor == null) {
+    return false;
+  }
+  if (cachedModuleDescriptor.isMissing()) {
+    if (cachePolicy.mustRefreshMissingArtifact(cachedModuleDescriptor.getAgeMillis())) {
+      LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}'",resolvedModuleVersionId);
+      return false;
+    }
+    LOGGER.debug("Detected non-existence of module '{}' in resolver cache",resolvedModuleVersionId);
+    return true;
+  }
+  if (cachedModuleDescriptor.isChangingModule()) {
+    if (cachePolicy.mustRefreshChangingModule(cachedModuleDescriptor.getModuleVersion(),cachedModuleDescriptor.getAgeMillis())) {
+      LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}'",resolvedModuleVersionId);
+      return false;
+    }
+    LOGGER.debug("Found cached version of changing module: '{}'",resolvedModuleVersionId);
+  }
+  LOGGER.debug("Using cached module metadata for '{}'",resolvedModuleVersionId);
+  resolvedModule=new ResolvedModuleRevision(resolver,resolver,cachedModuleDescriptor.getModuleDescriptor(),null);
+  return true;
 }
