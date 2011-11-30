@@ -1,7 +1,14 @@
 {
   if (indexedCache == null) {
-    BTreePersistentIndexedCache<K,V> indexedCache=new BTreePersistentIndexedCache<K,V>(new File(getCache().getBaseDir(),"cache.bin"),getCache().getLock(),new DefaultSerializer<K>(),serializer);
-    this.indexedCache=new IndexedCacheReference<K,V>(indexedCache,this);
+    final BTreePersistentIndexedCache<K,V> indexedCache=new BTreePersistentIndexedCache<K,V>(new File(getCache().getBaseDir(),"cache.bin"),new DefaultSerializer<K>(),serializer);
+    Factory<BTreePersistentIndexedCache<K,V>> cacheFactory=new Factory<BTreePersistentIndexedCache<K,V>>(){
+      public BTreePersistentIndexedCache<K,V> create(){
+        return indexedCache;
+      }
+    }
+;
+    MultiProcessSafePersistentIndexedCache<K,V> safeCache=new MultiProcessSafePersistentIndexedCache<K,V>(cacheFactory,getCache().getLock());
+    this.indexedCache=new IndexedCacheReference<K,V>(safeCache,this);
   }
   return indexedCache;
 }
