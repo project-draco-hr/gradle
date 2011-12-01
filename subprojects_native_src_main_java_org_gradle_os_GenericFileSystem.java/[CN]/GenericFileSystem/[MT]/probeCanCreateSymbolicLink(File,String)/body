@@ -2,7 +2,13 @@
   File link=null;
   try {
     link=generateUniqueTempFileName();
-    int returnCode=PosixUtil.current().symlink(file.getPath(),link.getPath());
+    int returnCode=0;
+    try {
+      returnCode=PosixUtil.current().symlink(file.getPath(),link.getPath());
+    }
+ catch (    UnsatisfiedLinkError e) {
+      return false;
+    }
     return returnCode == 0 && hasContent(link,content);
   }
  catch (  IOException e) {
