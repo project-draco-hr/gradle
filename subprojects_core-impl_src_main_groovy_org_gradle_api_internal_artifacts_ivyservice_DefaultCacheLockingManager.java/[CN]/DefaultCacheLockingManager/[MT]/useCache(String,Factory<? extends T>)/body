@@ -1,15 +1,19 @@
 {
-  lockCache(operationDisplayName);
+  boolean wasStarted=lockCache(operationDisplayName);
   try {
-    cacheManager.onStartWork(operationDisplayName);
+    if (!wasStarted) {
+      cacheManager.onStartWork(operationDisplayName);
+    }
     try {
       return action.create();
     }
   finally {
-      cacheManager.onEndWork();
+      if (!wasStarted) {
+        cacheManager.onEndWork();
+      }
     }
   }
   finally {
-    unlockCache();
+    unlockCache(wasStarted);
   }
 }

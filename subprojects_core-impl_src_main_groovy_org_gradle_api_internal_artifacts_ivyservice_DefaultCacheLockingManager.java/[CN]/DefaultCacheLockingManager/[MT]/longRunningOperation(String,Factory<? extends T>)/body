@@ -1,15 +1,19 @@
 {
-  startLongRunningOperation();
+  boolean wasStarted=startLongRunningOperation();
   try {
-    cacheManager.onEndWork();
+    if (wasStarted) {
+      cacheManager.onEndWork();
+    }
     try {
       return action.create();
     }
   finally {
-      cacheManager.onStartWork(this.operationDisplayName);
+      if (wasStarted) {
+        cacheManager.onStartWork(this.operationDisplayName);
+      }
     }
   }
   finally {
-    finishLongRunningOperation();
+    finishLongRunningOperation(wasStarted);
   }
 }

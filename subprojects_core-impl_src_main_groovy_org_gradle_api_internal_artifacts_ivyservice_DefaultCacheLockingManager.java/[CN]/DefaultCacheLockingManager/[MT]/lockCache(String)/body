@@ -1,19 +1,22 @@
 {
   lock.lock();
   try {
-    if (owner == Thread.currentThread()) {
-      throw new IllegalStateException("Cannot lock the artifact cache, as it is already locked by this thread.");
-    }
-    while (owner != null) {
-      try {
-        condition.await();
+    if (owner != Thread.currentThread()) {
+      while (owner != null) {
+        try {
+          condition.await();
+        }
+ catch (        InterruptedException e) {
+          throw UncheckedException.asUncheckedException(e);
+        }
       }
- catch (      InterruptedException e) {
-        throw UncheckedException.asUncheckedException(e);
-      }
+      this.operationDisplayName=operationDisplayName;
+      owner=Thread.currentThread();
     }
-    this.operationDisplayName=operationDisplayName;
-    owner=Thread.currentThread();
+    boolean wasStarted=started;
+    started=true;
+    depth++;
+    return wasStarted;
   }
   finally {
     lock.unlock();
