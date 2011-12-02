@@ -13,14 +13,15 @@
   Properties mergedSystemProperties=startParameter.getMergedSystemProperties();
   int idleTimeout=DaemonIdleTimeout.calculateFromPropertiesOrUseDefault(mergedSystemProperties);
   File daemonBaseDir=DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(mergedSystemProperties,startParameter.getGradleUserHomeDir());
-  DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonBaseDir,getDaemonOpts(),idleTimeout);
+  List<String> daemonOpts=DaemonJvmOptions.getFromEnvironmentVariable();
+  DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonBaseDir,daemonOpts,idleTimeout);
   DaemonClient client=clientServices.get(DaemonClient.class);
   boolean useDaemon=mergedSystemProperties.getProperty("org.gradle.daemon","false").equals("true");
   useDaemon=useDaemon || commandLine.hasOption(DAEMON);
   useDaemon=useDaemon && !commandLine.hasOption(NO_DAEMON);
   long startTime=ManagementFactory.getRuntimeMXBean().getStartTime();
   if (commandLine.hasOption(FOREGROUND)) {
-    return new ActionAdapter(new DaemonMain(daemonBaseDir,idleTimeout,false));
+    return new ActionAdapter(new DaemonMain(daemonBaseDir,idleTimeout,false,daemonOpts));
   }
   if (commandLine.hasOption(STOP)) {
     return new ActionAdapter(new StopDaemonAction(client));
