@@ -7,8 +7,14 @@
 ;
   MultiProcessSafePersistentIndexedCache<K,V> indexedCache=new MultiProcessSafePersistentIndexedCache<K,V>(indexedCacheFactory,fileAccess);
   caches.add(indexedCache);
-  if (working) {
-    indexedCache.onStartWork(operationDisplayName);
+  lock.lock();
+  try {
+    if (Thread.currentThread() == owner && started) {
+      indexedCache.onStartWork(operationDisplayName);
+    }
+  }
+  finally {
+    lock.unlock();
   }
   return indexedCache;
 }

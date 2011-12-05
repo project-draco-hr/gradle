@@ -1,9 +1,15 @@
 {
-  if (!working) {
-    throw new IllegalStateException("Cannot use cache outside a unit of work.");
+  lock.lock();
+  try {
+    if (owner != Thread.currentThread() || !started) {
+      throw new IllegalStateException(String.format("The %s has not been locked.",cacheDiplayName));
+    }
   }
-  if (lock == null) {
-    lock=lockManager.lock(lockFile,Exclusive,cacheDiplayName,operationDisplayName);
+  finally {
+    lock.unlock();
   }
-  return lock;
+  if (fileLock == null) {
+    fileLock=lockManager.lock(lockFile,Exclusive,cacheDiplayName,operationDisplayName);
+  }
+  return fileLock;
 }
