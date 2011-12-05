@@ -1,9 +1,15 @@
 {
-  if (lockMode != LockMode.None) {
-    throw new UnsupportedOperationException(String.format("No %s mode directory store implementation currently available.",lockMode));
-  }
   if (initializer != null) {
     throw new UnsupportedOperationException("Initializer actions are not currently supported by the directory store implementation.");
   }
-  return new DefaultPersistentDirectoryStore(storeDir,displayName);
+  File canonicalDir=GFileUtils.canonicalise(storeDir);
+  DirCacheReference dirCacheReference=dirCaches.get(canonicalDir);
+  if (dirCacheReference == null) {
+    DefaultPersistentDirectoryStore cache=new DefaultPersistentDirectoryStore(canonicalDir,displayName,lockMode,lockManager);
+    cache.open();
+    dirCacheReference=new DirCacheReference(cache,Collections.<String,Object>emptyMap(),lockMode);
+    dirCaches.put(canonicalDir,dirCacheReference);
+  }
+  dirCacheReference.addReference(this);
+  return dirCacheReference.getCache();
 }
