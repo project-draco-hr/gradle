@@ -1,19 +1,20 @@
 {
-  boolean wasStarted=startLongRunningOperation();
+  lock.lock();
   try {
-    if (wasStarted) {
-      onEndWork();
+    if (depth == 0) {
+      throw new IllegalStateException("Cannot start long running operation, as the artifact cache has not been locked.");
     }
+    boolean wasEnded=onEndWork();
     try {
       return action.create();
     }
   finally {
-      if (wasStarted) {
+      if (wasEnded) {
         onStartWork();
       }
     }
   }
   finally {
-    finishLongRunningOperation(wasStarted);
+    lock.unlock();
   }
 }
