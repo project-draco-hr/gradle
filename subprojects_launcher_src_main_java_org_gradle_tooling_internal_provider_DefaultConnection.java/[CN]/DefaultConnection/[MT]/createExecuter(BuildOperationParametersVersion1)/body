@@ -1,15 +1,19 @@
 {
   GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
+  Factory<LoggingManagerInternal> loggingManagerFactory;
   if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
     executer=new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
+    loggingManagerFactory=loggingServices.getFactory(LoggingManagerInternal.class);
   }
  else {
     File gradleUserHomeDir=GUtil.elvis(operationParameters.getGradleUserHomeDir(),StartParameter.DEFAULT_GRADLE_USER_HOME);
     File daemonBaseDir=DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(),gradleUserHomeDir);
     List<String> daemonOpts=DaemonJvmOptions.getFromEnvironmentVariable();
-    DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonBaseDir,daemonOpts,getIdleTimeout(operationParameters));
+    LoggingServiceRegistry freshLoggingServices=LoggingServiceRegistry.newEmbeddableLogging();
+    DaemonClientServices clientServices=new DaemonClientServices(freshLoggingServices,daemonBaseDir,daemonOpts,getIdleTimeout(operationParameters));
     DaemonClient client=clientServices.get(DaemonClient.class);
     executer=new DaemonGradleLauncherActionExecuter(client);
+    loggingManagerFactory=freshLoggingServices.getFactory(LoggingManagerInternal.class);
   }
-  return new LoggingBridgingGradleLauncherActionExecuter(executer,loggingServices.getFactory(LoggingManagerInternal.class));
+  return new LoggingBridgingGradleLauncherActionExecuter(executer,loggingManagerFactory);
 }
