@@ -1,7 +1,7 @@
 {
   lock.lock();
   try {
-    if (!started) {
+    if (Thread.currentThread() != owner || !started) {
       throw new IllegalStateException(String.format("The %s has not been locked.",cacheDiplayName));
     }
   }
@@ -9,7 +9,7 @@
     lock.unlock();
   }
   if (fileLock == null) {
-    fileLock=lockManager.lock(lockFile,Exclusive,cacheDiplayName,operationDisplayName);
+    fileLock=lockManager.lock(lockFile,Exclusive,cacheDiplayName,operationStack.get(0));
   }
   return fileLock;
 }

@@ -1,21 +1,18 @@
 {
   dir.mkdirs();
   cacheAccess=new DefaultCacheAccess(displayName,getLockTarget(),lockManager);
-  if (lockMode != FileLockManager.LockMode.None) {
+  try {
+    cacheAccess.open(lockMode);
     try {
-      lock=lockManager.lock(getLockTarget(),lockMode,toString());
-      try {
-        init();
-      }
- catch (      Throwable throwable) {
-        lock.close();
-        lock=null;
-        throw throwable;
-      }
+      init();
     }
- catch (    Throwable e) {
-      throw new CacheOpenException(String.format("Could not open %s.",this),e);
+ catch (    Throwable throwable) {
+      cacheAccess.close();
+      throw throwable;
     }
+  }
+ catch (  Throwable e) {
+    throw new CacheOpenException(String.format("Could not open %s.",this),e);
   }
   return this;
 }

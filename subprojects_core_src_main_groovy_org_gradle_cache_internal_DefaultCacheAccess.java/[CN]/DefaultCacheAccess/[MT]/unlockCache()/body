@@ -1,6 +1,13 @@
 {
-  depth--;
-  if (depth <= 0) {
-    operationDisplayName=null;
+  lock.lock();
+  try {
+    operationStack.remove(0);
+    if (operationStack.isEmpty()) {
+      owner=null;
+      condition.signalAll();
+    }
+  }
+  finally {
+    lock.unlock();
   }
 }

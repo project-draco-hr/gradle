@@ -1,0 +1,23 @@
+{
+  lock.lock();
+  try {
+    if (owner != null && owner != Thread.currentThread()) {
+      throw new IllegalStateException(String.format("Cannot close the %s, as it is still in use.",cacheDiplayName));
+    }
+    operationStack.clear();
+    started=false;
+    lockMode=null;
+    owner=null;
+    if (fileLock != null) {
+      try {
+        fileLock.close();
+      }
+  finally {
+        fileLock=null;
+      }
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+}
