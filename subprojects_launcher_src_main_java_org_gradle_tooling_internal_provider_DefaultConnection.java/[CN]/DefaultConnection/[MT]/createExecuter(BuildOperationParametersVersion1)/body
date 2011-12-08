@@ -4,10 +4,16 @@
   }
  else {
     File gradleUserHomeDir=GUtil.elvis(operationParameters.getGradleUserHomeDir(),StartParameter.DEFAULT_GRADLE_USER_HOME);
-    File daemonBaseDir=DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(),gradleUserHomeDir);
     List<String> daemonOpts=DaemonJvmOptions.getFromEnvironmentVariable();
     LoggingServiceRegistry loggingServices=LoggingServiceRegistry.newEmbeddableLogging();
-    DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonBaseDir,daemonOpts,getIdleTimeout(operationParameters));
+    DaemonParameters parameters=new DaemonParameters();
+    parameters.useGradleUserHomeDir(gradleUserHomeDir);
+    parameters.setJvmArgs(daemonOpts);
+    if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
+      int idleTimeout=(int)operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
+      parameters.setIdleTimeout(idleTimeout);
+    }
+    DaemonClientServices clientServices=new DaemonClientServices(loggingServices,parameters);
     DaemonClient client=clientServices.get(DaemonClient.class);
     GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer=new DaemonGradleLauncherActionExecuter(client);
     Factory<LoggingManagerInternal> loggingManagerFactory=loggingServices.getFactory(LoggingManagerInternal.class);

@@ -1,16 +1,17 @@
 {
-  DaemonServices daemonServices=new DaemonServices(daemonBaseDir,idleTimeoutMs,LoggingServiceRegistry.newChildProcessLogging(),daemonOpts);
+  DaemonServices daemonServices=new DaemonServices(daemonBaseDir,idleTimeoutMs,LoggingServiceRegistry.newChildProcessLogging());
+  DaemonDir daemonDir=daemonServices.get(DaemonDir.class);
+  final DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
+  final Long pid=daemonContext.getPid();
   if (redirectIo) {
     try {
-      redirectOutputsAndInput(daemonServices.get(DaemonDir.class));
+      redirectOutputsAndInput(daemonDir,pid);
     }
  catch (    IOException e) {
       listener.onFailure(e);
       return;
     }
   }
-  final DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
-  final Long pid=daemonContext.getPid();
   Runtime.getRuntime().addShutdownHook(new Thread(){
     public void run(){
       LOGGER.info("Daemon[pid = {}] finishing",pid);
