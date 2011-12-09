@@ -1,9 +1,12 @@
 {
+  if (!WrapUtil.toSet("http","https","file").containsAll(schemes)) {
+    throw new InvalidUserDataException("You may only specify 'file', 'http' and 'https' urls for an ivy repository.");
+  }
   if (WrapUtil.toSet("http","https").containsAll(schemes)) {
-    return http();
+    return new IvyResolver(name,new HttpTransport(getCredentials()));
   }
   if (WrapUtil.toSet("file").containsAll(schemes)) {
-    return file();
+    return new LocalFileSystemResolver(name,new FileTransport(name));
   }
-  throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories");
+  throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories.");
 }
