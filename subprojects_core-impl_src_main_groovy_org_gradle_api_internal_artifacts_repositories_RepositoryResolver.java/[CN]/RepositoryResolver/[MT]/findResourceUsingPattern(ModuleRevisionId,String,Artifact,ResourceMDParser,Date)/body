@@ -2,15 +2,15 @@
   String name=getName();
   VersionMatcher versionMatcher=getSettings().getVersionMatcher();
   try {
-    if (!versionMatcher.isDynamic(mrid)) {
-      String resourceName=IvyPatternHelper.substitute(pattern,mrid,artifact);
-      Message.debug("\t trying " + resourceName);
+    if (!versionMatcher.isDynamic(moduleRevisionId)) {
+      String resourceName=IvyPatternHelper.substitute(pattern,moduleRevisionId,artifact);
+      LOGGER.debug("Loading {}",resourceName);
       logAttempt(resourceName);
       Resource res=repository.getResource(resourceName);
       boolean reachable=res.exists();
       if (reachable) {
         String revision;
-        if (pattern.indexOf(IvyPatternHelper.REVISION_KEY) == -1) {
+        if (!pattern.contains(IvyPatternHelper.REVISION_KEY)) {
           if ("ivy".equals(artifact.getType()) || "pom".equals(artifact.getType())) {
             File temp=File.createTempFile("ivy",artifact.getExt());
             temp.deleteOnExit();
@@ -27,26 +27,26 @@
           }
         }
  else {
-          revision=mrid.getRevision();
+          revision=moduleRevisionId.getRevision();
         }
         return new ResolvedResource(res,revision);
       }
- else       if (versionMatcher.isDynamic(mrid)) {
-        return findDynamicResourceUsingPattern(rmdparser,mrid,pattern,artifact,date);
+ else       if (versionMatcher.isDynamic(moduleRevisionId)) {
+        return findDynamicResourceUsingPattern(resourceParser,moduleRevisionId,pattern,artifact,date);
       }
  else {
-        Message.debug("\t" + name + ": resource not reachable for "+ mrid+ ": res="+ res);
+        LOGGER.debug("Resource not reachable for {}: res={}",moduleRevisionId,res);
         return null;
       }
     }
  else {
-      return findDynamicResourceUsingPattern(rmdparser,mrid,pattern,artifact,date);
+      return findDynamicResourceUsingPattern(resourceParser,moduleRevisionId,pattern,artifact,date);
     }
   }
  catch (  IOException ex) {
-    throw new RuntimeException(name + ": unable to get resource for " + mrid+ ": res="+ IvyPatternHelper.substitute(pattern,mrid,artifact)+ ": "+ ex,ex);
+    throw new RuntimeException(name + ": unable to get resource for " + moduleRevisionId+ ": res="+ IvyPatternHelper.substitute(pattern,moduleRevisionId,artifact)+ ": "+ ex,ex);
   }
 catch (  ParseException ex) {
-    throw new RuntimeException(name + ": unable to get resource for " + mrid+ ": res="+ IvyPatternHelper.substitute(pattern,mrid,artifact)+ ": "+ ex,ex);
+    throw new RuntimeException(name + ": unable to get resource for " + moduleRevisionId+ ": res="+ IvyPatternHelper.substitute(pattern,moduleRevisionId,artifact)+ ": "+ ex,ex);
   }
 }
