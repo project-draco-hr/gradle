@@ -1,0 +1,47 @@
+{
+  final MavenMetadata mavenMetadata=new MavenMetadata();
+  try {
+    Resource metadata=repository.getResource(metadataLocation);
+    if (metadata.exists()) {
+      LOGGER.debug("parsing maven-metadata: {}",metadata);
+      InputStream metadataStream=metadata.openStream();
+      try {
+        XMLHelper.parse(metadataStream,null,new ContextualSAXHandler(){
+          public void endElement(          String uri,          String localName,          String qName) throws SAXException {
+            if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
+              mavenMetadata.timestamp=getText();
+            }
+            if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
+              mavenMetadata.buildNumber=getText();
+            }
+            if ("metadata/versioning/versions/version".equals(getContext())) {
+              mavenMetadata.versions.add((getText().trim()));
+            }
+            super.endElement(uri,localName,qName);
+          }
+        }
+,null);
+      }
+  finally {
+        try {
+          metadataStream.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+ else {
+      LOGGER.debug("maven-metadata not available: {}",metadata);
+    }
+  }
+ catch (  IOException e) {
+    LOGGER.warn("impossible to access maven metadata file, ignored.",e);
+  }
+catch (  SAXException e) {
+    LOGGER.warn("impossible to parse maven metadata file, ignored.",e);
+  }
+catch (  ParserConfigurationException e) {
+    LOGGER.warn("impossible to parse maven metadata file, ignored.",e);
+  }
+  return mavenMetadata;
+}

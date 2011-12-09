@@ -1,24 +1,23 @@
 {
-  List revs=listRevisionsWithMavenMetadata(repository,mrid.getModuleId().getAttributes());
-  if (revs != null) {
-    LOGGER.debug("found revs: {}",revs);
-    List rres=new ArrayList();
-    for (Iterator iter=revs.iterator(); iter.hasNext(); ) {
-      String rev=(String)iter.next();
-      String resolvedPattern=IvyPatternHelper.substitute(pattern,ModuleRevisionId.newInstance(mrid,rev),artifact);
+  List<String> revisions=listRevisionsWithMavenMetadata(repository,moduleRevisionId.getModuleId().getAttributes());
+  if (revisions != null) {
+    LOGGER.debug("Found revisions: {}",revisions);
+    List<ResolvedResource> resources=new ArrayList<ResolvedResource>();
+    for (    String revision : revisions) {
+      String resolvedPattern=IvyPatternHelper.substitute(pattern,ModuleRevisionId.newInstance(moduleRevisionId,revision),artifact);
       try {
         Resource res=repository.getResource(resolvedPattern);
         if ((res != null) && res.exists()) {
-          rres.add(new ResolvedResource(res,rev));
+          resources.add(new ResolvedResource(res,revision));
         }
       }
  catch (      IOException e) {
-        LOGGER.warn("impossible to get resource from name listed by maven-metadata.xml: " + rres,e);
+        LOGGER.warn("impossible to get resource from name listed by maven-metadata.xml: " + resources,e);
       }
     }
-    return (ResolvedResource[])rres.toArray(new ResolvedResource[rres.size()]);
+    return resources.toArray(new ResolvedResource[resources.size()]);
   }
  else {
-    return super.listResources(repository,mrid,pattern,artifact);
+    return super.listResources(repository,moduleRevisionId,pattern,artifact);
   }
 }
