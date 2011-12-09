@@ -1,12 +1,12 @@
 {
-  List<String> revisions=listRevisionsWithMavenMetadata(repository,moduleRevisionId.getModuleId().getAttributes());
+  List<String> revisions=listRevisionsWithMavenMetadata(moduleRevisionId.getModuleId().getAttributes());
   if (revisions != null) {
     LOGGER.debug("Found revisions: {}",revisions);
     List<ResolvedResource> resources=new ArrayList<ResolvedResource>();
     for (    String revision : revisions) {
       String resolvedPattern=IvyPatternHelper.substitute(pattern,ModuleRevisionId.newInstance(moduleRevisionId,revision),artifact);
       try {
-        Resource res=repository.getResource(resolvedPattern);
+        Resource res=getResource(resolvedPattern,artifact);
         if ((res != null) && res.exists()) {
           resources.add(new ResolvedResource(res,revision));
         }
@@ -18,6 +18,6 @@
     return resources.toArray(new ResolvedResource[resources.size()]);
   }
  else {
-    return super.listResources(repository,moduleRevisionId,pattern,artifact);
+    return super.listResources(moduleRevisionId,pattern,artifact);
   }
 }

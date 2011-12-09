@@ -3,50 +3,13 @@
   VersionMatcher versionMatcher=getSettings().getVersionMatcher();
   try {
     if (!versionMatcher.isDynamic(moduleRevisionId)) {
-      String resourceName=IvyPatternHelper.substitute(pattern,moduleRevisionId,artifact);
-      LOGGER.debug("Loading {}",resourceName);
-      logAttempt(resourceName);
-      Resource res=repository.getResource(resourceName);
-      boolean reachable=res.exists();
-      if (reachable) {
-        String revision;
-        if (!pattern.contains(IvyPatternHelper.REVISION_KEY)) {
-          if ("ivy".equals(artifact.getType()) || "pom".equals(artifact.getType())) {
-            File temp=File.createTempFile("ivy",artifact.getExt());
-            temp.deleteOnExit();
-            repository.get(res.getName(),temp);
-            ModuleDescriptorParser parser=ModuleDescriptorParserRegistry.getInstance().getParser(res);
-            ModuleDescriptor md=parser.parseDescriptor(getParserSettings(),temp.toURI().toURL(),res,false);
-            revision=md.getRevision();
-            if ((revision == null) || (revision.length() == 0)) {
-              revision="working@" + name;
-            }
-          }
- else {
-            revision="working@" + name;
-          }
-        }
- else {
-          revision=moduleRevisionId.getRevision();
-        }
-        return new ResolvedResource(res,revision);
-      }
- else       if (versionMatcher.isDynamic(moduleRevisionId)) {
-        return findDynamicResourceUsingPattern(resourceParser,moduleRevisionId,pattern,artifact,date);
-      }
- else {
-        LOGGER.debug("Resource not reachable for {}: res={}",moduleRevisionId,res);
-        return null;
-      }
+      return findStaticResourceUsingPattern(moduleRevisionId,pattern,artifact);
     }
  else {
       return findDynamicResourceUsingPattern(resourceParser,moduleRevisionId,pattern,artifact,date);
     }
   }
  catch (  IOException ex) {
-    throw new RuntimeException(name + ": unable to get resource for " + moduleRevisionId+ ": res="+ IvyPatternHelper.substitute(pattern,moduleRevisionId,artifact)+ ": "+ ex,ex);
-  }
-catch (  ParseException ex) {
     throw new RuntimeException(name + ": unable to get resource for " + moduleRevisionId+ ": res="+ IvyPatternHelper.substitute(pattern,moduleRevisionId,artifact)+ ": "+ ex,ex);
   }
 }
