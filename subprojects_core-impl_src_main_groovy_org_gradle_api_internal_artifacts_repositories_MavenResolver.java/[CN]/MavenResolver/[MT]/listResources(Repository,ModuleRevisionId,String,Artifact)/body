@@ -1,0 +1,24 @@
+{
+  List revs=listRevisionsWithMavenMetadata(repository,mrid.getModuleId().getAttributes());
+  if (revs != null) {
+    LOGGER.debug("found revs: {}",revs);
+    List rres=new ArrayList();
+    for (Iterator iter=revs.iterator(); iter.hasNext(); ) {
+      String rev=(String)iter.next();
+      String resolvedPattern=IvyPatternHelper.substitute(pattern,ModuleRevisionId.newInstance(mrid,rev),artifact);
+      try {
+        Resource res=repository.getResource(resolvedPattern);
+        if ((res != null) && res.exists()) {
+          rres.add(new ResolvedResource(res,rev));
+        }
+      }
+ catch (      IOException e) {
+        LOGGER.warn("impossible to get resource from name listed by maven-metadata.xml: " + rres,e);
+      }
+    }
+    return (ResolvedResource[])rres.toArray(new ResolvedResource[rres.size()]);
+  }
+ else {
+    return super.listResources(repository,mrid,pattern,artifact);
+  }
+}

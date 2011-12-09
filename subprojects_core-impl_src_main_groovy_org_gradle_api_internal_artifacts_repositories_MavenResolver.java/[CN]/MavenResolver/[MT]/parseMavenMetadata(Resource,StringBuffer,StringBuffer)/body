@@ -1,0 +1,24 @@
+{
+  InputStream metadataStream=metadata.openStream();
+  try {
+    XMLHelper.parse(metadataStream,null,new ContextualSAXHandler(){
+      public void endElement(      String uri,      String localName,      String qName) throws SAXException {
+        if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
+          timestamp.append(getText());
+        }
+        if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
+          buildNumer.append(getText());
+        }
+        super.endElement(uri,localName,qName);
+      }
+    }
+,null);
+  }
+  finally {
+    try {
+      metadataStream.close();
+    }
+ catch (    IOException e) {
+    }
+  }
+}

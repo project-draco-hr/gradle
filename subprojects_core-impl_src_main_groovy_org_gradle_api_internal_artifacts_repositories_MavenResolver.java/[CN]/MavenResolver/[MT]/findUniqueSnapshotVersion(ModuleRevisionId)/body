@@ -1,0 +1,30 @@
+{
+  try {
+    String metadataLocation=IvyPatternHelper.substitute(root + "[organisation]/[module]/[revision]/maven-metadata.xml",mrid);
+    Resource metadata=getRepository().getResource(metadataLocation);
+    if (metadata.exists()) {
+      final StringBuffer timestamp=new StringBuffer();
+      final StringBuffer buildNumber=new StringBuffer();
+      parseMavenMetadata(metadata,timestamp,buildNumber);
+      if (timestamp.length() > 0) {
+        String rev=mrid.getRevision();
+        rev=rev.substring(0,rev.length() - "SNAPSHOT".length());
+        rev=rev + timestamp.toString() + "-"+ buildNumber.toString();
+        return rev;
+      }
+    }
+ else {
+      LOGGER.debug("maven-metadata not available: {}",metadata);
+    }
+  }
+ catch (  IOException e) {
+    LOGGER.warn("impossible to access maven metadata file, ignored.",e);
+  }
+catch (  SAXException e) {
+    LOGGER.warn("impossible to parse maven metadata file, ignored.",e);
+  }
+catch (  ParserConfigurationException e) {
+    LOGGER.warn("impossible to parse maven metadata file, ignored.",e);
+  }
+  return null;
+}
