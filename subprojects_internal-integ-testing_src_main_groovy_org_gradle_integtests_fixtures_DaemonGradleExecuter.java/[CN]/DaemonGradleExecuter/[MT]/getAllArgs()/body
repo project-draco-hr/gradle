@@ -1,4 +1,5 @@
 {
+  List<String> originalArgs=super.getAllArgs();
   List<String> args=new ArrayList<String>();
   args.add("--daemon");
   args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
@@ -6,6 +7,9 @@
   if (customDaemonRegistryDir != null && !distribution.isUsingOwnUserHomeDir()) {
     args.add("-Dorg.gradle.daemon.registry.base=" + customDaemonRegistryDir);
   }
-  args.addAll(super.getAllArgs());
+  args.addAll(originalArgs);
+  if (!args.remove("-Dorg.gradle.jvmargs=")) {
+    args.add(0,"-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m");
+  }
   return args;
 }
