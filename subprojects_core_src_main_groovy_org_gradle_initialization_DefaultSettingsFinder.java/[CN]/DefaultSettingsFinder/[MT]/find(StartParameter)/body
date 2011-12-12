@@ -1,15 +1,9 @@
 {
-  File settingsFile=null;
-  for (  ISettingsFileSearchStrategy settingsFileSearchStrategy : settingsFileSearchStrategies) {
-    settingsFile=settingsFileSearchStrategy.find(startParameter);
-    if (settingsFile != null) {
-      break;
-    }
-  }
-  if (settingsFile == null) {
-    return new SettingsLocation(startParameter.getCurrentDir(),new StringScriptSource("empty settings file",""));
+  BuildLayout layout=layoutFactory.getLayoutFor(startParameter.getCurrentDir(),startParameter.isSearchUpwards());
+  if (layout.getSettingsFile() == null) {
+    return new SettingsLocation(layout.getSettingsDir(),new StringScriptSource("empty settings file",""));
   }
  else {
-    return new SettingsLocation(settingsFile.getParentFile(),new UriScriptSource("settings file",settingsFile));
+    return new SettingsLocation(layout.getSettingsDir(),new UriScriptSource("settings file",layout.getSettingsFile()));
   }
 }

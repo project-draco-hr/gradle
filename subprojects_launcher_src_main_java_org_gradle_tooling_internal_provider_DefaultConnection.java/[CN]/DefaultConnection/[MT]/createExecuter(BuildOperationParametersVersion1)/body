@@ -1,15 +1,23 @@
 {
-  GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
   if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
-    executer=new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
+    return embeddedExecuterSupport.getExecuter();
   }
  else {
+    LoggingServiceRegistry loggingServices=LoggingServiceRegistry.newEmbeddableLogging();
     File gradleUserHomeDir=GUtil.elvis(operationParameters.getGradleUserHomeDir(),StartParameter.DEFAULT_GRADLE_USER_HOME);
-    File daemonBaseDir=DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(),gradleUserHomeDir);
-    List<String> daemonOpts=DaemonJvmOptions.getFromEnvironmentVariable();
-    DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonBaseDir,daemonOpts,getIdleTimeout(operationParameters));
+    DaemonParameters parameters=new DaemonParameters();
+    boolean searchUpwards=operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
+    parameters.configureFromBuildDir(operationParameters.getProjectDir(),searchUpwards);
+    parameters.configureFromGradleUserHome(gradleUserHomeDir);
+    parameters.configureFromSystemProperties(System.getProperties());
+    if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
+      int idleTimeout=(int)operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
+      parameters.setIdleTimeout(idleTimeout);
+    }
+    DaemonClientServices clientServices=new DaemonClientServices(loggingServices,parameters,safeStandardInput(operationParameters));
     DaemonClient client=clientServices.get(DaemonClient.class);
-    executer=new DaemonGradleLauncherActionExecuter(client);
+    GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer=new DaemonGradleLauncherActionExecuter(client,parameters);
+    Factory<LoggingManagerInternal> loggingManagerFactory=loggingServices.getFactory(LoggingManagerInternal.class);
+    return new LoggingBridgingGradleLauncherActionExecuter(executer,loggingManagerFactory);
   }
-  return new LoggingBridgingGradleLauncherActionExecuter(executer,loggingServices.getFactory(LoggingManagerInternal.class));
 }

@@ -1,13 +1,14 @@
 {
-  DaemonConnection connection=connector.maybeConnect();
+  Spec<DaemonContext> stoppableDaemonSpec=Specs.satisfyAll();
+  DaemonConnection connection=connector.maybeConnect(stoppableDaemonSpec);
   if (connection == null) {
     LOGGER.lifecycle("No Gradle daemons are running.");
     return;
   }
-  LOGGER.lifecycle("At least one daemon is running. Sending stop command...");
+  LOGGER.lifecycle("Stopping daemon.");
   while (connection != null) {
     new StopDispatcher().dispatch(clientMetaData,connection.getConnection());
     LOGGER.lifecycle("Gradle daemon stopped.");
-    connection=connector.maybeConnect();
+    connection=connector.maybeConnect(stoppableDaemonSpec);
   }
 }

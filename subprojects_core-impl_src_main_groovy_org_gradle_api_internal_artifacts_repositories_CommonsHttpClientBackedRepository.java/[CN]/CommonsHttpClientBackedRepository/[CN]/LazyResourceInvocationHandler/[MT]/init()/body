@@ -1,5 +1,10 @@
 {
-  LOGGER.info("Attempting to GET resource {}.",source);
+  if (candidates.size() > 0) {
+    CachedResource cachedResource=findCachedResource();
+    if (cachedResource != null) {
+      return cachedResource;
+    }
+  }
   int result;
   try {
     result=executeMethod(method);
@@ -8,11 +13,12 @@
     throw new UncheckedIOException(String.format("Could not GET '%s'.",source),e);
   }
   if (result == 404) {
-    LOGGER.debug("Resource missing: {}.",source);
+    LOGGER.info("Resource missing. [HTTP GET: {}]",source);
     return new MissingResource(source);
   }
   if (!wasSuccessful(result)) {
     throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s",source,result,method.getStatusText()));
   }
+  LOGGER.info("Resource found. [HTTP GET: {}]",source);
   return new HttpResource(source,method);
 }
