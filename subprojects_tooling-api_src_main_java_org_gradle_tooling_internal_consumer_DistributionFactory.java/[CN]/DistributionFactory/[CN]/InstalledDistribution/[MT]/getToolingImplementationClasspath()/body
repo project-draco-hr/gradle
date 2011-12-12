@@ -1,19 +1,11 @@
 {
-  if (!gradleHomeDir.exists()) {
-    throw new IllegalArgumentException(String.format("The specified %s does not exist.",locationDisplayName));
+  ProgressLogger progressLogger=progressLoggerFactory.newOperation(DistributionFactory.class);
+  progressLogger.setDescription("Validate distribution");
+  progressLogger.started();
+  try {
+    return getToolingImpl();
   }
-  if (!gradleHomeDir.isDirectory()) {
-    throw new IllegalArgumentException(String.format("The specified %s is not a directory.",locationDisplayName));
+  finally {
+    progressLogger.completed();
   }
-  File libDir=new File(gradleHomeDir,"lib");
-  if (!libDir.isDirectory()) {
-    throw new IllegalArgumentException(String.format("The specified %s does not appear to contain a Gradle distribution.",locationDisplayName));
-  }
-  Set<File> files=new LinkedHashSet<File>();
-  for (  File file : libDir.listFiles()) {
-    if (file.getName().endsWith(".jar")) {
-      files.add(file);
-    }
-  }
-  return files;
 }

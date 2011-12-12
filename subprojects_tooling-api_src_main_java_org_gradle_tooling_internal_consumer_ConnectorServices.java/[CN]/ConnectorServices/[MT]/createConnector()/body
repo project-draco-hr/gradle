@@ -1,3 +1,6 @@
 {
-  return new DefaultGradleConnector(SINGLETON_REGISTRY.newInstance(ConnectionFactory.class),SINGLETON_REGISTRY.get(DistributionFactory.class));
+  ListenerManager listenerManager=new DefaultListenerManager();
+  DefaultProgressLoggerFactory progressLoggerFactory=new DefaultProgressLoggerFactory(listenerManager.getBroadcaster(ProgressListener.class),new TrueTimeProvider());
+  ConnectionFactory connectionFactory=new ConnectionFactory(SINGLETON_REGISTRY.get(ToolingImplementationLoader.class),listenerManager,progressLoggerFactory);
+  return new DefaultGradleConnector(connectionFactory,new DistributionFactory(StartParameter.DEFAULT_GRADLE_USER_HOME,progressLoggerFactory));
 }
