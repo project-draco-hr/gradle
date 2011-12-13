@@ -1,29 +1,42 @@
 {
-  DaemonClientInputForwarder inputForwarder=new DaemonClientInputForwarder(daemonServerStandardInput,build.getClientMetaData(),connection);
-  try {
-    connection.dispatch(build);
-    inputForwarder.start();
-    int objectsReceived=0;
-    while (true) {
-      Object object=connection.receive();
-      LOGGER.debug("Received object #{}, type: {}",objectsReceived++,object == null ? null : object.getClass().getName());
-      if (object == null) {
-        throw new DaemonDisappearedException(build,connection);
-      }
- else       if (object instanceof OutputEvent) {
-        outputEventListener.onOutput((OutputEvent)object);
-      }
- else       if (object instanceof Result) {
-        @SuppressWarnings("unchecked") Result<T> result=(Result<T>)object;
-        return result;
-      }
+  connection.dispatch(build);
+  Object firstResult=connection.receive();
+  if (firstResult == null) {
+    return null;
+  }
+ else   if (firstResult instanceof BuildAccepted) {
+    DaemonClientInputForwarder inputForwarder=new DaemonClientInputForwarder(daemonServerStandardInput,build.getClientMetaData(),connection);
+    try {
+      inputForwarder.start();
+      int objectsReceived=0;
+      while (true) {
+        Object object=connection.receive();
+        LOGGER.debug("Received object #{}, type: {}",objectsReceived++,object == null ? null : object.getClass().getName());
+        if (object == null) {
+          throw new DaemonDisappearedException(build,connection);
+        }
+ else         if (object instanceof OutputEvent) {
+          outputEventListener.onOutput((OutputEvent)object);
+        }
+ else         if (object instanceof Result) {
+          @SuppressWarnings("unchecked") Result<T> result=(Result<T>)object;
+          return result;
+        }
  else {
-        throw new IllegalStateException(String.format("Daemon returned %s (type: %s) for which there is no strategy to handle",object,object.getClass()));
+          throw new IllegalStateException(String.format("Daemon returned %s (type: %s) as for which there is no strategy to handle",object,object.getClass()));
+        }
       }
     }
-  }
   finally {
-    inputForwarder.stop();
-    connection.stop();
+      inputForwarder.stop();
+      connection.stop();
+    }
+  }
+ else   if (firstResult instanceof Result) {
+    @SuppressWarnings("unchecked") Result<T> result=(Result<T>)firstResult;
+    return result;
+  }
+ else {
+    throw new IllegalStateException(String.format("Daemon returned %s (type: %s) as first result for which there is no strategy to handle",firstResult,firstResult.getClass()));
   }
 }
