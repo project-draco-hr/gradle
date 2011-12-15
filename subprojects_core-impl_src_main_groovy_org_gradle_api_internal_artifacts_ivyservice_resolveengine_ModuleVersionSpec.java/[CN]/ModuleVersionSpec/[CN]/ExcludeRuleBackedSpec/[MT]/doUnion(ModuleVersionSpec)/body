@@ -1,0 +1,24 @@
+{
+  if (!(other instanceof ExcludeRuleBackedSpec)) {
+    return super.doUnion(other);
+  }
+  Map<ModuleId,ExcludeRule> thisRules=new HashMap<ModuleId,ExcludeRule>();
+  for (  ExcludeRule rule : excludeRules) {
+    ModuleId moduleId=rule.getId().getModuleId();
+    if (rule.getMatcher() != ExactPatternMatcher.INSTANCE || moduleId.getOrganisation().equals(PatternMatcher.ANY_EXPRESSION) || moduleId.getName().equals(PatternMatcher.ANY_EXPRESSION)) {
+      return super.doUnion(other);
+    }
+    thisRules.put(moduleId,rule);
+  }
+  ExcludeRuleBackedSpec otherExcludeRuleSpec=(ExcludeRuleBackedSpec)other;
+  Map<ModuleId,ExcludeRule> otherRules=new HashMap<ModuleId,ExcludeRule>();
+  for (  ExcludeRule rule : otherExcludeRuleSpec.excludeRules) {
+    ModuleId moduleId=rule.getId().getModuleId();
+    if (rule.getMatcher() != ExactPatternMatcher.INSTANCE || moduleId.getOrganisation().equals(PatternMatcher.ANY_EXPRESSION) || moduleId.getName().equals(PatternMatcher.ANY_EXPRESSION)) {
+      return super.doUnion(other);
+    }
+    otherRules.put(moduleId,rule);
+  }
+  thisRules.keySet().retainAll(otherRules.keySet());
+  return forExcludes(thisRules.values());
+}
