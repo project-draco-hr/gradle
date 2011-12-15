@@ -1,23 +1,67 @@
 {
-  SetMultimap<DefaultModuleRevisionResolveState,ResolvePath> pendingConflictResolution=LinkedHashMultimap.create();
   SetMultimap<ModuleId,DefaultModuleRevisionResolveState> allVersions=LinkedHashMultimap.create();
   Set<ModuleId> conflicts=new LinkedHashSet<ModuleId>();
-  List<ResolvePath> queue=new ArrayList<ResolvePath>();
-  List<ConfigurationNode> nodes=new ArrayList<ConfigurationNode>();
-  nodes.add(resolveState.root);
+  resolveState.queue.add(resolveState.root);
   List<DependencyEdge> dependencies=new ArrayList<DependencyEdge>();
-  while (!nodes.isEmpty() || !pendingConflictResolution.isEmpty()) {
-    if (!nodes.isEmpty()) {
-      ConfigurationNode node=nodes.remove(0);
-      System.out.println("Visiting configuration " + node);
+  while (!resolveState.queue.isEmpty() || !conflicts.isEmpty()) {
+    if (!resolveState.queue.isEmpty()) {
+      ConfigurationNode node=resolveState.queue.remove(0);
+      System.out.println("=> Visiting configuration " + node);
       dependencies.clear();
-      node.addOutgoingDependencies(dependencies);
+      node.visitOutgoingDependencies(dependencies);
       for (      DependencyEdge dependency : dependencies) {
-        System.out.println("  Visiting dependency " + dependency);
+        System.out.println("* Visiting dependency " + dependency);
         dependency.resolveModuleRevisionId();
+        ModuleId moduleId=dependency.getModuleId();
+        DefaultModuleRevisionResolveState moduleRevision=dependency.getTargetModuleRevision();
+        if (allVersions.put(moduleId,moduleRevision)) {
+          Set<DefaultModuleRevisionResolveState> versions=allVersions.get(moduleId);
+          if (versions.size() == 1) {
+            System.out.println("  Selecting new module version " + moduleRevision);
+            resolveState.select(moduleRevision);
+          }
+ else {
+            System.out.println("  Found new conflicting module version " + moduleRevision);
+            conflicts.add(moduleId);
+            DefaultModuleRevisionResolveState previouslySelected=resolveState.clearSelection(moduleId);
+            if (previouslySelected != null) {
+              System.out.println("  Removing outgoing edges from " + previouslySelected);
+              for (              ConfigurationNode configuration : previouslySelected.configurations) {
+                System.out.println("  * removing " + configuration);
+                configuration.removeOutgoingEdges();
+              }
+            }
+            continue;
+          }
+        }
+        if (conflicts.contains(moduleId)) {
+          System.out.println("  Dependency refers to module " + moduleId + " with conflicts. Parking");
+          continue;
+        }
+        DefaultModuleRevisionResolveState selectedVersion=resolveState.getSelected(moduleId);
+        if (selectedVersion != moduleRevision) {
+          System.out.println("  Version has been evicted. Restarting with target " + selectedVersion);
+          continue;
+        }
         dependency.resolveMetaData();
-        dependency.addTargetConfiguration(nodes);
+        dependency.attachToTargetConfigurations();
       }
+    }
+ else {
+      ModuleId moduleId=conflicts.iterator().next();
+      conflicts.remove(moduleId);
+      Set<DefaultModuleRevisionResolveState> candidates=allVersions.get(moduleId);
+      DefaultModuleRevisionResolveState selected=conflictResolver.select(candidates,resolveState.root.moduleRevision);
+      System.out.println("=> Selected " + selected + " from conflicting modules "+ candidates);
+      resolveState.select(selected);
+      for (      DefaultModuleRevisionResolveState candidate : candidates) {
+        if (candidate != selected) {
+          for (          ConfigurationNode evictedConfiguration : candidate.configurations) {
+            System.out.println("  * restarting " + evictedConfiguration);
+          }
+        }
+      }
+      resolveState.queue.addAll(selected.configurations);
     }
   }
 }

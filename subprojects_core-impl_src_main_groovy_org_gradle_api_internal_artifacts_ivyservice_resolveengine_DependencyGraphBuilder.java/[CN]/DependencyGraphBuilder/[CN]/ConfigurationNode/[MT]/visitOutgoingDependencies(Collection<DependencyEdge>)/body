@@ -1,0 +1,39 @@
+{
+  List<DependencyEdge> transitiveIncoming=new ArrayList<DependencyEdge>();
+  for (  DependencyEdge edge : incomingEdges) {
+    if (edge.isTransitive()) {
+      transitiveIncoming.add(edge);
+    }
+  }
+  if (transitiveIncoming.isEmpty() && this != resolveState.root) {
+    if (previousTraversal != null) {
+      removeOutgoingEdges();
+    }
+    System.out.println("    -> has no incoming edges " + this + ". ignoring.");
+    return;
+  }
+  ModuleVersionSpec selectorSpec=getSelector(transitiveIncoming);
+  if (previousTraversal != null) {
+    if (previousTraversal.acceptsSameModulesAs(selectorSpec)) {
+      System.out.println("    -> same modules selected by " + this + ". ignoring.");
+      return;
+    }
+    removeOutgoingEdges();
+  }
+  for (  DependencyDescriptor dependency : moduleRevision.getDependencies()) {
+    ModuleId targetModuleId=dependency.getDependencyRevisionId().getModuleId();
+    Set<String> targetConfigurations=getTargetConfigurations(dependency);
+    if (!targetConfigurations.isEmpty()) {
+      if (!selectorSpec.isSatisfiedBy(targetModuleId)) {
+        System.out.println("    " + targetModuleId + " is excluded from "+ this);
+      }
+ else {
+        ModuleVersionSelectorResolveState selector=resolveState.getSelector(dependency);
+        DependencyEdge dependencyEdge=new DependencyEdge(this,dependency,targetConfigurations,selectorSpec,selector,resolveState);
+        outgoingEdges.add(dependencyEdge);
+        target.add(dependencyEdge);
+      }
+    }
+  }
+  previousTraversal=selectorSpec;
+}
