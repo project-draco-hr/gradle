@@ -1,9 +1,21 @@
 {
+  if (lock.tryLock()) {
+    try {
+      return delegate.create(distribution,progressLoggerFactory);
+    }
+  finally {
+      lock.unlock();
+    }
+  }
+  ProgressLogger logger=progressLoggerFactory.newOperation(SynchronizedToolingImplementationLoader.class);
+  logger.setDescription("Wait for the other thread to finish acquiring the distribution");
+  logger.started();
   lock.lock();
   try {
     return delegate.create(distribution,progressLoggerFactory);
   }
   finally {
     lock.unlock();
+    logger.completed();
   }
 }
