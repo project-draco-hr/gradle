@@ -31,19 +31,8 @@
                 configuration.removeOutgoingEdges();
               }
             }
-            continue;
           }
         }
-        if (conflicts.contains(moduleId)) {
-          System.out.println("  Dependency refers to module " + moduleId + " with conflicts. Parking");
-          continue;
-        }
-        DefaultModuleRevisionResolveState selectedVersion=resolveState.getSelected(moduleId);
-        if (selectedVersion != moduleRevision) {
-          System.out.println("  Version has been evicted. Restarting with target " + selectedVersion);
-          continue;
-        }
-        dependency.resolveMetaData();
         dependency.attachToTargetConfigurations();
       }
     }
@@ -55,13 +44,12 @@
       System.out.println("=> Selected " + selected + " from conflicting modules "+ candidates);
       resolveState.select(selected);
       for (      DefaultModuleRevisionResolveState candidate : candidates) {
-        if (candidate != selected) {
-          for (          ConfigurationNode evictedConfiguration : candidate.configurations) {
-            System.out.println("  * restarting " + evictedConfiguration);
-          }
+        candidate.restart(selected);
+        for (        ConfigurationNode conflictConfiguration : candidate.configurations) {
+          System.out.println("  * restarting " + conflictConfiguration);
+          conflictConfiguration.restart(selected);
         }
       }
-      resolveState.queue.addAll(selected.configurations);
     }
   }
 }
