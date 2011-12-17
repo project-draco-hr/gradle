@@ -2,6 +2,18 @@
   if (!(other instanceof ExcludeRuleBackedSpec)) {
     return super.doUnion(other);
   }
+  ExcludeRuleBackedSpec otherExcludeRuleSpec=(ExcludeRuleBackedSpec)other;
+  IdentityHashMap<ExcludeRule,ExcludeRule> thisRulesByIdentity=new IdentityHashMap<ExcludeRule,ExcludeRule>();
+  for (  ExcludeRule excludeRule : excludeRules) {
+    thisRulesByIdentity.put(excludeRule,excludeRule);
+  }
+  IdentityHashMap<ExcludeRule,ExcludeRule> otherRulesByIdentity=new IdentityHashMap<ExcludeRule,ExcludeRule>();
+  for (  ExcludeRule excludeRule : otherExcludeRuleSpec.excludeRules) {
+    otherRulesByIdentity.put(excludeRule,excludeRule);
+  }
+  if (thisRulesByIdentity.keySet().equals(otherRulesByIdentity.keySet())) {
+    return this;
+  }
   Map<ModuleId,ExcludeRule> thisRules=new HashMap<ModuleId,ExcludeRule>();
   for (  ExcludeRule rule : excludeRules) {
     ModuleId moduleId=rule.getId().getModuleId();
@@ -10,7 +22,6 @@
     }
     thisRules.put(moduleId,rule);
   }
-  ExcludeRuleBackedSpec otherExcludeRuleSpec=(ExcludeRuleBackedSpec)other;
   Map<ModuleId,ExcludeRule> otherRules=new HashMap<ModuleId,ExcludeRule>();
   for (  ExcludeRule rule : otherExcludeRuleSpec.excludeRules) {
     ModuleId moduleId=rule.getId().getModuleId();

@@ -1,19 +1,22 @@
 {
   SetMultimap<ModuleId,DefaultModuleRevisionResolveState> allVersions=LinkedHashMultimap.create();
   Set<ModuleId> conflicts=new LinkedHashSet<ModuleId>();
-  resolveState.queue.add(resolveState.root);
+  resolveState.onMoreSelected(resolveState.root);
   List<DependencyEdge> dependencies=new ArrayList<DependencyEdge>();
-  while (!resolveState.queue.isEmpty() || !conflicts.isEmpty()) {
-    if (!resolveState.queue.isEmpty()) {
-      ConfigurationNode node=resolveState.queue.remove(0);
+  while (resolveState.peek() != null || !conflicts.isEmpty()) {
+    if (resolveState.peek() != null) {
+      ConfigurationNode node=resolveState.pop();
       System.out.println("=> Visiting configuration " + node);
       dependencies.clear();
       node.visitOutgoingDependencies(dependencies);
       for (      DependencyEdge dependency : dependencies) {
         System.out.println("* Visiting dependency " + dependency);
         dependency.resolveModuleRevisionId();
-        ModuleId moduleId=dependency.getModuleId();
         DefaultModuleRevisionResolveState moduleRevision=dependency.getTargetModuleRevision();
+        if (moduleRevision == null) {
+          continue;
+        }
+        ModuleId moduleId=moduleRevision.id.getModuleId();
         if (allVersions.put(moduleId,moduleRevision)) {
           Set<DefaultModuleRevisionResolveState> versions=allVersions.get(moduleId);
           if (versions.size() == 1) {
