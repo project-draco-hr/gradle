@@ -1,0 +1,49 @@
+{
+  Set<ModuleId> conflicts=new LinkedHashSet<ModuleId>();
+  resolveState.onMoreSelected(resolveState.root);
+  List<DependencyEdge> dependencies=new ArrayList<DependencyEdge>();
+  while (resolveState.peek() != null || !conflicts.isEmpty()) {
+    if (resolveState.peek() != null) {
+      ConfigurationNode node=resolveState.pop();
+      LOGGER.debug("Visiting configuration {}.",node);
+      dependencies.clear();
+      node.visitOutgoingDependencies(dependencies);
+      for (      DependencyEdge dependency : dependencies) {
+        LOGGER.debug("Visiting dependency {}",dependency);
+        dependency.resolveModuleRevisionId();
+        DefaultModuleRevisionResolveState moduleRevision=dependency.getTargetModuleRevision();
+        if (moduleRevision == null) {
+          continue;
+        }
+        ModuleId moduleId=moduleRevision.id.getModuleId();
+        if (moduleRevision.state == ModuleState.New) {
+          ModuleResolveState module=resolveState.getModule(moduleId);
+          Collection<DefaultModuleRevisionResolveState> versions=module.getVersions();
+          if (versions.size() == 1) {
+            LOGGER.debug("Selecting new module version {}",moduleRevision);
+            module.select(moduleRevision);
+          }
+ else {
+            LOGGER.debug("Found new conflicting module version {}",moduleRevision);
+            conflicts.add(moduleId);
+            DefaultModuleRevisionResolveState previouslySelected=module.clearSelection();
+            if (previouslySelected != null) {
+              for (              ConfigurationNode configuration : previouslySelected.configurations) {
+                configuration.removeOutgoingEdges();
+              }
+            }
+          }
+        }
+        dependency.attachToTargetConfigurations();
+      }
+    }
+ else {
+      ModuleId moduleId=conflicts.iterator().next();
+      conflicts.remove(moduleId);
+      ModuleResolveState module=resolveState.getModule(moduleId);
+      DefaultModuleRevisionResolveState selected=conflictResolver.select(module.getVersions(),resolveState.root.moduleRevision);
+      LOGGER.debug("Selected {} from conflicting modules {}.",selected,module.getVersions());
+      module.restart(selected);
+    }
+  }
+}

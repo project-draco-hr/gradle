@@ -3,25 +3,9 @@
   if (rootUri == null) {
     throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
   }
-  MavenResolver resolver=new MavenResolver();
-  resolver.setName(name);
-  if (rootUri.getScheme().equalsIgnoreCase("file")) {
-    resolver.setRepository(new FileRepository());
-    resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
-    resolver.setRoot(getFilePath(rootUri));
-    Collection<URI> artifactUrls=getArtifactUrls();
-    for (    URI repoUrl : artifactUrls) {
-      resolver.addArtifactUrl(getFilePath(repoUrl));
-    }
-  }
- else {
-    HttpSettings httpSettings=new DefaultHttpSettings(getCredentials());
-    resolver.setRepository(new CommonsHttpClientBackedRepository(httpSettings));
-    resolver.setRoot(getUriPath(rootUri));
-    Collection<URI> artifactUrls=getArtifactUrls();
-    for (    URI repoUrl : artifactUrls) {
-      resolver.addArtifactUrl(getUriPath(repoUrl));
-    }
+  MavenResolver resolver=new MavenResolver(name,rootUri,getTransport(rootUri.getScheme()));
+  for (  URI repoUrl : getArtifactUrls()) {
+    resolver.addArtifactLocation(repoUrl,null);
   }
   resolvers.add(resolver);
 }

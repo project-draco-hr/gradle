@@ -1,0 +1,16 @@
+{
+  ModuleVersionSpec selector;
+  if (transitiveEdges.isEmpty()) {
+    selector=ModuleVersionSpec.forExcludes();
+  }
+ else {
+    selector=transitiveEdges.get(0).getSelector();
+    for (int i=1; i < transitiveEdges.size(); i++) {
+      DependencyEdge dependencyEdge=transitiveEdges.get(i);
+      selector=selector.union(dependencyEdge.getSelector());
+    }
+  }
+  String[] configurations=heirarchy.toArray(new String[heirarchy.size()]);
+  selector=selector.intersect(ModuleVersionSpec.forExcludes(descriptor.getExcludeRules(configurations)));
+  return selector;
+}

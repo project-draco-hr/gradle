@@ -1,0 +1,20 @@
+{
+  if (evt.getResource().isLocal()) {
+    return;
+  }
+  if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
+    total=0;
+    logger=progressLoggerFactory.newOperation(loggingClass);
+    String description=String.format("%s %s",StringUtils.capitalize(getRequestType(evt)),evt.getResource().getName());
+    logger.setDescription(description);
+    logger.setLoggingHeader(description);
+    logger.started();
+  }
+  if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
+    total+=evt.getLength();
+    logger.progress(String.format("%s/%s %sed",getLengthText(total),getLengthText(evt),getRequestType(evt)));
+  }
+  if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED) {
+    logger.completed();
+  }
+}

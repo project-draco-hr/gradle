@@ -1,0 +1,19 @@
+{
+  String destinationPattern;
+  if ("ivy".equals(artifact.getType()) && !getIvyPatterns().isEmpty()) {
+    destinationPattern=(String)getIvyPatterns().get(0);
+  }
+ else   if (!getArtifactPatterns().isEmpty()) {
+    destinationPattern=(String)getArtifactPatterns().get(0);
+  }
+ else {
+    throw new IllegalStateException("impossible to publish " + artifact + " using "+ this+ ": no artifact pattern defined");
+  }
+  ModuleRevisionId moduleRevisionId=artifact.getModuleRevisionId();
+  if (isM2compatible()) {
+    moduleRevisionId=convertM2IdForResourceSearch(moduleRevisionId);
+  }
+  String destination=getDestination(destinationPattern,artifact,moduleRevisionId);
+  put(artifact,src,destination,overwrite);
+  LOGGER.info("Published {} to {}",artifact.getName(),hidePassword(destination));
+}

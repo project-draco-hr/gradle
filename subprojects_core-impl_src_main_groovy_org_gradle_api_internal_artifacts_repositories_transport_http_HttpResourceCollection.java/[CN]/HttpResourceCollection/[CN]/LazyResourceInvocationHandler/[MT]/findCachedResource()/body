@@ -1,0 +1,18 @@
+{
+  ChecksumType checksumType=ChecksumType.sha1;
+  String checksumUrl=source + checksumType.ext();
+  String sha1=downloadChecksum(checksumUrl);
+  if (sha1 == null) {
+    LOGGER.info("Checksum {} missing. [HTTP GET: {}]",checksumType,checksumUrl);
+  }
+ else {
+    for (    CachedArtifact candidate : candidates) {
+      if (candidate.getSha1().equals(sha1)) {
+        LOGGER.info("Checksum {} matched cached resource: [HTTP GET: {}]",checksumType,checksumUrl);
+        return new CachedHttpResource(source,candidate,HttpResourceCollection.this);
+      }
+    }
+    LOGGER.info("Checksum {} did not match cached resources: [HTTP GET: {}]",checksumType,checksumUrl);
+  }
+  return null;
+}
