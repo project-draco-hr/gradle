@@ -1,5 +1,5 @@
 {
-  if (!moduleRevision.selected) {
+  if (moduleRevision.state != ModuleState.Selected) {
     System.out.println("    -> version is not selected " + this + ". ignoring.");
     return;
   }
@@ -13,7 +13,13 @@
     if (previousTraversal != null) {
       removeOutgoingEdges();
     }
-    System.out.println("    -> has no incoming edges " + this + ". ignoring.");
+    if (incomingEdges.isEmpty()) {
+      System.out.println("    -> has no incoming edges " + this + ". removing.");
+      moduleRevision.removeConfiguration(this);
+    }
+ else {
+      System.out.println("    -> has no transitive incoming edges " + this + ". ignoring.");
+    }
     return;
   }
   ModuleVersionSpec selectorSpec=getSelector(transitiveIncoming);

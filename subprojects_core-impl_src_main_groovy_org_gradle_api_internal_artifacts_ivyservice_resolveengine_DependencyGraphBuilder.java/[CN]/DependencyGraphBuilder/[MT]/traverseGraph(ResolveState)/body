@@ -1,5 +1,4 @@
 {
-  SetMultimap<ModuleId,DefaultModuleRevisionResolveState> allVersions=LinkedHashMultimap.create();
   Set<ModuleId> conflicts=new LinkedHashSet<ModuleId>();
   resolveState.onMoreSelected(resolveState.root);
   List<DependencyEdge> dependencies=new ArrayList<DependencyEdge>();
@@ -17,8 +16,8 @@
           continue;
         }
         ModuleId moduleId=moduleRevision.id.getModuleId();
-        if (allVersions.put(moduleId,moduleRevision)) {
-          Set<DefaultModuleRevisionResolveState> versions=allVersions.get(moduleId);
+        if (moduleRevision.state == ModuleState.New) {
+          Set<DefaultModuleRevisionResolveState> versions=resolveState.getRevisions(moduleId);
           if (versions.size() == 1) {
             System.out.println("  Selecting new module version " + moduleRevision);
             resolveState.select(moduleRevision);
@@ -42,16 +41,12 @@
  else {
       ModuleId moduleId=conflicts.iterator().next();
       conflicts.remove(moduleId);
-      Set<DefaultModuleRevisionResolveState> candidates=allVersions.get(moduleId);
+      Set<DefaultModuleRevisionResolveState> candidates=resolveState.getRevisions(moduleId);
       DefaultModuleRevisionResolveState selected=conflictResolver.select(candidates,resolveState.root.moduleRevision);
       System.out.println("=> Selected " + selected + " from conflicting modules "+ candidates);
       resolveState.select(selected);
       for (      DefaultModuleRevisionResolveState candidate : candidates) {
         candidate.restart(selected);
-        for (        ConfigurationNode conflictConfiguration : candidate.configurations) {
-          System.out.println("  * restarting " + conflictConfiguration);
-          conflictConfiguration.restart(selected);
-        }
       }
     }
   }
