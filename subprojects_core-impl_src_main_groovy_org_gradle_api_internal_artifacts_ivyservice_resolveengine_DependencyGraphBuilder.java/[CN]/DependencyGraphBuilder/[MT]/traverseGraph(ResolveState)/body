@@ -5,11 +5,11 @@
   while (resolveState.peek() != null || !conflicts.isEmpty()) {
     if (resolveState.peek() != null) {
       ConfigurationNode node=resolveState.pop();
-      System.out.println("=> Visiting configuration " + node);
+      LOGGER.debug("Visiting configuration {}.",node);
       dependencies.clear();
       node.visitOutgoingDependencies(dependencies);
       for (      DependencyEdge dependency : dependencies) {
-        System.out.println("* Visiting dependency " + dependency);
+        LOGGER.debug("Visiting dependency {}",dependency);
         dependency.resolveModuleRevisionId();
         DefaultModuleRevisionResolveState moduleRevision=dependency.getTargetModuleRevision();
         if (moduleRevision == null) {
@@ -17,19 +17,18 @@
         }
         ModuleId moduleId=moduleRevision.id.getModuleId();
         if (moduleRevision.state == ModuleState.New) {
-          Set<DefaultModuleRevisionResolveState> versions=resolveState.getRevisions(moduleId);
+          ModuleResolveState module=resolveState.getModule(moduleId);
+          Collection<DefaultModuleRevisionResolveState> versions=module.getVersions();
           if (versions.size() == 1) {
-            System.out.println("  Selecting new module version " + moduleRevision);
-            resolveState.select(moduleRevision);
+            LOGGER.debug("Selecting new module version {}",moduleRevision);
+            module.select(moduleRevision);
           }
  else {
-            System.out.println("  Found new conflicting module version " + moduleRevision);
+            LOGGER.debug("Found new conflicting module version {}",moduleRevision);
             conflicts.add(moduleId);
-            DefaultModuleRevisionResolveState previouslySelected=resolveState.clearSelection(moduleId);
+            DefaultModuleRevisionResolveState previouslySelected=module.clearSelection();
             if (previouslySelected != null) {
-              System.out.println("  Removing outgoing edges from " + previouslySelected);
               for (              ConfigurationNode configuration : previouslySelected.configurations) {
-                System.out.println("  * removing " + configuration);
                 configuration.removeOutgoingEdges();
               }
             }
@@ -41,13 +40,10 @@
  else {
       ModuleId moduleId=conflicts.iterator().next();
       conflicts.remove(moduleId);
-      Set<DefaultModuleRevisionResolveState> candidates=resolveState.getRevisions(moduleId);
-      DefaultModuleRevisionResolveState selected=conflictResolver.select(candidates,resolveState.root.moduleRevision);
-      System.out.println("=> Selected " + selected + " from conflicting modules "+ candidates);
-      resolveState.select(selected);
-      for (      DefaultModuleRevisionResolveState candidate : candidates) {
-        candidate.restart(selected);
-      }
+      ModuleResolveState module=resolveState.getModule(moduleId);
+      DefaultModuleRevisionResolveState selected=conflictResolver.select(module.getVersions(),resolveState.root.moduleRevision);
+      LOGGER.debug("Selected {} from conflicting modules {}.",selected,module.getVersions());
+      module.restart(selected);
     }
   }
 }

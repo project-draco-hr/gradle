@@ -1,6 +1,6 @@
 {
   if (moduleRevision.state != ModuleState.Selected) {
-    System.out.println("    -> version is not selected " + this + ". ignoring.");
+    LOGGER.debug("version for {} is not selected. ignoring.",this);
     return;
   }
   List<DependencyEdge> transitiveIncoming=new ArrayList<DependencyEdge>();
@@ -14,18 +14,18 @@
       removeOutgoingEdges();
     }
     if (incomingEdges.isEmpty()) {
-      System.out.println("    -> has no incoming edges " + this + ". removing.");
+      LOGGER.debug("{} has no incoming edges. removing.",this);
       moduleRevision.removeConfiguration(this);
     }
  else {
-      System.out.println("    -> has no transitive incoming edges " + this + ". ignoring.");
+      LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.",this);
     }
     return;
   }
   ModuleVersionSpec selectorSpec=getSelector(transitiveIncoming);
   if (previousTraversal != null) {
     if (previousTraversal.acceptsSameModulesAs(selectorSpec)) {
-      System.out.println("    -> same modules selected by " + this + ". ignoring.");
+      LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring",this);
       return;
     }
     removeOutgoingEdges();
@@ -35,7 +35,7 @@
     Set<String> targetConfigurations=getTargetConfigurations(dependency);
     if (!targetConfigurations.isEmpty()) {
       if (!selectorSpec.isSatisfiedBy(targetModuleId)) {
-        System.out.println("    " + targetModuleId + " is excluded from "+ this);
+        LOGGER.debug("{} is excluded from {}.",targetModuleId,this);
       }
  else {
         DependencyEdge dependencyEdge=new DependencyEdge(this,dependency,targetConfigurations,selectorSpec,resolveState);
