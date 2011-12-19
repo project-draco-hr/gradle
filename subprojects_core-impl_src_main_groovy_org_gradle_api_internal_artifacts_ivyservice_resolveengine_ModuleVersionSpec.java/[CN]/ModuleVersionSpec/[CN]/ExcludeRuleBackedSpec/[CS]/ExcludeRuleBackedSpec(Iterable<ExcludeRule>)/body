@@ -1,0 +1,23 @@
+{
+  for (  ExcludeRule rule : excludeRules) {
+    if (!(rule.getMatcher() instanceof ExactPatternMatcher)) {
+      excludeSpecs.add(new ExcludeRuleSpec(rule));
+      continue;
+    }
+    ModuleId moduleId=rule.getId().getModuleId();
+    boolean wildcardGroup=PatternMatcher.ANY_EXPRESSION.equals(moduleId.getOrganisation());
+    boolean wildcardModule=PatternMatcher.ANY_EXPRESSION.equals(moduleId.getName());
+    if (wildcardGroup && wildcardModule) {
+      excludeSpecs.add(new ExcludeRuleSpec(rule));
+    }
+ else     if (wildcardGroup) {
+      excludeSpecs.add(new ModuleNameSpec(moduleId.getName()));
+    }
+ else     if (wildcardModule) {
+      excludeSpecs.add(new GroupNameSpec(moduleId.getOrganisation()));
+    }
+ else {
+      excludeSpecs.add(new ModuleIdSpec(moduleId));
+    }
+  }
+}
