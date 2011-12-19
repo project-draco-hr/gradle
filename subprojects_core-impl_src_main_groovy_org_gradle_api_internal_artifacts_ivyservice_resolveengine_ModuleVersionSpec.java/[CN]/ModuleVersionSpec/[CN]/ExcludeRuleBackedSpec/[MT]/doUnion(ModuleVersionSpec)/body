@@ -2,34 +2,28 @@
   if (!(other instanceof ExcludeRuleBackedSpec)) {
     return super.doUnion(other);
   }
-  ExcludeRuleBackedSpec otherExcludeRuleSpec=(ExcludeRuleBackedSpec)other;
-  IdentityHashMap<ExcludeRule,ExcludeRule> thisRulesByIdentity=new IdentityHashMap<ExcludeRule,ExcludeRule>();
-  for (  ExcludeRule excludeRule : excludeRules) {
-    thisRulesByIdentity.put(excludeRule,excludeRule);
-  }
-  IdentityHashMap<ExcludeRule,ExcludeRule> otherRulesByIdentity=new IdentityHashMap<ExcludeRule,ExcludeRule>();
-  for (  ExcludeRule excludeRule : otherExcludeRuleSpec.excludeRules) {
-    otherRulesByIdentity.put(excludeRule,excludeRule);
-  }
-  if (thisRulesByIdentity.keySet().equals(otherRulesByIdentity.keySet())) {
+  ExcludeRuleBackedSpec excludeRuleBackedSpec=(ExcludeRuleBackedSpec)other;
+  if (excludeSpecs.equals(excludeRuleBackedSpec.excludeSpecs)) {
     return this;
   }
-  Map<ModuleId,ExcludeRule> thisRules=new HashMap<ModuleId,ExcludeRule>();
-  for (  ExcludeRule rule : excludeRules) {
-    ModuleId moduleId=rule.getId().getModuleId();
-    if (rule.getMatcher() != ExactPatternMatcher.INSTANCE || moduleId.getOrganisation().equals(PatternMatcher.ANY_EXPRESSION) || moduleId.getName().equals(PatternMatcher.ANY_EXPRESSION)) {
+  for (  ModuleVersionSpec excludeSpec : excludeSpecs) {
+    if (excludeSpec instanceof ExcludeRuleSpec) {
       return super.doUnion(other);
     }
-    thisRules.put(moduleId,rule);
   }
-  Map<ModuleId,ExcludeRule> otherRules=new HashMap<ModuleId,ExcludeRule>();
-  for (  ExcludeRule rule : otherExcludeRuleSpec.excludeRules) {
-    ModuleId moduleId=rule.getId().getModuleId();
-    if (rule.getMatcher() != ExactPatternMatcher.INSTANCE || moduleId.getOrganisation().equals(PatternMatcher.ANY_EXPRESSION) || moduleId.getName().equals(PatternMatcher.ANY_EXPRESSION)) {
+  for (  ModuleVersionSpec excludeSpec : excludeRuleBackedSpec.excludeSpecs) {
+    if (excludeSpec instanceof ExcludeRuleSpec) {
       return super.doUnion(other);
     }
-    otherRules.put(moduleId,rule);
   }
-  thisRules.keySet().retainAll(otherRules.keySet());
-  return forExcludes(thisRules.values());
+  List<ModuleVersionSpec> merged=new ArrayList<ModuleVersionSpec>();
+  for (  ModuleVersionSpec thisSpec : excludeSpecs) {
+    for (    ModuleVersionSpec otherSpec : excludeRuleBackedSpec.excludeSpecs) {
+      intersect(thisSpec,otherSpec,merged);
+    }
+  }
+  if (merged.isEmpty()) {
+    return ALL_SPEC;
+  }
+  return new ExcludeRuleBackedSpec(merged);
 }
