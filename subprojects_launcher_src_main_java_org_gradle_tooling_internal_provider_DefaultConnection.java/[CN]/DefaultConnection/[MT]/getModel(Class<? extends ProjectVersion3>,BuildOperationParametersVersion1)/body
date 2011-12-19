@@ -1,4 +1,9 @@
 {
-  GradleLauncherAction<ProjectVersion3> action=new DelegatingBuildModelAction(type);
+  if (type == InternalBuildEnvironment.class) {
+    DaemonClientServices services=daemonClientServices(operationParameters);
+    DaemonContext context=services.get(DaemonContext.class);
+    return new DefaultBuildEnvironment(GradleVersion.current().getVersion(),context.getJavaHome(),context.getDaemonOpts());
+  }
+  DelegatingBuildModelAction action=new DelegatingBuildModelAction(type);
   return run(action,operationParameters);
 }
