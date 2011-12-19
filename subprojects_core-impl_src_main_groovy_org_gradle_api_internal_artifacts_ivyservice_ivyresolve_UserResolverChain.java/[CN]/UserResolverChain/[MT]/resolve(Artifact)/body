@@ -1,0 +1,19 @@
+{
+  ArtifactResolutionExceptionBuilder exceptionBuilder=new ArtifactResolutionExceptionBuilder(artifact);
+  List<ModuleVersionRepository> artifactRepositories=getArtifactResolversForModule(artifact.getModuleRevisionId());
+  DownloadOptions downloadOptions=new DownloadOptions();
+  LOGGER.debug("Attempting to download {} using resolvers {}",artifact,artifactRepositories);
+  for (  ModuleVersionRepository resolver : artifactRepositories) {
+    try {
+      File artifactDownload=resolver.download(artifact,downloadOptions);
+      if (artifactDownload != null) {
+        return artifactDownload;
+      }
+    }
+ catch (    ArtifactResolveException e) {
+      LOGGER.warn(e.getMessage());
+      exceptionBuilder.addDownloadFailure(e);
+    }
+  }
+  throw exceptionBuilder.buildException();
+}
