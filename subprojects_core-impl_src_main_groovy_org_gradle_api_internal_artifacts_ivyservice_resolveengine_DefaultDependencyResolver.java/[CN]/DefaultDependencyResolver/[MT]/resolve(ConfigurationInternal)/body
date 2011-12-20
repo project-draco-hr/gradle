@@ -1,9 +1,8 @@
 {
   LOGGER.debug("Resolving {}",configuration);
-  IvyAdapter ivyAdapter=ivyFactory.create(configuration.getResolutionStrategy());
-  ResolveData resolveData=ivyAdapter.getResolveData(configuration.getName());
-  DependencyToModuleResolver dependencyResolver=constructDependencyResolver(configuration,ivyAdapter.getDependencyToModuleResolver(resolveData));
-  ArtifactToFileResolver artifactResolver=constructArtifactResolver(ivyAdapter.getArtifactToFileResolver(resolveData));
+  IvyAdapter ivyAdapter=ivyFactory.create(configuration);
+  DependencyToModuleResolver dependencyResolver=constructDependencyResolver(configuration,ivyAdapter.getDependencyToModuleResolver());
+  ArtifactToFileResolver artifactResolver=constructArtifactResolver(ivyAdapter.getArtifactToFileResolver());
   ModuleConflictResolver conflictResolver;
   if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
     conflictResolver=new StrictConflictResolver();
@@ -12,7 +11,7 @@
     conflictResolver=new LatestModuleConflictResolver();
   }
   DependencyGraphBuilder builder=new DefaultDependencyGraphBuilder(moduleDescriptorConverter,resolvedArtifactFactory,artifactResolver,dependencyResolver,conflictResolver);
-  DependencyGraphBuilder contextualizedBuilder=ivyAdapter.contextualize(DependencyGraphBuilder.class,builder,resolveData);
-  DefaultLenientConfiguration result=contextualizedBuilder.resolve(configuration,resolveData);
+  DependencyGraphBuilder contextualizedBuilder=ivyAdapter.contextualize(DependencyGraphBuilder.class,builder);
+  DefaultLenientConfiguration result=contextualizedBuilder.resolve(configuration,ivyAdapter.getResolveData());
   return new DefaultResolvedConfiguration(result);
 }
