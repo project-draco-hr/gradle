@@ -1,0 +1,17 @@
+{
+  Object proxy=Proxy.newProxyInstance(getClass().getClassLoader(),new Class[]{type},new InvocationHandler(){
+    public Object invoke(    Object proxy,    Method method,    Object[] args) throws Throwable {
+      IvyContext context=IvyContext.pushNewCopyContext();
+      try {
+        context.setIvy(ivy);
+        context.setResolveData(resolveData);
+        return method.invoke(delegate,args);
+      }
+  finally {
+        IvyContext.popContext();
+      }
+    }
+  }
+);
+  return type.cast(proxy);
+}
