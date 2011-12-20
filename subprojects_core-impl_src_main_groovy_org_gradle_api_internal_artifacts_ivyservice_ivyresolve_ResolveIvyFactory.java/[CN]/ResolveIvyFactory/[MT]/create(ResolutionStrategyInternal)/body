@@ -1,5 +1,16 @@
 {
-  IvySettings ivySettings=settingsConverter.convertForResolve(resolverProvider.getResolvers(),resolutionStrategy);
+  UserResolverChain userResolverChain=new UserResolverChain(moduleResolutionCache,moduleDescriptorCache,artifactResolutionCache,artifactFileStore);
+  userResolverChain.setCachePolicy(resolutionStrategy.getCachePolicy());
+  LoopbackDependencyResolver loopbackDependencyResolver=new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME,userResolverChain,cacheLockingManager);
+  List<DependencyResolver> rawResolvers=resolverProvider.getResolvers();
+  IvySettings ivySettings=settingsConverter.convertForResolve(loopbackDependencyResolver,rawResolvers);
+  for (  DependencyResolver rawResolver : rawResolvers) {
+    String resolverId=new WharfResolverMetadata(rawResolver).getId();
+    CacheLockingDependencyResolver cacheLockingResolver=new CacheLockingDependencyResolver(rawResolver,cacheLockingManager);
+    cacheLockingResolver.setSettings(ivySettings);
+    userResolverChain.add(resolverId,cacheLockingResolver);
+  }
+  moduleDescriptorCache.setSettings(ivySettings);
   Ivy ivy=ivyFactory.createIvy(ivySettings);
-  return new DefaultIvyAdapter(ivy);
+  return new DefaultIvyAdapter(ivy,userResolverChain);
 }
