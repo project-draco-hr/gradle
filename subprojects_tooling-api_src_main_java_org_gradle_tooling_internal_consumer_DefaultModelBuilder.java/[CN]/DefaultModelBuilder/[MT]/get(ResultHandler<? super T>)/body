@@ -2,7 +2,11 @@
   ResultHandler<ProjectVersion3> adaptingHandler=new ProtocolToModelAdaptingHandler(handler);
   connection.getModel(protocolType,operationParameters(),new ResultHandlerAdapter<ProjectVersion3>(adaptingHandler){
     @Override protected String connectionFailureMessage(    Throwable failure){
-      return String.format("Could not fetch model of type '%s' using %s.",modelType.getSimpleName(),connection.getDisplayName());
+      String message=String.format("Could not fetch model of type '%s' using %s.",modelType.getSimpleName(),connection.getDisplayName());
+      if (failure instanceof UnsupportedOperationException) {
+        message+="\n" + INCOMPATIBLE_VERSION_HINT;
+      }
+      return message;
     }
   }
 );
