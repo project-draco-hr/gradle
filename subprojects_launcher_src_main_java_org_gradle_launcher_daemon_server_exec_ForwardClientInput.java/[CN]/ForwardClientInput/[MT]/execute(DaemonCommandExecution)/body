@@ -45,8 +45,22 @@
   }
 ;
   StoppableExecutor inputReceiverExecuter=executorFactory.create("daemon client input forwarder");
-  AsyncReceive<Object> inputReceiver=new AsyncReceive<Object>(inputReceiverExecuter,dispatcher,countDownInputOrConnectionClosedLatch);
+  final AsyncReceive<Object> inputReceiver=new AsyncReceive<Object>(inputReceiverExecuter,dispatcher,countDownInputOrConnectionClosedLatch);
   inputReceiver.receiveFrom(execution.getConnection());
+  execution.addFinalizer(new Runnable(){
+    public void run(){
+      try {
+        inputOrConnectionClosedLatch.await();
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.asUncheckedException(e);
+      }
+ finally {
+        inputReceiver.stop();
+      }
+    }
+  }
+);
   try {
     new StdinSwapper().swap(replacementStdin,new Callable<Void>(){
       public Void call(){
@@ -59,14 +73,5 @@
   }
  catch (  Exception e) {
     throw UncheckedException.asUncheckedException(e);
-  }
- finally {
-    try {
-      inputOrConnectionClosedLatch.await();
-    }
- catch (    InterruptedException e) {
-      throw UncheckedException.asUncheckedException(e);
-    }
-    inputReceiver.stop();
   }
 }
