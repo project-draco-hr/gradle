@@ -1,6 +1,9 @@
 {
-  String ver=connection.getMetaData().getVersion();
-  if ("1.0-milestone-5".equals(ver) || "1.0-milestone-6".equals(ver)) {
+  GradleVersion version=GradleVersion.version(connection.getMetaData().getVersion());
+  if (type == InternalBuildEnvironment.class && version.compareTo(M6) <= 0) {
+    return new VersionOnlyBuildEnvironment(connection.getMetaData().getVersion());
+  }
+  if (version.equals(M5) || version.equals(M6)) {
     if (DefaultProjectConnection.getModelsPostM6().containsValue(type)) {
       String message=String.format("I don't know how to build a model of type '%s'.",type.getSimpleName());
       throw new UnsupportedOperationException(message);
