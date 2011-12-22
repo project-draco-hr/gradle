@@ -1,0 +1,27 @@
+{
+  if (!moduleArtifact.isMetadata()) {
+    return null;
+  }
+  ArtifactResourceResolver artifactResourceResolver=new ArtifactResourceResolver(){
+    public ResolvedResource resolve(    Artifact artifact){
+      return resolvedResource;
+    }
+  }
+;
+  ArtifactDownloadReport report=download(moduleArtifact,artifactResourceResolver,downloader,new CacheDownloadOptions().setListener(options.getListener()).setForce(true));
+  if (report.getDownloadStatus() == DownloadStatus.FAILED) {
+    Message.warn("problem while downloading module descriptor: " + resolvedResource.getResource() + ": "+ report.getDownloadDetails()+ " ("+ report.getDownloadTimeMillis()+ "ms)");
+    return null;
+  }
+  ModuleDescriptor md=parseModuleDescriptor(resolver,moduleArtifact,options,report.getLocalFile(),resolvedResource.getResource());
+  Message.debug("\t" + getName() + ": parsed downloaded md file for "+ moduleArtifact.getModuleRevisionId()+ "; parsed="+ md.getModuleRevisionId());
+  MetadataArtifactDownloadReport madr=new MetadataArtifactDownloadReport(md.getMetadataArtifact());
+  madr.setSearched(true);
+  madr.setDownloadStatus(report.getDownloadStatus());
+  madr.setDownloadDetails(report.getDownloadDetails());
+  madr.setArtifactOrigin(report.getArtifactOrigin());
+  madr.setDownloadTimeMillis(report.getDownloadTimeMillis());
+  madr.setOriginalLocalFile(report.getLocalFile());
+  madr.setSize(report.getSize());
+  return new ResolvedModuleRevision(resolver,resolver,md,madr);
+}
