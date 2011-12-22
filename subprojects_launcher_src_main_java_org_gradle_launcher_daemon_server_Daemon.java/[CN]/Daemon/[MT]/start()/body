@@ -13,11 +13,20 @@
             try {
               command=(Command)connection.receive();
               LOGGER.debug("received command {} in new thread",command);
+            }
+ catch (            RuntimeException e) {
+              String message=String.format("Unable to receive command from connection: '%s'",connection);
+              LOGGER.warn(message + ". Dispatching the failure to the daemon client...",e);
+              connection.dispatch(new DaemonFailure(new RuntimeException(message,e)));
+              return;
+            }
+            try {
               commandExecuter.executeCommand(connection,command,daemonContext,stateCoordinator);
             }
  catch (            RuntimeException e) {
-              LOGGER.error("Error processing the incoming command.",e);
-              throw e;
+              String message=String.format("Uncaught exception when executing command: '%s' from connection: '%s'.",command,connection);
+              LOGGER.warn(message + ". Dispatching the failure to the daemon client...",e);
+              connection.dispatch(new DaemonFailure(new RuntimeException(message,e)));
             }
  finally {
               LOGGER.debug("finishing processing of command {}",command);
