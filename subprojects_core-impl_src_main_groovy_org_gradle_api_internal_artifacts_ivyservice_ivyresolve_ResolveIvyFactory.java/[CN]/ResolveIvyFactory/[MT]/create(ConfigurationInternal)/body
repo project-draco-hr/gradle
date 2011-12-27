@@ -1,7 +1,7 @@
 {
   UserResolverChain userResolverChain=new UserResolverChain();
   CachePolicy cachePolicy=configuration.getResolutionStrategy().getCachePolicy();
-  cachePolicy=cachePolicyOverride.overrideCachePolicy(cachePolicy);
+  cachePolicy=resolveModeOverride.overrideCachePolicy(cachePolicy);
   LoopbackDependencyResolver loopbackDependencyResolver=new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME,userResolverChain,cacheLockingManager);
   List<DependencyResolver> rawResolvers=resolverProvider.getResolvers();
   IvySettings ivySettings=settingsConverter.convertForResolve(loopbackDependencyResolver,rawResolvers);
@@ -13,6 +13,7 @@
     CacheLockingDependencyResolver cacheLockingResolver=new CacheLockingDependencyResolver(rawResolver,cacheLockingManager);
     cacheLockingResolver.setSettings(ivySettings);
     ModuleVersionRepository moduleVersionRepository=new DependencyResolverAdapter(resolverId,cacheLockingResolver);
+    moduleVersionRepository=resolveModeOverride.overrideModuleVersionRepository(moduleVersionRepository);
     ModuleVersionRepository cachingRepository=new CachingModuleVersionRepository(moduleVersionRepository,moduleResolutionCache,moduleDescriptorCache,artifactResolutionCache,artifactFileStore,cachePolicy);
     ModuleVersionRepository ivyContextualisedRepository=contextualiser.contextualise(ModuleVersionRepository.class,cachingRepository);
     userResolverChain.add(ivyContextualisedRepository);
