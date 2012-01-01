@@ -1,7 +1,10 @@
 {
   try {
     jnaBootPathConfigurer.configure();
-    return new TerminalDetector();
+    if (OperatingSystem.current().isWindows()) {
+      return new WindowsTerminalDetector();
+    }
+    return new PosixBackedTerminalDetector(new NativeServices().get(POSIX.class));
   }
  catch (  NativeIntegrationUnavailableException e) {
     LOGGER.info("Unable to initialise the native integration for current platform: " + OperatingSystem.current() + ". Details: "+ e.getMessage());
