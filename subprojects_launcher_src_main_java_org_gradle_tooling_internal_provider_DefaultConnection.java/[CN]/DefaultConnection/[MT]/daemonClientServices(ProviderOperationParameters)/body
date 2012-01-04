@@ -4,14 +4,18 @@
     loggingServices.get(OutputEventRenderer.class).configure(LogLevel.DEBUG);
   }
   File gradleUserHomeDir=GUtil.elvis(operationParameters.getGradleUserHomeDir(),StartParameter.DEFAULT_GRADLE_USER_HOME);
-  DaemonParameters parameters=new DaemonParameters();
+  DaemonParameters daemonParams=new DaemonParameters();
   boolean searchUpwards=operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
-  parameters.configureFromBuildDir(operationParameters.getProjectDir(),searchUpwards);
-  parameters.configureFromGradleUserHome(gradleUserHomeDir);
-  parameters.configureFromSystemProperties(System.getProperties());
+  daemonParams.configureFromBuildDir(operationParameters.getProjectDir(),searchUpwards);
+  daemonParams.configureFromGradleUserHome(gradleUserHomeDir);
+  daemonParams.configureFromSystemProperties(System.getProperties());
+  List<String> defaultJvmArgs=daemonParams.getAllJvmArgs();
+  daemonParams.setJvmArgs(operationParameters.getJvmArguments(defaultJvmArgs));
+  File defaultJavaHome=canonicalise(Jvm.current().getJavaHome());
+  daemonParams.setJavaHome(operationParameters.getJavaHome(defaultJavaHome));
   if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
     int idleTimeout=(int)operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
-    parameters.setIdleTimeout(idleTimeout);
+    daemonParams.setIdleTimeout(idleTimeout);
   }
-  return new DaemonClientServices(loggingServices,parameters,operationParameters.getStandardInput());
+  return new DaemonClientServices(loggingServices,daemonParams,operationParameters.getStandardInput());
 }
