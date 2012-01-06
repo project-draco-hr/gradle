@@ -1,6 +1,6 @@
 {
-  List resolvedResources=new ArrayList();
-  Set foundRevisions=new HashSet();
+  List<ResolvedResource> resolvedResources=new ArrayList<ResolvedResource>();
+  Set<String> foundRevisions=new HashSet<String>();
   boolean dynamic=getSettings().getVersionMatcher().isDynamic(moduleRevision);
   boolean stop=false;
   for (Iterator iter=patternList.iterator(); iter.hasNext() && !stop; ) {
@@ -13,11 +13,12 @@
     }
   }
   if (resolvedResources.size() > 1) {
-    ResolvedResource[] rress=(ResolvedResource[])resolvedResources.toArray(new ResolvedResource[resolvedResources.size()]);
-    return findResource(rress,rmdparser,moduleRevision,date);
+    ResolvedResource[] rress=resolvedResources.toArray(new ResolvedResource[resolvedResources.size()]);
+    List<ResolvedResource> sortedResources=getLatestStrategy().sort(rress);
+    return sortedResources.get(sortedResources.size() - 1);
   }
  else   if (resolvedResources.size() == 1) {
-    return (ResolvedResource)resolvedResources.get(0);
+    return resolvedResources.get(0);
   }
  else {
     return null;
