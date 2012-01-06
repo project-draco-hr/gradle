@@ -1,0 +1,23 @@
+{
+  Class c=toClass(type);
+  if (!Factory.class.isAssignableFrom(c)) {
+    return null;
+  }
+  if (type instanceof ParameterizedType) {
+    ParameterizedType parameterizedType=(ParameterizedType)type;
+    if (parameterizedType.getRawType().equals(Factory.class)) {
+      Type actualType=parameterizedType.getActualTypeArguments()[0];
+      if (actualType instanceof Class<?> && elementType.isAssignableFrom((Class<?>)actualType)) {
+        @SuppressWarnings("unchecked") Factory<T> f=getService(Factory.class);
+        return f;
+      }
+    }
+  }
+  for (  Type interfaceType : c.getGenericInterfaces()) {
+    Factory<T> f=getFactory(interfaceType,elementType);
+    if (f != null) {
+      return f;
+    }
+  }
+  return null;
+}
