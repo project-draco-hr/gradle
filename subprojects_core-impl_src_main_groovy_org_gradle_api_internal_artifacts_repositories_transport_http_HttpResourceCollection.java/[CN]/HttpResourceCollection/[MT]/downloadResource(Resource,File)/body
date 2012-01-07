@@ -1,0 +1,22 @@
+{
+  if (!(res instanceof HttpResource)) {
+    throw new IllegalArgumentException("Can only download HttpResource");
+  }
+  HttpResource resource=(HttpResource)res;
+  fireTransferInitiated(resource,TransferEvent.REQUEST_GET);
+  try {
+    progress.setTotalLength(resource.getContentLength());
+    resource.writeTo(destination,progress);
+  }
+ catch (  IOException e) {
+    fireTransferError(e);
+    throw e;
+  }
+catch (  Exception e) {
+    fireTransferError(e);
+    throw UncheckedException.asUncheckedException(e);
+  }
+ finally {
+    progress.setTotalLength(null);
+  }
+}
