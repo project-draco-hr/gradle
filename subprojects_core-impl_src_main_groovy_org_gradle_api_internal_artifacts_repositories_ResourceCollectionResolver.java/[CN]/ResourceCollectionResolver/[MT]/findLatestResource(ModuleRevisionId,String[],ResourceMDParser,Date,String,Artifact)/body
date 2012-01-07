@@ -17,13 +17,13 @@
     if (!resource.exists()) {
       Message.debug("\t" + name + ": unreachable: "+ description);
       rejected.add(version + " (unreachable)");
-      cleanupResource(resource);
+      discardResource(resource);
       continue;
     }
     if ((date != null && resource.getLastModified() > date.getTime())) {
       Message.verbose("\t" + name + ": too young: "+ description);
       rejected.add(version + " (" + resource.getLastModified()+ ")");
-      cleanupResource(resource);
+      discardResource(resource);
       continue;
     }
     if (versionMatcher.needModuleDescriptor(mrid,foundMrid)) {
@@ -31,20 +31,20 @@
       if (parsedResource == null) {
         Message.debug("\t" + name + ": impossible to get module descriptor resource: "+ description);
         rejected.add(version + " (no or bad MD)");
-        cleanupResource(resource);
+        discardResource(resource);
         continue;
       }
       ModuleDescriptor md=parsedResource.getResolvedModuleRevision().getDescriptor();
       if (md.isDefault()) {
         Message.debug("\t" + name + ": default md rejected by version matcher requiring module descriptor: "+ description);
         rejected.add(version + " (MD)");
-        cleanupResource(resource);
+        discardResource(resource);
         continue;
       }
  else       if (!versionMatcher.accept(mrid,md)) {
         Message.debug("\t" + name + ": md rejected by version matcher: "+ description);
         rejected.add(version + " (MD)");
-        cleanupResource(resource);
+        discardResource(resource);
         continue;
       }
       found=parsedResource;
