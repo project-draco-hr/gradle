@@ -1,0 +1,25 @@
+{
+  List resolvedResources=new ArrayList();
+  Set foundRevisions=new HashSet();
+  boolean dynamic=getSettings().getVersionMatcher().isDynamic(moduleRevision);
+  boolean stop=false;
+  for (Iterator iter=patternList.iterator(); iter.hasNext() && !stop; ) {
+    String pattern=(String)iter.next();
+    ResolvedResource rres=findResourceUsingPattern(moduleRevision,pattern,artifact,rmdparser,date);
+    if ((rres != null) && !foundRevisions.contains(rres.getRevision())) {
+      foundRevisions.add(rres.getRevision());
+      resolvedResources.add(rres);
+      stop=!dynamic;
+    }
+  }
+  if (resolvedResources.size() > 1) {
+    ResolvedResource[] rress=(ResolvedResource[])resolvedResources.toArray(new ResolvedResource[resolvedResources.size()]);
+    return findResource(rress,rmdparser,moduleRevision,date);
+  }
+ else   if (resolvedResources.size() == 1) {
+    return (ResolvedResource)resolvedResources.get(0);
+  }
+ else {
+    return null;
+  }
+}
