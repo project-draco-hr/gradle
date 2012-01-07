@@ -1,13 +1,14 @@
 {
-  GetMethod get=new GetMethod(checksumUrl);
+  HttpGet get=new HttpGet(checksumUrl);
   configureMethod(get);
   try {
-    int result=executeMethod(get);
-    if (wasSuccessful(result)) {
-      return WharfUtils.getCleanChecksum(get.getResponseBodyAsString());
+    HttpResponse httpResponse=executeMethod(get);
+    if (wasSuccessful(httpResponse)) {
+      String checksumValue=EntityUtils.toString(httpResponse.getEntity());
+      return WharfUtils.getCleanChecksum(checksumValue);
     }
-    if (result != 404) {
-      LOGGER.info("Request for checksum at {} failed: {}",checksumUrl,get.getStatusText());
+    if (!wasMissing(httpResponse)) {
+      LOGGER.info("Request for checksum at {} failed: {}",checksumUrl,httpResponse.getStatusLine());
     }
     return null;
   }
@@ -16,6 +17,6 @@
     return null;
   }
  finally {
-    get.releaseConnection();
+    get.abort();
   }
 }

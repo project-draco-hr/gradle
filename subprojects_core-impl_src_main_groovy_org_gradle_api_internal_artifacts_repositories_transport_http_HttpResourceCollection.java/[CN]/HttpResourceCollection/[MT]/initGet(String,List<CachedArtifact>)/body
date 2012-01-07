@@ -5,23 +5,23 @@
       return cachedResource;
     }
   }
-  GetMethod method=new GetMethod(source);
-  configureMethod(method);
-  int result;
+  HttpGet request=new HttpGet(source);
+  configureMethod(request);
+  HttpResponse response;
   try {
-    result=executeMethod(method);
+    response=executeMethod(request);
   }
  catch (  IOException e) {
     throw new UncheckedIOException(String.format("Could not GET '%s'.",source),e);
   }
-  if (result == 404) {
+  if (wasMissing(response)) {
     LOGGER.info("Resource missing. [HTTP GET: {}]",source);
     return new MissingHttpResource(source);
   }
-  if (!wasSuccessful(result)) {
-    LOGGER.info("Failed to get resource: {} ({}). [HTTP GET: {}]",new Object[]{result,method.getStatusText(),source});
-    throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s",source,result,method.getStatusText()));
+  if (!wasSuccessful(response)) {
+    LOGGER.info("Failed to get resource: {}. [HTTP GET: {}]",response.getStatusLine(),source);
+    throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s",source,response.getStatusLine().getStatusCode(),response.getStatusLine().getReasonPhrase()));
   }
   LOGGER.info("Resource found. [HTTP GET: {}]",source);
-  return new HttpGetResource(source,method);
+  return new HttpGetResource(source,response);
 }

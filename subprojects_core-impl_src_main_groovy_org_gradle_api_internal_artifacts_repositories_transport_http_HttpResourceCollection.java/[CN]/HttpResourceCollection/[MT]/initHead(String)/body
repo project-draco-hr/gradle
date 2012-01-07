@@ -1,21 +1,4 @@
 {
-  HeadMethod method=new HeadMethod(source);
-  configureMethod(method);
-  int result;
-  try {
-    result=executeMethod(method);
-  }
- catch (  IOException e) {
-    throw new UncheckedIOException(String.format("Could not HEAD '%s'.",source),e);
-  }
-  if (result == 404) {
-    LOGGER.info("Resource missing. [HTTP HEAD: {}]",source);
-    return new MissingHttpResource(source);
-  }
-  if (!wasSuccessful(result)) {
-    LOGGER.info("Failed to get resource: {} ({}). [HTTP HEAD: {}]",new Object[]{result,method.getStatusText(),source});
-    throw new UncheckedIOException(String.format("Could not HEAD '%s'. Received status code %s from server: %s",source,result,method.getStatusText()));
-  }
-  LOGGER.info("Resource found. [HTTP HEAD: {}]",source);
-  return new HttpGetResource(source,method);
+  HttpHead request=new HttpHead(source);
+  return processHttpRequest(source,request);
 }

@@ -1,9 +1,18 @@
 {
   PasswordCredentials credentials=httpSettings.getCredentials();
   if (GUtil.isTrue(credentials.getUsername())) {
-    client.getParams().setAuthenticationPreemptive(true);
-    client.getState().setCredentials(AuthScope.ANY,new UsernamePasswordCredentials(credentials.getUsername(),credentials.getPassword()));
+    httpClientCredentials=new UsernamePasswordCredentials(credentials.getUsername(),credentials.getPassword());
   }
-  this.proxySettings=httpSettings.getProxySettings();
+ else {
+    httpClientCredentials=null;
+  }
   this.externalArtifactCache=externalArtifactCache;
+  ProxySelectorRoutePlanner routePlanner=new ProxySelectorRoutePlanner(client.getConnectionManager().getSchemeRegistry(),ProxySelector.getDefault());
+  client.setRoutePlanner(routePlanner);
+  client.setHttpRequestRetryHandler(new HttpRequestRetryHandler(){
+    public boolean retryRequest(    IOException exception,    int executionCount,    HttpContext context){
+      return false;
+    }
+  }
+);
 }
