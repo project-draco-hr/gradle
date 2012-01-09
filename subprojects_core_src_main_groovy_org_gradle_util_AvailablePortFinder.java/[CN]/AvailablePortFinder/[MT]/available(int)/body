@@ -1,29 +1,22 @@
 {
-  if (port < fromPort || port > toPort) {
-    throw new IllegalArgumentException("Port outside port range: " + port);
-  }
-  ServerSocket ss=null;
-  DatagramSocket ds=null;
   try {
-    ss=new ServerSocket(port);
-    ss.setReuseAddress(true);
-    ds=new DatagramSocket(port);
-    ds.setReuseAddress(true);
-    return true;
-  }
- catch (  IOException ignored) {
-  }
- finally {
-    if (ds != null) {
+    ServerSocket ss=new ServerSocket(port);
+    try {
+      ss.setReuseAddress(true);
+    }
+  finally {
+      ss.close();
+    }
+    DatagramSocket ds=new DatagramSocket(port);
+    try {
+      ds.setReuseAddress(true);
+    }
+  finally {
       ds.close();
     }
-    if (ss != null) {
-      try {
-        ss.close();
-      }
- catch (      IOException ignored) {
-      }
-    }
+    return true;
   }
-  return false;
+ catch (  IOException e) {
+    return false;
+  }
 }

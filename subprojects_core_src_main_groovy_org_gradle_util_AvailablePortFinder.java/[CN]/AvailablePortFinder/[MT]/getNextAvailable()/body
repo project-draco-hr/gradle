@@ -1,13 +1,23 @@
 {
-  int range=toPort - fromPort + 1;
-  int curr=candidateCounter.getAndIncrement();
-  int last=curr + range;
-  while (curr < last) {
-    int candidate=fromPort + curr % range;
-    if (available(candidate)) {
-      return candidate;
+  lock.lock();
+  try {
+    while (true) {
+      if (current >= MAX_PRIVATE_PORT) {
+        current=MIN_PRIVATE_PORT;
+      }
+ else {
+        current++;
+      }
+      if (current == startPort) {
+        throw new NoSuchElementException("Could not find an available port within port range.");
+      }
+      int candidate=current;
+      if (available(candidate)) {
+        return candidate;
+      }
     }
-    curr=candidateCounter.getAndIncrement();
   }
-  throw new NoSuchElementException("Could not find an available port within port range");
+  finally {
+    lock.unlock();
+  }
 }
