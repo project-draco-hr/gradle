@@ -3,8 +3,8 @@
     throw new IllegalStateException("you have already called start() on this handle");
   }
   AbstractExecHandleBuilder execBuilder=execHandleFactory.create();
-  execBuilder.setStandardOutput(new TeeOutputStream(System.out,standardOutput));
-  execBuilder.setErrorOutput(new TeeOutputStream(System.err,errorOutput));
+  execBuilder.setStandardOutput(new CloseShieldOutputStream(new TeeOutputStream(System.out,standardOutput)));
+  execBuilder.setErrorOutput(new CloseShieldOutputStream(new TeeOutputStream(System.err,errorOutput)));
   execHandle=execBuilder.build();
   execHandle.start();
   return this;
