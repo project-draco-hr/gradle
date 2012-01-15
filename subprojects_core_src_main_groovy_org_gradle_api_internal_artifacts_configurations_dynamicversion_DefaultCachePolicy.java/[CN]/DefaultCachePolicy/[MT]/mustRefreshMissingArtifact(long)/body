@@ -1,3 +1,12 @@
 {
-  return ageMillis > changingModuleExpiry.getMillis();
+  CachedArtifactResolutionControl artifactResolutionControl=new CachedArtifactResolutionControl(null,ageMillis);
+  List<Action<? super ArtifactResolutionControl>> rules=new ArrayList<Action<? super ArtifactResolutionControl>>(artifactCacheRules);
+  rules.add(defaultArtifactCacheRule);
+  for (  Action<? super ArtifactResolutionControl> rule : rules) {
+    rule.execute(artifactResolutionControl);
+    if (artifactResolutionControl.ruleMatch()) {
+      return artifactResolutionControl.mustCheck();
+    }
+  }
+  return false;
 }

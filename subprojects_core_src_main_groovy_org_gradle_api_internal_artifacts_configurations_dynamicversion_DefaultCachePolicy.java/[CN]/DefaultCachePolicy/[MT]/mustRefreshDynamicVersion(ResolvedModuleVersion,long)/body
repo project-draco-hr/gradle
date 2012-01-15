@@ -1,3 +1,12 @@
 {
-  return ageMillis > dynamicVersionExpiry.getMillis();
+  CachedDependencyResolutionControl dependencyResolutionControl=new CachedDependencyResolutionControl(version,ageMillis);
+  List<Action<? super DependencyResolutionControl>> rules=new ArrayList<Action<? super DependencyResolutionControl>>(dependencyCacheRules);
+  rules.add(defaultDependencyCacheRule);
+  for (  Action<? super DependencyResolutionControl> rule : rules) {
+    rule.execute(dependencyResolutionControl);
+    if (dependencyResolutionControl.ruleMatch()) {
+      return dependencyResolutionControl.mustCheck();
+    }
+  }
+  return false;
 }
