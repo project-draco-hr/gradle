@@ -1,11 +1,14 @@
 {
-  DaemonServices daemonServices=new DaemonServices(daemonBaseDir,idleTimeoutMs,LoggingServiceRegistry.newChildProcessLogging());
+  LoggingServiceRegistry loggingRegistry=LoggingServiceRegistry.newChildProcessLogging();
+  DaemonServices daemonServices=new DaemonServices(daemonBaseDir,idleTimeoutMs,loggingRegistry);
   DaemonDir daemonDir=daemonServices.get(DaemonDir.class);
   final DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
   final Long pid=daemonContext.getPid();
   if (redirectIo) {
     try {
-      redirectOutputsAndInput(daemonDir,pid);
+      OutputEventRenderer outputRenderer=loggingRegistry.get(OutputEventRenderer.class);
+      configureDaemonLog(outputRenderer,daemonDir,pid);
+      LOGGER.info("Started logging");
     }
  catch (    IOException e) {
       listener.onFailure(e);
