@@ -1,0 +1,24 @@
+{
+  if (metadataResource.exists()) {
+    LOGGER.debug("parsing maven-metadata: {}",metadataResource);
+    InputStream metadataStream=metadataResource.openStream();
+    XMLHelper.parse(metadataStream,null,new ContextualSAXHandler(){
+      public void endElement(      String uri,      String localName,      String qName) throws SAXException {
+        if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
+          mavenMetadata.timestamp=getText();
+        }
+        if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
+          mavenMetadata.buildNumber=getText();
+        }
+        if ("metadata/versioning/versions/version".equals(getContext())) {
+          mavenMetadata.versions.add(getText().trim());
+        }
+        super.endElement(uri,localName,qName);
+      }
+    }
+,null);
+  }
+ else {
+    LOGGER.debug("maven-metadata not available: {}",metadataResource);
+  }
+}

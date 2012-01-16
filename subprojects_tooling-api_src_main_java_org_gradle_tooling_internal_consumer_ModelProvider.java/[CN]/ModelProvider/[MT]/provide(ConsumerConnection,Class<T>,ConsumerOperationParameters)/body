@@ -1,11 +1,11 @@
 {
-  GradleVersion version=GradleVersion.version(connection.getMetaData().getVersion());
-  if (type == InternalBuildEnvironment.class && version.compareTo(M7) <= 0) {
-    VersionOnlyBuildEnvironment out=new VersionOnlyBuildEnvironment(connection.getMetaData().getVersion());
+  VersionDetails version=connection.getMetaData().getVersionDetails();
+  if (type == InternalBuildEnvironment.class && !version.supportsCompleteBuildEnvironment()) {
+    VersionOnlyBuildEnvironment out=new VersionOnlyBuildEnvironment(version.getVersion());
     return type.cast(out);
   }
-  if (version.equals(M5) || version.equals(M6)) {
-    if (DefaultProjectConnection.getModelsPostM6().containsValue(type)) {
+  if (version.clientHangsOnEarlyDaemonFailure()) {
+    if (version.isPostM6Model(type)) {
       String message=String.format("I don't know how to build a model of type '%s'.",type.getSimpleName());
       throw new UnsupportedOperationException(message);
     }
