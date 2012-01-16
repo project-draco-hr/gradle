@@ -9,7 +9,14 @@
     throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
   }
   List<String> daemonArgs=new ArrayList<String>();
-  daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
+  try {
+    JavaExecutableFinder finder=new AntBasedJavaExecutableFinder(daemonParameters.getJavaHome().getCanonicalPath());
+    daemonArgs.add(finder.getJdkExecutable("java"));
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Unable to find java executable for the daemon process.",e);
+  }
+  List<String> daemonOpts=daemonParameters.getJvmArgs();
   LOGGER.debug("Using daemon opts: {}",daemonOpts);
   daemonArgs.addAll(daemonOpts);
   daemonArgs.add("-cp");
@@ -17,6 +24,6 @@
   daemonArgs.add(GradleDaemon.class.getName());
   daemonArgs.add(GradleVersion.current().getVersion());
   daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
-  daemonArgs.add(String.valueOf(idleTimeout));
+  daemonArgs.add(String.valueOf(daemonParameters.getIdleTimeout()));
   startProcess(daemonArgs,daemonDir.getVersionedDir());
 }
