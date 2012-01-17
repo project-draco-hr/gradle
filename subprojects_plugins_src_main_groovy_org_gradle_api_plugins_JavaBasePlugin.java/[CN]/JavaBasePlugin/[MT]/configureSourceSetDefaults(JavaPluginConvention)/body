@@ -19,15 +19,15 @@
       runtimeConfiguration.setDescription(String.format("Classpath for running the compiled %s classes.",sourceSet.getName()));
       sourceSet.setCompileClasspath(compileConfiguration);
       sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
-      outputConventionMapping.map("classesDir",new ConventionValue(){
-        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+      outputConventionMapping.map("classesDir",new Callable<Object>(){
+        public Object call() throws Exception {
           String classesDirName=String.format("classes/%s",sourceSet.getName());
           return new File(project.getBuildDir(),classesDirName);
         }
       }
 );
-      outputConventionMapping.map("resourcesDir",new ConventionValue(){
-        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+      outputConventionMapping.map("resourcesDir",new Callable<Object>(){
+        public Object call() throws Exception {
           String classesDirName=String.format("resources/%s",sourceSet.getName());
           return new File(project.getBuildDir(),classesDirName);
         }
@@ -38,14 +38,14 @@
       Copy processResources=project.getTasks().add(sourceSet.getProcessResourcesTaskName(),ProcessResources.class);
       processResources.setDescription(String.format("Processes the %s.",sourceSet.getResources()));
       ConventionMapping conventionMapping=processResources.getConventionMapping();
-      conventionMapping.map("defaultSource",new ConventionValue(){
-        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+      conventionMapping.map("defaultSource",new Callable<Object>(){
+        public Object call() throws Exception {
           return sourceSet.getResources();
         }
       }
 );
-      conventionMapping.map("destinationDir",new ConventionValue(){
-        public Object getValue(        Convention convention,        IConventionAware conventionAwareObject){
+      conventionMapping.map("destinationDir",new Callable<Object>(){
+        public Object call() throws Exception {
           return sourceSet.getOutput().getResourcesDir();
         }
       }
