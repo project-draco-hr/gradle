@@ -1,0 +1,41 @@
+{
+  ObjectConnection connection=workerProcessContext.getServerConnection();
+  final CompilationListener listener=connection.addOutgoing(CompilationListener.class);
+  StandardOutputRedirector redirector=new DefaultStandardOutputRedirector();
+  redirector.redirectStandardOutputTo(new StandardOutputListener(){
+    public void onOutput(    CharSequence output){
+      listener.stdOut(output);
+    }
+  }
+);
+  redirector.redirectStandardErrorTo(new StandardOutputListener(){
+    public void onOutput(    CharSequence output){
+      listener.stdErr(output);
+    }
+  }
+);
+  Factory<AntBuilder> antBuilderFactory=new Factory<AntBuilder>(){
+    public AntBuilder create(){
+      return new BasicAntBuilder();
+    }
+  }
+;
+  redirector.start();
+  try {
+    JavaCompiler javaCompiler=new AntJavaCompiler(antBuilderFactory);
+    javaCompiler.setSource(source);
+    javaCompiler.setDestinationDir(destinationDir);
+    javaCompiler.setClasspath(classpath);
+    javaCompiler.setSourceCompatibility(sourceCompatibility);
+    javaCompiler.setTargetCompatibility(targetCompatibility);
+    javaCompiler.setCompileOptions(compileOptions);
+    WorkResult result=javaCompiler.execute();
+    listener.completed(new CompilationResult(result.getDidWork(),null));
+  }
+ catch (  Throwable t) {
+    listener.completed(new CompilationResult(true,t));
+  }
+ finally {
+    redirector.stop();
+  }
+}
