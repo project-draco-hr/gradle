@@ -1,8 +1,7 @@
 {
   WorkerProcessBuilder builder=services.getFactory(WorkerProcessBuilder.class).create();
-  action.makeSerializable();
-  builder.worker(action);
-  WorkerProcess process=builder.build();
+  builder.getJavaCommand().setWorkingDir(workingDir);
+  WorkerProcess process=builder.worker(action.makeSerializable()).build();
   CompilationListener listener=new CompilationListener(){
     public void stdOut(    CharSequence message){
       System.out.println(message);
@@ -15,8 +14,8 @@
     }
   }
 ;
-  process.getConnection().addIncoming(CompilationListener.class,listener);
   process.start();
+  process.getConnection().addIncoming(CompilationListener.class,listener);
   process.waitForStop();
   return result;
 }
