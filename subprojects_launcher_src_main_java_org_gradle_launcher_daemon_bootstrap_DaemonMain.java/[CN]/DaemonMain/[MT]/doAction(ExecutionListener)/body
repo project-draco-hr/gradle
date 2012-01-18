@@ -1,35 +1,26 @@
 {
   LoggingServiceRegistry loggingRegistry=LoggingServiceRegistry.newChildProcessLogging();
   DaemonServices daemonServices=new DaemonServices(daemonBaseDir,idleTimeoutMs,loggingRegistry);
-  DaemonDir daemonDir=daemonServices.get(DaemonDir.class);
   final DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
-  final Long pid=daemonContext.getPid();
-  if (redirectIo) {
-    try {
-      OutputEventRenderer outputRenderer=loggingRegistry.get(OutputEventRenderer.class);
-      configureDaemonLog(outputRenderer,daemonDir,pid);
-      LOGGER.info("Started logging");
-    }
- catch (    IOException e) {
-      listener.onFailure(e);
-      return;
-    }
-  }
-  Runtime.getRuntime().addShutdownHook(new Thread(){
-    public void run(){
-      LOGGER.info("Daemon[pid = {}] finishing",pid);
-    }
-  }
-);
   Daemon daemon=daemonServices.get(Daemon.class);
-  daemon.start();
+  DaemonDir daemonDir=daemonServices.get(DaemonDir.class);
+  LoggingManagerInternal loggingManager=loggingRegistry.get(LoggingManagerInternal.class);
+  OutputEventRenderer outputRenderer=loggingRegistry.get(OutputEventRenderer.class);
   try {
+    startDaemonLogging(loggingManager,outputRenderer,daemonDir,daemonContext.getPid());
+    daemon.start();
     daemon.awaitIdleTimeout(idleTimeoutMs);
     LOGGER.info("Daemon hit idle timeout (" + idleTimeoutMs + "ms), stopping");
     daemon.stop();
   }
- catch (  DaemonStoppedException e) {
+ catch (  IOException e) {
+    listener.onFailure(e);
+  }
+catch (  DaemonStoppedException e) {
     LOGGER.info("Daemon stopping due to stop request");
     listener.onFailure(e);
+  }
+ finally {
+    stopDaemonLogging(loggingManager);
   }
 }
