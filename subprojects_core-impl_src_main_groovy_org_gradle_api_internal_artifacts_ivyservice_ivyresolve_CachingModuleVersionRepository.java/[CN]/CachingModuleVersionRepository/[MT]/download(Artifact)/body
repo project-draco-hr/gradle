@@ -4,15 +4,16 @@
   }
   ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution=artifactResolutionCache.getCachedArtifactResolution(delegate,artifact.getId());
   if (cachedArtifactResolution != null) {
+    ArtifactIdentifier artifactIdentifier=createArtifactIdentifier(artifact);
     File cachedArtifactFile=cachedArtifactResolution.getArtifactFile();
     if (cachedArtifactFile == null) {
-      if (!cachePolicy.mustRefreshArtifact(null,cachedArtifactResolution.getAgeMillis())) {
+      if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,null,cachedArtifactResolution.getAgeMillis())) {
         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache",artifact.getId());
         return null;
       }
     }
  else     if (cachedArtifactFile.exists()) {
-      if (!cachePolicy.mustRefreshArtifact(cachedArtifactFile,cachedArtifactResolution.getAgeMillis())) {
+      if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,cachedArtifactFile,cachedArtifactResolution.getAgeMillis())) {
         LOGGER.debug("Found artifact '{}' in resolver cache: {}",artifact.getId(),cachedArtifactFile);
         return cachedArtifactFile;
       }
