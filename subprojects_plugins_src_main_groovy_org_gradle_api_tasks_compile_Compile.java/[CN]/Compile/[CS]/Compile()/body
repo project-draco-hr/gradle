@@ -1,4 +1,7 @@
 {
   Factory<AntBuilder> antBuilderFactory=getServices().getFactory(AntBuilder.class);
-  javaCompiler=new IncrementalJavaCompiler(new AntJavaCompiler(antBuilderFactory),antBuilderFactory,getOutputs());
+  JavaCompiler forkingCompiler=new ForkingJavaCompiler(((ProjectInternal)getProject()).getServices());
+  JavaCompiler antCompiler=new AntJavaCompiler(antBuilderFactory);
+  JavaCompiler forkableCompiler=new ForkableJavaCompiler(forkingCompiler,antCompiler);
+  javaCompiler=new IncrementalJavaCompiler(forkableCompiler,antBuilderFactory,getOutputs());
 }
