@@ -12,13 +12,17 @@
       new WindowsProcessStarter().start(workingDir,commandLine.toString());
     }
  else {
-      Process process=new ProcessBuilder(args).directory(workingDir).start();
+      Process process=new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
+      new DaemonGreeter().verifyGreetingReceived(process);
       process.getOutputStream().close();
       process.getErrorStream().close();
       process.getInputStream().close();
     }
   }
- catch (  Exception e) {
+ catch (  GradleException e) {
+    throw e;
+  }
+catch (  Exception e) {
     throw new GradleException("Could not start Gradle daemon.",e);
   }
 }
