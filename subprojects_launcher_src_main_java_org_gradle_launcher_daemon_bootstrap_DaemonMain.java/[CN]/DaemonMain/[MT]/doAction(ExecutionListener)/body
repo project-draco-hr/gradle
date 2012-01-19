@@ -5,15 +5,12 @@
   final DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
   final Long pid=daemonContext.getPid();
   if (redirectIo) {
-    try {
-      OutputEventRenderer outputRenderer=loggingRegistry.get(OutputEventRenderer.class);
-      configureDaemonLog(outputRenderer,daemonDir,pid);
-      LOGGER.info("Started logging");
-    }
- catch (    IOException e) {
-      listener.onFailure(e);
-      return;
-    }
+    PrintStream log=createLogOutput(daemonDir,pid);
+    redirectOutputsAndInput(log);
+    OutputEventRenderer outputRenderer=loggingRegistry.get(OutputEventRenderer.class);
+    outputRenderer.addStandardOutput(log);
+    outputRenderer.addStandardError(log);
+    LOGGER.info(LogMessages.DAEMON_STARTED);
   }
   Runtime.getRuntime().addShutdownHook(new Thread(){
     public void run(){
