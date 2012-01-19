@@ -1,21 +1,7 @@
 {
-  WorkerProcessBuilder builder=services.getFactory(WorkerProcessBuilder.class).create();
-  builder.getJavaCommand().setWorkingDir(workingDir);
-  WorkerProcess process=builder.worker(action.makeSerializable()).build();
-  CompilationListener listener=new CompilationListener(){
-    public void stdOut(    CharSequence message){
-      System.out.print(message);
-    }
-    public void stdErr(    CharSequence message){
-      System.err.print(message);
-    }
-    public void completed(    CompilationResult result){
-      ForkingJavaCompiler.this.result=result;
-    }
-  }
-;
+  WorkerProcess process=createWorkerProcess();
   process.start();
-  process.getConnection().addIncoming(CompilationListener.class,listener);
+  registerCompilationListener(process);
   process.waitForStop();
   if (result.isSuccess()) {
     return result;
