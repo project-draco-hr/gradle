@@ -2,7 +2,12 @@
   return cacheLockingManager.useCache(String.format("Locate %s",artifact),new Factory<ArtifactOrigin>(){
     public ArtifactOrigin create(){
       try {
-        File artifactFile=userResolverChain.resolve(artifact);
+        DependencyDescriptor dependencyDescriptor=new DefaultDependencyDescriptor(artifact.getModuleRevisionId(),false);
+        ModuleVersionResolver moduleVersionResolver=userResolverChain.create(dependencyDescriptor);
+        if (moduleVersionResolver == null) {
+          return null;
+        }
+        File artifactFile=moduleVersionResolver.getArtifact(artifact);
         return new ArtifactOrigin(artifact,false,artifactFile.getAbsolutePath());
       }
  catch (      ArtifactNotFoundException e) {
