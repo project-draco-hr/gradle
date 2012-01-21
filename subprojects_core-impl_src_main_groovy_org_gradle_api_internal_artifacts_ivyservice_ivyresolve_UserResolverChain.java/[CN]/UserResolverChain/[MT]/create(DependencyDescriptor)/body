@@ -1,9 +1,8 @@
 {
-  ModuleResolution latestResolved=findLatestModule(dependencyDescriptor);
+  final ModuleResolution latestResolved=findLatestModule(dependencyDescriptor);
   if (latestResolved != null) {
     final ModuleVersionDescriptor downloadedModule=latestResolved.module;
     LOGGER.debug("Found module '{}' using resolver '{}'",downloadedModule.getId(),latestResolved.repository);
-    rememberResolverToUseForArtifactDownload(latestResolved.repository,downloadedModule);
     return new ModuleVersionResolver(){
       public ModuleRevisionId getId() throws ModuleVersionResolveException {
         return downloadedModule.getId();
@@ -12,7 +11,8 @@
         return downloadedModule.getDescriptor();
       }
       public File getArtifact(      Artifact artifact) throws ArtifactResolveException {
-        return resolve(artifact);
+        LOGGER.debug("Attempting to download {} using resolver {}",artifact,latestResolved.repository);
+        return latestResolved.repository.download(artifact);
       }
     }
 ;
