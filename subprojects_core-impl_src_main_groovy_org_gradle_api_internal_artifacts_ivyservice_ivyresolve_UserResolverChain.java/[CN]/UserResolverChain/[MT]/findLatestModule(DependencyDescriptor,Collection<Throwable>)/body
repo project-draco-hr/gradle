@@ -1,0 +1,20 @@
+{
+  boolean isStaticVersion=!settings.getVersionMatcher().isDynamic(dependencyDescriptor.getDependencyRevisionId());
+  ModuleResolution best=null;
+  for (  ModuleVersionRepository repository : moduleVersionRepositories) {
+    try {
+      ModuleVersionDescriptor module=repository.getDependency(dependencyDescriptor);
+      if (module != null) {
+        ModuleResolution moduleResolution=new ModuleResolution(repository,module);
+        if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
+          return moduleResolution;
+        }
+        best=chooseBest(best,moduleResolution);
+      }
+    }
+ catch (    Throwable e) {
+      failures.add(e);
+    }
+  }
+  return best;
+}
