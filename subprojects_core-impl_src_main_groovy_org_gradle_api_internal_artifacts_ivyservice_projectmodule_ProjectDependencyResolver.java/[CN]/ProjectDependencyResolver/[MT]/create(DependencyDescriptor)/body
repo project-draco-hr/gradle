@@ -1,7 +1,19 @@
 {
-  ModuleDescriptor moduleDescriptor=projectModuleRegistry.findProject(dependencyDescriptor);
+  final ModuleDescriptor moduleDescriptor=projectModuleRegistry.findProject(dependencyDescriptor);
   if (moduleDescriptor == null) {
-    return null;
+    return resolver.create(dependencyDescriptor);
   }
-  return new FixedModuleVersionResolver(dependencyDescriptor,moduleDescriptor);
+  return new ModuleVersionResolver(){
+    public ModuleRevisionId getId() throws ModuleVersionResolveException {
+      return moduleDescriptor.getModuleRevisionId();
+    }
+    public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+      return moduleDescriptor;
+    }
+    public File getArtifact(    Artifact artifact) throws ArtifactResolveException {
+      String path=artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+      return new File(path);
+    }
+  }
+;
 }

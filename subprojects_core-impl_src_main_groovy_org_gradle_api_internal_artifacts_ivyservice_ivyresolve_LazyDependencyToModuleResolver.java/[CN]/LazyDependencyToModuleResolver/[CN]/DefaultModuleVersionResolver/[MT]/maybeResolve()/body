@@ -1,0 +1,26 @@
+{
+  if (failure != null) {
+    throw failure;
+  }
+  if (moduleDescriptor == null) {
+    try {
+      try {
+        resolver=dependencyResolver.create(dependencyDescriptor);
+      }
+ catch (      Throwable t) {
+        ModuleRevisionId id=dependencyDescriptor.getDependencyRevisionId();
+        throw new ModuleVersionResolveException(String.format("Could not resolve group:%s, module:%s, version:%s.",id.getOrganisation(),id.getName(),id.getRevision()),t);
+      }
+      if (resolver == null) {
+        ModuleRevisionId id=dependencyDescriptor.getDependencyRevisionId();
+        throw notFound(id);
+      }
+      checkDescriptor(resolver.getDescriptor());
+      moduleDescriptor=resolver.getDescriptor();
+    }
+ catch (    ModuleVersionResolveException e) {
+      failure=e;
+      throw failure;
+    }
+  }
+}
