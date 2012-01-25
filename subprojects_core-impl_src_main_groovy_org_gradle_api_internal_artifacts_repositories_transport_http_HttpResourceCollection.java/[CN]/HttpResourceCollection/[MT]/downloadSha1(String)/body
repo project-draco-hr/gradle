@@ -1,0 +1,22 @@
+{
+  HttpGet get=new HttpGet(checksumUrl);
+  configurer.configureMethod(get);
+  try {
+    HttpResponse httpResponse=executeMethod(get);
+    if (wasSuccessful(httpResponse)) {
+      String checksumValue=EntityUtils.toString(httpResponse.getEntity());
+      return HashValue.parse(checksumValue);
+    }
+    if (!wasMissing(httpResponse)) {
+      LOGGER.info("Request for checksum at {} failed: {}",checksumUrl,httpResponse.getStatusLine());
+    }
+    return null;
+  }
+ catch (  Exception e) {
+    LOGGER.warn("Checksum missing at {} due to: {}",checksumUrl,e.getMessage());
+    return null;
+  }
+ finally {
+    get.abort();
+  }
+}
