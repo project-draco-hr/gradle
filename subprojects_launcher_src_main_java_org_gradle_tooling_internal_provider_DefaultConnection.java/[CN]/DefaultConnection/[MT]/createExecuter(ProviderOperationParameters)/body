@@ -3,7 +3,10 @@
     return embeddedExecuterSupport.getExecuter();
   }
  else {
-    DaemonClientServices clientServices=daemonClientServices(operationParameters);
+    LoggingServiceRegistry loggingServices=LoggingServiceRegistry.newEmbeddableLogging();
+    loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
+    DaemonParameters daemonParams=init(operationParameters);
+    DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonParams,operationParameters.getStandardInput());
     DaemonClient client=clientServices.get(DaemonClient.class);
     GradleLauncherActionExecuter<ProviderOperationParameters> executer=new DaemonGradleLauncherActionExecuter(client,clientServices.getDaemonParameters());
     Factory<LoggingManagerInternal> loggingManagerFactory=clientServices.getLoggingServices().getFactory(LoggingManagerInternal.class);

@@ -1,26 +1,12 @@
 {
   ObjectConnection connection=workerProcessContext.getServerConnection();
   final CompilationListener listener=connection.addOutgoing(CompilationListener.class);
-  StandardOutputRedirector redirector=new DefaultStandardOutputRedirector();
-  redirector.redirectStandardOutputTo(new StandardOutputListener(){
-    public void onOutput(    CharSequence output){
-      listener.stdOut(output);
-    }
-  }
-);
-  redirector.redirectStandardErrorTo(new StandardOutputListener(){
-    public void onOutput(    CharSequence output){
-      listener.stdErr(output);
-    }
-  }
-);
   Factory<AntBuilder> antBuilderFactory=new Factory<AntBuilder>(){
     public AntBuilder create(){
       return new BasicAntBuilder();
     }
   }
 ;
-  redirector.start();
   try {
     JavaCompiler javaCompiler=new AntJavaCompiler(antBuilderFactory);
     javaCompiler.setSource(source);
@@ -37,6 +23,5 @@
   }
  finally {
     connection.stop();
-    redirector.stop();
   }
 }

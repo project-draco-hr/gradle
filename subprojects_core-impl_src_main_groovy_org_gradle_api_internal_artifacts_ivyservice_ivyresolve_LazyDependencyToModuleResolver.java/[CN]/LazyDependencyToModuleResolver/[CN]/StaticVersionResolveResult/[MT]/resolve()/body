@@ -1,0 +1,31 @@
+{
+  if (resolveResult == null) {
+    ModuleVersionResolveException failure=null;
+    ModuleVersionResolveResult resolveResult=null;
+    try {
+      try {
+        resolveResult=dependencyResolver.resolve(dependencyDescriptor);
+      }
+ catch (      Throwable t) {
+        throw new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(),t);
+      }
+      if (resolveResult.getFailure() instanceof ModuleVersionNotFoundException) {
+        throw notFound(dependencyDescriptor.getDependencyRevisionId());
+      }
+      if (resolveResult.getFailure() != null) {
+        throw resolveResult.getFailure();
+      }
+      checkDescriptor(resolveResult.getDescriptor());
+    }
+ catch (    ModuleVersionResolveException e) {
+      failure=e;
+    }
+    if (failure != null) {
+      this.resolveResult=new BrokenModuleVersionResolveResult(failure);
+    }
+ else {
+      this.resolveResult=new DefaultModuleVersionResolveResult(resolveResult);
+    }
+  }
+  return resolveResult;
+}

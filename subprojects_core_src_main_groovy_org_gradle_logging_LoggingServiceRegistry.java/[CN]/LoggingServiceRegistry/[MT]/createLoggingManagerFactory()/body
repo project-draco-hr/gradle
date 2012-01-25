@@ -1,9 +1,12 @@
 {
   OutputEventRenderer renderer=get(OutputEventRenderer.class);
-  Slf4jLoggingConfigurer slf4jConfigurer=new Slf4jLoggingConfigurer(renderer);
-  DefaultLoggingConfigurer compositeConfigurer=new DefaultLoggingConfigurer(renderer,slf4jConfigurer);
   if (!isEmbedded) {
+    DefaultLoggingConfigurer compositeConfigurer=new DefaultLoggingConfigurer(renderer);
+    compositeConfigurer.add(new Slf4jLoggingConfigurer(renderer));
     compositeConfigurer.add(new JavaUtilLoggingConfigurer());
+    return new DefaultLoggingManagerFactory(compositeConfigurer,renderer,getStdOutLoggingSystem(),getStdErrLoggingSystem());
   }
-  return new DefaultLoggingManagerFactory(compositeConfigurer,renderer,getStdOutLoggingSystem(),getStdErrLoggingSystem());
+ else {
+    return new DefaultLoggingManagerFactory(renderer,renderer,new NoOpLoggingSystem(),new NoOpLoggingSystem());
+  }
 }
