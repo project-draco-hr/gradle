@@ -6,7 +6,15 @@
     }
     add(report);
   }
-  enabled(reports);
+  enabled.whenObjectAdded(new Action<Report>(){
+    public void execute(    Report report){
+      if (!contains(report)) {
+        throw new InvalidUserDataException("Cannot enable report " + report + " as part of report container as it is not a member of this container (members: "+ GUtil.join(ReportContainer.this,", ")+ ")");
+      }
+    }
+  }
+);
+  configureDefaultEnabled();
   beforeChange(new Runnable(){
     public void run(){
       throw new ImmutableViolationException();
