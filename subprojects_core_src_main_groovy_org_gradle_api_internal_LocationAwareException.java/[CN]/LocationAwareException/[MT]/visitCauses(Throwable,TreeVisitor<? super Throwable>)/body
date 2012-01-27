@@ -1,0 +1,25 @@
+{
+  if (t instanceof MultiCauseException) {
+    MultiCauseException multiCauseException=(MultiCauseException)t;
+    List<? extends Throwable> causes=multiCauseException.getCauses();
+    if (!causes.isEmpty()) {
+      visitor.startChildren();
+      for (      Throwable cause : causes) {
+        visitor.node(cause);
+        if (cause.getClass().getAnnotation(Contextual.class) != null) {
+          visitCauses(cause,visitor);
+        }
+      }
+      visitor.endChildren();
+    }
+  }
+ else   if (t.getCause() != null) {
+    visitor.startChildren();
+    Throwable cause=t.getCause();
+    visitor.node(cause);
+    if (cause.getClass().getAnnotation(Contextual.class) != null) {
+      visitCauses(cause,visitor);
+    }
+    visitor.endChildren();
+  }
+}
