@@ -1,5 +1,5 @@
 {
-  final ArtifactDownloadReport adr=new ArtifactDownloadReport(artifact);
+  EnhancedArtifactDownloadReport adr=new EnhancedArtifactDownloadReport(artifact);
   DownloadListener listener=options.getListener();
   if (listener != null) {
     listener.needArtifact(this,artifact);
@@ -13,22 +13,21 @@
         listener.startArtifactDownload(this,artifactRef,artifact,origin);
       }
       File artifactFile=downloadArtifactFile(artifact,resourceDownloader,artifactRef);
-      adr.setSize(artifactFile.length());
       adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
+      adr.setSize(artifactFile.length());
       adr.setDownloadStatus(DownloadStatus.SUCCESSFUL);
       adr.setArtifactOrigin(origin);
       adr.setLocalFile(artifactFile);
     }
  else {
+      adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
       adr.setDownloadStatus(DownloadStatus.FAILED);
       adr.setDownloadDetails(ArtifactDownloadReport.MISSING_ARTIFACT);
-      adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
     }
   }
- catch (  Exception ex) {
-    adr.setDownloadStatus(DownloadStatus.FAILED);
-    adr.setDownloadDetails(ex.getMessage());
+ catch (  Throwable throwable) {
     adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
+    adr.failed(throwable);
   }
   if (listener != null) {
     listener.endArtifactDownload(this,artifact,adr,adr.getLocalFile());

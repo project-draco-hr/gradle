@@ -1,6 +1,10 @@
 {
   ArtifactDownloadReport artifactDownloadReport=resolver.download(new Artifact[]{artifact},downloadOptions).getArtifactReport(artifact);
   if (downloadFailed(artifactDownloadReport)) {
+    if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
+      EnhancedArtifactDownloadReport enhancedReport=(EnhancedArtifactDownloadReport)artifactDownloadReport;
+      throw new ArtifactResolveException(artifactDownloadReport.getArtifact(),enhancedReport.getFailure());
+    }
     throw new ArtifactResolveException(artifactDownloadReport.getArtifact(),artifactDownloadReport.getDownloadDetails());
   }
   return artifactDownloadReport.getLocalFile();

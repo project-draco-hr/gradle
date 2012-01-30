@@ -7,9 +7,10 @@
   if (redirectIo) {
     PrintStream log=createLogOutput(daemonDir,pid);
     redirectOutputsAndInput(log);
-    OutputEventRenderer outputRenderer=loggingRegistry.get(OutputEventRenderer.class);
-    outputRenderer.addStandardOutput(log);
-    outputRenderer.addStandardError(log);
+    loggingRegistry.get(OutputEventRenderer.class).addStandardOutputAndError();
+    LoggingManagerInternal loggingManager=loggingRegistry.getFactory(LoggingManagerInternal.class).create();
+    loggingManager.setLevel(LogLevel.DEBUG);
+    loggingManager.start();
     LOGGER.info(DaemonMessages.PROCESS_STARTED);
   }
   Runtime.getRuntime().addShutdownHook(new Thread(){
