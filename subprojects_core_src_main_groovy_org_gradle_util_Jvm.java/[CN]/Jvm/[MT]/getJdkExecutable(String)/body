@@ -1,13 +1,12 @@
 {
-  if (suppliedJavaHome == null) {
-    return new File(JavaEnvUtils.getJdkExecutable(command));
+  File executable=findExecutable(command);
+  if (executable.isFile()) {
+    return executable;
+  }
+  if (strict) {
+    throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid." + " I cannot find the %s executable. Tried location: %s",command,executable.getAbsolutePath()));
   }
  else {
-    File exec=new File(suppliedJavaHome,"bin/" + command);
-    File maybeExtension=new File(os.getExecutableName(exec.getAbsolutePath()));
-    if (!maybeExtension.isFile()) {
-      throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid." + " I cannot find the %s executable. Tried location: %s",command,maybeExtension.getAbsolutePath()));
-    }
-    return maybeExtension;
+    return new File(JavaEnvUtils.getJdkExecutable(command));
   }
 }
