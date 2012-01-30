@@ -3,18 +3,14 @@
   List<String> args=new ArrayList<String>();
   args.add("--daemon");
   args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
-  if (daemonBaseDir != null) {
-    args.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
+  String daemonRegistryBase=getDaemonRegistryBase();
+  if (daemonRegistryBase != null) {
+    args.add("-Dorg.gradle.daemon.registry.base=" + daemonRegistryBase);
+    configureJvmArgs(args,daemonRegistryBase);
   }
  else {
-    String customDaemonRegistryDir=System.getProperty(DAEMON_REGISTRY_SYS_PROP);
-    if (customDaemonRegistryDir != null && !distribution.isUsingIsolatedDaemons()) {
-      args.add("-Dorg.gradle.daemon.registry.base=" + customDaemonRegistryDir);
-    }
+    configureJvmArgs(args,distribution.getUserHomeDir().getAbsolutePath());
   }
   args.addAll(originalArgs);
-  if (!args.remove("-Dorg.gradle.jvmargs=")) {
-    args.add(0,"-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m");
-  }
   return args;
 }
