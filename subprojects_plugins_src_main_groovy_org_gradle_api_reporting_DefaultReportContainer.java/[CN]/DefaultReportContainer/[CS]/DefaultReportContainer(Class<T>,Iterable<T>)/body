@@ -1,12 +1,17 @@
 {
-  super(Report.class,new DirectInstantiator(),Report.NAMER);
-  for (  Report report : reports) {
+  super(type,new DirectInstantiator(),Report.NAMER);
+  for (  T report : reports) {
     if (getNamer().determineName(report).equals("enabled")) {
       throw new InvalidUserDataException("Reports cannot with a name of 'enabled' cannot be added to ReportContainers as it's reserved");
     }
     add(report);
   }
-  enabled=matching(IS_ENABLED_SPEC);
+  enabled=matching(new Spec<T>(){
+    public boolean isSatisfiedBy(    T element){
+      return element.isEnabled();
+    }
+  }
+);
   beforeChange(new Runnable(){
     public void run(){
       throw new ImmutableViolationException();
