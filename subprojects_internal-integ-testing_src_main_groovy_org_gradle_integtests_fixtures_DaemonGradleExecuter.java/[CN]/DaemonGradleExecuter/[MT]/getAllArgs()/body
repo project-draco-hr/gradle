@@ -2,7 +2,6 @@
   List<String> originalArgs=super.getAllArgs();
   List<String> args=new ArrayList<String>();
   args.add("--daemon");
-  args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
   args.addAll(originalArgs);
   String daemonRegistryBase=getDaemonRegistryBase();
   if (daemonRegistryBase != null) {
@@ -11,6 +10,10 @@
   }
  else {
     configureJvmArgs(args,distribution.getUserHomeDir().getAbsolutePath());
+  }
+  if (!args.toString().contains("-Dorg.gradle.daemon.idletimeout=")) {
+    int timeout=distribution.isUsingIsolatedDaemons() ? 5000 : 5 * 60 * 1000;
+    args.add("-Dorg.gradle.daemon.idletimeout=" + timeout);
   }
   configureDefaultLogging(args);
   return args;
