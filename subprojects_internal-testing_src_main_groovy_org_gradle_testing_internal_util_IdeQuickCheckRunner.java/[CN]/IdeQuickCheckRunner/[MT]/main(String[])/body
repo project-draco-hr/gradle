@@ -1,0 +1,24 @@
+{
+  Process process=null;
+  try {
+    ProcessBuilder builder=new ProcessBuilder().command("./gradlew","quickCheck","--daemon");
+    process=builder.start();
+    final Process finalProcess=process;
+    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
+      public void run(){
+        finalProcess.destroy();
+      }
+    }
+));
+    forwardAsync(process.getInputStream(),System.out);
+    forwardAsync(process.getErrorStream(),System.err);
+    process.waitFor();
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+  }
+catch (  InterruptedException e) {
+    e.printStackTrace();
+    process.destroy();
+  }
+}
