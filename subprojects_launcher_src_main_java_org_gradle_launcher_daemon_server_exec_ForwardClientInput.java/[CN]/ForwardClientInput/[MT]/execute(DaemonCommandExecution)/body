@@ -50,13 +50,16 @@
   execution.addFinalizer(new Runnable(){
     public void run(){
       try {
+        LOGGER.debug("Waiting until the client disconnects so that we may no longer consume input...");
         inputOrConnectionClosedLatch.await();
       }
  catch (      InterruptedException e) {
+        LOGGER.debug("Interrupted while waiting for client to disconnect.");
         throw UncheckedException.asUncheckedException(e);
       }
  finally {
         inputReceiver.stop();
+        LOGGER.debug("The input receiver has been stopped.");
       }
     }
   }
