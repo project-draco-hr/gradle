@@ -1,23 +1,22 @@
 {
-  context.setValidationAction(ouputFileValidation);
+  context.setValidationAction(outputDirValidation);
   context.setConfigureAction(new UpdateAction(){
     public void update(    Task task,    final Callable<Object> futureValue){
       task.getOutputs().files(futureValue);
       task.doFirst(new Action<Task>(){
         public void execute(        Task task){
-          File fileValue;
+          Iterable<File> files;
           try {
-            fileValue=(File)futureValue.call();
+            files=valueTransformer.transform(futureValue.call());
           }
  catch (          Exception e) {
             throw UncheckedException.asUncheckedException(e);
           }
-          if (fileValue == null) {
-            return;
-          }
-          fileValue=GFileUtils.canonicalise(fileValue);
-          if (!fileValue.getParentFile().isDirectory() && !fileValue.getParentFile().mkdirs()) {
-            throw new InvalidUserDataException(String.format("Cannot create parent directory '%s' of file specified for property '%s'.",fileValue.getParentFile(),context.getName()));
+          for (          File file : files) {
+            file=GFileUtils.canonicalise(file);
+            if (!file.getParentFile().isDirectory() && !file.getParentFile().mkdirs()) {
+              throw new InvalidUserDataException(String.format("Cannot create parent directory '%s' of file specified for property '%s'.",file.getParentFile(),context.getName()));
+            }
           }
         }
       }
