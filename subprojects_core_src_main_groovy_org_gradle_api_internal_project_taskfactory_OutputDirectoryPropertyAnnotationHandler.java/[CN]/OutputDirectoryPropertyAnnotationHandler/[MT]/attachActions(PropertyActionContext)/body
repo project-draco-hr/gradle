@@ -5,19 +5,18 @@
       task.getOutputs().files(futureValue);
       task.doFirst(new Action<Task>(){
         public void execute(        Task task){
-          File fileValue;
+          Iterable<File> files;
           try {
-            fileValue=(File)futureValue.call();
+            files=valueTransformer.transform(futureValue.call());
           }
  catch (          Exception e) {
             throw UncheckedException.asUncheckedException(e);
           }
-          if (fileValue == null) {
-            return;
-          }
-          fileValue=GFileUtils.canonicalise(fileValue);
-          if (!fileValue.isDirectory() && !fileValue.mkdirs()) {
-            throw new InvalidUserDataException(String.format("Cannot create directory '%s' specified for property '%s'.",fileValue,context.getName()));
+          for (          File file : files) {
+            file=GFileUtils.canonicalise(file);
+            if (!file.isDirectory() && !file.mkdirs()) {
+              throw new InvalidUserDataException(String.format("Cannot create directory '%s' specified for property '%s'.",file,context.getName()));
+            }
           }
         }
       }
