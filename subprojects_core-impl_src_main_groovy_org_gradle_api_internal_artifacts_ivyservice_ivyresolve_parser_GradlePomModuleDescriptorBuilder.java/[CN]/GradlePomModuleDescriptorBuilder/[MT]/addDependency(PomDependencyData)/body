@@ -12,10 +12,12 @@
   }
   DefaultDependencyDescriptor dd=new DefaultDependencyDescriptor(ivyModuleDescriptor,moduleRevId,true,false,true);
   scope=(scope == null || scope.length() == 0) ? getDefaultScope(dep) : scope;
-  ConfMapper mapping=(ConfMapper)MAVEN2_CONF_MAPPING.get(scope);
+  ConfMapper mapping=MAVEN2_CONF_MAPPING.get(scope);
   mapping.addMappingConfs(dd,dep.isOptional());
-  Map extraAtt=new HashMap();
-  if ((dep.getClassifier() != null) || ((dep.getType() != null) && !"jar".equals(dep.getType()))) {
+  Map<String,String> extraAtt=new HashMap<String,String>();
+  boolean hasClassifier=dep.getClassifier() != null;
+  boolean hasNonJarType=dep.getType() != null && !"jar".equals(dep.getType());
+  if (hasClassifier || hasNonJarType) {
     String type="jar";
     if (dep.getType() != null) {
       type=dep.getType();
@@ -39,11 +41,11 @@
   if (excluded.isEmpty()) {
     excluded=getDependencyMgtExclusions(ivyModuleDescriptor,dep.getGroupId(),dep.getArtifactId());
   }
-  for (Iterator itExcl=excluded.iterator(); itExcl.hasNext(); ) {
-    ModuleId excludedModule=(ModuleId)itExcl.next();
+  for (  Object anExcluded : excluded) {
+    ModuleId excludedModule=(ModuleId)anExcluded;
     String[] confs=dd.getModuleConfigurations();
-    for (int k=0; k < confs.length; k++) {
-      dd.addExcludeRule(confs[k],new DefaultExcludeRule(new ArtifactId(excludedModule,PatternMatcher.ANY_EXPRESSION,PatternMatcher.ANY_EXPRESSION,PatternMatcher.ANY_EXPRESSION),ExactPatternMatcher.INSTANCE,null));
+    for (    String conf : confs) {
+      dd.addExcludeRule(conf,new DefaultExcludeRule(new ArtifactId(excludedModule,PatternMatcher.ANY_EXPRESSION,PatternMatcher.ANY_EXPRESSION,PatternMatcher.ANY_EXPRESSION),ExactPatternMatcher.INSTANCE,null));
     }
   }
   ivyModuleDescriptor.addDependency(dd);
