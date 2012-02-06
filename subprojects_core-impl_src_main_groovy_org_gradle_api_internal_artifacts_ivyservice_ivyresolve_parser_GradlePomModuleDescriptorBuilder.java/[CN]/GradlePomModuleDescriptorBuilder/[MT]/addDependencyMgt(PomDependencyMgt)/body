@@ -1,0 +1,18 @@
+{
+  String key=getDependencyMgtExtraInfoKeyForVersion(dep.getGroupId(),dep.getArtifactId());
+  ivyModuleDescriptor.addExtraInfo(key,dep.getVersion());
+  if (dep.getScope() != null) {
+    String scopeKey=getDependencyMgtExtraInfoKeyForScope(dep.getGroupId(),dep.getArtifactId());
+    ivyModuleDescriptor.addExtraInfo(scopeKey,dep.getScope());
+  }
+  if (!dep.getExcludedModules().isEmpty()) {
+    final String exclusionPrefix=getDependencyMgtExtraInfoPrefixForExclusion(dep.getGroupId(),dep.getArtifactId());
+    int index=0;
+    for (final Iterator iter=dep.getExcludedModules().iterator(); iter.hasNext(); ) {
+      final ModuleId excludedModule=(ModuleId)iter.next();
+      ivyModuleDescriptor.addExtraInfo(exclusionPrefix + index,excludedModule.getOrganisation() + EXTRA_INFO_DELIMITER + excludedModule.getName());
+      index+=1;
+    }
+  }
+  ivyModuleDescriptor.addDependencyDescriptorMediator(ModuleId.newInstance(dep.getGroupId(),dep.getArtifactId()),ExactPatternMatcher.INSTANCE,new OverrideDependencyDescriptorMediator(null,dep.getVersion()));
+}

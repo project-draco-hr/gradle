@@ -1,0 +1,23 @@
+{
+  String ext;
+  if ("pom".equals(packaging)) {
+    DependencyResolver resolver=parserSettings.getResolver(mrid);
+    if (resolver != null) {
+      DefaultArtifact artifact=new DefaultArtifact(mrid,new Date(),artifactId,"jar","jar");
+      ArtifactOrigin artifactOrigin=resolver.locate(artifact);
+      if (!ArtifactOrigin.isUnknown(artifactOrigin)) {
+        mainArtifact=artifact;
+        ivyModuleDescriptor.addArtifact("master",mainArtifact);
+      }
+    }
+    return;
+  }
+ else   if (JAR_PACKAGINGS.contains(packaging)) {
+    ext="jar";
+  }
+ else {
+    ext=packaging;
+  }
+  mainArtifact=new DefaultArtifact(mrid,new Date(),artifactId,packaging,ext);
+  ivyModuleDescriptor.addArtifact("master",mainArtifact);
+}

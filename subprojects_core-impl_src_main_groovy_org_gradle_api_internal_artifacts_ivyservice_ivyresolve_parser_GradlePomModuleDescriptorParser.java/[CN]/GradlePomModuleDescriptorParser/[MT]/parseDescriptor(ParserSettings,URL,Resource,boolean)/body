@@ -1,5 +1,5 @@
 {
-  PomModuleDescriptorBuilder mdBuilder=new PomModuleDescriptorBuilder(this,res,ivySettings);
+  GradlePomModuleDescriptorBuilder mdBuilder=new GradlePomModuleDescriptorBuilder(this,res,ivySettings);
   try {
     PomReader domReader=new PomReader(descriptorURL,res);
     domReader.setProperty("parent.version",domReader.getParentVersion());
@@ -23,7 +23,7 @@
         throw new IOException("Impossible to load parent for " + res.getName() + "."+ " Parent="+ parentModRevID);
       }
       if (parentDescr != null) {
-        Map parentPomProps=PomModuleDescriptorBuilder.extractPomProperties(parentDescr.getExtraInfo());
+        Map parentPomProps=GradlePomModuleDescriptorBuilder.extractPomProperties(parentDescr.getExtraInfo());
         for (        Object o : parentPomProps.entrySet()) {
           Map.Entry prop=(Map.Entry)o;
           domReader.setProperty((String)prop.getKey(),(String)prop.getValue());
@@ -55,7 +55,7 @@
         Message.info(mdBuilder.getModuleDescriptor().getModuleRevisionId() + " is relocated to " + relocation+ ". Please update your dependencies.");
         Message.verbose("Relocated module will be considered as a dependency");
         DefaultDependencyDescriptor dd=new DefaultDependencyDescriptor(mdBuilder.getModuleDescriptor(),relocation,true,false,true);
-        Configuration[] m2Confs=PomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
+        Configuration[] m2Confs=GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
         for (        Configuration m2Conf : m2Confs) {
           if (Visibility.PUBLIC.equals(m2Conf.getVisibility())) {
             dd.addDependencyConfiguration(m2Conf.getName(),m2Conf.getName());
@@ -76,11 +76,11 @@
       domReader.setProperty("version",version);
       if (parentDescr != null) {
         mdBuilder.addExtraInfos(parentDescr.getExtraInfo());
-        List depMgt=PomModuleDescriptorBuilder.getDependencyManagements(parentDescr);
+        List depMgt=GradlePomModuleDescriptorBuilder.getDependencyManagements(parentDescr);
         for (        Object aDepMgt : depMgt) {
           mdBuilder.addDependencyMgt((PomDependencyMgt)aDepMgt);
         }
-        List plugins=PomModuleDescriptorBuilder.getPlugins(parentDescr);
+        List plugins=GradlePomModuleDescriptorBuilder.getPlugins(parentDescr);
         for (        Object plugin : plugins) {
           mdBuilder.addPlugin((PomDependencyMgt)plugin);
         }
@@ -92,7 +92,7 @@
           ResolvedModuleRevision importModule=parseOtherPom(ivySettings,importModRevID);
           if (importModule != null) {
             ModuleDescriptor importDescr=importModule.getDescriptor();
-            List depMgt=PomModuleDescriptorBuilder.getDependencyManagements(importDescr);
+            List depMgt=GradlePomModuleDescriptorBuilder.getDependencyManagements(importDescr);
             for (            Object aDepMgt : depMgt) {
               mdBuilder.addDependencyMgt((PomDependencyMgt)aDepMgt);
             }
