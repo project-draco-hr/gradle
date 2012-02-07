@@ -1,8 +1,15 @@
 {
-  new DefaultExecutorFactory().create("Daemon Async Stop Request").execute(new Runnable(){
-    public void run(){
-      stop();
+  lock.lock();
+  try {
+    if (stopped) {
+      return false;
     }
+    stopped=true;
+    onStopRequested.run();
+    asyncStop.run();
+    return true;
   }
-);
+  finally {
+    lock.unlock();
+  }
 }
