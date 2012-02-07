@@ -15,9 +15,11 @@
   tmpDir.deleteDir().createDir();
   if (executerType.forks || !inProcessGradleExecuter.canExecute()) {
     boolean useDaemon=executerType == Executer.daemon && getExecutable() == null;
-    ForkingGradleExecuter forkingGradleExecuter=useDaemon ? new DaemonGradleExecuter(dist,daemonBaseDir) : new ForkingGradleExecuter(dist.getGradleHomeDir());
+    ForkingGradleExecuter forkingGradleExecuter=useDaemon ? new DaemonGradleExecuter(dist,daemonBaseDir,!isQuiet() && allowExtraLogging) : new ForkingGradleExecuter(dist.getGradleHomeDir());
     copyTo(forkingGradleExecuter);
-    forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s",tmpDir));
+    if (!dist.shouldAvoidConfiguringTmpDir()) {
+      forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s",tmpDir));
+    }
     returnedExecuter=forkingGradleExecuter;
   }
   if (executerType == Executer.embeddedDaemon) {

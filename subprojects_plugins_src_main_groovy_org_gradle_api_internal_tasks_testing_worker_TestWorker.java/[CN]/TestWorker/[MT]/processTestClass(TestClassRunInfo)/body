@@ -1,27 +1,8 @@
 {
-  final CountDownLatch executionFinishedLatch=new CountDownLatch(1);
-  final ExceptionHolder exceptionHolder=new ExceptionHolder();
-  testExecutor.execute(new Runnable(){
-    public void run(){
-      try {
-        processor.processTestClass(testClass);
-      }
- catch (      Throwable e) {
-        exceptionHolder.thrown=e;
-      }
- finally {
-        executionFinishedLatch.countDown();
-      }
-    }
-  }
-);
   try {
-    executionFinishedLatch.await();
+    processor.processTestClass(testClass);
   }
- catch (  InterruptedException e) {
-    throw UncheckedException.asUncheckedException(e);
-  }
-  if (exceptionHolder.thrown != null) {
-    throw UncheckedException.asUncheckedException(exceptionHolder.thrown);
+  finally {
+    Thread.interrupted();
   }
 }

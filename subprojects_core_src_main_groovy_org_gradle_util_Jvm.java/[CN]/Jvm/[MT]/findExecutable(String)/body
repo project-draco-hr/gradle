@@ -1,13 +1,17 @@
 {
-  File javaHome=getJavaHome();
-  File execFile=new File(javaHome,"bin/" + command);
-  File executable=new File(os.getExecutableName(execFile.getAbsolutePath()));
+  File exec=new File(getJavaHome(),"bin/" + command);
+  File executable=new File(os.getExecutableName(exec.getAbsolutePath()));
   if (executable.isFile()) {
     return executable;
   }
-  if (suppliedJavaHome != null) {
+  if (userSupplied) {
     throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid." + " I cannot find the %s executable. Tried location: %s",command,executable.getAbsolutePath()));
   }
-  LOGGER.warn("Gradle was not able to find the java executable using home: " + javaHome + ". We will assume the exectuable is on path.");
-  return new File(JavaEnvUtils.getJdkExecutable(command));
+  File pathExecutable=os.findInPath(command);
+  if (pathExecutable != null) {
+    LOGGER.info("Unable to find the '{}' executable using home: {}. We found it on the PATH: {}.",command,getJavaHome(),pathExecutable);
+    return pathExecutable;
+  }
+  LOGGER.warn("Unable to find the '{}' executable. Tried the java home: {} and the PATH." + " We will assume the executable can be ran in the current working folder.",command,getJavaHome());
+  return new File(os.getExecutableName(command));
 }

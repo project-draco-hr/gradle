@@ -1,21 +1,9 @@
 {
   ObjectConnection connection=workerProcessContext.getServerConnection();
-  final CompilationListener listener=connection.addOutgoing(CompilationListener.class);
-  Factory<AntBuilder> antBuilderFactory=new Factory<AntBuilder>(){
-    public AntBuilder create(){
-      return new BasicAntBuilder();
-    }
-  }
-;
+  CompilationListener listener=connection.addOutgoing(CompilationListener.class);
   try {
-    JavaCompiler javaCompiler=new AntJavaCompiler(antBuilderFactory);
-    javaCompiler.setSource(source);
-    javaCompiler.setDestinationDir(destinationDir);
-    javaCompiler.setClasspath(classpath);
-    javaCompiler.setSourceCompatibility(sourceCompatibility);
-    javaCompiler.setTargetCompatibility(targetCompatibility);
-    javaCompiler.setCompileOptions(compileOptions);
-    WorkResult result=javaCompiler.execute();
+    JavaCompiler compiler=createCompiler();
+    WorkResult result=compiler.execute();
     listener.completed(new CompilationResult(result.getDidWork(),null));
   }
  catch (  Throwable t) {

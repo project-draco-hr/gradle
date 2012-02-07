@@ -1,0 +1,23 @@
+{
+  Object[] params=(Object[])paramsObj;
+  boolean isTopLevelCall=!configuring.get();
+  configuring.set(true);
+  try {
+    if (delegate.hasMethod(name,params)) {
+      return delegate.invokeMethod(name,params);
+    }
+    try {
+      return owner.invokeMethod(name,params);
+    }
+ catch (    groovy.lang.MissingMethodException e) {
+    }
+    boolean isConfigureMethod=(params.length == 1) && (params[0] instanceof Closure);
+    if (isTopLevelCall && isConfigureMethod) {
+      onMissing.execute(name);
+    }
+    return delegate.invokeMethod(name,params);
+  }
+  finally {
+    configuring.set(!isTopLevelCall);
+  }
+}

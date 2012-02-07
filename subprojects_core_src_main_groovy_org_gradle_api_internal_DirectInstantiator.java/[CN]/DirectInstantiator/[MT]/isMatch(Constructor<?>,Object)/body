@@ -4,8 +4,16 @@
   }
   for (int i=0; i < params.length; i++) {
     Object param=params[i];
-    if (param != null && !constructor.getParameterTypes()[i].isInstance(param)) {
-      return false;
+    Class<?> parameterType=constructor.getParameterTypes()[i];
+    if (parameterType.isPrimitive()) {
+      if (!ReflectionUtil.getWrapperTypeForPrimitiveType(parameterType).isInstance(param)) {
+        return false;
+      }
+    }
+ else {
+      if (param != null && !parameterType.isInstance(param)) {
+        return false;
+      }
     }
   }
   return true;
