@@ -1,9 +1,12 @@
 {
-  JavaCompiler compiler=createBasicJavaCompiler(options);
+  if (options.isUseAnt()) {
+    return new AntJavaCompiler(antBuilderFactory);
+  }
+  JavaCompiler normalizingJavaCompiler=new NormalizingJavaCompiler(createTargetCompiler(options));
   if (jvmInstance.isJava7()) {
-    return new Jdk7CompliantJavaCompiler(compiler);
+    return new Jdk7CompliantJavaCompiler(normalizingJavaCompiler);
   }
  else {
-    return compiler;
+    return normalizingJavaCompiler;
   }
 }
