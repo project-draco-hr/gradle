@@ -1,0 +1,32 @@
+{
+  plugins.withType(JavaPlugin.class,new Action<JavaPlugin>(){
+    public void execute(    JavaPlugin javaPlugin){
+      final JavaPluginConvention javaPluginConvention=project.getConvention().findPlugin(JavaPluginConvention.class);
+      SourceSet sourceSet=javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+      sourceSet.getResources().srcDir(new Callable(){
+        public Object call() throws Exception {
+          return earPluginConvention.getAppDirName();
+        }
+      }
+);
+      project.getTasks().withType(Ear.class,new Action<Ear>(){
+        public void execute(        final Ear task){
+          task.dependsOn(new Callable<FileCollection>(){
+            public FileCollection call() throws Exception {
+              return javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+            }
+          }
+);
+          task.from(new Callable<FileCollection>(){
+            public FileCollection call() throws Exception {
+              return javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}
