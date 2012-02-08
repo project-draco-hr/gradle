@@ -1,6 +1,7 @@
 {
   LoggingServiceRegistry loggingRegistry=LoggingServiceRegistry.newChildProcessLogging();
-  DaemonServices daemonServices=new DaemonServices(daemonBaseDir,idleTimeoutMs,loggingRegistry);
+  LoggingManagerInternal loggingManager=loggingRegistry.getFactory(LoggingManagerInternal.class).create();
+  DaemonServices daemonServices=new DaemonServices(daemonBaseDir,idleTimeoutMs,loggingRegistry,loggingManager);
   DaemonDir daemonDir=daemonServices.get(DaemonDir.class);
   final DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
   final Long pid=daemonContext.getPid();
@@ -8,10 +9,9 @@
     PrintStream log=createLogOutput(daemonDir,pid);
     redirectOutputsAndInput(log);
     loggingRegistry.get(OutputEventRenderer.class).addStandardOutputAndError();
-    LoggingManagerInternal loggingManager=loggingRegistry.getFactory(LoggingManagerInternal.class).create();
     loggingManager.setLevel(LogLevel.DEBUG);
-    loggingManager.start();
   }
+  loggingManager.start();
   Runtime.getRuntime().addShutdownHook(new Thread(){
     public void run(){
       LOGGER.info("Daemon[pid = {}] finishing",pid);

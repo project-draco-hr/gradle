@@ -1,17 +1,18 @@
 {
+  final LogLevel buildLogLevel=build.getStartParameter().getLogLevel();
   OutputEventListener listener=new OutputEventListener(){
     public void onOutput(    OutputEvent event){
       try {
-        execution.getConnection().dispatch(event);
+        if (event.getLogLevel().compareTo(buildLogLevel) >= 0) {
+          execution.getConnection().dispatch(event);
+        }
       }
  catch (      Exception e) {
       }
     }
   }
 ;
-  loggingManager.setLevel(build.getStartParameter().getLogLevel());
   LOGGER.info(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
-  loggingManager.start();
   loggingManager.addOutputEventListener(listener);
   LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + daemonPid + ").");
   try {
@@ -19,6 +20,5 @@
   }
   finally {
     loggingManager.removeOutputEventListener(listener);
-    loggingManager.stop();
   }
 }
