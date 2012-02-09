@@ -7,7 +7,12 @@
   assertThat(antClassLoader,not(sameInstance(systemClassLoader)));
   assertThat(thisClassLoader,not(sameInstance(systemClassLoader)));
   assertThat(antClassLoader.getParent(),equalTo(systemClassLoader.getParent()));
-  assertThat(thisClassLoader.getParent().getParent().getParent(),sameInstance(antClassLoader));
+  try {
+    assertThat(thisClassLoader.loadClass(Project.class.getName()),sameInstance((Object)Project.class));
+  }
+ catch (  ClassNotFoundException e) {
+    throw new RuntimeException(e);
+  }
   TestListenerInterface sender=workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
   sender.send("message 1",1);
   sender.send("message 2",2);
