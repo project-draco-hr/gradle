@@ -3,7 +3,17 @@
   builder.setDaemonRegistryDir(daemonBaseDir);
   builder.setIdleTimeout(idleTimeoutMs);
   JvmOptions jvmOptions=new JvmOptions(new IdentityFileResolver());
-  jvmOptions.setAllJvmArgs(ManagementFactory.getRuntimeMXBean().getInputArguments());
+  List<String> inputArguments=new ArrayList<String>(ManagementFactory.getRuntimeMXBean().getInputArguments());
+  if (Jvm.current().isIbmJvm()) {
+    Iterator<String> iter=inputArguments.iterator();
+    while (iter.hasNext()) {
+      String arg=iter.next();
+      if (!arg.startsWith("-") || arg.startsWith("-Xjcl") || arg.equals("-Xdump")) {
+        iter.remove();
+      }
+    }
+  }
+  jvmOptions.setAllJvmArgs(inputArguments);
   builder.setDaemonOpts(jvmOptions.getAllJvmArgsWithoutSystemProperties());
   return builder.create();
 }
