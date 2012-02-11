@@ -1,8 +1,14 @@
 {
+  if (args.length < 3 || args.length > 4) {
+    throw new IllegalArgumentException("USAGE: <style-sheet> <source-file> <dest-file> [dest-dir]");
+  }
   File stylesheet=new File(args[0]);
   File source=new File(args[1]);
   File dest=new File(args[2]);
-  String destDir=args[3];
+  String destDir="";
+  if (args.length > 3) {
+    destDir=args[3];
+  }
   System.out.format("=> stylesheet %s%n",stylesheet);
   System.out.format("=> source %s%n",source);
   System.out.format("=> dest %s%n",dest);
@@ -13,5 +19,11 @@
   if (destDir.length() > 0) {
     transformer.setParameter("base.dir",destDir + "/");
   }
-  transformer.transform(new StreamSource(source),new StreamResult(dest));
+  FileOutputStream outstr=new FileOutputStream(dest);
+  try {
+    transformer.transform(new StreamSource(source),new StreamResult(outstr));
+  }
+  finally {
+    outstr.close();
+  }
 }
