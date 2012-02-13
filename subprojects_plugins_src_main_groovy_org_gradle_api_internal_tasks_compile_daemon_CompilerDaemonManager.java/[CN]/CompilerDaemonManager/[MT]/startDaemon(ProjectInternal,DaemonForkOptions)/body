@@ -7,13 +7,14 @@
     builder.getApplicationClasspath().add(toolsJar);
   }
   JavaExecHandleBuilder javaCommand=builder.getJavaCommand();
-  javaCommand.setMinHeapSize("128m");
-  javaCommand.setMaxHeapSize("1g");
+  javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
+  javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
+  javaCommand.setJvmArgs(forkOptions.getJvmArgs());
   javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
   process=builder.worker(new CompilerDaemonServer()).build();
   process.start();
   CompilerDaemonServerProtocol server=process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
-  client=new CompilerDaemonClient(server);
+  client=new CompilerDaemonClient(forkOptions,server);
   process.getConnection().addIncoming(CompilerDaemonClientProtocol.class,client);
   LOGGER.info("Gradle compiler daemon started.");
 }
