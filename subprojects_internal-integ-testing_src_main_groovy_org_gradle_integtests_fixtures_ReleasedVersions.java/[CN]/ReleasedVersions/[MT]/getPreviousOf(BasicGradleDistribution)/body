@@ -1,14 +1,10 @@
 {
-  GradleVersion ver=GradleVersion.version(distro.getVersion());
-  if (ver.isSnapshot()) {
-    return getLast();
-  }
-  String previous=RELEASED.get(0);
-  for (  String version : RELEASED.subList(1,RELEASED.size())) {
-    if (ver.getVersion().equals(version)) {
-      return current.previousVersion(previous);
+  GradleVersion distroVersion=GradleVersion.version(distro.getVersion());
+  for (  String candidate : Lists.reverse(RELEASED)) {
+    GradleVersion candidateVersion=GradleVersion.version(candidate);
+    if (distroVersion.compareTo(candidateVersion) > 0) {
+      return current.previousVersion(candidate);
     }
-    previous=version;
   }
   throw new RuntimeException("I don't know the previous version of: " + distro);
 }
