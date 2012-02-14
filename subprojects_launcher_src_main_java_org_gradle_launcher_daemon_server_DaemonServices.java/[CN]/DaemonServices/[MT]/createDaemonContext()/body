@@ -5,6 +5,7 @@
   builder.setUid(daemonUid);
   JvmOptions jvmOptions=new JvmOptions(new IdentityFileResolver());
   List<String> inputArguments=new ArrayList<String>(ManagementFactory.getRuntimeMXBean().getInputArguments());
+  LOGGER.debug("Jvm input args are: {}",inputArguments);
   if (Jvm.current().isIbmJvm()) {
     Iterator<String> iter=inputArguments.iterator();
     while (iter.hasNext()) {
@@ -15,6 +16,8 @@
     }
   }
   jvmOptions.setAllJvmArgs(inputArguments);
-  builder.setDaemonOpts(jvmOptions.getAllJvmArgsWithoutSystemProperties());
+  List<String> opts=jvmOptions.getAllJvmArgsWithoutSystemProperties();
+  LOGGER.debug("Creating daemon context with opts: {}",opts);
+  builder.setDaemonOpts(opts);
   return builder.create();
 }
