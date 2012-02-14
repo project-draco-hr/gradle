@@ -4,7 +4,9 @@
     return connection;
   }
   LOGGER.info("Starting Gradle daemon");
-  daemonStarter.run();
+  final String uid=daemonStarter.startDaemon();
+  LOGGER.debug("Started Gradle Daemon with UID = {}",uid);
+  Spec<DaemonContext> sameUidConstraint=exactUidConstraint(uid);
   long expiry=System.currentTimeMillis() + connectTimeout;
   do {
     try {
@@ -13,7 +15,7 @@
  catch (    InterruptedException e) {
       throw UncheckedException.asUncheckedException(e);
     }
-    connection=findConnection(daemonRegistry.getIdle(),constraint);
+    connection=findConnection(daemonRegistry.getBusy(),sameUidConstraint);
     if (connection != null) {
       return connection;
     }

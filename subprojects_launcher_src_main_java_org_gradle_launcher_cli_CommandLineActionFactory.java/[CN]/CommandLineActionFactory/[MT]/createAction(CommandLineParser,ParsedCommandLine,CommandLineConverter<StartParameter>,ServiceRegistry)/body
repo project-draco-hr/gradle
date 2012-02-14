@@ -15,15 +15,15 @@
   daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(),startParameter.isSearchUpwards());
   daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
   daemonParameters.configureFromSystemProperties(mergedSystemProperties);
+  if (commandLine.hasOption(FOREGROUND)) {
+    return new ActionAdapter(new DaemonMain(daemonParameters,false));
+  }
   DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonParameters,System.in);
   DaemonClient client=clientServices.get(DaemonClient.class);
   boolean useDaemon=daemonParameters.isEnabled();
   useDaemon=useDaemon || commandLine.hasOption(DAEMON);
   useDaemon=useDaemon && !commandLine.hasOption(NO_DAEMON);
   long startTime=ManagementFactory.getRuntimeMXBean().getStartTime();
-  if (commandLine.hasOption(FOREGROUND)) {
-    return new ActionAdapter(new DaemonMain(daemonParameters,false));
-  }
   if (commandLine.hasOption(STOP)) {
     return new ActionAdapter(new StopDaemonAction(client));
   }
