@@ -1,0 +1,44 @@
+{
+  if (notation instanceof File) {
+    return (T)notation;
+  }
+  if (notation instanceof URL) {
+    try {
+      notation=((URL)notation).toURI();
+    }
+ catch (    URISyntaxException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+  if (notation instanceof URI) {
+    URI uri=(URI)notation;
+    if (uri.getScheme().equals("file")) {
+      return (T)new File(uri.getPath());
+    }
+    throw new UnsupportedNotationException(String.format("Unable to convert URI %s to a file",uri.toString()));
+  }
+  if (notation instanceof CharSequence) {
+    String notationString=notation.toString();
+    if (notationString.startsWith("file:")) {
+      return (T)new File(uriDecode(notationString.substring(5)));
+    }
+    if (URI_SCHEME.matcher(notationString).matches()) {
+      throw new UnsupportedNotationException(String.format("Cannot convert URL '%s' to a file.",notationString));
+    }
+    for (    File file : File.listRoots()) {
+      String rootPath=file.getAbsolutePath();
+      String normalisedStr=notationString;
+      if (!fileSystem.isCaseSensitive()) {
+        rootPath=rootPath.toLowerCase();
+        normalisedStr=normalisedStr.toLowerCase();
+      }
+      if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar,'/'))) {
+        return (T)new File(notationString);
+      }
+    }
+  }
+ else {
+    DeprecationLogger.nagUserWith(String.format("Converting class %s to URI using toString() Method. " + " This has been deprecated and will be removed in the next version of Gradle. Please use java.io.File, java.lang.String, java.net.URL, or java.net.URI instead.",notation.getClass().getName()));
+  }
+  return (T)new File(notation.toString());
+}
