@@ -19,15 +19,18 @@
     return new ActionAdapter(new ForegroundDaemonMain(daemonParameters));
   }
   DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonParameters,System.in);
-  DaemonClient client=clientServices.get(DaemonClient.class);
+  DaemonClientFactory clientFactory=clientServices.get(DaemonClientFactory.class);
   boolean useDaemon=daemonParameters.isEnabled();
   useDaemon=useDaemon || commandLine.hasOption(DAEMON);
   useDaemon=useDaemon && !commandLine.hasOption(NO_DAEMON);
   long startTime=ManagementFactory.getRuntimeMXBean().getStartTime();
   if (commandLine.hasOption(STOP)) {
-    return new ActionAdapter(new StopDaemonAction(client));
+    DaemonClient stopClient=clientFactory.create(Specs.<DaemonContext>satisfyAll());
+    return new ActionAdapter(new StopDaemonAction(stopClient));
   }
   if (useDaemon) {
+    DaemonCompatibilitySpec compatibilitySpec=new DaemonCompatibilitySpec(clientServices.get(DaemonContext.class));
+    DaemonClient client=clientFactory.create(compatibilitySpec);
     return new ActionAdapter(new DaemonBuildAction(client,commandLine,new File(System.getProperty("user.dir")),clientMetaData(),startTime,daemonParameters.getEffectiveSystemProperties(),System.getenv()));
   }
   return new RunBuildAction(startParameter,loggingServices,new DefaultBuildRequestMetaData(clientMetaData(),startTime));
