@@ -10,28 +10,19 @@
   }
   final StartParameter startParameter=new StartParameter();
   startParameterConverter.convert(commandLine,startParameter);
-  Map<String,String> mergedSystemProperties=startParameter.getMergedSystemProperties();
-  DaemonParameters daemonParameters=new DaemonParameters();
-  daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(),startParameter.isSearchUpwards());
-  daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
-  daemonParameters.configureFromSystemProperties(mergedSystemProperties);
+  DaemonParameters daemonParameters=constructDaemonParameters(startParameter);
   if (commandLine.hasOption(FOREGROUND)) {
     return new ActionAdapter(new ForegroundDaemonMain(daemonParameters));
   }
   DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonParameters,System.in);
-  DaemonClientFactory clientFactory=clientServices.get(DaemonClientFactory.class);
-  boolean useDaemon=daemonParameters.isEnabled();
-  useDaemon=useDaemon || commandLine.hasOption(DAEMON);
-  useDaemon=useDaemon && !commandLine.hasOption(NO_DAEMON);
-  long startTime=ManagementFactory.getRuntimeMXBean().getStartTime();
   if (commandLine.hasOption(STOP)) {
-    DaemonClient stopClient=clientFactory.create(Specs.<DaemonContext>satisfyAll());
-    return new ActionAdapter(new StopDaemonAction(stopClient));
+    return stopAllDaemons(clientServices);
   }
-  if (useDaemon) {
-    DaemonCompatibilitySpec compatibilitySpec=new DaemonCompatibilitySpec(clientServices.get(DaemonContext.class));
-    DaemonClient client=clientFactory.create(compatibilitySpec);
-    return new ActionAdapter(new DaemonBuildAction(client,commandLine,new File(System.getProperty("user.dir")),clientMetaData(),startTime,daemonParameters.getEffectiveSystemProperties(),System.getenv()));
+  if (useDaemon(commandLine,daemonParameters)) {
+    return runBuildWithDaemon(commandLine,daemonParameters,clientServices);
   }
-  return new RunBuildAction(startParameter,loggingServices,new DefaultBuildRequestMetaData(clientMetaData(),startTime));
+  if (canUseCurrentProcess(daemonParameters)) {
+    return runBuildInProcess(loggingServices,startParameter);
+  }
+  return runBuildInSingleUseDaemon(commandLine,daemonParameters,clientServices);
 }
