@@ -6,5 +6,15 @@
       throw new InvalidUserDataException(String.format("Cannot compile non-Java source file '%s'.",file));
     }
   }
-  return delegate.execute(spec);
+  listFilesIfRequested(spec);
+  try {
+    return delegate.execute(spec);
+  }
+ catch (  CompilationFailedException e) {
+    if (spec.getCompileOptions().isFailOnError()) {
+      throw e;
+    }
+    LOGGER.debug("Ignoring compilation failure.");
+    return new SimpleWorkResult(false);
+  }
 }
