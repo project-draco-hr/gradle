@@ -24,14 +24,6 @@
     if (notationString.startsWith("file:")) {
       return (T)new File(uriDecode(notationString.substring(5)));
     }
-    if (URI_SCHEME.matcher(notationString).matches()) {
-      try {
-        return (T)new URI(notationString);
-      }
- catch (      URISyntaxException e) {
-        throw new UncheckedIOException(e);
-      }
-    }
     for (    File file : File.listRoots()) {
       String rootPath=file.getAbsolutePath();
       String normalisedStr=notationString;
@@ -41,6 +33,14 @@
       }
       if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar,'/'))) {
         return (T)new File(notationString);
+      }
+    }
+    if (URI_SCHEME.matcher(notationString).matches()) {
+      try {
+        return (T)new URI(notationString);
+      }
+ catch (      URISyntaxException e) {
+        throw new UncheckedIOException(e);
       }
     }
   }
