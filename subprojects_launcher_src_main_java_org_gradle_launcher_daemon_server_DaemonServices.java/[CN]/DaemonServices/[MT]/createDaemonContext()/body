@@ -3,20 +3,7 @@
   builder.setDaemonRegistryDir(daemonBaseDir);
   builder.setIdleTimeout(idleTimeoutMs);
   builder.setUid(daemonUid);
-  JvmOptions jvmOptions=new JvmOptions(new IdentityFileResolver());
-  List<String> inputArguments=new ArrayList<String>(ManagementFactory.getRuntimeMXBean().getInputArguments());
-  LOGGER.debug("Jvm input args are: {}",inputArguments);
-  if (Jvm.current().isIbmJvm()) {
-    Iterator<String> iter=inputArguments.iterator();
-    while (iter.hasNext()) {
-      String arg=iter.next();
-      if (!arg.startsWith("-") || arg.startsWith("-Xjcl") || arg.equals("-Xdump")) {
-        iter.remove();
-      }
-    }
-  }
-  jvmOptions.setAllJvmArgs(inputArguments);
-  List<String> opts=jvmOptions.getAllImmutableJvmArgs();
+  List<String> opts=startupJvmOptions.getAllImmutableJvmArgs();
   LOGGER.debug("Creating daemon context with opts: {}",opts);
   builder.setDaemonOpts(opts);
   return builder.create();
