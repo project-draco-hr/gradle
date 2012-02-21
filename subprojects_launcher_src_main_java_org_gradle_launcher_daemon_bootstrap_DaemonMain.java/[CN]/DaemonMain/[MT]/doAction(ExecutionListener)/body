@@ -1,7 +1,7 @@
 {
   LoggingServiceRegistry loggingRegistry=LoggingServiceRegistry.newChildProcessLogging();
   LoggingManagerInternal loggingManager=loggingRegistry.getFactory(LoggingManagerInternal.class).create();
-  DaemonServices daemonServices=new DaemonServices(daemonBaseDir,idleTimeoutMs,daemonUid,loggingRegistry,loggingManager,startupJvmOptions);
+  DaemonServices daemonServices=new DaemonServices(configuration,loggingRegistry,loggingManager);
   File daemonLog=daemonServices.getDaemonLogFile();
   final DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
   initialiseLogging(loggingRegistry.get(OutputEventRenderer.class),loggingManager,daemonLog);
@@ -13,8 +13,8 @@
 );
   Daemon daemon=startDaemon(daemonServices);
   try {
-    daemon.awaitIdleTimeout(idleTimeoutMs);
-    LOGGER.info("Daemon hit idle timeout (" + idleTimeoutMs + "ms), stopping...");
+    daemon.awaitIdleTimeout(configuration.getIdleTimeout());
+    LOGGER.info("Daemon hit idle timeout (" + configuration.getIdleTimeout() + "ms), stopping...");
     daemon.stop();
   }
  catch (  DaemonStoppedException e) {
