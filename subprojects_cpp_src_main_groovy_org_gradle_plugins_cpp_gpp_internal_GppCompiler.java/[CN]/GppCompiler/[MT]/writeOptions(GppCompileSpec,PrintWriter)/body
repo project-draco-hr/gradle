@@ -1,0 +1,27 @@
+{
+  writer.print("-o ");
+  writer.println(spec.getOutputFile().getAbsolutePath().replace("\\","\\\\"));
+  if (spec instanceof LibraryCompileSpec) {
+    LibraryCompileSpec librarySpec=(LibraryCompileSpec)spec;
+    writer.println("-shared");
+    if (!OperatingSystem.current().isWindows()) {
+      writer.println("-fPIC");
+      if (OperatingSystem.current().isMacOsX()) {
+        writer.println("-Wl,-install_name," + librarySpec.getInstallName());
+      }
+ else {
+        writer.println("-Wl,-soname," + librarySpec.getInstallName());
+      }
+    }
+  }
+  for (  File file : spec.getIncludeRoots()) {
+    writer.print("-I ");
+    writer.println(file.getAbsolutePath().replace("\\","\\\\"));
+  }
+  for (  File file : spec.getSource()) {
+    writer.println(file.getAbsolutePath().replace("\\","\\\\"));
+  }
+  for (  File file : spec.getLibs()) {
+    writer.println(file.getAbsolutePath().replace("\\","\\\\"));
+  }
+}
