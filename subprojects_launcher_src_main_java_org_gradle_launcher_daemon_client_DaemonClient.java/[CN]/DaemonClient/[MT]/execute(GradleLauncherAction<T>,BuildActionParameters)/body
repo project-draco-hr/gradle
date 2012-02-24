@@ -1,10 +1,11 @@
 {
   LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");
   LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
-  while (true) {
+  Build build=new Build(action,parameters);
+  int saneNumberOfAttempts=100;
+  for (int i=1; i < saneNumberOfAttempts; i++) {
     DaemonConnection daemonConnection=connector.connect(compatibilitySpec);
     Connection<Object> connection=daemonConnection.getConnection();
-    Build build=new Build(action,parameters);
     Object firstResult;
     try {
       LOGGER.info("Connected to the daemon. Dispatching {} request.",build);
@@ -31,4 +32,5 @@
       throw new IllegalStateException(String.format("The first result from the Daemon: %s is a Result of a type we don't have a strategy to handle." + "Earlier, %s request was sent to the daemon.",firstResult,build));
     }
   }
+  throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to " + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: "+ build+ ".");
 }
