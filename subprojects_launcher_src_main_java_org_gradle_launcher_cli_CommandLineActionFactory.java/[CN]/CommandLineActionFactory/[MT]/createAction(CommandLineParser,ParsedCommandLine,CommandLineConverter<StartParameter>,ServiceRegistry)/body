@@ -15,15 +15,14 @@
     ForegroundDaemonConfiguration conf=new ForegroundDaemonConfiguration(daemonParameters.getUid(),daemonParameters.getBaseDir(),daemonParameters.getIdleTimeout());
     return new ActionAdapter(new ForegroundDaemonMain(conf));
   }
-  DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonParameters,System.in);
   if (commandLine.hasOption(STOP)) {
-    return stopAllDaemons(clientServices);
+    return stopAllDaemons(daemonParameters,loggingServices);
   }
   if (useDaemon(commandLine,daemonParameters)) {
-    return runBuildWithDaemon(commandLine,daemonParameters,clientServices);
+    return runBuildWithDaemon(commandLine,daemonParameters,loggingServices);
   }
   if (canUseCurrentProcess(daemonParameters)) {
     return runBuildInProcess(loggingServices,startParameter);
   }
-  return runBuildInSingleUseDaemon(commandLine,daemonParameters,clientServices);
+  return runBuildInSingleUseDaemon(commandLine,daemonParameters,loggingServices);
 }
