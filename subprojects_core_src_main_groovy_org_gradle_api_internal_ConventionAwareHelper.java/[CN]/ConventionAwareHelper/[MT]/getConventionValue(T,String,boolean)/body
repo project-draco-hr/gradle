@@ -1,8 +1,19 @@
 {
-  if (isExplicitValue || !conventionMapping.containsKey(propertyName)) {
+  if (isExplicitValue) {
     return actualValue;
   }
- else {
-    return (T)conventionMapping.get(propertyName).getValue(convention,source);
+  Object returnValue=actualValue;
+  if (conventionMapping.keySet().contains(propertyName)) {
+    boolean useMapping=true;
+    if (actualValue instanceof Collection && !((Collection<?>)actualValue).isEmpty()) {
+      useMapping=false;
+    }
+ else     if (actualValue instanceof Map && !((Map<?,?>)actualValue).isEmpty()) {
+      useMapping=false;
+    }
+    if (useMapping) {
+      returnValue=conventionMapping.get(propertyName).getValue(convention,source);
+    }
   }
+  return (T)returnValue;
 }
