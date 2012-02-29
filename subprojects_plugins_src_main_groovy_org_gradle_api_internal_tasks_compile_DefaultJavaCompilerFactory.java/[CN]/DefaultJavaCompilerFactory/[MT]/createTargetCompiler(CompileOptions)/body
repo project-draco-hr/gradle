@@ -1,7 +1,10 @@
 {
-  Compiler<JavaCompileSpec> target=inProcessCompilerFactory.create(options);
-  if (options.isFork()) {
-    target=new DaemonJavaCompiler(project,target);
+  if (options.isFork() && options.getForkOptions().getExecutable() != null) {
+    return new CommandLineJavaCompiler(project.getProjectDir());
   }
-  return target;
+  Compiler<JavaCompileSpec> compiler=inProcessCompilerFactory.create(options);
+  if (options.isFork()) {
+    return new DaemonJavaCompiler(project,compiler);
+  }
+  return compiler;
 }
