@@ -2,12 +2,15 @@
   List<String> split=Lists.newArrayList(Splitter.onPattern("\\s(?=([^\"]*\"[^\"]*\")*[^\"]*$)").omitEmptyStrings().split(input));
   List<String> out=new ArrayList<String>();
   for (  String s : split) {
-    if ((s.startsWith("-D") || s.startsWith("\"-D")) && s.endsWith("\"")) {
-      out.add(s.replaceFirst("\"","").substring(0,s.length() - 2));
+    if (s.startsWith("\"") && s.endsWith("\"")) {
+      s=removeStart(s,"\"");
+      s=removeEnd(s,"\"");
     }
- else {
-      out.add(s);
+    if (s.matches("(?s)[^\"]+=\".*\"(?s)")) {
+      s=s.replaceFirst("=\"","=");
+      s=removeEnd(s,"\"");
     }
+    out.add(s);
   }
   return out;
 }
