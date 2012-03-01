@@ -1,20 +1,7 @@
 {
-  spec.setSource(new SimpleFileCollection(spec.getSource().getFiles()));
-  spec.setClasspath(new SimpleFileCollection(Lists.newArrayList(spec.getClasspath())));
-  for (  File file : spec.getSource()) {
-    if (!file.getName().endsWith(".java")) {
-      throw new InvalidUserDataException(String.format("Cannot compile non-Java source file '%s'.",file));
-    }
-  }
-  listFilesIfRequested(spec);
-  try {
-    return delegate.execute(spec);
-  }
- catch (  CompilationFailedException e) {
-    if (spec.getCompileOptions().isFailOnError()) {
-      throw e;
-    }
-    LOGGER.debug("Ignoring compilation failure.");
-    return new SimpleWorkResult(false);
-  }
+  resolveFileCollections(spec);
+  resolveGStringsInCompilerArgs(spec);
+  checkOnlyJavaSourceFiles(spec);
+  listSourceFilesIfRequested(spec);
+  return delegateAndHandleErrors(spec);
 }
