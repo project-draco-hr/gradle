@@ -1,7 +1,9 @@
 {
   Factory<AntBuilder> antBuilderFactory=getServices().getFactory(AntBuilder.class);
   JavaCompilerFactory inProcessCompilerFactory=new InProcessJavaCompilerFactory();
-  JavaCompilerFactory defaultCompilerFactory=new DefaultJavaCompilerFactory((ProjectInternal)getProject(),antBuilderFactory,inProcessCompilerFactory);
+  ProjectInternal projectInternal=(ProjectInternal)getProject();
+  TemporaryFileProvider tempFileProvider=projectInternal.getServices().get(TemporaryFileProvider.class);
+  JavaCompilerFactory defaultCompilerFactory=new DefaultJavaCompilerFactory(projectInternal,tempFileProvider,antBuilderFactory,inProcessCompilerFactory);
   Compiler<JavaCompileSpec> delegatingCompiler=new DelegatingJavaCompiler(defaultCompilerFactory);
   javaCompiler=new IncrementalJavaCompiler(delegatingCompiler,antBuilderFactory,getOutputs());
 }
