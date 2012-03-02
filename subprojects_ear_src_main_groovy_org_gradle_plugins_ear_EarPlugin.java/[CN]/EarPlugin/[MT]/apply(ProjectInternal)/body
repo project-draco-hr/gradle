@@ -1,65 +1,13 @@
 {
   project.getPlugins().apply(BasePlugin.class);
-  final EarPluginConvention pluginConvention=project.getServices().get(Instantiator.class).newInstance(EarPluginConvention.class,project.getFileResolver());
-  project.getConvention().getPlugins().put("ear",pluginConvention);
-  pluginConvention.setLibDirName("lib");
-  pluginConvention.setAppDirName("src/main/application");
-  wireEarTaskConventions(project,pluginConvention);
+  final EarPluginConvention earPluginConvention=project.getServices().get(Instantiator.class).newInstance(EarPluginConvention.class,project.getFileResolver());
+  project.getConvention().getPlugins().put("ear",earPluginConvention);
+  earPluginConvention.setLibDirName("lib");
+  earPluginConvention.setAppDirName("src/main/application");
+  wireEarTaskConventions(project,earPluginConvention);
   configureConfigurations(project);
-  final JavaPluginConvention javaPlugin=project.getConvention().findPlugin(JavaPluginConvention.class);
-  if (javaPlugin != null) {
-    SourceSet sourceSet=javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-    sourceSet.getResources().srcDir(new Callable(){
-      public Object call() throws Exception {
-        return pluginConvention.getAppDirName();
-      }
-    }
-);
-  }
-  project.getTasks().withType(Ear.class,new Action<Ear>(){
-    public void execute(    final Ear task){
-      task.dependsOn(new Callable<FileCollection>(){
-        public FileCollection call() throws Exception {
-          if (javaPlugin != null) {
-            return javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
-          }
-          return null;
-        }
-      }
-);
-      task.from(new Callable<FileCollection>(){
-        public FileCollection call() throws Exception {
-          FileCollection files;
-          if (javaPlugin == null) {
-            files=project.fileTree(pluginConvention.getAppDirName());
-          }
- else {
-            files=javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
-          }
-          return files.plus(project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME));
-        }
-      }
-);
-      task.getLib().from(new Callable<FileCollection>(){
-        public FileCollection call() throws Exception {
-          return project.getConfigurations().getByName(EARLIB_CONFIGURATION_NAME);
-        }
-      }
-);
-    }
-  }
-);
-  Ear ear=project.getTasks().add(EAR_TASK_NAME,Ear.class);
-  ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
-  DeploymentDescriptor deploymentDescriptor=pluginConvention.getDeploymentDescriptor();
-  if (deploymentDescriptor != null) {
-    if (deploymentDescriptor.getDisplayName() == null) {
-      deploymentDescriptor.setDisplayName(project.getName());
-    }
-    if (deploymentDescriptor.getDescription() == null) {
-      deploymentDescriptor.setDescription(project.getDescription());
-    }
-  }
-  ear.setGroup(BasePlugin.BUILD_GROUP);
-  project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(ear));
+  PluginContainer plugins=project.getPlugins();
+  setupEarTask(project,earPluginConvention);
+  configureWithJavaPluginApplied(project,earPluginConvention,plugins);
+  configureWithNoJavaPluginApplied(project,earPluginConvention);
 }

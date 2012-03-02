@@ -1,0 +1,32 @@
+{
+  Ear ear=project.getTasks().add(EAR_TASK_NAME,Ear.class);
+  ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
+  DeploymentDescriptor deploymentDescriptor=convention.getDeploymentDescriptor();
+  if (deploymentDescriptor != null) {
+    if (deploymentDescriptor.getDisplayName() == null) {
+      deploymentDescriptor.setDisplayName(project.getName());
+    }
+    if (deploymentDescriptor.getDescription() == null) {
+      deploymentDescriptor.setDescription(project.getDescription());
+    }
+  }
+  ear.setGroup(BasePlugin.BUILD_GROUP);
+  project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(ear));
+  project.getTasks().withType(Ear.class,new Action<Ear>(){
+    public void execute(    Ear task){
+      task.getLib().from(new Callable<FileCollection>(){
+        public FileCollection call() throws Exception {
+          return project.getConfigurations().getByName(EARLIB_CONFIGURATION_NAME);
+        }
+      }
+);
+      task.from(new Callable<FileCollection>(){
+        public FileCollection call() throws Exception {
+          return project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME);
+        }
+      }
+);
+    }
+  }
+);
+}

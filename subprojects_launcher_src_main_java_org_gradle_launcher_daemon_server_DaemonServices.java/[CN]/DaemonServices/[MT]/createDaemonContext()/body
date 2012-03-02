@@ -1,19 +1,9 @@
 {
   DaemonContextBuilder builder=new DaemonContextBuilder(get(ProcessEnvironment.class));
-  builder.setDaemonRegistryDir(daemonBaseDir);
-  builder.setIdleTimeout(idleTimeoutMs);
-  JvmOptions jvmOptions=new JvmOptions(new IdentityFileResolver());
-  List<String> inputArguments=new ArrayList<String>(ManagementFactory.getRuntimeMXBean().getInputArguments());
-  if (Jvm.current().isIbmJvm()) {
-    Iterator<String> iter=inputArguments.iterator();
-    while (iter.hasNext()) {
-      String arg=iter.next();
-      if (!arg.startsWith("-") || arg.startsWith("-Xjcl") || arg.equals("-Xdump")) {
-        iter.remove();
-      }
-    }
-  }
-  jvmOptions.setAllJvmArgs(inputArguments);
-  builder.setDaemonOpts(jvmOptions.getAllJvmArgsWithoutSystemProperties());
+  builder.setDaemonRegistryDir(configuration.getBaseDir());
+  builder.setIdleTimeout(configuration.getIdleTimeout());
+  builder.setUid(configuration.getUid());
+  LOGGER.debug("Creating daemon context with opts: {}",configuration.getJvmOptions());
+  builder.setDaemonOpts(configuration.getJvmOptions());
   return builder.create();
 }

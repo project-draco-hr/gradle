@@ -2,7 +2,6 @@
   if (!gradleHomeDir.isDirectory()) {
     fail(gradleHomeDir + " is not a directory.\n" + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
   }
-  CommandBuilder commandBuilder=OperatingSystem.current().isWindows() ? new WindowsCommandBuilder() : new UnixCommandBuilder();
   ExecHandleBuilder builder=new ExecHandleBuilder(){
     @Override public File getWorkingDir(){
       return ForkingGradleExecuter.this.getWorkingDir();
@@ -16,7 +15,8 @@
   builder.environment(getAllEnvironmentVars());
   builder.workingDir(getWorkingDir());
   builder.setStandardInput(getStdin());
-  commandBuilder.build(builder);
+  ExecHandlerConfigurer configurer=OperatingSystem.current().isWindows() ? new WindowsConfigurer() : new UnixConfigurer();
+  configurer.configure(builder);
   builder.args(getAllArgs());
   LOG.info(String.format("Execute in %s with: %s %s",builder.getWorkingDir(),builder.getExecutable(),builder.getArgs()));
   return builder;

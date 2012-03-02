@@ -10,7 +10,13 @@
     LOGGER.debug("project property file does not exists. We continue!");
   }
   Map<String,String> mergedProperties=propertiesLoader.mergeProperties(new HashMap(projectProperties));
-  for (  Object key : mergedProperties.keySet()) {
-    project.setProperty((String)key,mergedProperties.get(key));
+  ExtraPropertiesExtension extraProperties=new DslObject(project).getExtensions().getExtraProperties();
+  for (  Map.Entry<String,String> entry : mergedProperties.entrySet()) {
+    if (project.hasProperty(entry.getKey())) {
+      project.setProperty(entry.getKey(),entry.getValue());
+    }
+ else {
+      extraProperties.set(entry.getKey(),entry.getValue());
+    }
   }
 }

@@ -1,0 +1,12 @@
+{
+  Set<String> missing=new TreeSet<String>(getRequiredKeys());
+  missing.removeAll(values.keySet());
+  if (!missing.isEmpty()) {
+    throw new InvalidUserDataException(String.format("Required keys %s are missing from map %s.",missing,values));
+  }
+  T result=parseMap(Collections.unmodifiableMap(values));
+  values.keySet().removeAll(getRequiredKeys());
+  values.keySet().removeAll(getOptionalKeys());
+  ConfigureUtil.configureByMap(values,result);
+  return result;
+}

@@ -1,0 +1,22 @@
+{
+  List result=new ArrayList();
+  for (Iterator iterator=md.getExtraInfo().entrySet().iterator(); iterator.hasNext(); ) {
+    Entry entry=(Entry)iterator.next();
+    String key=(String)entry.getKey();
+    if (key.startsWith(DEPENDENCY_MANAGEMENT)) {
+      String[] parts=key.split(EXTRA_INFO_DELIMITER);
+      if (parts.length != DEPENDENCY_MANAGEMENT_KEY_PARTS_COUNT) {
+        Message.warn("what seem to be a dependency management extra info doesn't match expected pattern: " + key);
+      }
+ else {
+        String versionKey=DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + parts[1]+ EXTRA_INFO_DELIMITER+ parts[2]+ EXTRA_INFO_DELIMITER+ "version";
+        String scopeKey=DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + parts[1]+ EXTRA_INFO_DELIMITER+ parts[2]+ EXTRA_INFO_DELIMITER+ "scope";
+        String version=(String)md.getExtraInfo().get(versionKey);
+        String scope=(String)md.getExtraInfo().get(scopeKey);
+        List<ModuleId> exclusions=getDependencyMgtExclusions(md,parts[1],parts[2]);
+        result.add(new DefaultPomDependencyMgt(parts[1],parts[2],version,scope,exclusions));
+      }
+    }
+  }
+  return result;
+}

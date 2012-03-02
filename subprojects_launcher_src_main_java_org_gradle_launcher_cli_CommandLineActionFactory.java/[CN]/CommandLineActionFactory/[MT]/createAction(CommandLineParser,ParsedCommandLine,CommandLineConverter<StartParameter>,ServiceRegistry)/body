@@ -10,25 +10,19 @@
   }
   final StartParameter startParameter=new StartParameter();
   startParameterConverter.convert(commandLine,startParameter);
-  Map<String,String> mergedSystemProperties=startParameter.getMergedSystemProperties();
-  DaemonParameters daemonParameters=new DaemonParameters();
-  daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(),startParameter.isSearchUpwards());
-  daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
-  daemonParameters.configureFromSystemProperties(mergedSystemProperties);
-  DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonParameters,System.in);
-  DaemonClient client=clientServices.get(DaemonClient.class);
-  boolean useDaemon=daemonParameters.isEnabled();
-  useDaemon=useDaemon || commandLine.hasOption(DAEMON);
-  useDaemon=useDaemon && !commandLine.hasOption(NO_DAEMON);
-  long startTime=ManagementFactory.getRuntimeMXBean().getStartTime();
+  DaemonParameters daemonParameters=constructDaemonParameters(startParameter);
   if (commandLine.hasOption(FOREGROUND)) {
-    return new ActionAdapter(new DaemonMain(daemonParameters,false));
+    ForegroundDaemonConfiguration conf=new ForegroundDaemonConfiguration(daemonParameters.getUid(),daemonParameters.getBaseDir(),daemonParameters.getIdleTimeout());
+    return new ActionAdapter(new ForegroundDaemonMain(conf));
   }
   if (commandLine.hasOption(STOP)) {
-    return new ActionAdapter(new StopDaemonAction(client));
+    return stopAllDaemons(daemonParameters,loggingServices);
   }
-  if (useDaemon) {
-    return new ActionAdapter(new DaemonBuildAction(client,commandLine,new File(System.getProperty("user.dir")),clientMetaData(),startTime,daemonParameters.getEffectiveSystemProperties(),System.getenv()));
+  if (useDaemon(commandLine,daemonParameters)) {
+    return runBuildWithDaemon(commandLine,daemonParameters,loggingServices);
   }
-  return new RunBuildAction(startParameter,loggingServices,new DefaultBuildRequestMetaData(clientMetaData(),startTime));
+  if (canUseCurrentProcess(daemonParameters)) {
+    return runBuildInProcess(loggingServices,startParameter);
+  }
+  return runBuildInSingleUseDaemon(commandLine,daemonParameters,loggingServices);
 }

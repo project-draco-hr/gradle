@@ -1,0 +1,20 @@
+{
+  LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}",workingDir,args);
+  try {
+    workingDir.mkdirs();
+    if (OperatingSystem.current().isWindows()) {
+      new WindowsProcessInitializer().initialize();
+    }
+    Process process=new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
+    new DaemonGreeter().verifyGreetingReceived(process);
+    process.getOutputStream().close();
+    process.getErrorStream().close();
+    process.getInputStream().close();
+  }
+ catch (  GradleException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new GradleException("Could not start Gradle daemon.",e);
+  }
+}

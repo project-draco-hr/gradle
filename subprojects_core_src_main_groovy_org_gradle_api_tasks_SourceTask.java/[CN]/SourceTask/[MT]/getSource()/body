@@ -1,4 +1,15 @@
 {
-  FileTree src=this.source.isEmpty() ? getDefaultSource() : getProject().files(new ArrayList<Object>(this.source)).getAsFileTree();
+  FileTree src;
+  if (this.source.isEmpty()) {
+    src=DeprecationLogger.whileDisabled(new Factory<FileTree>(){
+      public FileTree create(){
+        return getDefaultSource();
+      }
+    }
+);
+  }
+ else {
+    src=getProject().files(new ArrayList<Object>(this.source)).getAsFileTree();
+  }
   return src == null ? getProject().files().getAsFileTree() : src.matching(patternSet);
 }

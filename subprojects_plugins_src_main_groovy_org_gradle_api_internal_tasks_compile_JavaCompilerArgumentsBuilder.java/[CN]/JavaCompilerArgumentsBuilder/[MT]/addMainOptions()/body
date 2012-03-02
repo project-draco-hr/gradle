@@ -1,0 +1,53 @@
+{
+  if (!includeMainOptions) {
+    return;
+  }
+  String sourceCompatibility=spec.getSourceCompatibility();
+  if (sourceCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(sourceCompatibility))) {
+    args.add("-source");
+    args.add(sourceCompatibility);
+  }
+  String targetCompatibility=spec.getTargetCompatibility();
+  if (targetCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(targetCompatibility))) {
+    args.add("-target");
+    args.add(targetCompatibility);
+  }
+  File destinationDir=spec.getDestinationDir();
+  if (destinationDir != null) {
+    args.add("-d");
+    args.add(destinationDir.getPath());
+  }
+  CompileOptions compileOptions=spec.getCompileOptions();
+  if (compileOptions.isVerbose()) {
+    args.add("-verbose");
+  }
+  if (compileOptions.isDeprecation()) {
+    args.add("-deprecation");
+  }
+  if (!compileOptions.isWarnings()) {
+    args.add("-nowarn");
+  }
+  if (!compileOptions.isDebug()) {
+    args.add("-g:none");
+  }
+  if (compileOptions.getEncoding() != null) {
+    args.add("-encoding");
+    args.add(compileOptions.getEncoding());
+  }
+  if (compileOptions.getBootClasspath() != null) {
+    args.add("-bootclasspath");
+    args.add(compileOptions.getBootClasspath());
+  }
+  if (compileOptions.getExtensionDirs() != null) {
+    args.add("-extdirs");
+    args.add(compileOptions.getExtensionDirs());
+  }
+  Iterable<File> classpath=spec.getClasspath();
+  if (classpath != null && classpath.iterator().hasNext()) {
+    args.add("-classpath");
+    args.add(toFileCollection(classpath).getAsPath());
+  }
+  if (compileOptions.getCompilerArgs() != null) {
+    args.addAll(compileOptions.getCompilerArgs());
+  }
+}

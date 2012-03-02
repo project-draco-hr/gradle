@@ -1,17 +1,21 @@
 {
-  final ProjectSpec projectSpec=context.mock(ProjectSpec.class);
   final IProjectRegistry projectRegistry=context.mock(IProjectRegistry.class);
-  startParameter.setDefaultProjectSelector(projectSpec);
+  final DefaultProjectDescriptor projectDescriptor=context.mock(DefaultProjectDescriptor.class);
+  startParameter.setCurrentDir(settingsLocation.getSettingsDir());
   context.checking(new Expectations(){
 {
       allowing(settings).getProjectRegistry();
       will(returnValue(projectRegistry));
+      allowing(projectRegistry).getAllProjects();
+      will(returnValue(WrapUtil.toSet(projectDescriptor)));
+      allowing(projectDescriptor).getProjectDir();
+      will(returnValue(settingsLocation.getSettingsDir()));
+      allowing(projectDescriptor).getBuildFile();
+      will(returnValue(new File(settingsLocation.getSettingsDir(),"build.gradle")));
       allowing(settings).getClassLoader();
       will(returnValue(urlClassLoader));
       allowing(gradle).getScriptClassLoader();
       will(returnValue(scriptClassLoader));
-      allowing(projectSpec).containsProject(projectRegistry);
-      will(returnValue(true));
       allowing(gradle).getStartParameter();
       will(returnValue(startParameter));
       allowing(settingsFinder).find(startParameter);

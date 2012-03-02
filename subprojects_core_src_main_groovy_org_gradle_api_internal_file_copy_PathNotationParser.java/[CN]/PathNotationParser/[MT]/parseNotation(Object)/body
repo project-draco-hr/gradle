@@ -1,0 +1,25 @@
+{
+  if (notation == null) {
+    return null;
+  }
+  if (notation instanceof CharSequence || notation instanceof Number || notation instanceof Boolean) {
+    return (T)notation.toString();
+  }
+  if (notation instanceof Closure) {
+    final Closure closure=(Closure)notation;
+    final Object called=closure.call();
+    return parseNotation(called);
+  }
+  if (notation instanceof Callable) {
+    try {
+      final Callable callableNotation=(Callable)notation;
+      final Object called=callableNotation.call();
+      return parseNotation(called);
+    }
+ catch (    Exception e) {
+      throw UncheckedException.throwAsUncheckedException(e);
+    }
+  }
+  DeprecationLogger.nagUserWith(String.format("Converting class %s to path using toString() Method. " + "This has been deprecated and will be removed in the next version of Gradle. " + "Please use java.io.File, java.lang.CharSequence, java.lang.Number, java.util.concurrent.Callable "+ "or groovy.lang.Closure.",notation.getClass().getName()));
+  return (T)notation.toString();
+}

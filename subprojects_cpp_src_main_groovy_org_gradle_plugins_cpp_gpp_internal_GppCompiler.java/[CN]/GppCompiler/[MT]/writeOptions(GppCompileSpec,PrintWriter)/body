@@ -1,0 +1,26 @@
+{
+  ArgWriter argWriter=ArgWriter.unixStyle(w);
+  argWriter.args("-o",spec.getOutputFile().getAbsolutePath());
+  if (spec instanceof LibraryCompileSpec) {
+    LibraryCompileSpec librarySpec=(LibraryCompileSpec)spec;
+    argWriter.args("-shared");
+    if (!OperatingSystem.current().isWindows()) {
+      argWriter.args("-fPIC");
+      if (OperatingSystem.current().isMacOsX()) {
+        argWriter.args("-Wl,-install_name," + librarySpec.getInstallName());
+      }
+ else {
+        argWriter.args("-Wl,-soname," + librarySpec.getInstallName());
+      }
+    }
+  }
+  for (  File file : spec.getIncludeRoots()) {
+    argWriter.args("-I",file.getAbsolutePath());
+  }
+  for (  File file : spec.getSource()) {
+    argWriter.args(file.getAbsolutePath());
+  }
+  for (  File file : spec.getLibs()) {
+    argWriter.args(file.getAbsolutePath());
+  }
+}

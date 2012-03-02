@@ -1,0 +1,20 @@
+{
+  LOGGER.info("Starting Gradle compiler daemon.");
+  WorkerProcessBuilder builder=project.getServices().getFactory(WorkerProcessBuilder.class).create();
+  builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel());
+  File toolsJar=Jvm.current().getToolsJar();
+  if (toolsJar != null) {
+    builder.getApplicationClasspath().add(toolsJar);
+  }
+  JavaExecHandleBuilder javaCommand=builder.getJavaCommand();
+  javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
+  javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
+  javaCommand.setJvmArgs(forkOptions.getJvmArgs());
+  javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
+  process=builder.worker(new CompilerDaemonServer()).build();
+  process.start();
+  CompilerDaemonServerProtocol server=process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
+  client=new CompilerDaemonClient(forkOptions,server);
+  process.getConnection().addIncoming(CompilerDaemonClientProtocol.class,client);
+  LOGGER.info("Gradle compiler daemon started.");
+}

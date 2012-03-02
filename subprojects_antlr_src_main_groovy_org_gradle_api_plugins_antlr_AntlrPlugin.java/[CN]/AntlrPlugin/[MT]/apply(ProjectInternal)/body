@@ -5,19 +5,14 @@
   project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>(){
     public void execute(    SourceSet sourceSet){
       final AntlrSourceVirtualDirectoryImpl antlrDirectoryDelegate=new AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet)sourceSet).getDisplayName(),project.getFileResolver());
-      ((DynamicObjectAware)sourceSet).getConvention().getPlugins().put(AntlrSourceVirtualDirectory.NAME,antlrDirectoryDelegate);
+      new DslObject(sourceSet).getConvention().getPlugins().put(AntlrSourceVirtualDirectory.NAME,antlrDirectoryDelegate);
       final String srcDir=String.format("src/%s/antlr",sourceSet.getName());
       antlrDirectoryDelegate.getAntlr().srcDir(srcDir);
       sourceSet.getAllSource().source(antlrDirectoryDelegate.getAntlr());
       final String taskName=sourceSet.getTaskName("generate","GrammarSource");
       AntlrTask antlrTask=project.getTasks().add(taskName,AntlrTask.class);
       antlrTask.setDescription(String.format("Processes the %s Antlr grammars.",sourceSet.getName()));
-      antlrTask.conventionMapping("defaultSource",new Callable<Object>(){
-        public Object call() throws Exception {
-          return antlrDirectoryDelegate.getAntlr();
-        }
-      }
-);
+      antlrTask.setSource(antlrDirectoryDelegate.getAntlr());
       antlrTask.getConventionMapping().map("antlrClasspath",new Callable<Object>(){
         public Object call() throws Exception {
           return project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME).copy().setTransitive(true);

@@ -1,6 +1,6 @@
 {
-  if (args.length != 3) {
-    invalidArgs("3 arguments are required: <gradle-version> <daemon-dir> <timeout-millis>");
+  if (args.length < 4) {
+    invalidArgs("Following arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid> <optional startup jvm opts>");
   }
   File daemonBaseDir=new File(args[1]);
   int idleTimeoutMs=0;
@@ -10,8 +10,13 @@
  catch (  NumberFormatException e) {
     invalidArgs("Second argument must be a whole number (i.e. daemon idle timeout in ms)");
   }
-  DaemonParameters parameters=new DaemonParameters();
-  parameters.setBaseDir(daemonBaseDir);
-  parameters.setIdleTimeout(idleTimeoutMs);
-  new DaemonMain(parameters,true).run();
+  String daemonUid=args[3];
+  List<String> startupOpts=new LinkedList<String>();
+  for (int i=4; i < args.length; i++) {
+    startupOpts.add(args[i]);
+  }
+  LOGGER.debug("Assuming the daemon was started with following jvm opts: {}",startupOpts);
+  DaemonServerConfiguration parameters=new DefaultDaemonServerConfiguration(daemonUid,daemonBaseDir,idleTimeoutMs,startupOpts);
+  DaemonMain daemonMain=new DaemonMain(parameters);
+  daemonMain.run();
 }

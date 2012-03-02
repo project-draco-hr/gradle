@@ -1,11 +1,11 @@
 {
-  ProjectSpec selector=gradle.getStartParameter().getDefaultProjectSelector();
-  ProjectInternal defaultProject;
+  File explicitProjectDir=gradle.getStartParameter().getProjectDir();
+  File explicitBuildFile=gradle.getStartParameter().getBuildFile();
+  ProjectSpec spec=explicitBuildFile != null ? new BuildFileProjectSpec(explicitBuildFile) : explicitProjectDir == null ? new DefaultProjectSpec(gradle.getStartParameter().getCurrentDir()) : new ProjectDirectoryProjectSpec(explicitProjectDir);
   try {
-    defaultProject=selector.selectProject(gradle.getRootProject().getProjectRegistry());
+    gradle.setDefaultProject(spec.selectProject(gradle.getRootProject().getProjectRegistry()));
   }
  catch (  InvalidUserDataException e) {
     throw new GradleException(String.format("Could not select the default project for this build. %s",e.getMessage()),e);
   }
-  gradle.setDefaultProject(defaultProject);
 }

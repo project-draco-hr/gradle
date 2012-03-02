@@ -1,24 +1,24 @@
 {
+  final LogLevel buildLogLevel=build.getStartParameter().getLogLevel();
   OutputEventListener listener=new OutputEventListener(){
     public void onOutput(    OutputEvent event){
       try {
-        execution.getConnection().dispatch(event);
+        if (event.getLogLevel().compareTo(buildLogLevel) >= 0) {
+          execution.getConnection().dispatch(event);
+        }
       }
  catch (      Exception e) {
       }
     }
   }
 ;
-  loggingManager.setLevel(build.getStartParameter().getLogLevel());
-  LOGGER.info("About to start relaying all logs to the client via the connection.");
-  loggingManager.start();
+  LOGGER.info(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
   loggingManager.addOutputEventListener(listener);
-  LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + daemonPid + ").");
+  LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + diagnostics.getPid() + "). The daemon log file: "+ diagnostics.getDaemonLog());
   try {
     execution.proceed();
   }
   finally {
     loggingManager.removeOutputEventListener(listener);
-    loggingManager.stop();
   }
 }
