@@ -14,8 +14,9 @@
   }
   listenerManager.addListener(tracker);
   listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
+  listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
   if (startParameter.isProfile()) {
-    listenerManager.addListener(new ProfileListener(requestMetaData.getBuildTimeClock().getStartTime()));
+    listenerManager.addListener(new ReportGeneratingProfileListener());
   }
   GradleInternal gradle=serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class,tracker.getCurrentBuild(),startParameter,serviceRegistry);
   return new DefaultGradleLauncher(gradle,serviceRegistry.get(InitScriptHandler.class),new SettingsHandler(new DefaultSettingsFinder(new BuildLayoutFactory()),serviceRegistry.get(SettingsProcessor.class),new BuildSourceBuilder(this,serviceRegistry.get(ClassLoaderRegistry.class),serviceRegistry.get(CacheRepository.class))),serviceRegistry.get(BuildLoader.class),serviceRegistry.get(BuildConfigurer.class),gradle.getBuildListenerBroadcaster(),serviceRegistry.get(ExceptionAnalyser.class),loggingManager,listenerManager.getBroadcaster(ModelConfigurationListener.class),gradle.getServices().get(BuildExecuter.class));
