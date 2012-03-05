@@ -1,23 +1,23 @@
 {
   if (name.equals(GRADLE_API.name())) {
-    Set<File> classpath=new LinkedHashSet<File>();
+    ClassPath classpath=new DefaultClassPath();
     Module core=moduleRegistry.getModule("gradle-core");
     for (    Module module : core.getAllRequiredModules()) {
-      classpath.addAll(module.getClasspath());
+      classpath=classpath.plus(module.getClasspath());
     }
-    classpath.addAll(moduleRegistry.getModule("gradle-core-impl").getClasspath());
+    classpath=classpath.plus(moduleRegistry.getModule("gradle-core-impl").getClasspath());
     try {
-      classpath.addAll(moduleRegistry.getModule("gradle-tooling-api").getImplementationClasspath());
+      classpath=classpath.plus(moduleRegistry.getModule("gradle-tooling-api").getImplementationClasspath());
     }
  catch (    UnknownModuleException e) {
     }
     for (    Module pluginModule : pluginModuleRegistry.getPluginModules()) {
-      classpath.addAll(pluginModule.getClasspath());
+      classpath=classpath.plus(pluginModule.getClasspath());
     }
-    return new DefaultClassPath(classpath);
+    return classpath;
   }
   if (name.equals(LOCAL_GROOVY.name())) {
-    return new DefaultClassPath(moduleRegistry.getExternalModule("groovy-all").getClasspath());
+    return moduleRegistry.getExternalModule("groovy-all").getClasspath();
   }
   return null;
 }
