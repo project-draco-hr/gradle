@@ -1,10 +1,10 @@
 {
   ClassPathRegistry classPathRegistry=new DefaultClassPathRegistry(new DefaultClassPathProvider(new DefaultModuleRegistry()));
   ClassLoaderFactory classLoaderFactory=new DefaultClassLoaderFactory();
-  Collection<URL> antClasspath=classPathRegistry.getClassPath("ANT").getAsURLs();
-  URL[] runtimeClasspath=classPathRegistry.getClassPath("GRADLE_RUNTIME").getAsURLArray();
+  ClassPath antClasspath=classPathRegistry.getClassPath("ANT");
+  ClassPath runtimeClasspath=classPathRegistry.getClassPath("GRADLE_RUNTIME");
   ClassLoader antClassLoader=classLoaderFactory.createIsolatedClassLoader(antClasspath);
-  ClassLoader runtimeClassLoader=new URLClassLoader(runtimeClasspath,antClassLoader);
+  ClassLoader runtimeClassLoader=new MutableURLClassLoader(antClassLoader,runtimeClasspath);
   Thread.currentThread().setContextClassLoader(runtimeClassLoader);
   Class<?> mainClass=runtimeClassLoader.loadClass(mainClassName);
   Method mainMethod=mainClass.getMethod("main",String[].class);
