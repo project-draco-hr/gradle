@@ -1,8 +1,11 @@
 {
   final Set<File> processClassPath=Collections.singleton(new File("something.jar"));
+  final ClassPath classPath=context.mock(ClassPath.class);
   context.checking(new Expectations(){
 {
-      one(classPathRegistry).getClassPathFiles("WORKER_PROCESS");
+      one(classPathRegistry).getClassPath("WORKER_PROCESS");
+      will(returnValue(classPath));
+      allowing(classPath).getAsFiles();
       will(returnValue(processClassPath));
       allowing(fileResolver).resolveLater(".");
       allowing(fileResolver).resolveFiles(with(Matchers.<Object>notNullValue()));
