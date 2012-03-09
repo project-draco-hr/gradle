@@ -4,31 +4,11 @@
   for (int i=1; i < saneNumberOfAttempts; i++) {
     DaemonConnection daemonConnection=connector.connect(compatibilitySpec);
     Connection<Object> connection=daemonConnection.getConnection();
-    Object firstResult;
     try {
-      LOGGER.info("Connected to the daemon. Dispatching {} request.",build);
-      connection.dispatch(build);
-      firstResult=connection.receive();
+      return executeBuild(build,connection);
     }
- catch (    Exception e) {
-      LOGGER.info("Exception when attempted to send and receive first result from the daemon. I will try a different daemon... The exception was:",e);
-      continue;
-    }
-    if (firstResult instanceof BuildStarted) {
-      DaemonDiagnostics diagnostics=((BuildStarted)firstResult).getDiagnostics();
-      return (T)monitorBuild(build,diagnostics,connection).getValue();
-    }
- else     if (firstResult instanceof DaemonBusy) {
-      LOGGER.info("The daemon we connected to was busy. Trying a different daemon...");
-    }
- else     if (firstResult instanceof Failure) {
-      throw UncheckedException.throwAsUncheckedException(((Failure)firstResult).getValue());
-    }
- else     if (firstResult == null) {
-      LOGGER.info("The first result from the daemon was empty. Most likely the daemon has died. Trying a different daemon...");
-    }
- else {
-      throw new IllegalStateException(String.format("The first result from the Daemon: %s is a Result of a type we don't have a strategy to handle." + "Earlier, %s request was sent to the daemon.",firstResult,build));
+ catch (    DaemonInitialConnectException e) {
+      LOGGER.info(e.getMessage() + " Trying a different daemon...",e.getCause());
     }
   }
   throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to " + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: "+ build+ ".");

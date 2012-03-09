@@ -1,26 +1,8 @@
 {
   LOGGER.warn("Note: in order to honour the org.gradle.jvmargs and/or org.gradle.java.home values specified for this build, it is necessary to fork a new JVM.");
-  LOGGER.warn("In order to avoid the slowdown associated with this extra process, you might want to consider running Gradle with --daemon.");
+  LOGGER.warn("This forked JVM is effectively a single-use daemon process. In order to avoid the slowdown associated with this extra process, you might want to consider running Gradle with --daemon.");
   Build build=new BuildAndStop(action,parameters);
   DaemonConnection daemonConnection=connector.createConnection();
   Connection<Object> connection=daemonConnection.getConnection();
-  Object firstResult;
-  LOGGER.info("Connected to the remote build process. Dispatching {} request.",build);
-  connection.dispatch(build);
-  firstResult=connection.receive();
-  if (firstResult instanceof BuildStarted) {
-    return (T)monitorBuild(build,((BuildStarted)firstResult).getDiagnostics(),connection).getValue();
-  }
- else   if (firstResult instanceof Failure) {
-    throw UncheckedException.throwAsUncheckedException(((Failure)firstResult).getValue());
-  }
- else   if (firstResult instanceof DaemonBusy) {
-    throw new GradleException("Single use daemon process responded as busy: this should never happen.");
-  }
- else   if (firstResult == null) {
-    throw new GradleException("Could not connect to remote build process. The process probably died immediately after connection.");
-  }
- else {
-    throw new IllegalStateException(String.format("The first result from the remote build process: %s is a Result of a type we don't have a strategy to handle." + "Earlier, %s request was sent to the process.",firstResult,build));
-  }
+  return executeBuild(build,connection);
 }
