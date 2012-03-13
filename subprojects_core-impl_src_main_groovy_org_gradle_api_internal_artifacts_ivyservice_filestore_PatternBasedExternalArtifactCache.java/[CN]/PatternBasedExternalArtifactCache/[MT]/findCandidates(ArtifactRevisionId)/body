@@ -1,0 +1,28 @@
+{
+  final List<CachedArtifact> cachedArtifacts=new LinkedList<CachedArtifact>();
+  if (artifactId != null) {
+    getMatchingFiles(artifactId).visit(new EmptyFileVisitor(){
+      public void visitFile(      FileVisitDetails fileDetails){
+        cachedArtifacts.add(new DefaultCachedArtifact(fileDetails.getFile()));
+      }
+    }
+);
+  }
+  return new CachedArtifactCandidates(){
+    public ArtifactRevisionId getArtifactId(){
+      return artifactId;
+    }
+    public boolean isMightFindBySha1(){
+      return !cachedArtifacts.isEmpty();
+    }
+    public CachedArtifact findBySha1(    HashValue sha1){
+      for (      CachedArtifact cachedArtifact : cachedArtifacts) {
+        if (cachedArtifact.getSha1().equals(sha1)) {
+          return cachedArtifact;
+        }
+      }
+      return null;
+    }
+  }
+;
+}

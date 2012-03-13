@@ -6,11 +6,10 @@
     LOGGER.info("Checksum {} unavailable. [HTTP GET: {}]",checksumType,checksumUrl);
   }
  else {
-    for (    CachedArtifact candidate : candidates) {
-      if (candidate.getSha1().equals(sha1)) {
-        LOGGER.info("Checksum {} matched cached resource: [HTTP GET: {}]",checksumType,checksumUrl);
-        return new CachedHttpResource(source,candidate,HttpResourceCollection.this);
-      }
+    CachedArtifact cached=candidates.findBySha1(sha1);
+    if (cached != null) {
+      LOGGER.info("Checksum {} matched cached resource: [HTTP GET: {}]",checksumType,checksumUrl);
+      return new CachedHttpResource(source,cached,HttpResourceCollection.this);
     }
     LOGGER.info("Checksum {} did not match cached resources: [HTTP GET: {}]",checksumType,checksumUrl);
   }
