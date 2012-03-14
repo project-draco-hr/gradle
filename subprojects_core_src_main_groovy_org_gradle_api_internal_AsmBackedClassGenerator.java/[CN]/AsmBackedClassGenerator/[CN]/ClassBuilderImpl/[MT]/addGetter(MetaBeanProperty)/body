@@ -2,34 +2,18 @@
   MetaMethod getter=property.getGetter();
   String flagName=String.format("%sSet",property.getName());
   visitor.visitField(Opcodes.ACC_PRIVATE,flagName,Type.BOOLEAN_TYPE.getDescriptor(),null,null);
-  Type returnType=Type.getType(getter.getReturnType());
-  String methodDescriptor=Type.getMethodDescriptor(returnType,new Type[0]);
-  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,getter.getName(),methodDescriptor,null,new String[0]);
-  methodVisitor.visitCode();
-  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionAwareType.getInternalName(),"getConventionMapping",Type.getMethodDescriptor(conventionMappingType,new Type[0]));
-  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),getter.getName(),methodDescriptor);
-  Type boxedType=null;
-  if (getter.getReturnType().isPrimitive()) {
-    boxedType=Type.getType(ReflectionUtil.getWrapperTypeForPrimitiveType(getter.getReturnType()));
-    String valueOfMethodDescriptor=Type.getMethodDescriptor(boxedType,new Type[]{returnType});
-    methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC,boxedType.getInternalName(),"valueOf",valueOfMethodDescriptor);
+  addConventionGetter(getter.getName(),flagName,property);
+  String getterName=getter.getName();
+  Class<?> returnType=getter.getReturnType();
+  if (returnType.equals(Boolean.TYPE)) {
+    boolean getterIsIsMethod=getterName.startsWith("is");
+    String propertyNameComponent=getterName.substring(getterIsIsMethod ? 2 : 3);
+    String alternativeGetterName=String.format("%s%s",getterIsIsMethod ? "get" : "is",propertyNameComponent);
+    try {
+      type.getMethod(alternativeGetterName);
+      addConventionGetter(alternativeGetterName,flagName,property);
+    }
+ catch (    NoSuchMethodException e) {
+    }
   }
-  methodVisitor.visitLdcInsn(property.getName());
-  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),flagName,Type.BOOLEAN_TYPE.getDescriptor());
-  String getConventionValueDesc=Type.getMethodDescriptor(ConventionMapping.class.getMethod("getConventionValue",Object.class,String.class,Boolean.TYPE));
-  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionMappingType.getInternalName(),"getConventionValue",getConventionValueDesc);
-  if (getter.getReturnType().isPrimitive()) {
-    methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,boxedType.getInternalName());
-    String valueMethodDescriptor=Type.getMethodDescriptor(returnType,new Type[0]);
-    methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,boxedType.getInternalName(),getter.getReturnType().getName() + "Value",valueMethodDescriptor);
-  }
- else {
-    methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,getter.getReturnType().isArray() ? "[" + returnType.getElementType().getDescriptor() : returnType.getInternalName());
-  }
-  methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
-  methodVisitor.visitMaxs(0,0);
-  methodVisitor.visitEnd();
 }

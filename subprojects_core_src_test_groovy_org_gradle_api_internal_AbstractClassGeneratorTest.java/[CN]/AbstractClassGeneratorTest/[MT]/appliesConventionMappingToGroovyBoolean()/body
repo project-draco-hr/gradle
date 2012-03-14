@@ -1,0 +1,27 @@
+{
+  BeanWithGroovyBoolean bean=generator.generate(BeanWithGroovyBoolean.class).newInstance();
+  assertTrue(bean instanceof IConventionAware);
+  assertThat(bean.getSmallB(),equalTo(false));
+  assertThat(bean.getBigB(),nullValue());
+  IConventionAware conventionAware=(IConventionAware)bean;
+  conventionAware.getConventionMapping().map("smallB",new Callable<Object>(){
+    public Object call() throws Exception {
+      return true;
+    }
+  }
+);
+  assertThat(bean.isSmallB(),equalTo(true));
+  assertThat(bean.getSmallB(),equalTo(true));
+  bean.setSmallB(false);
+  assertThat(bean.isSmallB(),equalTo(false));
+  assertThat(bean.getSmallB(),equalTo(false));
+  conventionAware.getConventionMapping().map("bigB",new Callable<Object>(){
+    public Object call() throws Exception {
+      return Boolean.TRUE;
+    }
+  }
+);
+  assertThat(bean.getBigB(),equalTo(Boolean.TRUE));
+  bean.setBigB(Boolean.FALSE);
+  assertThat(bean.getBigB(),equalTo(Boolean.FALSE));
+}
