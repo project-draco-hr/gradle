@@ -1,5 +1,11 @@
 {
   ScriptExecutionListener scriptExecutionListener=get(ListenerManager.class).getBroadcaster(ScriptExecutionListener.class);
   EmptyScriptGenerator emptyScriptGenerator=new AsmBackedEmptyScriptGenerator();
-  return new DefaultScriptCompilerFactory(new CachingScriptClassCompiler(new ShortCircuitEmptyScriptCompiler(new FileCacheBackedScriptClassCompiler(get(CacheRepository.class),new DefaultScriptCompilationHandler(emptyScriptGenerator)),emptyScriptGenerator)),new DefaultScriptRunnerFactory(scriptExecutionListener));
+  CacheValidator scriptCacheInvalidator=new CacheValidator(){
+    public boolean isValid(){
+      return !get(StartParameter.class).isRecompileScripts();
+    }
+  }
+;
+  return new DefaultScriptCompilerFactory(new CachingScriptClassCompiler(new ShortCircuitEmptyScriptCompiler(new FileCacheBackedScriptClassCompiler(get(CacheRepository.class),scriptCacheInvalidator,new DefaultScriptCompilationHandler(emptyScriptGenerator)),emptyScriptGenerator)),new DefaultScriptRunnerFactory(scriptExecutionListener));
 }
