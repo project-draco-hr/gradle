@@ -1,0 +1,17 @@
+{
+  String checksumType="SHA-1";
+  String checksumUrl=source + ".sha1";
+  HashValue sha1=downloadSha1(checksumUrl);
+  if (sha1 == null) {
+    LOGGER.info("Checksum {} unavailable. [HTTP GET: {}]",checksumType,checksumUrl);
+  }
+ else {
+    CachedArtifact cached=candidates.findByHashValue(sha1);
+    if (cached != null) {
+      LOGGER.info("Checksum {} matched cached resource: [HTTP GET: {}]",checksumType,checksumUrl);
+      return new CachedHttpResource(source,cached,HttpResourceCollection.this);
+    }
+    LOGGER.info("Checksum {} did not match cached resources: [HTTP GET: {}]",checksumType,checksumUrl);
+  }
+  return null;
+}
