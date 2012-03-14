@@ -1,0 +1,27 @@
+{
+  if (isTopLevel) {
+    if (resolver instanceof AbstractResolver && !(resolver instanceof FileSystemResolver)) {
+      ((AbstractResolver)resolver).setRepositoryCacheManager(repositoryTransportFactory.getDownloadingCacheManager());
+    }
+  }
+  if (dependencyResolver instanceof FileSystemResolver) {
+    ((FileSystemResolver)dependencyResolver).setLocal(true);
+    ((FileSystemResolver)dependencyResolver).setRepositoryCacheManager(repositoryTransportFactory.getLocalCacheManager());
+  }
+  if (dependencyResolver instanceof RepositoryResolver) {
+    Repository repository=((RepositoryResolver)dependencyResolver).getRepository();
+    repositoryTransportFactory.attachListener(repository);
+  }
+  if (dependencyResolver instanceof DualResolver) {
+    DualResolver dualResolver=(DualResolver)dependencyResolver;
+    configureResolver(dualResolver.getIvyResolver(),false);
+    configureResolver(dualResolver.getArtifactResolver(),false);
+  }
+  if (dependencyResolver instanceof ChainResolver) {
+    ChainResolver chainResolver=(ChainResolver)dependencyResolver;
+    @SuppressWarnings("unchecked") List<DependencyResolver> resolvers=chainResolver.getResolvers();
+    for (    DependencyResolver resolver : resolvers) {
+      configureResolver(resolver,false);
+    }
+  }
+}
