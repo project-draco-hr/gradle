@@ -3,9 +3,17 @@
   String flagName=String.format("%sSet",property.getName());
   visitor.visitField(Opcodes.ACC_PRIVATE,flagName,Type.BOOLEAN_TYPE.getDescriptor(),null,null);
   addConventionGetter(getter.getName(),flagName,property);
-  Set<? extends Class> booleanTypes=Sets.newHashSet(Boolean.class,Boolean.TYPE);
-  if (booleanTypes.contains(getter.getReturnType()) && getter.getName().startsWith("is")) {
-    String altGetterName=String.format("get%s",getter.getName().substring(2));
-    addConventionGetter(altGetterName,flagName,property);
+  String getterName=getter.getName();
+  Class<?> returnType=getter.getReturnType();
+  if (returnType.equals(Boolean.TYPE)) {
+    boolean getterIsIsMethod=getterName.startsWith("is");
+    String propertyNameComponent=getterName.substring(getterIsIsMethod ? 2 : 3);
+    String alternativeGetterName=String.format("%s%s",getterIsIsMethod ? "get" : "is",propertyNameComponent);
+    try {
+      type.getMethod(alternativeGetterName);
+      addConventionGetter(alternativeGetterName,flagName,property);
+    }
+ catch (    NoSuchMethodException e) {
+    }
   }
 }
