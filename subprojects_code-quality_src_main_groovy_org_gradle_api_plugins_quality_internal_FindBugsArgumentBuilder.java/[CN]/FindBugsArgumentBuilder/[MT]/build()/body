@@ -1,0 +1,29 @@
+{
+  args=new ArrayList<String>();
+  args.add("-pluginList");
+  args.add(pluginsList == null ? "" : pluginsList.getAsPath());
+  args.add("-sortByClass");
+  args.add("-timestampNow");
+  if (reports != null && !reports.getEnabled().isEmpty()) {
+    if (reports.getEnabled().size() == 1) {
+      FindBugsReportsImpl reportsImpl=(FindBugsReportsImpl)reports;
+      args.add("-" + reportsImpl.getFirstEnabled().getName());
+      args.add("-outputFile");
+      args.add(reportsImpl.getFirstEnabled().getDestination().getAbsolutePath());
+    }
+ else {
+      throw new InvalidUserDataException("Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them.");
+    }
+  }
+  if (has(sources)) {
+    args.add("-sourcepath");
+    args.add(sources.getAsPath());
+  }
+  if (has(classpath)) {
+    args.add("-auxclasspath");
+    args.add(classpath.getAsPath());
+  }
+  args.add("-exitcode");
+  args.add(classes.getAsPath());
+  return args;
+}
