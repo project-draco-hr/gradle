@@ -1,5 +1,10 @@
 {
   File tempFile=fileStore.getTempFile();
   resourceDownloader.download(artifact,artifactRef.getResource(),tempFile);
-  return fileStore.add(artifact.getId(),tempFile);
+  File fileInFileStore=fileStore.add(artifact.getId(),tempFile);
+  String url=artifactRef.getResource().getName();
+  long lastModifiedTimestamp=artifactRef.getResource().getLastModified();
+  Date lastModified=lastModifiedTimestamp > 0 ? new Date(lastModifiedTimestamp) : null;
+  artifactUrlCachedResolutionIndex.store(artifactRef.getResource().getName(),fileInFileStore,lastModified,url);
+  return fileInFileStore;
 }
