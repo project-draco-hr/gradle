@@ -1,0 +1,19 @@
+{
+  return new Transformer<List<CachedArtifact>,String>(){
+    public List<CachedArtifact> transform(    final String url){
+      return cacheLockingManager.useCache(String.format("find cached artifacts for url %s",url),new Factory<List<CachedArtifact>>(){
+        public List<CachedArtifact> create(){
+          CachedArtifactResolution match=resolutionCache.lookup(url);
+          if (match == null) {
+            return Collections.emptyList();
+          }
+ else {
+            return Collections.singletonList((CachedArtifact)new DefaultCachedArtifact(match.getArtifactFile(),match.getArtifactLastModified()));
+          }
+        }
+      }
+);
+    }
+  }
+;
+}

@@ -1,13 +1,12 @@
 {
   LOGGER.debug("Constructing GET resource: {}",source);
-  List<CachedArtifact> candidateArtifacts=new ArrayList<CachedArtifact>();
-  externalArtifactCache.addMatchingCachedArtifacts(artifactId,candidateArtifacts);
-  if (candidateArtifacts.size() > 0) {
-    CachedHttpResource cachedResource=findCachedResource(source,candidateArtifacts);
+  CachedArtifactCandidates byHashCacheCandidates=artifactCaches.getArtifactIdCache().findCandidates(artifactId);
+  if (!byHashCacheCandidates.isEmpty()) {
+    CachedHttpResource cachedResource=findCachedResourceBySha1(source,byHashCacheCandidates);
     if (cachedResource != null) {
       return cachedResource;
     }
   }
   HttpGet request=new HttpGet(source);
-  return processHttpRequest(source,request);
+  return processHttpRequest(source,request,artifactCaches.getUrlCache().findCandidates(source).getMostRecent());
 }

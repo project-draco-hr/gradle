@@ -2,7 +2,8 @@
   if (isLocal()) {
     return delegate.download(artifact);
   }
-  ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution=artifactResolutionCache.getCachedArtifactResolution(delegate,artifact.getId());
+  ArtifactAtRepositoryKey resolutionCacheIndexKey=new ArtifactAtRepositoryKey(delegate,artifact.getId());
+  CachedArtifactResolution cachedArtifactResolution=artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
   if (cachedArtifactResolution != null) {
     ArtifactIdentifier artifactIdentifier=createArtifactIdentifier(artifact);
     File cachedArtifactFile=cachedArtifactResolution.getArtifactFile();
@@ -15,11 +16,18 @@
  else     if (cachedArtifactFile.exists()) {
       if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,cachedArtifactFile,cachedArtifactResolution.getAgeMillis())) {
         LOGGER.debug("Found artifact '{}' in resolver cache: {}",artifact.getId(),cachedArtifactFile);
-        return cachedArtifactFile;
+        return new DownloadedArtifact(cachedArtifactFile,cachedArtifactResolution.getArtifactLastModified(),cachedArtifactResolution.getArtifactUrl());
       }
     }
   }
-  File artifactFile=delegate.download(artifact);
-  LOGGER.debug("Downloaded artifact '{}' from resolver: {}",artifact.getId(),artifactFile);
-  return artifactResolutionCache.storeArtifactFile(delegate,artifact.getId(),artifactFile);
+  DownloadedArtifact downloadedArtifact=delegate.download(artifact);
+  LOGGER.debug("Downloaded artifact '{}' from resolver: {}",artifact.getId(),downloadedArtifact.getLocalFile());
+  String artifactUrl=downloadedArtifact.getSource();
+  File artifactFile=downloadedArtifact.getLocalFile();
+  Date artifactLastModified=downloadedArtifact.getLastModified();
+  artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey,artifactFile,artifactLastModified,artifactUrl);
+  if (artifactUrl != null) {
+    artifactUrlCachedResolutionIndex.store(artifactUrl,artifactFile,artifactLastModified,artifactUrl);
+  }
+  return downloadedArtifact;
 }
