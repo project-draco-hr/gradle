@@ -2,7 +2,8 @@
   if (isLocal()) {
     return delegate.download(artifact);
   }
-  CachedArtifactResolution cachedArtifactResolution=artifactResolutionCache.getCachedArtifactResolution(delegate,artifact.getId());
+  ArtifactAtRepositoryKey resolutionCacheIndexKey=new ArtifactAtRepositoryKey(delegate,artifact.getId());
+  CachedArtifactResolution cachedArtifactResolution=artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
   if (cachedArtifactResolution != null) {
     ArtifactIdentifier artifactIdentifier=createArtifactIdentifier(artifact);
     File cachedArtifactFile=cachedArtifactResolution.getArtifactFile();
@@ -21,6 +22,12 @@
   }
   DownloadedArtifact downloadedArtifact=delegate.download(artifact);
   LOGGER.debug("Downloaded artifact '{}' from resolver: {}",artifact.getId(),downloadedArtifact.getLocalFile());
-  artifactResolutionCache.storeArtifactFile(delegate,artifact.getId(),downloadedArtifact.getLocalFile(),downloadedArtifact.getLastModified(),downloadedArtifact.getSource());
+  String artifactUrl=downloadedArtifact.getSource();
+  File artifactFile=downloadedArtifact.getLocalFile();
+  Date artifactLastModified=downloadedArtifact.getLastModified();
+  artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey,artifactFile,artifactLastModified,artifactUrl);
+  if (artifactUrl != null) {
+    artifactUrlCachedResolutionIndex.store(artifactUrl,artifactFile,artifactLastModified,artifactUrl);
+  }
   return downloadedArtifact;
 }
