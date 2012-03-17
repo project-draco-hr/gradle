@@ -1,0 +1,14 @@
+{
+  if (groovyOptions.isUseAnt()) {
+    return new AntGroovyCompiler(antBuilder,classPathRegistry);
+  }
+  if (!groovyOptions.isFork()) {
+    LOGGER.warn("Falling back to Ant groovyc task ('GroovyCompileOptions.useAnt = true') because 'GroovyCompileOptions.fork' is set to 'false'.");
+    return new AntGroovyCompiler(antBuilder,classPathRegistry);
+  }
+  javaCompilerFactory.setGroovyJointCompilation(true);
+  Compiler<JavaCompileSpec> javaCompiler=javaCompilerFactory.create(javaOptions);
+  Compiler<GroovyJavaJointCompileSpec> groovyCompiler=new ApiGroovyCompiler(javaCompiler);
+  groovyCompiler=new DaemonGroovyCompiler(project,groovyCompiler);
+  return new NormalizingGroovyCompiler(groovyCompiler);
+}

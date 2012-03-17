@@ -3,10 +3,15 @@
   throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
   spec.setSource(getSource());
   spec.setDestinationDir(getDestinationDir());
-  spec.setClasspath(getClasspath());
+  spec.setClasspath(getClasspath().plus(getProject().files(getDestinationDir())));
   spec.setSourceCompatibility(getSourceCompatibility());
   spec.setTargetCompatibility(getTargetCompatibility());
   spec.setGroovyClasspath(taskClasspath);
+  if (spec.getGroovyCompileOptions().getStubDir() == null) {
+    File dir=tempFileProvider.newTemporaryFile("groovy-java-stubs");
+    dir.mkdirs();
+    spec.getGroovyCompileOptions().setStubDir(dir);
+  }
   WorkResult result=compiler.execute(spec);
   setDidWork(result.getDidWork());
 }

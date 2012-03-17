@@ -1,0 +1,51 @@
+{
+  CompilerConfiguration configuration=new CompilerConfiguration();
+  configuration.setVerbose(spec.getGroovyCompileOptions().isVerbose());
+  configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
+  configuration.setTargetBytecode(spec.getTargetCompatibility());
+  configuration.setTargetDirectory(spec.getDestinationDir());
+  Map<String,Object> jointCompilationOptions=new HashMap<String,Object>();
+  jointCompilationOptions.put("stubDir",spec.getGroovyCompileOptions().getStubDir());
+  jointCompilationOptions.put("keepStubs",spec.getGroovyCompileOptions().isKeepStubs());
+  configuration.setJointCompilationOptions(jointCompilationOptions);
+  FilteringClassLoader groovyCompilerClassLoader=new FilteringClassLoader(getClass().getClassLoader());
+  groovyCompilerClassLoader.allowPackage("groovy");
+  groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
+  GroovyClassLoader compilationUnitClassLoader=new GroovyClassLoader(groovyCompilerClassLoader,null);
+  for (  File file : spec.getClasspath()) {
+    compilationUnitClassLoader.addClasspath(file.getPath());
+  }
+  JavaAwareCompilationUnit unit=new JavaAwareCompilationUnit(configuration,compilationUnitClassLoader);
+  unit.addSources(Iterables.toArray(spec.getSource(),File.class));
+  unit.setCompilerFactory(new org.codehaus.groovy.tools.javac.JavaCompilerFactory(){
+    public JavaCompiler createCompiler(    final CompilerConfiguration config){
+      return new JavaCompiler(){
+        public void compile(        List<String> files,        CompilationUnit cu){
+          spec.setSource(spec.getSource().filter(new Spec<File>(){
+            public boolean isSatisfiedBy(            File file){
+              return file.getName().endsWith(".java");
+            }
+          }
+));
+          spec.getCompileOptions().getCompilerArgs().add("-sourcepath");
+          spec.getCompileOptions().getCompilerArgs().add(((File)config.getJointCompilationOptions().get("stubDir")).getAbsolutePath());
+          try {
+            javaCompiler.execute(spec);
+          }
+ catch (          CompilationFailedException e) {
+            cu.getErrorCollector().addFatalError(new SimpleMessage(e.getMessage(),cu));
+          }
+        }
+      }
+;
+    }
+  }
+);
+  try {
+    unit.compile();
+  }
+ catch (  org.codehaus.groovy.control.CompilationFailedException e) {
+    throw new CompilationFailedException(e.getMessage());
+  }
+  return new SimpleWorkResult(true);
+}
