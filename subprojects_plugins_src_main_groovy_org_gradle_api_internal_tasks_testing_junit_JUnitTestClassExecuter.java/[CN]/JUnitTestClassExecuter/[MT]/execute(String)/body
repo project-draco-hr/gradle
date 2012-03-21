@@ -1,9 +1,11 @@
 {
-  TestDescriptorInternal testInternal=new DefaultTestClassDescriptor(idGenerator.generateId(),testClassName);
-  resultProcessor.started(testInternal,new TestStartEvent(timeProvider.getCurrentTime()));
-  Runner runner=createTest(testClassName);
-  RunNotifier notifier=new RunNotifier();
-  notifier.addListener(listener);
-  runner.run(notifier);
-  resultProcessor.completed(testInternal.getId(),new TestCompleteEvent(timeProvider.getCurrentTime()));
+  executionListener.testClassStarted(testClassName);
+  Throwable failure=null;
+  try {
+    runTestClass(testClassName);
+  }
+ catch (  Throwable throwable) {
+    failure=throwable;
+  }
+  executionListener.testClassFinished(failure);
 }

@@ -1,0 +1,26 @@
+{
+  long now=timeProvider.getCurrentTime();
+  try {
+    if (failure != null) {
+      if (currentTests.isEmpty()) {
+        String testName=testsStarted ? "executionError" : "initializationError";
+        DefaultTestDescriptor initializationError=new DefaultTestDescriptor(idGenerator.generateId(),currentTestClass.getClassName(),testName);
+        resultProcessor.started(initializationError,new TestStartEvent(now));
+        resultProcessor.failure(initializationError.getId(),failure);
+        resultProcessor.completed(initializationError.getId(),new TestCompleteEvent(now));
+      }
+ else {
+        for (        Object test : currentTests) {
+          resultProcessor.failure(test,failure);
+          resultProcessor.completed(test,new TestCompleteEvent(now));
+        }
+      }
+    }
+    resultProcessor.completed(currentTestClass.getId(),new TestCompleteEvent(now));
+  }
+  finally {
+    testsStarted=false;
+    currentTests.clear();
+    currentTestClass=null;
+  }
+}
