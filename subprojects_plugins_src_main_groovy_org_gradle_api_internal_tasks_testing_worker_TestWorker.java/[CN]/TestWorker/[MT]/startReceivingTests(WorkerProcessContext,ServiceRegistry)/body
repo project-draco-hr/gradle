@@ -1,0 +1,10 @@
+{
+  TestClassProcessor targetProcessor=factory.create(testServices);
+  IdGenerator<Object> idGenerator=testServices.get(IdGenerator.class);
+  targetProcessor=new WorkerTestClassProcessor(targetProcessor,idGenerator.generateId(),workerProcessContext.getDisplayName(),new TrueTimeProvider());
+  ContextClassLoaderProxy<TestClassProcessor> proxy=new ContextClassLoaderProxy<TestClassProcessor>(TestClassProcessor.class,targetProcessor,workerProcessContext.getApplicationClassLoader());
+  processor=proxy.getSource();
+  ObjectConnection serverConnection=workerProcessContext.getServerConnection();
+  this.resultProcessor=serverConnection.addOutgoing(TestResultProcessor.class);
+  serverConnection.addIncoming(RemoteTestClassProcessor.class,this);
+}

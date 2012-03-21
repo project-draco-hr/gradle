@@ -2,21 +2,18 @@
   LOGGER.info("{} executing tests.",workerProcessContext.getDisplayName());
   completed=new CountDownLatch(1);
   System.setProperty(WORKER_ID_SYS_PROPERTY,workerProcessContext.getWorkerId().toString());
-  ObjectConnection serverConnection=workerProcessContext.getServerConnection();
-  IdGenerator<Object> idGenerator=new CompositeIdGenerator(workerProcessContext.getWorkerId(),new LongIdGenerator());
-  DefaultServiceRegistry testServices=new DefaultServiceRegistry();
-  testServices.add(IdGenerator.class,idGenerator);
-  TestClassProcessor targetProcessor=factory.create(testServices);
-  targetProcessor=new WorkerTestClassProcessor(targetProcessor,idGenerator.generateId(),workerProcessContext.getDisplayName(),new TrueTimeProvider());
-  ContextClassLoaderProxy<TestClassProcessor> proxy=new ContextClassLoaderProxy<TestClassProcessor>(TestClassProcessor.class,targetProcessor,workerProcessContext.getApplicationClassLoader());
-  processor=proxy.getSource();
-  this.resultProcessor=serverConnection.addOutgoing(TestResultProcessor.class);
-  serverConnection.addIncoming(RemoteTestClassProcessor.class,this);
+  DefaultServiceRegistry testServices=new TestFrameworkServiceRegistry(workerProcessContext);
+  startReceivingTests(workerProcessContext,testServices);
   try {
-    completed.await();
+    try {
+      completed.await();
+    }
+ catch (    InterruptedException e) {
+      throw new UncheckedException(e);
+    }
   }
- catch (  InterruptedException e) {
-    throw new UncheckedException(e);
+  finally {
+    LOGGER.info("{} finished executing tests.",workerProcessContext.getDisplayName());
+    testServices.close();
   }
-  LOGGER.info("{} finished executing tests.",workerProcessContext.getDisplayName());
 }

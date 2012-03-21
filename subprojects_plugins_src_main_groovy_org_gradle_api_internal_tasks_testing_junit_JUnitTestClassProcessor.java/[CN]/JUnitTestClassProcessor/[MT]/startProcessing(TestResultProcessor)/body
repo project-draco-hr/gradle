@@ -5,6 +5,9 @@
   processors.add(resultProcessor);
   TestResultProcessor resultProcessorChain=new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(processors.getSource(),outputRedirector));
   TestClassExecutionEventGenerator eventGenerator=new TestClassExecutionEventGenerator(resultProcessorChain,idGenerator,timeProvider);
-  JUnitTestEventAdapter junitEventAdapter=new JUnitTestEventAdapter(eventGenerator,timeProvider,idGenerator);
-  executer=new JUnitTestClassExecuter(applicationClassLoader,junitEventAdapter,eventGenerator);
+  resultProcessorActor=actorFactory.createBlockingActor(eventGenerator);
+  TestResultProcessor threadSafeResultProcessor=resultProcessorActor.getProxy(TestResultProcessor.class);
+  TestClassExecutionListener threadSafeTestClassListener=resultProcessorActor.getProxy(TestClassExecutionListener.class);
+  JUnitTestEventAdapter junitEventAdapter=new JUnitTestEventAdapter(threadSafeResultProcessor,timeProvider,idGenerator);
+  executer=new JUnitTestClassExecuter(applicationClassLoader,junitEventAdapter,threadSafeTestClassListener);
 }
