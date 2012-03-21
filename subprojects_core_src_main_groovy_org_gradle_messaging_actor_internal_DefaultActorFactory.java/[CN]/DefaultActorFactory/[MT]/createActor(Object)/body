@@ -1,12 +1,15 @@
 {
-  if (target instanceof ActorImpl) {
-    return (ActorImpl)target;
+  if (target instanceof NonBlockingActor) {
+    return (NonBlockingActor)target;
   }
 synchronized (lock) {
-    ActorImpl actor=actors.get(target);
+    if (blockingActors.containsKey(target)) {
+      throw new UnsupportedOperationException("Cannot create a non-blocking and blocking actor for the same object. This is not implemented yet.");
+    }
+    NonBlockingActor actor=nonBlockingActors.get(target);
     if (actor == null) {
-      actor=new ActorImpl(target);
-      actors.put(target,actor);
+      actor=new NonBlockingActor(target);
+      nonBlockingActors.put(target,actor);
     }
     return actor;
   }
