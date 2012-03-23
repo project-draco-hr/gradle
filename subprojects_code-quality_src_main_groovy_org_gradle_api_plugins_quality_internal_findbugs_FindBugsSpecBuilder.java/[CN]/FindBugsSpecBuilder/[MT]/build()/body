@@ -4,6 +4,7 @@
   args.add(pluginsList == null ? "" : pluginsList.getAsPath());
   args.add("-sortByClass");
   args.add("-timestampNow");
+  args.add("-progress");
   if (reports != null && !reports.getEnabled().isEmpty()) {
     if (reports.getEnabled().size() == 1) {
       FindBugsReportsImpl reportsImpl=(FindBugsReportsImpl)reports;
@@ -21,9 +22,16 @@
   }
   if (has(classpath)) {
     args.add("-auxclasspath");
-    args.add(classpath.getAsPath());
+    args.add(classpath.filter(new Spec<File>(){
+      public boolean isSatisfiedBy(      File element){
+        return element.exists();
+      }
+    }
+).getAsPath());
   }
-  args.add("-exitcode");
-  args.add(classes.getAsPath());
-  return args;
+  for (  File classFile : classes.getFiles()) {
+    args.add(classFile.getAbsolutePath());
+  }
+  FindBugsSpec spec=new FindBugsSpec(args,debugEnabled);
+  return spec;
 }

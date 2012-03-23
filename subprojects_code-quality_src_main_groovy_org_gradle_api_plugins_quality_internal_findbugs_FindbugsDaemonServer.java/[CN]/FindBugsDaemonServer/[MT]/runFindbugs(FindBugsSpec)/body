@@ -1,0 +1,24 @@
+{
+  final ClassLoader contextClassLoader=Thread.currentThread().getContextClassLoader();
+  final PrintStream origOut=System.out;
+  final PrintStream origErr=System.err;
+  try {
+    final List<String> args=spec.getArguments();
+    String[] strArray=new String[args.size()];
+    args.toArray(strArray);
+    final Class<?> findbugs2=getClass().getClassLoader().loadClass("edu.umd.cs.findbugs.FindBugs2");
+    final Method findbugsMain=findbugs2.getMethod("main",strArray.getClass());
+    ByteArrayOutputStream baos=new ByteArrayOutputStream();
+    System.setOut(new PrintStream(baos));
+    System.setErr(new PrintStream(baos));
+    System.setProperty("findbugs.debug",Boolean.toString(spec.isDebugEnabled()));
+    Thread.currentThread().setContextClassLoader(findbugs2.getClassLoader());
+    findbugsMain.invoke(null,new Object[]{strArray});
+    return baos.toString();
+  }
+  finally {
+    System.setOut(origOut);
+    System.setErr(origErr);
+    Thread.currentThread().setContextClassLoader(contextClassLoader);
+  }
+}
