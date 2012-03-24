@@ -1,12 +1,9 @@
 {
-  final ClassLoader applicationClassLoader=ClassLoader.getSystemClassLoader();
-  ClasspathUtil.addUrl((URLClassLoader)applicationClassLoader,GFileUtils.toURLs(applicationClassPath));
-  System.setProperty("java.class.path",GUtil.join(applicationClassPath,File.pathSeparator));
   ClassLoaderObjectInputStream instr=new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker),getClass().getClassLoader());
   final Action<WorkerContext> action=(Action<WorkerContext>)instr.readObject();
   action.execute(new WorkerContext(){
     public ClassLoader getApplicationClassLoader(){
-      return applicationClassLoader;
+      return ClassLoader.getSystemClassLoader();
     }
   }
 );
