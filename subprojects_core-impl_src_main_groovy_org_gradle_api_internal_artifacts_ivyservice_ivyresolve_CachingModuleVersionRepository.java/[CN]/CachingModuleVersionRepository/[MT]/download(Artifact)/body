@@ -3,20 +3,21 @@
     return delegate.download(artifact);
   }
   ArtifactAtRepositoryKey resolutionCacheIndexKey=new ArtifactAtRepositoryKey(delegate,artifact.getId());
-  CachedArtifactResolution cachedArtifactResolution=artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
-  if (cachedArtifactResolution != null) {
+  CachedExternalResource cached=artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
+  if (cached != null) {
     ArtifactIdentifier artifactIdentifier=createArtifactIdentifier(artifact);
-    if (cachedArtifactResolution.isMissing()) {
-      if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,null,cachedArtifactResolution.getAgeMillis())) {
+    if (cached.isMissing()) {
+      if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,null,cached.getCachedAt())) {
         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache",artifact.getId());
         return null;
       }
     }
  else {
-      File cachedArtifactFile=cachedArtifactResolution.getArtifactFile();
-      if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,cachedArtifactFile,cachedArtifactResolution.getAgeMillis())) {
+      File cachedArtifactFile=cached.getCachedFile();
+      if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,cachedArtifactFile,cached.getCachedAt())) {
         LOGGER.debug("Found artifact '{}' in resolver cache: {}",artifact.getId(),cachedArtifactFile);
-        return new DownloadedArtifact(cachedArtifactFile,cachedArtifactResolution.getArtifactLastModified(),cachedArtifactResolution.getArtifactUrl());
+        ExternalResourceMetaData metaData=cached.getExternalResourceMetaData();
+        return new DownloadedArtifact(cachedArtifactFile,metaData.getLastModified(),metaData.getLocation());
       }
     }
   }
@@ -29,7 +30,7 @@
     String artifactUrl=downloadedArtifact.getSource();
     File artifactFile=downloadedArtifact.getLocalFile();
     Date artifactLastModified=downloadedArtifact.getLastModified();
-    artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey,artifactFile,artifactLastModified,artifactUrl);
+    artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey,artifactFile,new DefaultExternalResourceMetaData(artifactUrl,artifactLastModified,-1));
   }
   return downloadedArtifact;
 }
