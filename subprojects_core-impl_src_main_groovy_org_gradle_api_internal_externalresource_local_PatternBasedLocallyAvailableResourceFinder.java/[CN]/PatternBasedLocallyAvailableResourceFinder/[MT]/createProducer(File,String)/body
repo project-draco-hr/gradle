@@ -1,0 +1,32 @@
+{
+  return new Transformer<List<LocallyAvailableResource>,ArtifactRevisionId>(){
+    DirectoryFileTree fileTree=new DirectoryFileTree(baseDir);
+    private String getArtifactPattern(    ArtifactRevisionId artifactId){
+      String substitute=pattern;
+      substitute=IvyPatternHelper.substituteToken(substitute,"organisation",artifactId.getModuleRevisionId().getOrganisation().replace('/','.'));
+      substitute=IvyPatternHelper.substituteToken(substitute,"organisation-path",artifactId.getModuleRevisionId().getOrganisation().replace('.','/'));
+      Artifact dummyArtifact=new DefaultArtifact(artifactId,null,null,false);
+      substitute=IvyPatternHelper.substitute(substitute,dummyArtifact);
+      return substitute;
+    }
+    private DirectoryFileTree getMatchingFiles(    ArtifactRevisionId artifact){
+      String patternString=getArtifactPattern(artifact);
+      PatternFilterable pattern=new PatternSet();
+      pattern.include(patternString);
+      return fileTree.filter(pattern);
+    }
+    public List<LocallyAvailableResource> transform(    ArtifactRevisionId artifactId){
+      final List<LocallyAvailableResource> locallyAvailableResources=new LinkedList<LocallyAvailableResource>();
+      if (artifactId != null) {
+        getMatchingFiles(artifactId).visit(new EmptyFileVisitor(){
+          public void visitFile(          FileVisitDetails fileDetails){
+            locallyAvailableResources.add(new DefaultLocallyAvailableResource(fileDetails.getFile()));
+          }
+        }
+);
+      }
+      return locallyAvailableResources;
+    }
+  }
+;
+}
