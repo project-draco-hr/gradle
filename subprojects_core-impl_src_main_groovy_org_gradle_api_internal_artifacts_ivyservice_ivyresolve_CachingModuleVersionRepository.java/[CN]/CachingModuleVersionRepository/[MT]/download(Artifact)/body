@@ -16,8 +16,7 @@
       File cachedArtifactFile=cached.getCachedFile();
       if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,cachedArtifactFile,cached.getCachedAt())) {
         LOGGER.debug("Found artifact '{}' in resolver cache: {}",artifact.getId(),cachedArtifactFile);
-        ExternalResourceMetaData metaData=cached.getExternalResourceMetaData();
-        return new DownloadedArtifact(cachedArtifactFile,metaData.getLastModified(),metaData.getLocation());
+        return new DownloadedArtifact(cachedArtifactFile,cached.getExternalResourceMetaData());
       }
     }
   }
@@ -27,10 +26,7 @@
     artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey);
   }
  else {
-    String artifactUrl=downloadedArtifact.getSource();
-    File artifactFile=downloadedArtifact.getLocalFile();
-    Date artifactLastModified=downloadedArtifact.getLastModified();
-    artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey,artifactFile,new DefaultExternalResourceMetaData(artifactUrl,artifactLastModified,-1));
+    artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey,downloadedArtifact.getLocalFile(),downloadedArtifact.getExternalResourceMetaData());
   }
   return downloadedArtifact;
 }
