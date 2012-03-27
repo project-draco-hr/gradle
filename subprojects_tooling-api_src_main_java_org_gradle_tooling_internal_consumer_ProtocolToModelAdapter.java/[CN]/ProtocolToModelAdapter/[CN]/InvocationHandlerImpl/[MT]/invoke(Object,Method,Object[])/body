@@ -14,7 +14,13 @@
     if (properties.containsKey(method.getName())) {
       return properties.get(method.getName());
     }
-    Object value=doInvokeMethod(method,params);
+    Object value;
+    if (method.getName().equals("getGradleProject") && delegate instanceof EclipseProjectVersion3 && !versionDetails.supportsGradleProjectModel()) {
+      value=new GradleProjectConverter().convert((EclipseProjectVersion3)delegate);
+    }
+ else {
+      value=doInvokeMethod(method,params);
+    }
     properties.put(method.getName(),value);
     return value;
   }
