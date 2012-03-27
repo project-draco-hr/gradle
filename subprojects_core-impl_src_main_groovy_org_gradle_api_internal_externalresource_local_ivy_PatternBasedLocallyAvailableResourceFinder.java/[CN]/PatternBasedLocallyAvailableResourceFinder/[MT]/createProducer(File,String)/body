@@ -1,5 +1,5 @@
 {
-  return new Transformer<List<LocallyAvailableResource>,ArtifactRevisionId>(){
+  return new Transformer<Factory<List<File>>,ArtifactRevisionId>(){
     DirectoryFileTree fileTree=new DirectoryFileTree(baseDir);
     private String getArtifactPattern(    ArtifactRevisionId artifactId){
       String substitute=pattern;
@@ -15,17 +15,22 @@
       pattern.include(patternString);
       return fileTree.filter(pattern);
     }
-    public List<LocallyAvailableResource> transform(    ArtifactRevisionId artifactId){
-      final List<LocallyAvailableResource> locallyAvailableResources=new LinkedList<LocallyAvailableResource>();
-      if (artifactId != null) {
-        getMatchingFiles(artifactId).visit(new EmptyFileVisitor(){
-          public void visitFile(          FileVisitDetails fileDetails){
-            locallyAvailableResources.add(new DefaultLocallyAvailableResource(fileDetails.getFile()));
-          }
-        }
+    public Factory<List<File>> transform(    final ArtifactRevisionId artifactId){
+      return new Factory<List<File>>(){
+        public List<File> create(){
+          final List<File> files=new LinkedList<File>();
+          if (artifactId != null) {
+            getMatchingFiles(artifactId).visit(new EmptyFileVisitor(){
+              public void visitFile(              FileVisitDetails fileDetails){
+                files.add(fileDetails.getFile());
+              }
+            }
 );
+          }
+          return files;
+        }
       }
-      return locallyAvailableResources;
+;
     }
   }
 ;
