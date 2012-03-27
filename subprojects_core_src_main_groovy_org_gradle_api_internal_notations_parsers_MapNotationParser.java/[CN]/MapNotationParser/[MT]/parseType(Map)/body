@@ -1,12 +1,37 @@
 {
-  Set<String> missing=new TreeSet<String>(getRequiredKeys());
-  missing.removeAll(values.keySet());
+  Map<String,Object> mutableValues=new HashMap<String,Object>(values);
+  Set<String> missing=new TreeSet<String>();
+  Object[] params=new Object[convertMethod.getParameterTypes().length];
+  for (int i=0; i < params.length; i++) {
+    String keyName=keyNames[i];
+    boolean optional=this.optional[i];
+    Class<?> type=convertMethod.getParameterTypes()[i];
+    Object value;
+    if (type.equals(String.class)) {
+      value=get(mutableValues,keyName);
+    }
+ else {
+      value=type.cast(mutableValues.get(keyName));
+    }
+    if (!optional && value == null) {
+      missing.add(keyName);
+    }
+    mutableValues.remove(keyName);
+    params[i]=value;
+  }
   if (!missing.isEmpty()) {
     throw new InvalidUserDataException(String.format("Required keys %s are missing from map %s.",missing,values));
   }
-  T result=parseMap(Collections.unmodifiableMap(values));
-  values.keySet().removeAll(getRequiredKeys());
-  values.keySet().removeAll(getOptionalKeys());
-  ConfigureUtil.configureByMap(values,result);
+  T result;
+  try {
+    result=(T)convertMethod.invoke(this,params);
+  }
+ catch (  IllegalAccessException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+catch (  InvocationTargetException e) {
+    throw UncheckedException.unwrapAndRethrow(e);
+  }
+  ConfigureUtil.configureByMap(mutableValues,result);
   return result;
 }
