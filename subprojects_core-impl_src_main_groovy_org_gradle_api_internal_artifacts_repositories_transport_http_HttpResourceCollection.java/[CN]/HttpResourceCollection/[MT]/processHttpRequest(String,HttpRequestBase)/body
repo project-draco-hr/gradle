@@ -1,11 +1,6 @@
 {
   String method=request.getMethod();
   configurer.configureMethod(request);
-  if (cachedExternalResource != null && cachedExternalResource.getExternalResourceMetaData() != null && cachedExternalResource.getExternalResourceMetaData().getLastModified() != null) {
-    String formattedDate=DateUtils.formatDate(cachedExternalResource.getExternalResourceMetaData().getLastModified());
-    LOGGER.info("Adding If-Modified-Since: {}. [HTTP {}: {}]",new Object[]{formattedDate,method,source});
-    request.addHeader("If-Modified-Since",formattedDate);
-  }
   HttpResponse response;
   try {
     response=executeGetOrHead(request);
@@ -16,10 +11,6 @@
   if (wasMissing(response)) {
     LOGGER.info("Resource missing. [HTTP {}: {}]",method,source);
     return new MissingExternalResource(source);
-  }
-  if (cachedExternalResource != null && wasUnmodified(response)) {
-    LOGGER.info("Resource was unmodified. [HTTP {}: {}]",method,source);
-    return new CachedExternalResourceAdapter(source,cachedExternalResource,HttpResourceCollection.this);
   }
   if (!wasSuccessful(response)) {
     LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]",new Object[]{method,response.getStatusLine(),source});
