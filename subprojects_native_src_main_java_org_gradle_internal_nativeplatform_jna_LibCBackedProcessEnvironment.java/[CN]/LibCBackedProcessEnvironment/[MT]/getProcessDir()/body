@@ -1,8 +1,10 @@
 {
   byte[] out=new byte[LOTS_OF_CHARS];
-  String retval=libc.getcwd(out,LOTS_OF_CHARS);
-  if (retval == null) {
-    throw new NativeIntegrationException(String.format("Could not get process working directory. errno: %d",libc.errno()));
+  try {
+    libc.getcwd(out,LOTS_OF_CHARS);
+  }
+ catch (  LastErrorException lastErrorException) {
+    throw new NativeIntegrationException(String.format("Could not get process working directory. errno: %d",lastErrorException.getErrorCode()));
   }
   return new File(Native.toString(out));
 }
