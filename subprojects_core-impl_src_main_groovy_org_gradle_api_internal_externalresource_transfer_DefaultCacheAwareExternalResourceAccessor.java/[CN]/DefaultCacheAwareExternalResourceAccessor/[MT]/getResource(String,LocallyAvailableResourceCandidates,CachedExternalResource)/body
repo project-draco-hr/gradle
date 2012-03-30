@@ -1,14 +1,16 @@
 {
   LOGGER.debug("Constructing external resource: {}",source);
+  if (cached == null && (localCandidates == null || localCandidates.isNone())) {
+    return delegate.getResource(source);
+  }
+  final ExternalResourceMetaData remoteMetaData=delegate.getMetaData(source);
+  if (remoteMetaData == null) {
+    return null;
+  }
   if (cached != null) {
     boolean isUnchanged=ExternalResourceMetaDataCompare.isDefinitelyUnchanged(cached.getExternalResourceMetaData(),new Factory<ExternalResourceMetaData>(){
       public ExternalResourceMetaData create(){
-        try {
-          return delegate.getMetaData(source);
-        }
- catch (        IOException e) {
-          return null;
-        }
+        return remoteMetaData;
       }
     }
 );
