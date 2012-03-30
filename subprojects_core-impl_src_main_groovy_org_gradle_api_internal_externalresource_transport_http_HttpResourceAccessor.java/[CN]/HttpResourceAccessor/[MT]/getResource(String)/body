@@ -1,3 +1,18 @@
 {
-  return getResource(source,null,null);
+  abortOpenResources();
+  LOGGER.debug("Constructing external resource: {}",source);
+  HttpResponse response=http.performGet(source);
+  if (response != null) {
+    ExternalResource resource=new HttpResponseResource("GET",source,response){
+      @Override public void close() throws IOException {
+        super.close();
+        HttpResourceAccessor.this.openResources.remove(this);
+      }
+    }
+;
+    return recordOpenGetResource(resource);
+  }
+ else {
+    return null;
+  }
 }

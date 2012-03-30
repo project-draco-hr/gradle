@@ -1,0 +1,32 @@
+{
+  LOGGER.debug("Constructing external resource: {}",source);
+  boolean hasLocalCandidates=localCandidates != null && !localCandidates.isNone();
+  if (hasLocalCandidates) {
+    HashValue remoteChecksum=delegate.getResourceSha1(source);
+    if (remoteChecksum != null) {
+      LocallyAvailableResource local=localCandidates.findByHashValue(remoteChecksum);
+      if (local != null) {
+        LOGGER.info("Found locally available resource with matching checksum: [{}, {}]",source,local.getFile());
+        return new LocallyAvailableExternalResource(source,local);
+      }
+    }
+  }
+  if (cached != null) {
+    boolean isUnchanged=ExternalResourceMetaDataCompare.isDefinitelyUnchanged(cached.getExternalResourceMetaData(),new Factory<ExternalResourceMetaData>(){
+      public ExternalResourceMetaData create(){
+        try {
+          return delegate.getMetaData(source);
+        }
+ catch (        IOException e) {
+          return null;
+        }
+      }
+    }
+);
+    if (isUnchanged) {
+      LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]",cached.getExternalLastModified(),source);
+      return new CachedExternalResourceAdapter(source,cached,delegate);
+    }
+  }
+  return delegate.getResource(source);
+}
