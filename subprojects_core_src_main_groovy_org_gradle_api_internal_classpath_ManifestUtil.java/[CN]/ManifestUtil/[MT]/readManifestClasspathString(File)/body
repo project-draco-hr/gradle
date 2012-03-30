@@ -1,0 +1,20 @@
+{
+  if (!classpathFile.exists() || !classpathFile.isFile()) {
+    return EMPTY;
+  }
+  try {
+    Manifest manifest=new JarFile(classpathFile).getManifest();
+    if (manifest == null) {
+      return EMPTY;
+    }
+    String classpathEntry=manifest.getMainAttributes().getValue("Class-Path");
+    if (classpathEntry == null) {
+      return EMPTY;
+    }
+    return classpathEntry.split(" ");
+  }
+ catch (  IOException e) {
+    LOGGER.info("Failed to read manifest Class-Path from {}: {}",classpathFile,e);
+    return EMPTY;
+  }
+}

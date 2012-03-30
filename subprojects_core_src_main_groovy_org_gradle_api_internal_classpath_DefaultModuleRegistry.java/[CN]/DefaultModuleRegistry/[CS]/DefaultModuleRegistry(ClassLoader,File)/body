@@ -1,19 +1,10 @@
 {
   this.classLoader=classLoader;
   this.distDir=distDir;
-  for (  URL url : ClasspathUtil.getClasspath(classLoader)) {
-    if (url.getProtocol().equals("file")) {
-      try {
-        addClasspathEntry(new File(url.toURI()));
-      }
- catch (      URISyntaxException e) {
-        throw new UncheckedIOException(e);
-      }
-    }
-  }
-  if (classLoader == ClassLoader.getSystemClassLoader()) {
-    for (    String value : System.getProperty("java.class.path").split(File.pathSeparator)) {
-      addClasspathEntry(new File(value));
+  for (  File classpathFile : new EffectiveClassPath(classLoader).getAsFiles()) {
+    classpath.add(classpathFile);
+    if (classpathFile.isFile() && !classpathJars.containsKey(classpathFile.getName())) {
+      classpathJars.put(classpathFile.getName(),classpathFile);
     }
   }
   if (distDir != null) {

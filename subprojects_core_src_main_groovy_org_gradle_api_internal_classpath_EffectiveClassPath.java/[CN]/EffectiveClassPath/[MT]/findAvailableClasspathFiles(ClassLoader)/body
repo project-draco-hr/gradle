@@ -1,0 +1,21 @@
+{
+  List<URL> rawClasspath=ClasspathUtil.getClasspath(classLoader);
+  List<File> classpathFiles=new ArrayList<File>();
+  for (  URL url : rawClasspath) {
+    if (url.getProtocol().equals("file")) {
+      try {
+        File classpathFile=new File(url.toURI());
+        addClasspathFile(classpathFile,classpathFiles);
+      }
+ catch (      URISyntaxException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
+  if (classLoader == ClassLoader.getSystemClassLoader()) {
+    for (    String value : System.getProperty("java.class.path").split(File.pathSeparator)) {
+      addClasspathFile(new File(value),classpathFiles);
+    }
+  }
+  return classpathFiles;
+}
