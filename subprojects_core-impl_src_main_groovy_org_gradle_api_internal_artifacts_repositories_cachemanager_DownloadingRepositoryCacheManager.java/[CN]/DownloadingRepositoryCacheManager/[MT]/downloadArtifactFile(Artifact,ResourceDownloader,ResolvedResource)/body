@@ -2,9 +2,10 @@
   File tempFile=fileStore.getTempFile();
   resourceDownloader.download(artifact,artifactRef.getResource(),tempFile);
   File fileInFileStore=fileStore.add(artifact.getId(),tempFile);
-  String url=artifactRef.getResource().getName();
-  long lastModifiedTimestamp=artifactRef.getResource().getLastModified();
-  Date lastModified=lastModifiedTimestamp > 0 ? new Date(lastModifiedTimestamp) : null;
-  artifactUrlCachedResolutionIndex.store(artifactRef.getResource().getName(),fileInFileStore,new DefaultExternalResourceMetaData(url,lastModified,artifactRef.getResource().getContentLength(),null));
+  if (artifactRef.getResource() instanceof ExternalResource) {
+    ExternalResource resource=(ExternalResource)artifactRef.getResource();
+    ExternalResourceMetaData metaData=resource.getMetaData();
+    artifactUrlCachedResolutionIndex.store(metaData.getLocation(),fileInFileStore,metaData);
+  }
   return fileInFileStore;
 }
