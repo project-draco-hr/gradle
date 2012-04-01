@@ -1,0 +1,18 @@
+{
+  CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter=(CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
+  CommandLineParser parser=new CommandLineParser();
+  loggingConfigurationConverter.configure(parser);
+  parser.allowUnknownOptions();
+  parser.allowMixedSubcommandsAndOptions();
+  try {
+    ParsedCommandLine parsedCommandLine=parser.parse(args);
+    loggingConfigurationConverter.convert(parsedCommandLine,loggingConfiguration);
+  }
+ catch (  CommandLineArgumentException e) {
+  }
+  LoggingManagerInternal loggingManager=loggingServices.getFactory(LoggingManagerInternal.class).create();
+  loggingManager.setLevel(loggingConfiguration.getLogLevel());
+  loggingManager.colorStdOutAndStdErr(loggingConfiguration.isColorOutput());
+  loggingManager.start();
+  action.execute(executionListener);
+}

@@ -1,0 +1,21 @@
+{
+  List<CommandLineAction> actions=new ArrayList<CommandLineAction>();
+  actions.add(new BuiltInActions());
+  createActionFactories(loggingServices,actions);
+  CommandLineParser parser=new CommandLineParser();
+  for (  CommandLineAction action : actions) {
+    action.configureCommandLineParser(parser);
+  }
+  Action<ExecutionListener> action;
+  try {
+    ParsedCommandLine commandLine=parser.parse(args);
+    action=createAction(actions,parser,commandLine);
+  }
+ catch (  CommandLineArgumentException e) {
+    action=new CommandLineParseFailureAction(parser,e);
+  }
+catch (  Throwable t) {
+    action=new ActionAdapter(new BrokenAction(t));
+  }
+  action.execute(executionListener);
+}

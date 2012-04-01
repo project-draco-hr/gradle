@@ -1,25 +1,6 @@
 {
   ServiceRegistry loggingServices=createLoggingServices();
-  List<CommandLineAction> actions=new ArrayList<CommandLineAction>();
-  actions.add(new BuiltInActions());
-  createActionFactories(loggingServices,actions);
-  CommandLineParser parser=new CommandLineParser();
-  for (  CommandLineAction action : actions) {
-    action.configureCommandLineParser(parser);
-  }
   LoggingConfiguration loggingConfiguration=new LoggingConfiguration();
-  Action<ExecutionListener> action;
-  try {
-    ParsedCommandLine commandLine=parser.parse(args);
-    @SuppressWarnings("unchecked") CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter=(CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
-    loggingConfigurationConverter.convert(commandLine,loggingConfiguration);
-    action=createAction(actions,parser,commandLine);
-  }
- catch (  CommandLineArgumentException e) {
-    action=new CommandLineParseFailureAction(parser,e);
-  }
-catch (  Throwable t) {
-    action=new ActionAdapter(new BrokenAction(t));
-  }
-  return new WithLoggingAction(loggingConfiguration,loggingServices,new ExceptionReportingAction(action,new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class),loggingConfiguration,clientMetaData())));
+  Action<ExecutionListener> action=new WithLogging(loggingServices,args,loggingConfiguration,new ParseAndBuildAction(loggingServices,args));
+  return new ExceptionReportingAction(action,new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class),loggingConfiguration,clientMetaData()));
 }
