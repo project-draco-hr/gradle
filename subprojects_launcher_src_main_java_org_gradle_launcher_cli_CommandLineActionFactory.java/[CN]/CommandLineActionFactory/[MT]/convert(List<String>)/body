@@ -1,6 +1,8 @@
 {
   ServiceRegistry loggingServices=createLoggingServices();
-  List<CommandLineAction> actions=Arrays.asList(new BuiltInActions(),new GuiActions(),new BuildActions(loggingServices));
+  List<CommandLineAction> actions=new ArrayList<CommandLineAction>();
+  actions.add(new BuiltInActions());
+  createActionFactories(loggingServices,actions);
   CommandLineParser parser=new CommandLineParser();
   for (  CommandLineAction action : actions) {
     action.configureCommandLineParser(parser);
@@ -15,6 +17,9 @@
   }
  catch (  CommandLineArgumentException e) {
     action=new CommandLineParseFailureAction(parser,e);
+  }
+catch (  Throwable t) {
+    action=new ActionAdapter(new BrokenAction(t));
   }
   return new WithLoggingAction(loggingConfiguration,loggingServices,new ExceptionReportingAction(action,new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class),loggingConfiguration,clientMetaData())));
 }
