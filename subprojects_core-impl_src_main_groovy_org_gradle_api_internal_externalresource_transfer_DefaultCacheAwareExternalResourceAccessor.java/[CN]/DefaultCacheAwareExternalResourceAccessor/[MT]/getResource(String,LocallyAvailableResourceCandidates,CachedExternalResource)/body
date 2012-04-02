@@ -1,9 +1,9 @@
 {
-  LOGGER.debug("Constructing external resource: {}",source);
+  LOGGER.debug("Constructing external resource: {}",location);
   if (cached == null && (localCandidates == null || localCandidates.isNone())) {
-    return delegate.getResource(source);
+    return delegate.getResource(location);
   }
-  final ExternalResourceMetaData remoteMetaData=delegate.getMetaData(source);
+  final ExternalResourceMetaData remoteMetaData=delegate.getMetaData(location);
   if (remoteMetaData == null) {
     return null;
   }
@@ -15,23 +15,23 @@
     }
 );
     if (isUnchanged) {
-      LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]",cached.getExternalLastModified(),source);
-      return new CachedExternalResourceAdapter(source,cached,delegate,remoteMetaData);
+      LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]",cached.getExternalLastModified(),location);
+      return new CachedExternalResourceAdapter(location,cached,delegate);
     }
   }
   boolean hasLocalCandidates=localCandidates != null && !localCandidates.isNone();
   if (hasLocalCandidates) {
     HashValue remoteChecksum=remoteMetaData.getSha1();
     if (remoteChecksum == null) {
-      remoteChecksum=delegate.getResourceSha1(source);
+      remoteChecksum=delegate.getResourceSha1(location);
     }
     if (remoteChecksum != null) {
       LocallyAvailableResource local=localCandidates.findByHashValue(remoteChecksum);
       if (local != null) {
-        LOGGER.info("Found locally available resource with matching checksum: [{}, {}]",source,local.getFile());
-        return new LocallyAvailableExternalResource(source,local,remoteMetaData);
+        LOGGER.info("Found locally available resource with matching checksum: [{}, {}]",location,local.getFile());
+        return new LocallyAvailableExternalResource(location,local);
       }
     }
   }
-  return delegate.getResource(source);
+  return delegate.getResource(location);
 }
