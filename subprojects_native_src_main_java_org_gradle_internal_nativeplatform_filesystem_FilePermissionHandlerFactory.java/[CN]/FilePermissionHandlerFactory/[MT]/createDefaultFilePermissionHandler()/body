@@ -1,12 +1,14 @@
 {
   if (Jvm.current().isJava7() && !OperatingSystem.current().isWindows()) {
+    String jdkFilePermissionclass="org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
     try {
-      String jdkFilePermissionclass="org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
-      FilePermissionHandler jdk7FilePermissionHandler=(FilePermissionHandler)FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
-      return jdk7FilePermissionHandler;
+      return (FilePermissionHandler)FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
     }
- catch (    Exception e) {
-      LOGGER.warn("Unable to load Jdk7FilePermissionHandler",e);
+ catch (    ClassNotFoundException e) {
+      LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.",jdkFilePermissionclass));
+    }
+catch (    Exception e) {
+      throw UncheckedException.throwAsUncheckedException(e);
     }
   }
   ComposableFilePermissionHandler.Chmod chmod=createChmod();
