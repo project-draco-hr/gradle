@@ -1,0 +1,13 @@
+{
+  File workDir=spec.getWorkDir();
+  ensureDirsExist(workDir,spec.getOutputFile().getParentFile());
+  ExecAction compiler=execActionFactory.create();
+  compiler.executable(executable);
+  compiler.workingDir(workDir);
+  compiler.args(toArguments.transform(spec));
+  for (  Closure closure : spec.getSettings()) {
+    closure.call(compiler);
+  }
+  compiler.execute();
+  return new SimpleWorkResult(true);
+}

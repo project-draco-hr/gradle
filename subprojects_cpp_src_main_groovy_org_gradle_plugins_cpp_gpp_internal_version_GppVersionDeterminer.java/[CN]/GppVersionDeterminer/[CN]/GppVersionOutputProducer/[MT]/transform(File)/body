@@ -1,0 +1,20 @@
+{
+  ExecHandleBuilder exec=execHandleBuilderFactory.create();
+  exec.executable(gppBinary.getAbsolutePath());
+  exec.setWorkingDir(gppBinary.getParentFile());
+  exec.args("-v");
+  ByteArrayOutputStream baos=new ByteArrayOutputStream();
+  exec.setErrorOutput(baos);
+  ExecHandle handle=exec.build();
+  ExecResult result=handle.start().waitForFinish();
+  int exitValue=result.getExitValue();
+  if (exitValue == 0) {
+    String output=new String(baos.toByteArray());
+    LOGGER.debug("Output from '{} -v {}",gppBinary.getPath(),output);
+    return output;
+  }
+ else {
+    LOGGER.warn("Executing '{} -v' return exit code {}, cannot use",gppBinary.getPath(),exitValue);
+    return null;
+  }
+}
