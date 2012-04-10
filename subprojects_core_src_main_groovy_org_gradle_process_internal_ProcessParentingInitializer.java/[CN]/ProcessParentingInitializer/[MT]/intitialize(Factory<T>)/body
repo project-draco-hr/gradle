@@ -1,24 +1,22 @@
 {
   if (initialized) {
-    operation.execute();
-    return;
+    return operation.create();
   }
-  synchronizer.synchronize(new Operation(){
-    public void execute(){
+  return synchronizer.synchronize(new Factory<T>(){
+    public T create(){
       if (initialized) {
-        operation.execute();
-        return;
+        return operation.create();
       }
       try {
         if (OperatingSystem.current().isWindows()) {
           new WindowsHandlesManipulator().uninheritStandardStreams();
         }
-        operation.execute();
+        return operation.create();
       }
   finally {
         initialized=true;
+        LOGGER.info("An attempt to initialize for well behaving parent process finished.");
       }
-      LOGGER.info("An attempt to initialize for well behaving parent process finished.");
     }
   }
 );

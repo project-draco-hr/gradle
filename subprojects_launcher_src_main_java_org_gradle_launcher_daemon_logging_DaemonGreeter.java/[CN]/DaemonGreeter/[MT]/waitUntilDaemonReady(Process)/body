@@ -6,7 +6,7 @@
  catch (  Exception e) {
     throw new GradleException("Unable to get a greeting message from the daemon process." + " Most likely the daemon process cannot be started.",e);
   }
-  if (lines.isEmpty() || !lines.get(lines.size() - 1).equals(DaemonMessages.ABOUT_TO_CLOSE_STREAMS)) {
+  if (lines.isEmpty() || !lines.get(lines.size() - 1).startsWith(DaemonMessages.ABOUT_TO_CLOSE_STREAMS)) {
     int exitValue;
     try {
       exitValue=process.exitValue();
@@ -16,4 +16,9 @@
     }
     throw new GradleException(DaemonMessages.UNABLE_TO_START_DAEMON + " The exit value was: " + exitValue+ "."+ "\n"+ processOutput(lines));
   }
+  String lastLine=lines.get(lines.size() - 1);
+  String[] split=lastLine.split(";");
+  long pid=Long.valueOf(split[1]);
+  String daemonLog=split[2];
+  return new DaemonDiagnostics(new File(daemonLog),pid);
 }

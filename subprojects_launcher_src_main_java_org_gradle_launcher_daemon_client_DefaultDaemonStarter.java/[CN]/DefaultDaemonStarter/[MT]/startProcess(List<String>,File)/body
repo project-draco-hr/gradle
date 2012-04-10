@@ -1,16 +1,17 @@
 {
   LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}",workingDir,args);
+  Clock clock=new Clock();
   try {
     workingDir.mkdirs();
-    Clock clock=new Clock();
-    ProcessParentingInitializer.intitialize(new Operation(){
-      public void execute(){
+    return ProcessParentingInitializer.intitialize(new Factory<DaemonDiagnostics>(){
+      public DaemonDiagnostics create(){
         try {
           Process process=new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
-          daemonGreeter.verifyGreetingReceived(process);
+          DaemonDiagnostics out=daemonGreeter.waitUntilDaemonReady(process);
           process.getOutputStream().close();
           process.getErrorStream().close();
           process.getInputStream().close();
+          return out;
         }
  catch (        IOException e) {
           throw new RuntimeException(e);
@@ -18,12 +19,14 @@
       }
     }
 );
-    LOGGER.info("Starting the daemon process took {}.",clock.getTime());
   }
  catch (  GradleException e) {
     throw e;
   }
 catch (  Exception e) {
     throw new GradleException("Could not start Gradle daemon.",e);
+  }
+ finally {
+    LOGGER.info("An attempt to start the daemon took {}.",clock.getTime());
   }
 }
