@@ -1,7 +1,7 @@
 {
   LOGGER.info("Starting Gradle daemon");
-  final DaemonProcessInfo processInfo=daemonStarter.startDaemon();
-  LOGGER.debug("Started Gradle Daemon: {}",processInfo);
+  final DaemonStartupInfo startupInfo=daemonStarter.startDaemon();
+  LOGGER.debug("Started Gradle Daemon: {}",startupInfo);
   long expiry=System.currentTimeMillis() + connectTimeout;
   do {
     try {
@@ -10,11 +10,11 @@
  catch (    InterruptedException e) {
       throw UncheckedException.throwAsUncheckedException(e);
     }
-    DaemonConnection daemonConnection=connectToDaemonWithId(processInfo);
+    DaemonConnection daemonConnection=connectToDaemonWithId(startupInfo);
     if (daemonConnection != null) {
       return daemonConnection;
     }
   }
  while (System.currentTimeMillis() < expiry);
-  throw new GradleException("Timeout waiting to connect to Gradle daemon.\n" + processInfo.describe());
+  throw new GradleException("Timeout waiting to connect to Gradle daemon.\n" + startupInfo.describe());
 }
