@@ -1,0 +1,24 @@
+{
+  try {
+    java.nio.channels.FileLock updateLock=null;
+    if (mode != LockMode.Exclusive) {
+      lock.release();
+      lock=null;
+      updateLock=lock(LockMode.Exclusive);
+    }
+    try {
+      markDirty();
+      action.run();
+      markClean();
+    }
+  finally {
+      if (mode != LockMode.Exclusive) {
+        updateLock.release();
+        lock=lock(mode);
+      }
+    }
+  }
+ catch (  Throwable t) {
+    throw UncheckedException.throwAsUncheckedException(t);
+  }
+}
