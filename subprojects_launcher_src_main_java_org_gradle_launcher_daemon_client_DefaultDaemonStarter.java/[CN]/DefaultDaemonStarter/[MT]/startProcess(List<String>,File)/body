@@ -3,22 +3,16 @@
   Clock clock=new Clock();
   try {
     workingDir.mkdirs();
-    return ProcessParentingInitializer.intitialize(new Factory<DaemonDiagnostics>(){
-      public DaemonDiagnostics create(){
-        try {
-          Process process=new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
-          DaemonDiagnostics out=daemonGreeter.waitUntilDaemonReady(process);
-          process.getOutputStream().close();
-          process.getErrorStream().close();
-          process.getInputStream().close();
-          return out;
-        }
- catch (        IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }
-);
+    ExecHandleBuilder builder=new ExecHandleBuilder();
+    builder.commandLine(args);
+    builder.setWorkingDir(workingDir);
+    builder.setStandardInput(new ByteArrayInputStream(new byte[0]));
+    ByteArrayOutputStream output=new ByteArrayOutputStream();
+    builder.setStandardOutput(output);
+    builder.setErrorOutput(output);
+    ExecHandle handle=builder.build();
+    handle.startDaemon();
+    return daemonGreeter.parseDaemonOutput(output.toString());
   }
  catch (  GradleException e) {
     throw e;
