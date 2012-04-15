@@ -8,14 +8,19 @@
   jointCompilationOptions.put("stubDir",spec.getGroovyCompileOptions().getStubDir());
   jointCompilationOptions.put("keepStubs",spec.getGroovyCompileOptions().isKeepStubs());
   configuration.setJointCompilationOptions(jointCompilationOptions);
+  spec.setClasspath(Iterables.concat(spec.getClasspath(),Collections.singleton(spec.getDestinationDir())));
+  GroovyClassLoader compileClasspathClassLoader=new GroovyClassLoader(null,null);
+  for (  File file : spec.getClasspath()) {
+    compileClasspathClassLoader.addClasspath(file.getPath());
+  }
   FilteringClassLoader groovyCompilerClassLoader=new FilteringClassLoader(getClass().getClassLoader());
   groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
-  spec.setClasspath(Iterables.concat(spec.getClasspath(),Collections.singleton(spec.getDestinationDir())));
-  GroovyClassLoader compilationUnitClassLoader=new GroovyClassLoader(groovyCompilerClassLoader,null);
+  groovyCompilerClassLoader.allowPackage("groovy");
+  GroovyClassLoader astTransformClassLoader=new GroovyClassLoader(groovyCompilerClassLoader,null);
   for (  File file : spec.getClasspath()) {
-    compilationUnitClassLoader.addClasspath(file.getPath());
+    astTransformClassLoader.addClasspath(file.getPath());
   }
-  JavaAwareCompilationUnit unit=new JavaAwareCompilationUnit(configuration,compilationUnitClassLoader);
+  JavaAwareGroovyCompilationUnit unit=new JavaAwareGroovyCompilationUnit(configuration,compileClasspathClassLoader,astTransformClassLoader);
   unit.addSources(Iterables.toArray(spec.getSource(),File.class));
   unit.setCompilerFactory(new org.codehaus.groovy.tools.javac.JavaCompilerFactory(){
     public JavaCompiler createCompiler(    final CompilerConfiguration config){

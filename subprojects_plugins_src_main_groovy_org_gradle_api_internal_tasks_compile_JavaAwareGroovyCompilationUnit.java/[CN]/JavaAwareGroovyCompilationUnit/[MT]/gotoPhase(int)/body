@@ -1,0 +1,18 @@
+{
+  super.gotoPhase(phase);
+  if (phase == Phases.SEMANTIC_ANALYSIS && javaSources.size() > 0) {
+    for (    ModuleNode module : getAST().getModules()) {
+      module.setImportsResolved(false);
+    }
+    try {
+      JavaCompiler compiler=compilerFactory.createCompiler(getConfiguration());
+      compiler.compile(javaSources,this);
+    }
+  finally {
+      if (!keepStubs) {
+        stubGenerator.clean();
+      }
+      javaSources.clear();
+    }
+  }
+}
