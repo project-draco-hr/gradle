@@ -1,10 +1,11 @@
 {
-  boolean verbose=getVerboseLogging();
-  if (verbose) {
+  LoggingCommandLineConverter converter=new LoggingCommandLineConverter();
+  CommandLineParser parser=new CommandLineParser().allowUnknownOptions();
+  converter.configure(parser);
+  ParsedCommandLine parsedCommandLine=parser.parse(getArguments());
+  if (getVerboseLogging() && !parsedCommandLine.hasAnyOption(converter.getLogLevelOptions())) {
     return LogLevel.DEBUG;
   }
- else {
-    LoggingConfiguration loggingConfiguration=new LoggingCommandLineConverter().convert(getArguments());
-    return loggingConfiguration.getLogLevel();
-  }
+  LoggingConfiguration loggingConfiguration=converter.convert(parsedCommandLine);
+  return loggingConfiguration.getLogLevel();
 }
