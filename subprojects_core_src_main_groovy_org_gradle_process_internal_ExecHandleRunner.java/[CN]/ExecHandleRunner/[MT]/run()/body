@@ -2,31 +2,23 @@
   ProcessBuilder processBuilder=processBuilderFactory.createProcessBuilder(execHandle);
   int exitCode;
   try {
-    ExecOutputHandleRunner standardOutputRunner;
-    ExecOutputHandleRunner errorOutputRunner;
-    ExecOutputHandleRunner standardInputRunner;
-    InputStream instr=new DisconnectableInputStream(execHandle.getStandardInput());
     Process process;
 synchronized (START_LOCK) {
       process=processBuilder.start();
-      standardOutputRunner=new ExecOutputHandleRunner("read process standard output",process.getInputStream(),execHandle.getStandardOutput());
-      errorOutputRunner=new ExecOutputHandleRunner("read process error output",process.getErrorStream(),execHandle.getErrorOutput());
-      standardInputRunner=new ExecOutputHandleRunner("write process standard input",instr,process.getOutputStream());
+      streamsForwarder.connectStreams(process);
     }
 synchronized (lock) {
       this.process=process;
     }
-    threadPool.execute(standardInputRunner);
-    threadPool.execute(standardOutputRunner);
-    threadPool.execute(errorOutputRunner);
+    streamsForwarder.start(threadPool);
     execHandle.started();
     if (execHandle.isDaemon()) {
-      instr.close();
+      streamsForwarder.close();
       execHandle.finished(0);
       return;
     }
     exitCode=process.waitFor();
-    instr.close();
+    streamsForwarder.close();
   }
  catch (  Throwable t) {
     execHandle.failed(t);
