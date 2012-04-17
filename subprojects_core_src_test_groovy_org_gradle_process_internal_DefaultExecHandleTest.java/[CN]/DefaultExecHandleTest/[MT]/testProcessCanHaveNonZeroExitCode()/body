@@ -1,5 +1,5 @@
 {
-  DefaultExecHandle execHandle=new DefaultExecHandle("display-name",tmpDir.getDir(),Jvm.current().getJavaExecutable().getAbsolutePath(),Arrays.asList("-cp",System.getProperty("java.class.path"),BrokenApp.class.getName()),System.getenv(),new StreamsForwarder(),Collections.<ExecHandleListener>emptyList(),false);
+  ExecHandle execHandle=handle().args(args(BrokenApp.class)).build();
   ExecResult result=execHandle.start().waitForFinish();
   assertEquals(ExecHandleState.FAILED,execHandle.getState());
   assertEquals(72,result.getExitValue());
@@ -8,6 +8,6 @@
     fail();
   }
  catch (  ExecException e) {
-    assertEquals("Display-name finished with (non-zero) exit value 72.",e.getMessage());
+    assertTrue(e.getMessage().contains("finished with (non-zero) exit value 72."));
   }
 }
