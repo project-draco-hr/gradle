@@ -2,27 +2,24 @@
   if (getWorker() == null) {
     throw new IllegalStateException("No worker action specified for this worker process.");
   }
-  final TmpDirTemporaryFileProvider tmpFileProvider=new TmpDirTemporaryFileProvider();
-  final DefaultWorkerProcess workerProcess=new DeleteFilesOnStopWorkerProcess(120,TimeUnit.SECONDS,tmpFileProvider);
+  DefaultWorkerProcess workerProcess=new DefaultWorkerProcess(120,TimeUnit.SECONDS);
   Address localAddress=server.accept(workerProcess.getConnectAction());
   List<URL> implementationClassPath=ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
   Object id=idGenerator.generateId();
   String displayName=String.format("Gradle Worker %s",id);
   WorkerFactory workerFactory;
   if (isLoadApplicationInSystemClassLoader()) {
-    workerFactory=new ApplicationClassesInSystemClassLoaderWorkerFactory(id,displayName,this,implementationClassPath,localAddress,classPathRegistry,tmpFileProvider);
+    workerFactory=new ApplicationClassesInSystemClassLoaderWorkerFactory(id,displayName,this,implementationClassPath,localAddress,classPathRegistry);
   }
  else {
     workerFactory=new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id,displayName,this,implementationClassPath,localAddress,classPathRegistry);
   }
-  Callable<?> workerMain=workerFactory.create();
-  byte[] config=GUtil.serialize(workerMain);
   LOGGER.debug("Creating {}",displayName);
   LOGGER.debug("Using application classpath {}",getApplicationClasspath());
   LOGGER.debug("Using implementation classpath {}",implementationClassPath);
   JavaExecHandleBuilder javaCommand=getJavaCommand();
-  javaCommand.classpath(workerFactory.getSystemClasspath());
-  javaCommand.setStandardInput(new ByteArrayInputStream(config));
+  attachStdInContent(workerFactory,javaCommand);
+  workerFactory.prepareJavaCommand(javaCommand);
   javaCommand.setDisplayName(displayName);
   ExecHandle execHandle=javaCommand.build();
   workerProcess.setExecHandle(execHandle);

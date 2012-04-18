@@ -1,0 +1,24 @@
+{
+  execSpec.classpath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
+  execSpec.systemProperty("java.security.manager",BootstrapSecurityManager.class.getName());
+  try {
+    ByteArrayOutputStream stdin=new ByteArrayOutputStream();
+    DataOutputStream outstr=new DataOutputStream(stdin);
+    outstr.writeInt(processBuilder.getApplicationClasspath().size());
+    for (    File file : processBuilder.getApplicationClasspath()) {
+      outstr.writeUTF(file.getAbsolutePath());
+    }
+    outstr.close();
+    final InputStream originalStdin=execSpec.getStandardInput();
+    InputStream input=ByteStreams.join(ByteStreams.newInputStreamSupplier(stdin.toByteArray()),new InputSupplier<InputStream>(){
+      public InputStream getInput() throws IOException {
+        return originalStdin;
+      }
+    }
+).getInput();
+    execSpec.setStandardInput(input);
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+}

@@ -1,0 +1,27 @@
+{
+  if (initialised) {
+    return;
+  }
+  initialised=true;
+  try {
+    URLClassLoader systemClassLoader=target != null ? target : (URLClassLoader)getClass().getClassLoader();
+    Method addUrlMethod=URLClassLoader.class.getDeclaredMethod("addURL",URL.class);
+    addUrlMethod.setAccessible(true);
+    DataInputStream inputStream=new DataInputStream(System.in);
+    int count=inputStream.readInt();
+    StringBuilder classpathStr=new StringBuilder();
+    for (int i=0; i < count; i++) {
+      String entry=inputStream.readUTF();
+      File file=new File(entry);
+      addUrlMethod.invoke(systemClassLoader,file.toURI().toURL());
+      if (i > 0) {
+        classpathStr.append(File.pathSeparator);
+      }
+      classpathStr.append(file.toString());
+    }
+    System.setProperty("java.class.path",classpathStr.toString());
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Could not initialise system classpath.",e);
+  }
+}
