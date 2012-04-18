@@ -1,8 +1,13 @@
 {
-  if (initialised) {
-    return;
+synchronized (this) {
+    if (initialised) {
+      return;
+    }
+    if (System.in == null) {
+      return;
+    }
+    initialised=true;
   }
-  initialised=true;
   System.clearProperty("java.security.manager");
   System.setSecurityManager(null);
   URLClassLoader systemClassLoader=target != null ? target : (URLClassLoader)getClass().getClassLoader();
@@ -35,7 +40,7 @@
       securityManager=(SecurityManager)aClass.newInstance();
     }
  catch (    Exception e) {
-      throw new RuntimeException(String.format("Could not create an instance of '%s' specified for system SecurityManager.",secManagerType),e);
+      throw new RuntimeException("Could not create an instance of '" + secManagerType + "' specified for system SecurityManager.",e);
     }
     System.setSecurityManager(securityManager);
   }
