@@ -1,0 +1,25 @@
+{
+  return new CompilerDaemon(){
+    public <T extends CompileSpec>CompileResult execute(    Compiler<T> compiler,    T spec){
+      ClassLoader groovyClassLoader=classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(forkOptions.getClasspath()));
+      FilteringClassLoader filteredGroovy=classLoaderFactory.createFilteringClassLoader(groovyClassLoader);
+      for (      String packageName : forkOptions.getSharedPackages()) {
+        filteredGroovy.allowPackage(packageName);
+      }
+      ClassLoader workerClassLoader=new MutableURLClassLoader(filteredGroovy,ClasspathUtil.getClasspath(compiler.getClass().getClassLoader()));
+      try {
+        byte[] serializedWorker=GUtil.serialize(new Worker<T>(compiler,spec));
+        ClassLoaderObjectInputStream inputStream=new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker),workerClassLoader);
+        Callable<?> worker=(Callable<?>)inputStream.readObject();
+        Object result=worker.call();
+        byte[] serializedResult=GUtil.serialize(result);
+        inputStream=new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedResult),getClass().getClassLoader());
+        return (CompileResult)inputStream.readObject();
+      }
+ catch (      Exception e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+  }
+;
+}
