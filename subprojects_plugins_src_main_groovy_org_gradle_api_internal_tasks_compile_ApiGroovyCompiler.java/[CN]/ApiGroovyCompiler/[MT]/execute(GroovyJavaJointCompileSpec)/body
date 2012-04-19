@@ -16,11 +16,16 @@
   FilteringClassLoader groovyCompilerClassLoader=new FilteringClassLoader(getClass().getClassLoader());
   groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
   groovyCompilerClassLoader.allowPackage("groovy");
-  GroovyClassLoader astTransformClassLoader=new GroovyClassLoader(groovyCompilerClassLoader,null);
+  final GroovyClassLoader astTransformClassLoader=new GroovyClassLoader(groovyCompilerClassLoader,null);
   for (  File file : spec.getClasspath()) {
     astTransformClassLoader.addClasspath(file.getPath());
   }
-  JavaAwareGroovyCompilationUnit unit=new JavaAwareGroovyCompilationUnit(configuration,compileClasspathClassLoader,astTransformClassLoader);
+  JavaAwareCompilationUnit unit=new JavaAwareCompilationUnit(configuration,compileClasspathClassLoader){
+    @Override public GroovyClassLoader getTransformLoader(){
+      return astTransformClassLoader;
+    }
+  }
+;
   unit.addSources(Iterables.toArray(spec.getSource(),File.class));
   unit.setCompilerFactory(new org.codehaus.groovy.tools.javac.JavaCompilerFactory(){
     public JavaCompiler createCompiler(    final CompilerConfiguration config){
