@@ -1,24 +1,18 @@
 {
-  Executor executor=new DefaultExecutorFactory().create(String.format("Forward streams with process: %s",execHandle.getDisplayName()));
-  executor.execute(new Runnable(){
-    public void run(){
-      ProcessBuilder processBuilder=processBuilderFactory.createProcessBuilder(execHandle);
-      try {
-        Process process;
+  ProcessBuilder processBuilder=processBuilderFactory.createProcessBuilder(execHandle);
+  try {
+    Process process;
 synchronized (START_LOCK) {
-          process=processBuilder.start();
-          streamsForwarder.connectStreams(process);
-        }
-synchronized (lock) {
-          ExecHandleRunner.this.process=process;
-        }
-        streamsForwarder.start();
-        execHandle.started();
-      }
- catch (      Throwable t) {
-        execHandle.failed(t);
-      }
+      process=processBuilder.start();
+      streamsForwarder.connectStreams(process);
     }
+synchronized (lock) {
+      this.process=process;
+    }
+    streamsForwarder.start();
+    execHandle.started();
   }
-);
+ catch (  Throwable t) {
+    execHandle.failed(t);
+  }
 }
