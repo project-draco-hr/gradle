@@ -1,9 +1,14 @@
 {
   final PersistentIndexedCache<K,V> cache=getCache();
-  return fileAccess.readFile(new Factory<V>(){
-    public V create(){
-      return cache.get(key);
+  try {
+    return fileAccess.readFile(new Factory<V>(){
+      public V create(){
+        return cache.get(key);
+      }
     }
-  }
 );
+  }
+ catch (  FileIntegrityViolationException e) {
+    return null;
+  }
 }
