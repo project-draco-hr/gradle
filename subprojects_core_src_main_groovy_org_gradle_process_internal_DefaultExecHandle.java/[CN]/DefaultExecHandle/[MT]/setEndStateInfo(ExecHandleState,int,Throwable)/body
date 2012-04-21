@@ -14,15 +14,15 @@
         wrappedException=new ExecException(String.format("A problem occurred waiting for %s to complete.",displayName),failureCause);
       }
     }
-    setState(state);
+    setState(newState);
     execResult=new ExecResultImpl(exitCode,wrappedException);
     result=execResult;
   }
   finally {
     lock.unlock();
   }
-  LOGGER.debug("Process: {} is now: {}; (code: {})",displayName,state,exitCode);
-  if (currentState != ExecHandleState.DETACHED) {
+  LOGGER.debug("Process: {} is now: {}; (code: {})",displayName,newState,exitCode);
+  if (currentState != ExecHandleState.DETACHED && newState != ExecHandleState.DETACHED) {
     broadcast.getSource().executionFinished(this,result);
   }
   broadcast.stop();
