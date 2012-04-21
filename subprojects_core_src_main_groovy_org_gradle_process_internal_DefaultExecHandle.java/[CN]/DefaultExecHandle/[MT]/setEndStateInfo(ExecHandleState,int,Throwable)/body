@@ -1,13 +1,13 @@
 {
   ShutdownHookActionRegister.removeAction(shutdownHookAction);
   ExecResultImpl result;
-  ExecHandleState previousState;
+  ExecHandleState currentState;
   lock.lock();
   try {
-    previousState=getState();
+    currentState=this.state;
     ExecException wrappedException=null;
     if (failureCause != null) {
-      if (this.state == ExecHandleState.STARTING) {
+      if (currentState == ExecHandleState.STARTING) {
         wrappedException=new ExecException(String.format("A problem occurred starting %s.",displayName),failureCause);
       }
  else {
@@ -22,7 +22,7 @@
     lock.unlock();
   }
   LOGGER.debug("Process: {} is now: {}; (code: {})",displayName,state,exitCode);
-  if (previousState != ExecHandleState.DETACHED) {
+  if (currentState != ExecHandleState.DETACHED) {
     broadcast.getSource().executionFinished(this,result);
   }
   broadcast.stop();
