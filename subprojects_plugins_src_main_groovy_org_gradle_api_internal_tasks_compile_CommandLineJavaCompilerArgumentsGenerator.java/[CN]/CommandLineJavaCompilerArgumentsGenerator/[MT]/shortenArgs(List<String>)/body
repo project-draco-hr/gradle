@@ -1,5 +1,19 @@
 {
   File file=tempFileProvider.createTemporaryFile("compile-args",null,"java-compiler");
-  GFileUtils.writeLines(file,quoteArgs(args));
+  try {
+    PrintWriter writer=new PrintWriter(new FileWriter(file));
+    try {
+      ArgWriter argWriter=ArgWriter.unixStyle(writer);
+      for (      String arg : args) {
+        argWriter.args(arg);
+      }
+    }
+  finally {
+      writer.close();
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
   return Collections.singleton("@" + file.getPath());
 }
