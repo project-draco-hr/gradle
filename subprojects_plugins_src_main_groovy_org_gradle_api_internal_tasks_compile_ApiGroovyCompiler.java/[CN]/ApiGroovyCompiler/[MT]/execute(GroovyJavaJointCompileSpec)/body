@@ -9,23 +9,11 @@
   jointCompilationOptions.put("keepStubs",spec.getGroovyCompileOptions().isKeepStubs());
   configuration.setJointCompilationOptions(jointCompilationOptions);
   spec.setClasspath(Iterables.concat(spec.getClasspath(),Collections.singleton(spec.getDestinationDir())));
-  GroovyClassLoader compileClasspathClassLoader=new GroovyClassLoader(null,null);
+  GroovyClassLoader compileClasspathClassLoader=new GroovyClassLoader(GroovyClassLoader.class.getClassLoader(),null);
   for (  File file : spec.getClasspath()) {
     compileClasspathClassLoader.addClasspath(file.getPath());
   }
-  FilteringClassLoader groovyCompilerClassLoader=new FilteringClassLoader(getClass().getClassLoader());
-  groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
-  groovyCompilerClassLoader.allowPackage("groovy");
-  final GroovyClassLoader astTransformClassLoader=new GroovyClassLoader(groovyCompilerClassLoader,null);
-  for (  File file : spec.getClasspath()) {
-    astTransformClassLoader.addClasspath(file.getPath());
-  }
-  JavaAwareCompilationUnit unit=new JavaAwareCompilationUnit(configuration,compileClasspathClassLoader){
-    @Override public GroovyClassLoader getTransformLoader(){
-      return astTransformClassLoader;
-    }
-  }
-;
+  JavaAwareCompilationUnit unit=new JavaAwareCompilationUnit(configuration,compileClasspathClassLoader);
   unit.addSources(Iterables.toArray(spec.getSource(),File.class));
   unit.setCompilerFactory(new org.codehaus.groovy.tools.javac.JavaCompilerFactory(){
     public JavaCompiler createCompiler(    final CompilerConfiguration config){
@@ -55,7 +43,8 @@
     unit.compile();
   }
  catch (  org.codehaus.groovy.control.CompilationFailedException e) {
-    throw new CompilationFailedException(e.getMessage());
+    System.err.println(e.getMessage());
+    throw new CompilationFailedException();
   }
   return new SimpleWorkResult(true);
 }
