@@ -1,0 +1,18 @@
+{
+  final List<Statement> logStats=Lists.newArrayList();
+  visitScriptCode(source,new ClassCodeVisitorSupport(){
+    @Override protected SourceUnit getSourceUnit(){
+      return source;
+    }
+    @Override protected void visitStatement(    Statement statement){
+      if (statement.getStatementLabel() != null) {
+        String label=statement.getStatementLabel();
+        String sample=source.getSample(statement.getLineNumber(),statement.getColumnNumber(),null);
+        Expression logExpr=new StaticMethodCallExpression(ClassHelper.makeWithoutCaching(StatementLabelsDeprecationLogger.class),"log",new ArgumentListExpression(new ConstantExpression(label),new ConstantExpression(sample)));
+        logStats.add(new ExpressionStatement(logExpr));
+      }
+    }
+  }
+);
+  source.getAST().getStatementBlock().addStatements(logStats);
+}
