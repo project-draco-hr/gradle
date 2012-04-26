@@ -1,0 +1,12 @@
+{
+  ClassReader classReader=new ClassReader(bytes);
+  AnnotationDetector detector=new AnnotationDetector();
+  classReader.accept(detector,ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE);
+  if (!detector.found) {
+    return bytes;
+  }
+  ClassWriter classWriter=new ClassWriter(0);
+  classReader.accept(new TransformingAdapter(classWriter),0);
+  bytes=classWriter.toByteArray();
+  return bytes;
+}
