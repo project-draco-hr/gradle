@@ -9,10 +9,8 @@
   jointCompilationOptions.put("keepStubs",spec.getGroovyCompileOptions().isKeepStubs());
   configuration.setJointCompilationOptions(jointCompilationOptions);
   spec.setClasspath(Iterables.concat(spec.getClasspath(),Collections.singleton(spec.getDestinationDir())));
-  GroovyClassLoader compileClasspathClassLoader=new GroovyClassLoader(null,null);
-  for (  File file : spec.getClasspath()) {
-    compileClasspathClassLoader.addClasspath(file.getPath());
-  }
+  URLClassLoader classPathLoader=new TransformingClassLoader(new DefaultClassPath(spec.getClasspath()));
+  GroovyClassLoader compileClasspathClassLoader=new GroovyClassLoader(classPathLoader,null);
   FilteringClassLoader groovyCompilerClassLoader=new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
   groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
   groovyCompilerClassLoader.allowPackage("groovy");
