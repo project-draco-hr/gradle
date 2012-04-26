@@ -2,18 +2,20 @@
   final Set<File> protocolJars=WrapUtil.toLinkedSet(new File("jar1"),new File("jar1"));
   context.checking(new Expectations(){
 {
-      allowing(configurationStub).resolve();
-      will(returnValue(protocolJars));
-      allowing(deployTaskFactoryMock).create();
-      will(returnValue(getInstallDeployTask()));
-      allowing(deployTaskMock).getContainer();
-      will(returnValue(plexusContainerMock));
-      for (      File protocolProviderJar : protocolJars) {
-        one(plexusContainerMock).addJarResource(protocolProviderJar);
+      for (      DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
+        allowing(configurationStub).resolve();
+        will(returnValue(protocolJars));
+        allowing(deployTaskFactoryMock).create();
+        will(returnValue(getInstallDeployTask()));
+        allowing(deployTaskMock).getContainer();
+        will(returnValue(plexusContainerMock));
+        for (        File protocolProviderJar : protocolJars) {
+          one(plexusContainerMock).addJarResource(protocolProviderJar);
+        }
+        one(deployTaskMock).setUniqueVersion(mavenDeployer.isUniqueVersion());
+        one(deployTaskMock).addRemoteRepository(testRepository);
+        one(deployTaskMock).addRemoteSnapshotRepository(testSnapshotRepository);
       }
-      one(deployTaskMock).setUniqueVersion(mavenDeployer.isUniqueVersion());
-      one(deployTaskMock).addRemoteRepository(testRepository);
-      one(deployTaskMock).addRemoteSnapshotRepository(testSnapshotRepository);
     }
   }
 );
