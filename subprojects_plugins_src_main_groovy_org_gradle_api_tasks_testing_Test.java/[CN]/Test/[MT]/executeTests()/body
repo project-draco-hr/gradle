@@ -1,13 +1,16 @@
 {
-  TestSummaryListener listener=new TestSummaryListener(LoggerFactory.getLogger(Test.class));
-  addTestListener(listener);
-  addTestListener(new TestLogger(getServices().get(ProgressLoggerFactory.class)));
+  OutputEventListener outputListener=getServices().get(OutputEventListener.class);
+  ProgressLoggerFactory progressLoggerFactory=getServices().get(ProgressLoggerFactory.class);
+  TestCountLogger testCountLogger=new TestCountLogger(progressLoggerFactory);
+  addTestListener(new TestTraceLogger(outputListener,testLogging.getTraces()));
+  addTestListener(new TestExceptionLogger(outputListener,testLogging.getExceptions()));
+  addTestListener(testCountLogger);
   addTestOutputListener(new StandardStreamsLogger(Logging.getLogger(Test.class),testLogging));
   TestResultProcessor resultProcessor=new TestListenerAdapter(getTestListenerBroadcaster().getSource(),testOutputListenerBroadcaster.getSource());
   testExecuter.execute(this,resultProcessor);
   testFramework.report();
   testFramework=null;
-  if (!getIgnoreFailures() && listener.hadFailures()) {
-    throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
+  if (!getIgnoreFailures() && testCountLogger.hadFailures()) {
+    throw new GradleException("There were failing tests. See the report at " + getTestReportUrl() + ".");
   }
 }
