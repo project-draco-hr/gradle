@@ -1,9 +1,13 @@
 {
+  LOGGER.info("Starting process '{}'. Working directory: {} Command: {}",displayName,directory,command + ' ' + Joiner.on(' ').useForNull("null").join(arguments));
+  if (LOGGER.isDebugEnabled()) {
+    LOGGER.debug("Environment for process '{}': {}",displayName,environment);
+  }
   lock.lock();
   try {
     ProcessParentingInitializer.intitialize();
     if (!stateIn(ExecHandleState.INIT)) {
-      throw new IllegalStateException("already started!");
+      throw new IllegalStateException(String.format("Cannot start process '%s' because it has already been started",displayName));
     }
     setState(ExecHandleState.STARTING);
     execHandleRunner=new ExecHandleRunner(this,streamsHandler);
@@ -11,7 +15,7 @@
     if (execResult != null) {
       execResult.rethrowFailure();
     }
-    LOGGER.debug("Started {}.",displayName);
+    LOGGER.info("Successfully started process '{}'",displayName);
   }
   finally {
     lock.unlock();
