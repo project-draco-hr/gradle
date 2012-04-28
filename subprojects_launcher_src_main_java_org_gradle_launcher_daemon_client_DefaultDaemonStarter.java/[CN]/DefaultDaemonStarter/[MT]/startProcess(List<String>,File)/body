@@ -6,14 +6,15 @@
     ExecHandleBuilder builder=new ExecHandleBuilder();
     builder.commandLine(args);
     builder.setWorkingDir(workingDir);
-    builder.noStandardInput();
     builder.redirectErrorStream();
-    ByteArrayOutputStream output=new ByteArrayOutputStream();
-    builder.setStandardOutput(output);
+    DaemonOutputConsumer outputConsumer=new DaemonOutputConsumer();
+    builder.streamsHandler(outputConsumer);
     ExecHandle handle=builder.build();
     handle.start();
+    LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");
     DetachResult detachResult=handle.detach();
-    return daemonGreeter.parseDaemonOutput(output.toString(),detachResult);
+    LOGGER.debug("Gradle daemon process is now detached.");
+    return daemonGreeter.parseDaemonOutput(outputConsumer.output.toString(),detachResult);
   }
  catch (  GradleException e) {
     throw e;

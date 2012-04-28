@@ -4,6 +4,12 @@
     throw new IllegalStateException("execCommand == null!");
   }
   boolean shouldReadErrorStream=!redirectErrorStream;
-  StreamsForwarder forwarder=new StreamsForwarder(standardOutput,errorOutput,input,shouldReadErrorStream,String.format("Forward streams with process: %s",getDisplayName()));
-  return new DefaultExecHandle(getDisplayName(),getWorkingDir(),executable,getAllArguments(),getActualEnvironment(),forwarder,listeners,redirectErrorStream);
+  StreamsHandler effectiveHandler;
+  if (this.streamsHandler != null) {
+    effectiveHandler=this.streamsHandler;
+  }
+ else {
+    effectiveHandler=new StreamsForwarder(standardOutput,errorOutput,input,shouldReadErrorStream,String.format("Forward streams with process: %s",getDisplayName()));
+  }
+  return new DefaultExecHandle(getDisplayName(),getWorkingDir(),executable,getAllArguments(),getActualEnvironment(),effectiveHandler,listeners,redirectErrorStream);
 }
