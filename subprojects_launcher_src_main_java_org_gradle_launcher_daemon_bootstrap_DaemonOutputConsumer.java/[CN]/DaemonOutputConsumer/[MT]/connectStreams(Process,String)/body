@@ -1,6 +1,6 @@
 {
   executor=new DefaultExecutorFactory().create("Read output from: " + processName);
-  streamGobbler=new Runnable(){
+  streamConsumer=new Runnable(){
     public void run(){
       Scanner scanner=new Scanner(process.getInputStream());
       PrintWriter printer=new PrintWriter(output);
@@ -9,7 +9,7 @@
           String line=scanner.nextLine();
           LOGGER.debug("daemon out: {}",line);
           printer.println(line);
-          if (line.contains(DaemonMessages.ABOUT_TO_CLOSE_STREAMS)) {
+          if (new DaemonStartupCommunication().containsGreeting(line)) {
             break;
           }
         }
