@@ -3,7 +3,10 @@
   this.buildTime=buildTime == null ? null : formatBuildTime(buildTime);
   Matcher matcher=VERSION_PATTERN.matcher(version);
   if (!matcher.matches()) {
-    throw new InvalidUserDataException(String.format("Unexpected Gradle version '%s'.",version));
+    versionPart=null;
+    snapshot=null;
+    stage=null;
+    return;
   }
   versionPart=matcher.group(1);
   if (matcher.group(3) != null) {
@@ -25,7 +28,14 @@
   }
   if (matcher.group(7) != null) {
     try {
-      snapshot=new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
+      if (matcher.group(8) != null) {
+        snapshot=new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
+      }
+ else {
+        SimpleDateFormat format=new SimpleDateFormat("yyyyMMddHHmmss");
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        snapshot=format.parse(matcher.group(7)).getTime();
+      }
     }
  catch (    ParseException e) {
       throw UncheckedException.throwAsUncheckedException(e);
