@@ -1,0 +1,15 @@
+{
+  Enumeration<NetworkInterface> interfaces=NetworkInterface.getNetworkInterfaces();
+  while (interfaces.hasMoreElements()) {
+    NetworkInterface networkInterface=interfaces.nextElement();
+    LOGGER.debug("Adding IP addresses for network interface {}",networkInterface.getName());
+    Enumeration<InetAddress> candidates=networkInterface.getInetAddresses();
+    while (candidates.hasMoreElements()) {
+      InetAddress candidate=candidates.nextElement();
+      if ((loopback && candidate.isLoopbackAddress()) || (!loopback && !candidate.isLoopbackAddress())) {
+        LOGGER.debug("Adding IP address {}",candidate);
+        addresses.add(candidate);
+      }
+    }
+  }
+}

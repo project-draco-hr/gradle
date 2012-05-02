@@ -1,19 +1,12 @@
 {
   try {
+    LOGGER.debug("Locating remote addresses for this machine.");
     List<InetAddress> addresses=new ArrayList<InetAddress>();
-    Enumeration<NetworkInterface> interfaces=NetworkInterface.getNetworkInterfaces();
-    while (interfaces.hasMoreElements()) {
-      NetworkInterface networkInterface=interfaces.nextElement();
-      Enumeration<InetAddress> candidates=networkInterface.getInetAddresses();
-      while (candidates.hasMoreElements()) {
-        InetAddress candidate=candidates.nextElement();
-        if (!candidate.isLoopbackAddress()) {
-          addresses.add(candidate);
-        }
-      }
-    }
+    filterIpAddresses(false,addresses);
     if (addresses.isEmpty()) {
-      addresses.add(InetAddress.getLocalHost());
+      InetAddress fallback=InetAddress.getLocalHost();
+      LOGGER.debug("No remote addresses, using fallback {}",fallback);
+      addresses.add(fallback);
     }
     return addresses;
   }
