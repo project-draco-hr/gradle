@@ -6,7 +6,9 @@
         command.run();
       }
  catch (      Throwable throwable) {
-        failureHandler.dispatchFailed(command,throwable);
+        if (!failure.compareAndSet(null,throwable)) {
+          LOGGER.error(String.format("Failed to execute %s.",command),throwable);
+        }
       }
  finally {
         executing.set(null);
