@@ -1,0 +1,26 @@
+{
+  Runnable waitFor=new Runnable(){
+    public void run(){
+      Integer exitValue;
+      try {
+        LOGGER.debug("waiting until streams are handled...");
+        streamsHandler.stop();
+        exitValue=exitValue();
+      }
+ catch (      Throwable t) {
+        execHandle.failed(t);
+        return;
+      }
+      if (exitValue != null) {
+        LOGGER.debug("Completed waiting for streams handling. The process already exited with: " + exitValue);
+        completed(exitValue);
+      }
+ else {
+        LOGGER.debug("Completed waiting for streams handling. The process still runs.");
+        execHandle.detached();
+      }
+    }
+  }
+;
+  new TimeKeepingExecuter().execute(waitFor,abortOnTimeout(),execHandle.getTimeout(),"Handling streams for: " + execHandle.getDisplayName());
+}
