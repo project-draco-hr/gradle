@@ -1,12 +1,14 @@
 {
-  execHandleRunner.waitForFinish();
-  executor.stop();
   lock.lock();
   try {
-    execResult.rethrowFailure();
-    return execResult;
+    if (stateIn(ExecHandleState.SUCCEEDED,ExecHandleState.ABORTED,ExecHandleState.FAILED)) {
+      return result();
+    }
   }
   finally {
     lock.unlock();
   }
+  execHandleRunner.waitForFinish();
+  executor.stop();
+  return result();
 }

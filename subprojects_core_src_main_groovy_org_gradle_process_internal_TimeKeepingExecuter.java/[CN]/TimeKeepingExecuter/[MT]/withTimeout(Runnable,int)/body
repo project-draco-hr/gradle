@@ -1,0 +1,23 @@
+{
+  return new Runnable(){
+    public void run(){
+      lock.lock();
+      if (completed) {
+        return;
+      }
+      try {
+        condition.await(timeoutMillis,TimeUnit.MILLISECONDS);
+        if (!completed) {
+          LOGGER.debug("Timeout ({} millis) hit while running {}.",timeoutMillis,displayName);
+          onTimeout.run();
+        }
+      }
+ catch (      InterruptedException e) {
+      }
+ finally {
+        lock.unlock();
+      }
+    }
+  }
+;
+}
