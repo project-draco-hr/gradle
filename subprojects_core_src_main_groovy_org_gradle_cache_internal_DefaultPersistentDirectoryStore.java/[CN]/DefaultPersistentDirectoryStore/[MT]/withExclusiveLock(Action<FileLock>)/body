@@ -1,0 +1,21 @@
+{
+  if (cacheAccess != null && (cacheAccess.getFileLock().getMode() == FileLockManager.LockMode.Exclusive)) {
+    action.execute(getLock());
+  }
+ else {
+    boolean reopen=cacheAccess != null;
+    close();
+    DefaultCacheAccess exclusiveAccess=createCacheAccess();
+    exclusiveAccess.open(FileLockManager.LockMode.Exclusive);
+    try {
+      action.execute(exclusiveAccess.getFileLock());
+    }
+  finally {
+      exclusiveAccess.close();
+    }
+    if (reopen) {
+      cacheAccess=createCacheAccess();
+      cacheAccess.open(lockMode);
+    }
+  }
+}

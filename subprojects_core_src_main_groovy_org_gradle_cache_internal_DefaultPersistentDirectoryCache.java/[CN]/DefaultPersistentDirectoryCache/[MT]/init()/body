@@ -1,11 +1,26 @@
 {
   boolean valid=determineIfCacheIsValid(getLock());
-  if (!valid) {
-    getLock().writeFile(new Runnable(){
-      public void run(){
-        buildCacheDir(initAction,getLock());
+  while (!valid) {
+    withExclusiveLock(new Action<FileLock>(){
+      public void execute(      final FileLock fileLock){
+        boolean exclusiveLockValid;
+        try {
+          exclusiveLockValid=determineIfCacheIsValid(fileLock);
+        }
+ catch (        IOException e) {
+          throw new UncheckedIOException(e);
+        }
+        if (!exclusiveLockValid) {
+          fileLock.writeFile(new Runnable(){
+            public void run(){
+              buildCacheDir(initAction,fileLock);
+            }
+          }
+);
+        }
       }
     }
 );
+    valid=determineIfCacheIsValid(getLock());
   }
 }
