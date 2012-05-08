@@ -1,6 +1,10 @@
 {
   boolean valid=determineIfCacheIsValid(getLock());
+  int tries=3;
   while (!valid) {
+    if (--tries < 0) {
+      throw new CacheOpenException(String.format("Failed to init valid cache for %s",this));
+    }
     withExclusiveLock(new Action<FileLock>(){
       public void execute(      final FileLock fileLock){
         boolean exclusiveLockValid;
