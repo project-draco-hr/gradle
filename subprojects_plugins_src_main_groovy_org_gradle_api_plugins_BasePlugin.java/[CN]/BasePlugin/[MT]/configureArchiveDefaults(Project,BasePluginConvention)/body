@@ -1,0 +1,38 @@
+{
+  project.getTasks().withType(AbstractArchiveTask.class,new Action<AbstractArchiveTask>(){
+    public void execute(    AbstractArchiveTask task){
+      ConventionMapping taskConventionMapping=task.getConventionMapping();
+      Callable<File> destinationDir;
+      if (task instanceof Jar) {
+        destinationDir=new Callable<File>(){
+          public File call() throws Exception {
+            return pluginConvention.getLibsDir();
+          }
+        }
+;
+      }
+ else {
+        destinationDir=new Callable<File>(){
+          public File call() throws Exception {
+            return pluginConvention.getDistsDir();
+          }
+        }
+;
+      }
+      taskConventionMapping.map("destinationDir",destinationDir);
+      taskConventionMapping.map("version",new Callable<String>(){
+        public String call() throws Exception {
+          return project.getVersion() == Project.DEFAULT_VERSION ? null : project.getVersion().toString();
+        }
+      }
+);
+      taskConventionMapping.map("baseName",new Callable<String>(){
+        public String call() throws Exception {
+          return pluginConvention.getArchivesBaseName();
+        }
+      }
+);
+    }
+  }
+);
+}
