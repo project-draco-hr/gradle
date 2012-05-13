@@ -46,12 +46,11 @@
       if (informationRegionLock == null) {
         throw new IllegalStateException(String.format("Timeout waiting to lock the information region for lock %s",displayName));
       }
-      assertInformationFitsInRegion(informationRegionLock.size(),metaDataProvider.getProcessIdentifier(),operationDisplayName);
       try {
         lockFileAccess.seek(INFORMATION_REGION_POS);
         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
-        lockFileAccess.writeUTF(metaDataProvider.getProcessIdentifier());
-        lockFileAccess.writeUTF(operationDisplayName);
+        lockFileAccess.writeUTF(trimIfNecessary(metaDataProvider.getProcessIdentifier()));
+        lockFileAccess.writeUTF(trimIfNecessary(operationDisplayName));
         lockFileAccess.setLength(lockFileAccess.getFilePointer());
       }
   finally {
