@@ -1,0 +1,29 @@
+{
+  CountDownLatch latch=new CountDownLatch(1);
+  Receiver receiver=new Receiver(latch);
+  process.start();
+  process.getConnection().addIncoming(RhinoWorkerClientProtocol.class,receiver);
+  process.getConnection().addOutgoing(RhinoClientWorkerProtocol.class).process(payload);
+  try {
+    latch.await();
+  }
+ catch (  InterruptedException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+  if (receiver.initialisationError != null) {
+    throw UncheckedException.throwAsUncheckedException(receiver.initialisationError);
+  }
+  if (receiver.executionError != null) {
+    throw UncheckedException.throwAsUncheckedException(receiver.executionError);
+  }
+  Serializable result=receiver.result;
+  if (result == null) {
+    return null;
+  }
+  if (resultType.isInstance(result)) {
+    return resultType.cast(result);
+  }
+ else {
+    throw new IllegalStateException(String.format("Was expecting result of type %s, received %s",resultType,result.getClass()));
+  }
+}

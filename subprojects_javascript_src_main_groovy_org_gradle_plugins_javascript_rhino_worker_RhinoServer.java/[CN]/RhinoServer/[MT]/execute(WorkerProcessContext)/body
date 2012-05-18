@@ -1,0 +1,21 @@
+{
+  RhinoWorkerClientProtocol clientHandle=context.getServerConnection().addOutgoing(RhinoWorkerClientProtocol.class);
+  Transformer<Serializable,Serializable> action;
+  try {
+    Class<?> actionClass=getClass().getClassLoader().loadClass(implementationClass.getName());
+    Object actionObject=actionClass.newInstance();
+    if (actionObject instanceof Transformer) {
+      action=(Transformer<Serializable,Serializable>)actionObject;
+    }
+ else {
+      throw new IllegalStateException(String.format("Implementation class %s is not a transformer",implementationClass));
+    }
+  }
+ catch (  Exception e) {
+    clientHandle.initialisationError(e);
+    return;
+  }
+  RhinoWorkerReceiver receiver=new RhinoWorkerReceiver(clientHandle,action);
+  context.getServerConnection().addIncoming(RhinoClientWorkerProtocol.class,receiver);
+  receiver.waitFor();
+}
