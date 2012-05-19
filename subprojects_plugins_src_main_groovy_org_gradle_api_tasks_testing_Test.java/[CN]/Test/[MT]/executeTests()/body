@@ -1,11 +1,17 @@
 {
-  OutputEventListener outputListener=getServices().get(OutputEventListener.class);
+  for (  LogLevel level : LogLevel.values()) {
+    if (!LOGGER.isEnabled(level)) {
+      continue;
+    }
+    TestLogging levelLogging=testLogging.get(level);
+    TestExceptionFormatter exceptionFormatter=new TestExceptionFormatter(testLogging);
+    TestEventLogger eventLogger=new TestEventLogger(outputListener,level,levelLogging,exceptionFormatter);
+    addTestListener(eventLogger);
+    addTestOutputListener(eventLogger);
+  }
   ProgressLoggerFactory progressLoggerFactory=getServices().get(ProgressLoggerFactory.class);
   TestCountLogger testCountLogger=new TestCountLogger(progressLoggerFactory);
-  addTestListener(new TestTraceLogger(outputListener,testLogging.getTraces()));
-  addTestListener(new TestExceptionLogger(outputListener,testLogging.getExceptions()));
   addTestListener(testCountLogger);
-  addTestOutputListener(new StandardStreamsLogger(Logging.getLogger(Test.class),testLogging));
   TestResultProcessor resultProcessor=new TestListenerAdapter(getTestListenerBroadcaster().getSource(),testOutputListenerBroadcaster.getSource());
   testExecuter.execute(this,resultProcessor);
   testFramework.report();

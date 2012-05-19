@@ -1,0 +1,17 @@
+{
+  if (testLogging.getStackTraceFilters().contains(TestStackTraceFilter.DISCARD)) {
+    exceptionInfo.stackTrace=Collections.emptyList();
+    return;
+  }
+  Spec<StackTraceElement> filter=createCompositeFilter(descriptor);
+  List<StackTraceElement> filteredTrace=new ArrayList<StackTraceElement>();
+  for (  StackTraceElement element : exceptionInfo.stackTrace) {
+    if (filter.isSatisfiedBy(element)) {
+      filteredTrace.add(element);
+    }
+  }
+  exceptionInfo.stackTrace=filteredTrace;
+  if (exceptionInfo.cause != null) {
+    filterStackTrace(exceptionInfo.cause,descriptor);
+  }
+}
