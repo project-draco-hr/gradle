@@ -1,10 +1,14 @@
 {
-  WorkerProcess workerProcess=workerManager.createWorkerProcess(rhinoClasspath,logLevel,CoffeeScriptCompilerWorker.class,workingDir,null);
-  BlockingRhinoWorkerResultReceiver<Void> blockingReceiver=new BlockingRhinoWorkerResultReceiver<Void>(Void.class);
-  blockingReceiver.waitForResult(workerProcess,new SerializableCoffeeScriptCompileSpec(spec));
+  RhinoWorkerHandle<Boolean,SerializableCoffeeScriptCompileSpec> handle=rhinoWorkerHandleFactory.create(rhinoClasspath,createWorkerSpec(),logLevel,new Action<JavaExecSpec>(){
+    public void execute(    JavaExecSpec javaExecSpec){
+      javaExecSpec.setWorkingDir(workingDir);
+    }
+  }
+);
+  final Boolean result=handle.process(new SerializableCoffeeScriptCompileSpec(spec));
   return new WorkResult(){
     public boolean getDidWork(){
-      return true;
+      return result;
     }
   }
 ;

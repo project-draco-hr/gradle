@@ -1,0 +1,12 @@
+{
+  WorkerProcessBuilder builder=workerProcessBuilderFactory.create();
+  builder.setLogLevel(logLevel);
+  builder.applicationClasspath(rhinoClasspath);
+  builder.sharedPackages("org.mozilla.javascript");
+  JavaExecHandleBuilder javaCommand=builder.getJavaCommand();
+  if (javaExecSpecAction != null) {
+    javaExecSpecAction.execute(javaCommand);
+  }
+  WorkerProcess workerProcess=builder.worker(new RhinoServer<R,P>(workerSpec)).build();
+  return new DefaultRhinoWorkerHandle<R,P>(workerSpec.getResultType(),workerProcess);
+}

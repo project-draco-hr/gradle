@@ -1,8 +1,12 @@
 {
+  ProjectInternal projectInternal=(ProjectInternal)getProject();
+  Factory<WorkerProcessBuilder> workerProcessBuilderFactory=projectInternal.getServices().getFactory(WorkerProcessBuilder.class);
+  RhinoWorkerHandleFactory handleFactory=new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
   CoffeeScriptCompileSpec spec=new DefaultCoffeeScriptCompileSpec();
   spec.setCoffeeScriptJs(getCoffeeScriptJs().getSingleFile());
   spec.setDestinationDir(getDestinationDir());
   spec.setSource(getSource());
   spec.setOptions(getOptions());
-  setDidWork(getCompiler().compile(spec).getDidWork());
+  CoffeeScriptCompiler compiler=new RhinoCoffeeScriptCompiler(handleFactory,getRhinoClasspath(),getLogging().getLevel(),getProject().getProjectDir());
+  setDidWork(compiler.compile(spec).getDidWork());
 }

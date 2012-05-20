@@ -1,0 +1,19 @@
+{
+  if (!payloadType.isInstance(payload)) {
+    clientHandle.initialisationError(new IllegalArgumentException(String.format("Expected payload of type '%s', received '%s' with type '%s'",payloadType.getName(),payload,payload.getClass().getName())));
+    return;
+  }
+  try {
+    Serializable result=worker.process(payload);
+    clientHandle.receiveResult(result);
+  }
+ catch (  RhinoException e) {
+    clientHandle.executionError(worker.convertException(e));
+  }
+catch (  Exception e) {
+    clientHandle.executionError(e);
+  }
+ finally {
+    latch.countDown();
+  }
+}
