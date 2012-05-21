@@ -16,9 +16,11 @@
   setDidWork(true);
   Logger logger=getLogger();
   boolean anyErrors=false;
+  Map<String,Map<?,?>> reportData=new LinkedHashMap<String,Map<?,?>>(result.getResults().size());
   for (  Map.Entry<File,Map<String,Object>> fileEntry : result.getResults().entrySet()) {
     File file=fileEntry.getKey();
     Map<String,Object> data=fileEntry.getValue();
+    reportData.put(file.getAbsolutePath(),data);
     if (data.containsKey("errors")) {
       anyErrors=true;
       URI projectDirUri=getProject().getProjectDir().toURI();
@@ -34,6 +36,17 @@
           logger.warn("  {}:{} > {}",new Object[]{line,character,reason});
         }
       }
+    }
+  }
+  File jsonReportFile=getJsonReport();
+  if (jsonReportFile != null) {
+    try {
+      FileWriter reportWriter=new FileWriter(jsonReportFile);
+      new GsonBuilder().setPrettyPrinting().create().toJson(reportData,reportWriter);
+      reportWriter.close();
+    }
+ catch (    IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
   if (anyErrors) {
