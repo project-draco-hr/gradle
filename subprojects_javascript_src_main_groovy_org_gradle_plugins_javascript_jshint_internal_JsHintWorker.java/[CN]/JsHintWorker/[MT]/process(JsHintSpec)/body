@@ -1,0 +1,13 @@
+{
+  Scriptable jsHintScope=RhinoWorkerUtils.parse(spec.getJsHint(),"UTF-8");
+  String encoding=spec.getEncoding();
+  Map<File,Map<String,Object>> results=new LinkedHashMap<File,Map<String,Object>>();
+  for (  File target : spec.getSource()) {
+    LOGGER.info("Reading file: {}",target.getAbsolutePath());
+    String source=readFile(target,encoding);
+    Map<String,Object> result=jsHint(jsHintScope,source,target.getName());
+    LOGGER.warn("Result type: {}",result.getClass());
+    results.put(target,result);
+  }
+  return new JsHintResult(results);
+}

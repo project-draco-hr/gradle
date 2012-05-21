@@ -1,0 +1,42 @@
+{
+  ProjectInternal projectInternal=(ProjectInternal)getProject();
+  Factory<WorkerProcessBuilder> workerProcessBuilderFactory=projectInternal.getServices().getFactory(WorkerProcessBuilder.class);
+  RhinoWorkerHandleFactory handleFactory=new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
+  RhinoWorkerHandle<JsHintResult,JsHintSpec> rhinoHandle=handleFactory.create(getRhinoClasspath(),createWorkerSpec(),getLogging().getLevel(),new Action<JavaExecSpec>(){
+    public void execute(    JavaExecSpec javaExecSpec){
+      javaExecSpec.setWorkingDir(getProject().getProjectDir());
+    }
+  }
+);
+  JsHintSpec spec=new JsHintSpec();
+  spec.setSource(getSource().getFiles());
+  spec.setEncoding(getEncoding());
+  spec.setJsHint(getJsHint().getSingleFile());
+  JsHintResult result=rhinoHandle.process(spec);
+  setDidWork(true);
+  Logger logger=getLogger();
+  boolean anyErrors=false;
+  for (  Map.Entry<File,Map<String,Object>> fileEntry : result.getResults().entrySet()) {
+    File file=fileEntry.getKey();
+    Map<String,Object> data=fileEntry.getValue();
+    if (data.containsKey("errors")) {
+      anyErrors=true;
+      URI projectDirUri=getProject().getProjectDir().toURI();
+      @SuppressWarnings("unchecked") Map<String,Object> errors=(Map<String,Object>)data.get("errors");
+      if (!errors.isEmpty()) {
+        URI relativePath=projectDirUri.relativize(file.toURI());
+        logger.warn("JsHint errors for file: {}",relativePath.getPath());
+        for (        Map.Entry<String,Object> errorEntry : errors.entrySet()) {
+          @SuppressWarnings("unchecked") Map<String,Object> error=(Map<String,Object>)errorEntry.getValue();
+          int line=Float.valueOf(error.get("line").toString()).intValue();
+          int character=Float.valueOf(error.get("character").toString()).intValue();
+          String reason=error.get("reason").toString();
+          logger.warn("  {}:{} > {}",new Object[]{line,character,reason});
+        }
+      }
+    }
+  }
+  if (anyErrors) {
+    throw new TaskExecutionException(this,new GradleException("JsHint detected errors"));
+  }
+}
