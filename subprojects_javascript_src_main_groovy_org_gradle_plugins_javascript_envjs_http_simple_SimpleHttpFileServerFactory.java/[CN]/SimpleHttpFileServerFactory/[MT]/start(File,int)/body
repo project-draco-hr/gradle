@@ -1,0 +1,23 @@
+{
+  Container container=new SimpleFileServerContainer(new FileContext(contentRoot));
+  try {
+    final Server server=new ContainerServer(container);
+    Connection connection=new SocketConnection(server);
+    InetSocketAddress address=new InetSocketAddress(port);
+    InetSocketAddress usedAddress=(InetSocketAddress)connection.connect(address);
+    return new SimpleHttpFileServer(contentRoot,usedAddress.getPort(),new Stoppable(){
+      public void stop(){
+        try {
+          server.stop();
+        }
+ catch (        IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      }
+    }
+);
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+}
