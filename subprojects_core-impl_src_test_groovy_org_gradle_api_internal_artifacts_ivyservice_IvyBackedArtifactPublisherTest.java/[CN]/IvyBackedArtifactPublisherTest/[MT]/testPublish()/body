@@ -1,11 +1,13 @@
 {
   final IvySettings ivySettingsDummy=new IvySettings();
+  final EventManager ivyEventManagerDummy=new EventManager();
   final ConfigurationInternal configuration=context.mock(ConfigurationInternal.class);
   final Set<Configuration> configurations=createConfiguration();
   final File someDescriptorDestination=new File("somePath");
   final List<DependencyResolver> publishResolversDummy=createPublishResolversDummy();
   final Module moduleDummy=context.mock(Module.class,"moduleForResolve");
   final IvyBackedArtifactPublisher ivyService=createIvyService();
+  setUpIvyFactory(ivySettingsDummy,ivyEventManagerDummy);
   setUpForPublish(configurations,publishResolversDummy,moduleDummy,ivySettingsDummy);
   final Set<String> expectedConfigurations=Configurations.getNames(configurations,true);
   context.checking(new Expectations(){
@@ -19,7 +21,7 @@
       allowing(configuration).getResolutionStrategy();
       will(returnValue(new DefaultResolutionStrategy()));
       one(fileModuleDescriptorMock).toIvyFile(someDescriptorDestination);
-      one(ivyDependencyPublisherMock).publish(expectedConfigurations,publishResolversDummy,publishModuleDescriptorDummy,someDescriptorDestination,publishEngineDummy);
+      one(ivyDependencyPublisherMock).publish(expectedConfigurations,publishResolversDummy,publishModuleDescriptorDummy,someDescriptorDestination,ivyEventManagerDummy);
     }
   }
 );
