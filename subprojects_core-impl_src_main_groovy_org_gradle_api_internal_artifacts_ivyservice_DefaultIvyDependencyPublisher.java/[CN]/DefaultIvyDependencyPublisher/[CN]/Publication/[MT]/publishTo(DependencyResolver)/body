@@ -1,26 +1,11 @@
 {
   Set<Artifact> allArtifacts=getAllArtifacts(moduleDescriptor);
-  Collection<Artifact> missing=new ArrayList<Artifact>();
   Map<Artifact,File> artifactsFiles=new LinkedHashMap<Artifact,File>();
-  for (  Artifact artifact : allArtifacts) {
-    File artifactFile=new File(artifact.getExtraAttribute(FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE));
-    if (artifactFile.exists()) {
-      artifactsFiles.put(artifact,artifactFile);
-    }
- else {
-      logMissingArtifactFile(artifact,artifactFile);
-      missing.add(artifact);
-    }
-  }
   if (descriptorFile != null) {
-    Artifact artifact=MDArtifact.newIvyArtifact(moduleDescriptor);
-    if (descriptorFile.exists()) {
-      artifactsFiles.put(artifact,descriptorFile);
-    }
- else {
-      logMissingArtifactFile(artifact,descriptorFile);
-      missing.add(artifact);
-    }
+    addPublishedDescriptor(artifactsFiles);
+  }
+  for (  Artifact artifact : allArtifacts) {
+    addPublishedArtifact(artifact,artifactsFiles);
   }
   boolean successfullyPublished=false;
   try {
@@ -39,5 +24,4 @@
       resolver.abortPublishTransaction();
     }
   }
-  return missing;
 }
