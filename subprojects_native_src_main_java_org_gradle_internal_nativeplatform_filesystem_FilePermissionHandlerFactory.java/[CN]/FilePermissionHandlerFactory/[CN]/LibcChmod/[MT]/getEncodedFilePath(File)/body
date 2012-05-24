@@ -1,0 +1,19 @@
+{
+  if (!OperatingSystem.current().isMacOsX()) {
+    return f.getAbsolutePath().getBytes();
+  }
+ else {
+    byte[] encoded;
+    try {
+      encoded=f.getAbsolutePath().getBytes("utf-8");
+    }
+ catch (    UnsupportedEncodingException e) {
+      LOGGER.warn(String.format("Failed to encode file path %s as utf-8. Using default encoding %s",f.getAbsolutePath(),System.getProperty("file.encoding")));
+      encoded=f.getAbsolutePath().getBytes();
+    }
+    byte[] zeroTerminatedByteArray=new byte[encoded.length + 1];
+    System.arraycopy(encoded,0,zeroTerminatedByteArray,0,encoded.length);
+    zeroTerminatedByteArray[encoded.length]=0;
+    return zeroTerminatedByteArray;
+  }
+}
