@@ -6,15 +6,16 @@
   }
   execSpec.systemProperty("java.security.manager",BootstrapSecurityManager.class.getName());
   try {
-    ByteArrayOutputStream stdin=new ByteArrayOutputStream();
-    DataOutputStream outstr=new DataOutputStream(stdin);
+    ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+    DataOutputStream outstr=new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
+    LOGGER.debug("Writing an application classpath to child process' standard input.");
     outstr.writeInt(processBuilder.getApplicationClasspath().size());
     for (    File file : processBuilder.getApplicationClasspath()) {
       outstr.writeUTF(file.getAbsolutePath());
     }
     outstr.close();
     final InputStream originalStdin=execSpec.getStandardInput();
-    InputStream input=ByteStreams.join(ByteStreams.newInputStreamSupplier(stdin.toByteArray()),new InputSupplier<InputStream>(){
+    InputStream input=ByteStreams.join(ByteStreams.newInputStreamSupplier(bytes.toByteArray()),new InputSupplier<InputStream>(){
       public InputStream getInput() throws IOException {
         return originalStdin;
       }
