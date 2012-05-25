@@ -1,0 +1,28 @@
+{
+  String exceptionIndent=Strings.repeat(INDENT,indentLevel);
+  String exceptionText=parentTrace == null ? exception.toString() : "\nCaused by:\n" + exception.toString();
+  builder.append(TextUtil.indent(exceptionText,exceptionIndent));
+  builder.append('\n');
+  String stackTraceIndent=exceptionIndent + INDENT;
+  List<StackTraceElement> stackTrace=null;
+  if (testLogging.getShowStackTraces()) {
+    stackTrace=filterStackTrace(exception,descriptor);
+    int commonElements=countCommonElements(stackTrace,parentTrace);
+    for (int i=0; i < stackTrace.size() - commonElements; i++) {
+      builder.append(stackTraceIndent);
+      builder.append("at ");
+      builder.append(stackTrace.get(i));
+      builder.append('\n');
+    }
+    if (commonElements != 0) {
+      builder.append(stackTraceIndent);
+      builder.append("... ");
+      builder.append(commonElements);
+      builder.append(" more");
+      builder.append('\n');
+    }
+  }
+  if (testLogging.getShowCauses() && exception.getCause() != null) {
+    printException(descriptor,exception.getCause(),stackTrace,indentLevel + 1,builder);
+  }
+}

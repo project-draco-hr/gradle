@@ -2,11 +2,12 @@
   List<String> names=Lists.newArrayList();
   TestDescriptor current=descriptor;
   while (current != null) {
-    names.add(current.getName());
+    names.add(Strings.isNullOrEmpty(current.getName()) ? "Test Run" : current.getName());
     current=current.getParent();
   }
-  int minGranularity=Math.min(testLogging.getMinGranularity(),names.size() - 1);
-  List<String> displayedNames=Lists.reverse(names).subList(minGranularity,names.size());
-  String path=Joiner.on(" > ").join(displayedNames) + "> ";
-  print(new StyledTextOutputEvent.Span(path),new StyledTextOutputEvent.Span(getStyle(event),event.toString() + "\n"),new StyledTextOutputEvent.Span(details));
+  int minDisplayedName=Math.min(2,names.size() - 1);
+  List<String> displayedNames=Lists.reverse(names).subList(minDisplayedName,names.size());
+  String path=Joiner.on(" > ").join(displayedNames) + " ";
+  String detailText=details == null ? "\n" : "\n" + details + "\n";
+  log(new StyledTextOutputEvent.Span(path),new StyledTextOutputEvent.Span(getStyle(event),event.toString()),new StyledTextOutputEvent.Span(detailText));
 }
