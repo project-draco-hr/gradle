@@ -1,14 +1,17 @@
 {
   lock.lock();
   try {
-    if (stateIn(ExecHandleState.SUCCEEDED,ExecHandleState.ABORTED,ExecHandleState.FAILED)) {
-      return result();
+    while (!stateIn(ExecHandleState.SUCCEEDED,ExecHandleState.ABORTED,ExecHandleState.FAILED,ExecHandleState.DETACHED)) {
+      try {
+        condition.await();
+      }
+ catch (      InterruptedException e) {
+      }
     }
   }
   finally {
     lock.unlock();
   }
-  execHandleRunner.waitForFinish();
   executor.stop();
   return result();
 }

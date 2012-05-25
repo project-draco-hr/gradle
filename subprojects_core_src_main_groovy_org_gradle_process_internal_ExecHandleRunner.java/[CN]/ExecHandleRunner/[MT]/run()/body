@@ -7,8 +7,18 @@ synchronized (START_LOCK) {
       streamsHandler.connectStreams(process,execHandle.getDisplayName());
     }
     setProcess(process);
-    streamsHandler.start();
     execHandle.started();
+    LOGGER.debug("waiting until streams are handled...");
+    streamsHandler.start();
+    if (execHandle.isDaemon()) {
+      streamsHandler.stop();
+      detached();
+    }
+ else {
+      int exitValue=process.waitFor();
+      streamsHandler.stop();
+      completed(exitValue);
+    }
   }
  catch (  Throwable t) {
     execHandle.failed(t);

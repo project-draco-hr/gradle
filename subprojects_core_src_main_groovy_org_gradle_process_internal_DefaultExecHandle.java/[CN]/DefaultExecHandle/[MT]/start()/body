@@ -11,7 +11,15 @@
     }
     setState(ExecHandleState.STARTING);
     execHandleRunner=new ExecHandleRunner(this,streamsHandler);
-    execHandleRunner.start();
+    executor.execute(execHandleRunner);
+    while (stateIn(ExecHandleState.STARTING)) {
+      LOGGER.debug("Waiting until process started: {}.",displayName);
+      try {
+        condition.await();
+      }
+ catch (      InterruptedException e) {
+      }
+    }
     if (execResult != null) {
       execResult.rethrowFailure();
     }
