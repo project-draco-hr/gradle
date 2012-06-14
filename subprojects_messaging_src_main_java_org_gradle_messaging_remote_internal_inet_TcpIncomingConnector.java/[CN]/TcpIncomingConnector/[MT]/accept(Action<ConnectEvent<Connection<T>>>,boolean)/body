@@ -11,9 +11,9 @@
     throw UncheckedException.throwAsUncheckedException(e);
   }
   Object id=idGenerator.generateId();
-  List<InetAddress> addresses=allowRemote ? remoteAddresses : localAddresses;
+  List<InetAddress> addresses=allowRemote ? addressFactory.findRemoteAddresses() : addressFactory.findLocalAddresses();
   Address address=new MultiChoiceAddress(id,localPort,addresses);
   LOGGER.debug("Listening on {}.",address);
-  executor.execute(new Receiver(serverSocket,action,allowRemote));
+  executor.execute(new Receiver(serverSocket,action,allowRemote ? null : addresses));
   return address;
 }
