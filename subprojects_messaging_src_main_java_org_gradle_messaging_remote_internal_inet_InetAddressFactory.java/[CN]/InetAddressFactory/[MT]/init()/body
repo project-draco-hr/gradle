@@ -1,0 +1,23 @@
+{
+  if (loopbackAddresses == null) {
+    loopbackAddresses=new ArrayList<InetAddress>();
+    nonLoopbackAddresses=new ArrayList<InetAddress>();
+    Enumeration<NetworkInterface> interfaces=NetworkInterface.getNetworkInterfaces();
+    while (interfaces.hasMoreElements()) {
+      NetworkInterface networkInterface=interfaces.nextElement();
+      LOGGER.debug("Adding IP addresses for network interface {}",networkInterface.getName());
+      Enumeration<InetAddress> candidates=networkInterface.getInetAddresses();
+      while (candidates.hasMoreElements()) {
+        InetAddress candidate=candidates.nextElement();
+        if (candidate.isLoopbackAddress()) {
+          LOGGER.debug("Adding loopback address {}",candidate);
+          loopbackAddresses.add(candidate);
+        }
+ else {
+          LOGGER.debug("Adding non-loopback address {}",candidate);
+          nonLoopbackAddresses.add(candidate);
+        }
+      }
+    }
+  }
+}

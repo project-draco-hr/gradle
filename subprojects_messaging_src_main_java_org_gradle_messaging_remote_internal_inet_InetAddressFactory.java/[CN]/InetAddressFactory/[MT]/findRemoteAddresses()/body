@@ -1,14 +1,14 @@
 {
   try {
-    LOGGER.debug("Locating remote addresses for this machine.");
-    List<InetAddress> addresses=new ArrayList<InetAddress>();
-    filterIpAddresses(false,addresses);
-    if (addresses.isEmpty()) {
+synchronized (lock) {
+      init();
+      if (!nonLoopbackAddresses.isEmpty()) {
+        return nonLoopbackAddresses;
+      }
       InetAddress fallback=InetAddress.getLocalHost();
       LOGGER.debug("No remote addresses, using fallback {}",fallback);
-      addresses.add(fallback);
+      return Collections.singletonList(fallback);
     }
-    return addresses;
   }
  catch (  Exception e) {
     throw new RuntimeException("Could not determine the remote IP addresses for this machine.",e);

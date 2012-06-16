@@ -1,15 +1,14 @@
 {
   try {
-    LOGGER.debug("Locating local addresses for this machine.");
-    List<InetAddress> addresses=new ArrayList<InetAddress>();
-    filterIpAddresses(true,addresses);
-    filterIpAddresses(false,addresses);
-    if (addresses.isEmpty()) {
+synchronized (lock) {
+      init();
+      if (!loopbackAddresses.isEmpty()) {
+        return loopbackAddresses;
+      }
       InetAddress fallback=InetAddress.getByName(null);
       LOGGER.debug("No loopback addresses, using fallback {}",fallback);
-      addresses.add(fallback);
+      return Collections.singletonList(fallback);
     }
-    return addresses;
   }
  catch (  Exception e) {
     throw new RuntimeException("Could not determine the local IP addresses for this machine.",e);
