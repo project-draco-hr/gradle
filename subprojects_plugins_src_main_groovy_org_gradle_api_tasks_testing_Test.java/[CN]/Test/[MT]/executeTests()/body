@@ -1,14 +1,10 @@
 {
-  for (  LogLevel level : LogLevel.values()) {
-    if (!LOGGER.isEnabled(level)) {
-      continue;
-    }
-    TestLogging levelLogging=testLogging.get(level);
-    TestExceptionFormatter exceptionFormatter=getExceptionFormatter(testLogging);
-    TestEventLogger eventLogger=new TestEventLogger(textOutputFactory,level,levelLogging,exceptionFormatter);
-    addTestListener(eventLogger);
-    addTestOutputListener(eventLogger);
-  }
+  LogLevel currentLevel=getCurrentLogLevel();
+  TestLogging levelLogging=testLogging.get(currentLevel);
+  TestExceptionFormatter exceptionFormatter=getExceptionFormatter(levelLogging);
+  TestEventLogger eventLogger=new TestEventLogger(textOutputFactory,currentLevel,levelLogging,exceptionFormatter);
+  addTestListener(eventLogger);
+  addTestOutputListener(eventLogger);
   ProgressLoggerFactory progressLoggerFactory=getServices().get(ProgressLoggerFactory.class);
   TestCountLogger testCountLogger=new TestCountLogger(progressLoggerFactory);
   addTestListener(testCountLogger);
