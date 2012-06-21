@@ -1,0 +1,18 @@
+{
+  File markerFile=new File(cache.getBaseDir(),"buildSrc.lock");
+  final boolean rebuild=!markerFile.exists();
+  BuildSrcBuildListener listener=new BuildSrcBuildListener(rebuild);
+  gradleLauncher.addListener(listener);
+  gradleLauncher.run().rethrowFailure();
+  Set<File> buildSourceClasspath=new LinkedHashSet<File>();
+  buildSourceClasspath.addAll(listener.getRuntimeClasspath());
+  LOGGER.debug("Gradle source classpath is: {}",buildSourceClasspath);
+  LOGGER.info("================================================" + " Finished building buildSrc");
+  try {
+    markerFile.createNewFile();
+  }
+ catch (  IOException e) {
+    LOGGER.warn("Unable to create buildSrc cache marker file: {}",e.getMessage());
+  }
+  return new DefaultClassPath(buildSourceClasspath);
+}
