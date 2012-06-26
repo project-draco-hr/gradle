@@ -18,20 +18,17 @@
   try {
     ClassBuilder<T> builder=start(type);
     boolean isConventionAware=type.getAnnotation(NoConventionMapping.class) == null;
-    boolean isDynamicAware=type.getAnnotation(NoDynamicObject.class) == null;
-    builder.startClass(isConventionAware,isDynamicAware);
-    if (isDynamicAware && !DynamicObjectAware.class.isAssignableFrom(type)) {
+    builder.startClass(isConventionAware);
+    if (!DynamicObjectAware.class.isAssignableFrom(type)) {
       if (ExtensionAware.class.isAssignableFrom(type)) {
         throw new UnsupportedOperationException("A type that implements ExtensionAware must currently also implement DynamicObjectAware.");
       }
       builder.mixInDynamicAware();
     }
-    if (isDynamicAware && !GroovyObject.class.isAssignableFrom(type)) {
+    if (!GroovyObject.class.isAssignableFrom(type)) {
       builder.mixInGroovyObject();
     }
-    if (isDynamicAware) {
-      builder.addDynamicMethods();
-    }
+    builder.addDynamicMethods();
     if (isConventionAware && !IConventionAware.class.isAssignableFrom(type)) {
       builder.mixInConventionAware();
     }
