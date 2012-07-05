@@ -1,0 +1,17 @@
+{
+  Collection<Upload> tasks=project.getTasks().withType(Upload.class);
+  Collection<ArtifactRepository> repositories=getRepositories(tasks);
+  if (!onlyContainsMavenResolvers(repositories)) {
+    return project.getName();
+  }
+  Collection<MavenDeployer> deployers=getMavenDeployers(repositories);
+  Set<String> artifactIds=getArtifactIds(deployers);
+  if (artifactIds.size() == 1) {
+    String artifactId=artifactIds.iterator().next();
+    if (artifactId != null && !artifactId.equals("empty-project")) {
+      return artifactId;
+    }
+  }
+  String baseName=getArchivesBaseName();
+  return baseName != null ? baseName : project.getName();
+}
