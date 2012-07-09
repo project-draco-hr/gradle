@@ -1,5 +1,9 @@
 {
   Settings settings=buildSettings();
-  String repoPath=settings.getLocalRepository().trim();
-  return new File(resolvePlaceholders(repoPath));
+  String repoPath=settings.getLocalRepository();
+  if (repoPath == null) {
+    repoPath=System.getProperty("user.home") + "/.m2/repository";
+    LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s",repoPath));
+  }
+  return new File(resolvePlaceholders(repoPath.trim()));
 }
