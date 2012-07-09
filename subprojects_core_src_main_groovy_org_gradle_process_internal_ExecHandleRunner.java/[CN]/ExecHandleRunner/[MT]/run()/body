@@ -4,19 +4,18 @@
     Process process;
 synchronized (START_LOCK) {
       process=processBuilder.start();
-      streamsHandler.connectStreams(process,execHandle.getDisplayName());
+      streamsForwarder.connectStreams(process,execHandle.getDisplayName());
     }
     setProcess(process);
     execHandle.started();
-    LOGGER.debug("waiting until streams are handled...");
-    streamsHandler.start();
+    streamsForwarder.start();
     if (execHandle.isDaemon()) {
-      streamsHandler.stop();
+      streamsForwarder.stop();
       detached();
     }
  else {
       int exitValue=process.waitFor();
-      streamsHandler.stop();
+      streamsForwarder.stop();
       completed(exitValue);
     }
   }
