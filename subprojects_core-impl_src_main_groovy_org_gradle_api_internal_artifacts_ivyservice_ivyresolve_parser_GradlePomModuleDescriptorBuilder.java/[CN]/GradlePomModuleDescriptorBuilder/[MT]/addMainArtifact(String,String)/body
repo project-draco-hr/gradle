@@ -1,24 +1,20 @@
 {
-  String ext;
   if ("pom".equals(packaging)) {
     DependencyResolver resolver=parserSettings.getResolver(mrid);
     if (resolver != null) {
       DefaultArtifact artifact=new DefaultArtifact(mrid,new Date(),artifactId,"jar","jar");
-      ArtifactOrigin artifactOrigin=resolver.locate(artifact);
-      if (!ArtifactOrigin.isUnknown(artifactOrigin)) {
+      if (!ArtifactOrigin.isUnknown(resolver.locate(artifact))) {
         mainArtifact=artifact;
         ivyModuleDescriptor.addArtifact("master",mainArtifact);
       }
     }
     return;
   }
-  String packagingExtension=packagingExtension(packaging);
-  if (!"jar".equals(packagingExtension)) {
+  if (!isKnownJarPackaging(packaging)) {
     DependencyResolver resolver=parserSettings.getResolver(mrid);
     if (resolver != null) {
-      DefaultArtifact artifact=new DefaultArtifact(mrid,new Date(),artifactId,packaging,packagingExtension);
-      ArtifactOrigin artifactOrigin=resolver.locate(artifact);
-      if (!ArtifactOrigin.isUnknown(artifactOrigin)) {
+      DefaultArtifact artifact=new DefaultArtifact(mrid,new Date(),artifactId,packaging,packaging);
+      if (!ArtifactOrigin.isUnknown(resolver.locate(artifact))) {
         mainArtifact=artifact;
         ivyModuleDescriptor.addArtifact("master",mainArtifact);
         DeprecationLogger.nagUserWith("Deprecated: relying on packaging to define the extension of the main artifact is deprecated, " + "and will not be supported in a future version of Gradle.");
