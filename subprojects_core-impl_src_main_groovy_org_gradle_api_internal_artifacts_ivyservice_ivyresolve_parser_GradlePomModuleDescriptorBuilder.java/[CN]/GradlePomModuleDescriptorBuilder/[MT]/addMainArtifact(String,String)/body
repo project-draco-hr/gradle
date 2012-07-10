@@ -12,12 +12,20 @@
     }
     return;
   }
- else   if (JAR_PACKAGINGS.contains(packaging)) {
-    ext="jar";
+  String packagingExtension=packagingExtension(packaging);
+  if (!"jar".equals(packagingExtension)) {
+    DependencyResolver resolver=parserSettings.getResolver(mrid);
+    if (resolver != null) {
+      DefaultArtifact artifact=new DefaultArtifact(mrid,new Date(),artifactId,packaging,packagingExtension);
+      ArtifactOrigin artifactOrigin=resolver.locate(artifact);
+      if (!ArtifactOrigin.isUnknown(artifactOrigin)) {
+        mainArtifact=artifact;
+        ivyModuleDescriptor.addArtifact("master",mainArtifact);
+        DeprecationLogger.nagUserWith("Deprecated: relying on packaging to define the extension of the main artifact is deprecated, " + "and will not be supported in a future version of Gradle.");
+        return;
+      }
+    }
   }
- else {
-    ext=packaging;
-  }
-  mainArtifact=new DefaultArtifact(mrid,new Date(),artifactId,packaging,ext);
+  mainArtifact=new DefaultArtifact(mrid,new Date(),artifactId,packaging,"jar");
   ivyModuleDescriptor.addArtifact("master",mainArtifact);
 }
