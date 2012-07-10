@@ -1,8 +1,14 @@
 {
-  String repoPath=readRepoPathFromSettings();
-  if (repoPath == null) {
-    repoPath=new File(System.getProperty("user.home"),"/.m2/repository").getAbsolutePath();
-    LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s",repoPath));
+  try {
+    Settings settings=buildSettings();
+    String repoPath=settings.getLocalRepository();
+    if (repoPath == null) {
+      repoPath=new File(System.getProperty("user.home"),"/.m2/repository").getAbsolutePath();
+      LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s",repoPath));
+    }
+    return new File(resolvePlaceholders(repoPath.trim()));
   }
-  return new File(resolvePlaceholders(repoPath.trim()));
+ catch (  SettingsBuildingException e) {
+    throw new CannotLocateLocalMavenRepositoryException(e.getMessage());
+  }
 }
