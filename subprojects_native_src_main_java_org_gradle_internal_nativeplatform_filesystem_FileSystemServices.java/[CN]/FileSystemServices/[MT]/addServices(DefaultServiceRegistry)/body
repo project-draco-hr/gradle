@@ -1,11 +1,19 @@
 {
-  if (OperatingSystem.current().isWindows()) {
+  OperatingSystem operatingSystem=OperatingSystem.current();
+  if (operatingSystem.isWindows()) {
     serviceRegistry.add(Chmod.class,new EmptyChmod());
     serviceRegistry.add(Stat.class,new FallbackStat());
     serviceRegistry.add(Symlink.class,new FallbackSymlink());
     return;
   }
-  serviceRegistry.add(Symlink.class,createSymlink());
+  LibC libC=loadLibC();
+  serviceRegistry.add(Symlink.class,createSymlink(libC));
+  if (operatingSystem.isLinux() || operatingSystem.isMacOsX()) {
+    FilePathEncoder filePathEncoder=createEncoder(libC);
+    serviceRegistry.add(Chmod.class,new LibcChmod(libC,filePathEncoder));
+    serviceRegistry.add(Stat.class,new LibCStat(libC,operatingSystem,(BaseNativePOSIX)PosixUtil.current(),filePathEncoder));
+    return;
+  }
   if (JavaVersion.current().isJava7()) {
     String jdkFilePermissionclass="org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
     try {
@@ -21,6 +29,6 @@ catch (    Exception e) {
       throw UncheckedException.throwAsUncheckedException(e);
     }
   }
-  serviceRegistry.add(Chmod.class,createChmod());
+  serviceRegistry.add(Chmod.class,createChmod(libC));
   serviceRegistry.add(Stat.class,createStat());
 }
