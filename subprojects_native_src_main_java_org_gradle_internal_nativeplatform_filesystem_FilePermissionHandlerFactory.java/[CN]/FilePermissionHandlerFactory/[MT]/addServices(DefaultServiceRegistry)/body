@@ -1,5 +1,25 @@
 {
-  FilePermissionHandler permissionHandler=createDefaultFilePermissionHandler();
-  serviceRegistry.add(Chmod.class,permissionHandler);
-  serviceRegistry.add(Stat.class,permissionHandler);
+  if (OperatingSystem.current().isWindows()) {
+    serviceRegistry.add(Chmod.class,new EmptyChmod());
+    serviceRegistry.add(Stat.class,new FallbackStat());
+    return;
+  }
+  if (JavaVersion.current().isJava7()) {
+    String jdkFilePermissionclass="org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
+    try {
+      FilePermissionHandler handler=(FilePermissionHandler)FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
+      serviceRegistry.add(FilePermissionHandler.class,handler);
+      return;
+    }
+ catch (    ClassNotFoundException e) {
+      LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.",jdkFilePermissionclass));
+    }
+catch (    Exception e) {
+      throw UncheckedException.throwAsUncheckedException(e);
+    }
+  }
+  Chmod chmod=createChmod();
+  Stat stat=createStat();
+  serviceRegistry.add(Chmod.class,chmod);
+  serviceRegistry.add(Stat.class,stat);
 }
