@@ -1,10 +1,11 @@
 {
-  serviceRegistry.add(Symlink.class,new PosixBackedSymlink(PosixUtil.current()));
   if (OperatingSystem.current().isWindows()) {
     serviceRegistry.add(Chmod.class,new EmptyChmod());
     serviceRegistry.add(Stat.class,new FallbackStat());
+    serviceRegistry.add(Symlink.class,new FallbackSymlink());
     return;
   }
+  serviceRegistry.add(Symlink.class,createSymlink());
   if (JavaVersion.current().isJava7()) {
     String jdkFilePermissionclass="org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
     try {
@@ -19,8 +20,6 @@ catch (    Exception e) {
       throw UncheckedException.throwAsUncheckedException(e);
     }
   }
-  Chmod chmod=createChmod();
-  Stat stat=createStat();
-  serviceRegistry.add(Chmod.class,chmod);
-  serviceRegistry.add(Stat.class,stat);
+  serviceRegistry.add(Chmod.class,createChmod());
+  serviceRegistry.add(Stat.class,createStat());
 }
