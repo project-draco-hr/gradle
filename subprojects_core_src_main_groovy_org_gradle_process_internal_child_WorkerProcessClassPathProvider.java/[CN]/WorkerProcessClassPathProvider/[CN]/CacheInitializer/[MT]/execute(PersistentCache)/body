@@ -1,8 +1,16 @@
 {
-  File classesDir=classesDir(cache);
+  File jarFile=jarFile(cache);
+  LOGGER.debug("Generating worker process classes to {}.",jarFile);
   URL currentClasspath=getClass().getProtectionDomain().getCodeSource().getLocation();
-  for (  Class<?> aClass : Arrays.asList(GradleWorkerMain.class,BootstrapClassLoaderWorker.class,BootstrapSecurityManager.class,EncodedStream.EncodedInput.class)) {
-    String fileName=aClass.getName().replace('.','/') + ".class";
+  JarJarTask task=new JarJarTask();
+  task.setDestFile(jarFile);
+  final List<Resource> classResources=new ArrayList<Resource>();
+  List<Class<?>> renamedClasses=Arrays.asList(GradleWorkerMain.class,BootstrapSecurityManager.class,EncodedStream.EncodedInput.class);
+  List<Class<?>> classes=new ArrayList<Class<?>>();
+  classes.add(BootstrapClassLoaderWorker.class);
+  classes.addAll(renamedClasses);
+  for (  Class<?> aClass : classes) {
+    final String fileName=aClass.getName().replace('.','/') + ".class";
     Enumeration<URL> resources;
     try {
       resources=WorkerProcessClassPathProvider.class.getClassLoader().getResources(fileName);
@@ -18,6 +26,31 @@
         break;
       }
     }
-    GFileUtils.copyURLToFile(resource,new File(classesDir,fileName));
+    URLResource urlResource=new URLResource(resource){
+      @Override public synchronized String getName(){
+        return fileName;
+      }
+    }
+;
+    classResources.add(urlResource);
   }
+  task.add(new ResourceCollection(){
+    public Iterator iterator(){
+      return classResources.iterator();
+    }
+    public int size(){
+      return classResources.size();
+    }
+    public boolean isFilesystemOnly(){
+      return true;
+    }
+  }
+);
+  for (  Class<?> renamedClass : renamedClasses) {
+    Rule rule=new Rule();
+    rule.setPattern(renamedClass.getName());
+    rule.setResult("jarjar.@0");
+    task.addConfiguredRule(rule);
+  }
+  AntUtil.execute(task);
 }
