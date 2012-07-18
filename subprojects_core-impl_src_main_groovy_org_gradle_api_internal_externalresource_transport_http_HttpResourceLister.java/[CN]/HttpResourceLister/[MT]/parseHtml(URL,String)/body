@@ -1,0 +1,52 @@
+{
+  List<URL> urlList=new ArrayList<URL>();
+  Matcher matcher=PATTERN.matcher(htmlText);
+  while (matcher.find()) {
+    String href=matcher.group(1);
+    String text=matcher.group(2);
+    text=text.trim();
+    if (href.startsWith("http:") || href.startsWith("https:")) {
+      try {
+        href=new URL(href).getPath();
+        if (!href.startsWith(baseUrl.getPath())) {
+          continue;
+        }
+        href=href.substring(baseUrl.getPath().length());
+      }
+ catch (      Exception ignore) {
+        continue;
+      }
+    }
+    if (href.startsWith("../")) {
+      continue;
+    }
+    if (href.startsWith("/")) {
+      int slashIndex=href.substring(0,href.length() - 1).lastIndexOf('/');
+      href=href.substring(slashIndex + 1);
+    }
+    if (href.startsWith("./")) {
+      href=href.substring("./".length());
+    }
+    if (text.endsWith("..>")) {
+      if (!href.startsWith(text.substring(0,text.length() - 3))) {
+        continue;
+      }
+    }
+ else     if (text.endsWith("..&gt;")) {
+      if (!href.startsWith(text.substring(0,text.length() - 6))) {
+        continue;
+      }
+    }
+ else {
+      String strippedHref=href.endsWith("/") ? href.substring(0,href.length() - 1) : href;
+      String strippedText=text.endsWith("/") ? text.substring(0,text.length() - 1) : text;
+      if (!strippedHref.equalsIgnoreCase(strippedText)) {
+        continue;
+      }
+    }
+    URL child=new URL(baseUrl,href);
+    urlList.add(child);
+    LOGGER.debug("found URL=[" + child + "].");
+  }
+  return urlList;
+}
