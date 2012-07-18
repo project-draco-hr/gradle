@@ -1,0 +1,81 @@
+{
+  Element thead=getChild(classDoc.getPropertiesTable(),"thead");
+  Element tr=getChild(thead,"tr");
+  List<Element> header=children(tr,"td");
+  if (header.size() < 1) {
+    throw new RuntimeException(String.format("Expected at least 1 <td> in <thead>/<tr>, found: %s",header));
+  }
+  Map<String,Element> inheritedValueTitleMapping=new HashMap<String,Element>();
+  List<Element> valueTitles=new ArrayList<Element>();
+  for (int i=1; i < header.size(); i++) {
+    Element element=header.get(i);
+    Element override=findChild(element,"overrides");
+    if (override != null) {
+      element.removeChild(override);
+      inheritedValueTitleMapping.put(override.getTextContent(),element);
+    }
+    Node firstChild=element.getFirstChild();
+    if (firstChild instanceof Text) {
+      firstChild.setTextContent(firstChild.getTextContent().replaceFirst("^\\s+",""));
+    }
+    Node lastChild=element.getLastChild();
+    if (lastChild instanceof Text) {
+      lastChild.setTextContent(lastChild.getTextContent().replaceFirst("\\s+$",""));
+    }
+    valueTitles.add(element);
+  }
+  String superClassName=classDoc.getClassMetaData().getSuperClassName();
+  ClassDoc superClass=superClassName != null ? model.getClassDoc(superClassName) : null;
+  Map<String,PropertyDoc> props=new TreeMap<String,PropertyDoc>();
+  if (superClass != null) {
+    for (    PropertyDoc propertyDoc : superClass.getClassProperties()) {
+      Map<String,ExtraAttributeDoc> additionalValues=new LinkedHashMap<String,ExtraAttributeDoc>();
+      for (      ExtraAttributeDoc attributeDoc : propertyDoc.getAdditionalValues()) {
+        String key=attributeDoc.getKey();
+        if (inheritedValueTitleMapping.get(key) != null) {
+          ExtraAttributeDoc newAttribute=new ExtraAttributeDoc(inheritedValueTitleMapping.get(key),attributeDoc.getValueCell());
+          additionalValues.put(newAttribute.getKey(),newAttribute);
+        }
+ else {
+          additionalValues.put(key,attributeDoc);
+        }
+      }
+      props.put(propertyDoc.getName(),propertyDoc.forClass(classDoc.getClassMetaData(),additionalValues.values()));
+    }
+  }
+  for (  Element row : children(classDoc.getPropertiesTable(),"tr")) {
+    List<Element> cells=children(row,"td");
+    if (cells.size() != header.size()) {
+      throw new RuntimeException(String.format("Expected %s <td> elements in <tr>, found: %s",header.size(),tr));
+    }
+    String propName=cells.get(0).getTextContent().trim();
+    PropertyMetaData property=classDoc.getClassMetaData().findProperty(propName);
+    if (property == null) {
+      throw new RuntimeException(String.format("No metadata for property '%s.%s'. Available properties: %s",classDoc.getName(),propName,classDoc.getClassMetaData().getPropertyNames()));
+    }
+    Map<String,ExtraAttributeDoc> additionalValues=new LinkedHashMap<String,ExtraAttributeDoc>();
+    if (superClass != null) {
+      PropertyDoc overriddenProp=props.get(propName);
+      if (overriddenProp != null) {
+        for (        ExtraAttributeDoc attributeDoc : overriddenProp.getAdditionalValues()) {
+          additionalValues.put(attributeDoc.getKey(),attributeDoc);
+        }
+      }
+    }
+    for (int i=1; i < header.size(); i++) {
+      if (cells.get(i).getFirstChild() == null) {
+        continue;
+      }
+      ExtraAttributeDoc attributeDoc=new ExtraAttributeDoc(valueTitles.get(i - 1),cells.get(i));
+      additionalValues.put(attributeDoc.getKey(),attributeDoc);
+    }
+    PropertyDoc propertyDoc=new PropertyDoc(property,javadocConverter.parse(property,listener).getDocbook(),new ArrayList<ExtraAttributeDoc>(additionalValues.values()));
+    if (propertyDoc.getDescription() == null) {
+      throw new RuntimeException(String.format("Docbook content for '%s.%s' does not contain a description paragraph.",classDoc.getName(),propName));
+    }
+    props.put(propName,propertyDoc);
+  }
+  for (  PropertyDoc propertyDoc : props.values()) {
+    classDoc.addClassProperty(propertyDoc);
+  }
+}
