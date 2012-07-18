@@ -3,13 +3,7 @@
     url=new URL(url.getProtocol(),url.getHost(),url.getPort(),url.getPath() + "/");
   }
   final ExternalResource resource=accessor.getResource(url.toString());
-  try {
-    final InputStream resourceInputStream=resource.openStream();
-    final InputStreamReader inputStreamReader=new InputStreamReader(resourceInputStream);
-    BufferedReader bufferedReader=new BufferedReader(inputStreamReader);
-    return readEntirely(bufferedReader);
-  }
-  finally {
-    resource.close();
-  }
+  ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
+  resource.writeTo(outputStream,new CopyProgressListenerAdapter());
+  return outputStream.toString();
 }
