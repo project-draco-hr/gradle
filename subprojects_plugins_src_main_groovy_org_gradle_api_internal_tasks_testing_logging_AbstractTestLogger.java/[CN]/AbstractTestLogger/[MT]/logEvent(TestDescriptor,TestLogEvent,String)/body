@@ -1,22 +1,13 @@
 {
-  List<String> names=Lists.newArrayList();
-  TestDescriptor current=descriptor;
-  while (current != null) {
-    if (isAtomicTestWithTestClassThatIsNotReflectedInParent(current)) {
-      names.add(current.getClassName() + "." + current.getName());
-    }
- else {
-      names.add(current.getName());
-    }
-    current=current.getParent();
-  }
-  int effectiveDisplayGranularity=displayGranularity == -1 ? names.size() - 1 : Math.min(displayGranularity,names.size() - 1);
-  List<String> displayedNames=Lists.reverse(names).subList(effectiveDisplayGranularity,names.size());
-  String path=Joiner.on(" > ").join(displayedNames) + " ";
   StyledTextOutput output=textOutputFactory.create("TestEventLogger",logLevel);
-  output.append(path);
-  output.withStyle(getStyle(event)).println(event.toString());
+  Object testId=((TestDescriptorInternal)descriptor).getId();
+  if (!testId.equals(lastSeenTestId) || event != lastSeenTestEvent) {
+    output.append(TextUtil.getPlatformLineSeparator() + getEventPath(descriptor));
+    output.withStyle(getStyle(event)).println(event.toString());
+  }
+  lastSeenTestId=testId;
+  lastSeenTestEvent=event;
   if (details != null) {
-    output.println(TextUtil.toPlatformLineSeparators(details));
+    output.append(TextUtil.toPlatformLineSeparators(details));
   }
 }
