@@ -1,0 +1,25 @@
+{
+  Map<String,ClassExtensionDoc> plugins=new HashMap<String,ClassExtensionDoc>();
+  for (  MixinMetaData mixin : classDoc.getExtensionMetaData().getMixinClasses()) {
+    String pluginId=mixin.getPluginId();
+    ClassExtensionDoc classExtensionDoc=plugins.get(pluginId);
+    if (classExtensionDoc == null) {
+      classExtensionDoc=new ClassExtensionDoc(pluginId,classDoc.getClassMetaData());
+      plugins.put(pluginId,classExtensionDoc);
+    }
+    classExtensionDoc.getMixinClasses().add(model.getClassDoc(mixin.getMixinClass()));
+  }
+  for (  ExtensionMetaData extension : classDoc.getExtensionMetaData().getExtensionClasses()) {
+    String pluginId=extension.getPluginId();
+    ClassExtensionDoc classExtensionDoc=plugins.get(pluginId);
+    if (classExtensionDoc == null) {
+      classExtensionDoc=new ClassExtensionDoc(pluginId,classDoc.getClassMetaData());
+      plugins.put(pluginId,classExtensionDoc);
+    }
+    classExtensionDoc.getExtensionClasses().put(extension.getExtensionId(),model.getClassDoc(extension.getExtensionClass()));
+  }
+  for (  ClassExtensionDoc extensionDoc : plugins.values()) {
+    extensionDoc.buildMetaData(model);
+    classDoc.addClassExtension(extensionDoc);
+  }
+}
