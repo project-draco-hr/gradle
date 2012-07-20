@@ -1,0 +1,30 @@
+{
+  final int baseURIPort=baseURI.getPort();
+  final String baseURIHost=baseURI.getHost();
+  final String baseURIScheme=baseURI.getScheme();
+  List<URI> uris=new ArrayList<URI>();
+  final String prefixPath=baseURI.getPath();
+  for (  URI parsedURI : inputURIs) {
+    if (!parsedURI.getHost().equals(baseURIHost)) {
+      continue;
+    }
+    if (!parsedURI.getScheme().equals(baseURIScheme)) {
+      continue;
+    }
+    if (parsedURI.getPort() != baseURIPort) {
+      continue;
+    }
+    if (!parsedURI.getPath().startsWith(prefixPath)) {
+      continue;
+    }
+    String childPathPart=parsedURI.getPath().substring(prefixPath.length(),parsedURI.getPath().length());
+    if (childPathPart.startsWith("../")) {
+      continue;
+    }
+    if (childPathPart.equals("") || childPathPart.split("/").length > 1) {
+      continue;
+    }
+    uris.add(parsedURI);
+  }
+  return uris;
+}

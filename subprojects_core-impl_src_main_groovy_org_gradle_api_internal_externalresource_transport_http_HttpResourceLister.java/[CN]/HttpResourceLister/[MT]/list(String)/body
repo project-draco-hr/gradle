@@ -1,12 +1,18 @@
 {
-  final URL baseUrl=addTrailingSlashes(new URL(parent));
-  final ExternalResource resource=accessor.getResource(baseUrl.toString());
+  URI baseURI=null;
+  try {
+    baseURI=addTrailingSlashes(new URI(parent));
+  }
+ catch (  URISyntaxException ex) {
+    LOGGER.warn(String.format("Unable to create URI from String '%s' ",ex));
+  }
+  final ExternalResource resource=accessor.getResource(baseURI.toString());
   if (resource == null) {
     return null;
   }
   byte[] resourceContent=loadResourceContent(resource);
   String encoding=getResourceEncoding(resource);
-  ApacheDirectoryListingParser directoryListingParser=new ApacheDirectoryListingParser(baseUrl);
-  List<URL> urls=directoryListingParser.parse(resourceContent,encoding);
-  return convertToStringMap(urls);
+  ApacheDirectoryListingParser directoryListingParser=new ApacheDirectoryListingParser(baseURI);
+  List<URI> uris=directoryListingParser.parse(resourceContent,encoding);
+  return convertToStringList(uris);
 }

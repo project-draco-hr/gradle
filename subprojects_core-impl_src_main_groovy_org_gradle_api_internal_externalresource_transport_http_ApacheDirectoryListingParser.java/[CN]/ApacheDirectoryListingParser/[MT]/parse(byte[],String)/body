@@ -1,16 +1,17 @@
 {
-  final String htmlText=new String(stream);
-  List<URL> urlList=new ArrayList<URL>();
-  Matcher matcher=PATTERN.matcher(htmlText);
-  while (matcher.find()) {
-    String href=matcher.group(1);
-    String text=matcher.group(2);
-    text=text.trim();
-    URL child=parseLink(href,text);
-    if (child != null) {
-      urlList.add(child);
-      LOGGER.debug("found URL=[" + child + "].");
-    }
+  final String htmlText=new String(content);
+  final InputSource inputSource=new InputSource(new StringReader(htmlText));
+  final SAXParser htmlParser=new SAXParser();
+  final AnchorListerHandler anchorListerHandler=new AnchorListerHandler();
+  htmlParser.setContentHandler(anchorListerHandler);
+  try {
+    htmlParser.parse(inputSource);
   }
-  return urlList;
+ catch (  SAXException e) {
+    LOGGER.warn(String.format("Unable to parse DirectoryListing for %s"),e);
+    return Collections.emptyList();
+  }
+  List<String> hrefs=anchorListerHandler.getHrefs();
+  List<URI> uris=resolveURIs(baseURI,hrefs);
+  return filterNonDirectChilds(baseURI,uris);
 }
