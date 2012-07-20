@@ -1,0 +1,30 @@
+{
+  Document doc;
+  try {
+    doc=DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+  }
+ catch (  ParserConfigurationException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+  LinkRenderer linkRenderer=new LinkRenderer(doc,model);
+  for (  Map.Entry<String,ClassDoc> entry : extensionDoc.getExtensionClasses().entrySet()) {
+    String id=entry.getKey();
+    ClassDoc type=entry.getValue();
+    PropertyMetaData propertyMetaData=new PropertyMetaData(id,extensionDoc.getTargetClass());
+    propertyMetaData.setType(new TypeMetaData(type.getName()));
+    Element para=doc.createElement("para");
+    para.appendChild(doc.createTextNode("The "));
+    para.appendChild(linkRenderer.link(propertyMetaData.getType(),listener));
+    para.appendChild(doc.createTextNode(String.format(" added by the %s plugin.",extensionDoc.getPluginId())));
+    PropertyDoc propertyDoc=new PropertyDoc(propertyMetaData,Collections.singletonList(para),Collections.<ExtraAttributeDoc>emptyList());
+    extensionDoc.getExtraProperties().add(propertyDoc);
+    para=doc.createElement("para");
+    para.appendChild(doc.createTextNode("Configures the "));
+    para.appendChild(linkRenderer.link(propertyMetaData.getType(),listener));
+    para.appendChild(doc.createTextNode(String.format(" added by the %s plugin.",extensionDoc.getPluginId())));
+    MethodMetaData methodMetaData=new MethodMetaData(id,extensionDoc.getTargetClass());
+    methodMetaData.addParameter("configClosure",new TypeMetaData(Closure.class.getName()));
+    MethodDoc methodDoc=new MethodDoc(methodMetaData,Collections.singletonList(para));
+    extensionDoc.getExtraBlocks().add(new BlockDoc(methodDoc,propertyDoc,propertyMetaData.getType(),false));
+  }
+}
