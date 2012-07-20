@@ -1,18 +1,23 @@
 {
-  URI baseURI=null;
+  URI baseURI;
   try {
     baseURI=addTrailingSlashes(new URI(parent));
   }
  catch (  URISyntaxException ex) {
-    LOGGER.warn(String.format("Unable to create URI from String '%s' ",ex));
+    throw new IOException(String.format("Unable to create URI from String '%s' ",parent),ex);
   }
   final ExternalResource resource=accessor.getResource(baseURI.toString());
   if (resource == null) {
     return null;
   }
   byte[] resourceContent=loadResourceContent(resource);
-  String encoding=getResourceEncoding(resource);
+  String contentType=getContentType(resource);
   ApacheDirectoryListingParser directoryListingParser=new ApacheDirectoryListingParser(baseURI);
-  List<URI> uris=directoryListingParser.parse(resourceContent,encoding);
-  return convertToStringList(uris);
+  try {
+    List<URI> uris=directoryListingParser.parse(resourceContent,contentType);
+    return convertToStringList(uris);
+  }
+ catch (  Exception e) {
+    throw new IOException("Unable to parse Http directory listing",e);
+  }
 }

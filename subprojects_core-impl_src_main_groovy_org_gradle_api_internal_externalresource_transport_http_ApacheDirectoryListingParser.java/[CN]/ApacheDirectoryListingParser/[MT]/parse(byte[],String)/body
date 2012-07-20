@@ -1,16 +1,14 @@
 {
-  final String htmlText=new String(content);
+  if (contentType == null || !contentType.startsWith("text/html")) {
+    throw new ResourceException(String.format("Unsupported ContentType %s for DirectoryListing",contentType));
+  }
+  String contentEncoding=contentType.contains("charset=") ? contentType.substring(contentType.indexOf('=') + 1) : "utf-8";
+  final String htmlText=new String(content,contentEncoding);
   final InputSource inputSource=new InputSource(new StringReader(htmlText));
   final SAXParser htmlParser=new SAXParser();
   final AnchorListerHandler anchorListerHandler=new AnchorListerHandler();
   htmlParser.setContentHandler(anchorListerHandler);
-  try {
-    htmlParser.parse(inputSource);
-  }
- catch (  SAXException e) {
-    LOGGER.warn(String.format("Unable to parse DirectoryListing for %s"),e);
-    return Collections.emptyList();
-  }
+  htmlParser.parse(inputSource);
   List<String> hrefs=anchorListerHandler.getHrefs();
   List<URI> uris=resolveURIs(baseURI,hrefs);
   return filterNonDirectChilds(baseURI,uris);
