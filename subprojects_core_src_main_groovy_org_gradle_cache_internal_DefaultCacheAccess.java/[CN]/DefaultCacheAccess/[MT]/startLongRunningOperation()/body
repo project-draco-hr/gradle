@@ -4,6 +4,11 @@
     if (owner != Thread.currentThread()) {
       throw new IllegalStateException(String.format("Cannot start long running operation, as the %s has not been locked.",cacheDiplayName));
     }
+    owner=null;
+    condition.signalAll();
+    List<String> parkedOperationStack=new ArrayList<String>(operationStack);
+    operationStack.clear();
+    return parkedOperationStack;
   }
   finally {
     lock.unlock();

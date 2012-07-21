@@ -1,9 +1,15 @@
 {
-  startLongRunningOperation();
+  LOGGER.debug(operationDisplayName + " (" + Thread.currentThread()+ ") - start long running operation");
   try {
     boolean wasEnded=onEndWork();
     try {
-      return action.create();
+      List<String> parkedOperationStack=startLongRunningOperation();
+      try {
+        return action.create();
+      }
+  finally {
+        endLongRunningOperation(parkedOperationStack);
+      }
     }
   finally {
       if (wasEnded) {
@@ -11,7 +17,11 @@
       }
     }
   }
-  finally {
-    endLongRunningOperation();
+ catch (  RuntimeException e) {
+    e.printStackTrace();
+    throw e;
+  }
+ finally {
+    LOGGER.debug(operationDisplayName + " (" + Thread.currentThread()+ ") - end long running operation");
   }
 }

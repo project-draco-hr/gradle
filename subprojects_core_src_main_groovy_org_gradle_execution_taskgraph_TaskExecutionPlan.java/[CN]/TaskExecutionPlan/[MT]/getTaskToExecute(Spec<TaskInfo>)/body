@@ -1,0 +1,28 @@
+{
+  lock.lock();
+  try {
+    TaskInfo nextMatching;
+    while ((nextMatching=getNextReadyAndMatching(criteria)) != null) {
+      while (!nextMatching.dependenciesExecuted()) {
+        try {
+          System.out.println("Awaiting");
+          condition.await();
+        }
+ catch (        InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+      nextMatching.startExecution();
+      if (nextMatching.dependenciesFailed()) {
+        abortTask(nextMatching);
+      }
+ else {
+        return nextMatching;
+      }
+    }
+    return null;
+  }
+  finally {
+    lock.unlock();
+  }
+}
