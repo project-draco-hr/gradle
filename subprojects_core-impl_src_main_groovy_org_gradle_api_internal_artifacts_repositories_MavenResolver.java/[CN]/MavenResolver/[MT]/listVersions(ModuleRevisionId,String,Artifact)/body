@@ -1,7 +1,11 @@
 {
-  List<String> revisions=listRevisionsWithMavenMetadata(moduleRevisionId.getModuleId().getAttributes());
-  if (revisions != null) {
-    return revisions.toArray(new String[revisions.size()]);
+  final ChainedVersionLister chainedVersionLister=new ChainedVersionLister(true);
+  String metadataLocation=IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml",moduleRevisionId.getModuleId().getAttributes());
+  if (shouldUseMavenMetadata(pattern)) {
+    final MavenMetadata mavenMetadata=parseMavenMetadata(metadataLocation);
+    chainedVersionLister.appendVersionLister(new MavenVersionLister(mavenMetadata));
   }
-  return super.listVersions(moduleRevisionId,pattern,artifact);
+  chainedVersionLister.appendVersionLister(new ResourceVersionLister(getRepository()));
+  final VersionList versionList=chainedVersionLister.getVersionList(moduleRevisionId,pattern,artifact);
+  return versionList;
 }
