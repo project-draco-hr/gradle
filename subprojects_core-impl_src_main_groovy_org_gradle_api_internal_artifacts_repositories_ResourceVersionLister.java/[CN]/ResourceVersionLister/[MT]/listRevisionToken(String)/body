@@ -14,32 +14,15 @@
     int slashIndex=pattern.substring(0,index).lastIndexOf(fileSep);
     String root=slashIndex == -1 ? "" : pattern.substring(0,slashIndex);
     LOGGER.debug("using {} to list all in {} ",repository,root);
-    List all=repository.list(root);
-    if (all != null) {
-      LOGGER.debug("found {} urls",all.size());
-      List ret=new ArrayList(all.size());
-      int endNameIndex=pattern.indexOf(fileSep,slashIndex + 1);
-      String namePattern;
-      if (endNameIndex != -1) {
-        namePattern=pattern.substring(slashIndex + 1,endNameIndex);
-      }
- else {
-        namePattern=pattern.substring(slashIndex + 1);
-      }
-      namePattern=namePattern.replaceAll("\\.","\\\\.");
-      String acceptNamePattern=".*?" + IvyPatternHelper.substituteToken(namePattern,IvyPatternHelper.REVISION_KEY,"([^" + fileSep + "]+)") + "($|"+ fileSep+ ".*)";
-      Pattern p=Pattern.compile(acceptNamePattern);
-      for (Iterator iter=all.iterator(); iter.hasNext(); ) {
-        String path=(String)iter.next();
-        Matcher m=p.matcher(path);
-        if (m.matches()) {
-          String value=m.group(1);
-          ret.add(value);
-        }
-      }
-      LOGGER.debug("{} matched {}" + pattern,ret.size(),pattern);
-      return ret;
+    List<String> all=repository.list(root);
+    if (all == null) {
+      throw new MissingResourceException(String.format("Can not load %s for listing resources",root));
     }
+    LOGGER.debug("found {} urls",all.size());
+    Pattern regexPattern=createRegexPattern(pattern,fileSep,slashIndex);
+    List ret=getMatchedValues(all,regexPattern);
+    LOGGER.debug("{} matched {}" + pattern,ret.size(),pattern);
+    return ret;
   }
   return Collections.emptyList();
 }

@@ -1,16 +1,10 @@
 {
   LOGGER.debug("using {} to list all in {}",repository,parent);
-  List all=repository.list(parent);
-  if (all != null) {
-    LOGGER.debug("found {} resources",all.size());
-    List<String> names=new ArrayList(all.size());
-    for (Iterator iter=all.iterator(); iter.hasNext(); ) {
-      names.add(getVersionFromPath((String)iter.next()));
-    }
-    return names;
+  List<String> all=repository.list(parent);
+  if (all == null) {
+    throw new MissingResourceException(String.format("Unable to load %s for listing versions",parent));
   }
- else {
-    LOGGER.debug("no resources found");
-  }
-  return Collections.emptyList();
+  LOGGER.debug("found {} resources",all.size());
+  List<String> names=getVersionsFromPathList(all);
+  return names;
 }

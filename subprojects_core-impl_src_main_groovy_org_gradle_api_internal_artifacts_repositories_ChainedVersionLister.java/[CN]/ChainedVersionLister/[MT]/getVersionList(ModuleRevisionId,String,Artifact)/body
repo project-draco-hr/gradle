@@ -1,16 +1,21 @@
 {
-  ComposableVersionList composableVersionList=new ComposableVersionList();
-  for (  VersionLister versionLister : versionListers) {
-    VersionList versionList=versionLister.getVersionList(moduleRevisionId,pattern,artifact);
-    if (versionList.isEmpty()) {
-      continue;
+  final Iterator<VersionLister> versionListerIterator=versionListers.iterator();
+  while (versionListerIterator.hasNext()) {
+    VersionLister lister=versionListerIterator.next();
+    try {
+      final VersionList versionList=lister.getVersionList(moduleRevisionId,pattern,artifact);
+      if (!versionListerIterator.hasNext() || !versionList.isEmpty()) {
+        return versionList;
+      }
     }
-    if (stopOnSuccess) {
-      return versionList;
-    }
+ catch (    Exception e) {
+      if (versionListerIterator.hasNext()) {
+        DeprecationLogger.nagUserWith(String.format("Failed to list versions of %s using %s. Proceeding with other ResourceLister.",moduleRevisionId,lister.getClass()));
+      }
  else {
-      composableVersionList.addList(versionList);
+        throw new ComposedResourceException(String.format("Failed to list versions for %s",moduleRevisionId,lister.getClass()),e);
+      }
     }
   }
-  return composableVersionList;
+  return new DefaultVersionList(Collections.<String>emptyList());
 }
