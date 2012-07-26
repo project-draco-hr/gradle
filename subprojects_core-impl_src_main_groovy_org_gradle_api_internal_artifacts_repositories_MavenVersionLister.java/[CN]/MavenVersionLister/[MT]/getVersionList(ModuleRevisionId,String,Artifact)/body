@@ -3,7 +3,10 @@
     if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
       return new DefaultVersionList(Collections.<String>emptyList());
     }
-    return new DefaultVersionList(listRevisionsWithMavenMetadata(moduleRevisionId.getModuleId().getAttributes()));
+    final Map attributes=moduleRevisionId.getModuleId().getAttributes();
+    String metadataLocation=IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml",attributes);
+    MavenMetadata mavenMetaData=mavenMetadataLoader.load(metadataLocation);
+    return new DefaultVersionList(mavenMetaData.versions);
   }
  catch (  IOException e) {
     throw new ResourceException("Unable to load Maven Metadata file",e);
