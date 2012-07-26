@@ -7,5 +7,14 @@
   addForPattern(finders,"artifacts-4","[organisation]/[module](/[branch])/*/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
   addForPattern(finders,"artifacts-4","[organisation]/[module](/[branch])/*/pom.originals/[artifact]-[revision](-[classifier])(.[ext])");
   addForPattern(finders,"../cache","[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
+  try {
+    File localMavenRepository=localMavenRepositoryLocator.getLocalMavenRepository();
+    if (localMavenRepository.exists()) {
+      addForPattern(finders,localMavenRepository,"[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])");
+    }
+  }
+ catch (  CannotLocateLocalMavenRepositoryException ex) {
+    finders.add(new NoMavenLocalRepositoryResourceFinder(ex));
+  }
   return new CompositeLocallyAvailableResourceFinder<ArtifactRevisionId>(finders);
 }
