@@ -1,28 +1,25 @@
 {
-  String fileSep=repository.getFileSeparator();
   pattern=repository.standardize(pattern);
-  String tokenString=IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY);
-  int index=pattern.indexOf(tokenString);
-  if (index == -1) {
-    LOGGER.info("Unable to find revision token in pattern {}.",pattern);
+  if (!pattern.contains(REVISION_TOKEN)) {
+    LOGGER.info("revision token not defined in pattern {}.",pattern);
+    return Collections.emptyList();
   }
- else   if (tokenIsWholeDirectoryName(pattern,fileSep,tokenString,index)) {
-    String root=pattern.substring(0,index);
-    return listAll(root);
+  String prefix=pattern.substring(0,pattern.indexOf(REVISION_TOKEN));
+  if (revisionIsParentDirectoryName(pattern)) {
+    return listAll(prefix);
   }
  else {
-    int slashIndex=pattern.substring(0,index).lastIndexOf(fileSep);
-    String root=slashIndex == -1 ? "" : pattern.substring(0,slashIndex);
-    LOGGER.debug("using {} to list all in {} ",repository,root);
-    List<String> all=repository.list(root);
+    int parentFolderSlashIndex=prefix.lastIndexOf(fileSep);
+    String revisionParentFolder=parentFolderSlashIndex == -1 ? "" : prefix.substring(0,parentFolderSlashIndex);
+    LOGGER.debug("using {} to list all in {} ",repository,revisionParentFolder);
+    List<String> all=repository.list(revisionParentFolder);
     if (all == null) {
-      throw new ResourceNotFoundException(String.format("Can not load %s for listing resources",root));
+      throw new ResourceNotFoundException(String.format("Can not load %s for listing resources",revisionParentFolder));
     }
     LOGGER.debug("found {} urls",all.size());
-    Pattern regexPattern=createRegexPattern(pattern,fileSep,slashIndex);
-    List ret=getMatchedValues(all,regexPattern);
+    Pattern regexPattern=createRegexPattern(pattern,parentFolderSlashIndex);
+    List ret=filterMatchedValues(all,regexPattern);
     LOGGER.debug("{} matched {}" + pattern,ret.size(),pattern);
     return ret;
   }
-  return Collections.emptyList();
 }
