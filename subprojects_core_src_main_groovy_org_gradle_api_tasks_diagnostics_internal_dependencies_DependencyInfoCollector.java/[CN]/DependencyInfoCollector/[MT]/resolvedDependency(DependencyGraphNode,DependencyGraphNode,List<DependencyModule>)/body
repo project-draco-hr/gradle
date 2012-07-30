@@ -1,9 +1,17 @@
 {
   this.root=root;
   if (!deps.containsKey(id.getId())) {
-    deps.put(id.getId(),new LinkedHashSet<DependencyModule>());
+    deps.put(id.getId(),new LinkedHashMap<String,DependencyModule>());
   }
   if (!dependencies.isEmpty()) {
-    deps.get(id.getId()).addAll(dependencies);
+    Map<String,DependencyModule> accumulatedDependencies=deps.get(id.getId());
+    for (    DependencyModule d : dependencies) {
+      if (accumulatedDependencies.containsKey(d.toString())) {
+        accumulatedDependencies.get(d.toString()).appendConfigurations(d.getConfigurations());
+      }
+ else {
+        accumulatedDependencies.put(d.toString(),d);
+      }
+    }
   }
 }
