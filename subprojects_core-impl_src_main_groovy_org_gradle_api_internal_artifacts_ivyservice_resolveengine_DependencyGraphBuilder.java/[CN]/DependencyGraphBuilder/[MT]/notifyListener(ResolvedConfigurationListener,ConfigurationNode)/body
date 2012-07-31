@@ -1,0 +1,20 @@
+{
+  if (listener instanceof ResolvedConfigurationListenerFactory.NoOpDependencyGraphListener) {
+    return;
+  }
+  ResolvedConfigurationIdentifier id=toId(resolvedConfiguration);
+  List<DependencyEdge> out=Lists.newLinkedList(resolvedConfiguration.outgoingEdges);
+  List<DefaultDependencyModule> to=Lists.transform(out,new Function<DependencyEdge,DefaultDependencyModule>(){
+    public DefaultDependencyModule apply(    DependencyEdge input){
+      List<String> targetConfigurations=Lists.transform(Lists.newLinkedList(input.targetConfigurations),new Function<ConfigurationNode,String>(){
+        public String apply(        ConfigurationNode input){
+          return input.configurationName;
+        }
+      }
+);
+      return new DefaultDependencyModule(new DefaultModuleVersionIdentifier(input.dependencyDescriptor.getDependencyRevisionId().getOrganisation(),input.dependencyDescriptor.getDependencyRevisionId().getName(),input.dependencyDescriptor.getDependencyRevisionId().getRevision()),toId(input.targetModuleRevision),new LinkedHashSet<String>(targetConfigurations));
+    }
+  }
+);
+  listener.resolvedConfiguration(id,to);
+}

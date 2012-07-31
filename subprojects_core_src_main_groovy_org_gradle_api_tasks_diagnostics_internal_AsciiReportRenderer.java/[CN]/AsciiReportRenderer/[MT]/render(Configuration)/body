@@ -1,13 +1,9 @@
 {
-  DependencyInfoCollector collector=new DependencyInfoCollector();
-  ((ConfigurationInternal)configuration).setDependencyGraphListener(collector);
+  RenderableGraphProvider graphProvider=new RenderableGraphProvider();
+  ((ConfigurationInternal)configuration).setDependencyGraphListener(graphProvider);
   ResolvedConfiguration resolvedConfiguration=configuration.getResolvedConfiguration();
-  DependencyInfoCollector.DependencyNode graphRoot=collector.buildGraph();
-  RenderableDependency root;
-  if (graphRoot != null) {
-    root=new RenderableDependencyNode(graphRoot);
-  }
- else {
+  RenderableDependency root=graphProvider.getRoot();
+  if (root == null) {
     root=new MergedResolvedConfiguration(resolvedConfiguration);
   }
   if (root.getChildren().isEmpty()) {
