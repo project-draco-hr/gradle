@@ -3,19 +3,7 @@
   List<String> args=new ArrayList<String>();
   args.add("--daemon");
   args.addAll(originalArgs);
-  String daemonRegistryBase=getDaemonRegistryBase();
-  if (daemonRegistryBase != null) {
-    args.add("-Dorg.gradle.daemon.registry.base=" + daemonRegistryBase);
-    configureJvmArgs(args,daemonRegistryBase);
-  }
- else {
-    configureJvmArgs(args,distribution.getUserHomeDir().getAbsolutePath());
-  }
-  if (!args.toString().contains("-Dorg.gradle.daemon.idletimeout=")) {
-    boolean preferShortTimeout=distribution.isUsingIsolatedDaemons() || daemonBaseDir != null;
-    int timeout=preferShortTimeout ? 20000 : 5 * 60 * 1000;
-    args.add("-Dorg.gradle.daemon.idletimeout=" + timeout);
-  }
+  configureJvmArgs(args);
   configureDefaultLogging(args);
   return args;
 }

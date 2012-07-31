@@ -1,20 +1,9 @@
 {
-  try {
-    if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
-      return new DefaultVersionList(Collections.<String>emptyList());
-    }
-    final Map attributes=moduleRevisionId.getModuleId().getAttributes();
-    String metadataLocation=IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml",attributes);
-    MavenMetadata mavenMetaData=mavenMetadataLoader.load(metadataLocation);
-    return new DefaultVersionList(mavenMetaData.versions);
+  if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
+    throw new ResourceNotFoundException("Cannot locate maven-metadata.xml for non-maven layout");
   }
- catch (  IOException e) {
-    throw new ResourceException("Unable to load Maven Metadata file",e);
-  }
-catch (  SAXException e) {
-    throw new ResourceException("Unable to parse Maven Metadata file",e);
-  }
-catch (  ParserConfigurationException e) {
-    throw new ResourceException("Unable to parse Maven Metadata file",e);
-  }
+  final Map attributes=moduleRevisionId.getModuleId().getAttributes();
+  String metadataLocation=IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml",attributes);
+  MavenMetadata mavenMetaData=mavenMetadataLoader.load(metadataLocation);
+  return new DefaultVersionList(mavenMetaData.versions);
 }

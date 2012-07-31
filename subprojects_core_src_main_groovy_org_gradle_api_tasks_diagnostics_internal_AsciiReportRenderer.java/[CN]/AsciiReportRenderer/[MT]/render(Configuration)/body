@@ -1,0 +1,20 @@
+{
+  DependencyInfoCollector collector=new DependencyInfoCollector();
+  ((ConfigurationInternal)configuration).setDependencyGraphListener(collector);
+  ResolvedConfiguration resolvedConfiguration=configuration.getResolvedConfiguration();
+  DependencyInfoCollector.DependencyNode graphRoot=collector.buildGraph();
+  RenderableDependency root;
+  if (graphRoot != null) {
+    root=new RenderableDependencyNode(graphRoot);
+  }
+ else {
+    root=new MergedResolvedConfiguration(resolvedConfiguration);
+  }
+  if (root.getChildren().isEmpty()) {
+    getTextOutput().withStyle(Info).text("No dependencies");
+    getTextOutput().println();
+    return;
+  }
+  renderChildren(root.getChildren(),new HashSet<String>());
+  resolvedConfiguration.rethrowFailure();
+}
