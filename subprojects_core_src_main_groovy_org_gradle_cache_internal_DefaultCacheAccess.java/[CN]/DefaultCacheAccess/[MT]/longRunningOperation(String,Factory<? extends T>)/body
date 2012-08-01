@@ -1,27 +1,17 @@
 {
-  LOGGER.debug(operationDisplayName + " (" + Thread.currentThread()+ ") - start long running operation");
+  if (threadIsInLongRunningOperation()) {
+    return action.create();
+  }
+  checkThreadIsOwner();
+  boolean wasEnded=onEndWork();
+  List<String> parkedOperationStack=parkOwner();
   try {
-    boolean wasEnded=onEndWork();
-    try {
-      List<String> parkedOperationStack=startLongRunningOperation();
-      try {
-        return action.create();
-      }
-  finally {
-        endLongRunningOperation(parkedOperationStack);
-      }
-    }
-  finally {
-      if (wasEnded) {
-        onStartWork();
-      }
-    }
+    return action.create();
   }
- catch (  RuntimeException e) {
-    e.printStackTrace();
-    throw e;
-  }
- finally {
-    LOGGER.debug(operationDisplayName + " (" + Thread.currentThread()+ ") - end long running operation");
+  finally {
+    restoreOwner(parkedOperationStack);
+    if (wasEnded) {
+      onStartWork();
+    }
   }
 }
