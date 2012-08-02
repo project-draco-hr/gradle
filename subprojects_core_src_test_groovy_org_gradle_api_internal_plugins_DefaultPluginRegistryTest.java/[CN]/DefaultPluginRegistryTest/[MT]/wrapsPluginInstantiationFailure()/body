@@ -1,10 +1,18 @@
 {
+  final Throwable failure=new RuntimeException();
+  context.checking(new Expectations(){
+{
+      one(instantiator).newInstance(BrokenPlugin.class,new Object[0]);
+      will(throwException(new ObjectInstantiationException(BrokenPlugin.class,failure)));
+    }
+  }
+);
   try {
     pluginRegistry.loadPlugin(BrokenPlugin.class);
     fail();
   }
  catch (  PluginInstantiationException e) {
     assertThat(e.getMessage(),equalTo("Could not create plugin of type 'BrokenPlugin'."));
-    assertThat(e.getCause(),Matchers.<Object>notNullValue());
+    assertThat(e.getCause(),sameInstance(failure));
   }
 }
