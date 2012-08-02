@@ -6,12 +6,12 @@
     throw new InvalidUserDataException(String.format("Cannot create plugin of type '%s' as it does not implement the Plugin interface.",pluginClass.getSimpleName()));
   }
   try {
-    return pluginClass.newInstance();
+    DefaultServiceRegistry services=new DefaultServiceRegistry();
+    Instantiator instantiator=new DependencyInjectingInstantiator(services);
+    services.add(Instantiator.class,instantiator);
+    return instantiator.newInstance(pluginClass);
   }
- catch (  InstantiationException e) {
+ catch (  ObjectInstantiationException e) {
     throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",pluginClass.getSimpleName()),e.getCause());
-  }
-catch (  Exception e) {
-    throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",pluginClass.getSimpleName()),e);
   }
 }
