@@ -1,0 +1,50 @@
+{
+  Constructor<?>[] constructors=type.getDeclaredConstructors();
+  if (constructors.length == 1) {
+    return constructors[0];
+  }
+  Constructor<?> injectConstructor=null;
+  for (  Constructor<?> constructor : constructors) {
+    if (constructor.getAnnotation(Inject.class) != null) {
+      if (injectConstructor != null) {
+        throw new IllegalArgumentException(String.format("Class %s has multiple constructors with @Inject annotation.",type.getName()));
+      }
+      injectConstructor=constructor;
+    }
+  }
+  Constructor<?> parameterMatchConstructor=null;
+  for (  Constructor<?> constructor : type.getConstructors()) {
+    Class<?>[] parameterTypes=constructor.getParameterTypes();
+    if (parameterTypes.length == parameters.length) {
+      boolean match=true;
+      for (int i=0; match && i < parameters.length; i++) {
+        Class<?> targetType=parameterTypes[i];
+        if (targetType.isPrimitive()) {
+          targetType=JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
+        }
+        if (!targetType.isInstance(parameters[i])) {
+          match=false;
+        }
+      }
+      if (match) {
+        if (parameterMatchConstructor != null) {
+          throw new IllegalArgumentException(String.format("Class %s has multiple constructors that accept parameters %s.",type.getName(),Arrays.toString(parameters)));
+        }
+        parameterMatchConstructor=constructor;
+      }
+    }
+  }
+  if (parameterMatchConstructor == null && injectConstructor == null) {
+    throw new IllegalArgumentException(String.format("Class %s has no constructor that accepts parameters %s or that is annotated with @Inject.",type.getName(),Arrays.toString(parameters)));
+  }
+  if (parameterMatchConstructor != null) {
+    if (injectConstructor == null) {
+      onDeprecationWarning.execute(String.format("Class %s has multiple constructors and none of them are annotated with @Inject.",type.getName()));
+    }
+ else     if (!parameterMatchConstructor.equals(injectConstructor)) {
+      onDeprecationWarning.execute(String.format("Class %s has @Inject annotation on the incorrect constructor.",type.getName()));
+    }
+    return parameterMatchConstructor;
+  }
+  return injectConstructor;
+}
