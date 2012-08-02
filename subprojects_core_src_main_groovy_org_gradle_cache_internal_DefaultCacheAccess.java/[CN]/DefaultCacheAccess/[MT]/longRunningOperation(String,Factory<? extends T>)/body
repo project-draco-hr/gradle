@@ -1,17 +1,17 @@
 {
-  startLongRunningOperation();
+  if (threadIsInLongRunningOperation()) {
+    return action.create();
+  }
+  checkThreadIsOwner();
+  boolean wasEnded=onEndWork();
+  List<String> parkedOperationStack=parkOwner();
   try {
-    boolean wasEnded=onEndWork();
-    try {
-      return action.create();
-    }
-  finally {
-      if (wasEnded) {
-        onStartWork();
-      }
-    }
+    return action.create();
   }
   finally {
-    endLongRunningOperation();
+    restoreOwner(parkedOperationStack);
+    if (wasEnded) {
+      onStartWork();
+    }
   }
 }
