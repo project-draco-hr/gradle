@@ -1,0 +1,29 @@
+{
+  Document document=parent.getOwnerDocument();
+  Element section=document.createElement("section");
+  parent.appendChild(section);
+  section.setAttribute("id",methodDoc.getId());
+  section.setAttribute("role","detail");
+  Element title=document.createElement("title");
+  section.appendChild(title);
+  title.appendChild(linkRenderer.link(methodDoc.getMetaData().getReturnType(),listener));
+  title.appendChild(document.createTextNode(" "));
+  Element literal=document.createElement("literal");
+  title.appendChild(literal);
+  literal.appendChild(document.createTextNode(methodDoc.getName()));
+  title.appendChild(document.createTextNode("("));
+  List<ParameterMetaData> parameters=methodDoc.getMetaData().getParameters();
+  for (int i=0; i < parameters.size(); i++) {
+    ParameterMetaData param=parameters.get(i);
+    if (i > 0) {
+      title.appendChild(document.createTextNode(", "));
+    }
+    title.appendChild(linkRenderer.link(param.getType(),listener));
+    title.appendChild(document.createTextNode(" " + param.getName()));
+  }
+  title.appendChild(document.createTextNode(")"));
+  warningsRenderer.renderTo(methodDoc,"method",section);
+  for (  Element element : methodDoc.getComment()) {
+    section.appendChild(document.importNode(element,true));
+  }
+}
