@@ -1,9 +1,10 @@
 {
   if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
-    throw new ResourceNotFoundException("Cannot locate maven-metadata.xml for non-maven layout");
+    throw new InvalidUserDataException("Cannot locate maven-metadata.xml for non-maven layout");
   }
   final Map attributes=moduleRevisionId.getModuleId().getAttributes();
-  String metadataLocation=IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml",attributes);
+  String metaDataPattern=pattern.substring(0,pattern.length() - MavenPattern.M2_PER_MODULE_PATTERN.length()) + "maven-metadata.xml";
+  String metadataLocation=IvyPatternHelper.substituteTokens(metaDataPattern,attributes);
   MavenMetadata mavenMetaData=mavenMetadataLoader.load(metadataLocation);
   return new DefaultVersionList(mavenMetaData.versions);
 }
