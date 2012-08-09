@@ -8,33 +8,9 @@
   if (!getClass().desiredAssertionStatus()) {
     throw new RuntimeException("Assertions must be enabled when running integration tests.");
   }
-  InProcessGradleExecuter inProcessGradleExecuter=new InProcessGradleExecuter();
-  copyTo(inProcessGradleExecuter);
-  GradleExecuter returnedExecuter=inProcessGradleExecuter;
-  TestFile tmpDir=getTmpDir();
-  tmpDir.deleteDir().createDir();
-  if (executerType.forks || !inProcessGradleExecuter.canExecute()) {
-    boolean useDaemon=executerType == Executer.daemon && getExecutable() == null;
-    ForkingGradleExecuter forkingGradleExecuter=useDaemon ? new DaemonGradleExecuter(dist,!isQuiet() && allowExtraLogging) : new ForkingGradleExecuter(dist.getGradleHomeDir());
-    copyTo(forkingGradleExecuter);
-    if (!dist.shouldAvoidConfiguringTmpDir()) {
-      forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s",tmpDir));
-    }
-    returnedExecuter=forkingGradleExecuter;
-  }
-  if (executerType == Executer.embeddedDaemon) {
-    GradleExecuter embeddedDaemonExecutor=new EmbeddedDaemonGradleExecuter();
-    copyTo(embeddedDaemonExecutor);
-    returnedExecuter=embeddedDaemonExecutor;
-  }
-  boolean settingsFound=false;
-  for (TestFile dir=new TestFile(getWorkingDir()); dir != null && dist.isFileUnderTest(dir) && !settingsFound; dir=dir.getParentFile()) {
-    if (dir.file("settings.gradle").isFile()) {
-      settingsFound=true;
-    }
-  }
-  if (settingsFound) {
-    returnedExecuter.withSearchUpwards();
-  }
-  return returnedExecuter;
+  GradleExecuter gradleExecuter=createExecuter(executerType);
+  copyTo(gradleExecuter);
+  configureTmpDir(gradleExecuter);
+  configureForSettingsFile(gradleExecuter);
+  return gradleExecuter;
 }

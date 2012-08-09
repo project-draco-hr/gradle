@@ -1,0 +1,19 @@
+{
+  if (getExecutable() != null) {
+    return createForkingExecuter();
+  }
+switch (executerType) {
+case embeddedDaemon:
+    return new EmbeddedDaemonGradleExecuter();
+case embedded:
+  if (getJavaHome().equals(Jvm.current().getJavaHome()) && getDefaultCharacterEncoding().equals(Charset.defaultCharset().name())) {
+    return new InProcessGradleExecuter();
+  }
+return createForkingExecuter();
+case daemon:
+return new DaemonGradleExecuter(dist,!isQuiet() && allowExtraLogging);
+case forking:
+return createForkingExecuter();
+}
+throw new RuntimeException("Not a supported executer type: " + executerType);
+}
