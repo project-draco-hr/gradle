@@ -3,7 +3,7 @@
   try {
     TaskInfo nextMatching;
     while ((nextMatching=getNextReadyAndMatching(criteria)) != null) {
-      while (!nextMatching.dependenciesExecuted()) {
+      while (!nextMatching.allDependenciesComplete()) {
         try {
           condition.await();
         }
@@ -11,12 +11,13 @@
           throw new RuntimeException(e);
         }
       }
-      nextMatching.startExecution();
-      if (nextMatching.dependenciesFailed()) {
-        abortTask(nextMatching);
+      if (nextMatching.allDependenciesSuccessful()) {
+        nextMatching.startExecution();
+        return nextMatching;
       }
  else {
-        return nextMatching;
+        nextMatching.skipExecution();
+        condition.signalAll();
       }
     }
     return null;
