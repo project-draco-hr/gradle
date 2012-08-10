@@ -1,0 +1,22 @@
+{
+  Set<ArchiveEntry> entries=new HashSet<ArchiveEntry>();
+  FileInputStream fileInputStream;
+  try {
+    fileInputStream=new FileInputStream(archiveFile);
+  }
+ catch (  FileNotFoundException e) {
+    throw new UncheckedIOException(e);
+  }
+  ZipInputStream zipStream=new ZipInputStream(fileInputStream);
+  try {
+    ZipEntry entry=zipStream.getNextEntry();
+    while (entry != null) {
+      entries.add(entryTransformer.transform(entry));
+      entry=zipStream.getNextEntry();
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+  return entries;
+}
