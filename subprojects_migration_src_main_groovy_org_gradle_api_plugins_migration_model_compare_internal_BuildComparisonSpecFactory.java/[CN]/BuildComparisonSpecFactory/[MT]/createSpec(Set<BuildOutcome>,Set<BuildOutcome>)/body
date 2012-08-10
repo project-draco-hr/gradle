@@ -1,0 +1,26 @@
+{
+  BuildComparisonSpecBuilder builder=new DefaultBuildComparisonSpecBuilder();
+  Set<BuildOutcome> toCopy=new HashSet<BuildOutcome>(to);
+  for (  BuildOutcome fromBuildOutcome : from) {
+    BuildOutcome toBuildOutcome=null;
+    Class<? extends BuildOutcome> associationType=null;
+    for (    BuildOutcome buildOutcome : toCopy) {
+      toBuildOutcome=buildOutcome;
+      associationType=associator.findAssociationType(fromBuildOutcome,toBuildOutcome);
+      if (associationType != null) {
+        break;
+      }
+    }
+    if (associationType == null) {
+      builder.addUnassociatedFrom(fromBuildOutcome);
+    }
+ else {
+      builder.associate(associationType.cast(fromBuildOutcome),associationType.cast(toBuildOutcome),(Class<BuildOutcome>)associationType);
+      toCopy.remove(toBuildOutcome);
+    }
+  }
+  for (  BuildOutcome buildOutcome : toCopy) {
+    builder.addUnassociatedTo(buildOutcome);
+  }
+  return builder.build();
+}
