@@ -79,10 +79,17 @@
   typeVariable=(TypeVariable)paramType;
   assertThat(typeVariable.getName(),equalTo("V"));
   assertThat(typeVariable.getBounds()[0],equalTo((Type)Object.class));
+  GenericArrayType arrayType;
   paramType=constructor.getGenericParameterTypes()[9];
-  assertThat(paramType,instanceOf(GenericArrayType.class));
-  GenericArrayType arrayType=(GenericArrayType)paramType;
-  assertThat(arrayType.getGenericComponentType(),equalTo((Type)String.class));
+  if (JavaVersion.current().isJava7Compatible()) {
+    assertThat(paramType,equalTo((Type)String[].class));
+    assertThat(((Class<?>)paramType).getComponentType(),equalTo((Type)String.class));
+  }
+ else {
+    assertThat(paramType,instanceOf(GenericArrayType.class));
+    arrayType=(GenericArrayType)paramType;
+    assertThat(arrayType.getGenericComponentType(),equalTo((Type)String.class));
+  }
   paramType=constructor.getGenericParameterTypes()[10];
   assertThat(paramType,instanceOf(GenericArrayType.class));
   arrayType=(GenericArrayType)paramType;

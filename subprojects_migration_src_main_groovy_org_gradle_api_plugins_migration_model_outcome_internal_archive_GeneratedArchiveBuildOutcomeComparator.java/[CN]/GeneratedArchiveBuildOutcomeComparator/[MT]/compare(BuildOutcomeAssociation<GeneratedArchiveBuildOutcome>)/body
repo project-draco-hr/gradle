@@ -1,0 +1,40 @@
+{
+  GeneratedArchiveBuildOutcome from=association.getFrom();
+  GeneratedArchiveBuildOutcome to=association.getTo();
+  Set<ArchiveEntry> fromEntries;
+  if (from.getArchiveFile() != null) {
+    fromEntries=archiveToEntriesTransformer.transform(from.getArchiveFile());
+  }
+ else {
+    fromEntries=Collections.emptySet();
+  }
+  Set<ArchiveEntry> toEntries;
+  if (to.getArchiveFile() != null) {
+    toEntries=archiveToEntriesTransformer.transform(to.getArchiveFile());
+  }
+ else {
+    toEntries=Collections.emptySet();
+  }
+  CollectionUtils.SetDiff<ArchiveEntry> diff=CollectionUtils.diffSetsBy(fromEntries,toEntries,new Transformer<String,ArchiveEntry>(){
+    public String transform(    ArchiveEntry entry){
+      return entry.getPath();
+    }
+  }
+);
+  SortedSet<ArchiveEntryComparison> entryComparisons=new TreeSet<ArchiveEntryComparison>(new Comparator<ArchiveEntryComparison>(){
+    public int compare(    ArchiveEntryComparison o1,    ArchiveEntryComparison o2){
+      return o1.getPath().compareTo(o2.getPath());
+    }
+  }
+);
+  for (  ArchiveEntry fromOnly : diff.leftOnly) {
+    entryComparisons.add(new ArchiveEntryComparison(fromOnly.getPath(),fromOnly,null));
+  }
+  for (  CollectionUtils.SetDiff.Pair<ArchiveEntry> pair : diff.common) {
+    entryComparisons.add(new ArchiveEntryComparison(pair.left.getPath(),pair.left,pair.right));
+  }
+  for (  ArchiveEntry toOnly : diff.rightOnly) {
+    entryComparisons.add(new ArchiveEntryComparison(toOnly.getPath(),null,toOnly));
+  }
+  return new GeneratedArchiveBuildOutcomeComparisonResult(association,entryComparisons);
+}
