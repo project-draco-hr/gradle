@@ -1,0 +1,42 @@
+{
+  Document document=parent.getOwnerDocument();
+  Element summarySection=document.createElement("section");
+  parent.appendChild(summarySection);
+  Element title=document.createElement("title");
+  summarySection.appendChild(title);
+  title.appendChild(document.createTextNode("Properties"));
+  boolean hasProperties=false;
+  Collection<PropertyDoc> classProperties=classDoc.getClassProperties();
+  if (!classProperties.isEmpty()) {
+    hasProperties=true;
+    Element table=document.createElement("table");
+    summarySection.appendChild(table);
+    title=document.createElement("title");
+    table.appendChild(title);
+    title.appendChild(document.createTextNode("Properties - " + classDoc.getSimpleName()));
+    propertyTableRenderer.renderTo(classProperties,table);
+  }
+  for (  ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+    hasProperties|=!extensionDoc.getExtensionProperties().isEmpty();
+    extensionPropertiesSummaryRenderer.renderTo(extensionDoc,summarySection);
+  }
+  if (!hasProperties) {
+    Element para=document.createElement("para");
+    summarySection.appendChild(para);
+    para.appendChild(document.createTextNode("No properties"));
+    return;
+  }
+  Element detailsSection=document.createElement("section");
+  parent.appendChild(detailsSection);
+  title=document.createElement("title");
+  detailsSection.appendChild(title);
+  title.appendChild(document.createTextNode("Property details"));
+  for (  PropertyDoc classProperty : classProperties) {
+    propertiesDetailRenderer.renderTo(classProperty,detailsSection);
+  }
+  for (  ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+    for (    PropertyDoc propertyDoc : extensionDoc.getExtensionProperties()) {
+      propertiesDetailRenderer.renderTo(propertyDoc,detailsSection);
+    }
+  }
+}

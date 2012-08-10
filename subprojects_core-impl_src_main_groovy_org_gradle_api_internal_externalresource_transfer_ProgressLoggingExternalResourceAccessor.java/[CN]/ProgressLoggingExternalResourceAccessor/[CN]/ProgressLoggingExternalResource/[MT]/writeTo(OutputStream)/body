@@ -1,0 +1,18 @@
+{
+  ProgressLogger progressLogger=startProgress(String.format("Download %s",getName()),null);
+  final ProgressLoggingOutputStream progressLoggingOutputStream=new ProgressLoggingOutputStream(outputStream,progressLogger,resource.getContentLength());
+  try {
+    resource.writeTo(progressLoggingOutputStream);
+  }
+ catch (  IOException e) {
+    progressLogger.completed(String.format("Failed to write %s.",getName()));
+    throw e;
+  }
+catch (  Exception e) {
+    progressLogger.completed(String.format("Failed to write %s.",getName()));
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+ finally {
+    progressLogger.completed();
+  }
+}

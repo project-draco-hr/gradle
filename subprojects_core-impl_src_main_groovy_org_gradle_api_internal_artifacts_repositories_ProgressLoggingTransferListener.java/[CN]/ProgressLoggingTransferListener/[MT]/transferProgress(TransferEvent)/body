@@ -1,20 +1,19 @@
 {
-  if (evt.getResource().isLocal()) {
+  final Resource resource=evt.getResource();
+  if (resource.isLocal()) {
     return;
   }
-  if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
+  final int eventType=evt.getEventType();
+  if (eventType == TransferEvent.TRANSFER_STARTED) {
     total=0;
-    logger=progressLoggerFactory.newOperation(loggingClass);
-    String description=String.format("%s %s",StringUtils.capitalize(getRequestType(evt)),evt.getResource().getName());
-    logger.setDescription(description);
-    logger.setLoggingHeader(description);
-    logger.started();
+    String description=String.format("%s %s",StringUtils.capitalize(getRequestType(evt)),resource.getName());
+    logger=startProgress(description,loggingClass);
   }
-  if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
+  if (eventType == TransferEvent.TRANSFER_PROGRESS) {
     total+=evt.getLength();
-    logger.progress(String.format("%s/%s %sed",getLengthText(total),getLengthText(evt),getRequestType(evt)));
+    logProgress(logger,total,evt.getTotalLength(),getRequestType(evt) + "ed");
   }
-  if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED) {
+  if (eventType == TransferEvent.TRANSFER_COMPLETED) {
     logger.completed();
   }
 }

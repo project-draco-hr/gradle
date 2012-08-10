@@ -1,0 +1,22 @@
+{
+  lock.lock();
+  try {
+    while (owner != null) {
+      try {
+        condition.await();
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+    if (!operationStack.isEmpty()) {
+      throw new IllegalStateException("OperationStack not empty");
+    }
+    owner=Thread.currentThread();
+    longRunningOperations.remove(owner);
+    operationStack.addAll(parkedOperationStack);
+  }
+  finally {
+    lock.unlock();
+  }
+}

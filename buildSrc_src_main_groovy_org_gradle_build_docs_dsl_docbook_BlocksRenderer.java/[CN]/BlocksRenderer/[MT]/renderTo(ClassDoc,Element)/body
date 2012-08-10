@@ -1,0 +1,42 @@
+{
+  Document document=parent.getOwnerDocument();
+  Element summarySection=document.createElement("section");
+  parent.appendChild(summarySection);
+  Element title=document.createElement("title");
+  summarySection.appendChild(title);
+  title.appendChild(document.createTextNode("Script blocks"));
+  boolean hasBlocks=false;
+  Collection<BlockDoc> classBlocks=classDoc.getClassBlocks();
+  if (!classBlocks.isEmpty()) {
+    hasBlocks=true;
+    Element table=document.createElement("table");
+    summarySection.appendChild(table);
+    title=document.createElement("title");
+    table.appendChild(title);
+    title.appendChild(document.createTextNode("Script blocks - " + classDoc.getSimpleName()));
+    blockTableRenderer.renderTo(classBlocks,table);
+  }
+  for (  ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+    hasBlocks|=!extensionDoc.getExtensionBlocks().isEmpty();
+    extensionBlocksSummaryRenderer.renderTo(extensionDoc,summarySection);
+  }
+  if (!hasBlocks) {
+    Element para=document.createElement("para");
+    summarySection.appendChild(para);
+    para.appendChild(document.createTextNode("No script blocks"));
+    return;
+  }
+  Element detailsSection=document.createElement("section");
+  parent.appendChild(detailsSection);
+  title=document.createElement("title");
+  detailsSection.appendChild(title);
+  title.appendChild(document.createTextNode("Script block details"));
+  for (  BlockDoc blockDoc : classBlocks) {
+    blockDetailRenderer.renderTo(blockDoc,detailsSection);
+  }
+  for (  ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+    for (    BlockDoc blockDoc : extensionDoc.getExtensionBlocks()) {
+      blockDetailRenderer.renderTo(blockDoc,detailsSection);
+    }
+  }
+}

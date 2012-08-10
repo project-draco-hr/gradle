@@ -1,0 +1,29 @@
+{
+  Set<BuildOutcome> uncomparedFrom=new HashSet<BuildOutcome>(spec.getFrom());
+  Set<BuildOutcome> uncomparedTo=new HashSet<BuildOutcome>(spec.getTo());
+  Set<BuildOutcome> unknownFrom=new HashSet<BuildOutcome>();
+  Set<BuildOutcome> unknownTo=new HashSet<BuildOutcome>();
+  List<BuildOutcomeComparisonResult<?>> results=new LinkedList<BuildOutcomeComparisonResult<?>>();
+  for (  BuildOutcomeAssociation<? extends BuildOutcome> outcomeAssociation : spec.getOutcomeAssociations()) {
+    BuildOutcome from=outcomeAssociation.getFrom();
+    boolean unknown=false;
+    if (!uncomparedFrom.remove(from)) {
+      unknown=true;
+      unknownFrom.add(from);
+    }
+    BuildOutcome to=outcomeAssociation.getTo();
+    if (!uncomparedTo.remove(to)) {
+      unknown=true;
+      unknownTo.add(to);
+    }
+    if (!unknown) {
+      BuildOutcomeComparator<? extends BuildOutcome> comparator=comparatorFactory.getComparator(outcomeAssociation.getType());
+      if (comparator == null) {
+        throw new RuntimeException(String.format("No comparator for %s",outcomeAssociation.getType()));
+      }
+      @SuppressWarnings("unchecked") BuildOutcomeComparisonResult<?> comparisonResult=comparator.compare((BuildOutcomeAssociation)outcomeAssociation);
+      results.add(comparisonResult);
+    }
+  }
+  return new BuildComparisonResult(uncomparedFrom,uncomparedTo,results);
+}

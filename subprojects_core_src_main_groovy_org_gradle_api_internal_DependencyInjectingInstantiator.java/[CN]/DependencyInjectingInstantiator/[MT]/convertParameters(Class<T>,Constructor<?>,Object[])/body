@@ -1,0 +1,25 @@
+{
+  Class<?>[] parameterTypes=match.getParameterTypes();
+  if (parameterTypes.length < parameters.length) {
+    throw new IllegalArgumentException(String.format("Too many parameters provided for constructor for class %s. Expected %s, received %s.",type.getName(),parameterTypes.length,parameters.length));
+  }
+  Object[] resolvedParameters=new Object[parameterTypes.length];
+  int pos=0;
+  for (int i=0; i < resolvedParameters.length; i++) {
+    Class<?> targetType=parameterTypes[i];
+    if (targetType.isPrimitive()) {
+      targetType=JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
+    }
+    if (pos < parameters.length && targetType.isInstance(parameters[pos])) {
+      resolvedParameters[i]=parameters[pos];
+      pos++;
+    }
+ else {
+      resolvedParameters[i]=services.get(match.getGenericParameterTypes()[i]);
+    }
+  }
+  if (pos != parameters.length) {
+    throw new IllegalArgumentException(String.format("Unexpected parameter provided for constructor for class %s.",type.getName()));
+  }
+  return resolvedParameters;
+}

@@ -1,0 +1,14 @@
+{
+  final ProgressLogger progressLogger=startProgress(String.format("Upload to %s",destination),null);
+  try {
+    delegate.upload(new Factory<InputStream>(){
+      public InputStream create(){
+        return new ProgressLoggingInputStream(source.create(),progressLogger,contentLength);
+      }
+    }
+,contentLength,destination);
+  }
+  finally {
+    progressLogger.completed();
+  }
+}

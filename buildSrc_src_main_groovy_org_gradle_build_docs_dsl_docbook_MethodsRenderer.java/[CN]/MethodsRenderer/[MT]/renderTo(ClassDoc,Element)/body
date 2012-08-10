@@ -1,0 +1,42 @@
+{
+  Document document=parent.getOwnerDocument();
+  Element summarySection=document.createElement("section");
+  parent.appendChild(summarySection);
+  Element title=document.createElement("title");
+  summarySection.appendChild(title);
+  title.appendChild(document.createTextNode("Methods"));
+  boolean hasMethods=false;
+  Collection<MethodDoc> classMethods=classDoc.getClassMethods();
+  if (!classMethods.isEmpty()) {
+    hasMethods=true;
+    Element table=document.createElement("table");
+    summarySection.appendChild(table);
+    title=document.createElement("title");
+    table.appendChild(title);
+    title.appendChild(document.createTextNode("Methods - " + classDoc.getSimpleName()));
+    methodTableRenderer.renderTo(classMethods,table);
+  }
+  for (  ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+    hasMethods|=!extensionDoc.getExtensionMethods().isEmpty();
+    extensionMethodsSummaryRenderer.renderTo(extensionDoc,summarySection);
+  }
+  if (!hasMethods) {
+    Element para=document.createElement("para");
+    summarySection.appendChild(para);
+    para.appendChild(document.createTextNode("No methods"));
+    return;
+  }
+  Element detailsSection=document.createElement("section");
+  parent.appendChild(detailsSection);
+  title=document.createElement("title");
+  detailsSection.appendChild(title);
+  title.appendChild(document.createTextNode("Method details"));
+  for (  MethodDoc methodDoc : classMethods) {
+    methodDetailRenderer.renderTo(methodDoc,detailsSection);
+  }
+  for (  ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+    for (    MethodDoc methodDoc : extensionDoc.getExtensionMethods()) {
+      methodDetailRenderer.renderTo(methodDoc,detailsSection);
+    }
+  }
+}

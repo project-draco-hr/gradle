@@ -1,0 +1,41 @@
+{
+  Document document=parent.getOwnerDocument();
+  Element section=document.createElement("section");
+  parent.appendChild(section);
+  section.setAttribute("id",propertyDoc.getId());
+  section.setAttribute("role","detail");
+  Element title=document.createElement("title");
+  section.appendChild(title);
+  title.appendChild(linkRenderer.link(propertyDoc.getMetaData().getType(),listener));
+  title.appendChild(document.createTextNode(" "));
+  Element literal=document.createElement("literal");
+  title.appendChild(literal);
+  literal.appendChild(document.createTextNode(propertyDoc.getName()));
+  if (!propertyDoc.getMetaData().isWriteable()) {
+    title.appendChild(document.createTextNode(" (read-only)"));
+  }
+  warningsRenderer.renderTo(propertyDoc,"property",section);
+  for (  Element element : propertyDoc.getComment()) {
+    section.appendChild(document.importNode(element,true));
+  }
+  if (!propertyDoc.getAdditionalValues().isEmpty()) {
+    Element segmentedlist=document.createElement("segmentedlist");
+    section.appendChild(segmentedlist);
+    for (    ExtraAttributeDoc attributeDoc : propertyDoc.getAdditionalValues()) {
+      Element segtitle=document.createElement("segtitle");
+      segmentedlist.appendChild(segtitle);
+      for (      Node node : attributeDoc.getTitle()) {
+        segtitle.appendChild(document.importNode(node,true));
+      }
+    }
+    Element seglistitem=document.createElement("seglistitem");
+    segmentedlist.appendChild(seglistitem);
+    for (    ExtraAttributeDoc attributeDoc : propertyDoc.getAdditionalValues()) {
+      Element seg=document.createElement("seg");
+      seglistitem.appendChild(seg);
+      for (      Node node : attributeDoc.getValue()) {
+        seg.appendChild(document.importNode(node,true));
+      }
+    }
+  }
+}

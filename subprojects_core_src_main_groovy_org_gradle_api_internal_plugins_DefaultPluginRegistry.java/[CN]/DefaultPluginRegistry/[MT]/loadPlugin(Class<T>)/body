@@ -1,17 +1,11 @@
 {
-  if (parent != null) {
-    return parent.loadPlugin(pluginClass);
-  }
   if (!Plugin.class.isAssignableFrom(pluginClass)) {
     throw new InvalidUserDataException(String.format("Cannot create plugin of type '%s' as it does not implement the Plugin interface.",pluginClass.getSimpleName()));
   }
   try {
-    return pluginClass.newInstance();
+    return instantiator.newInstance(pluginClass);
   }
- catch (  InstantiationException e) {
+ catch (  ObjectInstantiationException e) {
     throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",pluginClass.getSimpleName()),e.getCause());
-  }
-catch (  Exception e) {
-    throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",pluginClass.getSimpleName()),e);
   }
 }
