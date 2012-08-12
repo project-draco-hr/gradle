@@ -1,15 +1,21 @@
 {
   if (threadIsInLongRunningOperation()) {
-    return action.create();
+    operationStack.get().pushLongRunningOperation(operationDisplayName);
+    try {
+      return action.create();
+    }
+  finally {
+      operationStack.get().pop();
+    }
   }
   checkThreadIsOwner();
   boolean wasEnded=onEndWork();
-  List<String> parkedOperationStack=parkOwner();
+  parkOwner(operationDisplayName);
   try {
     return action.create();
   }
   finally {
-    restoreOwner(parkedOperationStack);
+    restoreOwner(operationDisplayName);
     if (wasEnded) {
       onStartWork();
     }

@@ -9,12 +9,11 @@
         throw UncheckedException.throwAsUncheckedException(e);
       }
     }
-    if (!operationStack.isEmpty()) {
-      throw new IllegalStateException("OperationStack not empty");
-    }
     owner=Thread.currentThread();
-    longRunningOperations.remove(owner);
-    operationStack.addAll(parkedOperationStack);
+    CacheOperation operation=operationStack.get().pop();
+    if (!(operation.longRunningOperation && operation.description.equals(description))) {
+      throw new IllegalStateException();
+    }
   }
   finally {
     lock.unlock();
