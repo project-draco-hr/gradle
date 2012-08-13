@@ -1,5 +1,11 @@
 {
-  int index=pattern.indexOf(REVISION_TOKEN);
-  boolean patternStartsWithRevisionToken=index == 0;
-  return (pattern.length() <= index + REV_TOKEN_LENGTH) || fileSeparator.equals(pattern.substring(index + REV_TOKEN_LENGTH,index + REV_TOKEN_LENGTH + 1)) && (patternStartsWithRevisionToken || fileSeparator.equals(pattern.substring(index - 1,index)));
+  int startToken=pattern.indexOf(REVISION_TOKEN);
+  if (startToken > 0 && !pattern.substring(startToken - 1,startToken).equals(fileSeparator)) {
+    return false;
+  }
+  int endToken=startToken + REV_TOKEN_LENGTH;
+  if (endToken < pattern.length() && !pattern.substring(endToken,endToken + 1).equals(fileSeparator)) {
+    return false;
+  }
+  return true;
 }
