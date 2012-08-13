@@ -1,0 +1,23 @@
+{
+  try {
+    InputStream resourceAsStream=GradleWrapperMain.class.getResourceAsStream("/build-receipt.properties");
+    if (resourceAsStream == null) {
+      throw new RuntimeException("No build receipt resource found.");
+    }
+    Properties buildReceipt=new Properties();
+    try {
+      buildReceipt.load(resourceAsStream);
+      String versionNumber=buildReceipt.getProperty("versionNumber");
+      if (versionNumber == null) {
+        throw new RuntimeException("No version number specified in build receipt resource.");
+      }
+      return versionNumber;
+    }
+  finally {
+      resourceAsStream.close();
+    }
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Could not determine wrapper version.",e);
+  }
+}
