@@ -1,0 +1,26 @@
+{
+  File fromFile=getCompared().getFrom().getArchiveFile();
+  File toFile=getCompared().getTo().getArchiveFile();
+  if (fromFile.exists() && toFile.exists()) {
+    if (CollectionUtils.every(getEntryComparisons(),new Spec<ArchiveEntryComparison>(){
+      public boolean isSatisfiedBy(      ArchiveEntryComparison element){
+        return element.getComparisonResultType() == ComparisonResultType.EQUAL;
+      }
+    }
+)) {
+      return ComparisonResultType.EQUAL;
+    }
+ else {
+      return ComparisonResultType.UNEQUAL;
+    }
+  }
+ else   if (!fromFile.exists() && !toFile.exists()) {
+    return ComparisonResultType.NON_EXISTENT;
+  }
+ else   if (!toFile.exists()) {
+    return ComparisonResultType.FROM_ONLY;
+  }
+ else {
+    return ComparisonResultType.TO_ONLY;
+  }
+}
