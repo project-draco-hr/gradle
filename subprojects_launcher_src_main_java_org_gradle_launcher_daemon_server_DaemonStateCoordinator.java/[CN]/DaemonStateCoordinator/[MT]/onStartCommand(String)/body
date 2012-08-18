@@ -1,0 +1,19 @@
+{
+  lock.lock();
+  try {
+    if (currentCommandExecution != null) {
+      LOGGER.debug("onStartCommand({}) called while currentCommandExecution = {}",commandDisplayName,currentCommandExecution);
+      throw new DaemonBusyException(currentCommandExecution);
+    }
+ else {
+      LOGGER.debug("onStartCommand({}) called after {} mins of idle",commandDisplayName,getIdleMinutes());
+      currentCommandExecution=commandDisplayName;
+      updateActivityTimestamp();
+      onStartCommand.run();
+      condition.signalAll();
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+}

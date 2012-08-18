@@ -1,18 +1,17 @@
 {
   DaemonStateControl stateCoordinator=execution.getDaemonStateControl();
-  DaemonCommandExecution existingExecution=stateCoordinator.onStartCommand(execution);
-  if (existingExecution != null) {
-    LOGGER.info("Daemon will not handle the request: {} because is busy executing: {}. Dispatching 'Busy' response...",build,existingExecution);
-    execution.getConnection().dispatch(new DaemonBusy());
+  try {
+    stateCoordinator.runCommand(new Runnable(){
+      public void run(){
+        LOGGER.info("Daemon is about to start building: " + build + ". Dispatching build started information...");
+        execution.getConnection().dispatch(new BuildStarted(diagnostics));
+        execution.proceed();
+      }
+    }
+,execution.toString());
   }
- else {
-    try {
-      LOGGER.info("Daemon is about to start building: " + build + ". Dispatching build started information...");
-      execution.getConnection().dispatch(new BuildStarted(diagnostics));
-      execution.proceed();
-    }
-  finally {
-      stateCoordinator.onFinishCommand();
-    }
+ catch (  DaemonBusyException e) {
+    LOGGER.info("Daemon will not handle the request: {} because is busy executing: {}. Dispatching 'Busy' response...",build,e.getOperationDisplayName());
+    execution.getConnection().dispatch(new DaemonBusy());
   }
 }
