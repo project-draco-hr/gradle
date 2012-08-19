@@ -2,23 +2,23 @@
   lock.lock();
   try {
     String execution=currentCommandExecution;
-    if (execution == null) {
-      LOGGER.warn("onFinishCommand() called while currentCommandExecution is null");
-    }
- else {
-      LOGGER.debug("onFinishCommand() called while execution = {}",execution);
-      currentCommandExecution=null;
-      updateActivityTimestamp();
-      if (isStoppingOrStopped()) {
-        stop();
-      }
- else {
-        onFinishCommand.run();
-        condition.signalAll();
-      }
-    }
-  }
+    LOGGER.debug("onFinishCommand() called while execution = {}",execution);
+    currentCommandExecution=null;
+    updateActivityTimestamp();
+switch (state) {
+case Running:
+      onFinishCommand.run();
+    condition.signalAll();
+  break;
+case StopRequested:
+case Stopped:
+stop();
+break;
+default :
+throw new IllegalStateException("Daemon is in unexpected state: " + state);
+}
+}
   finally {
-    lock.unlock();
-  }
+lock.unlock();
+}
 }

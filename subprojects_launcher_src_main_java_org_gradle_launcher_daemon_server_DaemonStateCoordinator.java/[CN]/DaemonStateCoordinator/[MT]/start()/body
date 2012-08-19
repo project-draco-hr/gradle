@@ -1,8 +1,12 @@
 {
   lock.lock();
   try {
+    if (state != State.NotStarted) {
+      throw new IllegalStateException("Cannot start daemon as it has already been started.");
+    }
     updateActivityTimestamp();
     onStart.run();
+    state=State.Running;
     condition.signalAll();
   }
   finally {

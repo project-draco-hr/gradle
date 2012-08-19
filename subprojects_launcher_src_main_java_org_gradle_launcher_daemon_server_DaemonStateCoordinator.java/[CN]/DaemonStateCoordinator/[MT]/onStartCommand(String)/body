@@ -1,19 +1,26 @@
 {
   lock.lock();
   try {
-    if (currentCommandExecution != null) {
-      LOGGER.debug("onStartCommand({}) called while currentCommandExecution = {}",commandDisplayName,currentCommandExecution);
-      throw new DaemonBusyException(currentCommandExecution);
-    }
+switch (state) {
+case NotStarted:
+      throw new IllegalStateException("This daemon has not been started.");
+case StopRequested:
+    throw new IllegalStateException("This daemon is stopping.");
+case Stopped:
+  throw new IllegalStateException("This daemon has stopped.");
+}
+if (currentCommandExecution != null) {
+throw new DaemonBusyException(currentCommandExecution);
+}
  else {
-      LOGGER.debug("onStartCommand({}) called after {} mins of idle",commandDisplayName,getIdleMinutes());
-      currentCommandExecution=commandDisplayName;
-      updateActivityTimestamp();
-      onStartCommand.run();
-      condition.signalAll();
-    }
-  }
+LOGGER.debug("onStartCommand({}) called after {} mins of idle",commandDisplayName,getIdleMinutes());
+currentCommandExecution=commandDisplayName;
+updateActivityTimestamp();
+onStartCommand.run();
+condition.signalAll();
+}
+}
   finally {
-    lock.unlock();
-  }
+lock.unlock();
+}
 }
