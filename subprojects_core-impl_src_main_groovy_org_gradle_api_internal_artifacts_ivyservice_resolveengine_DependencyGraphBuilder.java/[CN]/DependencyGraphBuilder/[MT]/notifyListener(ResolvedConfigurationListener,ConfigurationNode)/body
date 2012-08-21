@@ -1,17 +1,8 @@
 {
-  ResolvedConfigurationIdentifier id=toId(resolvedConfiguration);
-  List<DependencyEdge> out=Lists.newLinkedList(resolvedConfiguration.outgoingEdges);
-  List<DefaultResolvedDependencyResult> to=Lists.transform(out,new Function<DependencyEdge,DefaultResolvedDependencyResult>(){
-    public DefaultResolvedDependencyResult apply(    DependencyEdge input){
-      List<String> targetConfigurations=Lists.transform(Lists.newLinkedList(input.targetConfigurations),new Function<ConfigurationNode,String>(){
-        public String apply(        ConfigurationNode input){
-          return input.configurationName;
-        }
-      }
-);
-      return new DefaultResolvedDependencyResult(new DefaultModuleVersionSelector(input.dependencyDescriptor.getDependencyRevisionId().getOrganisation(),input.dependencyDescriptor.getDependencyRevisionId().getName(),input.dependencyDescriptor.getDependencyRevisionId().getRevision()),toId(input),new LinkedHashSet<String>(targetConfigurations));
-    }
+  ResolvedConfigurationIdentifier id=resolvedConfiguration.toId();
+  Set<DefaultResolvedDependencyResult> dependencies=new LinkedHashSet<DefaultResolvedDependencyResult>();
+  for (  DependencyEdge edge : resolvedConfiguration.outgoingEdges) {
+    dependencies.add(new DefaultResolvedDependencyResult(edge.toSelector(),edge.toId(),edge.getTargetConfigurationNames()));
   }
-);
-  listener.resolvedConfiguration(id,to);
+  listener.resolvedConfiguration(id,dependencies);
 }
