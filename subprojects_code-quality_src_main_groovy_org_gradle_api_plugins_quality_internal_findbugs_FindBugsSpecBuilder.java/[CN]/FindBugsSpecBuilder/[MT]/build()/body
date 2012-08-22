@@ -1,5 +1,5 @@
 {
-  args=new ArrayList<String>();
+  ArrayList<String> args=new ArrayList<String>();
   args.add("-pluginList");
   args.add(pluginsList == null ? "" : pluginsList.getAsPath());
   args.add("-sortByClass");
@@ -13,7 +13,7 @@
       args.add(reportsImpl.getFirstEnabled().getDestination().getAbsolutePath());
     }
  else {
-      throw new InvalidUserDataException("Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them.");
+      throw new InvalidUserDataException("FindBugs tasks can only have one report enabled, however both the XML and HTML report are enabled. You need to disable one of them.");
     }
   }
   if (has(sources)) {
@@ -29,9 +29,30 @@
     }
 ).getAsPath());
   }
+  if (has(effort)) {
+    args.add(String.format("-effort:%s",effort));
+  }
+  if (has(reportLevel)) {
+    args.add(String.format("-%s",reportLevel));
+  }
+  if (has(visitors)) {
+    args.add("-visitors");
+    args.add(GUtil.join(visitors,","));
+  }
+  if (has(omitVisitors)) {
+    args.add("-omitVisitors");
+    args.add(GUtil.join(omitVisitors,","));
+  }
+  if (has(excludeFilter)) {
+    args.add("-exclude");
+    args.add(excludeFilter.getPath());
+  }
+  if (has(includeFilter)) {
+    args.add("-include");
+    args.add(includeFilter.getPath());
+  }
   for (  File classFile : classes.getFiles()) {
     args.add(classFile.getAbsolutePath());
   }
-  FindBugsSpec spec=new FindBugsSpec(args,debugEnabled);
-  return spec;
+  return new FindBugsSpec(args,debugEnabled);
 }
