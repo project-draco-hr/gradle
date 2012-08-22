@@ -1,0 +1,16 @@
+{
+  GradleBuildOutcomeSetTransformer fromOutcomeTransformer=createOutcomeSetTransformer("from");
+  ProjectOutput fromOutput=generateBuildOutput(sourceVersion,sourceProjectDir);
+  Set<BuildOutcome> fromOutcomes=fromOutcomeTransformer.transform(fromOutput);
+  GradleBuildOutcomeSetTransformer toOutcomeTransformer=createOutcomeSetTransformer("to");
+  ProjectOutput toOutput=generateBuildOutput(targetVersion,targetProjectDir);
+  Set<BuildOutcome> toOutcomes=toOutcomeTransformer.transform(toOutput);
+  BuildOutcomeAssociator outcomeAssociator=new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
+  BuildComparisonSpecFactory specFactory=new BuildComparisonSpecFactory(outcomeAssociator);
+  BuildComparisonSpec comparisonSpec=specFactory.createSpec(fromOutcomes,toOutcomes);
+  DefaultBuildOutcomeComparatorFactory comparatorFactory=new DefaultBuildOutcomeComparatorFactory();
+  comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator());
+  BuildComparator buildComparator=new DefaultBuildComparator(comparatorFactory);
+  BuildComparisonResult result=buildComparator.compareBuilds(comparisonSpec);
+  writeReport(result);
+}

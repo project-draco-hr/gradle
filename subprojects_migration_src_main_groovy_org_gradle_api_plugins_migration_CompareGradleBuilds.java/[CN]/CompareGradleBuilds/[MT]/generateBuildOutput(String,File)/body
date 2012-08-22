@@ -1,0 +1,19 @@
+{
+  GradleConnector connector=GradleConnector.newConnector().forProjectDirectory(other);
+  connector.useGradleUserHomeDir(getProject().getGradle().getStartParameter().getGradleUserHomeDir());
+  if (gradleVersion.equals("current")) {
+    connector.useInstallation(getProject().getGradle().getGradleHomeDir());
+  }
+ else {
+    connector.useGradleVersion(gradleVersion);
+  }
+  ProjectConnection connection=connector.connect();
+  try {
+    ProjectOutput buildOutput=connection.getModel(ProjectOutput.class);
+    connection.newBuild().forTasks("assemble").run();
+    return buildOutput;
+  }
+  finally {
+    connection.close();
+  }
+}
