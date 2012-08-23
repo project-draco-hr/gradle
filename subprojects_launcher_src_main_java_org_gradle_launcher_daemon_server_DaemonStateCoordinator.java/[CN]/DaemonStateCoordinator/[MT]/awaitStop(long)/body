@@ -1,7 +1,7 @@
 {
   lock.lock();
   try {
-    LOGGER.debug("waiting for daemon to stop or be idle for {}ms",timeout);
+    LOGGER.debug("waiting for daemon to stop or be idle for {}ms",timeoutMs);
     while (true) {
       try {
 switch (state) {
@@ -14,12 +14,13 @@ case Running:
       LOGGER.debug("Daemon is busy, sleeping until state changes.");
       condition.await();
     }
- else     if (hasBeenIdleFor(timeout)) {
+ else     if (hasBeenIdleFor(timeoutMs)) {
       LOGGER.debug("Daemon has been idle for requested period.");
+      stop();
       return false;
     }
  else {
-      Date waitUntil=new Date(lastActivityAt + timeout);
+      Date waitUntil=new Date(lastActivityAt + timeoutMs);
       LOGGER.debug("Daemon is idle, sleeping until state change or idle timeout at {}",waitUntil);
       condition.awaitUntil(waitUntil);
     }
