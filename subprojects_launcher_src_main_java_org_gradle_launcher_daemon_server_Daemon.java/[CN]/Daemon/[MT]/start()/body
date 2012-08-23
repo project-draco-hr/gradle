@@ -5,44 +5,9 @@
     if (stateCoordinator != null) {
       throw new IllegalStateException("cannot start daemon as it is already running");
     }
-    connectorAddress=connector.start(new IncomingConnectionHandler(){
-      public void handle(      final Connection<Object> connection){
-        workers.execute(new Runnable(){
-          private Command command;
-          public void run(){
-            try {
-              command=(Command)connection.receive();
-              LOGGER.info("Daemon (pid: {}) received command: {}.",daemonContext.getPid(),command);
-            }
- catch (            Throwable e) {
-              String message=String.format("Unable to receive command from connection: '%s'",connection);
-              LOGGER.warn(message + ". Dispatching the failure to the daemon client...",e);
-              connection.dispatch(new DaemonFailure(new RuntimeException(message,e)));
-              return;
-            }
-            try {
-              LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: "+ connection+ ".");
-              commandExecuter.executeCommand(connection,command,daemonContext,stateCoordinator);
-            }
- catch (            Throwable e) {
-              String message=String.format("Uncaught exception when executing command: '%s' from connection: '%s'.",command,connection);
-              LOGGER.warn(message + ". Dispatching the failure to the daemon client...",e);
-              connection.dispatch(new DaemonFailure(new RuntimeException(message,e)));
-            }
- finally {
-              LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
-            }
-          }
-        }
-);
-      }
-    }
-);
-    registryUpdater=new DomainRegistryUpdater(daemonRegistry,daemonContext,password,connectorAddress);
+    registryUpdater=new DomainRegistryUpdater(daemonRegistry,daemonContext,password);
     Runnable onStart=new Runnable(){
       public void run(){
-        LOGGER.debug("Daemon starting at: " + new Date() + ", with address: "+ connectorAddress);
-        registryUpdater.onStart();
       }
     }
 ;
@@ -74,6 +39,9 @@
 ;
     stateCoordinator=new DaemonStateCoordinator(workers,onStart,onStartCommand,onFinishCommand,onStop,onStopRequested);
     stateCoordinator.start();
+    connectorAddress=connector.start(new DefaultIncomingConnectionHandler(commandExecuter,workers,daemonContext,stateCoordinator));
+    LOGGER.debug("Daemon starting at: " + new Date() + ", with address: "+ connectorAddress);
+    registryUpdater.onStart(connectorAddress);
   }
   finally {
     lifecyleLock.unlock();
