@@ -2,11 +2,15 @@
 switch (state) {
 case NotStarted:
 case Running:
+case Broken:
     throw new IllegalStateException("This daemon has not been stopped.");
 case StopRequested:
-  onStop.run();
-state=State.Stopped;
-condition.signalAll();
+  try {
+    onStop.run();
+  }
+  finally {
+    setState(State.Stopped);
+  }
 break;
 case Stopped:
 break;

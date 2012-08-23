@@ -7,12 +7,18 @@
     updateActivityTimestamp();
 switch (state) {
 case Running:
-      onFinishCommand.run();
-    condition.signalAll();
-  break;
+      try {
+        onFinishCommand.run();
+        condition.signalAll();
+      }
+ catch (      Throwable throwable) {
+        setState(State.Broken);
+        throw UncheckedException.throwAsUncheckedException(throwable);
+      }
+    break;
 case StopRequested:
 case Stopped:
-stop();
+  stop();
 break;
 default :
 throw new IllegalStateException("Daemon is in unexpected state: " + state);

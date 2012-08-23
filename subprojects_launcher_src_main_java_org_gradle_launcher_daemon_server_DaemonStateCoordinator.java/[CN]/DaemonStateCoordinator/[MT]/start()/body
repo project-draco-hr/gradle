@@ -5,9 +5,14 @@
       throw new IllegalStateException("Cannot start daemon as it has already been started.");
     }
     updateActivityTimestamp();
-    onStart.run();
-    state=State.Running;
-    condition.signalAll();
+    try {
+      onStart.run();
+    }
+ catch (    Throwable throwable) {
+      setState(State.Broken);
+      throw UncheckedException.throwAsUncheckedException(throwable);
+    }
+    setState(State.Running);
   }
   finally {
     lock.unlock();
