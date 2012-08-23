@@ -1,12 +1,16 @@
 {
-  if (taskInfo.getExecutionFailure() != null) {
-    abortExecution(taskInfo.getExecutionFailure());
+  Throwable executionFailure=taskInfo.getExecutionFailure();
+  if (executionFailure != null) {
+    abortExecution();
+    this.failures.add(executionFailure);
     return;
   }
   try {
     failureHandler.onTaskFailure(taskInfo.getTask());
+    this.failures.add(taskInfo.getTaskFailure());
   }
  catch (  Exception e) {
-    abortExecution(e);
+    abortExecution();
+    this.failures.add(e);
   }
 }
