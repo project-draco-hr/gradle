@@ -2,7 +2,11 @@
   LOGGER.debug("stop() called on daemon");
   lifecyleLock.lock();
   try {
-    stateCoordinator.stop();
+    if (stateCoordinator == null) {
+      throw new IllegalStateException("cannot stop daemon as it has not been started.");
+    }
+    LOGGER.info(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP);
+    CompositeStoppable.stoppable(stateCoordinator,registryUpdater,connector).stop();
   }
   finally {
     lifecyleLock.unlock();
