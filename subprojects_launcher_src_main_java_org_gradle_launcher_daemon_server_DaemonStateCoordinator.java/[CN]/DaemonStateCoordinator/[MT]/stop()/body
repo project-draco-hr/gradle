@@ -2,14 +2,19 @@
   lock.lock();
   try {
     LOGGER.debug("Stop requested. The daemon is running a build: " + isBusy());
-    try {
-      beginStopping();
-    }
+switch (state) {
+case Running:
+case Broken:
+case StopRequested:
+      setState(State.Stopped);
+    break;
+case Stopped:
+  break;
+default :
+throw new IllegalStateException("Daemon is in unexpected state: " + state);
+}
+}
   finally {
-      finishStopping();
-    }
-  }
-  finally {
-    lock.unlock();
-  }
+lock.unlock();
+}
 }

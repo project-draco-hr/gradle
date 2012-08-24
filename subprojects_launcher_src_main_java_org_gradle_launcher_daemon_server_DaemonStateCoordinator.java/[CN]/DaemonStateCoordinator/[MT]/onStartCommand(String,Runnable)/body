@@ -12,18 +12,17 @@ case Stopped:
 if (currentCommandExecution != null) {
 throw new DaemonUnavailableException(String.format("This daemon is currently executing: %s",currentCommandExecution));
 }
- else {
 LOGGER.debug("onStartCommand({}) called after {} minutes of idle",commandDisplayName,getIdleMinutes());
-currentCommandExecution=commandDisplayName;
-updateActivityTimestamp();
 try {
-  onStartCommand.run();
-  condition.signalAll();
+onStartCommand.run();
+currentCommandExecution=commandDisplayName;
+this.onDisconnect=onDisconnect;
+updateActivityTimestamp();
+condition.signalAll();
 }
  catch (Throwable throwable) {
-  setState(State.Broken);
-  throw UncheckedException.throwAsUncheckedException(throwable);
-}
+setState(State.Broken);
+throw UncheckedException.throwAsUncheckedException(throwable);
 }
 }
   finally {
