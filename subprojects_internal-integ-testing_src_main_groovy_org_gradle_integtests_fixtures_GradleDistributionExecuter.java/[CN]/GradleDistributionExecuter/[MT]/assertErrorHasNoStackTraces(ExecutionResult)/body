@@ -1,8 +1,10 @@
 {
   String error=result.getError();
-  String twoNewlines=TextUtil.getPlatformLineSeparator() + TextUtil.getPlatformLineSeparator();
-  Pattern p=Pattern.compile("^\\* Exception is:.*?" + twoNewlines,Pattern.MULTILINE | Pattern.DOTALL);
-  Matcher m=p.matcher(error);
-  error=m.replaceAll("* Exception is:\n<snip>\n\n");
+  if (result instanceof ExecutionFailure) {
+    int pos=error.indexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
+    if (pos >= 0) {
+      error=error.substring(0,pos);
+    }
+  }
   assertNoStackTraces(error,"Standard error");
 }
