@@ -5,31 +5,27 @@
     while (true) {
       try {
 switch (state) {
-case NotStarted:
-          LOGGER.debug("Daemon has not yet started, sleeping until state changes.");
-        condition.await();
-      break;
 case Running:
-    if (isBusy()) {
-      LOGGER.debug("Daemon is busy, sleeping until state changes.");
-      condition.await();
-    }
- else     if (hasBeenIdleFor(timeoutMs)) {
-      LOGGER.debug("Daemon has been idle for requested period.");
-      stop();
-      return false;
-    }
+          if (isBusy()) {
+            LOGGER.debug("Daemon is busy, sleeping until state changes.");
+            condition.await();
+          }
+ else           if (hasBeenIdleFor(timeoutMs)) {
+            LOGGER.debug("Daemon has been idle for requested period.");
+            stop();
+            return false;
+          }
  else {
-      Date waitUntil=new Date(lastActivityAt + timeoutMs);
-      LOGGER.debug("Daemon is idle, sleeping until state change or idle timeout at {}",waitUntil);
-      condition.awaitUntil(waitUntil);
-    }
-  break;
+            Date waitUntil=new Date(lastActivityAt + timeoutMs);
+            LOGGER.debug("Daemon is idle, sleeping until state change or idle timeout at {}",waitUntil);
+            condition.awaitUntil(waitUntil);
+          }
+        break;
 case Broken:
-throw new IllegalStateException("This daemon is in a broken state.");
+      throw new IllegalStateException("This daemon is in a broken state.");
 case StopRequested:
-LOGGER.debug("Daemon is stopping, sleeping until state changes.");
-condition.await();
+    LOGGER.debug("Daemon is stopping, sleeping until state changes.");
+  condition.await();
 break;
 case Stopped:
 LOGGER.debug("Daemon has stopped.");
