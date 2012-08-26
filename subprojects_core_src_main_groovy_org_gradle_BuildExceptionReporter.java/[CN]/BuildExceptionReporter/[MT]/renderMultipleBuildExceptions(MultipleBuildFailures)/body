@@ -2,13 +2,14 @@
   List<? extends Throwable> causes=multipleFailures.getCauses();
   StyledTextOutput output=textOutputFactory.create(BuildExceptionReporter.class,LogLevel.ERROR);
   output.println();
-  output.withStyle(Failure).format("FAILURE: Build failed with %s exceptions.",causes.size());
+  output.withStyle(Failure).format("FAILURE: Build completed with %s failures.",causes.size());
   output.println();
   for (int i=0; i < causes.size(); i++) {
     Throwable cause=causes.get(i);
-    FailureDetails details=constructFailureDetails(cause);
+    FailureDetails details=constructFailureDetails("Task",cause);
     output.println();
-    output.withStyle(Failure).format("Exception %s",i + 1);
+    output.withStyle(Failure).format("%s: ",i + 1);
+    details.summary.writeTo(output.withStyle(Failure));
     output.println();
     output.text("-----------");
     writeFailureDetails(output,details);
