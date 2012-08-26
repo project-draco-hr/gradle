@@ -5,10 +5,7 @@
   if (bufferSize < 1) {
     throw new IllegalArgumentException("eager receive buffer size must be positive (value given: " + bufferSize + ")");
   }
-  this.executor=executor;
-  this.bufferSize=bufferSize;
   this.receivers=receivers;
-  this.onReceiversExhausted=onReceiversExhausted;
   Dispatch<T> dispatch=new Dispatch<T>(){
     public void dispatch(    T message){
       lock.lock();
@@ -30,7 +27,7 @@
     }
   }
 ;
-  this.asyncReceive=new AsyncReceive(executor,dispatch,new Runnable(){
+  this.asyncReceive=new AsyncReceive<T>(executor,dispatch,new Runnable(){
     public void run(){
       lock.lock();
       try {
