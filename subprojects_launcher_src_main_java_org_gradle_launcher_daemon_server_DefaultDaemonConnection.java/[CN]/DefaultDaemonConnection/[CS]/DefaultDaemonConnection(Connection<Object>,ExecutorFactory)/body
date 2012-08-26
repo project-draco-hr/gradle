@@ -1,0 +1,33 @@
+{
+  this.connection=connection;
+  stdinQueue=new StdinQueue(executorFactory);
+  disconnectQueue=new DisconnectQueue();
+  executor=executorFactory.create("Handler for " + connection.toString());
+  executor.execute(new Runnable(){
+    public void run(){
+      while (true) {
+        Object message;
+        try {
+          message=connection.receive();
+        }
+ catch (        Exception e) {
+          LOGGER.warn("Could not receive message from client.",e);
+          return;
+        }
+        if (message == null) {
+          LOGGER.debug("Received end-of-input from client.");
+          stdinQueue.disconnect();
+          disconnectQueue.disconnect();
+          return;
+        }
+        if (!(message instanceof IoCommand)) {
+          LOGGER.warn("Received unexpected message from client: {}",message);
+          continue;
+        }
+        LOGGER.debug("Received IO message from client: {}",message);
+        stdinQueue.add((IoCommand)message);
+      }
+    }
+  }
+);
+}
