@@ -1,0 +1,51 @@
+{
+  lock.lock();
+  try {
+    if (executor != null) {
+      throw new UnsupportedOperationException("Multiple stdin handlers not supported.");
+    }
+    executor=executorFactory.create("Stdin handler");
+    executor.execute(new Runnable(){
+      public void run(){
+        while (true) {
+          IoCommand command;
+          lock.lock();
+          try {
+            while (!removed && stdin.isEmpty()) {
+              try {
+                condition.await();
+              }
+ catch (              InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+              }
+            }
+            if (removed) {
+              return;
+            }
+            command=stdin.removeFirst();
+          }
+  finally {
+            lock.unlock();
+          }
+          try {
+            if (command instanceof CloseInput) {
+              handler.onEndOfInput();
+              return;
+            }
+ else {
+              handler.onInput((ForwardInput)command);
+            }
+          }
+ catch (          Exception e) {
+            LOGGER.warn("Could not forward client stdin.",e);
+            return;
+          }
+        }
+      }
+    }
+);
+  }
+  finally {
+    lock.unlock();
+  }
+}

@@ -7,73 +7,44 @@
  catch (  IOException e) {
     throw UncheckedException.throwAsUncheckedException(e);
   }
-  final CountDownLatch inputOrConnectionClosedLatch=new CountDownLatch(1);
-  final Runnable countDownInputOrConnectionClosedLatch=new Runnable(){
-    public void run(){
-      inputOrConnectionClosedLatch.countDown();
-    }
-  }
-;
-  Dispatch<Object> dispatcher=new Dispatch<Object>(){
-    public void dispatch(    Object command){
-      if (command instanceof ForwardInput) {
-        try {
-          ForwardInput forwardedInput=(ForwardInput)command;
-          LOGGER.debug("Putting forwarded input '{}' on daemon's stdin.",new String(forwardedInput.getBytes()).replace("\n","\\n"));
-          inputSource.write(forwardedInput.getBytes());
-        }
- catch (        Exception e) {
-          LOGGER.warn("Received exception trying to forward client input.",e);
-        }
-      }
- else       if (command instanceof CloseInput) {
-        try {
-          LOGGER.info("Closing daemons standard input as requested by received command: {} ...",command);
-          inputSource.close();
-        }
- catch (        Throwable e) {
-          LOGGER.warn("Problem closing output stream connected to replacement stdin",e);
-        }
- finally {
-          LOGGER.info("The daemon will no longer process any standard input.");
-          countDownInputOrConnectionClosedLatch.run();
-        }
-      }
- else {
-        LOGGER.warn("While listening for IOCommands, received unexpected command: {}.",command);
-      }
-    }
-  }
-;
-  StoppableExecutor inputReceiverExecuter=executorFactory.create("daemon client input forwarder");
-  final AsyncReceive<Object> inputReceiver=new AsyncReceive<Object>(inputReceiverExecuter,dispatcher,countDownInputOrConnectionClosedLatch);
-  inputReceiver.receiveFrom(execution.getConnection());
-  execution.addFinalizer(new Runnable(){
-    public void run(){
+  execution.getConnection().onStdin(new StdinHandler(){
+    public void onInput(    ForwardInput input){
+      LOGGER.debug("Writing forwarded input on daemon's stdin.");
       try {
-        LOGGER.debug("Waiting until the client disconnects so that we may no longer consume input...");
-        inputOrConnectionClosedLatch.await();
+        inputSource.write(input.getBytes());
       }
- catch (      InterruptedException e) {
-        LOGGER.debug("Interrupted while waiting for client to disconnect.");
-        throw UncheckedException.throwAsUncheckedException(e);
+ catch (      IOException e) {
+        LOGGER.warn("Received exception trying to forward client input.",e);
+      }
+    }
+    public void onEndOfInput(){
+      LOGGER.info("Closing daemon's stdin at end of input.");
+      try {
+        inputSource.close();
+      }
+ catch (      IOException e) {
+        LOGGER.warn("Problem closing output stream connected to replacement stdin",e);
       }
  finally {
-        inputReceiver.stop();
-        LOGGER.debug("The input receiver has been stopped.");
+        LOGGER.info("The daemon will no longer process any standard input.");
       }
     }
   }
 );
   try {
-    new StdinSwapper().swap(replacementStdin,new Callable<Void>(){
-      public Void call(){
-        execution.proceed();
-        return null;
+    try {
+      new StdinSwapper().swap(replacementStdin,new Callable<Void>(){
+        public Void call(){
+          execution.proceed();
+          return null;
+        }
       }
-    }
 );
-    replacementStdin.close();
+    }
+  finally {
+      execution.getConnection().onStdin(null);
+      replacementStdin.close();
+    }
   }
  catch (  Exception e) {
     throw UncheckedException.throwAsUncheckedException(e);
