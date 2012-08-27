@@ -1,5 +1,12 @@
 {
   Set<BuildOutcome> keyedOutcomes=new HashSet<BuildOutcome>();
-  addArchivesByTaskPath(projectOutcomes,keyedOutcomes);
+  for (  org.gradle.tooling.model.internal.migration.BuildOutcome outcome : projectOutcomes.getOutcomes()) {
+    if (outcome instanceof FileBuildOutcome) {
+      addFileBuildOutcome((FileBuildOutcome)outcome,keyedOutcomes);
+    }
+ else {
+      new UnknownBuildOutcome(outcome.getTaskPath(),"Unknown Build Outcome");
+    }
+  }
   return keyedOutcomes;
 }
