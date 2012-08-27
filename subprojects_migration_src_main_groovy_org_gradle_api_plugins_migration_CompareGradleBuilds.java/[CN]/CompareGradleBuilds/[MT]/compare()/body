@@ -5,11 +5,14 @@
   GradleBuildOutcomeSetTransformer toOutcomeTransformer=createOutcomeSetTransformer("target");
   ProjectOutcomes toOutput=generateBuildOutput(targetVersion,getTargetProjectDir());
   Set<BuildOutcome> toOutcomes=toOutcomeTransformer.transform(toOutput);
-  BuildOutcomeAssociator outcomeAssociator=new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
-  BuildComparisonSpecFactory specFactory=new BuildComparisonSpecFactory(outcomeAssociator);
+  BuildOutcomeAssociator archivesAssociator=new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
+  BuildOutcomeAssociator unknownAssociator=new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(UnknownBuildOutcome.class);
+  BuildOutcomeAssociator compositeAssociator=new CompositeBuildOutcomeAssociator(archivesAssociator,unknownAssociator);
+  BuildComparisonSpecFactory specFactory=new BuildComparisonSpecFactory(compositeAssociator);
   BuildComparisonSpec comparisonSpec=specFactory.createSpec(fromOutcomes,toOutcomes);
   DefaultBuildOutcomeComparatorFactory comparatorFactory=new DefaultBuildOutcomeComparatorFactory();
   comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator());
+  comparatorFactory.registerComparator(new UnknownBuildOutcomeComparator());
   BuildComparator buildComparator=new DefaultBuildComparator(comparatorFactory);
   BuildComparisonResult result=buildComparator.compareBuilds(comparisonSpec);
   writeReport(result);
