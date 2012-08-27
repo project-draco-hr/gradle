@@ -5,15 +5,19 @@
   GradleBuildOutcomeSetTransformer toOutcomeTransformer=createOutcomeSetTransformer("target");
   ProjectOutcomes toOutput=generateBuildOutput(targetVersion,getTargetProjectDir());
   Set<BuildOutcome> toOutcomes=toOutcomeTransformer.transform(toOutput);
-  BuildOutcomeAssociator archivesAssociator=new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
-  BuildOutcomeAssociator unknownAssociator=new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(UnknownBuildOutcome.class);
-  BuildOutcomeAssociator compositeAssociator=new CompositeBuildOutcomeAssociator(archivesAssociator,unknownAssociator);
+  DefaultBuildOutcomeComparatorFactory comparatorFactory=new DefaultBuildOutcomeComparatorFactory();
+  BuildOutcomeAssociator[] associators=new BuildOutcomeAssociator[2];
+  DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers=new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
+  associators[0]=new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
+  comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator());
+  renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer("Source Build","Target Build"));
+  associators[1]=new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(UnknownBuildOutcome.class);
+  comparatorFactory.registerComparator(new UnknownBuildOutcomeComparator());
+  renderers.registerRenderer(new UnknownBuildOutcomeComparisonResultHtmlRenderer("Source Build","Target Build"));
+  BuildOutcomeAssociator compositeAssociator=new CompositeBuildOutcomeAssociator(associators);
   BuildComparisonSpecFactory specFactory=new BuildComparisonSpecFactory(compositeAssociator);
   BuildComparisonSpec comparisonSpec=specFactory.createSpec(fromOutcomes,toOutcomes);
-  DefaultBuildOutcomeComparatorFactory comparatorFactory=new DefaultBuildOutcomeComparatorFactory();
-  comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator());
-  comparatorFactory.registerComparator(new UnknownBuildOutcomeComparator());
   BuildComparator buildComparator=new DefaultBuildComparator(comparatorFactory);
   BuildComparisonResult result=buildComparator.compareBuilds(comparisonSpec);
-  writeReport(result);
+  writeReport(result,renderers);
 }
