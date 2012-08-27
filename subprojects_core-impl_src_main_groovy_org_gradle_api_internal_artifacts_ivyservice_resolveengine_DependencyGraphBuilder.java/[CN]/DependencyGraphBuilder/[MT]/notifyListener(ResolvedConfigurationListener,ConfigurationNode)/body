@@ -1,8 +1,15 @@
 {
   ResolvedConfigurationIdentifier id=resolvedConfiguration.toId();
-  Set<DefaultResolvedDependencyResult> dependencies=new LinkedHashSet<DefaultResolvedDependencyResult>();
+  Set<DependencyResult> dependencies=new LinkedHashSet<DependencyResult>();
   for (  DependencyEdge edge : resolvedConfiguration.outgoingEdges) {
-    dependencies.add(new DefaultResolvedDependencyResult(edge.toSelector(),edge.toId(),edge.getTargetConfigurationNames()));
+    DependencyResult dependencyResult;
+    if (edge.isFailed()) {
+      dependencyResult=new DefaultUnresolvedDependencyResult(edge.toSelector(),edge.getFailure());
+    }
+ else {
+      dependencyResult=new DefaultResolvedDependencyResult(edge.toSelector(),edge.toId(),edge.getTargetConfigurationNames());
+    }
+    dependencies.add(dependencyResult);
   }
   listener.resolvedConfiguration(id,dependencies);
 }
