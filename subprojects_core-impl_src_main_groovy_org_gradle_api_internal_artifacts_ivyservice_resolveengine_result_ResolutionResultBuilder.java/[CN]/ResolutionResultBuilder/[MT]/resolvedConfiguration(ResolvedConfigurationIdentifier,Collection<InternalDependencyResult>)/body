@@ -1,14 +1,14 @@
 {
-  if (!deps.containsKey(id.getId())) {
-    deps.put(id.getId(),new LinkedHashSet<DependencyResult>());
-  }
-  Set<DependencyResult> accumulated=deps.get(id.getId());
+  DefaultResolvedModuleVersionResult module=getModule(id.getId());
   for (  InternalDependencyResult d : dependencies) {
     if (d.getFailure() != null) {
-      accumulated.add(new DefaultUnresolvedDependencyResult(d.getRequested(),d.getFailure()));
+      module.addDependency(new DefaultUnresolvedDependencyResult(d.getRequested(),d.getFailure()));
     }
  else {
-      accumulated.add(new DefaultResolvedDependencyResult(d.getRequested(),d.getSelected()));
+      DefaultResolvedModuleVersionResult submodule=getModule(d.getSelected());
+      DefaultResolvedDependencyResult dependency=new DefaultResolvedDependencyResult(d.getRequested(),submodule);
+      module.addDependency(dependency);
+      submodule.addDependee(dependency);
     }
   }
 }
