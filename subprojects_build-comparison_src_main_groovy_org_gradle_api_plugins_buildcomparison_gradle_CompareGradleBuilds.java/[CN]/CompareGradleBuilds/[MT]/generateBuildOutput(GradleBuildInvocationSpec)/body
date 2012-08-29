@@ -10,11 +10,11 @@
   }
   ProjectConnection connection=connector.connect();
   try {
-    ProjectOutcomes buildOutcomes=connection.getModel(ProjectOutcomes.class);
     List<String> tasksList=spec.getTasks();
     String[] tasks=tasksList.toArray(new String[tasksList.size()]);
-    List<String> argumentsList=spec.getArguments();
+    List<String> argumentsList=getImpliedArguments(spec);
     String[] arguments=argumentsList.toArray(new String[argumentsList.size()]);
+    ProjectOutcomes buildOutcomes=connection.model(ProjectOutcomes.class).withArguments(arguments).get();
     connection.newBuild().withArguments(arguments).forTasks(tasks).run();
     return buildOutcomes;
   }
