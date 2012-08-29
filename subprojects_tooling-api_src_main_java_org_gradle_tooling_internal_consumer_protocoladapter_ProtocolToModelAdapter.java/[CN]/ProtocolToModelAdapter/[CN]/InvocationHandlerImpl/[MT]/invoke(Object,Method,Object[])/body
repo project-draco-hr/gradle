@@ -10,7 +10,7 @@
  else   if (method.equals(hashCodeMethod)) {
     return hashCode();
   }
-  if (method.getName().matches("get\\w+")) {
+  if ((method.getName().matches("get\\w+") || method.getName().matches("is\\w+")) && method.getParameterTypes().length == 0) {
     if (properties.containsKey(method.getName())) {
       return properties.get(method.getName());
     }
@@ -19,10 +19,17 @@
       value=modelPropertyHandler.getPropertyValue(method,delegate);
     }
  else {
-      value=doInvokeMethod(method,params);
+      value=getPropertyValue(method);
     }
     properties.put(method.getName(),value);
     return value;
+  }
+  if (method.getName().matches("get\\w+") && method.getParameterTypes().length == 1) {
+    Method getter=wrapperType.getMethod(method.getName());
+    if (findMethod(getter) == null) {
+      return params[0];
+    }
+    return invoke(target,getter,EMPTY);
   }
   return doInvokeMethod(method,params);
 }

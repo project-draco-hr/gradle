@@ -1,28 +1,11 @@
 {
-  Method match;
-  try {
-    match=delegate.getClass().getMethod(method.getName(),method.getParameterTypes());
+  Method targetMethod=methods.get(method);
+  if (targetMethod == null) {
+    targetMethod=locateMethod(method);
+    if (targetMethod == null) {
+      return null;
+    }
+    methods.put(method,targetMethod);
   }
- catch (  NoSuchMethodException e) {
-    String methodName=method.getDeclaringClass().getSimpleName() + "." + method.getName()+ "()";
-    throw Exceptions.unsupportedMethod(methodName,e);
-  }
-  LinkedList<Class<?>> queue=new LinkedList<Class<?>>();
-  queue.add(delegate.getClass());
-  while (!queue.isEmpty()) {
-    Class<?> c=queue.removeFirst();
-    try {
-      match=c.getMethod(method.getName(),method.getParameterTypes());
-    }
- catch (    NoSuchMethodException e) {
-    }
-    for (    Class<?> interfaceType : c.getInterfaces()) {
-      queue.addFirst(interfaceType);
-    }
-    if (c.getSuperclass() != null) {
-      queue.addFirst(c.getSuperclass());
-    }
-  }
-  match.setAccessible(true);
-  return match;
+  return targetMethod;
 }
