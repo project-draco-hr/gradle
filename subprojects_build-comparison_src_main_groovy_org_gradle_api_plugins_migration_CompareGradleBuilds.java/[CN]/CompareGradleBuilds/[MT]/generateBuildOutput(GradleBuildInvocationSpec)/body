@@ -1,0 +1,24 @@
+{
+  GradleVersion gradleVersion=GradleVersion.version(spec.getGradleVersion());
+  GradleConnector connector=GradleConnector.newConnector().forProjectDirectory(spec.getProjectDir());
+  connector.useGradleUserHomeDir(getProject().getGradle().getStartParameter().getGradleUserHomeDir());
+  if (gradleVersion.equals(GradleVersion.current())) {
+    connector.useInstallation(getProject().getGradle().getGradleHomeDir());
+  }
+ else {
+    connector.useGradleVersion(gradleVersion.getVersion());
+  }
+  ProjectConnection connection=connector.connect();
+  try {
+    ProjectOutcomes buildOutcomes=connection.getModel(ProjectOutcomes.class);
+    List<String> tasksList=spec.getTasks();
+    String[] tasks=tasksList.toArray(new String[tasksList.size()]);
+    List<String> argumentsList=spec.getArguments();
+    String[] arguments=argumentsList.toArray(new String[argumentsList.size()]);
+    connection.newBuild().withArguments(arguments).forTasks(tasks).run();
+    return buildOutcomes;
+  }
+  finally {
+    connection.close();
+  }
+}
