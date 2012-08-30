@@ -10,16 +10,36 @@
   ProgressLogger progressLogger=progressLoggerFactory.newOperation(getClass());
   progressLogger.setDescription("Gradle Build Comparison");
   progressLogger.setShortDescription(getName());
-  progressLogger.started("executing source build");
-  GradleBuildOutcomeSetTransformer fromOutcomeTransformer=createOutcomeSetTransformer("source");
-  ProjectOutcomes fromOutput=buildProjectOutcomes(getSourceBuild());
-  progressLogger.progress("inspecting source build outcomes");
-  Set<BuildOutcome> fromOutcomes=fromOutcomeTransformer.transform(fromOutput);
-  progressLogger.progress("executing target build");
-  GradleBuildOutcomeSetTransformer toOutcomeTransformer=createOutcomeSetTransformer("target");
-  ProjectOutcomes toOutput=buildProjectOutcomes(getTargetBuild());
-  progressLogger.progress("inspecting target build outcomes");
-  Set<BuildOutcome> toOutcomes=toOutcomeTransformer.transform(toOutput);
+  Set<BuildOutcome> fromOutcomes=null;
+  if (sourceBuildHasOutcomesModel) {
+    progressLogger.started("executing source build");
+    ProjectOutcomes fromOutput=buildProjectOutcomesOrJustExec(getSourceBuild(),false);
+    progressLogger.progress("inspecting source build outcomes");
+    GradleBuildOutcomeSetTransformer fromOutcomeTransformer=createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
+    fromOutcomes=fromOutcomeTransformer.transform(fromOutput);
+  }
+  if (sourceBuildHasOutcomesModel) {
+    progressLogger.progress("executing target build");
+  }
+ else {
+    progressLogger.started("executing target build");
+  }
+  ProjectOutcomes toOutput=buildProjectOutcomesOrJustExec(getTargetBuild(),!targetBuildHasOutcomesModel);
+  Set<BuildOutcome> toOutcomes=null;
+  if (targetBuildHasOutcomesModel) {
+    progressLogger.progress("inspecting target build outcomes");
+    GradleBuildOutcomeSetTransformer toOutcomeTransformer=createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
+    toOutcomes=toOutcomeTransformer.transform(toOutput);
+  }
+ else {
+    toOutcomes=createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX,getTargetBuild().getProjectDir()).transform(fromOutcomes);
+  }
+  if (!sourceBuildHasOutcomesModel) {
+    progressLogger.progress("executing source build");
+    buildProjectOutcomesOrJustExec(getSourceBuild(),true);
+    progressLogger.progress("inspecting source build outcomes");
+    fromOutcomes=createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX,getSourceBuild().getProjectDir()).transform(toOutcomes);
+  }
   progressLogger.progress("preparing for comparison");
   DefaultBuildOutcomeComparatorFactory comparatorFactory=new DefaultBuildOutcomeComparatorFactory();
   BuildOutcomeAssociator[] associators=new BuildOutcomeAssociator[2];
