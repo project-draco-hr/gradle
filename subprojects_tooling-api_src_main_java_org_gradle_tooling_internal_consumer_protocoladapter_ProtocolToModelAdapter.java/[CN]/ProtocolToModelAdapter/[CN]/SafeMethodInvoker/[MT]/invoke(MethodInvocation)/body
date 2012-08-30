@@ -1,0 +1,18 @@
+{
+  next.invoke(invocation);
+  if (invocation.found()) {
+    return;
+  }
+  boolean getter=GETTER_METHOD.matcher(invocation.getName()).matches();
+  if (!getter || invocation.getParameterTypes().length != 1) {
+    return;
+  }
+  MethodInvocation getterInvocation=new MethodInvocation(invocation.getName(),invocation.getReturnType(),invocation.getGenericReturnType(),new Class[0],invocation.getDelegate(),EMPTY);
+  next.invoke(getterInvocation);
+  if (getterInvocation.found() && getterInvocation.getResult() != null) {
+    invocation.setResult(getterInvocation.getResult());
+  }
+ else {
+    invocation.setResult(invocation.getParameters()[0]);
+  }
+}

@@ -1,0 +1,19 @@
+{
+  if (current.get() != null) {
+    return;
+  }
+  if (instance == null) {
+    instance=new DirectInstantiator().newInstance(mixInClass,proxy);
+  }
+  MethodInvocation beanInvocation=new MethodInvocation(invocation.getName(),invocation.getReturnType(),invocation.getGenericReturnType(),invocation.getParameterTypes(),instance,invocation.getParameters());
+  current.set(beanInvocation);
+  try {
+    next.invoke(beanInvocation);
+  }
+  finally {
+    current.set(null);
+  }
+  if (beanInvocation.found()) {
+    invocation.setResult(beanInvocation.getResult());
+  }
+}

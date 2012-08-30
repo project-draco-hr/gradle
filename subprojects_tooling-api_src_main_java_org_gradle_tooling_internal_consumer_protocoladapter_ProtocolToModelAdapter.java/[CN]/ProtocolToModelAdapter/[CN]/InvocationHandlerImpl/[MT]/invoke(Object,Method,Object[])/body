@@ -10,26 +10,11 @@
  else   if (method.equals(hashCodeMethod)) {
     return hashCode();
   }
-  if ((method.getName().matches("get\\w+") || method.getName().matches("is\\w+")) && method.getParameterTypes().length == 0) {
-    if (properties.containsKey(method.getName())) {
-      return properties.get(method.getName());
-    }
-    Object value;
-    if (modelPropertyHandler.shouldHandle(method,delegate)) {
-      value=modelPropertyHandler.getPropertyValue(method,delegate);
-    }
- else {
-      value=getPropertyValue(method);
-    }
-    properties.put(method.getName(),value);
-    return value;
+  MethodInvocation invocation=new MethodInvocation(method.getName(),method.getReturnType(),method.getGenericReturnType(),method.getParameterTypes(),delegate,params);
+  invoker.invoke(invocation);
+  if (!invocation.found()) {
+    String methodName=method.getDeclaringClass().getSimpleName() + "." + method.getName()+ "()";
+    throw Exceptions.unsupportedMethod(methodName);
   }
-  if (method.getName().matches("get\\w+") && method.getParameterTypes().length == 1) {
-    Method getter=wrapperType.getMethod(method.getName());
-    if (findMethod(getter) == null) {
-      return params[0];
-    }
-    return invoke(target,getter,EMPTY);
-  }
-  return doInvokeMethod(method,params);
+  return invocation.getResult();
 }

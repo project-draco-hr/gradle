@@ -1,0 +1,21 @@
+{
+  if ((GETTER_METHOD.matcher(method.getName()).matches() || IS_METHOD.matcher(method.getName()).matches()) && method.getParameterTypes().length == 0) {
+    if (properties.containsKey(method.getName())) {
+      method.setResult(properties.get(method.getName()));
+      return;
+    }
+    if (unknown.contains(method.getName())) {
+      return;
+    }
+    Object value;
+    next.invoke(method);
+    if (!method.found()) {
+      unknown.add(method.getName());
+      return;
+    }
+    value=method.getResult();
+    properties.put(method.getName(),value);
+    return;
+  }
+  next.invoke(method);
+}
