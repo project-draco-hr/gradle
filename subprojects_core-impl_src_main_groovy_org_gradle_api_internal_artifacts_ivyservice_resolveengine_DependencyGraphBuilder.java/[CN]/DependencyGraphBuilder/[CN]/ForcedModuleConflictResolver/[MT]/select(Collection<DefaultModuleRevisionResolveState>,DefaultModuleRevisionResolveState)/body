@@ -2,9 +2,12 @@
   for (  ConfigurationNode configuration : root.configurations) {
     for (    DependencyEdge outgoingEdge : configuration.outgoingEdges) {
       if (outgoingEdge.dependencyDescriptor.isForce() && candidates.contains(outgoingEdge.targetModuleRevision)) {
+        outgoingEdge.targetModuleRevision.reason="forced";
         return outgoingEdge.targetModuleRevision;
       }
     }
   }
-  return (DefaultModuleRevisionResolveState)resolver.select(candidates,root);
+  DefaultModuleRevisionResolveState out=(DefaultModuleRevisionResolveState)resolver.select(candidates,root);
+  out.reason="conflict resolution";
+  return out;
 }
