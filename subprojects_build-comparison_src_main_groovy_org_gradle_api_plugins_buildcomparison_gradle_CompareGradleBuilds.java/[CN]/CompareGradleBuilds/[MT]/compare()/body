@@ -1,16 +1,18 @@
 {
-  ProgressLogger logger=progressLoggerFactory.newOperation(getClass());
-  logger.started("executing source build");
+  ProgressLogger progressLogger=progressLoggerFactory.newOperation(getClass());
+  progressLogger.setDescription("Gradle Build Comparison");
+  progressLogger.setShortDescription(getName());
+  progressLogger.started("executing source build");
   GradleBuildOutcomeSetTransformer fromOutcomeTransformer=createOutcomeSetTransformer("source");
-  ProjectOutcomes fromOutput=generateBuildOutput(getSourceBuild());
-  logger.progress("inspecting source build outcomes");
+  ProjectOutcomes fromOutput=buildProjectOutcomes(getSourceBuild());
+  progressLogger.progress("inspecting source build outcomes");
   Set<BuildOutcome> fromOutcomes=fromOutcomeTransformer.transform(fromOutput);
-  logger.progress("executing target build");
+  progressLogger.progress("executing target build");
   GradleBuildOutcomeSetTransformer toOutcomeTransformer=createOutcomeSetTransformer("target");
-  ProjectOutcomes toOutput=generateBuildOutput(getTargetBuild());
-  logger.progress("inspecting target build outcomes");
+  ProjectOutcomes toOutput=buildProjectOutcomes(getTargetBuild());
+  progressLogger.progress("inspecting target build outcomes");
   Set<BuildOutcome> toOutcomes=toOutcomeTransformer.transform(toOutput);
-  logger.progress("preparing for outcomes comparison");
+  progressLogger.progress("preparing for comparison");
   DefaultBuildOutcomeComparatorFactory comparatorFactory=new DefaultBuildOutcomeComparatorFactory();
   BuildOutcomeAssociator[] associators=new BuildOutcomeAssociator[2];
   DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers=new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
@@ -23,10 +25,9 @@
   BuildOutcomeAssociator compositeAssociator=new CompositeBuildOutcomeAssociator(associators);
   BuildComparisonSpecFactory specFactory=new BuildComparisonSpecFactory(compositeAssociator);
   BuildComparisonSpec comparisonSpec=specFactory.createSpec(fromOutcomes,toOutcomes);
-  logger.progress("comparing build outcomes");
+  progressLogger.progress("comparing build outcomes");
   BuildComparator buildComparator=new DefaultBuildComparator(comparatorFactory);
   BuildComparisonResult result=buildComparator.compareBuilds(comparisonSpec);
-  logger.progress("writing comparison report");
   writeReport(result,renderers);
-  logger.completed();
+  progressLogger.completed();
 }
