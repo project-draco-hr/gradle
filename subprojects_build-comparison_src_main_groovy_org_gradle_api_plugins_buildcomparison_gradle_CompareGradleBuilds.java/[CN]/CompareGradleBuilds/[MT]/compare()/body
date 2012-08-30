@@ -2,6 +2,11 @@
   if (sourceBuild.equals(targetBuild)) {
     getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.",getName());
   }
+  boolean sourceBuildHasOutcomesModel=canObtainProjectOutcomesModel(sourceBuild);
+  boolean targetBuildHasOutcomesModel=canObtainProjectOutcomesModel(targetBuild);
+  if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
+    throw new GradleException(String.format("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s.",PROJECT_OUTCOMES_MINIMUM_VERSION));
+  }
   ProgressLogger progressLogger=progressLoggerFactory.newOperation(getClass());
   progressLogger.setDescription("Gradle Build Comparison");
   progressLogger.setShortDescription(getName());
