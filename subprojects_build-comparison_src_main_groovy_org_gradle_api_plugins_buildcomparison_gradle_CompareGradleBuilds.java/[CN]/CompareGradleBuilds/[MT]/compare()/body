@@ -1,10 +1,16 @@
 {
+  ProgressLogger logger=progressLoggerFactory.newOperation(getClass());
+  logger.started("executing source build");
   GradleBuildOutcomeSetTransformer fromOutcomeTransformer=createOutcomeSetTransformer("source");
   ProjectOutcomes fromOutput=generateBuildOutput(getSourceBuild());
+  logger.progress("inspecting source build outcomes");
   Set<BuildOutcome> fromOutcomes=fromOutcomeTransformer.transform(fromOutput);
+  logger.progress("executing target build");
   GradleBuildOutcomeSetTransformer toOutcomeTransformer=createOutcomeSetTransformer("target");
   ProjectOutcomes toOutput=generateBuildOutput(getTargetBuild());
+  logger.progress("inspecting target build outcomes");
   Set<BuildOutcome> toOutcomes=toOutcomeTransformer.transform(toOutput);
+  logger.progress("preparing for outcomes comparison");
   DefaultBuildOutcomeComparatorFactory comparatorFactory=new DefaultBuildOutcomeComparatorFactory();
   BuildOutcomeAssociator[] associators=new BuildOutcomeAssociator[2];
   DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers=new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
@@ -17,7 +23,10 @@
   BuildOutcomeAssociator compositeAssociator=new CompositeBuildOutcomeAssociator(associators);
   BuildComparisonSpecFactory specFactory=new BuildComparisonSpecFactory(compositeAssociator);
   BuildComparisonSpec comparisonSpec=specFactory.createSpec(fromOutcomes,toOutcomes);
+  logger.progress("comparing build outcomes");
   BuildComparator buildComparator=new DefaultBuildComparator(comparatorFactory);
   BuildComparisonResult result=buildComparator.compareBuilds(comparisonSpec);
+  logger.progress("writing comparison report");
   writeReport(result,renderers);
+  logger.completed();
 }
