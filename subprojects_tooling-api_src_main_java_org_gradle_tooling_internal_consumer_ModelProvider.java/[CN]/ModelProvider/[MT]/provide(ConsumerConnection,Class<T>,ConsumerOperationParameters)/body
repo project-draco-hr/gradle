@@ -1,5 +1,25 @@
 {
   VersionDetails version=connection.getVersionDetails();
+  if (operationParameters.getJavaHome() != null) {
+    if (!version.supportsConfiguringJavaHome()) {
+      throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJavaHome() and buildLauncher.setJavaHome()");
+    }
+  }
+  if (operationParameters.getJvmArguments() != null) {
+    if (!version.supportsConfiguringJvmArguments()) {
+      throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJvmArguments() and buildLauncher.setJvmArguments()");
+    }
+  }
+  if (operationParameters.getStandardInput() != null) {
+    if (!version.supportsConfiguringStandardInput()) {
+      throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()");
+    }
+  }
+  if (type != Void.class && operationParameters.getTasks() != null) {
+    if (!version.supportsRunningTasksWhenBuildingModel()) {
+      throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()");
+    }
+  }
   if (type == InternalBuildEnvironment.class && !version.supportsCompleteBuildEnvironment()) {
     VersionOnlyBuildEnvironment out=new VersionOnlyBuildEnvironment(version.getVersion());
     return type.cast(out);

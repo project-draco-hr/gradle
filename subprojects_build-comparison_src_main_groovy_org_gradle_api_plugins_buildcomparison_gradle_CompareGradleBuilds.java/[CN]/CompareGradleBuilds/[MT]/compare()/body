@@ -1,10 +1,49 @@
 {
-  GradleBuildOutcomeSetTransformer fromOutcomeTransformer=createOutcomeSetTransformer("source");
-  ProjectOutcomes fromOutput=generateBuildOutput(getSourceBuild());
-  Set<BuildOutcome> fromOutcomes=fromOutcomeTransformer.transform(fromOutput);
-  GradleBuildOutcomeSetTransformer toOutcomeTransformer=createOutcomeSetTransformer("target");
-  ProjectOutcomes toOutput=generateBuildOutput(getTargetBuild());
-  Set<BuildOutcome> toOutcomes=toOutcomeTransformer.transform(toOutput);
+  if (sourceBuild.equals(targetBuild)) {
+    getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.",getName());
+  }
+  if (!canExec(sourceBuild) || !canExec(targetBuild)) {
+    throw new GradleException(String.format("Builds must be executed with %s or newer (source: %s, target: %s)",EXEC_MINIMUM_VERSION,sourceBuild.getGradleVersion(),targetBuild.getGradleVersion()));
+  }
+  boolean sourceBuildHasOutcomesModel=canObtainProjectOutcomesModel(sourceBuild);
+  boolean targetBuildHasOutcomesModel=canObtainProjectOutcomesModel(targetBuild);
+  if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
+    throw new GradleException(String.format("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",PROJECT_OUTCOMES_MINIMUM_VERSION,sourceBuild.getGradleVersion(),targetBuild.getGradleVersion()));
+  }
+  ProgressLogger progressLogger=progressLoggerFactory.newOperation(getClass());
+  progressLogger.setDescription("Gradle Build Comparison");
+  progressLogger.setShortDescription(getName());
+  Set<BuildOutcome> fromOutcomes=null;
+  if (sourceBuildHasOutcomesModel) {
+    progressLogger.started("executing source build");
+    ProjectOutcomes fromOutput=buildProjectOutcomesOrJustExec(getSourceBuild(),false);
+    progressLogger.progress("inspecting source build outcomes");
+    GradleBuildOutcomeSetTransformer fromOutcomeTransformer=createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
+    fromOutcomes=fromOutcomeTransformer.transform(fromOutput);
+  }
+  if (sourceBuildHasOutcomesModel) {
+    progressLogger.progress("executing target build");
+  }
+ else {
+    progressLogger.started("executing target build");
+  }
+  ProjectOutcomes toOutput=buildProjectOutcomesOrJustExec(getTargetBuild(),!targetBuildHasOutcomesModel);
+  Set<BuildOutcome> toOutcomes=null;
+  if (targetBuildHasOutcomesModel) {
+    progressLogger.progress("inspecting target build outcomes");
+    GradleBuildOutcomeSetTransformer toOutcomeTransformer=createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
+    toOutcomes=toOutcomeTransformer.transform(toOutput);
+  }
+ else {
+    toOutcomes=createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX,getTargetBuild().getProjectDir()).transform(fromOutcomes);
+  }
+  if (!sourceBuildHasOutcomesModel) {
+    progressLogger.progress("executing source build");
+    buildProjectOutcomesOrJustExec(getSourceBuild(),true);
+    progressLogger.progress("inspecting source build outcomes");
+    fromOutcomes=createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX,getSourceBuild().getProjectDir()).transform(toOutcomes);
+  }
+  progressLogger.progress("preparing for comparison");
   DefaultBuildOutcomeComparatorFactory comparatorFactory=new DefaultBuildOutcomeComparatorFactory();
   BuildOutcomeAssociator[] associators=new BuildOutcomeAssociator[2];
   DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers=new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
@@ -17,7 +56,10 @@
   BuildOutcomeAssociator compositeAssociator=new CompositeBuildOutcomeAssociator(associators);
   BuildComparisonSpecFactory specFactory=new BuildComparisonSpecFactory(compositeAssociator);
   BuildComparisonSpec comparisonSpec=specFactory.createSpec(fromOutcomes,toOutcomes);
+  progressLogger.progress("comparing build outcomes");
   BuildComparator buildComparator=new DefaultBuildComparator(comparatorFactory);
   BuildComparisonResult result=buildComparator.compareBuilds(comparisonSpec);
   writeReport(result,renderers);
+  progressLogger.completed();
+  communicateResult(result);
 }

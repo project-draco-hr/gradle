@@ -32,11 +32,17 @@
     allArgs.add("--gradle-user-home");
     allArgs.add(userHomeDir.getAbsolutePath());
   }
-  if (daemonIdleTimeoutSecs != null) {
-    allArgs.add("-Dorg.gradle.daemon.idletimeout=" + daemonIdleTimeoutSecs * 1000);
+  int effectiveDaemonIdleTimeoutSecs=daemonIdleTimeoutSecs == null ? DEFAULT_DAEMON_IDLE_TIMEOUT_SECS : daemonIdleTimeoutSecs;
+  allArgs.add("-Dorg.gradle.daemon.idletimeout=" + effectiveDaemonIdleTimeoutSecs * 1000);
+  String effectiveDaemonBaseDir=null;
+  if (daemonBaseDir == null) {
+    effectiveDaemonBaseDir=System.getProperty(DEFAULT_DAEMON_REGISTRY_DIR_PROPERTY);
   }
-  if (daemonBaseDir != null) {
-    args.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
+ else {
+    effectiveDaemonBaseDir=daemonBaseDir.getAbsolutePath();
+  }
+  if (effectiveDaemonBaseDir != null) {
+    args.add("-Dorg.gradle.daemon.registry.base=" + effectiveDaemonBaseDir);
   }
   allArgs.addAll(args);
   allArgs.addAll(tasks);

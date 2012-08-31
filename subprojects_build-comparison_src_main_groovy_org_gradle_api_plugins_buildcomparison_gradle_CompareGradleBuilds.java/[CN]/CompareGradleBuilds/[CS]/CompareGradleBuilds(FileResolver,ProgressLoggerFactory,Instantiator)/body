@@ -1,0 +1,16 @@
+{
+  this.fileResolver=fileResolver;
+  this.progressLoggerFactory=progressLoggerFactory;
+  sourceBuild=instantiator.newInstance(DefaultGradleBuildInvocationSpec.class,fileResolver,getProject().getRootDir());
+  sourceBuild.setTasks(DEFAULT_TASKS);
+  targetBuild=instantiator.newInstance(DefaultGradleBuildInvocationSpec.class,fileResolver,getProject().getRootDir());
+  targetBuild.setTasks(DEFAULT_TASKS);
+  File fileStoreTmpBase=fileResolver.resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s",getName(),System.currentTimeMillis()));
+  fileStore=new PathNormalisingKeyFileStore(fileStoreTmpBase);
+  getOutputs().upToDateWhen(new Spec<Task>(){
+    public boolean isSatisfiedBy(    Task element){
+      return false;
+    }
+  }
+);
+}
