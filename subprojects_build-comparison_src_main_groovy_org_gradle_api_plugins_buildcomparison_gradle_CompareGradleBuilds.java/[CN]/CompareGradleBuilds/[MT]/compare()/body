@@ -10,22 +10,27 @@
   if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
     throw new GradleException(String.format("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",PROJECT_OUTCOMES_MINIMUM_VERSION,sourceBuild.getGradleVersion(),targetBuild.getGradleVersion()));
   }
+  Logger logger=getLogger();
   ProgressLogger progressLogger=progressLoggerFactory.newOperation(getClass());
+  String executingSourceBuildMessage=executingMessage("source",getSourceBuild());
+  String executingTargetBuildMessage=executingMessage("target",getTargetBuild());
   progressLogger.setDescription("Gradle Build Comparison");
   progressLogger.setShortDescription(getName());
   Set<BuildOutcome> fromOutcomes=null;
   if (sourceBuildHasOutcomesModel) {
-    progressLogger.started("executing source build");
+    logger.info(executingSourceBuildMessage);
+    progressLogger.started(executingSourceBuildMessage);
     ProjectOutcomes fromOutput=buildProjectOutcomesOrJustExec(getSourceBuild(),false);
     progressLogger.progress("inspecting source build outcomes");
     GradleBuildOutcomeSetTransformer fromOutcomeTransformer=createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
     fromOutcomes=fromOutcomeTransformer.transform(fromOutput);
   }
+  logger.info(executingTargetBuildMessage);
   if (sourceBuildHasOutcomesModel) {
-    progressLogger.progress("executing target build");
+    progressLogger.progress(executingTargetBuildMessage);
   }
  else {
-    progressLogger.started("executing target build");
+    progressLogger.started(executingTargetBuildMessage);
   }
   ProjectOutcomes toOutput=buildProjectOutcomesOrJustExec(getTargetBuild(),!targetBuildHasOutcomesModel);
   Set<BuildOutcome> toOutcomes=null;
@@ -38,7 +43,8 @@
     toOutcomes=createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX,getTargetBuild().getProjectDir()).transform(fromOutcomes);
   }
   if (!sourceBuildHasOutcomesModel) {
-    progressLogger.progress("executing source build");
+    logger.info(executingSourceBuildMessage);
+    progressLogger.progress(executingSourceBuildMessage);
     buildProjectOutcomesOrJustExec(getSourceBuild(),true);
     progressLogger.progress("inspecting source build outcomes");
     fromOutcomes=createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX,getSourceBuild().getProjectDir()).transform(toOutcomes);
