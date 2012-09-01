@@ -1,13 +1,21 @@
 {
+  long start=System.currentTimeMillis();
+  long expiry=start + STOP_TIMEOUT_SECONDS * 1000;
+  Set<String> stopped=new HashSet<String>();
   DaemonConnection connection=connector.maybeConnect(compatibilitySpec);
   if (connection == null) {
     LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
     return;
   }
   LOGGER.lifecycle("Stopping daemon(s).");
-  while (connection != null) {
-    new StopDispatcher(idGenerator).dispatch(connection);
-    LOGGER.lifecycle("Gradle daemon stopped.");
+  while (connection != null && System.currentTimeMillis() < expiry) {
+    if (stopped.add(connection.getUid())) {
+      new StopDispatcher(idGenerator).dispatch(connection);
+      LOGGER.lifecycle("Gradle daemon stopped.");
+    }
     connection=connector.maybeConnect(compatibilitySpec);
+  }
+  if (connection != null) {
+    throw new GradleException(String.format("Timeout waiting for all daemons to stop. Waited %s seconds.",(System.currentTimeMillis() - start) / 1000));
   }
 }
