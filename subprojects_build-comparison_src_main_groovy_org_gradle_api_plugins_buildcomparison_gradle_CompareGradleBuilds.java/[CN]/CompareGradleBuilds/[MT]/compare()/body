@@ -22,7 +22,7 @@
   if (sourceBuildHasOutcomesModel) {
     logger.info(executingSourceBuildMessage);
     progressLogger.started(executingSourceBuildMessage);
-    ProjectOutcomes fromOutput=buildProjectOutcomesOrJustExec(comparableSourceBuild,false);
+    ProjectOutcomes fromOutput=executeBuild(comparableSourceBuild);
     progressLogger.progress("inspecting source build outcomes");
     GradleBuildOutcomeSetTransformer fromOutcomeTransformer=createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
     fromOutcomes=fromOutcomeTransformer.transform(fromOutput);
@@ -34,8 +34,8 @@
  else {
     progressLogger.started(executingTargetBuildMessage);
   }
-  ProjectOutcomes toOutput=buildProjectOutcomesOrJustExec(comparableTargetBuild,!targetBuildHasOutcomesModel);
-  Set<BuildOutcome> toOutcomes=null;
+  ProjectOutcomes toOutput=executeBuild(comparableTargetBuild);
+  Set<BuildOutcome> toOutcomes;
   if (targetBuildHasOutcomesModel) {
     progressLogger.progress("inspecting target build outcomes");
     GradleBuildOutcomeSetTransformer toOutcomeTransformer=createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
@@ -47,7 +47,7 @@
   if (!sourceBuildHasOutcomesModel) {
     logger.info(executingSourceBuildMessage);
     progressLogger.progress(executingSourceBuildMessage);
-    buildProjectOutcomesOrJustExec(comparableSourceBuild,true);
+    executeBuild(comparableSourceBuild);
     progressLogger.progress("inspecting source build outcomes");
     fromOutcomes=createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX,comparableSourceBuild.getProjectDir()).transform(toOutcomes);
   }
