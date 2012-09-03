@@ -13,19 +13,7 @@
   }
   ProjectConnection connection=connector.connect();
   try {
-    List<String> tasksList=spec.getTasks();
-    String[] tasks=tasksList.toArray(new String[tasksList.size()]);
-    List<String> argumentsList=getImpliedArguments(spec);
-    String[] arguments=argumentsList.toArray(new String[argumentsList.size()]);
-    if (spec.isCanObtainProjectOutcomesModel()) {
-      ModelBuilder<ProjectOutcomes> modelBuilder=connection.model(ProjectOutcomes.class);
-      return modelBuilder.withArguments(arguments).forTasks(tasks).get();
-    }
- else {
-      BuildLauncher buildLauncher=connection.newBuild();
-      buildLauncher.withArguments(arguments).forTasks(tasks).run();
-      return null;
-    }
+    return spec.executeWith(connection);
   }
   finally {
     connection.close();
