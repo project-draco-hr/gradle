@@ -1,14 +1,16 @@
 {
+  ComparableGradleBuildInvocationSpec sourceBuild=(ComparableGradleBuildInvocationSpec)getSourceBuild();
+  ComparableGradleBuildInvocationSpec targetBuild=(ComparableGradleBuildInvocationSpec)getTargetBuild();
   if (sourceBuild.equals(targetBuild)) {
     getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.",getName());
   }
-  if (!canExec(sourceBuild) || !canExec(targetBuild)) {
-    throw new GradleException(String.format("Builds must be executed with %s or newer (source: %s, target: %s)",EXEC_MINIMUM_VERSION,sourceBuild.getGradleVersion(),targetBuild.getGradleVersion()));
+  if (!sourceBuild.isExecutable() || !targetBuild.isExecutable()) {
+    throw new GradleException(String.format("Builds must be executed with %s or newer (source: %s, target: %s)",ComparableGradleBuildInvocationSpec.EXEC_MINIMUM_VERSION,sourceBuild.getGradleVersion().getVersion(),targetBuild.getGradleVersion().getVersion()));
   }
-  boolean sourceBuildHasOutcomesModel=canObtainProjectOutcomesModel(sourceBuild);
-  boolean targetBuildHasOutcomesModel=canObtainProjectOutcomesModel(targetBuild);
+  boolean sourceBuildHasOutcomesModel=sourceBuild.isCanObtainProjectOutcomesModel();
+  boolean targetBuildHasOutcomesModel=targetBuild.isCanObtainProjectOutcomesModel();
   if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
-    throw new GradleException(String.format("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",PROJECT_OUTCOMES_MINIMUM_VERSION,sourceBuild.getGradleVersion(),targetBuild.getGradleVersion()));
+    throw new GradleException(String.format("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",ComparableGradleBuildInvocationSpec.PROJECT_OUTCOMES_MINIMUM_VERSION,sourceBuild.getGradleVersion().getVersion(),targetBuild.getGradleVersion().getVersion()));
   }
   Logger logger=getLogger();
   ProgressLogger progressLogger=progressLoggerFactory.newOperation(getClass());
