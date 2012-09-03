@@ -1,73 +1,25 @@
 {
-  ComparableGradleBuildExecuter sourceBuildExecuter=new ComparableGradleBuildExecuter(getSourceBuild());
-  ComparableGradleBuildExecuter targetBuildExecuter=new ComparableGradleBuildExecuter(getTargetBuild());
-  if (sourceBuildExecuter.getSpec().equals(targetBuildExecuter.getSpec())) {
+  GradleBuildInvocationSpec sourceBuild=getSourceBuild();
+  GradleBuildInvocationSpec targetBuild=getTargetBuild();
+  if (sourceBuild.equals(targetBuild)) {
     getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.",getName());
   }
-  if (!sourceBuildExecuter.isExecutable() || !targetBuildExecuter.isExecutable()) {
-    throw new GradleException(String.format("Builds must be executed with %s or newer (source: %s, target: %s)",ComparableGradleBuildExecuter.EXEC_MINIMUM_VERSION,sourceBuildExecuter.getSpec().getGradleVersion().getVersion(),targetBuildExecuter.getSpec().getGradleVersion().getVersion()));
-  }
-  boolean sourceBuildHasOutcomesModel=sourceBuildExecuter.isCanObtainProjectOutcomesModel();
-  boolean targetBuildHasOutcomesModel=targetBuildExecuter.isCanObtainProjectOutcomesModel();
-  if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
-    throw new GradleException(String.format("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",ComparableGradleBuildExecuter.PROJECT_OUTCOMES_MINIMUM_VERSION,sourceBuildExecuter.getSpec().getGradleVersion().getVersion(),targetBuildExecuter.getSpec().getGradleVersion().getVersion()));
-  }
+  ComparableGradleBuildExecuter sourceBuildExecuter=new ComparableGradleBuildExecuter(sourceBuild);
+  ComparableGradleBuildExecuter targetBuildExecuter=new ComparableGradleBuildExecuter(targetBuild);
   Logger logger=getLogger();
   ProgressLogger progressLogger=progressLoggerFactory.newOperation(getClass());
-  String executingSourceBuildMessage=executingMessage("source",sourceBuildExecuter);
-  String executingTargetBuildMessage=executingMessage("target",targetBuildExecuter);
   progressLogger.setDescription("Gradle Build Comparison");
   progressLogger.setShortDescription(getName());
-  Set<BuildOutcome> sourceOutcomes=null;
-  if (sourceBuildHasOutcomesModel) {
-    logger.info(executingSourceBuildMessage);
-    progressLogger.started(executingSourceBuildMessage);
-    ProjectOutcomes sourceOutput=executeBuild(sourceBuildExecuter);
-    progressLogger.progress("inspecting source build outcomes");
-    GradleBuildOutcomeSetTransformer sourceOutcomeTransformer=createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
-    sourceOutcomes=sourceOutcomeTransformer.transform(sourceOutput);
-  }
-  logger.info(executingTargetBuildMessage);
-  if (sourceBuildHasOutcomesModel) {
-    progressLogger.progress(executingTargetBuildMessage);
-  }
- else {
-    progressLogger.started(executingTargetBuildMessage);
-  }
-  ProjectOutcomes targetOutput=executeBuild(targetBuildExecuter);
-  Set<BuildOutcome> targetOutcomes;
-  if (targetBuildHasOutcomesModel) {
-    progressLogger.progress("inspecting target build outcomes");
-    GradleBuildOutcomeSetTransformer targetOutcomeTransformer=createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
-    targetOutcomes=targetOutcomeTransformer.transform(targetOutput);
-  }
- else {
-    targetOutcomes=createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX,targetBuildExecuter.getSpec().getProjectDir()).transform(sourceOutcomes);
-  }
-  if (!sourceBuildHasOutcomesModel) {
-    logger.info(executingSourceBuildMessage);
-    progressLogger.progress(executingSourceBuildMessage);
-    executeBuild(sourceBuildExecuter);
-    progressLogger.progress("inspecting source build outcomes");
-    sourceOutcomes=createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX,sourceBuildExecuter.getSpec().getProjectDir()).transform(targetOutcomes);
-  }
-  progressLogger.progress("preparing for comparison");
-  DefaultBuildOutcomeComparatorFactory comparatorFactory=new DefaultBuildOutcomeComparatorFactory();
-  BuildOutcomeAssociator[] associators=new BuildOutcomeAssociator[2];
-  DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers=new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
-  associators[0]=new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
-  comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator());
-  renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer());
-  associators[1]=new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(UnknownBuildOutcome.class);
-  comparatorFactory.registerComparator(new UnknownBuildOutcomeComparator());
-  renderers.registerRenderer(new UnknownBuildOutcomeComparisonResultHtmlRenderer());
-  BuildOutcomeAssociator compositeAssociator=new CompositeBuildOutcomeAssociator(associators);
-  BuildComparisonSpecFactory specFactory=new BuildComparisonSpecFactory(compositeAssociator);
-  BuildComparisonSpec comparisonSpec=specFactory.createSpec(sourceOutcomes,targetOutcomes);
-  progressLogger.progress("comparing build outcomes");
-  BuildComparator buildComparator=new DefaultBuildComparator(comparatorFactory);
-  BuildComparisonResult result=buildComparator.compareBuilds(comparisonSpec);
-  writeReport(result,renderers);
-  progressLogger.completed();
+  GradleBuildComparison comparison=new GradleBuildComparison(sourceBuildExecuter,targetBuildExecuter,logger,progressLogger,getProject().getGradle());
+  comparison.registerType(GeneratedArchiveBuildOutcome.class,new GeneratedArchiveBuildOutcomeComparator(),new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer());
+  comparison.registerType(UnknownBuildOutcome.class,new UnknownBuildOutcomeComparator(),new UnknownBuildOutcomeComparisonResultHtmlRenderer());
+  File fileStoreTmpBase=fileResolver.resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s",getName(),System.currentTimeMillis()));
+  FileStore<String> fileStore=new PathNormalisingKeyFileStore(fileStoreTmpBase);
+  Map<String,String> hostAttributes=new LinkedHashMap<String,String>(4);
+  hostAttributes.put("Project",getProject().getRootDir().getAbsolutePath());
+  hostAttributes.put("Task",getPath());
+  hostAttributes.put("Gradle version",GradleVersion.current().getVersion());
+  hostAttributes.put("Executed at",new SimpleDateFormat().format(new Date()));
+  BuildComparisonResult result=comparison.compare(fileStore,getReportDir(),hostAttributes);
   communicateResult(result);
 }
