@@ -1,28 +1,28 @@
 {
-  ComparableGradleBuildInvocationSpec comparableSourceBuild=new ComparableGradleBuildInvocationSpec(getSourceBuild());
-  ComparableGradleBuildInvocationSpec comparableTargetBuild=new ComparableGradleBuildInvocationSpec(getTargetBuild());
-  if (comparableSourceBuild.equals(comparableTargetBuild)) {
+  ComparableGradleBuildExecuter sourceBuildExecuter=new ComparableGradleBuildExecuter(getSourceBuild());
+  ComparableGradleBuildExecuter targetBuildExecuter=new ComparableGradleBuildExecuter(getTargetBuild());
+  if (sourceBuildExecuter.getSpec().equals(targetBuildExecuter.getSpec())) {
     getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.",getName());
   }
-  if (!comparableSourceBuild.isExecutable() || !comparableTargetBuild.isExecutable()) {
-    throw new GradleException(String.format("Builds must be executed with %s or newer (source: %s, target: %s)",ComparableGradleBuildInvocationSpec.EXEC_MINIMUM_VERSION,comparableSourceBuild.getGradleVersion().getVersion(),comparableTargetBuild.getGradleVersion().getVersion()));
+  if (!sourceBuildExecuter.isExecutable() || !targetBuildExecuter.isExecutable()) {
+    throw new GradleException(String.format("Builds must be executed with %s or newer (source: %s, target: %s)",ComparableGradleBuildExecuter.EXEC_MINIMUM_VERSION,sourceBuildExecuter.getSpec().getGradleVersion().getVersion(),targetBuildExecuter.getSpec().getGradleVersion().getVersion()));
   }
-  boolean sourceBuildHasOutcomesModel=comparableSourceBuild.isCanObtainProjectOutcomesModel();
-  boolean targetBuildHasOutcomesModel=comparableTargetBuild.isCanObtainProjectOutcomesModel();
+  boolean sourceBuildHasOutcomesModel=sourceBuildExecuter.isCanObtainProjectOutcomesModel();
+  boolean targetBuildHasOutcomesModel=targetBuildExecuter.isCanObtainProjectOutcomesModel();
   if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
-    throw new GradleException(String.format("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",ComparableGradleBuildInvocationSpec.PROJECT_OUTCOMES_MINIMUM_VERSION,comparableSourceBuild.getGradleVersion().getVersion(),comparableTargetBuild.getGradleVersion().getVersion()));
+    throw new GradleException(String.format("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",ComparableGradleBuildExecuter.PROJECT_OUTCOMES_MINIMUM_VERSION,sourceBuildExecuter.getSpec().getGradleVersion().getVersion(),targetBuildExecuter.getSpec().getGradleVersion().getVersion()));
   }
   Logger logger=getLogger();
   ProgressLogger progressLogger=progressLoggerFactory.newOperation(getClass());
-  String executingSourceBuildMessage=executingMessage("source",comparableSourceBuild);
-  String executingTargetBuildMessage=executingMessage("target",comparableTargetBuild);
+  String executingSourceBuildMessage=executingMessage("source",sourceBuildExecuter);
+  String executingTargetBuildMessage=executingMessage("target",targetBuildExecuter);
   progressLogger.setDescription("Gradle Build Comparison");
   progressLogger.setShortDescription(getName());
   Set<BuildOutcome> fromOutcomes=null;
   if (sourceBuildHasOutcomesModel) {
     logger.info(executingSourceBuildMessage);
     progressLogger.started(executingSourceBuildMessage);
-    ProjectOutcomes fromOutput=executeBuild(comparableSourceBuild);
+    ProjectOutcomes fromOutput=executeBuild(sourceBuildExecuter);
     progressLogger.progress("inspecting source build outcomes");
     GradleBuildOutcomeSetTransformer fromOutcomeTransformer=createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
     fromOutcomes=fromOutcomeTransformer.transform(fromOutput);
@@ -34,7 +34,7 @@
  else {
     progressLogger.started(executingTargetBuildMessage);
   }
-  ProjectOutcomes toOutput=executeBuild(comparableTargetBuild);
+  ProjectOutcomes toOutput=executeBuild(targetBuildExecuter);
   Set<BuildOutcome> toOutcomes;
   if (targetBuildHasOutcomesModel) {
     progressLogger.progress("inspecting target build outcomes");
@@ -42,14 +42,14 @@
     toOutcomes=toOutcomeTransformer.transform(toOutput);
   }
  else {
-    toOutcomes=createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX,comparableTargetBuild.getProjectDir()).transform(fromOutcomes);
+    toOutcomes=createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX,targetBuildExecuter.getSpec().getProjectDir()).transform(fromOutcomes);
   }
   if (!sourceBuildHasOutcomesModel) {
     logger.info(executingSourceBuildMessage);
     progressLogger.progress(executingSourceBuildMessage);
-    executeBuild(comparableSourceBuild);
+    executeBuild(sourceBuildExecuter);
     progressLogger.progress("inspecting source build outcomes");
-    fromOutcomes=createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX,comparableSourceBuild.getProjectDir()).transform(toOutcomes);
+    fromOutcomes=createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX,sourceBuildExecuter.getSpec().getProjectDir()).transform(toOutcomes);
   }
   progressLogger.progress("preparing for comparison");
   DefaultBuildOutcomeComparatorFactory comparatorFactory=new DefaultBuildOutcomeComparatorFactory();
