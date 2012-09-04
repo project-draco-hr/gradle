@@ -1,0 +1,56 @@
+{
+  String executingSourceBuildMessage=executingMessage("source",sourceBuildExecuter);
+  String executingTargetBuildMessage=executingMessage("target",targetBuildExecuter);
+  if (!sourceBuildExecuter.isExecutable() || !targetBuildExecuter.isExecutable()) {
+    throw new GradleException(String.format("Builds must be executed with %s or newer (source: %s, target: %s)",ComparableGradleBuildExecuter.EXEC_MINIMUM_VERSION,sourceBuildExecuter.getSpec().getGradleVersion(),targetBuildExecuter.getSpec().getGradleVersion()));
+  }
+  boolean sourceBuildHasOutcomesModel=sourceBuildExecuter.isCanObtainProjectOutcomesModel();
+  boolean targetBuildHasOutcomesModel=targetBuildExecuter.isCanObtainProjectOutcomesModel();
+  if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
+    throw new GradleException(String.format("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",ComparableGradleBuildExecuter.PROJECT_OUTCOMES_MINIMUM_VERSION,sourceBuildExecuter.getSpec().getGradleVersion(),targetBuildExecuter.getSpec().getGradleVersion()));
+  }
+  if (!sourceBuildHasOutcomesModel) {
+    warnAboutInferredOutcomes(true,sourceBuildExecuter);
+  }
+  if (!targetBuildHasOutcomesModel) {
+    warnAboutInferredOutcomes(false,targetBuildExecuter);
+  }
+  Set<BuildOutcome> sourceOutcomes=null;
+  if (sourceBuildHasOutcomesModel) {
+    logger.info(executingSourceBuildMessage);
+    progressLogger.started(executingSourceBuildMessage);
+    ProjectOutcomes sourceOutput=executeBuild(sourceBuildExecuter);
+    progressLogger.progress("inspecting source build outcomes");
+    GradleBuildOutcomeSetTransformer sourceOutcomeTransformer=createOutcomeSetTransformer(fileStore,SOURCE_FILESTORE_PREFIX);
+    sourceOutcomes=sourceOutcomeTransformer.transform(sourceOutput);
+  }
+  logger.info(executingTargetBuildMessage);
+  if (sourceBuildHasOutcomesModel) {
+    progressLogger.progress(executingTargetBuildMessage);
+  }
+ else {
+    progressLogger.started(executingTargetBuildMessage);
+  }
+  ProjectOutcomes targetOutput=executeBuild(targetBuildExecuter);
+  Set<BuildOutcome> targetOutcomes;
+  if (targetBuildHasOutcomesModel) {
+    progressLogger.progress("inspecting target build outcomes");
+    GradleBuildOutcomeSetTransformer targetOutcomeTransformer=createOutcomeSetTransformer(fileStore,TARGET_FILESTORE_PREFIX);
+    targetOutcomes=targetOutcomeTransformer.transform(targetOutput);
+  }
+ else {
+    targetOutcomes=createOutcomeSetInferrer(fileStore,TARGET_FILESTORE_PREFIX,targetBuildExecuter.getSpec().getProjectDir()).transform(sourceOutcomes);
+  }
+  if (!sourceBuildHasOutcomesModel) {
+    logger.info(executingSourceBuildMessage);
+    progressLogger.progress(executingSourceBuildMessage);
+    executeBuild(sourceBuildExecuter);
+    progressLogger.progress("inspecting source build outcomes");
+    sourceOutcomes=createOutcomeSetInferrer(fileStore,SOURCE_FILESTORE_PREFIX,sourceBuildExecuter.getSpec().getProjectDir()).transform(targetOutcomes);
+  }
+  progressLogger.progress("comparing build outcomes");
+  BuildComparisonResult result=compareBuilds(sourceOutcomes,targetOutcomes);
+  writeReport(result,reportDir,fileStore,hostAttributes);
+  progressLogger.completed();
+  return result;
+}
