@@ -1,12 +1,17 @@
 {
   Properties originalSystemProperties=new Properties();
   originalSystemProperties.putAll(System.getProperties());
-  File currentDir=GFileUtils.canonicalise(new File("."));
-  Properties clientSystemProperties=new Properties();
-  clientSystemProperties.putAll(build.getParameters().getSystemProperties());
-  clientSystemProperties.put("java.home",originalSystemProperties.get("java.home"));
-  System.setProperties(clientSystemProperties);
   Map<String,String> originalEnv=System.getenv();
+  File originalProcessDir=GFileUtils.canonicalise(new File("."));
+  for (  Map.Entry<String,String> entry : build.getParameters().getSystemProperties().entrySet()) {
+    if (SystemProperties.getStandardProperties().contains(entry.getKey())) {
+      continue;
+    }
+    if (entry.getKey().startsWith("sun.")) {
+      continue;
+    }
+    System.setProperty(entry.getKey(),entry.getValue());
+  }
   LOGGER.debug("Configuring env variables: {}",build.getParameters().getEnvVariables());
   processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
   processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
@@ -16,6 +21,6 @@
   finally {
     System.setProperties(originalSystemProperties);
     processEnvironment.maybeSetEnvironment(originalEnv);
-    processEnvironment.maybeSetProcessDir(currentDir);
+    processEnvironment.maybeSetProcessDir(originalProcessDir);
   }
 }
