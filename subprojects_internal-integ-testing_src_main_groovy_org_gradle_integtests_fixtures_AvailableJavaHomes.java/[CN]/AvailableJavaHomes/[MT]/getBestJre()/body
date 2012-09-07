@@ -1,21 +1,17 @@
 {
   Jvm jvm=Jvm.current();
-  File jreHome=null;
+  File jreHome;
   if (OperatingSystem.current().isWindows()) {
-    File installedJavas=new File("c:/Program Files/Java");
-    if (!installedJavas.isDirectory()) {
-      installedJavas=new File("c:/Program Files (x86)/Java");
+    if (jvm.getJavaVersion().isJava6()) {
+      jreHome=new File(jvm.getJavaHome().getParentFile(),"jre6");
+      if (jreHome.isDirectory() && new File(jreHome,"bin/java.exe").isFile()) {
+        return jreHome;
+      }
     }
-    if (installedJavas.isDirectory()) {
-      for (      File file : installedJavas.listFiles()) {
-        if (file.getName().startsWith("jre")) {
-          if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
-            return file;
-          }
-          if (jvm.getJavaVersion().isJava7() && !file.getName().contains("1.7")) {
-            return file;
-          }
-        }
+    if (jvm.getJavaVersion().isJava7()) {
+      jreHome=new File(jvm.getJavaHome().getParentFile(),"jre7");
+      if (jreHome.isDirectory() && new File(jreHome,"bin/java.exe").isFile()) {
+        return jreHome;
       }
     }
   }
