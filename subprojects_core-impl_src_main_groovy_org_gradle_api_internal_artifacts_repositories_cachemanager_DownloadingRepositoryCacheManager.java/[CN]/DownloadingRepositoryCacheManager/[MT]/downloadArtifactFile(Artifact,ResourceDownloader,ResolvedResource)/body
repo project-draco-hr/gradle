@@ -1,7 +1,16 @@
 {
-  File tempFile=fileStore.getTempFile();
-  resourceDownloader.download(artifact,artifactRef.getResource(),tempFile);
-  File fileInFileStore=fileStore.move(artifact.getId(),tempFile).getFile();
+  FileStoreEntry fileStoreEntry=fileStore.add(artifact.getId(),new Action<File>(){
+    public void execute(    File file){
+      try {
+        resourceDownloader.download(artifact,artifactRef.getResource(),file);
+      }
+ catch (      IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
+);
+  final File fileInFileStore=fileStoreEntry.getFile();
   if (artifactRef.getResource() instanceof ExternalResource) {
     ExternalResource resource=(ExternalResource)artifactRef.getResource();
     ExternalResourceMetaData metaData=resource.getMetaData();

@@ -2,7 +2,13 @@
   final Set<FileStoreEntry> entries=new HashSet<FileStoreEntry>();
   findFiles(pattern).visit(new EmptyFileVisitor(){
     public void visitFile(    FileVisitDetails fileDetails){
-      entries.add(entryAt(fileDetails.getFile()));
+      final File fileStoreFile=fileDetails.getFile();
+      if (!fileStoreFile.getName().endsWith(PathKeyFileStore.MARKER_FILE_SUFFIX)) {
+        final File markerFile=getMarkerFile(fileStoreFile);
+        if (!markerFile.exists()) {
+          entries.add(entryAt(fileStoreFile));
+        }
+      }
     }
   }
 );
