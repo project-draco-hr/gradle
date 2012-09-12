@@ -1,0 +1,28 @@
+{
+  if (output.getParentFile() != null) {
+    output.getParentFile().mkdirs();
+  }
+  PrintWriter out=new PrintWriter(new OutputStreamWriter(new FileOutputStream(output),"UTF-8"));
+  try {
+    out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    StringBuffer xmlNamespace=new StringBuffer();
+    Map namespaces=md.getExtraAttributesNamespaces();
+    for (Iterator iter=namespaces.entrySet().iterator(); iter.hasNext(); ) {
+      Map.Entry ns=(Map.Entry)iter.next();
+      xmlNamespace.append(" xmlns:").append(ns.getKey()).append("=\"").append(ns.getValue()).append("\"");
+    }
+    String version="2.0";
+    if (md.getInheritedDescriptors().length > 0) {
+      version="2.2";
+    }
+    out.println("<ivy-module version=\"" + version + "\""+ xmlNamespace+ ">");
+    printInfoTag(md,out);
+    printConfigurations(md,out);
+    printPublications(md,out);
+    printDependencies(md,out);
+    out.println("</ivy-module>");
+  }
+  finally {
+    out.close();
+  }
+}
