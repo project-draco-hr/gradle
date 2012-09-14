@@ -6,8 +6,9 @@
   if (!parentDir.mkdirs() && !parentDir.exists()) {
     throw new GradleException(String.format("Unable to create filestore directory %s",parentDir));
   }
-  String verb=isMove ? "move" : "copy";
+  File markerFile=getMarkerFile(destination);
   try {
+    markerFile.createNewFile();
     deleteAction.delete(destination);
     if (isMove) {
       FileUtils.moveFile(source,destination);
@@ -15,8 +16,12 @@
  else {
       FileUtils.copyFile(source,destination);
     }
+    deleteAction.delete(markerFile);
   }
  catch (  IOException e) {
+    deleteAction.delete(destination);
+    deleteAction.delete(markerFile);
+    String verb=isMove ? "move" : "copy";
     throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ",verb,source,destination),e);
   }
   return entryAt(destination);
