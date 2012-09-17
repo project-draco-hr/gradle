@@ -1,7 +1,17 @@
 {
-  final File tempFile=getTempFile();
-  tempFile.getParentFile().mkdirs();
-  addAction.execute(tempFile);
-  final FileStoreEntry fileStoreEntry=move(key,tempFile);
-  return fileStoreEntry;
+  File destination=getFile(key);
+  destination.getParentFile().mkdirs();
+  File markerFile=getMarkerFile(destination);
+  try {
+    markerFile.createNewFile();
+    destination.delete();
+    addAction.execute(destination);
+  }
+ catch (  IOException e) {
+    throw new GradleException(String.format("Failed to add file with key '%s' into filestore at '%s' ",key,getBaseDir().getAbsolutePath()),e);
+  }
+ finally {
+    markerFile.delete();
+  }
+  return entryAt(destination);
 }
