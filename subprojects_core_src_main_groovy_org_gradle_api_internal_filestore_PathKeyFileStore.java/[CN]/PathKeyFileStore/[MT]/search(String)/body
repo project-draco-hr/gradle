@@ -5,12 +5,9 @@
   final Set<FileStoreEntry> entries=new HashSet<FileStoreEntry>();
   findFiles(pattern).visit(new EmptyFileVisitor(){
     public void visitFile(    FileVisitDetails fileDetails){
-      final File fileStoreFile=fileDetails.getFile();
-      if (!fileStoreFile.getName().endsWith(PathKeyFileStore.IN_PROGRESS_MARKER_FILE_SUFFIX)) {
-        final File inProgressMarkerFile=getInProgressMarkerFile(fileStoreFile);
-        if (!inProgressMarkerFile.exists()) {
-          entries.add(entryAt(fileStoreFile));
-        }
+      final File file=fileDetails.getFile();
+      if (!isInProgressMarkerFile(file) && !isInProgressFile(file)) {
+        entries.add(entryAt(file));
       }
     }
   }
