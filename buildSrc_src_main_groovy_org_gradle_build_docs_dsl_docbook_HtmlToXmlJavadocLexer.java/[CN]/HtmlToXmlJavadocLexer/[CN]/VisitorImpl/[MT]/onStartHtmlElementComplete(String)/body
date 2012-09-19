@@ -1,3 +1,27 @@
 {
+  if (name.equals("li")) {
+    unwindTo(Arrays.asList("ul","ol"),visitor);
+  }
+ else   if (name.equals("dt") || name.endsWith("dd")) {
+    unwindTo(Arrays.asList("dl"),visitor);
+  }
+ else   if (name.equals("tr")) {
+    unwindTo(Arrays.asList("table","thead","tbody"),visitor);
+  }
+ else   if (name.equals("th") || name.endsWith("td")) {
+    unwindTo(Arrays.asList("tr","table","thead","tbody"),visitor);
+  }
+ else   if (blockElements.contains(name)) {
+    unwindTo("p",visitor);
+  }
+ else   if (!blockContent.contains(name) && !(name.equals("a") && attributes.containsKey("name"))) {
+    onInlineContent();
+  }
+  elementStack.addFirst(name);
+  visitor.onStartHtmlElement(name);
+  for (  Map.Entry<String,String> entry : attributes.entrySet()) {
+    visitor.onHtmlElementAttribute(entry.getKey(),entry.getValue());
+  }
+  attributes.clear();
   visitor.onStartHtmlElementComplete(name);
 }
