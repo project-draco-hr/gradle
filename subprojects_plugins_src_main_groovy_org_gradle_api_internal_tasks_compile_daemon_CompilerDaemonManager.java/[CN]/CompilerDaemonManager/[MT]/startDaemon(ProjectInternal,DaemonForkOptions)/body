@@ -1,5 +1,5 @@
 {
-  LOGGER.info("Starting Gradle compiler daemon.");
+  LOGGER.info("Starting Gradle compiler daemon with fork options {}.",forkOptions);
   if (LOGGER.isDebugEnabled()) {
     LOGGER.debug(forkOptions.toString());
   }
@@ -16,10 +16,11 @@
   javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
   javaCommand.setJvmArgs(forkOptions.getJvmArgs());
   javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
-  process=builder.worker(new CompilerDaemonServer()).build();
+  WorkerProcess process=builder.worker(new CompilerDaemonServer()).build();
   process.start();
   CompilerDaemonServerProtocol server=process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
-  client=new CompilerDaemonClient(forkOptions,server);
+  CompilerDaemonClient client=new CompilerDaemonClient(forkOptions,process,server);
   process.getConnection().addIncoming(CompilerDaemonClientProtocol.class,client);
-  LOGGER.info("Gradle compiler daemon started.");
+  LOGGER.info("Started Gradle compiler daemon with fork options {}.",forkOptions);
+  return client;
 }
