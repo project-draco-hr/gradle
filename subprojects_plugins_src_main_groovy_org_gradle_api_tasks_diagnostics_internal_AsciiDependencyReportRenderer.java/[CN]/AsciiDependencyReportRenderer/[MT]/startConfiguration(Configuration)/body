@@ -3,7 +3,7 @@
     getTextOutput().println();
   }
   hasConfigs=true;
-  renderer=new GraphRenderer(getTextOutput());
+  GraphRenderer renderer=new GraphRenderer(getTextOutput());
   renderer.visit(new Action<StyledTextOutput>(){
     public void execute(    StyledTextOutput styledTextOutput){
       getTextOutput().withStyle(Identifier).text(configuration.getName());
@@ -11,4 +11,14 @@
     }
   }
 ,true);
+  NodeRenderer nodeRenderer=new NodeRenderer(){
+    public void renderNode(    StyledTextOutput output,    RenderableDependency node,    Set<RenderableDependency> children,    boolean alreadyRendered){
+      output.text(node.getName());
+      if (alreadyRendered) {
+        output.withStyle(Info).text(" (*)");
+      }
+    }
+  }
+;
+  dependencyGraphRenderer=new DependencyGraphRenderer(renderer,nodeRenderer);
 }
