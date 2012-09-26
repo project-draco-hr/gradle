@@ -1,0 +1,12 @@
+{
+  if (this.compiler != null) {
+    return this.compiler;
+  }
+  Compiler<JavaCompileSpec> javaCompiler=new AntJavaCompiler(getServices().getFactory(AntBuilder.class));
+  if (scalaCompileOptions.isIncremental()) {
+    return new DefaultScalaJavaJointCompiler(new SbtScalaCompiler(),javaCompiler);
+  }
+  Compiler<ScalaCompileSpec> scalaCompiler=new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
+  Compiler<ScalaJavaJointCompileSpec> jointCompiler=new DefaultScalaJavaJointCompiler(scalaCompiler,javaCompiler);
+  return new IncrementalScalaCompiler(jointCompiler,getOutputs());
+}

@@ -1,0 +1,17 @@
+{
+  xsbti.Logger logger=new SbtLoggerAdapter(LOGGER);
+  com.typesafe.zinc.Compiler compiler=createCompiler(spec.getScalaClasspath(),logger);
+  List<String> scalacOptions=Collections.emptyList();
+  List<String> javacOptions=Collections.emptyList();
+  Inputs inputs=Inputs.create(ImmutableList.copyOf(spec.getClasspath()),ImmutableList.copyOf(spec.getSource()),spec.getDestinationDir(),scalacOptions,javacOptions,spec.getScalaCompileOptions().getIncrementalCacheFile(),spec.getIncrementalCacheMap(),"mixed");
+  if (LOGGER.isDebugEnabled()) {
+    Inputs.debug(inputs,logger);
+  }
+  try {
+    compiler.compile(inputs,logger);
+  }
+ catch (  xsbti.CompileFailed e) {
+    throw new CompilationFailedException(e);
+  }
+  return new SimpleWorkResult(true);
+}
