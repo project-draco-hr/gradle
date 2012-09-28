@@ -1,16 +1,20 @@
 {
-  Compiler<ScalaJavaJointCompileSpec> compiler=createCompiler();
   DefaultScalaJavaJointCompileSpec spec=new DefaultScalaJavaJointCompileSpec();
   spec.setSource(getSource());
   spec.setDestinationDir(getDestinationDir());
   spec.setClasspath(getClasspath());
   spec.setScalaClasspath(getScalaClasspath());
+  spec.setZincClasspath(getZincClasspath());
   spec.setSourceCompatibility(getSourceCompatibility());
   spec.setTargetCompatibility(getTargetCompatibility());
   spec.setCompileOptions(compileOptions);
   spec.setScalaCompileOptions(scalaCompileOptions);
-  if (scalaCompileOptions.isIncremental()) {
-    spec.setIncrementalCacheMap(createIncrementalCacheMap());
+  if (!scalaCompileOptions.isUseAnt()) {
+    spec.setCompilerCacheMap(createCompilerCacheMap());
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Compiler cache file: {}",scalaCompileOptions.getCompilerCacheFile());
+      LOGGER.debug("Compiler cache map: {}",spec.getCompilerCacheMap());
+    }
   }
   compiler.execute(spec);
 }
