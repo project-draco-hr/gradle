@@ -4,7 +4,13 @@
     Compiler<JavaCompileSpec> javaCompiler=new AntJavaCompiler(antBuilderFactory);
     return new DefaultScalaJavaJointCompiler(scalaCompiler,javaCompiler);
   }
-  Compiler<ScalaJavaJointCompileSpec> scalaCompiler=new ApiScalaCompiler();
+  Compiler<ScalaJavaJointCompileSpec> scalaCompiler=null;
+  try {
+    scalaCompiler=(Compiler<ScalaJavaJointCompileSpec>)getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.ApiScalaCompiler").newInstance();
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Could not load Scala compiler adapter.",e);
+  }
   CompilerDaemonFactory daemonFactory;
   if (scalaOptions.isFork()) {
     daemonFactory=CompilerDaemonManager.getInstance();
