@@ -2,13 +2,13 @@
   DefaultResolvedModuleVersionResult from=getModule(id,VersionSelectionReasons.REQUESTED);
   for (  InternalDependencyResult d : dependencies) {
     if (d.getFailure() != null) {
-      from.addDependency(new DefaultUnresolvedDependencyResult(d.getRequested(),d.getFailure(),from));
+      from.addDependency(dependencyResultFactory.createUnresolvedDependency(d.getRequested(),from,d.getFailure()));
     }
  else {
       DefaultResolvedModuleVersionResult selected=getModule(d.getSelected().getSelectedId(),d.getSelected().getSelectionReason());
-      DefaultResolvedDependencyResult dependency=new DefaultResolvedDependencyResult(d.getRequested(),selected,from);
+      DependencyResult dependency=dependencyResultFactory.createResolvedDependency(d.getRequested(),from,selected);
       from.addDependency(dependency);
-      selected.addDependent(dependency);
+      selected.addDependent((ResolvedDependencyResult)dependency);
     }
   }
 }
