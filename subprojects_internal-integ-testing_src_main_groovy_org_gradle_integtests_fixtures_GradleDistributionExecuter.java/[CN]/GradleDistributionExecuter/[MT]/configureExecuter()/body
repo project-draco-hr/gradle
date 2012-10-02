@@ -20,11 +20,13 @@
     throw new RuntimeException("Assertions must be enabled when running integration tests.");
   }
   GradleExecuter gradleExecuter=createExecuter(executerType);
-  copyTo(gradleExecuter);
-  configureTmpDir(gradleExecuter);
-  configureForSettingsFile(gradleExecuter);
-  if (System.getProperty(UNKNOWN_OS_SYS_PROP) != null) {
-    gradleExecuter.withGradleOpts("-Dos.arch=unknown architecture","-Dos.name=unknown operating system","-Dos.version=unknown version");
+  configureExecuter(gradleExecuter);
+  try {
+    gradleExecuter.assertCanExecute();
+  }
+ catch (  AssertionError assertionError) {
+    gradleExecuter=new ForkingGradleExecuter(dist.getGradleHomeDir());
+    configureExecuter(gradleExecuter);
   }
   return gradleExecuter;
 }
