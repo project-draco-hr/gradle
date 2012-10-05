@@ -1,12 +1,15 @@
 {
   TerminalDetector terminalDetector;
+  ConsoleMetaData consoleMetaData;
   if (detectConsole) {
     StartParameter startParameter=new StartParameter();
     NativeServices.initialize(startParameter.getGradleUserHomeDir());
     terminalDetector=NativeServices.getInstance().get(TerminalDetector.class);
+    consoleMetaData=NativeServices.getInstance().get(ConsoleMetaData.class);
   }
  else {
     terminalDetector=new NoOpTerminalDetector();
+    consoleMetaData=new FallbackConsoleMetaData();
   }
-  return new OutputEventRenderer(terminalDetector,new WindowsConsoleMetaData()).addStandardOutputAndError();
+  return new OutputEventRenderer(terminalDetector,consoleMetaData).addStandardOutputAndError();
 }
