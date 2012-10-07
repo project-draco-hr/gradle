@@ -1,15 +1,17 @@
 {
+  OperatingSystem operatingSystem=get(OperatingSystem.class);
   try {
-    Terminals terminals=net.rubygrapefruit.platform.Native.get(Terminals.class);
-    if (terminals.isTerminal(Terminals.Output.Stdout)) {
-      Terminal terminal=terminals.getTerminal(Terminals.Output.Stdout);
-      return new NativePlatformConsoleMetaData(terminal);
+    if (!operatingSystem.isWindows()) {
+      Terminals terminals=net.rubygrapefruit.platform.Native.get(Terminals.class);
+      if (terminals.isTerminal(Terminals.Output.Stdout)) {
+        Terminal terminal=terminals.getTerminal(Terminals.Output.Stdout);
+        return new NativePlatformConsoleMetaData(terminal);
+      }
     }
   }
  catch (  NativeException ex) {
     LOGGER.debug("Unable to load native platform backed ConsoleMetaData. Continuing with fallback.",ex);
   }
-  final OperatingSystem operatingSystem=get(OperatingSystem.class);
   if (operatingSystem.isWindows()) {
     return new FallbackConsoleMetaData();
   }
