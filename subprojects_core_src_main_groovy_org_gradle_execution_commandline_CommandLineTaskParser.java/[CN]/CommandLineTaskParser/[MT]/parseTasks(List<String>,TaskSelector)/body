@@ -1,0 +1,16 @@
+{
+  SetMultimap<String,Task> out=LinkedHashMultimap.create();
+  List<String> remainingPaths=paths;
+  while (!remainingPaths.isEmpty()) {
+    String path=remainingPaths.get(0);
+    taskSelector.selectTasks(path);
+    Set<Task> tasks=taskSelector.getTasks();
+    CommandLineParser commandLineParser=new CommandLineParser();
+    CommandLineTaskConfigurer.Options options=new CommandLineTaskConfigurer().getConfigurationEntries(commandLineParser,tasks);
+    ParsedCommandLine commandLine=commandLineParser.parse(remainingPaths.subList(1,remainingPaths.size()));
+    options.maybeConfigure(commandLine,tasks);
+    remainingPaths=commandLine.getExtraArguments();
+    out.putAll(taskSelector.getTaskName(),tasks);
+  }
+  return out;
+}

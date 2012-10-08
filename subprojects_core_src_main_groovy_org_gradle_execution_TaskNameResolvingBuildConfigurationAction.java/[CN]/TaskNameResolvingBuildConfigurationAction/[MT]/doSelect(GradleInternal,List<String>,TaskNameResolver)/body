@@ -1,17 +1,5 @@
 {
-  SetMultimap<String,Task> matches=LinkedHashMultimap.create();
   TaskSelector selector=new TaskSelector(taskNameResolver);
-  List<String> remainingPaths=paths;
-  while (!remainingPaths.isEmpty()) {
-    String path=remainingPaths.get(0);
-    selector.selectTasks(gradle,path);
-    CommandLineParser commandLineParser=new CommandLineParser();
-    Set<Task> tasks=selector.getTasks();
-    CommandLineTaskConfigurer.Options options=commandLineTaskConfigurer.getConfigurationEntries(commandLineParser,tasks);
-    ParsedCommandLine commandLine=commandLineParser.parse(remainingPaths.subList(1,remainingPaths.size()));
-    options.maybeConfigure(commandLine,tasks);
-    remainingPaths=commandLine.getExtraArguments();
-    matches.putAll(selector.getTaskName(),tasks);
-  }
-  return matches;
+  selector.init(gradle);
+  return new CommandLineTaskParser().parseTasks(paths,selector);
 }
