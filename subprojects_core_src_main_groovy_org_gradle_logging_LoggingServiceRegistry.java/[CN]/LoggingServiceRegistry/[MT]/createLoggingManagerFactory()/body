@@ -1,16 +1,16 @@
 {
   OutputEventRenderer renderer=get(OutputEventRenderer.class);
-  DefaultLoggingConfigurer compositeConfigurer=new DefaultLoggingConfigurer(renderer);
 switch (type) {
 case CommandLine:
 case Child:
-    compositeConfigurer.add(new LogbackLoggingConfigurer(renderer));
-  compositeConfigurer.add(new JavaUtilLoggingConfigurer());
-return new DefaultLoggingManagerFactory(compositeConfigurer,renderer,getStdOutLoggingSystem(),getStdErrLoggingSystem());
+    LoggingSystem stdout=new DefaultStdOutLoggingSystem(getStdoutListener(),get(TimeProvider.class));
+  LoggingSystem stderr=new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)),get(TimeProvider.class));
+return new DefaultLoggingManagerFactory(new DefaultLoggingConfigurer(renderer,new LogbackLoggingConfigurer(renderer),new JavaUtilLoggingConfigurer()),renderer,stdout,stderr);
 case Embedded:
-compositeConfigurer.add(new LogbackLoggingConfigurer(renderer));
-return new DefaultLoggingManagerFactory(compositeConfigurer,renderer,getStdOutLoggingSystem(),getStdErrLoggingSystem());
+return new DefaultLoggingManagerFactory(new DefaultLoggingConfigurer(renderer,new LogbackLoggingConfigurer(renderer)),renderer,new NoOpLoggingSystem(),new NoOpLoggingSystem());
+case Nested:
+return new DefaultLoggingManagerFactory(renderer,renderer,new NoOpLoggingSystem(),new NoOpLoggingSystem());
 default :
-return new DefaultLoggingManagerFactory(compositeConfigurer,renderer,getStdOutLoggingSystem(),getStdErrLoggingSystem());
+throw new IllegalStateException();
 }
 }
