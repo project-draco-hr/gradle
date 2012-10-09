@@ -1,12 +1,16 @@
 {
   OutputEventRenderer renderer=get(OutputEventRenderer.class);
-  if (!isEmbedded) {
-    DefaultLoggingConfigurer compositeConfigurer=new DefaultLoggingConfigurer(renderer);
+  DefaultLoggingConfigurer compositeConfigurer=new DefaultLoggingConfigurer(renderer);
+switch (type) {
+case CommandLine:
+case Child:
     compositeConfigurer.add(new LogbackLoggingConfigurer(renderer));
-    compositeConfigurer.add(new JavaUtilLoggingConfigurer());
-    return new DefaultLoggingManagerFactory(compositeConfigurer,renderer,getStdOutLoggingSystem(),getStdErrLoggingSystem());
-  }
- else {
-    return new EmbeddedLoggingManagerFactory(renderer);
-  }
+  compositeConfigurer.add(new JavaUtilLoggingConfigurer());
+return new DefaultLoggingManagerFactory(compositeConfigurer,renderer,getStdOutLoggingSystem(),getStdErrLoggingSystem());
+case Embedded:
+compositeConfigurer.add(new LogbackLoggingConfigurer(renderer));
+return new DefaultLoggingManagerFactory(compositeConfigurer,renderer,getStdOutLoggingSystem(),getStdErrLoggingSystem());
+default :
+return new DefaultLoggingManagerFactory(compositeConfigurer,renderer,getStdOutLoggingSystem(),getStdErrLoggingSystem());
+}
 }
