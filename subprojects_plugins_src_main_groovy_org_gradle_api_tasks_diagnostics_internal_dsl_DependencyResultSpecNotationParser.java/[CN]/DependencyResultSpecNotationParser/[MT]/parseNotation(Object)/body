@@ -1,0 +1,17 @@
+{
+  if (notation instanceof Closure) {
+    final Closure closure=(Closure)notation;
+    return new ClosureBasedSpec(closure,dslElement);
+  }
+  if (notation instanceof CharSequence) {
+    final String stringNotation=notation.toString();
+    return new Spec<DependencyResult>(){
+      public boolean isSatisfiedBy(      DependencyResult candidate){
+        String candidateName=candidate.getRequested().getGroup() + ":" + candidate.getRequested().getName()+ ":"+ candidate.getRequested().getVersion();
+        return candidateName.contains(stringNotation);
+      }
+    }
+;
+  }
+  throw new UnsupportedNotationException(notation);
+}
