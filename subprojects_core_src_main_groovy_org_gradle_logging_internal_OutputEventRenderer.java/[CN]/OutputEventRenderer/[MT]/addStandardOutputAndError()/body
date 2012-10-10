@@ -1,22 +1,8 @@
 {
 synchronized (lock) {
-    boolean stdOutIsTerminal=consoleDetector.isConsole(FileDescriptor.out);
-    boolean stdErrIsTerminal=consoleDetector.isConsole(FileDescriptor.err);
-    if (stdOutIsTerminal) {
-      PrintStream outStr=org.fusesource.jansi.AnsiConsole.out();
-      Console console=new AnsiConsole(outStr,outStr,colourMap);
-      addConsole(console,true,stdErrIsTerminal);
-    }
- else     if (stdErrIsTerminal) {
-      PrintStream errStr=org.fusesource.jansi.AnsiConsole.err();
-      Console console=new AnsiConsole(errStr,errStr,colourMap);
-      addConsole(console,false,true);
-    }
-    if (!stdOutIsTerminal) {
-      addStandardOutput(System.out);
-    }
-    if (!stdErrIsTerminal) {
-      addStandardError(System.err);
-    }
+    stdout=new StreamBackedStandardOutputListener((Appendable)System.out);
+    stderr=new StreamBackedStandardOutputListener((Appendable)System.err);
+    addStandardOutputListener(stdout);
+    addStandardErrorListener(stderr);
   }
 }
