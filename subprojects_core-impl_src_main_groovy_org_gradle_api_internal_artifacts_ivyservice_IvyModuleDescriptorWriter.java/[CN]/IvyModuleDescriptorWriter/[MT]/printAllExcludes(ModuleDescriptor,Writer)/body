@@ -1,0 +1,27 @@
+{
+  ExcludeRule[] excludes=md.getAllExcludeRules();
+  if (excludes.length > 0) {
+    for (int j=0; j < excludes.length; j++) {
+      writer.write("\t\t<exclude");
+      writer.write(" org=\"" + XMLHelper.escape(excludes[j].getId().getModuleId().getOrganisation()) + "\"");
+      writer.write(" module=\"" + XMLHelper.escape(excludes[j].getId().getModuleId().getName()) + "\"");
+      writer.write(" artifact=\"" + XMLHelper.escape(excludes[j].getId().getName()) + "\"");
+      writer.write(" type=\"" + XMLHelper.escape(excludes[j].getId().getType()) + "\"");
+      writer.write(" ext=\"" + XMLHelper.escape(excludes[j].getId().getExt()) + "\"");
+      String[] ruleConfs=excludes[j].getConfigurations();
+      if (!Arrays.asList(ruleConfs).equals(Arrays.asList(md.getConfigurationsNames()))) {
+        writer.write(" conf=\"");
+        for (int k=0; k < ruleConfs.length; k++) {
+          writer.write(XMLHelper.escape(ruleConfs[k]));
+          if (k + 1 < ruleConfs.length) {
+            writer.write(",");
+          }
+        }
+        writer.write("\"");
+      }
+      writer.write(" matcher=\"" + XMLHelper.escape(excludes[j].getMatcher().getName()) + "\"");
+      writer.write("/>");
+      writer.write(TextUtil.getPlatformLineSeparator());
+    }
+  }
+}

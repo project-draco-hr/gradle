@@ -2,11 +2,16 @@
   if (output.getParentFile() != null) {
     output.getParentFile().mkdirs();
   }
-  PrintWriter writer=new PrintWriter(new OutputStreamWriter(new FileOutputStream(output),"UTF-8"));
   try {
-    write(md,writer);
-  }
+    Writer writer=new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output),"UTF-8"));
+    try {
+      write(md,writer);
+    }
   finally {
-    writer.close();
+      writer.close();
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(String.format("Could not write Ivy descriptor to '%s'.",output),e);
   }
 }

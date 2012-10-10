@@ -1,0 +1,105 @@
+{
+  ModuleRevisionId moduleRevisionId=md.getModuleRevisionId();
+  writer.write("\t<info organisation=\"" + XMLHelper.escape(moduleRevisionId.getOrganisation()) + "\"");
+  writer.write(TextUtil.getPlatformLineSeparator());
+  writer.write("\t\tmodule=\"" + XMLHelper.escape(moduleRevisionId.getName()) + "\"");
+  writer.write(TextUtil.getPlatformLineSeparator());
+  ModuleRevisionId resolvedModuleRevisionId=md.getResolvedModuleRevisionId();
+  String branch=resolvedModuleRevisionId.getBranch();
+  if (branch != null) {
+    writer.write("\t\tbranch=\"" + XMLHelper.escape(branch) + "\"");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+  String revision=resolvedModuleRevisionId.getRevision();
+  if (revision != null) {
+    writer.write("\t\trevision=\"" + XMLHelper.escape(revision) + "\"");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+  writer.write("\t\tstatus=\"" + XMLHelper.escape(md.getStatus()) + "\"");
+  writer.write(TextUtil.getPlatformLineSeparator());
+  writer.write("\t\tpublication=\"" + Ivy.DATE_FORMAT.format(md.getResolvedPublicationDate()) + "\"");
+  writer.write(TextUtil.getPlatformLineSeparator());
+  if (md.isDefault()) {
+    writer.write("\t\tdefault=\"true\"");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+  if (md instanceof DefaultModuleDescriptor) {
+    DefaultModuleDescriptor dmd=(DefaultModuleDescriptor)md;
+    if (dmd.getNamespace() != null && !dmd.getNamespace().getName().equals("system")) {
+      writer.write("\t\tnamespace=\"" + XMLHelper.escape(dmd.getNamespace().getName()) + "\"");
+      writer.write(TextUtil.getPlatformLineSeparator());
+    }
+  }
+  if (!md.getExtraAttributes().isEmpty()) {
+    printExtraAttributes(md,writer,"\t\t");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+  if (requireInnerInfoElement(md)) {
+    writer.write("\t>");
+    writer.write(TextUtil.getPlatformLineSeparator());
+    ExtendsDescriptor[] parents=md.getInheritedDescriptors();
+    for (int i=0; i < parents.length; i++) {
+      ExtendsDescriptor parent=parents[i];
+      ModuleRevisionId mrid=parent.getParentRevisionId();
+      writer.write("\t\t<extends organisation=\"" + XMLHelper.escape(mrid.getOrganisation()) + "\""+ " module=\""+ XMLHelper.escape(mrid.getName())+ "\""+ " revision=\""+ XMLHelper.escape(mrid.getRevision())+ "\"");
+      String location=parent.getLocation();
+      if (location != null) {
+        writer.write(" location=\"" + XMLHelper.escape(location) + "\"");
+      }
+      writer.write(" extendType=\"" + StringUtils.join(parent.getExtendsTypes(),",") + "\"");
+      writer.write("/>");
+      writer.write(TextUtil.getPlatformLineSeparator());
+    }
+    License[] licenses=md.getLicenses();
+    for (int i=0; i < licenses.length; i++) {
+      License license=licenses[i];
+      writer.write("\t\t<license ");
+      if (license.getName() != null) {
+        writer.write("name=\"" + XMLHelper.escape(license.getName()) + "\" ");
+      }
+      if (license.getUrl() != null) {
+        writer.write("url=\"" + XMLHelper.escape(license.getUrl()) + "\" ");
+      }
+      writer.write("/>");
+      writer.write(TextUtil.getPlatformLineSeparator());
+    }
+    if (md.getHomePage() != null || md.getDescription() != null) {
+      writer.write("\t\t<description");
+      if (md.getHomePage() != null) {
+        writer.write(" homepage=\"" + XMLHelper.escape(md.getHomePage()) + "\"");
+      }
+      if (md.getDescription() != null && md.getDescription().trim().length() > 0) {
+        writer.write(">");
+        writer.write(TextUtil.getPlatformLineSeparator());
+        writer.write("\t\t" + XMLHelper.escape(md.getDescription()));
+        writer.write(TextUtil.getPlatformLineSeparator());
+        writer.write("\t\t</description>");
+        writer.write(TextUtil.getPlatformLineSeparator());
+      }
+ else {
+        writer.write(" />");
+        writer.write(TextUtil.getPlatformLineSeparator());
+      }
+    }
+    for (Iterator it=md.getExtraInfo().entrySet().iterator(); it.hasNext(); ) {
+      Map.Entry extraDescr=(Map.Entry)it.next();
+      if (extraDescr.getValue() == null || ((String)extraDescr.getValue()).length() == 0) {
+        continue;
+      }
+      writer.write("\t\t<");
+      writer.write(extraDescr.getKey().toString());
+      writer.write(">");
+      writer.write(XMLHelper.escape((String)extraDescr.getValue()));
+      writer.write("</");
+      writer.write(extraDescr.getKey().toString());
+      writer.write(">");
+      writer.write(TextUtil.getPlatformLineSeparator());
+    }
+    writer.write("\t</info>");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+ else {
+    writer.write("\t/>");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+}
