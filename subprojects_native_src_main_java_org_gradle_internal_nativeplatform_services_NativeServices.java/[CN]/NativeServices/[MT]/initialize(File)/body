@@ -1,3 +1,15 @@
 {
-  new JnaBootPathConfigurer().configure(userHomeDir);
+  File nativeDir=new File(userHomeDir,"native");
+  if (USE_NATIVE_PLATFORM) {
+    try {
+      net.rubygrapefruit.platform.Native.init(nativeDir);
+    }
+ catch (    NativeIntegrationUnavailableException ex) {
+      LOGGER.debug("Native-platform is not available.");
+    }
+catch (    NativeException ex) {
+      LOGGER.debug("Unable to initialize native-platform. Failure: {}",format(ex));
+    }
+  }
+  new JnaBootPathConfigurer().configure(nativeDir);
 }
