@@ -1,15 +1,9 @@
 {
   logAttempt(IvyPatternHelper.substitute(pattern,ModuleRevisionId.newInstance(moduleRevisionId,IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY)),artifact));
   VersionList versions=listVersions(moduleRevisionId,pattern,artifact);
-  if (versions.isEmpty()) {
-    LOGGER.debug("Unable to list versions for {}: pattern={}",moduleRevisionId,pattern);
-    return null;
+  ResolvedResource found=findLatestResource(moduleRevisionId,versions,resourceParser,date,pattern,artifact,forDownload);
+  if (found == null) {
+    LOGGER.debug("No resource found for {}: pattern={}",moduleRevisionId,pattern);
   }
- else {
-    ResolvedResource found=findLatestResource(moduleRevisionId,versions,resourceParser,date,pattern,artifact,forDownload);
-    if (found == null) {
-      LOGGER.debug("No resource found for {}: pattern={}",moduleRevisionId,pattern);
-    }
-    return found;
-  }
+  return found;
 }
