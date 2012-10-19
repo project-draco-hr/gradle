@@ -1,13 +1,18 @@
 {
-  if (forDownload) {
-    ArtifactRevisionId arid=target.getId();
-    LocallyAvailableResourceCandidates localCandidates=locallyAvailableResourceFinder.findCandidates(arid);
-    CachedExternalResource cached=cachedExternalResourceIndex.lookup(source);
-    ExternalResource resource=repository.getResource(source,localCandidates,cached);
-    return resource == null ? new MissingExternalResource(source) : resource;
-  }
+  try {
+    if (forDownload) {
+      ArtifactRevisionId arid=target.getId();
+      LocallyAvailableResourceCandidates localCandidates=locallyAvailableResourceFinder.findCandidates(arid);
+      CachedExternalResource cached=cachedExternalResourceIndex.lookup(source);
+      ExternalResource resource=repository.getResource(source,localCandidates,cached);
+      return resource == null ? new MissingExternalResource(source) : resource;
+    }
  else {
-    ExternalResourceMetaData metaData=repository.getResourceMetaData(source);
-    return metaData == null ? new MissingExternalResource(source) : new MetaDataOnlyExternalResource(source,metaData);
+      ExternalResourceMetaData metaData=repository.getResourceMetaData(source);
+      return metaData == null ? new MissingExternalResource(source) : new MetaDataOnlyExternalResource(source,metaData);
+    }
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(String.format("Could not get resource '%s'.",source),e);
   }
 }
