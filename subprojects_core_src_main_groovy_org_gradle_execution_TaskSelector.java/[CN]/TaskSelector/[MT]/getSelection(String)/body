@@ -1,2 +1,29 @@
 {
+  SetMultimap<String,Task> tasksByName;
+  String baseName;
+  String prefix;
+  ProjectInternal project=gradle.getDefaultProject();
+  if (path.contains(Project.PATH_SEPARATOR)) {
+    String projectPath=StringUtils.substringBeforeLast(path,Project.PATH_SEPARATOR);
+    projectPath=projectPath.length() == 0 ? Project.PATH_SEPARATOR : projectPath;
+    project=findProject(project,projectPath);
+    baseName=StringUtils.substringAfterLast(path,Project.PATH_SEPARATOR);
+    prefix=project.getPath() + Project.PATH_SEPARATOR;
+    tasksByName=taskNameResolver.select(baseName,project);
+  }
+ else {
+    baseName=path;
+    prefix="";
+    tasksByName=taskNameResolver.selectAll(path,project);
+  }
+  Set<Task> tasks=tasksByName.get(baseName);
+  if (!tasks.isEmpty()) {
+    return new TaskSelection(path,tasks);
+  }
+  NameMatcher matcher=new NameMatcher();
+  String actualName=matcher.find(baseName,tasksByName.keySet());
+  if (actualName != null) {
+    return new TaskSelection(prefix + actualName,tasksByName.get(actualName));
+  }
+  throw new TaskSelectionException(matcher.formatErrorMessage("task",project));
 }
