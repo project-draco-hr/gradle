@@ -1,4 +1,9 @@
 {
+  Writer originalWriter=null;
+  if (descriptorModifier != null) {
+    originalWriter=writer;
+    writer=new StringWriter();
+  }
   writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
   writer.write(TextUtil.getPlatformLineSeparator());
   StringBuffer xmlNamespace=new StringBuffer();
@@ -19,4 +24,9 @@
   printDependencies(md,writer);
   writer.write("</ivy-module>");
   writer.write(TextUtil.getPlatformLineSeparator());
+  if (originalWriter != null) {
+    XmlTransformer transformer=new XmlTransformer();
+    transformer.addAction(descriptorModifier);
+    transformer.transform(writer.toString(),originalWriter);
+  }
 }
