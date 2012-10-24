@@ -7,15 +7,14 @@
   IvySettings ivySettings=settingsConverter.convertForResolve(loopbackDependencyResolver,rawResolvers);
   Ivy ivy=ivyFactory.createIvy(ivySettings);
   ResolveData resolveData=createResolveData(ivy,configuration.getName());
-  RefreshWhenMissingInAllRepositoriesCachePolicy repositoryAwareCachePolicy=new RefreshWhenMissingInAllRepositoriesCachePolicy(configuration.getResolutionStrategy().getCachePolicy(),moduleResolutionCache,moduleDescriptorCache);
   IvyContextualiser contextualiser=new IvyContextualiser(ivy,resolveData);
   for (  DependencyResolver rawResolver : rawResolvers) {
     rawResolver.setSettings(ivySettings);
     ModuleVersionRepository moduleVersionRepository=new DependencyResolverAdapter(rawResolver);
-    repositoryAwareCachePolicy.registerRepository(moduleVersionRepository);
+    refreshWhenMissingInAllRepositoriesCachePolicy.registerRepository(moduleVersionRepository);
     moduleVersionRepository=new CacheLockingModuleVersionRepository(moduleVersionRepository,cacheLockingManager);
     moduleVersionRepository=startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
-    ModuleVersionRepository cachingRepository=new CachingModuleVersionRepository(moduleVersionRepository,moduleResolutionCache,moduleDescriptorCache,artifactAtRepositoryCachedResolutionIndex,repositoryAwareCachePolicy,timeProvider);
+    ModuleVersionRepository cachingRepository=new CachingModuleVersionRepository(moduleVersionRepository,moduleResolutionCache,moduleDescriptorCache,artifactAtRepositoryCachedResolutionIndex,new ChainedCachePolicy(configuration.getResolutionStrategy().getCachePolicy(),new OnlyOncePerRepositoryRefreshModuleCachePolicy(moduleVersionRepository,repositoryLookUpRegistry,refreshWhenMissingInAllRepositoriesCachePolicy)),timeProvider);
     ModuleVersionRepository ivyContextualisedRepository=contextualiser.contextualise(ModuleVersionRepository.class,cachingRepository);
     userResolverChain.add(ivyContextualisedRepository);
   }
