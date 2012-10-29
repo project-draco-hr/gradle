@@ -3,14 +3,11 @@
   if (downloadFailed(artifactDownloadReport)) {
     throw new ArtifactResolveException(artifactDownloadReport.getArtifact(),artifactDownloadReport.getFailure());
   }
-  ArtifactOrigin artifactOrigin=artifactDownloadReport.getArtifactOrigin();
+  ArtifactOriginWithMetaData artifactOrigin=artifactDownloadReport.getArtifactOrigin();
   File localFile=artifactDownloadReport.getLocalFile();
   if (localFile != null) {
-    ExternalResourceMetaData metaData=null;
-    if (artifactOrigin instanceof ArtifactOriginWithMetaData) {
-      metaData=((ArtifactOriginWithMetaData)artifactOrigin).getMetaData();
-    }
-    return new DownloadedArtifact(localFile,metaData);
+    ExternalResourceMetaData metaData=artifactOrigin.getMetaData();
+    return new FileBackedArtifactResolveResult(localFile,metaData);
   }
  else {
     return null;
