@@ -3,9 +3,9 @@
   if (downloadFailed(artifactDownloadReport)) {
     if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
       EnhancedArtifactDownloadReport enhancedReport=(EnhancedArtifactDownloadReport)artifactDownloadReport;
-      throw new ArtifactResolveException(artifactDownloadReport.getArtifact(),enhancedReport.getFailure());
+      return new BrokenArtifactResolveResult(new ArtifactResolveException(artifactDownloadReport.getArtifact(),enhancedReport.getFailure()));
     }
-    throw new ArtifactResolveException(artifactDownloadReport.getArtifact(),artifactDownloadReport.getDownloadDetails());
+    return new BrokenArtifactResolveResult(new ArtifactResolveException(artifactDownloadReport.getArtifact(),artifactDownloadReport.getDownloadDetails()));
   }
   ArtifactOrigin artifactOrigin=artifactDownloadReport.getArtifactOrigin();
   File localFile=artifactDownloadReport.getLocalFile();
@@ -17,6 +17,6 @@
     return new FileBackedArtifactResolveResult(localFile,metaData);
   }
  else {
-    return null;
+    return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
   }
 }

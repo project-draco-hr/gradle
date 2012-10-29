@@ -10,7 +10,7 @@
     if (cached.isMissing()) {
       if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,null,age)) {
         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache",artifact.getId());
-        return null;
+        return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
       }
     }
  else {
@@ -23,7 +23,7 @@
   }
   ArtifactResolveResult downloadedArtifact=delegate.download(artifact);
   LOGGER.debug("Downloaded artifact '{}' from resolver: {}",artifact.getId(),delegate);
-  if (downloadedArtifact == null) {
+  if (downloadedArtifact.getFailure() instanceof ArtifactNotFoundException) {
     artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey);
   }
  else {
