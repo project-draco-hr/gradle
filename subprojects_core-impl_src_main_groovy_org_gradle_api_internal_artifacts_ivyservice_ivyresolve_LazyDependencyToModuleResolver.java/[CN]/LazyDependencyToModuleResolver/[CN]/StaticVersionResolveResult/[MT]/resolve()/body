@@ -1,10 +1,9 @@
 {
   if (resolveResult == null) {
-    ModuleVersionResolveException failure=null;
-    ModuleVersionResolveResult resolveResult=null;
+    resolveResult=new DefaultBuildableModuleVersionResolveResult();
     try {
       try {
-        resolveResult=dependencyResolver.resolve(dependencyDescriptor);
+        dependencyResolver.resolve(dependencyDescriptor,resolveResult);
       }
  catch (      Throwable t) {
         throw new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(),t);
@@ -16,15 +15,10 @@
         throw resolveResult.getFailure();
       }
       checkDescriptor(resolveResult.getDescriptor());
+      resolveResult.setArtifactResolver(new ErrorHandlingArtifactResolver(resolveResult.getArtifactResolver()));
     }
  catch (    ModuleVersionResolveException e) {
-      failure=e;
-    }
-    if (failure != null) {
-      this.resolveResult=new BrokenModuleVersionResolveResult(failure);
-    }
- else {
-      this.resolveResult=new DefaultModuleVersionResolveResult(resolveResult);
+      resolveResult.failed(e);
     }
   }
   return resolveResult;
