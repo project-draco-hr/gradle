@@ -10,7 +10,13 @@
   IvyContextualiser contextualiser=new IvyContextualiser(ivy,resolveData);
   for (  DependencyResolver rawResolver : rawResolvers) {
     rawResolver.setSettings(ivySettings);
-    ModuleVersionRepository moduleVersionRepository=new DependencyResolverAdapter(rawResolver);
+    ModuleVersionRepository moduleVersionRepository;
+    if (rawResolver instanceof ExternalResourceResolver) {
+      moduleVersionRepository=new ExternalResourceResolverAdapter((ExternalResourceResolver)rawResolver);
+    }
+ else {
+      moduleVersionRepository=new IvyDependencyResolverAdapter(rawResolver);
+    }
     refreshWhenMissingInAllRepositoriesCachePolicy.registerRepository(moduleVersionRepository);
     moduleVersionRepository=new CacheLockingModuleVersionRepository(moduleVersionRepository,cacheLockingManager);
     moduleVersionRepository=startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
