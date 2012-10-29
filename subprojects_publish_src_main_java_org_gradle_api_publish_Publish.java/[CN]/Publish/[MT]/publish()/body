@@ -7,15 +7,5 @@
   if (repositoryInternal == null) {
     throw new InvalidUserDataException("The 'repository' property is required");
   }
-  NormalizedPublication normalizedPublication=publicationInternal.asNormalisedPublication();
-  Publisher<NormalizedPublication> publisher=repositoryInternal.createPublisher(normalizedPublication);
-  if (publisher == null) {
-    throw new InvalidUserDataException(String.format("Repository '%s' cannot publish publication '%s'",repositoryInternal,publicationInternal));
-  }
-  Class<?> expectedPublicationType=publisher.getPublicationType();
-  Class<?> actualPublicationType=normalizedPublication.getClass();
-  if (!expectedPublicationType.isAssignableFrom(actualPublicationType)) {
-    throw new IllegalStateException(String.format("Internal error: publisher '%s' expects publication type '%s', tried to give it '%s'",publisher,expectedPublicationType.getName(),actualPublicationType.getName()));
-  }
-  publisher.publish(normalizedPublication);
+  doPublish(publicationInternal,repositoryInternal);
 }
