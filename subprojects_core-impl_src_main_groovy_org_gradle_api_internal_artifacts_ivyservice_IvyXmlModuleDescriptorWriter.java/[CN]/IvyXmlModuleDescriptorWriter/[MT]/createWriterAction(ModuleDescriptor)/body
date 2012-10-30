@@ -1,0 +1,27 @@
+{
+  return IoActions.toAction(new IoAction<Writer>(){
+    public void execute(    Writer writer) throws IOException {
+      writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+      writer.write(TextUtil.getPlatformLineSeparator());
+      StringBuffer xmlNamespace=new StringBuffer();
+      Map namespaces=md.getExtraAttributesNamespaces();
+      for (Iterator iter=namespaces.entrySet().iterator(); iter.hasNext(); ) {
+        Map.Entry ns=(Map.Entry)iter.next();
+        xmlNamespace.append(" xmlns:").append(ns.getKey()).append("=\"").append(ns.getValue()).append("\"");
+      }
+      String version="2.0";
+      if (md.getInheritedDescriptors().length > 0) {
+        version="2.2";
+      }
+      writer.write("<ivy-module version=\"" + version + "\""+ xmlNamespace+ ">");
+      writer.write(TextUtil.getPlatformLineSeparator());
+      printInfoTag(md,writer);
+      printConfigurations(md,writer);
+      printPublications(md,writer);
+      printDependencies(md,writer);
+      writer.write("</ivy-module>");
+      writer.write(TextUtil.getPlatformLineSeparator());
+    }
+  }
+);
+}

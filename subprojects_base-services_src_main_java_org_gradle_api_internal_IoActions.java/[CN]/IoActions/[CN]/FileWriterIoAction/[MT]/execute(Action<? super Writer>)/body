@@ -1,0 +1,20 @@
+{
+  try {
+    File parentFile=file.getParentFile();
+    if (parentFile != null) {
+      if (!parentFile.mkdirs() && !parentFile.isDirectory()) {
+        throw new IOException(String.format("Unable to create directory '%s'",parentFile));
+      }
+    }
+    Writer writer=new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),encoding));
+    try {
+      action.execute(writer);
+    }
+  finally {
+      writer.close();
+    }
+  }
+ catch (  Exception e) {
+    throw new UncheckedIOException(String.format("Could not write to file '%s'.",file),e);
+  }
+}
