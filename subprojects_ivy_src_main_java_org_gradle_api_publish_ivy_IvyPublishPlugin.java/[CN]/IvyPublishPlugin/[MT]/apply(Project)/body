@@ -1,8 +1,12 @@
 {
-  project.getPlugins().apply(BasePlugin.class);
-  Configuration archivesConfiguration=project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
   project.getPlugins().apply(PublishingPlugin.class);
   PublishingExtension extension=project.getExtensions().getByType(PublishingExtension.class);
-  extension.getPublications().add(createPublication(archivesConfiguration,project));
+  Set<Configuration> visibleConfigurations=project.getConfigurations().matching(new Spec<Configuration>(){
+    public boolean isSatisfiedBy(    Configuration configuration){
+      return configuration.isVisible();
+    }
+  }
+);
+  extension.getPublications().add(createPublication(project,visibleConfigurations));
   new IvyPublishDynamicTaskCreator(project.getTasks()).monitor(extension.getPublications(),extension.getRepositories());
 }
