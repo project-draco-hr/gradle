@@ -1,16 +1,18 @@
 {
   if (isTopLevel) {
     if (resolver instanceof AbstractResolver && !(resolver instanceof FileSystemResolver)) {
-      ((AbstractResolver)resolver).setRepositoryCacheManager(repositoryTransportFactory.getDownloadingCacheManager());
+      ((AbstractResolver)resolver).setRepositoryCacheManager(downloadingCacheManager);
     }
   }
   if (dependencyResolver instanceof FileSystemResolver) {
     ((FileSystemResolver)dependencyResolver).setLocal(true);
-    ((FileSystemResolver)dependencyResolver).setRepositoryCacheManager(repositoryTransportFactory.getLocalCacheManager());
+    ((FileSystemResolver)dependencyResolver).setRepositoryCacheManager(localCacheManager);
   }
   if (dependencyResolver instanceof RepositoryResolver) {
     Repository repository=((RepositoryResolver)dependencyResolver).getRepository();
-    repositoryTransportFactory.attachListener(repository);
+    if (!repository.hasTransferListener(transferListener)) {
+      repository.addTransferListener(transferListener);
+    }
   }
   if (dependencyResolver instanceof DualResolver) {
     DualResolver dualResolver=(DualResolver)dependencyResolver;
