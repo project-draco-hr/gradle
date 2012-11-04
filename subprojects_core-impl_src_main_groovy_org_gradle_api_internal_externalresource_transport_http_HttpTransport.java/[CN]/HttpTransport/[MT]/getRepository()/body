@@ -1,6 +1,7 @@
 {
   HttpClientHelper http=new HttpClientHelper(new DefaultHttpSettings(credentials));
-  final HttpResourceAccessor accessor=new HttpResourceAccessor(http);
-  final HttpResourceUploader uploader=new HttpResourceUploader(http);
-  return new DefaultExternalResourceRepository(name,new ProgressLoggingExternalResourceAccessor(accessor,progressLoggerFactory),new ProgressLoggingExternalResourceUploader(uploader,progressLoggerFactory),new HttpResourceLister(accessor));
+  HttpResourceAccessor accessor=new HttpResourceAccessor(http);
+  HttpResourceUploader uploader=new HttpResourceUploader(http);
+  ProgressLoggingExternalResourceAccessor loggingAccessor=new ProgressLoggingExternalResourceAccessor(accessor,progressLoggerFactory);
+  return new DefaultExternalResourceRepository(name,accessor,new ProgressLoggingExternalResourceUploader(uploader,progressLoggerFactory),new HttpResourceLister(accessor),temporaryFileProvider,new DefaultCacheAwareExternalResourceAccessor(loggingAccessor,cachedExternalResourceIndex));
 }
