@@ -1,18 +1,9 @@
 {
-  OutputStream stream=null;
-  try {
-    File file=fileResolver.resolve(path);
-    if (file.getParentFile() != null) {
-      file.getParentFile().mkdirs();
+  IoActions.writeFile(fileResolver.resolve(path),new ErroringAction<Writer>(){
+    @Override protected void doExecute(    Writer writer) throws Exception {
+      writeTo(writer);
     }
-    stream=new FileOutputStream(file);
-    getEffectivePom().writeNonEffectivePom(stream);
-    return this;
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
-  }
- finally {
-    IOUtils.closeQuietly(stream);
-  }
+);
+  return this;
 }
