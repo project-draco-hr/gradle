@@ -1,23 +1,18 @@
 {
-  if (!source.exists()) {
-    throw new GradleException(String.format("Cannot copy '%s' into filestore @ '%s' as it does not exist",source,destination));
-  }
-  File parentDir=destination.getParentFile();
-  if (!parentDir.mkdirs() && !parentDir.exists()) {
-    throw new GradleException(String.format("Unable to create filestore directory %s",parentDir));
-  }
   String verb=isMove ? "move" : "copy";
-  try {
-    deleteAction.delete(destination);
-    if (isMove) {
-      FileUtils.moveFile(source,destination);
-    }
+  if (!source.exists()) {
+    throw new GradleException(String.format("Cannot %s '%s' into filestore @ '%s' as it does not exist",verb,source,destination));
+  }
+  String error=String.format("Failed to %s file '%s' into filestore at '%s' ",verb,source,destination);
+  return doAdd(destination,error,new Action<File>(){
+    public void execute(    File file){
+      if (isMove) {
+        GFileUtils.moveFile(source,destination);
+      }
  else {
-      FileUtils.copyFile(source,destination);
+        GFileUtils.copyFile(source,destination);
+      }
     }
   }
- catch (  IOException e) {
-    throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ",verb,source,destination),e);
-  }
-  return entryAt(destination);
+);
 }

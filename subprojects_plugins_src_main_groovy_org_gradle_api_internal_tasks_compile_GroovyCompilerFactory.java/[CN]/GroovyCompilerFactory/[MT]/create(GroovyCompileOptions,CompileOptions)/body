@@ -1,25 +1,30 @@
 {
-  if (groovyOptions.isUseAnt() && !javaOptions.isUseAnt()) {
-    LOGGER.warn("When groovyOptions.useAnt is enabled, options.useAnt must also be enabled. Ignoring options.useAnt = false.");
-    javaOptions.setUseAnt(true);
-  }
- else   if (!groovyOptions.isUseAnt() && javaOptions.isUseAnt()) {
-    LOGGER.warn("When groovyOptions.useAnt is disabled, options.useAnt must also be disabled. Ignoring options.useAnt = true.");
-    javaOptions.setUseAnt(false);
-  }
-  if (groovyOptions.isUseAnt()) {
-    return new AntGroovyCompiler(antBuilder,classPathRegistry);
-  }
-  javaCompilerFactory.setGroovyJointCompilation(true);
-  Compiler<JavaCompileSpec> javaCompiler=javaCompilerFactory.create(javaOptions);
-  Compiler<GroovyJavaJointCompileSpec> groovyCompiler=new ApiGroovyCompiler(javaCompiler);
-  CompilerDaemonFactory daemonFactory;
-  if (groovyOptions.isFork()) {
-    daemonFactory=CompilerDaemonManager.getInstance();
-  }
+  return DeprecationLogger.whileDisabled(new Factory<Compiler<GroovyJavaJointCompileSpec>>(){
+    public Compiler<GroovyJavaJointCompileSpec> create(){
+      if (groovyOptions.isUseAnt() && !javaOptions.isUseAnt()) {
+        LOGGER.warn("When groovyOptions.useAnt is enabled, options.useAnt must also be enabled. Ignoring options.useAnt = false.");
+        javaOptions.setUseAnt(true);
+      }
+ else       if (!groovyOptions.isUseAnt() && javaOptions.isUseAnt()) {
+        LOGGER.warn("When groovyOptions.useAnt is disabled, options.useAnt must also be disabled. Ignoring options.useAnt = true.");
+        javaOptions.setUseAnt(false);
+      }
+      if (groovyOptions.isUseAnt()) {
+        return new AntGroovyCompiler(antBuilder,classPathRegistry);
+      }
+      javaCompilerFactory.setJointCompilation(true);
+      Compiler<JavaCompileSpec> javaCompiler=javaCompilerFactory.create(javaOptions);
+      Compiler<GroovyJavaJointCompileSpec> groovyCompiler=new ApiGroovyCompiler(javaCompiler);
+      CompilerDaemonFactory daemonFactory;
+      if (groovyOptions.isFork()) {
+        daemonFactory=CompilerDaemonManager.getInstance();
+      }
  else {
-    daemonFactory=InProcessCompilerDaemonFactory.getInstance();
+        daemonFactory=InProcessCompilerDaemonFactory.getInstance();
+      }
+      groovyCompiler=new DaemonGroovyCompiler(project,groovyCompiler,daemonFactory);
+      return new NormalizingGroovyCompiler(groovyCompiler);
+    }
   }
-  groovyCompiler=new DaemonGroovyCompiler(project,groovyCompiler,daemonFactory);
-  return new NormalizingGroovyCompiler(groovyCompiler);
+);
 }

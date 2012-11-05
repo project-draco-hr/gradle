@@ -1,39 +1,8 @@
 {
-  final ResolvedConfiguration resolvedConfiguration=resolver.resolve(configuration);
-  final Set<Dependency> dependencies=configuration.getAllDependencies();
-  return new ResolvedConfiguration(){
-    private final CachingDependencyResolveContext resolveContext=new CachingDependencyResolveContext(configuration.isTransitive());
-    public Set<File> getFiles(    Spec<? super Dependency> dependencySpec){
-      Set<File> files=new LinkedHashSet<File>();
-      Set<Dependency> selectedDependencies=CollectionUtils.filter(dependencies,dependencySpec);
-      for (      Dependency dependency : selectedDependencies) {
-        resolveContext.add(dependency);
-      }
-      files.addAll(resolveContext.resolve().getFiles());
-      files.addAll(resolvedConfiguration.getFiles(dependencySpec));
-      return files;
-    }
-    public Set<ResolvedArtifact> getResolvedArtifacts(){
-      return resolvedConfiguration.getResolvedArtifacts();
-    }
-    public ResolutionResult getResolutionResult(){
-      return resolvedConfiguration.getResolutionResult();
-    }
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies(){
-      return resolvedConfiguration.getFirstLevelModuleDependencies();
-    }
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies(    Spec<? super Dependency> dependencySpec) throws ResolveException {
-      return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
-    }
-    public boolean hasError(){
-      return resolvedConfiguration.hasError();
-    }
-    public LenientConfiguration getLenientConfiguration(){
-      return resolvedConfiguration.getLenientConfiguration();
-    }
-    public void rethrowFailure() throws GradleException {
-      resolvedConfiguration.rethrowFailure();
-    }
-  }
-;
+  ResolverResults results=resolver.resolve(configuration);
+  ResolvedConfiguration resolvedConfiguration=results.getResolvedConfiguration();
+  Set<Dependency> dependencies=configuration.getAllDependencies();
+  CachingDependencyResolveContext resolveContext=new CachingDependencyResolveContext(configuration.isTransitive());
+  SelfResolvingFilesProvider provider=new SelfResolvingFilesProvider(resolveContext,dependencies);
+  return results.withResolvedConfiguration(new FilesAggregatingResolvedConfiguration(resolvedConfiguration,provider));
 }

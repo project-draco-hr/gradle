@@ -1,0 +1,23 @@
+{
+  if (scalaOptions.isUseAnt()) {
+    Compiler<ScalaCompileSpec> scalaCompiler=new AntScalaCompiler(antBuilder);
+    Compiler<JavaCompileSpec> javaCompiler=new AntJavaCompiler(antBuilderFactory);
+    return new DefaultScalaJavaJointCompiler(scalaCompiler,javaCompiler);
+  }
+  Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
+  try {
+    scalaCompiler=(Compiler<ScalaJavaJointCompileSpec>)getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").newInstance();
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Failed to dynamically load ZincScalaCompiler",e);
+  }
+  CompilerDaemonFactory daemonFactory;
+  if (scalaOptions.isFork()) {
+    daemonFactory=CompilerDaemonManager.getInstance();
+  }
+ else {
+    daemonFactory=InProcessCompilerDaemonFactory.getInstance();
+  }
+  scalaCompiler=new DaemonScalaCompiler(project,scalaCompiler,daemonFactory);
+  return new NormalizingScalaCompiler(scalaCompiler);
+}

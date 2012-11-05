@@ -1,0 +1,21 @@
+{
+  PrintStream result;
+  try {
+    Files.createParentDirs(daemonLog);
+    result=new PrintStream(new FileOutputStream(daemonLog),true);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Unable to create daemon log file",e);
+  }
+  final PrintStream log=result;
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    public void run(){
+      log.println(DaemonMessages.DAEMON_VM_SHUTTING_DOWN);
+    }
+  }
+);
+  redirectOutputsAndInput(log);
+  loggingManager.addStandardOutputAndError();
+  loggingManager.setLevel(LogLevel.DEBUG);
+  loggingManager.start();
+}

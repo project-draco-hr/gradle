@@ -1,7 +1,9 @@
 {
-  ArtifactRepository repository=resolverFactory.createRepository(userDescription);
-  DependencyResolver resolver=toResolver(DependencyResolver.class,repository);
+  ArtifactRepository repository=baseRepositoryFactory.createRepository(userDescription);
+  DependencyResolver resolver=baseRepositoryFactory.toResolver(repository);
   ConfigureUtil.configure(configureClosure,resolver);
-  addRepository(new FixedResolverArtifactRepository(resolver),"repository",orderAction);
+  ArtifactRepository resolverRepository=baseRepositoryFactory.createResolverBackedRepository(resolver);
+  resolverRepository.setName("repository");
+  addRepository(resolverRepository,orderAction);
   return resolver;
 }

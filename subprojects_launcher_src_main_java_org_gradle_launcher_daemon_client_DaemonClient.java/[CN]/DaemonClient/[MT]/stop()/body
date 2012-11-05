@@ -2,7 +2,7 @@
   long start=System.currentTimeMillis();
   long expiry=start + STOP_TIMEOUT_SECONDS * 1000;
   Set<String> stopped=new HashSet<String>();
-  DaemonConnection connection=connector.maybeConnect(compatibilitySpec);
+  DaemonClientConnection connection=connector.maybeConnect(compatibilitySpec);
   if (connection == null) {
     LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
     return;
@@ -11,12 +11,12 @@
   while (connection != null && System.currentTimeMillis() < expiry) {
     try {
       if (stopped.add(connection.getUid())) {
-        new StopDispatcher(idGenerator).dispatch(connection.getConnection());
+        new StopDispatcher(idGenerator).dispatch(connection);
         LOGGER.lifecycle("Gradle daemon stopped.");
       }
     }
   finally {
-      connection.getConnection().stop();
+      connection.stop();
     }
     connection=connector.maybeConnect(compatibilitySpec);
   }

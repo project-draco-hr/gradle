@@ -1,0 +1,15 @@
+{
+  DependencyDescriptor nsDd=dd;
+  dd=toSystem(nsDd);
+  ModuleRevisionId mrid=dd.getDependencyRevisionId();
+  ModuleDescriptorParser parser=ModuleDescriptorParserRegistry.getInstance().getParser(mdRef.getResource());
+  if (parser == null) {
+    throw new RuntimeException("no module descriptor parser available for " + mdRef.getResource());
+  }
+  ModuleRevisionId resolvedMrid=mrid;
+  if (getSettings().getVersionMatcher().isDynamic(mrid)) {
+    resolvedMrid=ModuleRevisionId.newInstance(mrid,mdRef.getRevision());
+  }
+  Artifact moduleArtifact=parser.getMetadataArtifact(resolvedMrid,mdRef.getResource());
+  return getRepositoryCacheManager().cacheModuleDescriptor(this,mdRef,dd,moduleArtifact,resourceDownloader,getCacheOptions(data));
+}

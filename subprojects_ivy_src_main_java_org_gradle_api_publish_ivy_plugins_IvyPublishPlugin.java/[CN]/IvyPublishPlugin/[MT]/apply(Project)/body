@@ -1,0 +1,18 @@
+{
+  project.getPlugins().apply(PublishingPlugin.class);
+  PublishingExtension extension=project.getExtensions().getByType(PublishingExtension.class);
+  Set<Configuration> visibleConfigurations=project.getConfigurations().matching(new Spec<Configuration>(){
+    public boolean isSatisfiedBy(    Configuration configuration){
+      return configuration.isVisible();
+    }
+  }
+);
+  extension.getPublications().add(createPublication("main",project,visibleConfigurations));
+  extension.getRepositories().ivy(new Action<IvyArtifactRepository>(){
+    public void execute(    IvyArtifactRepository ivyArtifactRepository){
+      ivyArtifactRepository.setName("main");
+    }
+  }
+);
+  new IvyPublishDynamicTaskCreator(project.getTasks(),new DefaultIvyPublishTaskNamer()).monitor(extension.getPublications(),extension.getRepositories());
+}

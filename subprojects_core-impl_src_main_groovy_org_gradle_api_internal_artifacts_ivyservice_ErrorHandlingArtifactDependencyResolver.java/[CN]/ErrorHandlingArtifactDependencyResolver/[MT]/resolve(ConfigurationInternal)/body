@@ -1,10 +1,11 @@
 {
-  final ResolvedConfiguration resolvedConfiguration;
+  final ResolverResults results;
   try {
-    resolvedConfiguration=dependencyResolver.resolve(configuration);
+    results=dependencyResolver.resolve(configuration);
   }
  catch (  final Throwable e) {
-    return new BrokenResolvedConfiguration(e,configuration);
+    return new ResolverResults(new BrokenResolvedConfiguration(e,configuration),wrapException(e,configuration));
   }
-  return new ErrorHandlingResolvedConfiguration(resolvedConfiguration,configuration);
+  ResolvedConfiguration withErrorHandling=new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(),configuration);
+  return results.withResolvedConfiguration(withErrorHandling);
 }

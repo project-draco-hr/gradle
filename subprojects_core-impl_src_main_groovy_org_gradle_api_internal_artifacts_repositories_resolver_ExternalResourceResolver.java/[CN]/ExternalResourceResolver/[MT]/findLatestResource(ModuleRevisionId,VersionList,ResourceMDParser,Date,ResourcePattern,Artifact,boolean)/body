@@ -1,0 +1,44 @@
+{
+  String name=getName();
+  VersionMatcher versionMatcher=getSettings().getVersionMatcher();
+  List<String> sorted=versions.sortLatestFirst(getLatestStrategy());
+  for (  String version : sorted) {
+    ModuleRevisionId foundMrid=ModuleRevisionId.newInstance(mrid,version);
+    if (!versionMatcher.accept(mrid,foundMrid)) {
+      LOGGER.debug(name + ": rejected by version matcher: " + version);
+      continue;
+    }
+    boolean needsModuleDescriptor=versionMatcher.needModuleDescriptor(mrid,foundMrid);
+    artifact=DefaultArtifact.cloneWithAnotherMrid(artifact,foundMrid);
+    String resourcePath=pattern.toPath(artifact);
+    Resource resource=getResource(resourcePath,artifact,forDownload || needsModuleDescriptor);
+    String description=version + " [" + resource+ "]";
+    if (!resource.exists()) {
+      LOGGER.debug(name + ": unreachable: " + description);
+      discardResource(resource);
+      continue;
+    }
+    if (date != null && resource.getLastModified() > date.getTime()) {
+      LOGGER.debug(name + ": too young: " + description);
+      discardResource(resource);
+      continue;
+    }
+    if (versionMatcher.needModuleDescriptor(mrid,foundMrid)) {
+      MDResolvedResource parsedResource=rmdparser.parse(resource,version);
+      if (parsedResource == null) {
+        LOGGER.debug(name + ": impossible to get module descriptor resource: " + description);
+        discardResource(resource);
+        continue;
+      }
+      ModuleDescriptor md=parsedResource.getResolvedModuleRevision().getDescriptor();
+      if (!versionMatcher.accept(mrid,md)) {
+        LOGGER.debug(name + ": md rejected by version matcher: " + description);
+        discardResource(resource);
+        continue;
+      }
+      return parsedResource;
+    }
+    return new ResolvedResource(resource,version);
+  }
+  return null;
+}

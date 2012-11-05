@@ -1,3 +1,23 @@
 {
-  return new DaemonConnection(daemonInfo.getContext().getUid(),connector.connect(daemonInfo.getAddress()),daemonInfo.getPassword(),diagnostics);
+  Runnable onFailure=new Runnable(){
+    public void run(){
+      LOGGER.info(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE + daemonInfo);
+      try {
+        daemonRegistry.remove(daemonInfo.getAddress());
+      }
+ catch (      Exception e) {
+        LOGGER.info("Problem removing the address from the registry due to: " + e + ". It will be cleaned up later.");
+      }
+    }
+  }
+;
+  Connection<Object> connection;
+  try {
+    connection=connector.connect(daemonInfo.getAddress());
+  }
+ catch (  ConnectException e) {
+    onFailure.run();
+    throw e;
+  }
+  return new DaemonClientConnection(connection,daemonInfo.getContext().getUid(),diagnostics,onFailure);
 }

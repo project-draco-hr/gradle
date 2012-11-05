@@ -1,0 +1,20 @@
+{
+  final OutputEventListener consoleChain=new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()),true),console,new DefaultStatusBarFormatter(consoleMetaData));
+synchronized (lock) {
+    if (stdout && stderr) {
+      formatters.add(consoleChain);
+      stdoutListeners.remove(this.stdOutListener);
+      stderrListeners.remove(this.stdErrListener);
+    }
+ else     if (stdout) {
+      formatters.add(onNonError(consoleChain));
+      stdoutListeners.remove(this.stdOutListener);
+    }
+ else {
+      formatters.add(onError(consoleChain));
+      stderrListeners.remove(this.stdErrListener);
+    }
+    consoleChain.onOutput(new LogLevelChangeEvent(logLevel));
+  }
+  return this;
+}

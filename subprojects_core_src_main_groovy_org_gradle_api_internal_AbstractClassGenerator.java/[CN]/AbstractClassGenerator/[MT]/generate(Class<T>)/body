@@ -1,12 +1,12 @@
 {
-  Map<Class,Class> cache=GENERATED_CLASSES.get(getClass());
+  Map<Class<?>,Class<?>> cache=GENERATED_CLASSES.get(getClass());
   if (cache == null) {
-    cache=new HashMap<Class,Class>();
+    cache=new ReferenceMap(AbstractReferenceMap.WEAK,AbstractReferenceMap.WEAK);
     GENERATED_CLASSES.put(getClass(),cache);
   }
-  Class generatedClass=cache.get(type);
+  Class<?> generatedClass=cache.get(type);
   if (generatedClass != null) {
-    return generatedClass;
+    return generatedClass.asSubclass(type);
   }
   if (Modifier.isPrivate(type.getModifiers())) {
     throw new GradleException(String.format("Cannot create a proxy class for private class '%s'.",type.getSimpleName()));
@@ -87,18 +87,25 @@
       if (method.isPrivate()) {
         continue;
       }
-      if (method.getParameterTypes().length != 1) {
+      CachedClass[] parameterTypes=method.getParameterTypes();
+      if (parameterTypes.length == 0) {
         continue;
       }
       methods.put(method.getName(),method);
-      if (method.getParameterTypes()[0].getTheClass().equals(Action.class)) {
+      CachedClass lastParameter=parameterTypes[parameterTypes.length - 1];
+      if (lastParameter.getTheClass().equals(Action.class)) {
         actionMethods.add(method);
       }
     }
     for (    MetaMethod method : actionMethods) {
       boolean hasClosure=false;
+      Class[] actionMethodParameterTypes=method.getNativeParameterTypes();
+      int numParams=actionMethodParameterTypes.length;
+      Class[] closureMethodParameterTypes=new Class[actionMethodParameterTypes.length];
+      System.arraycopy(actionMethodParameterTypes,0,closureMethodParameterTypes,0,actionMethodParameterTypes.length);
+      closureMethodParameterTypes[numParams - 1]=Closure.class;
       for (      MetaMethod otherMethod : methods.get(method.getName())) {
-        if (otherMethod.getParameterTypes()[0].getTheClass().equals(Closure.class)) {
+        if (Arrays.equals(otherMethod.getNativeParameterTypes(),closureMethodParameterTypes)) {
           hasClosure=true;
           break;
         }

@@ -1,0 +1,68 @@
+{
+  writer.write("<dependency");
+  ModuleRevisionId dependencyRevisionId=dep.getDependencyRevisionId();
+  writer.write(" org=\"" + XMLHelper.escape(dependencyRevisionId.getOrganisation()) + "\"");
+  writer.write(" name=\"" + XMLHelper.escape(dependencyRevisionId.getName()) + "\"");
+  if (dependencyRevisionId.getBranch() != null) {
+    writer.write(" branch=\"" + XMLHelper.escape(dependencyRevisionId.getBranch()) + "\"");
+  }
+  writer.write(" rev=\"" + XMLHelper.escape(dependencyRevisionId.getRevision()) + "\"");
+  if (!dep.getDynamicConstraintDependencyRevisionId().equals(dependencyRevisionId)) {
+    if (dep.getDynamicConstraintDependencyRevisionId().getBranch() != null) {
+      writer.write(" branchConstraint=\"" + XMLHelper.escape(dep.getDynamicConstraintDependencyRevisionId().getBranch()) + "\"");
+    }
+    writer.write(" revConstraint=\"" + XMLHelper.escape(dep.getDynamicConstraintDependencyRevisionId().getRevision()) + "\"");
+  }
+  if (dep.isForce()) {
+    writer.write(" force=\"" + dep.isForce() + "\"");
+  }
+  if (dep.isChanging()) {
+    writer.write(" changing=\"" + dep.isChanging() + "\"");
+  }
+  if (!dep.isTransitive()) {
+    writer.write(" transitive=\"" + dep.isTransitive() + "\"");
+  }
+  writer.write(" conf=\"");
+  String[] modConfs=dep.getModuleConfigurations();
+  for (int j=0; j < modConfs.length; j++) {
+    String[] depConfs=dep.getDependencyConfigurations(modConfs[j]);
+    writer.write(XMLHelper.escape(modConfs[j]) + "->");
+    for (int k=0; k < depConfs.length; k++) {
+      writer.write(XMLHelper.escape(depConfs[k]));
+      if (k + 1 < depConfs.length) {
+        writer.write(",");
+      }
+    }
+    if (j + 1 < modConfs.length) {
+      writer.write(";");
+    }
+  }
+  writer.write("\"");
+  printExtraAttributes(dep,writer," ");
+  DependencyArtifactDescriptor[] depArtifacts=dep.getAllDependencyArtifacts();
+  if (depArtifacts.length > 0) {
+    writer.write(">");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+  printDependencyArtefacts(md,writer,depArtifacts);
+  IncludeRule[] includes=dep.getAllIncludeRules();
+  if (includes.length > 0 && depArtifacts.length == 0) {
+    writer.write(">");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+  printDependencyIncludeRules(md,writer,includes);
+  ExcludeRule[] excludes=dep.getAllExcludeRules();
+  if (excludes.length > 0 && includes.length == 0 && depArtifacts.length == 0) {
+    writer.write(">");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+  printDependencyExcludeRules(md,writer,excludes);
+  if (includes.length + excludes.length + depArtifacts.length == 0) {
+    writer.write("/>");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+ else {
+    writer.write("\t\t</dependency>");
+    writer.write(TextUtil.getPlatformLineSeparator());
+  }
+}

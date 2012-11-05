@@ -1,10 +1,22 @@
 {
-  Map<String,Object> map=Maps.newHashMap();
-  for (  Field field : getClass().getDeclaredFields()) {
-    if (!isOptionField(field)) {
-      continue;
+  final Class<?> thisClass=getClass();
+  return DeprecationLogger.whileDisabled(new Factory<Map<String,Object>>(){
+    public Map<String,Object> create(){
+      Map<String,Object> map=Maps.newHashMap();
+      Class<?> currClass=thisClass;
+      if (currClass.getName().endsWith("_Decorated")) {
+        currClass=currClass.getSuperclass();
+      }
+      while (currClass != AbstractOptions.class) {
+        for (        Field field : currClass.getDeclaredFields()) {
+          if (isOptionField(field)) {
+            addValueToMapIfNotNull(map,field);
+          }
+        }
+        currClass=currClass.getSuperclass();
+      }
+      return map;
     }
-    addValueToMapIfNotNull(map,field);
   }
-  return map;
+);
 }

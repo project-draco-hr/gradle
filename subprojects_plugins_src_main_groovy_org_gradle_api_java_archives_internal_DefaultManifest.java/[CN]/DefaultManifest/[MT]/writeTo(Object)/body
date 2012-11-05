@@ -1,18 +1,9 @@
 {
-  try {
-    File file=fileResolver.resolve(path);
-    if (file.getParentFile() != null) {
-      file.getParentFile().mkdirs();
-    }
-    FileWriter writer=new FileWriter(file);
-    try {
-      return writeTo(writer);
-    }
-  finally {
-      writer.close();
+  IoActions.writeFile(fileResolver.resolve(path),new ErroringAction<Writer>(){
+    @Override protected void doExecute(    Writer writer) throws Exception {
+      writeTo(writer);
     }
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
-  }
+);
+  return this;
 }

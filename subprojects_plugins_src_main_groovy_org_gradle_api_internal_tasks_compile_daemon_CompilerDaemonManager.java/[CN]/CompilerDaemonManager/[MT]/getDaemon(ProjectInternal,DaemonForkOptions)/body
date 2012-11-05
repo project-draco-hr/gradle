@@ -1,10 +1,13 @@
 {
-  if (client != null && !client.isCompatibleWith(forkOptions)) {
-    stop();
+  if (clients.isEmpty()) {
+    registerStopOnBuildFinished(project);
   }
-  if (client == null) {
-    startDaemon(project,forkOptions);
-    stopDaemonOnceBuildFinished(project);
+  for (  CompilerDaemonClient client : clients) {
+    if (client.isCompatibleWith(forkOptions)) {
+      return client;
+    }
   }
+  CompilerDaemonClient client=startDaemon(project,forkOptions);
+  clients.add(client);
   return client;
 }

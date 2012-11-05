@@ -33,15 +33,22 @@
     }
   }
  else   if (OperatingSystem.current().isWindows()) {
-    File installedJavas=new File("c:/Program Files/Java");
-    File[] files=installedJavas.listFiles();
-    for (    File file : files) {
-      if (file.getName().startsWith("jdk")) {
-        if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
-          return file;
-        }
-        if (jvm.getJavaVersion().isJava7() && !file.getName().contains("1.7")) {
-          return file;
+    List<File> installDirs=new ArrayList<File>();
+    File candidate=new File("c:/Program Files/Java");
+    if (candidate.isDirectory()) {
+      installDirs.add(candidate);
+    }
+    candidate=new File("c:/Program Files (x86)/Java");
+    if (candidate.isDirectory()) {
+      installDirs.add(candidate);
+    }
+    for (    File installDir : installDirs) {
+      for (      File file : installDir.listFiles()) {
+        if (file.getName().startsWith("jdk")) {
+          javaHome=GFileUtils.canonicalise(file);
+          if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome,"bin/java.exe").isFile()) {
+            return javaHome;
+          }
         }
       }
     }

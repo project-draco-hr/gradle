@@ -1,13 +1,8 @@
 {
-  try {
-    final StringWriter stringWriter=new StringWriter();
-    mavenProject.writeModel(stringWriter);
-    withXmlActions.transform(stringWriter.toString(),pomWriter);
+  withXmlActions.transform(pomWriter,"UTF-8",new ErroringAction<Writer>(){
+    protected void doExecute(    Writer writer) throws IOException {
+      mavenProject.writeModel(writer);
+    }
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
-  }
- finally {
-    IOUtils.closeQuietly(pomWriter);
-  }
+);
 }

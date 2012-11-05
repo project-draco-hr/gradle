@@ -1,21 +1,16 @@
 {
-  if (getExecutable() != null) {
-    return createForkingExecuter();
-  }
 switch (executerType) {
 case embeddedDaemon:
     return new EmbeddedDaemonGradleExecuter();
 case embedded:
-  if (canExecuteInProcess()) {
-    return new InProcessGradleExecuter();
-  }
-return createForkingExecuter();
+  return new InProcessGradleExecuter();
 case daemon:
 return new DaemonGradleExecuter(dist,!isQuiet() && allowExtraLogging,noDefaultJvmArgs);
 case parallel:
 return new ParallelForkingGradleExecuter(dist.getGradleHomeDir());
 case forking:
-return createForkingExecuter();
-}
+return new ForkingGradleExecuter(dist.getGradleHomeDir());
+default :
 throw new RuntimeException("Not a supported executer type: " + executerType);
+}
 }

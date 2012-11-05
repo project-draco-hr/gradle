@@ -1,0 +1,13 @@
+{
+  validateTaskPaths(taskPaths);
+  SetMultimap<String,Task> out=LinkedHashMultimap.create();
+  List<String> remainingPaths=new LinkedList<String>(taskPaths);
+  while (!remainingPaths.isEmpty()) {
+    String path=remainingPaths.remove(0);
+    TaskSelector.TaskSelection selection=taskSelector.getSelection(path);
+    Set<Task> tasks=selection.getTasks();
+    remainingPaths=taskConfigurer.configureTasks(tasks,remainingPaths);
+    out.putAll(selection.getTaskName(),tasks);
+  }
+  return out;
+}

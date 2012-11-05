@@ -1,8 +1,14 @@
 {
+  if (!getBaseDir().exists()) {
+    return Collections.emptySet();
+  }
   final Set<FileStoreEntry> entries=new HashSet<FileStoreEntry>();
   findFiles(pattern).visit(new EmptyFileVisitor(){
     public void visitFile(    FileVisitDetails fileDetails){
-      entries.add(entryAt(fileDetails.getFile()));
+      final File file=fileDetails.getFile();
+      if (!isInProgressMarkerFile(file) && !isInProgressFile(file)) {
+        entries.add(entryAt(file));
+      }
     }
   }
 );

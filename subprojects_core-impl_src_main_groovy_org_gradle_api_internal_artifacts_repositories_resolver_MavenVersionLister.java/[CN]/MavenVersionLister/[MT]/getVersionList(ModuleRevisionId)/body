@@ -1,0 +1,14 @@
+{
+  return new DefaultVersionList(){
+    final Set<String> searched=new HashSet<String>();
+    public void visit(    ResourcePattern resourcePattern,    Artifact artifact) throws ResourceNotFoundException, ResourceException {
+      String metadataLocation=resourcePattern.toModulePath(artifact) + "/maven-metadata.xml";
+      if (!searched.add(metadataLocation)) {
+        return;
+      }
+      MavenMetadata mavenMetaData=mavenMetadataLoader.load(metadataLocation);
+      add(mavenMetaData.versions);
+    }
+  }
+;
+}

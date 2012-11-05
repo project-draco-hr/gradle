@@ -1,18 +1,18 @@
 {
   Map<String,Object> modifiedArgs=new HashMap<String,Object>(args);
   if (modifiedArgs.containsKey("urls")) {
-    List<Object> urls=toList(modifiedArgs.remove("urls"));
+    List<?> urls=flattenToList(modifiedArgs.remove("urls"));
     if (!urls.isEmpty()) {
       DeprecationLogger.nagUserWith("The 'urls' property of the RepositoryHandler.mavenRepo() method is deprecated and will be removed in a future version of Gradle. " + "You should use the 'url' property to define the core maven repository & the 'artifactUrls' property to define any additional artifact locations.");
       modifiedArgs.put("url",urls.get(0));
-      List<Object> extraUrls=urls.subList(1,urls.size());
+      List<?> extraUrls=urls.subList(1,urls.size());
       modifiedArgs.put("artifactUrls",extraUrls);
     }
   }
-  MavenArtifactRepository repository=getResolverFactory().createMavenRepository();
+  MavenArtifactRepository repository=repositoryFactory.maven(Actions.doNothing());
   ConfigureUtil.configureByMap(modifiedArgs,repository);
-  DependencyResolver resolver=toResolver(DependencyResolver.class,repository);
+  DependencyResolver resolver=repositoryFactory.getBaseRepositoryFactory().toResolver(repository);
   ConfigureUtil.configure(configClosure,resolver);
-  addRepository(new FixedResolverArtifactRepository(resolver),"maven");
+  addRepository(new FixedResolverArtifactRepository(resolver));
   return resolver;
 }

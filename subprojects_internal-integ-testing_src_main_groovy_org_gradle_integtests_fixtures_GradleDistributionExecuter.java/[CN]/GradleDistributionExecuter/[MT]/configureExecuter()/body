@@ -2,8 +2,8 @@
   if (!workingDirSet) {
     inDirectory(dist.getTestDir());
   }
-  if (!userHomeSet) {
-    withUserHomeDir(dist.getUserHomeDir());
+  if (!gradleUserHomeDirSet) {
+    withGradleUserHomeDir(dist.getUserHomeDir());
   }
   if (getDaemonIdleTimeoutSecs() == null) {
     if (dist.isUsingIsolatedDaemons() || getDaemonBaseDir() != null) {
@@ -20,8 +20,13 @@
     throw new RuntimeException("Assertions must be enabled when running integration tests.");
   }
   GradleExecuter gradleExecuter=createExecuter(executerType);
-  copyTo(gradleExecuter);
-  configureTmpDir(gradleExecuter);
-  configureForSettingsFile(gradleExecuter);
+  configureExecuter(gradleExecuter);
+  try {
+    gradleExecuter.assertCanExecute();
+  }
+ catch (  AssertionError assertionError) {
+    gradleExecuter=new ForkingGradleExecuter(dist.getGradleHomeDir());
+    configureExecuter(gradleExecuter);
+  }
   return gradleExecuter;
 }

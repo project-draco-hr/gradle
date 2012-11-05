@@ -1,0 +1,22 @@
+{
+  try {
+    GFileUtils.parentMkdirs(destination);
+    File inProgressMarkerFile=getInProgressMarkerFile(destination);
+    GFileUtils.touch(inProgressMarkerFile);
+    try {
+      deleteAction.delete(destination);
+      action.execute(destination);
+    }
+ catch (    Throwable t) {
+      deleteAction.delete(destination);
+      throw t;
+    }
+ finally {
+      deleteAction.delete(inProgressMarkerFile);
+    }
+  }
+ catch (  Throwable t) {
+    throw new GradleException(failureDescription,t);
+  }
+  return entryAt(destination);
+}

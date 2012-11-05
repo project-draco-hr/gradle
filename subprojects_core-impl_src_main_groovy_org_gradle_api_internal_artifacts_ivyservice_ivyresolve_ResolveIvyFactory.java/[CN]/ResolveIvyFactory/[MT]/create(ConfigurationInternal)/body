@@ -10,10 +10,17 @@
   IvyContextualiser contextualiser=new IvyContextualiser(ivy,resolveData);
   for (  DependencyResolver rawResolver : rawResolvers) {
     rawResolver.setSettings(ivySettings);
-    ModuleVersionRepository moduleVersionRepository=new DependencyResolverAdapter(rawResolver);
+    ModuleVersionRepository moduleVersionRepository;
+    if (rawResolver instanceof ExternalResourceResolver) {
+      moduleVersionRepository=new ExternalResourceResolverAdapter((ExternalResourceResolver)rawResolver);
+    }
+ else {
+      moduleVersionRepository=new IvyDependencyResolverAdapter(rawResolver);
+    }
+    refreshWhenMissingInAllRepositoriesCachePolicy.registerRepository(moduleVersionRepository);
     moduleVersionRepository=new CacheLockingModuleVersionRepository(moduleVersionRepository,cacheLockingManager);
     moduleVersionRepository=startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
-    ModuleVersionRepository cachingRepository=new CachingModuleVersionRepository(moduleVersionRepository,moduleResolutionCache,moduleDescriptorCache,artifactAtRepositoryCachedResolutionIndex,configuration.getResolutionStrategy().getCachePolicy(),timeProvider);
+    ModuleVersionRepository cachingRepository=new CachingModuleVersionRepository(moduleVersionRepository,moduleResolutionCache,moduleDescriptorCache,artifactAtRepositoryCachedResolutionIndex,new ChainedCachePolicy(configuration.getResolutionStrategy().getCachePolicy(),refreshWhenMissingInAllRepositoriesCachePolicy),timeProvider);
     ModuleVersionRepository ivyContextualisedRepository=contextualiser.contextualise(ModuleVersionRepository.class,cachingRepository);
     userResolverChain.add(ivyContextualisedRepository);
   }

@@ -1,0 +1,28 @@
+{
+  Object firstResult;
+  try {
+    LOGGER.info("Connected to the daemon. Dispatching {} request.",build);
+    connection.dispatch(build);
+    firstResult=connection.receive();
+  }
+ catch (  Exception e) {
+    LOGGER.debug("Unable to perform initial dispatch/receive with the daemon.",e);
+    throw new DaemonInitialConnectException("Problem when attempted to send and receive first result from the daemon.");
+  }
+  if (firstResult instanceof BuildStarted) {
+    DaemonDiagnostics diagnostics=((BuildStarted)firstResult).getDiagnostics();
+    return monitorBuild(build,diagnostics,connection).getValue();
+  }
+ else   if (firstResult instanceof Failure) {
+    throw UncheckedException.throwAsUncheckedException(((Failure)firstResult).getValue());
+  }
+ else   if (firstResult instanceof DaemonUnavailable) {
+    throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable)firstResult).getReason());
+  }
+ else   if (firstResult == null) {
+    throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");
+  }
+ else {
+    throw invalidResponse(firstResult,build);
+  }
+}

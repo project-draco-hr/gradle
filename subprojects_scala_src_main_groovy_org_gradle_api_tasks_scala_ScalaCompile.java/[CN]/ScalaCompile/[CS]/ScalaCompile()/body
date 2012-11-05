@@ -1,5 +1,8 @@
 {
-  Compiler<ScalaCompileSpec> scalaCompiler=new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
-  Compiler<JavaCompileSpec> javaCompiler=new AntJavaCompiler(getServices().getFactory(AntBuilder.class));
-  compiler=new IncrementalScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler,javaCompiler),getOutputs());
+  ProjectInternal projectInternal=(ProjectInternal)getProject();
+  IsolatedAntBuilder antBuilder=getServices().get(IsolatedAntBuilder.class);
+  Factory<AntBuilder> antBuilderFactory=getServices().getFactory(AntBuilder.class);
+  ScalaCompilerFactory scalaCompilerFactory=new ScalaCompilerFactory(projectInternal,antBuilder,antBuilderFactory);
+  Compiler<ScalaJavaJointCompileSpec> delegatingCompiler=new DelegatingScalaCompiler(scalaCompilerFactory);
+  compiler=new IncrementalScalaCompiler(delegatingCompiler,getOutputs());
 }

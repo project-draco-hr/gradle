@@ -1,15 +1,17 @@
 {
-  BufferedWriter writer=null;
-  try {
-    final Map<String,JavadocOptionFileOption> options=optionFile.getOptions();
-    writer=new BufferedWriter(new FileWriter(outputFile));
-    JavadocOptionFileWriterContext writerContext=new JavadocOptionFileWriterContext(writer);
-    for (    final String option : options.keySet()) {
-      options.get(option).write(writerContext);
+  IoActions.writeFile(outputFile,new ErroringAction<BufferedWriter>(){
+    @Override protected void doExecute(    BufferedWriter writer) throws Exception {
+      final Map<String,JavadocOptionFileOption> options=new TreeMap<String,JavadocOptionFileOption>(optionFile.getOptions());
+      JavadocOptionFileWriterContext writerContext=new JavadocOptionFileWriterContext(writer);
+      JavadocOptionFileOption localeOption=options.remove("locale");
+      if (localeOption != null) {
+        localeOption.write(writerContext);
+      }
+      for (      final String option : options.keySet()) {
+        options.get(option).write(writerContext);
+      }
+      optionFile.getSourceNames().write(writerContext);
     }
-    optionFile.getSourceNames().write(writerContext);
   }
-  finally {
-    IOUtils.closeQuietly(writer);
-  }
+);
 }

@@ -1,0 +1,22 @@
+{
+  ExtraPropertiesExtension extraProperties=getProject().getRootProject().getExtensions().getExtraProperties();
+  Map<File,File> analysisMap;
+  if (extraProperties.has("scalaCompileAnalysisMap")) {
+    analysisMap=(Map)extraProperties.get("scalaCompileAnalysisMap");
+  }
+ else {
+    analysisMap=Maps.newHashMap();
+    for (    Project project : getProject().getRootProject().getAllprojects()) {
+      for (      ScalaCompile task : project.getTasks().withType(ScalaCompile.class)) {
+        if (task.getScalaCompileOptions().isUseAnt()) {
+          continue;
+        }
+        File publishedCode=task.getScalaCompileOptions().getIncrementalOptions().getPublishedCode();
+        File analysisFile=task.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile();
+        analysisMap.put(publishedCode,analysisFile);
+      }
+    }
+    extraProperties.set("scalaCompileAnalysisMap",Collections.unmodifiableMap(analysisMap));
+  }
+  return analysisMap;
+}

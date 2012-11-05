@@ -1,0 +1,17 @@
+{
+  LOGGER.debug("Attempting to resolve module '{}' using repositories {}",dependencyDescriptor.getDependencyRevisionId(),moduleVersionRepositoryNames);
+  List<Throwable> errors=new ArrayList<Throwable>();
+  final ModuleResolution latestResolved=findLatestModule(dependencyDescriptor,errors);
+  if (latestResolved != null) {
+    final ModuleVersionDescriptor downloadedModule=latestResolved.module;
+    LOGGER.debug("Using module '{}' from repository '{}'",downloadedModule.getId(),latestResolved.repository.getName());
+    result.resolved(latestResolved.getId(),latestResolved.getDescriptor(),latestResolved.getArtifactResolver());
+    return;
+  }
+  if (!errors.isEmpty()) {
+    result.failed(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(),errors));
+  }
+ else {
+    result.notFound(dependencyDescriptor.getDependencyRevisionId());
+  }
+}

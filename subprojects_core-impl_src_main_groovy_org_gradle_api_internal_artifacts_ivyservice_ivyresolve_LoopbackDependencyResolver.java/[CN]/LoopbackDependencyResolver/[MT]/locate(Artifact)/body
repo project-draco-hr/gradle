@@ -3,7 +3,11 @@
     public ArtifactOrigin create(){
       try {
         DependencyDescriptor dependencyDescriptor=new DefaultDependencyDescriptor(artifact.getModuleRevisionId(),false);
-        File artifactFile=userResolverChain.resolve(dependencyDescriptor).getArtifactResolver().resolve(artifact).getFile();
+        DefaultBuildableModuleVersionResolveResult dependency=new DefaultBuildableModuleVersionResolveResult();
+        userResolverChain.resolve(dependencyDescriptor,dependency);
+        DefaultBuildableArtifactResolveResult result=new DefaultBuildableArtifactResolveResult();
+        dependency.getArtifactResolver().resolve(artifact,result);
+        File artifactFile=result.getFile();
         return new ArtifactOrigin(artifact,false,artifactFile.getAbsolutePath());
       }
  catch (      ModuleVersionNotFoundException e) {

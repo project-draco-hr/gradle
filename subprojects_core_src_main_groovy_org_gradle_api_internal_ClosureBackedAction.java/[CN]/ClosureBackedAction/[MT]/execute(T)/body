@@ -1,0 +1,26 @@
+{
+  if (closure == null) {
+    return;
+  }
+  try {
+    if (configureableAware && delegate instanceof Configurable) {
+      ((Configurable)delegate).configure(closure);
+    }
+ else {
+      Closure copy=(Closure)closure.clone();
+      copy.setResolveStrategy(resolveStrategy);
+      copy.setDelegate(delegate);
+      if (copy.getMaximumNumberOfParameters() == 0) {
+        copy.call();
+      }
+ else {
+        copy.call(delegate);
+      }
+    }
+  }
+ catch (  groovy.lang.MissingMethodException e) {
+    if (e.getType().equals(closure.getClass()) && e.getMethod().equals("doCall")) {
+      throw new InvalidActionClosureException(closure,delegate);
+    }
+  }
+}

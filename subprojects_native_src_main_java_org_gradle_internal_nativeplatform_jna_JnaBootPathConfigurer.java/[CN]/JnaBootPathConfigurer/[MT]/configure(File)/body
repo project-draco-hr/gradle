@@ -1,0 +1,32 @@
+{
+  String nativePrefix=OperatingSystem.current().getNativePrefix();
+  File tmpDir=new File(storageDir,String.format("jna/%s",nativePrefix));
+  tmpDir.mkdirs();
+  String jnaLibName=OperatingSystem.current().isMacOsX() ? "libjnidispatch.jnilib" : System.mapLibraryName("jnidispatch");
+  File libFile=new File(tmpDir,jnaLibName);
+  if (!libFile.exists()) {
+    String resourceName="/com/sun/jna/" + nativePrefix + "/"+ jnaLibName;
+    try {
+      InputStream lib=getClass().getResourceAsStream(resourceName);
+      if (lib == null) {
+        return;
+      }
+      try {
+        FileOutputStream outputStream=new FileOutputStream(libFile);
+        try {
+          IOUtils.copy(lib,outputStream);
+        }
+  finally {
+          outputStream.close();
+        }
+      }
+  finally {
+        lib.close();
+      }
+    }
+ catch (    IOException e) {
+      throw new NativeIntegrationException(String.format("Could not create JNA native library '%s'.",libFile),e);
+    }
+  }
+  System.setProperty("jna.boot.library.path",tmpDir.getAbsolutePath());
+}

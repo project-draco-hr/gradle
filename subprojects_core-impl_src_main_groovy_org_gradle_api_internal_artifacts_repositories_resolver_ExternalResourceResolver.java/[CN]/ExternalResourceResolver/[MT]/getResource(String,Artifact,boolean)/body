@@ -1,0 +1,17 @@
+{
+  try {
+    if (forDownload) {
+      ArtifactRevisionId arid=target.getId();
+      LocallyAvailableResourceCandidates localCandidates=locallyAvailableResourceFinder.findCandidates(arid);
+      ExternalResource resource=repository.getResource(source,localCandidates);
+      return resource == null ? new MissingExternalResource(source) : resource;
+    }
+ else {
+      ExternalResourceMetaData metaData=repository.getResourceMetaData(source);
+      return metaData == null ? new MissingExternalResource(source) : new MetaDataOnlyExternalResource(source,metaData);
+    }
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(String.format("Could not get resource '%s'.",source),e);
+  }
+}

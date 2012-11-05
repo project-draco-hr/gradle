@@ -1,0 +1,59 @@
+{
+  DependencyDescriptor systemDd=dd;
+  DependencyDescriptor nsDd=fromSystem(dd);
+  ModuleRevisionId systemMrid=systemDd.getDependencyRevisionId();
+  ModuleRevisionId nsMrid=nsDd.getDependencyRevisionId();
+  boolean isDynamic=getSettings().getVersionMatcher().isDynamic(systemMrid);
+  ResolvedModuleRevision rmr=null;
+  ResolvedResource ivyRef=findIvyFileRef(nsDd,data);
+  ModuleDescriptor nsMd;
+  ModuleDescriptor systemMd;
+  if (ivyRef == null) {
+    if (!isAllownomd()) {
+      LOGGER.debug("No ivy file found for {}",systemMrid);
+      return null;
+    }
+    nsMd=DefaultModuleDescriptor.newDefaultInstance(nsMrid,nsDd.getAllDependencyArtifacts());
+    ResolvedResource artifactRef=findFirstArtifactRef(nsMd,nsDd,data);
+    if (artifactRef == null) {
+      LOGGER.debug("No ivy file nor artifact found for {}",systemMrid);
+      return null;
+    }
+ else {
+      long lastModified=artifactRef.getLastModified();
+      if (lastModified != 0 && nsMd instanceof DefaultModuleDescriptor) {
+        ((DefaultModuleDescriptor)nsMd).setLastModified(lastModified);
+      }
+      Message.verbose("\t" + getName() + ": no ivy file found for "+ systemMrid+ ": using default data");
+      if (isDynamic) {
+        nsMd.setResolvedModuleRevisionId(ModuleRevisionId.newInstance(nsMrid,artifactRef.getRevision()));
+      }
+      systemMd=toSystem(nsMd);
+      MetadataArtifactDownloadReport madr=new MetadataArtifactDownloadReport(systemMd.getMetadataArtifact());
+      madr.setDownloadStatus(DownloadStatus.NO);
+      madr.setSearched(true);
+      rmr=new ResolvedModuleRevision(this,this,systemMd,madr,isForce());
+    }
+  }
+ else {
+    if (ivyRef instanceof MDResolvedResource) {
+      rmr=((MDResolvedResource)ivyRef).getResolvedModuleRevision();
+    }
+    if (rmr == null) {
+      rmr=parse(ivyRef,systemDd,data);
+    }
+    if (!rmr.getReport().isDownloaded() && rmr.getReport().getLocalFile() != null) {
+      return rmr;
+    }
+ else {
+      nsMd=rmr.getDescriptor();
+      systemMd=toSystem(nsMd);
+      if (isCheckconsistency()) {
+        checkDescriptorConsistency(systemMrid,systemMd,ivyRef);
+        checkDescriptorConsistency(nsMrid,nsMd,ivyRef);
+      }
+      rmr=new ResolvedModuleRevision(this,this,systemMd,toSystem(rmr.getReport()),isForce());
+    }
+  }
+  return rmr;
+}
