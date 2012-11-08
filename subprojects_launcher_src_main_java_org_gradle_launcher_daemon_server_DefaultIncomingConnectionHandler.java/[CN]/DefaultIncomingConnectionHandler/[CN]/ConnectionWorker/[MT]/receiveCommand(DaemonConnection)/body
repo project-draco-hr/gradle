@@ -1,13 +1,13 @@
 {
   try {
-    Command command=(Command)connection.receive();
+    Command command=(Command)daemonConnection.receive(120,TimeUnit.SECONDS);
     LOGGER.info("Received command: {}.",command);
     return command;
   }
  catch (  Throwable e) {
     String message=String.format("Unable to receive command from connection: '%s'",connection);
     LOGGER.warn(message + ". Dispatching the failure to the daemon client...",e);
-    connection.dispatch(new DaemonFailure(new RuntimeException(message,e)));
+    daemonConnection.completed(new DaemonFailure(new RuntimeException(message,e)));
     return null;
   }
 }

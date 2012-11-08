@@ -1,17 +1,18 @@
 {
+  Throwable failure=null;
   try {
     connection.dispatch(new Stop(idGenerator.generateId()));
+    Result result=(Result)connection.receive();
+    if (result instanceof Failure) {
+      failure=((Failure)result).getValue();
+    }
+    connection.dispatch(new Finished());
   }
- catch (  Exception e) {
-    LOGGER.lifecycle("Unable to send the Stop command to one of the daemons. The daemon has already stopped or crashed.");
-    LOGGER.debug("Unable to send Stop.",e);
-    return;
+ catch (  Throwable e) {
+    failure=e;
   }
-  try {
-    connection.receive();
-  }
- catch (  Exception e) {
-    LOGGER.lifecycle("The daemon didn't reply to Stop command. It is already stopped or crashed.");
-    LOGGER.debug("Unable to receive reply.",e);
+  if (failure != null) {
+    LOGGER.lifecycle("Unable to stop one of the daemons. The daemon may have crashed.");
+    LOGGER.debug(String.format("Unable to complete stop daemon using %s.",connection),failure);
   }
 }

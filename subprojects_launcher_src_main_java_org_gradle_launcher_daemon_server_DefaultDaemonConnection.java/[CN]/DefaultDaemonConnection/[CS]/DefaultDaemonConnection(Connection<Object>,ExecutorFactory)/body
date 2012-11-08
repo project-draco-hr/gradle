@@ -2,30 +2,40 @@
   this.connection=connection;
   stdinQueue=new StdinQueue(executorFactory);
   disconnectQueue=new DisconnectQueue();
+  receiveQueue=new ReceiveQueue();
   executor=executorFactory.create("Handler for " + connection.toString());
   executor.execute(new Runnable(){
     public void run(){
-      while (true) {
-        Object message;
-        try {
-          message=connection.receive();
+      Throwable failure=null;
+      try {
+        while (true) {
+          Object message;
+          try {
+            message=connection.receive();
+          }
+ catch (          Exception e) {
+            LOGGER.debug("Could not receive message from client.",e);
+            failure=e;
+            return;
+          }
+          if (message == null) {
+            LOGGER.debug("Received end-of-input from client.");
+            return;
+          }
+          if (!(message instanceof IoCommand)) {
+            LOGGER.debug("Received non-IO message from client: {}",message);
+            receiveQueue.add(message);
+          }
+ else {
+            LOGGER.debug("Received IO message from client: {}",message);
+            stdinQueue.add((IoCommand)message);
+          }
         }
- catch (        Exception e) {
-          LOGGER.warn("Could not receive message from client.",e);
-          return;
-        }
-        if (message == null) {
-          LOGGER.debug("Received end-of-input from client.");
-          stdinQueue.disconnect();
-          disconnectQueue.disconnect();
-          return;
-        }
-        if (!(message instanceof IoCommand)) {
-          LOGGER.warn("Received unexpected message from client: {}",message);
-          continue;
-        }
-        LOGGER.debug("Received IO message from client: {}",message);
-        stdinQueue.add((IoCommand)message);
+      }
+  finally {
+        stdinQueue.disconnect();
+        disconnectQueue.disconnect();
+        receiveQueue.disconnect(failure);
       }
     }
   }
