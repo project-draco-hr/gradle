@@ -1,8 +1,14 @@
 {
   try {
-    Command command=receiveCommand();
-    if (command != null) {
-      handleCommand(command);
+    DefaultDaemonConnection daemonConnection=new DefaultDaemonConnection(connection,executorFactory);
+    try {
+      Command command=receiveCommand(daemonConnection);
+      if (command != null) {
+        handleCommand(command,daemonConnection);
+      }
+    }
+  finally {
+      daemonConnection.stop();
     }
   }
   finally {
