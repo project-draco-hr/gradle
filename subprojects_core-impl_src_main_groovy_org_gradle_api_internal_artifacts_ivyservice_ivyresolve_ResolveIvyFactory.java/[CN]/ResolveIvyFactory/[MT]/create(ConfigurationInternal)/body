@@ -17,7 +17,6 @@
  else {
       moduleVersionRepository=new IvyDependencyResolverAdapter(rawResolver);
     }
-    refreshWhenMissingInAllRepositoriesCachePolicy.registerRepository(moduleVersionRepository);
     moduleVersionRepository=new CacheLockingModuleVersionRepository(moduleVersionRepository,cacheLockingManager);
     moduleVersionRepository=startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
     LocalAwareModuleVersionRepository cachingRepository;
@@ -25,7 +24,7 @@
       cachingRepository=new LocalModuleVersionRepository(moduleVersionRepository);
     }
  else {
-      cachingRepository=new CachingModuleVersionRepository(moduleVersionRepository,moduleResolutionCache,moduleDescriptorCache,artifactAtRepositoryCachedResolutionIndex,new ChainedCachePolicy(configuration.getResolutionStrategy().getCachePolicy(),refreshWhenMissingInAllRepositoriesCachePolicy),timeProvider);
+      cachingRepository=new CachingModuleVersionRepository(moduleVersionRepository,moduleResolutionCache,moduleDescriptorCache,artifactAtRepositoryCachedResolutionIndex,configuration.getResolutionStrategy().getCachePolicy(),timeProvider);
     }
     LocalAwareModuleVersionRepository ivyContextualisedRepository=contextualiser.contextualise(LocalAwareModuleVersionRepository.class,cachingRepository);
     userResolverChain.add(ivyContextualisedRepository);

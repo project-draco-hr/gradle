@@ -1,31 +1,14 @@
 {
-  boolean isStaticVersion=!settings.getVersionMatcher().isDynamic(dependencyDescriptor.getDependencyRevisionId());
-  ModuleResolution best=null;
-  for (  ModuleVersionRepository repository : moduleVersionRepositories) {
-    BuildableModuleVersionDescriptor module=new DefaultBuildableModuleVersionDescriptor();
-    try {
-      repository.getDependency(dependencyDescriptor,module);
-    }
- catch (    Throwable e) {
-      failures.add(e);
-    }
-switch (module.getState()) {
-case Missing:
-case Unknown:
-      break;
-case Resolved:
-    ModuleResolution moduleResolution=new ModuleResolution(repository,module);
-  if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
-    return moduleResolution;
+  LinkedList<RepositoryResolveState> queue=new LinkedList<RepositoryResolveState>();
+  for (  LocalAwareModuleVersionRepository repository : moduleVersionRepositories) {
+    queue.add(new RepositoryResolveState(repository));
   }
-best=chooseBest(best,moduleResolution);
-break;
-case Failed:
-failures.add(module.getFailure());
-break;
-default :
-throw new IllegalStateException("Unexpected state for resolution: " + module.getState());
-}
-}
-return best;
+  LinkedList<RepositoryResolveState> missing=new LinkedList<RepositoryResolveState>();
+  ModuleResolution best=findLatestModule(dependencyDescriptor,queue,failures,missing);
+  if (best != null) {
+    return best;
+  }
+  queue.addAll(missing);
+  missing.clear();
+  return findLatestModule(dependencyDescriptor,queue,failures,missing);
 }

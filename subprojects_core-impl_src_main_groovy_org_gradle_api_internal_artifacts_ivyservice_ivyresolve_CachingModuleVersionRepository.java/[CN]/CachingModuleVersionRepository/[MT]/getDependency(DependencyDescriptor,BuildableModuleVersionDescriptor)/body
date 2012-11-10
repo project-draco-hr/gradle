@@ -1,8 +1,10 @@
 {
-  DependencyDescriptor resolvedDependencyDescriptor=maybeUseCachedDynamicVersion(delegate,dependencyDescriptor);
-  lookupModuleInCache(delegate,resolvedDependencyDescriptor,result);
-  if (result.getState() != BuildableModuleVersionDescriptor.State.Unknown) {
-    return;
+  delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(dependencyDescriptor,true),result);
+  if (result.getState() == BuildableModuleVersionDescriptor.State.Missing) {
+    moduleDescriptorCache.cacheModuleDescriptor(delegate,dependencyDescriptor.getDependencyRevisionId(),null,dependencyDescriptor.isChanging());
   }
-  resolveModule(resolvedDependencyDescriptor,dependencyDescriptor,result);
+ else   if (result.getState() == BuildableModuleVersionDescriptor.State.Resolved) {
+    moduleResolutionCache.cacheModuleResolution(delegate,dependencyDescriptor.getDependencyRevisionId(),result.getId());
+    moduleDescriptorCache.cacheModuleDescriptor(delegate,result.getId(),result.getDescriptor(),isChangingDependency(dependencyDescriptor,result));
+  }
 }

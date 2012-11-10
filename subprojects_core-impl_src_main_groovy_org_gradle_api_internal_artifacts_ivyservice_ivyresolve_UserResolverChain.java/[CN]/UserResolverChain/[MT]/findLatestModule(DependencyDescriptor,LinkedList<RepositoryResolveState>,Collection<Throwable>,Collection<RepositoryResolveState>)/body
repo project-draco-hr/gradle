@@ -1,0 +1,36 @@
+{
+  boolean isStaticVersion=!settings.getVersionMatcher().isDynamic(dependencyDescriptor.getDependencyRevisionId());
+  ModuleResolution best=null;
+  while (!queue.isEmpty()) {
+    RepositoryResolveState request=queue.removeFirst();
+    try {
+      request.resolve(dependencyDescriptor);
+    }
+ catch (    Throwable t) {
+      failures.add(t);
+      continue;
+    }
+switch (request.descriptor.getState()) {
+case Missing:
+      if (request.canMakeFurtherAttempts()) {
+        missing.add(request);
+      }
+    break;
+case Unknown:
+  if (request.canMakeFurtherAttempts()) {
+    queue.addFirst(request);
+  }
+break;
+case Resolved:
+ModuleResolution moduleResolution=new ModuleResolution(request.repository,request.descriptor);
+if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
+return moduleResolution;
+}
+best=chooseBest(best,moduleResolution);
+break;
+default :
+throw new IllegalStateException("Unexpected state for resolution: " + request.descriptor.getState());
+}
+}
+return best;
+}
