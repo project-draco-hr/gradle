@@ -1,0 +1,33 @@
+{
+  ModuleRevisionId resolvedModuleVersionId=resolvedDependencyDescriptor.getDependencyRevisionId();
+  ModuleVersionIdentifier moduleVersionIdentifier=createModuleVersionIdentifier(resolvedModuleVersionId);
+  ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor=moduleDescriptorCache.getCachedModuleDescriptor(repository,resolvedModuleVersionId);
+  if (cachedModuleDescriptor == null) {
+    return;
+  }
+  if (cachedModuleDescriptor.isMissing()) {
+    if (cachePolicy.mustRefreshModule(moduleVersionIdentifier,null,resolvedModuleVersionId,cachedModuleDescriptor.getAgeMillis())) {
+      LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}' in '{}'",resolvedModuleVersionId,repository.getName());
+      return;
+    }
+    LOGGER.debug("Detected non-existence of module '{}' in resolver cache '{}'",resolvedModuleVersionId,repository.getName());
+    result.missing();
+    return;
+  }
+  if (cachedModuleDescriptor.isChangingModule() || resolvedDependencyDescriptor.isChanging()) {
+    if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier,cachedModuleDescriptor.getModuleVersion(),cachedModuleDescriptor.getAgeMillis())) {
+      expireArtifactsForChangingModule(repository,cachedModuleDescriptor.getModuleDescriptor());
+      LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'",resolvedModuleVersionId,repository.getName());
+      return;
+    }
+    LOGGER.debug("Found cached version of changing module '{}' in '{}'",resolvedModuleVersionId,repository.getName());
+  }
+ else {
+    if (cachePolicy.mustRefreshModule(moduleVersionIdentifier,cachedModuleDescriptor.getModuleVersion(),null,cachedModuleDescriptor.getAgeMillis())) {
+      LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}' in '{}'",resolvedModuleVersionId,repository.getName());
+      return;
+    }
+  }
+  LOGGER.debug("Using cached module metadata for module '{}' in '{}'",resolvedModuleVersionId,repository.getName());
+  result.resolved(cachedModuleDescriptor.getModuleDescriptor(),cachedModuleDescriptor.isChangingModule());
+}
