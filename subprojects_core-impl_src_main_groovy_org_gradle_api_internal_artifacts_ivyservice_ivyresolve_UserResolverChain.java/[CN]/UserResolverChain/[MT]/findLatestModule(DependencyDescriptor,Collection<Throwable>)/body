@@ -1,20 +1,14 @@
 {
-  boolean isStaticVersion=!settings.getVersionMatcher().isDynamic(dependencyDescriptor.getDependencyRevisionId());
-  ModuleResolution best=null;
-  for (  ModuleVersionRepository repository : moduleVersionRepositories) {
-    try {
-      ModuleVersionDescriptor module=repository.getDependency(dependencyDescriptor);
-      if (module != null) {
-        ModuleResolution moduleResolution=new ModuleResolution(repository,module);
-        if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
-          return moduleResolution;
-        }
-        best=chooseBest(best,moduleResolution);
-      }
-    }
- catch (    Throwable e) {
-      failures.add(e);
-    }
+  LinkedList<RepositoryResolveState> queue=new LinkedList<RepositoryResolveState>();
+  for (  LocalAwareModuleVersionRepository repository : moduleVersionRepositories) {
+    queue.add(new RepositoryResolveState(repository));
   }
-  return best;
+  LinkedList<RepositoryResolveState> missing=new LinkedList<RepositoryResolveState>();
+  ModuleResolution best=findLatestModule(dependencyDescriptor,queue,failures,missing);
+  if (best != null) {
+    return best;
+  }
+  queue.addAll(missing);
+  missing.clear();
+  return findLatestModule(dependencyDescriptor,queue,failures,missing);
 }
