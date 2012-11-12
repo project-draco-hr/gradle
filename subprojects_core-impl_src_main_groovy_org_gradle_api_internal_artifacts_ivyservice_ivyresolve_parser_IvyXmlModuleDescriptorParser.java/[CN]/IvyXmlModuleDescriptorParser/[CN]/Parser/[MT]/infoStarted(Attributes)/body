@@ -1,0 +1,35 @@
+{
+  state=State.INFO;
+  String org=settings.substitute(attributes.getValue("organisation"));
+  String module=settings.substitute(attributes.getValue("module"));
+  String revision=settings.substitute(attributes.getValue("revision"));
+  String branch=settings.substitute(attributes.getValue("branch"));
+  getMd().setModuleRevisionId(ModuleRevisionId.newInstance(org,module,branch,revision,ExtendableItemHelper.getExtraAttributes(settings,attributes,new String[]{"organisation","module","revision","status","publication","branch","namespace","default","resolver"})));
+  String namespace=settings.substitute(attributes.getValue("namespace"));
+  if (namespace != null) {
+    Namespace ns=settings.getNamespace(namespace);
+    if (ns == null) {
+      Message.warn("namespace not found for " + getMd().getModuleRevisionId() + ": "+ namespace);
+    }
+ else {
+      getMd().setNamespace(ns);
+    }
+  }
+  String status=settings.substitute(attributes.getValue("status"));
+  getMd().setStatus(status == null ? settings.getStatusManager().getDefaultStatus() : status);
+  getMd().setDefault(Boolean.valueOf(settings.substitute(attributes.getValue("default"))).booleanValue());
+  String pubDate=settings.substitute(attributes.getValue("publication"));
+  if (pubDate != null && pubDate.length() > 0) {
+    try {
+      final SimpleDateFormat ivyDateFormat=new SimpleDateFormat(IVY_DATE_FORMAT_PATTERN);
+      getMd().setPublicationDate(ivyDateFormat.parse(pubDate));
+    }
+ catch (    ParseException e) {
+      addError("invalid publication date format: " + pubDate);
+      getMd().setPublicationDate(getDefaultPubDate());
+    }
+  }
+ else {
+    getMd().setPublicationDate(getDefaultPubDate());
+  }
+}

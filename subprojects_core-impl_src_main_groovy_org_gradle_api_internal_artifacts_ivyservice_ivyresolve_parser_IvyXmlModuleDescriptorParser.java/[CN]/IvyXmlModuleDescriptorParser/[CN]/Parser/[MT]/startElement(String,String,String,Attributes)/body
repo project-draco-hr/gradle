@@ -1,0 +1,96 @@
+{
+  try {
+    if (state == State.DESCRIPTION) {
+      getBuffer().append("<").append(qName);
+      for (int i=0; i < attributes.getLength(); i++) {
+        getBuffer().append(" ");
+        getBuffer().append(attributes.getQName(i));
+        getBuffer().append("=\"");
+        getBuffer().append(attributes.getValue(i));
+        getBuffer().append("\"");
+      }
+      getBuffer().append(">");
+      return;
+    }
+ else     if ("ivy-module".equals(qName)) {
+      ivyModuleStarted(attributes);
+    }
+ else     if ("info".equals(qName)) {
+      infoStarted(attributes);
+    }
+ else     if (state == State.INFO && "extends".equals(qName)) {
+      extendsStarted(attributes);
+    }
+ else     if (state == State.INFO && "license".equals(qName)) {
+      getMd().addLicense(new License(settings.substitute(attributes.getValue("name")),settings.substitute(attributes.getValue("url"))));
+    }
+ else     if (state == State.INFO && "description".equals(qName)) {
+      getMd().setHomePage(settings.substitute(attributes.getValue("homepage")));
+      state=State.DESCRIPTION;
+      buffer=new StringBuffer();
+    }
+ else     if (state == State.INFO && isOtherNamespace(qName)) {
+      buffer=new StringBuffer();
+      state=State.EXTRA_INFO;
+    }
+ else     if ("configurations".equals(qName)) {
+      configurationStarted(attributes);
+    }
+ else     if ("publications".equals(qName)) {
+      publicationsStarted(attributes);
+    }
+ else     if ("dependencies".equals(qName)) {
+      dependenciesStarted(attributes);
+    }
+ else     if ("conflicts".equals(qName)) {
+      if (!descriptorVersion.startsWith("1.")) {
+        Message.deprecated("using conflicts section is deprecated: " + "please use hints section instead. Ivy file URL: " + descriptorURL);
+      }
+      state=State.CONFLICT;
+      checkConfigurations();
+    }
+ else     if ("artifact".equals(qName)) {
+      artifactStarted(qName,attributes);
+    }
+ else     if ("include".equals(qName) && state == State.DEP) {
+      addIncludeRule(qName,attributes);
+    }
+ else     if ("exclude".equals(qName) && state == State.DEP) {
+      addExcludeRule(qName,attributes);
+    }
+ else     if ("exclude".equals(qName) && state == State.DEPS) {
+      state=State.EXCLUDE;
+      parseRule(qName,attributes);
+      getMd().addExcludeRule((ExcludeRule)confAware);
+    }
+ else     if ("dependency".equals(qName)) {
+      dependencyStarted(attributes);
+    }
+ else     if ("conf".equals(qName)) {
+      confStarted(attributes);
+    }
+ else     if ("mapped".equals(qName)) {
+      dd.addDependencyConfiguration(conf,settings.substitute(attributes.getValue("name")));
+    }
+ else     if (("conflict".equals(qName) && state == State.DEPS) || "manager".equals(qName) && state == State.CONFLICT) {
+      managerStarted(attributes,state == State.CONFLICT ? "name" : "manager");
+    }
+ else     if ("override".equals(qName) && state == State.DEPS) {
+      mediationOverrideStarted(attributes);
+    }
+ else     if ("include".equals(qName) && state == State.CONF) {
+      includeConfStarted(attributes);
+    }
+ else     if (validate && state != State.EXTRA_INFO && state != State.DESCRIPTION) {
+      addError("unknown tag " + qName);
+    }
+  }
+ catch (  Exception ex) {
+    if (ex instanceof SAXException) {
+      throw (SAXException)ex;
+    }
+    SAXException sax=new SAXException("Problem occurred while parsing ivy file: " + ex.getMessage(),ex);
+    sax.initCause(ex);
+    throw sax;
+  }
+}

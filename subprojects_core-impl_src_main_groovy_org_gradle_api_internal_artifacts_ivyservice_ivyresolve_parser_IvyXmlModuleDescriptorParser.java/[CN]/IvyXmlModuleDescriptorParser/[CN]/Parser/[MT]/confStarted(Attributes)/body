@@ -1,0 +1,48 @@
+{
+  String conf=settings.substitute(attributes.getValue("name"));
+switch (state) {
+case State.CONF:
+    String visibility=settings.substitute(attributes.getValue("visibility"));
+  String ext=settings.substitute(attributes.getValue("extends"));
+String transitiveValue=attributes.getValue("transitive");
+boolean transitive=(transitiveValue == null) ? true : Boolean.valueOf(attributes.getValue("transitive")).booleanValue();
+String deprecated=attributes.getValue("deprecated");
+Configuration configuration=new Configuration(conf,Configuration.Visibility.getVisibility(visibility == null ? "public" : visibility),settings.substitute(attributes.getValue("description")),ext == null ? null : ext.split(","),transitive,deprecated);
+ExtendableItemHelper.fillExtraAttributes(settings,configuration,attributes,new String[]{"name","visibility","extends","transitive","description","deprecated"});
+getMd().addConfiguration(configuration);
+break;
+case State.PUB:
+if ("*".equals(conf)) {
+String[] confs=getMd().getConfigurationsNames();
+for (int i=0; i < confs.length; i++) {
+artifact.addConfiguration(confs[i]);
+getMd().addArtifact(confs[i],artifact);
+}
+}
+ else {
+artifact.addConfiguration(conf);
+getMd().addArtifact(conf,artifact);
+}
+break;
+case State.DEP:
+this.conf=conf;
+String mappeds=settings.substitute(attributes.getValue("mapped"));
+if (mappeds != null) {
+String[] mapped=mappeds.split(",");
+for (int i=0; i < mapped.length; i++) {
+dd.addDependencyConfiguration(conf,mapped[i].trim());
+}
+}
+break;
+case State.DEP_ARTIFACT:
+case State.ARTIFACT_INCLUDE:
+case State.ARTIFACT_EXCLUDE:
+addConfiguration(conf);
+break;
+default :
+if (validate) {
+addError("conf tag found in invalid tag: " + state);
+}
+break;
+}
+}

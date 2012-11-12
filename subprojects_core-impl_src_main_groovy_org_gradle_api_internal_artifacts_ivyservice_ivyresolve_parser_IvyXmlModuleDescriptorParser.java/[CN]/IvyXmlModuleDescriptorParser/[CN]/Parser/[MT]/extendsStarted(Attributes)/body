@@ -1,0 +1,53 @@
+{
+  String parentOrganisation=attributes.getValue("organisation");
+  String parentModule=attributes.getValue("module");
+  String parentRevision=attributes.getValue("revision");
+  String location=attributes.getValue("location") != null ? attributes.getValue("location") : getDefaultParentLocation();
+  ModuleDescriptor parent=null;
+  String extendType=attributes.getValue("extendType") != null ? attributes.getValue("extendType").toLowerCase() : "all";
+  List extendTypes=Arrays.asList(extendType.split(","));
+  try {
+    Message.debug("Trying to parse included ivy file :" + location);
+    parent=parseOtherIvyFileOnFileSystem(location);
+    ModuleId expected=new ModuleId(parentOrganisation,parentModule);
+    ModuleId pid=parent.getModuleRevisionId().getModuleId();
+    if (!expected.equals(pid)) {
+      Message.verbose("Ignoring parent Ivy file " + location + "; expected "+ expected+ " but found "+ pid);
+      parent=null;
+    }
+  }
+ catch (  ParseException e) {
+    Message.warn("Unable to parse included ivy file " + location + ": "+ e.getMessage());
+  }
+catch (  IOException e) {
+    Message.warn("Unable to parse included ivy file " + location + ": "+ e.getMessage());
+  }
+  if (parent == null) {
+    try {
+      Message.debug("Trying to parse included ivy file by asking repository for module :" + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision);
+      parent=parseOtherIvyFile(parentOrganisation,parentModule,parentRevision);
+    }
+ catch (    ParseException e) {
+      Message.warn("Unable to parse included ivy file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision);
+    }
+  }
+  if (parent == null) {
+    throw new ParseException("Unable to parse included ivy file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision,0);
+  }
+  ResolutionCacheManager cacheManager=settings.getResolutionCacheManager();
+  File ivyFileInCache=cacheManager.getResolvedIvyFileInCache(parent.getResolvedModuleRevisionId());
+  if (parent.getResource() != null && !parent.getResource().getName().equals(ivyFileInCache.toURI().toString())) {
+    try {
+      parent.toIvyFile(ivyFileInCache);
+    }
+ catch (    ParseException e) {
+      throw new ParseException("Unable to create cache file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision+ " Reason:"+ e.getLocalizedMessage(),0);
+    }
+catch (    IOException e) {
+      throw new ParseException("Unable to create cache file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision+ " Reason :"+ e.getLocalizedMessage(),0);
+    }
+  }
+  DefaultExtendsDescriptor ed=new DefaultExtendsDescriptor(parent.getModuleRevisionId(),parent.getResolvedModuleRevisionId(),attributes.getValue("location"),(String[])extendTypes.toArray(new String[extendTypes.size()]));
+  getMd().addInheritedDescriptor(ed);
+  mergeWithOtherModuleDescriptor(extendTypes,parent);
+}

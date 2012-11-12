@@ -1,0 +1,32 @@
+{
+  try {
+    URL schemaURL=validate ? getSchemaURL() : null;
+    if (descriptorURL != null) {
+      XMLHelper.parse(descriptorURL,schemaURL,this);
+    }
+ else {
+      XMLHelper.parse(descriptorInput,schemaURL,this,null);
+    }
+    checkConfigurations();
+    replaceConfigurationWildcards();
+    getMd().setModuleArtifact(DefaultArtifact.newIvyArtifact(getMd().getResolvedModuleRevisionId(),getMd().getPublicationDate()));
+    if (!artifactsDeclared) {
+      String[] confs=getMd().getConfigurationsNames();
+      for (int i=0; i < confs.length; i++) {
+        getMd().addArtifact(confs[i],new MDArtifact(getMd(),getMd().getModuleRevisionId().getName(),"jar","jar"));
+      }
+    }
+    getMd().check();
+  }
+ catch (  ParserConfigurationException ex) {
+    IllegalStateException ise=new IllegalStateException(ex.getMessage() + " in " + descriptorURL);
+    ise.initCause(ex);
+    throw ise;
+  }
+catch (  Exception ex) {
+    checkErrors();
+    ParseException pe=new ParseException(ex.getMessage() + " in " + descriptorURL,0);
+    pe.initCause(ex);
+    throw pe;
+  }
+}

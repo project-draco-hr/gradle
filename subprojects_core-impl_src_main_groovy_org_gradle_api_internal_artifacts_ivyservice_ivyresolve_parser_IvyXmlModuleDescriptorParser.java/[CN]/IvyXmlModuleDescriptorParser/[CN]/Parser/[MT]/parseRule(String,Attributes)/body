@@ -1,0 +1,53 @@
+{
+  String name=settings.substitute(attributes.getValue("name"));
+  if (name == null) {
+    name=settings.substitute(attributes.getValue("artifact"));
+    if (name == null) {
+      name="artifact".equals(tag) ? dd.getDependencyId().getName() : PatternMatcher.ANY_EXPRESSION;
+    }
+  }
+  String type=settings.substitute(attributes.getValue("type"));
+  if (type == null) {
+    type="artifact".equals(tag) ? "jar" : PatternMatcher.ANY_EXPRESSION;
+  }
+  String ext=settings.substitute(attributes.getValue("ext"));
+  ext=ext != null ? ext : type;
+  if (state == State.DEP_ARTIFACT) {
+    String url=settings.substitute(attributes.getValue("url"));
+    Map extraAtt=ExtendableItemHelper.getExtraAttributes(settings,attributes,new String[]{"name","type","ext","url","conf"});
+    confAware=new DefaultDependencyArtifactDescriptor(dd,name,type,ext,url == null ? null : new URL(url),extraAtt);
+  }
+ else   if (state == State.ARTIFACT_INCLUDE) {
+    PatternMatcher matcher=getPatternMatcher(attributes.getValue("matcher"));
+    String org=settings.substitute(attributes.getValue("org"));
+    org=org == null ? PatternMatcher.ANY_EXPRESSION : org;
+    String module=settings.substitute(attributes.getValue("module"));
+    module=module == null ? PatternMatcher.ANY_EXPRESSION : module;
+    ArtifactId aid=new ArtifactId(new ModuleId(org,module),name,type,ext);
+    Map extraAtt=ExtendableItemHelper.getExtraAttributes(settings,attributes,new String[]{"org","module","name","type","ext","matcher","conf"});
+    confAware=new DefaultIncludeRule(aid,matcher,extraAtt);
+  }
+ else {
+    PatternMatcher matcher=getPatternMatcher(attributes.getValue("matcher"));
+    String org=settings.substitute(attributes.getValue("org"));
+    org=org == null ? PatternMatcher.ANY_EXPRESSION : org;
+    String module=settings.substitute(attributes.getValue("module"));
+    module=module == null ? PatternMatcher.ANY_EXPRESSION : module;
+    ArtifactId aid=new ArtifactId(new ModuleId(org,module),name,type,ext);
+    Map extraAtt=ExtendableItemHelper.getExtraAttributes(settings,attributes,new String[]{"org","module","name","type","ext","matcher","conf"});
+    confAware=new DefaultExcludeRule(aid,matcher,extraAtt);
+  }
+  String confs=settings.substitute(attributes.getValue("conf"));
+  if (confs != null && confs.length() > 0) {
+    String[] conf;
+    if ("*".equals(confs)) {
+      conf=getMd().getConfigurationsNames();
+    }
+ else {
+      conf=confs.split(",");
+    }
+    for (int i=0; i < conf.length; i++) {
+      addConfiguration(conf[i].trim());
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  descriptorVersion=attributes.getValue("version");
+  int versionIndex=ALLOWED_VERSIONS.indexOf(descriptorVersion);
+  if (versionIndex == -1) {
+    addError("invalid version " + descriptorVersion);
+    throw new SAXException("invalid version " + descriptorVersion);
+  }
+  if (versionIndex >= ALLOWED_VERSIONS.indexOf("1.3")) {
+    Message.debug("post 1.3 ivy file: using " + PatternMatcher.EXACT + " as default matcher");
+    defaultMatcher=settings.getMatcher(PatternMatcher.EXACT);
+  }
+ else {
+    Message.debug("pre 1.3 ivy file: using " + PatternMatcher.EXACT_OR_REGEXP + " as default matcher");
+    defaultMatcher=settings.getMatcher(PatternMatcher.EXACT_OR_REGEXP);
+  }
+  for (int i=0; i < attributes.getLength(); i++) {
+    if (attributes.getQName(i).startsWith("xmlns:")) {
+      getMd().addExtraAttributeNamespace(attributes.getQName(i).substring("xmlns:".length()),attributes.getValue(i));
+    }
+  }
+}

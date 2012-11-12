@@ -1,0 +1,34 @@
+{
+  String org=settings.substitute(attributes.getValue("org"));
+  org=org == null ? PatternMatcher.ANY_EXPRESSION : org;
+  String mod=settings.substitute(attributes.getValue("module"));
+  mod=mod == null ? PatternMatcher.ANY_EXPRESSION : mod;
+  ConflictManager cm;
+  String name=settings.substitute(attributes.getValue(managerAtt));
+  String rev=settings.substitute(attributes.getValue("rev"));
+  if (rev != null) {
+    String[] revs=rev.split(",");
+    for (int i=0; i < revs.length; i++) {
+      revs[i]=revs[i].trim();
+    }
+    cm=new FixedConflictManager(revs);
+  }
+ else   if (name != null) {
+    cm=settings.getConflictManager(name);
+    if (cm == null) {
+      addError("unknown conflict manager: " + name);
+      return;
+    }
+  }
+ else {
+    addError("bad conflict manager: no manager nor rev");
+    return;
+  }
+  String matcherName=settings.substitute(attributes.getValue("matcher"));
+  PatternMatcher matcher=matcherName == null ? defaultMatcher : settings.getMatcher(matcherName);
+  if (matcher == null) {
+    addError("unknown matcher: " + matcherName);
+    return;
+  }
+  getMd().addConflictManager(new ModuleId(org,mod),matcher,cm);
+}

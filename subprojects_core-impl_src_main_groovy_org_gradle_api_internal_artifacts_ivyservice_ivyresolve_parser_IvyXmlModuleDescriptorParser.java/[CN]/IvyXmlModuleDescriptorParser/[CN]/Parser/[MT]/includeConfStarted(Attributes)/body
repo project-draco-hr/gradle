@@ -1,0 +1,26 @@
+{
+  URL url=settings.getRelativeUrlResolver().getURL(descriptorURL,settings.substitute(attributes.getValue("file")),settings.substitute(attributes.getValue("url")));
+  if (url == null) {
+    throw new SAXException("include tag must have a file or an url attribute");
+  }
+  Parser parser=new Parser(getModuleDescriptorParser(),settings);
+  parser.setInput(url);
+  parser.setMd(new DefaultModuleDescriptor(getModuleDescriptorParser(),new URLResource(url)));
+  XMLHelper.parse(url,null,parser);
+  Configuration[] configs=parser.getModuleDescriptor().getConfigurations();
+  for (int i=0; i < configs.length; i++) {
+    getMd().addConfiguration(configs[i]);
+  }
+  if (parser.getDefaultConfMapping() != null) {
+    Message.debug("setting default conf mapping from imported configurations file: " + parser.getDefaultConfMapping());
+    setDefaultConfMapping(parser.getDefaultConfMapping());
+  }
+  if (parser.getDefaultConf() != null) {
+    Message.debug("setting default conf from imported configurations file: " + parser.getDefaultConf());
+    setDefaultConf(parser.getDefaultConf());
+  }
+  if (parser.getMd().isMappingOverride()) {
+    Message.debug("enabling mapping-override from imported configurations" + " file");
+    getMd().setMappingOverride(true);
+  }
+}

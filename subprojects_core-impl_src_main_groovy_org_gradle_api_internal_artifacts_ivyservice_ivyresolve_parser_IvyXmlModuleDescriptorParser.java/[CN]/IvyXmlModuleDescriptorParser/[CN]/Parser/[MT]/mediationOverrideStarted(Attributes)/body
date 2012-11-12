@@ -1,0 +1,15 @@
+{
+  String org=settings.substitute(attributes.getValue("org"));
+  org=org == null ? PatternMatcher.ANY_EXPRESSION : org;
+  String mod=settings.substitute(attributes.getValue("module"));
+  mod=mod == null ? PatternMatcher.ANY_EXPRESSION : mod;
+  String rev=settings.substitute(attributes.getValue("rev"));
+  String branch=settings.substitute(attributes.getValue("branch"));
+  String matcherName=settings.substitute(attributes.getValue("matcher"));
+  PatternMatcher matcher=matcherName == null ? defaultMatcher : settings.getMatcher(matcherName);
+  if (matcher == null) {
+    addError("unknown matcher: " + matcherName);
+    return;
+  }
+  getMd().addDependencyDescriptorMediator(new ModuleId(org,mod),matcher,new OverrideDependencyDescriptorMediator(branch,rev));
+}

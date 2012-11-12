@@ -1,0 +1,32 @@
+{
+  if (state == State.PUB) {
+    String artName=settings.substitute(attributes.getValue("name"));
+    artName=artName == null ? getMd().getModuleRevisionId().getName() : artName;
+    String type=settings.substitute(attributes.getValue("type"));
+    type=type == null ? "jar" : type;
+    String ext=settings.substitute(attributes.getValue("ext"));
+    ext=ext != null ? ext : type;
+    String url=settings.substitute(attributes.getValue("url"));
+    artifact=new MDArtifact(getMd(),artName,type,ext,url == null ? null : new URL(url),ExtendableItemHelper.getExtraAttributes(settings,attributes,new String[]{"ext","type","name","conf"}));
+    String confs=settings.substitute(attributes.getValue("conf"));
+    if (confs != null && confs.length() > 0) {
+      String[] conf;
+      if ("*".equals(confs)) {
+        conf=getMd().getConfigurationsNames();
+      }
+ else {
+        conf=confs.split(",");
+      }
+      for (int i=0; i < conf.length; i++) {
+        artifact.addConfiguration(conf[i].trim());
+        getMd().addArtifact(conf[i].trim(),artifact);
+      }
+    }
+  }
+ else   if (state == State.DEP) {
+    addDependencyArtifacts(qName,attributes);
+  }
+ else   if (validate) {
+    addError("artifact tag found in invalid tag: " + state);
+  }
+}

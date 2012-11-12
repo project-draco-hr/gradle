@@ -1,0 +1,63 @@
+{
+  if (state == State.PUB && "artifact".equals(qName) && artifact.getConfigurations().length == 0) {
+    String[] confs=publicationsDefaultConf == null ? getMd().getConfigurationsNames() : publicationsDefaultConf;
+    for (int i=0; i < confs.length; i++) {
+      artifact.addConfiguration(confs[i].trim());
+      getMd().addArtifact(confs[i].trim(),artifact);
+    }
+  }
+ else   if ("configurations".equals(qName)) {
+    checkConfigurations();
+  }
+ else   if ((state == State.DEP_ARTIFACT && "artifact".equals(qName)) || (state == State.ARTIFACT_INCLUDE && "include".equals(qName)) || (state == State.ARTIFACT_EXCLUDE && "exclude".equals(qName))) {
+    state=State.DEP;
+    if (confAware.getConfigurations().length == 0) {
+      String[] confs=getMd().getConfigurationsNames();
+      for (int i=0; i < confs.length; i++) {
+        addConfiguration(confs[i]);
+      }
+    }
+    confAware=null;
+  }
+ else   if ("exclude".equals(qName) && state == State.EXCLUDE) {
+    if (confAware.getConfigurations().length == 0) {
+      String[] confs=getMd().getConfigurationsNames();
+      for (int i=0; i < confs.length; i++) {
+        addConfiguration(confs[i]);
+      }
+    }
+    confAware=null;
+    state=State.DEPS;
+  }
+ else   if ("dependency".equals(qName) && state == State.DEP) {
+    if (dd.getModuleConfigurations().length == 0) {
+      parseDepsConfs(getDefaultConf(),dd);
+    }
+    state=State.DEPS;
+  }
+ else   if ("dependencies".equals(qName) && state == State.DEPS) {
+    state=State.NONE;
+  }
+ else   if (state == State.INFO && "info".equals(qName)) {
+    state=State.NONE;
+  }
+ else   if (state == State.DESCRIPTION && "description".equals(qName)) {
+    getMd().setDescription(buffer == null ? "" : buffer.toString().trim());
+    buffer=null;
+    state=State.INFO;
+  }
+ else   if (state == State.EXTRA_INFO) {
+    getMd().addExtraInfo(qName,buffer == null ? "" : buffer.toString());
+    buffer=null;
+    state=State.INFO;
+  }
+ else   if (state == State.DESCRIPTION) {
+    if (buffer.toString().endsWith("<" + qName + ">")) {
+      buffer.deleteCharAt(buffer.length() - 1);
+      buffer.append("/>");
+    }
+ else {
+      buffer.append("</" + qName + ">");
+    }
+  }
+}
