@@ -1,9 +1,12 @@
 {
-  if (state.getExecuting() || state.getExecuted()) {
-    DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted("Task.setActions(Actions<Task>)",this);
-  }
+  nagIfTaskAlreadyExecuted("Task.setActions(Actions<Task>)");
   deleteAllActions();
-  for (  Action<? super Task> action : actions) {
-    doLast(action);
+  DeprecationLogger.whileDisabled(new Runnable(){
+    public void run(){
+      for (      Action<? super Task> action : actions) {
+        doLast(action);
+      }
+    }
   }
+);
 }
