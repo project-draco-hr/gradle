@@ -1,5 +1,15 @@
 {
   logger.info("Publishing configuration: " + configuration);
-  ConfigurationInternal configurationInternal=(ConfigurationInternal)configuration;
-  artifactPublisher.publish(configurationInternal.getModule(),configuration.getHierarchy(),isUploadDescriptor() ? getDescriptorDestination() : null,null);
+  Module module=((ConfigurationInternal)configuration).getModule();
+  Set<Configuration> configurationsToPublish=configuration.getHierarchy();
+  if (isUploadDescriptor()) {
+    File descriptorDestination=getDescriptorDestination();
+    Set<Configuration> allConfigurations=configurationsToPublish.iterator().next().getAll();
+    ModuleDescriptor moduleDescriptor=moduleDescriptorConverter.convert(allConfigurations,module);
+    ivyModuleDescriptorWriter.write(moduleDescriptor,descriptorDestination);
+    artifactPublisher.publish(module,configurationsToPublish,descriptorDestination);
+  }
+ else {
+    artifactPublisher.publish(module,configurationsToPublish,null);
+  }
 }

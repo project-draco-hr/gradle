@@ -1,8 +1,22 @@
 {
-  return new DefaultConfigurableFileCollection("publication artifacts",fileResolver,taskResolver,collect(configurations,new Transformer<FileCollection,Configuration>(){
-    public FileCollection transform(    Configuration configuration){
-      return configuration.getAllArtifacts().getFiles();
+  ConfigurableFileCollection files=new DefaultConfigurableFileCollection("publication artifacts",fileResolver,taskResolver);
+  files.from(new Callable<Set<FileCollection>>(){
+    public Set<FileCollection> call() throws Exception {
+      return collect(getConfigurations(),new Transformer<FileCollection,Configuration>(){
+        public FileCollection transform(        Configuration configuration){
+          return configuration.getAllArtifacts().getFiles();
+        }
+      }
+);
     }
   }
-));
+);
+  files.from(new Callable<File>(){
+    public File call() throws Exception {
+      return descriptor.getFile();
+    }
+  }
+);
+  files.builtBy(descriptor.getBuildDependencies());
+  return files;
 }

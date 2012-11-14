@@ -8,7 +8,10 @@
   }
 );
   extension.getPublications().add(createPublication("ivy",project,visibleConfigurations));
-  Task publishLifecycleTask=project.getTasks().getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
-  IvyPublishDynamicTaskCreator publishTaskCreator=new IvyPublishDynamicTaskCreator(project.getTasks(),publishLifecycleTask);
+  TaskContainer tasks=project.getTasks();
+  IvyPublicationDynamicDescriptorGenerationTaskCreator descriptorGenerationTaskCreator=new IvyPublicationDynamicDescriptorGenerationTaskCreator(tasks);
+  descriptorGenerationTaskCreator.monitor(extension.getPublications());
+  Task publishLifecycleTask=tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
+  IvyPublishDynamicTaskCreator publishTaskCreator=new IvyPublishDynamicTaskCreator(tasks,publishLifecycleTask);
   publishTaskCreator.monitor(extension.getPublications(),extension.getRepositories());
 }
