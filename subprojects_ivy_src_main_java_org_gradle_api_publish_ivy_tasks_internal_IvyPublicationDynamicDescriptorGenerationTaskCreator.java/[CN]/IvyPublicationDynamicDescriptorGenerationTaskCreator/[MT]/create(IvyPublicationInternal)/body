@@ -1,35 +1,33 @@
 {
-  if (!(publication instanceof IvyPublicationInternal)) {
-    return;
-  }
-  final IvyPublicationInternal publicationInternal=(IvyPublicationInternal)publication;
   String publicationName=publication.getName();
   String descriptorTaskName=calculateDescriptorTaskName(publicationName);
   GenerateIvyDescriptor descriptorTask=tasks.add(descriptorTaskName,GenerateIvyDescriptor.class);
+  descriptorTask.setGroup("publishing");
+  descriptorTask.setDescription(String.format("Generates the Ivy Module Descriptor XML file for publication '%s'",publication.getName()));
   ConventionMapping descriptorTaskConventionMapping=new DslObject(descriptorTask).getConventionMapping();
   descriptorTaskConventionMapping.map("destination",new Callable<Object>(){
     public Object call() throws Exception {
-      return publicationInternal.getDescriptor().getFile();
+      return publication.getDescriptor().getFile();
     }
   }
 );
   descriptorTaskConventionMapping.map("module",new Callable<Object>(){
     public Object call() throws Exception {
-      return publicationInternal.getModule();
+      return publication.getModule();
     }
   }
 );
   descriptorTaskConventionMapping.map("configurations",new Callable<Object>(){
     public Object call() throws Exception {
-      return publicationInternal.getConfigurations().iterator().next().getAll();
+      return publication.getConfigurations().iterator().next().getAll();
     }
   }
 );
   descriptorTaskConventionMapping.map("xmlAction",new Callable<Object>(){
     public Object call() throws Exception {
-      return publicationInternal.getDescriptor().getXmlAction();
+      return publication.getDescriptor().getXmlAction();
     }
   }
 );
-  publicationInternal.getDescriptor().builtBy(descriptorTask);
+  publication.getDescriptor().builtBy(descriptorTask);
 }
