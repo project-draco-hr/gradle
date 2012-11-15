@@ -1,2 +1,14 @@
 {
+  for (  InternalDependencyResult d : dependencies) {
+    DefaultResolvedModuleVersionResult from=modules.get(id);
+    if (d.getFailure() != null) {
+      from.addDependency(dependencyResultFactory.createUnresolvedDependency(d.getRequested(),from,d.getFailure()));
+    }
+ else {
+      DefaultResolvedModuleVersionResult selected=modules.get(d.getSelected().getSelectedId());
+      DependencyResult dependency=dependencyResultFactory.createResolvedDependency(d.getRequested(),from,selected);
+      from.addDependency(dependency);
+      selected.addDependent((ResolvedDependencyResult)dependency);
+    }
+  }
 }
