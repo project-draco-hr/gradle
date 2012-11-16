@@ -1,0 +1,34 @@
+{
+  context.checking(new Expectations(){
+{
+      allowing(task).getActions();
+      will(returnValue(toList(action1)));
+      one(listener).beforeActions(task);
+      inSequence(sequence);
+      one(state).setExecuting(true);
+      inSequence(sequence);
+      one(state).setDidWork(true);
+      inSequence(sequence);
+      one(standardOutputCapture).start();
+      inSequence(sequence);
+      one(action1).execute(task);
+      will(new CustomAction("Add action to actions list"){
+        public Object invoke(        Invocation invocation) throws Throwable {
+          task.getActions().add(action2);
+          return null;
+        }
+      }
+);
+      inSequence(sequence);
+      one(standardOutputCapture).stop();
+      one(state).executed(null);
+      inSequence(sequence);
+      one(state).setExecuting(false);
+      inSequence(sequence);
+      one(listener).afterActions(task);
+      inSequence(sequence);
+    }
+  }
+);
+  executer.execute(task,state);
+}
