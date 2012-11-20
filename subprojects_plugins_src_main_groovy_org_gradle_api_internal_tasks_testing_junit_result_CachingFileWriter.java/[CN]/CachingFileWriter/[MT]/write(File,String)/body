@@ -1,0 +1,26 @@
+{
+  Writer out=null;
+  lock.lock();
+  try {
+    if (openFiles.containsKey(file)) {
+      out=openFiles.get(file);
+    }
+ else {
+      out=new BufferedWriter(new FileWriter(file,true));
+      openFiles.put(file,out);
+      if (openFiles.size() > openFilesCount) {
+        Iterator<Map.Entry<File,Writer>> iterator=openFiles.entrySet().iterator();
+        IOUtils.closeQuietly(iterator.next().getValue());
+        iterator.remove();
+      }
+    }
+    out.write(text);
+  }
+ catch (  IOException e) {
+    IOUtils.closeQuietly(out);
+    throw new RuntimeException("Problems writing to file: " + file,e);
+  }
+ finally {
+    lock.unlock();
+  }
+}

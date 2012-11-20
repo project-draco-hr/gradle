@@ -1,0 +1,21 @@
+{
+  Clock clock=new Clock();
+  Map<String,TestClassResult> results=testResultsProvider.provideResults();
+  for (  Map.Entry<String,TestClassResult> entry : results.entrySet()) {
+    String className=entry.getKey();
+    TestClassResult result=entry.getValue();
+    File file=new File(testResultsDir,"TEST-" + className + ".xml");
+    Writer output=null;
+    try {
+      output=new FileWriter(file);
+      saxWriter.write(className,result,output);
+    }
+ catch (    IOException e) {
+      throw new GradleException("Problems writing xml test results to file: " + file,e);
+    }
+ finally {
+      IOUtils.closeQuietly(output);
+    }
+  }
+  LOG.info("Finished generating test xml results (" + clock.getTime() + ")");
+}

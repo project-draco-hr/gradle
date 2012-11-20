@@ -1,0 +1,31 @@
+{
+  try {
+    XMLStreamWriter writer=xmlOutputFactory.createXMLStreamWriter(output);
+    writer.writeStartDocument("UTF-8","1.0");
+    writer.writeCharacters("\n  ");
+    writer.writeStartElement("testsuite");
+    writer.writeAttribute("name",className);
+    writer.writeAttribute("tests",String.valueOf(result.getTestsCount()));
+    writer.writeAttribute("failures",String.valueOf(result.getFailuresCount()));
+    writer.writeAttribute("errors","0");
+    writer.writeAttribute("timestamp",DateUtils.format(result.getStartTime(),DateUtils.ISO8601_DATETIME_PATTERN));
+    writer.writeAttribute("hostname",hostName);
+    writer.writeAttribute("time",String.valueOf(result.getDuration() / 1000.0));
+    writer.writeCharacters("\n  ");
+    writer.writeEmptyElement("properties");
+    writeTests(writer,result.getResults(),className);
+    writer.writeCharacters("\n  ");
+    output.write("<system-out><![CDATA[");
+    testResultsProvider.provideOutputs(className,TestOutputEvent.Destination.StdOut,output);
+    output.write("]]></system-out>");
+    writer.writeCharacters("\n  ");
+    output.write("<system-err><![CDATA[");
+    testResultsProvider.provideOutputs(className,TestOutputEvent.Destination.StdErr,output);
+    output.write("]]></system-err>\n");
+    writer.writeEndElement();
+    writer.writeEndDocument();
+  }
+ catch (  XMLStreamException e) {
+    throw new RuntimeException("Problems writing the xml results for class: " + className,e);
+  }
+}
