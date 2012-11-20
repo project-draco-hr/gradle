@@ -3,21 +3,11 @@
     GFileUtils.cleanDirectory(reportDir);
   }
   fileStore.moveFilestore(new File(reportDir,FILES_DIR_NAME));
-  Charset encoding=Charset.defaultCharset();
-  OutputStream outputStream;
-  Writer writer;
-  try {
-    outputStream=FileUtils.openOutputStream(new File(reportDir,HTML_REPORT_FILE_NAME));
-    writer=new OutputStreamWriter(outputStream,encoding);
+  final Charset encoding=Charset.defaultCharset();
+  IoActions.writeFile(new File(reportDir,HTML_REPORT_FILE_NAME),encoding.name(),new Action<BufferedWriter>(){
+    public void execute(    BufferedWriter writer){
+      createResultRenderer(encoding,reportDir,hostAttributes).render(result,writer);
+    }
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
-  }
-  try {
-    createResultRenderer(encoding,reportDir,hostAttributes).render(result,writer);
-  }
-  finally {
-    IOUtils.closeQuietly(writer);
-    IOUtils.closeQuietly(outputStream);
-  }
+);
 }
