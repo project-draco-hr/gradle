@@ -1,0 +1,15 @@
+{
+  project.getPlugins().apply(PublishingPlugin.class);
+  PublishingExtension extension=project.getExtensions().getByType(PublishingExtension.class);
+  Set<Configuration> visibleConfigurations=project.getConfigurations().matching(new Spec<Configuration>(){
+    public boolean isSatisfiedBy(    Configuration configuration){
+      return configuration.isVisible();
+    }
+  }
+);
+  extension.getPublications().add(createPublication("maven",project,visibleConfigurations));
+  TaskContainer tasks=project.getTasks();
+  Task publishLifecycleTask=tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
+  MavenPublishDynamicTaskCreator publishTaskCreator=new MavenPublishDynamicTaskCreator(tasks,publishLifecycleTask);
+  publishTaskCreator.monitor(extension.getPublications(),extension.getRepositories());
+}

@@ -1,0 +1,20 @@
+{
+  Callable<Object> pomDirCallable=new Callable<Object>(){
+    public Object call(){
+      return new File(project.getBuildDir(),"publications/" + name);
+    }
+  }
+;
+  ModuleBackedMavenProjectIdentity projectIdentity=new ModuleBackedMavenProjectIdentity(dependencyMetaDataProvider.getModule());
+  DefaultMavenPublication publication;
+  try {
+    publication=instantiator.newInstance(DefaultMavenPublication.class,name,instantiator,projectIdentity,asPublishArtifacts(configurations),pomDirCallable.call(),fileResolver,project.getTasks());
+  }
+ catch (  Exception ignore) {
+    throw new RuntimeException(ignore);
+  }
+  DslObject publicationDslObject=new DslObject(publication);
+  ConventionMapping descriptorConventionMapping=publicationDslObject.getConventionMapping();
+  descriptorConventionMapping.map("pomDir",pomDirCallable);
+  return publication;
+}
