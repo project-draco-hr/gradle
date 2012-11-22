@@ -2,10 +2,13 @@
   logger.info("Publishing configuration: " + configuration);
   Module module=((ConfigurationInternal)configuration).getModule();
   Set<Configuration> configurationsToPublish=configuration.getHierarchy();
+  ArtifactPublisher artifactPublisher=publicationServices.getArtifactPublisher();
   if (isUploadDescriptor()) {
     File descriptorDestination=getDescriptorDestination();
     Set<Configuration> allConfigurations=configurationsToPublish.iterator().next().getAll();
+    ModuleDescriptorConverter moduleDescriptorConverter=publicationServices.getDescriptorFileModuleConverter();
     ModuleDescriptor moduleDescriptor=moduleDescriptorConverter.convert(allConfigurations,module);
+    IvyModuleDescriptorWriter ivyModuleDescriptorWriter=publicationServices.getIvyModuleDescriptorWriter();
     ivyModuleDescriptorWriter.write(moduleDescriptor,descriptorDestination);
     artifactPublisher.publish(module,configurationsToPublish,descriptorDestination);
   }
