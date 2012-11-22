@@ -2,7 +2,12 @@
   getLogger().info("Publishing configuration: " + configuration);
   Module module=((ConfigurationInternal)configuration).getModule();
   Set<Configuration> configurationsToPublish=configuration.getHierarchy();
-  ArtifactPublisher artifactPublisher=publicationServices.getArtifactPublisher();
+  ArtifactPublisher artifactPublisher=publicationServices.createArtifactPublisher(collect(repositories,new Transformer<DependencyResolver,ArtifactRepository>(){
+    public DependencyResolver transform(    ArtifactRepository repository){
+      return cast(ArtifactRepositoryInternal.class,repository).createResolver();
+    }
+  }
+));
   try {
     File descriptorDestination=isUploadDescriptor() ? getDescriptorDestination() : null;
     if (descriptorDestination != null) {
