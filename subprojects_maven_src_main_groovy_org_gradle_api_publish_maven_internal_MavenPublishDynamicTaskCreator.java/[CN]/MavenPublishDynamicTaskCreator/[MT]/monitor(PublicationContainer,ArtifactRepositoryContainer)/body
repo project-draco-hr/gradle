@@ -1,15 +1,17 @@
 {
-  publications.all(new Action<Publication>(){
-    public void execute(    Publication publication){
-      for (      ArtifactRepository repository : repositories) {
+  final NamedDomainObjectSet<MavenPublicationInternal> mavenPublications=publications.withType(MavenPublicationInternal.class);
+  final NamedDomainObjectList<MavenArtifactRepository> mavenRepositories=repositories.withType(MavenArtifactRepository.class);
+  mavenPublications.all(new Action<MavenPublicationInternal>(){
+    public void execute(    MavenPublicationInternal publication){
+      for (      MavenArtifactRepository repository : mavenRepositories) {
         maybeCreate(publication,repository);
       }
     }
   }
 );
-  repositories.whenObjectAdded(new Action<ArtifactRepository>(){
-    public void execute(    ArtifactRepository repository){
-      for (      Publication publication : publications) {
+  mavenRepositories.all(new Action<MavenArtifactRepository>(){
+    public void execute(    MavenArtifactRepository repository){
+      for (      MavenPublicationInternal publication : mavenPublications) {
         maybeCreate(publication,repository);
       }
     }
