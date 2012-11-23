@@ -1,30 +1,3 @@
 {
-  Spec<FileTreeElement> includeSpec=Specs.satisfyAll();
-  Set<String> includes=this.getIncludes();
-  Set<Spec<FileTreeElement>> includeSpecs=getIncludeSpecs();
-  boolean hasIncludes=!includes.isEmpty() || !includeSpecs.isEmpty();
-  if (hasIncludes) {
-    List<Spec<FileTreeElement>> matchers=new LinkedList<Spec<FileTreeElement>>();
-    for (    String include : includes) {
-      Spec<RelativePath> patternMatcher=PatternMatcherFactory.getPatternMatcher(true,isCaseSensitive(),include);
-      matchers.add(new RelativePathSpec(patternMatcher));
-    }
-    matchers.addAll(includeSpecs);
-    includeSpec=new OrSpec<FileTreeElement>(matchers);
-  }
-  Set<String> excludes=getExcludes();
-  Collection<String> allExcludes=new HashSet<String>(excludes);
-  Collections.addAll(allExcludes,DirectoryScanner.getDefaultExcludes());
-  Set<Spec<FileTreeElement>> excludeSpecs=getExcludeSpecs();
-  List<Spec<FileTreeElement>> matchers=new LinkedList<Spec<FileTreeElement>>();
-  for (  String exclude : allExcludes) {
-    Spec<RelativePath> patternMatcher=PatternMatcherFactory.getPatternMatcher(false,isCaseSensitive(),exclude);
-    matchers.add(new RelativePathSpec(patternMatcher));
-  }
-  matchers.addAll(excludeSpecs);
-  Spec<FileTreeElement> excludeSpec=new NotSpec<FileTreeElement>(new OrSpec<FileTreeElement>(matchers));
-  if (!hasIncludes) {
-    return excludeSpec;
-  }
-  return new AndSpec<FileTreeElement>(includeSpec,excludeSpec);
+  return new AndSpec<FileTreeElement>(getAsIncludeSpec(),new NotSpec<FileTreeElement>(getAsExcludeSpec()));
 }
