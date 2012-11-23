@@ -1,0 +1,38 @@
+{
+  if (stopFlag.get()) {
+    return;
+  }
+  String segment=patternSegments.get(segmentIndex);
+  if (segment.contains("**")) {
+    PatternSet patternSet=new PatternSet();
+    patternSet.include(includePattern);
+    patternSet.exclude(excludeSpec);
+    DirectoryFileTree fileTree=new DirectoryFileTree(baseDir,patternSet);
+    fileTree.visitFrom(visitor,file,new RelativePath(file.isFile(),relativePath.toArray(new String[relativePath.size()])));
+  }
+ else   if (segment.contains("*") || segment.contains("?")) {
+    PatternStep step=new RegExpPatternStep(segment,false);
+    File[] children=file.listFiles();
+    if (children == null) {
+      if (!file.canRead()) {
+        throw new GradleException(String.format("Could not list contents of directory '%s' as it is not readable.",file));
+      }
+      throw new GradleException(String.format("Could not list contents of '%s'.",file));
+    }
+    for (    File child : children) {
+      if (stopFlag.get()) {
+        break;
+      }
+      if (step.matches(child.getName(),child.isFile())) {
+        relativePath.addLast(child.getName());
+        doVisitDirOrFile(visitor,child,relativePath,segmentIndex + 1,stopFlag);
+        relativePath.removeLast();
+      }
+    }
+  }
+ else {
+    relativePath.addLast(segment);
+    doVisitDirOrFile(visitor,new File(file,segment),relativePath,segmentIndex + 1,stopFlag);
+    relativePath.removeLast();
+  }
+}
