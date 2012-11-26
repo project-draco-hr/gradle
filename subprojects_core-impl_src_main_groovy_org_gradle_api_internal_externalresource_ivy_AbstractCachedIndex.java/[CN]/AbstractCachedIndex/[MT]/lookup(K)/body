@@ -1,0 +1,19 @@
+{
+  assertKeyNotNull(key);
+  return cacheLockingManager.useCache(operationName("lookup from"),new Factory<V>(){
+    public V create(){
+      V found=getPersistentCache().get(key);
+      if (found == null) {
+        return null;
+      }
+ else       if (found.isMissing() || found.getCachedFile().exists()) {
+        return found;
+      }
+ else {
+        clear(key);
+        return null;
+      }
+    }
+  }
+);
+}
