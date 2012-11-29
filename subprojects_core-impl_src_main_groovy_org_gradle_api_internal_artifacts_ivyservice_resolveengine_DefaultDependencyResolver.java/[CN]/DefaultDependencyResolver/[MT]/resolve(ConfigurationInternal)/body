@@ -5,7 +5,9 @@
   dependencyResolver=new ClientModuleResolver(dependencyResolver);
   dependencyResolver=new ProjectDependencyResolver(projectModuleRegistry,dependencyResolver);
   DependencyToModuleVersionIdResolver idResolver=new LazyDependencyToModuleResolver(dependencyResolver,ivyAdapter.getResolveData().getSettings().getVersionMatcher());
-  idResolver=new VersionForcingDependencyToModuleResolver(idResolver,configuration.getResolutionStrategy().getForcedModules());
+  ModuleForcingStrategy moduleForcingStrategy=configuration.getResolutionStrategy().getModuleForcingStrategy();
+  Set<Action<ForcedModuleDetails>> rules=forcedModuleRulesFactory.createRules(moduleForcingStrategy);
+  idResolver=new VersionForcingDependencyToModuleResolver(idResolver,rules);
   ModuleConflictResolver conflictResolver;
   if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
     conflictResolver=new StrictConflictResolver();
