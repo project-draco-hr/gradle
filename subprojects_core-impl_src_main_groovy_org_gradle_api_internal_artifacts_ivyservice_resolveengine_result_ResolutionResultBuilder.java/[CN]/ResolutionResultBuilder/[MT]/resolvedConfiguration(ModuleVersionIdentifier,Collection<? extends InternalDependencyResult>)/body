@@ -4,14 +4,17 @@
     if (from == null) {
       throw new IllegalStateException("Something went wrong with building the dependency graph. Module [" + id + "] should have been visited.");
     }
+    DefaultResolvedModuleVersionResult selected=createOrGet(d);
+    DependencyResult dependency;
     if (d.getFailure() != null) {
-      from.addDependency(dependencyResultFactory.createUnresolvedDependency(d.getRequested(),from,d.getFailure()));
+      dependency=dependencyResultFactory.createUnresolvedDependency(d.getRequested(),from,selected,d.getFailure());
     }
  else {
-      DefaultResolvedModuleVersionResult selected=createOrGet(d.getSelected().getSelectedId(),d.getSelected().getSelectionReason());
-      DependencyResult dependency=dependencyResultFactory.createResolvedDependency(d.getRequested(),from,selected);
-      from.addDependency(dependency);
-      selected.addDependent((ResolvedDependencyResult)dependency);
+      dependency=dependencyResultFactory.createResolvedDependency(d.getRequested(),from,selected);
+    }
+    from.addDependency(dependency);
+    if (selected != null) {
+      selected.addDependent(dependency);
     }
   }
 }
