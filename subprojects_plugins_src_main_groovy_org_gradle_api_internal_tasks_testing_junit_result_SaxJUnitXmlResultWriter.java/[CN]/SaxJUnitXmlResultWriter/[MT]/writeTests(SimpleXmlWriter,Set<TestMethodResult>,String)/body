@@ -2,15 +2,10 @@
   for (  TestMethodResult methodResult : methodResults) {
     writer.writeCharacters("\n    ");
     String testCase=methodResult.result.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
-    writer.writeStartElement(testCase);
-    writer.writeAttribute("name",methodResult.name);
-    writer.writeAttribute("classname",className);
-    writer.writeAttribute("time",String.valueOf(methodResult.getDuration() / 1000.0));
+    writer.writeStartElement(new SimpleXmlWriter.Element(testCase).attribute("name",methodResult.name).attribute("classname",className).attribute("time",String.valueOf(methodResult.getDuration() / 1000.0)));
     for (    Throwable failure : methodResult.result.getExceptions()) {
       writer.writeCharacters("\n      ");
-      writer.writeStartElement("failure");
-      writer.writeAttribute("message",failureMessage(failure));
-      writer.writeAttribute("type",failure.getClass().getName());
+      writer.writeStartElement(new SimpleXmlWriter.Element("failure").attribute("message",failureMessage(failure)).attribute("type",failure.getClass().getName()));
       writer.writeCharacters(stackTrace(failure));
       writer.writeEndElement();
     }
