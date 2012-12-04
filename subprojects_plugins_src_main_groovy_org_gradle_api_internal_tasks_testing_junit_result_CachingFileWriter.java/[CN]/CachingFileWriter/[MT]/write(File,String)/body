@@ -1,19 +1,19 @@
 {
-  DataOutputStream out;
+  Writer out;
   try {
     if (openFiles.containsKey(file)) {
       out=openFiles.get(file);
     }
  else {
-      out=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file,true)));
+      out=new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file,true)),"UTF-8");
       openFiles.put(file,out);
       if (openFiles.size() > openFilesCount) {
-        Iterator<Map.Entry<File,DataOutputStream>> iterator=openFiles.entrySet().iterator();
+        Iterator<Map.Entry<File,Writer>> iterator=openFiles.entrySet().iterator();
         close(iterator.next().getValue(),file.toString());
         iterator.remove();
       }
     }
-    out.writeUTF(text);
+    out.write(text);
   }
  catch (  IOException e) {
     cleanUpQuietly();
