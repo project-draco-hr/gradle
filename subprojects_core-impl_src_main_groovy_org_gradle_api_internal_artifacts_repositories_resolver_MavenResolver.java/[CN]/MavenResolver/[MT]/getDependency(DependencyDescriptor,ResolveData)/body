@@ -1,0 +1,14 @@
+{
+  if (isSnapshotVersion(dd)) {
+    final ModuleRevisionId dependencyRevisionId=dd.getDependencyRevisionId();
+    final String uniqueSnapshotVersion=findUniqueSnapshotVersion(dependencyRevisionId);
+    if (uniqueSnapshotVersion != null) {
+      Map<String,String> extraAttributes=new HashMap<String,String>(1);
+      extraAttributes.put("timestamp",uniqueSnapshotVersion);
+      final ModuleRevisionId newModuleRevisionId=ModuleRevisionId.newInstance(dependencyRevisionId.getOrganisation(),dependencyRevisionId.getName(),dependencyRevisionId.getRevision(),extraAttributes);
+      final DependencyDescriptor enrichedDependencyDescriptor=dd.clone(newModuleRevisionId);
+      return super.getDependency(enrichedDependencyDescriptor,data);
+    }
+  }
+  return super.getDependency(dd,data);
+}
