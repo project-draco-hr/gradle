@@ -1,15 +1,13 @@
 {
-  for (  Action<? super DependencyResolveDetails> rule : rules) {
-    ModuleVersionSelector module=new DefaultModuleVersionSelector(dependencyDescriptor.getDependencyRevisionId().getOrganisation(),dependencyDescriptor.getDependencyRevisionId().getName(),dependencyDescriptor.getDependencyRevisionId().getRevision());
-    DefaultForcedModuleDetails details=new DefaultForcedModuleDetails(module);
-    rule.execute(details);
-    if (details.getForcedVersion() != null) {
-      ModuleId moduleId=new ModuleId(details.getRequested().getGroup(),details.getRequested().getName());
-      ModuleRevisionId revisionId=new ModuleRevisionId(moduleId,details.getForcedVersion());
-      DependencyDescriptor descriptor=dependencyDescriptor.clone(revisionId);
-      ModuleVersionIdResolveResult result=resolver.resolve(descriptor);
-      return new ForcedModuleVersionIdResolveResult(result);
-    }
+  ModuleVersionSelector module=new DefaultModuleVersionSelector(dependencyDescriptor.getDependencyRevisionId().getOrganisation(),dependencyDescriptor.getDependencyRevisionId().getName(),dependencyDescriptor.getDependencyRevisionId().getRevision());
+  DefaultForcedModuleDetails details=new DefaultForcedModuleDetails(module);
+  action.execute(details);
+  if (details.getForcedVersion() != null) {
+    ModuleId moduleId=new ModuleId(details.getRequested().getGroup(),details.getRequested().getName());
+    ModuleRevisionId revisionId=new ModuleRevisionId(moduleId,details.getForcedVersion());
+    DependencyDescriptor descriptor=dependencyDescriptor.clone(revisionId);
+    ModuleVersionIdResolveResult result=resolver.resolve(descriptor);
+    return new ForcedModuleVersionIdResolveResult(result);
   }
   return resolver.resolve(dependencyDescriptor);
 }
