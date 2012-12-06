@@ -1,6 +1,5 @@
 {
   return new Transformer<Factory<List<File>>,ArtifactRevisionId>(){
-    DirectoryFileTree fileTree=new DirectoryFileTree(baseDir);
     private String getArtifactPattern(    ArtifactRevisionId artifactId){
       String substitute=pattern;
       substitute=IvyPatternHelper.substituteToken(substitute,"organisation",artifactId.getModuleRevisionId().getOrganisation().replace('/','.'));
@@ -9,11 +8,9 @@
       substitute=IvyPatternHelper.substitute(substitute,dummyArtifact);
       return substitute;
     }
-    private DirectoryFileTree getMatchingFiles(    ArtifactRevisionId artifact){
+    private MinimalFileTree getMatchingFiles(    ArtifactRevisionId artifact){
       String patternString=getArtifactPattern(artifact);
-      PatternFilterable pattern=new PatternSet();
-      pattern.include(patternString);
-      return fileTree.filter(pattern);
+      return new SingleIncludePatternFileTree(baseDir,patternString);
     }
     public Factory<List<File>> transform(    final ArtifactRevisionId artifactId){
       return new Factory<List<File>>(){
