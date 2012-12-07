@@ -18,10 +18,14 @@
   TestCountLogger testCountLogger=new TestCountLogger(progressLoggerFactory);
   addTestListener(testCountLogger);
   TestResultProcessor resultProcessor=new TestListenerAdapter(getTestListenerBroadcaster().getSource(),testOutputListenerBroadcaster.getSource());
-  testExecuter.execute(this,resultProcessor);
+  try {
+    testExecuter.execute(this,resultProcessor);
+  }
+  finally {
+    testListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector,testCountLogger));
+    testOutputListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector));
+  }
   if (testReportDataCollector != null) {
-    removeTestListener(testReportDataCollector);
-    removeTestOutputListener(testReportDataCollector);
     new Binary2JUnitXmlReportGenerator(getTestResultsDir(),testReportDataCollector).generate();
   }
   testFramework.report();
