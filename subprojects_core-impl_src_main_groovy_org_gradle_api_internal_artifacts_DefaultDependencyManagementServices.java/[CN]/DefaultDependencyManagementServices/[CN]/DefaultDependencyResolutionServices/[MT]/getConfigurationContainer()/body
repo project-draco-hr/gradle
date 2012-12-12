@@ -1,8 +1,14 @@
 {
   if (configurationContainer == null) {
-    Instantiator instantiator=parent.get(Instantiator.class);
+    final Instantiator instantiator=parent.get(Instantiator.class);
     ArtifactDependencyResolver dependencyResolver=createDependencyResolver(getResolveRepositoryHandler());
-    configurationContainer=instantiator.newInstance(DefaultConfigurationContainer.class,dependencyResolver,instantiator,domainObjectContext,parent.get(ListenerManager.class),dependencyMetaDataProvider);
+    Factory<ResolutionStrategyInternal> resolutionStrategyFactory=new Factory<ResolutionStrategyInternal>(){
+      public ResolutionStrategyInternal create(){
+        return instantiator.newInstance(DefaultResolutionStrategy.class);
+      }
+    }
+;
+    configurationContainer=instantiator.newInstance(DefaultConfigurationContainer.class,dependencyResolver,instantiator,domainObjectContext,parent.get(ListenerManager.class),dependencyMetaDataProvider,resolutionStrategyFactory);
   }
   return configurationContainer;
 }

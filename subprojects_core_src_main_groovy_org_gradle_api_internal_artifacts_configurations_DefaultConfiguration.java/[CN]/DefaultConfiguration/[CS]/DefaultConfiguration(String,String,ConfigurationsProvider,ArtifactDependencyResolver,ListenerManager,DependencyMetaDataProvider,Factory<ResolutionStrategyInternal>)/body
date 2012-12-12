@@ -1,0 +1,21 @@
+{
+  this.path=path;
+  this.name=name;
+  this.configurationsProvider=configurationsProvider;
+  this.dependencyResolver=dependencyResolver;
+  this.listenerManager=listenerManager;
+  this.metaDataProvider=metaDataProvider;
+  this.resolutionStrategyFactory=resolutionStrategyFactory;
+  this.resolutionStrategy=resolutionStrategyFactory.create();
+  resolutionListenerBroadcast=listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+  DefaultDomainObjectSet<Dependency> ownDependencies=new DefaultDomainObjectSet<Dependency>(Dependency.class);
+  ownDependencies.beforeChange(new VetoContainerChangeAction());
+  dependencies=new DefaultDependencySet(String.format("%s dependencies",getDisplayName()),ownDependencies);
+  inheritedDependencies=new CompositeDomainObjectSet<Dependency>(Dependency.class,ownDependencies);
+  allDependencies=new DefaultDependencySet(String.format("%s all dependencies",getDisplayName()),inheritedDependencies);
+  DefaultDomainObjectSet<PublishArtifact> ownArtifacts=new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
+  ownArtifacts.beforeChange(new VetoContainerChangeAction());
+  artifacts=new DefaultPublishArtifactSet(String.format("%s artifacts",getDisplayName()),ownArtifacts);
+  inheritedArtifacts=new CompositeDomainObjectSet<PublishArtifact>(PublishArtifact.class,ownArtifacts);
+  allArtifacts=new DefaultPublishArtifactSet(String.format("%s all artifacts",getDisplayName()),inheritedArtifacts);
+}
