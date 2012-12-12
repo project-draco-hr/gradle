@@ -1,0 +1,22 @@
+{
+  EnhancedArtifactDownloadReport artifactDownloadReport=null;
+  final TimestampedModuleSource timestampedModuleSource=(TimestampedModuleSource)moduleSource;
+  final String timestampedVersion=timestampedModuleSource.getTimestampedVersion();
+  if (timestampedVersion != null) {
+    artifactDownloadReport=downloadTimestampedVersion(artifact,timestampedVersion);
+  }
+ else {
+    artifactDownloadReport=download(artifact);
+  }
+  if (downloadFailed(artifactDownloadReport)) {
+    result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(),artifactDownloadReport.getFailure()));
+    return;
+  }
+  File localFile=artifactDownloadReport.getLocalFile();
+  if (localFile != null) {
+    result.resolved(localFile);
+  }
+ else {
+    result.notFound(artifact);
+  }
+}

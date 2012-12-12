@@ -1,11 +1,12 @@
 {
   ArtifactAtRepositoryKey resolutionCacheIndexKey=new ArtifactAtRepositoryKey(delegate,artifact.getId());
   CachedArtifact cached=artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
-  final BigInteger descriptorHash=((CachingModuleSource)moduleSource).getDescriptorHash();
+  final CachingModuleSource cachedModuleSource=(CachingModuleSource)moduleSource;
+  final BigInteger descriptorHash=cachedModuleSource.getDescriptorHash();
   if (cached != null) {
     ArtifactIdentifier artifactIdentifier=createArtifactIdentifier(artifact);
     long age=timeProvider.getCurrentTime() - cached.getCachedAt();
-    final boolean isChangingModule=((CachingModuleSource)moduleSource).isChangingModule();
+    final boolean isChangingModule=cachedModuleSource.isChangingModule();
     if (cached.isMissing()) {
       if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,null,age,isChangingModule,descriptorHash.equals(cached.getDescriptorHash()))) {
         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache",artifact.getId());
@@ -22,7 +23,7 @@
       }
     }
   }
-  delegate.resolve(artifact,result,null);
+  delegate.resolve(artifact,result,cachedModuleSource.getDelegate());
   LOGGER.debug("Downloaded artifact '{}' from resolver: {}",artifact.getId(),delegate);
   if (result.getFailure() instanceof ArtifactNotFoundException) {
     artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey,descriptorHash);
