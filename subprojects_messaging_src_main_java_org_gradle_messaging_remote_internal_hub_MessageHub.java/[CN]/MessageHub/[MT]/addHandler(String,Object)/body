@@ -1,0 +1,17 @@
+{
+  lock.lock();
+  try {
+    assertRunning("add handler");
+    if (!(handler instanceof RejectedMessageListener)) {
+      return;
+    }
+    final RejectedMessageListener listener=(RejectedMessageListener)handler;
+    ChannelQueue channelQueue=getOutgoingQueue(channelName);
+    final HandlerQueue queue=new HandlerQueue(lock.newCondition());
+    channelQueue.addHandler(queue);
+    workers.execute(new Handler(queue,listener));
+  }
+  finally {
+    lock.unlock();
+  }
+}

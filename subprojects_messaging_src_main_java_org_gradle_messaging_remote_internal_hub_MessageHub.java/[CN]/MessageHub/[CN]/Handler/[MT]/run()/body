@@ -1,0 +1,25 @@
+{
+  while (true) {
+    List<Object> messages=new ArrayList<Object>();
+    lock.lock();
+    try {
+      queue.take(messages);
+    }
+  finally {
+      lock.unlock();
+    }
+    for (    Object message : messages) {
+      if (message == END_OF_STREAM) {
+        return;
+      }
+      try {
+        listener.messageDiscarded(message);
+      }
+ catch (      Throwable t) {
+        errorHandler.execute(t);
+        return;
+      }
+    }
+    messages.clear();
+  }
+}
