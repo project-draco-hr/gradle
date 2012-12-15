@@ -3,7 +3,7 @@
   while (true) {
     lock.lock();
     try {
-      queue.take(messages);
+      outgoingQueue.take(messages);
     }
   finally {
       lock.unlock();
@@ -12,12 +12,9 @@
       if (message == END_OF_STREAM) {
         return;
       }
-      ChannelMessage channelMessage=(ChannelMessage)message;
-      if (!channelMessage.getChannel().equals(channelIdentifier)) {
-        continue;
-      }
+      InterHubMessage channelMessage=(InterHubMessage)message;
       try {
-        listener.messageDiscarded(channelMessage.getPayload());
+        connection.dispatch(channelMessage);
       }
  catch (      Throwable t) {
         errorHandler.execute(t);

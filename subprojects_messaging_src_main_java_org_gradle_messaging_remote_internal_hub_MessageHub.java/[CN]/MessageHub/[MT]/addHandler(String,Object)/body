@@ -5,11 +5,10 @@
     if (!(handler instanceof RejectedMessageListener)) {
       return;
     }
-    final RejectedMessageListener listener=(RejectedMessageListener)handler;
-    ChannelQueue channelQueue=getOutgoingQueue(channelName);
-    final HandlerQueue queue=new HandlerQueue(lock.newCondition());
-    channelQueue.addHandler(queue);
-    workers.execute(new Handler(queue,listener));
+    RejectedMessageListener listener=(RejectedMessageListener)handler;
+    EndpointQueue queue=new EndpointQueue(lock.newCondition());
+    outgoingQueue.addIncomingHandler(queue);
+    workers.execute(new Handler(new ChannelIdentifier(channelName),queue,listener));
   }
   finally {
     lock.unlock();
