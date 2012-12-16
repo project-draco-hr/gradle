@@ -12,13 +12,17 @@
       }
       visitor.endChildren();
     }
+    return;
   }
- else   if (t.getCause() != null) {
+  if (t.getCause() != null) {
     visitor.startChildren();
-    Throwable cause=t.getCause();
-    visitor.node(cause);
-    if (cause.getClass().getAnnotation(Contextual.class) != null) {
-      visitCauses(cause,visitor);
+    Throwable next=findNearestContextualCause(t);
+    if (next != null) {
+      visitor.node(next);
+      visitCauses(next,visitor);
+    }
+ else {
+      visitor.node(t.getCause());
     }
     visitor.endChildren();
   }
