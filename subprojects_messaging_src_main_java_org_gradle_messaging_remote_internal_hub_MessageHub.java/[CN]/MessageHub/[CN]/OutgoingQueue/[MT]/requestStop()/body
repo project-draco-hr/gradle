@@ -1,15 +1,13 @@
 {
-  stopping=true;
-  try {
-    if (!connected) {
-      for (      EndpointQueue handler : incomingHandlers) {
-        handler.put(queue);
-        handler.put(Collections.singleton(END_OF_STREAM));
+  if (!connected) {
+    List<InterHubMessage> rejected=new ArrayList<InterHubMessage>();
+    drain(rejected);
+    for (    InterHubMessage message : rejected) {
+      if (message instanceof ChannelMessage) {
+        ChannelMessage channelMessage=(ChannelMessage)message;
+        incomingQueue.queue(new RejectedMessage(channelMessage.getChannel(),channelMessage.getPayload()));
       }
-      queue.clear();
     }
   }
-  finally {
-    incomingHandlers.clear();
-  }
+  queue(new EndOfStream());
 }

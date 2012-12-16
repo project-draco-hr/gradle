@@ -1,26 +1,25 @@
 {
-  List<Object> messages=new ArrayList<Object>();
-  while (true) {
-    lock.lock();
-    try {
-      outgoingQueue.take(messages);
-    }
-  finally {
-      lock.unlock();
-    }
-    for (    Object message : messages) {
-      if (message == END_OF_STREAM) {
-        return;
-      }
-      InterHubMessage channelMessage=(InterHubMessage)message;
+  try {
+    List<InterHubMessage> messages=new ArrayList<InterHubMessage>();
+    while (true) {
+      lock.lock();
       try {
+        queue.take(messages);
+      }
+  finally {
+        lock.unlock();
+      }
+      for (      Object message : messages) {
+        if (message instanceof EndOfStream) {
+          return;
+        }
+        InterHubMessage channelMessage=(InterHubMessage)message;
         connection.dispatch(channelMessage);
       }
- catch (      Throwable t) {
-        errorHandler.execute(t);
-        return;
-      }
+      messages.clear();
     }
-    messages.clear();
+  }
+ catch (  Throwable t) {
+    errorHandler.execute(t);
   }
 }

@@ -2,8 +2,9 @@
   lock.lock();
   try {
     assertRunning("add connection");
-    outgoingQueue.connected();
-    workers.execute(new ConnectionDispatch(connection));
+    EndPointQueue queue=outgoingQueue.newEndpoint();
+    workers.execute(new ConnectionDispatch(connection,queue));
+    workers.execute(new ConnectionReceive(connection));
   }
   finally {
     lock.unlock();

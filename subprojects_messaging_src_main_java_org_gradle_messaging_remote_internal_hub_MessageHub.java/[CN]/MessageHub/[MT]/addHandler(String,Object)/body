@@ -2,13 +2,23 @@
   lock.lock();
   try {
     assertRunning("add handler");
-    if (!(handler instanceof RejectedMessageListener)) {
-      return;
+    RejectedMessageListener listener;
+    if (handler instanceof RejectedMessageListener) {
+      listener=(RejectedMessageListener)handler;
     }
-    RejectedMessageListener listener=(RejectedMessageListener)handler;
-    EndpointQueue queue=new EndpointQueue(lock.newCondition());
-    outgoingQueue.addIncomingHandler(queue);
-    workers.execute(new Handler(new ChannelIdentifier(channelName),queue,listener));
+ else {
+      listener=DISCARD;
+    }
+    Dispatch<Object> dispatch;
+    if (handler instanceof Dispatch) {
+      dispatch=(Dispatch)handler;
+    }
+ else {
+      dispatch=DISCARD;
+    }
+    ChannelIdentifier identifier=new ChannelIdentifier(channelName);
+    EndPointQueue queue=incomingQueue.getChannel(identifier).newEndpoint();
+    workers.execute(new Handler(queue,dispatch,listener));
   }
   finally {
     lock.unlock();
