@@ -2,22 +2,31 @@
   EndPointQueue selected=waiting.isEmpty() ? null : waiting.get(0);
   while (!queue.isEmpty()) {
     InterHubMessage message=queue.get(0);
-    if (message.isBroadcast()) {
-      System.out.println(String.format("=== %s broadcasting: %s",this,message));
-      for (      EndPointQueue endpoint : endpoints) {
-        endpoint.put(message);
+switch (message.getDelivery()) {
+case Stateful:
+case AllHandlers:
+      if (endpoints.isEmpty()) {
+        return;
       }
-      queue.remove(0);
-      waiting.clear();
-      continue;
+    if (message.getDelivery() == InterHubMessage.Delivery.Stateful) {
+      mostRecentStateful=message;
     }
-    if (selected == null) {
-      System.out.println(String.format("=== %s nothing waiting for: %s",this,message));
-      break;
-    }
-    System.out.println(String.format("=== %s unicasting: %s",this,message));
-    queue.remove(0);
-    waiting.remove(selected);
-    selected.put(message);
+  for (  EndPointQueue endpoint : endpoints) {
+    endpoint.put(message);
   }
+queue.remove(0);
+waiting.clear();
+continue;
+case SingleHandler:
+if (selected == null) {
+return;
+}
+queue.remove(0);
+waiting.remove(selected);
+selected.put(message);
+break;
+default :
+throw new IllegalArgumentException("Unknown delivery type: " + message.getDelivery());
+}
+}
 }

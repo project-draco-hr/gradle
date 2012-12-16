@@ -2,12 +2,12 @@
   lock.lock();
   try {
     assertRunning("add handler");
-    RejectedMessageListener listener;
+    RejectedMessageListener rejectedMessageListener;
     if (handler instanceof RejectedMessageListener) {
-      listener=(RejectedMessageListener)handler;
+      rejectedMessageListener=(RejectedMessageListener)handler;
     }
  else {
-      listener=DISCARD;
+      rejectedMessageListener=DISCARD;
     }
     Dispatch<Object> dispatch;
     if (handler instanceof Dispatch) {
@@ -16,9 +16,16 @@
  else {
       dispatch=DISCARD;
     }
+    HubStateListener stateListener;
+    if (handler instanceof HubStateListener) {
+      stateListener=(HubStateListener)handler;
+    }
+ else {
+      stateListener=DISCARD;
+    }
     ChannelIdentifier identifier=new ChannelIdentifier(channelName);
     EndPointQueue queue=incomingQueue.getChannel(identifier).newEndpoint();
-    workers.execute(new Handler(queue,dispatch,listener));
+    workers.execute(new Handler(queue,dispatch,rejectedMessageListener,stateListener));
   }
   finally {
     lock.unlock();
