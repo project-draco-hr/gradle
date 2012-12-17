@@ -1,0 +1,15 @@
+{
+  ModuleDescriptorCacheEntry entry;
+  if (moduleDescriptor == null) {
+    LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]",moduleVersionIdentifier,isChanging);
+    entry=createMissingEntry(isChanging);
+    getCache().put(createKey(repository,moduleVersionIdentifier),entry);
+  }
+ else {
+    LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]",moduleDescriptor.getModuleRevisionId(),isChanging);
+    FileStoreEntry fileStoreEntry=moduleDescriptorStore.putModuleDescriptor(repository,moduleDescriptor);
+    entry=createEntry(isChanging,fileStoreEntry.getSha1(),moduleSource);
+    getCache().put(createKey(repository,moduleVersionIdentifier),entry);
+  }
+  return new DefaultCachedModuleDescriptor(entry,null,timeProvider);
+}
