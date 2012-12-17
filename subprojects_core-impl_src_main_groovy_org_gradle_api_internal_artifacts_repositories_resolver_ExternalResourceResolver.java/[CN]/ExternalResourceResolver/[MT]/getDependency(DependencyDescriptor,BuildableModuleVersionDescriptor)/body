@@ -1,21 +1,18 @@
 {
-  DependencyDescriptor nsDd=fromSystem(dependencyDescriptor);
-  ModuleRevisionId systemMrid=dependencyDescriptor.getDependencyRevisionId();
-  ModuleRevisionId nsMrid=nsDd.getDependencyRevisionId();
-  boolean isDynamic=getVersionMatcher().isDynamic(systemMrid);
-  ResolvedResource ivyRef=findIvyFileRef(nsDd);
+  ModuleRevisionId nsMrid=dependencyDescriptor.getDependencyRevisionId();
+  boolean isDynamic=getVersionMatcher().isDynamic(nsMrid);
+  ResolvedResource ivyRef=findIvyFileRef(dependencyDescriptor);
   ModuleDescriptor nsMd;
-  ModuleDescriptor systemMd;
   if (ivyRef == null) {
     if (!isAllownomd()) {
-      LOGGER.debug("No ivy file found for module '{}' in repository '{}'.",systemMrid,getName());
+      LOGGER.debug("No ivy file found for module '{}' in repository '{}'.",nsMrid,getName());
       result.missing();
       return;
     }
-    nsMd=DefaultModuleDescriptor.newDefaultInstance(nsMrid,nsDd.getAllDependencyArtifacts());
+    nsMd=DefaultModuleDescriptor.newDefaultInstance(nsMrid,dependencyDescriptor.getAllDependencyArtifacts());
     ResolvedResource artifactRef=findFirstArtifactRef(nsMd);
     if (artifactRef == null) {
-      LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.",systemMrid,getName());
+      LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.",nsMrid,getName());
       result.missing();
     }
  else {
@@ -23,12 +20,11 @@
       if (lastModified != 0 && nsMd instanceof DefaultModuleDescriptor) {
         ((DefaultModuleDescriptor)nsMd).setLastModified(lastModified);
       }
-      LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.",systemMrid,getName());
+      LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.",nsMrid,getName());
       if (isDynamic) {
         nsMd.setResolvedModuleRevisionId(ModuleRevisionId.newInstance(nsMrid,artifactRef.getRevision()));
       }
-      systemMd=toSystem(nsMd);
-      result.resolved(systemMd,isChanging(systemMd),null);
+      result.resolved(nsMd,isChanging(nsMd),null);
     }
   }
  else {
@@ -41,16 +37,14 @@
         rmr=parse(ivyRef,dependencyDescriptor);
       }
       nsMd=rmr.getDescriptor();
-      systemMd=toSystem(nsMd);
       if (isCheckconsistency()) {
-        checkDescriptorConsistency(systemMrid,systemMd,ivyRef);
         checkDescriptorConsistency(nsMrid,nsMd,ivyRef);
       }
-      LOGGER.debug("Ivy file found for module '{}' in repository '{}'.",systemMrid,getName());
-      result.resolved(systemMd,isChanging(systemMd),null);
+      LOGGER.debug("Ivy file found for module '{}' in repository '{}'.",nsMrid,getName());
+      result.resolved(nsMd,isChanging(nsMd),null);
     }
  catch (    ParseException e) {
-      result.failed(new ModuleVersionResolveException(systemMrid,e));
+      result.failed(new ModuleVersionResolveException(nsMrid,e));
     }
   }
 }
