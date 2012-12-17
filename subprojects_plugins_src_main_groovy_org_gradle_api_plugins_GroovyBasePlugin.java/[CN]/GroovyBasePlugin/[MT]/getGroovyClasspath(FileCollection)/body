@@ -1,0 +1,15 @@
+{
+  Configuration groovyClasspath=project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME);
+  if (groovyClasspath.getDependencies().isEmpty() && !project.getRepositories().isEmpty()) {
+    Matcher groovyJar=findGroovyJar(classpath);
+    if (groovyJar != null) {
+      String dependency="org.codehaus.groovy:" + groovyJar.group(1) + ":"+ groovyJar.group(2);
+      if (groovyJar.group(3) != null) {
+        dependency+=":indy";
+      }
+      ;
+      groovyClasspath=project.getConfigurations().detachedConfiguration(project.getDependencies().create(dependency));
+    }
+  }
+  return groovyClasspath;
+}
