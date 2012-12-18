@@ -2,10 +2,16 @@
   if (elements.isEmpty()) {
     throw new IllegalStateException("Cannot write end element! There are no started elements.");
   }
-  maybeFinishElement();
-  write("</");
-  write(elements.removeLast());
-  write(">");
+  if (context == Context.StartTag) {
+    writeRaw("/>");
+    elements.removeLast();
+  }
+ else {
+    writeRaw("</");
+    writeRaw(elements.removeLast());
+    writeRaw(">");
+  }
+  context=Context.Character;
   if (elements.isEmpty()) {
     output.flush();
   }
