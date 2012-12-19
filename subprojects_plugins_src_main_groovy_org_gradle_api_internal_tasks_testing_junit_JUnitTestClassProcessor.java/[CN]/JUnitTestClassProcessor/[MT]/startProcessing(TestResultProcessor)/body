@@ -1,9 +1,6 @@
 {
   ClassLoader applicationClassLoader=Thread.currentThread().getContextClassLoader();
-  ListenerBroadcast<TestResultProcessor> processors=new ListenerBroadcast<TestResultProcessor>(TestResultProcessor.class);
-  processors.add(new JUnitXmlReportGenerator(testResultsDir));
-  processors.add(resultProcessor);
-  TestResultProcessor resultProcessorChain=new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(processors.getSource(),outputRedirector));
+  TestResultProcessor resultProcessorChain=new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(resultProcessor,outputRedirector));
   TestClassExecutionEventGenerator eventGenerator=new TestClassExecutionEventGenerator(resultProcessorChain,idGenerator,timeProvider);
   resultProcessorActor=actorFactory.createBlockingActor(eventGenerator);
   TestResultProcessor threadSafeResultProcessor=resultProcessorActor.getProxy(TestResultProcessor.class);
