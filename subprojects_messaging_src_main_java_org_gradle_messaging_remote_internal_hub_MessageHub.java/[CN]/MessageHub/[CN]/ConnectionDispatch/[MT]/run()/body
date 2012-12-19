@@ -1,25 +1,40 @@
 {
   try {
     List<InterHubMessage> messages=new ArrayList<InterHubMessage>();
-    while (true) {
+    try {
+      while (true) {
+        lock.lock();
+        try {
+          queue.take(messages);
+        }
+  finally {
+          lock.unlock();
+        }
+        for (        Object message : messages) {
+          InterHubMessage channelMessage=(InterHubMessage)message;
+          System.out.println(String.format("=== %s dispatching %s to %s.",Thread.currentThread(),message,connection));
+          connection.dispatch(channelMessage);
+          if (message instanceof EndOfStream) {
+            return;
+          }
+        }
+        messages.clear();
+      }
+    }
+  finally {
       lock.lock();
       try {
-        queue.take(messages);
+        System.out.println(String.format("=== %s finished dispatching to %s.",Thread.currentThread(),connection));
+        connectionState.dispatchFinished();
       }
   finally {
         lock.unlock();
       }
-      for (      Object message : messages) {
-        if (message instanceof EndOfStream) {
-          return;
-        }
-        InterHubMessage channelMessage=(InterHubMessage)message;
-        connection.dispatch(channelMessage);
-      }
-      messages.clear();
     }
   }
  catch (  Throwable t) {
+    System.out.println(String.format("=== %s failed dispatching to %s.",Thread.currentThread(),connection));
+    t.printStackTrace();
     errorHandler.execute(t);
   }
 }

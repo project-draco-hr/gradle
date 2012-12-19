@@ -9,10 +9,10 @@ case AllHandlers:
         return;
       }
     if (message.getDelivery() == InterHubMessage.Delivery.Stateful) {
-      mostRecentStateful=message;
+      initializer.onStatefulMessage(message);
     }
   for (  EndPointQueue endpoint : endpoints) {
-    endpoint.put(message);
+    endpoint.dispatch(message);
   }
 queue.remove(0);
 waiting.clear();
@@ -23,7 +23,7 @@ return;
 }
 queue.remove(0);
 waiting.remove(selected);
-selected.put(message);
+selected.dispatch(message);
 break;
 default :
 throw new IllegalArgumentException("Unknown delivery type: " + message.getDelivery());
