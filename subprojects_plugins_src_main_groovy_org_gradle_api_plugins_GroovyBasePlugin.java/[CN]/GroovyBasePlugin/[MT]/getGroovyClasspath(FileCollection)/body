@@ -3,20 +3,20 @@
   if (!groovyConfiguration.getDependencies().isEmpty()) {
     return groovyConfiguration;
   }
-  Matcher groovyJar=findGroovyJar(classpath);
+  GroovyJarFile groovyJar=findGroovyJarFile(classpath);
   if (groovyJar == null) {
     return groovyConfiguration;
   }
+  if (groovyJar.isGroovyAll()) {
+    return project.files(groovyJar.getFileName());
+  }
   if (project.getRepositories().isEmpty()) {
-    return project.files(groovyJar.group(0));
+    return groovyConfiguration;
   }
-  String notation="org.codehaus.groovy:" + groovyJar.group(1) + ":"+ groovyJar.group(2);
-  if (groovyJar.group(3) != null) {
-    notation+=":indy";
-  }
+  String notation=groovyJar.getDependencyNotation();
   List<Dependency> dependencies=Lists.newArrayList();
   dependencies.add(project.getDependencies().create(notation));
-  if (groovyJar.group(1).equals("groovy") && VersionNumber.parse(groovyJar.group(2)).getMajor() >= 2) {
+  if (groovyJar.getVersion().getMajor() >= 2) {
     dependencies.add(project.getDependencies().create(notation.replace(":groovy:",":groovy-ant:")));
   }
   return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
