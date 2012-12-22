@@ -1,20 +1,3 @@
 {
-  Factory<BTreePersistentIndexedCache<K,V>> indexedCacheFactory=new Factory<BTreePersistentIndexedCache<K,V>>(){
-    public BTreePersistentIndexedCache<K,V> create(){
-      return doCreateCache(cacheFile,new DefaultSerializer<K>(keyType.getClassLoader()),valueSerializer);
-    }
-  }
-;
-  MultiProcessSafePersistentIndexedCache<K,V> indexedCache=new MultiProcessSafePersistentIndexedCache<K,V>(indexedCacheFactory,fileAccess);
-  lock.lock();
-  try {
-    caches.add(indexedCache);
-    if (fileLock != null) {
-      indexedCache.onStartWork(operationStack.get().getDescription());
-    }
-  }
-  finally {
-    lock.unlock();
-  }
-  return indexedCache;
+  return newCache(cacheFile,new DefaultSerializer<K>(keyType.getClassLoader()),valueSerializer);
 }
