@@ -3,9 +3,16 @@
   ModuleVersionIdentifier root=resolveState.root.toId();
   listener.start(root);
   for (  ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
-    resolvedConfiguration.attachToParents(resolvedArtifactFactory,result);
-    resolvedConfiguration.collectFailures(failureState);
-    listener.resolvedConfiguration(resolvedConfiguration.toId(),resolvedConfiguration.outgoingEdges);
+    if (resolvedConfiguration.isSelected()) {
+      resolvedConfiguration.attachToParents(resolvedArtifactFactory,result);
+      resolvedConfiguration.collectFailures(failureState);
+      listener.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
+    }
+  }
+  for (  ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
+    if (resolvedConfiguration.isSelected()) {
+      listener.resolvedConfiguration(resolvedConfiguration.toId(),resolvedConfiguration.outgoingEdges);
+    }
   }
   failureState.attachFailures(result);
 }
