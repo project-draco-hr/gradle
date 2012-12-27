@@ -6,14 +6,11 @@
   addTestListener(eventLogger);
   addTestOutputListener(eventLogger);
   File binaryResultsDir=new File(getTemporaryDir(),"binary-test-results");
-  TestReportDataCollector testReportDataCollector=null;
-  if (isTestReport() || testFramework instanceof JUnitTestFramework) {
-    getProject().delete(binaryResultsDir);
-    getProject().mkdir(binaryResultsDir);
-    testReportDataCollector=new TestReportDataCollector(binaryResultsDir);
-    addTestListener(testReportDataCollector);
-    addTestOutputListener(testReportDataCollector);
-  }
+  getProject().delete(binaryResultsDir);
+  getProject().mkdir(binaryResultsDir);
+  TestReportDataCollector testReportDataCollector=new TestReportDataCollector(binaryResultsDir);
+  addTestListener(testReportDataCollector);
+  addTestOutputListener(testReportDataCollector);
   TestCountLogger testCountLogger=new TestCountLogger(progressLoggerFactory);
   addTestListener(testCountLogger);
   TestResultProcessor resultProcessor=new TestListenerAdapter(getTestListenerBroadcaster().getSource(),testOutputListenerBroadcaster.getSource());
@@ -24,10 +21,9 @@
     testListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector,testCountLogger));
     testOutputListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector));
   }
-  if (testReportDataCollector != null) {
-    new Binary2JUnitXmlReportGenerator(getTestResultsDir(),testReportDataCollector).generate();
-  }
-  testFramework.report();
+  final Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator=new Binary2JUnitXmlReportGenerator(getTestResultsDir(),testReportDataCollector);
+  binary2JUnitXmlReportGenerator.generate();
+  report();
   testFramework=null;
   if (testCountLogger.hadFailures()) {
     handleTestFailures();
