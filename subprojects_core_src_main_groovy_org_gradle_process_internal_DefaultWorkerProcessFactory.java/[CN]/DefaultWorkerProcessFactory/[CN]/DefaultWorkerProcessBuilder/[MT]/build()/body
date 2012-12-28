@@ -2,8 +2,15 @@
   if (getWorker() == null) {
     throw new IllegalStateException("No worker action specified for this worker process.");
   }
-  DefaultWorkerProcess workerProcess=new DefaultWorkerProcess(120,TimeUnit.SECONDS);
-  Address localAddress=server.accept(workerProcess.getConnectAction());
+  final DefaultWorkerProcess workerProcess=new DefaultWorkerProcess(120,TimeUnit.SECONDS);
+  ConnectionAcceptor acceptor=server.accept(new Action<ConnectEvent<ObjectConnection>>(){
+    public void execute(    ConnectEvent<ObjectConnection> event){
+      workerProcess.onConnect(event.getConnection());
+    }
+  }
+);
+  workerProcess.startAccepting(acceptor);
+  Address localAddress=acceptor.getAddress();
   List<URL> implementationClassPath=ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
   Object id=idGenerator.generateId();
   String displayName=String.format("Gradle Worker %s",id);

@@ -1,17 +1,16 @@
 {
   ExecResult result=execHandle.waitForFinish();
-  ObjectConnection connection;
+  CompositeStoppable stoppable;
   lock.lock();
   try {
-    connection=this.connection;
+    stoppable=CompositeStoppable.stoppable(acceptor,connection);
   }
   finally {
     this.connection=null;
+    this.acceptor=null;
     this.execHandle=null;
     lock.unlock();
   }
-  if (connection != null) {
-    connection.stop();
-  }
+  stoppable.stop();
   return result.assertNormalExitValue();
 }

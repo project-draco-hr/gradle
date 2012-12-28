@@ -1,9 +1,8 @@
 {
-  ServerSocketChannel serverSocket;
+  final ServerSocketChannel serverSocket;
   int localPort;
   try {
     serverSocket=ServerSocketChannel.open();
-    serverSockets.add(serverSocket);
     serverSocket.socket().bind(new InetSocketAddress(0));
     localPort=serverSocket.socket().getLocalPort();
   }
@@ -12,8 +11,21 @@
   }
   Object id=idGenerator.generateId();
   List<InetAddress> addresses=allowRemote ? addressFactory.findRemoteAddresses() : addressFactory.findLocalAddresses();
-  Address address=new MultiChoiceAddress(id,localPort,addresses);
+  final Address address=new MultiChoiceAddress(id,localPort,addresses);
   LOGGER.debug("Listening on {}.",address);
+  final StoppableExecutor executor=executorFactory.create(String.format("Incoming %s TCP Connector on port %s",allowRemote ? "remote" : "local",localPort));
   executor.execute(new Receiver<T>(serverSocket,action,serializer,allowRemote));
-  return address;
+  return new ConnectionAcceptor(){
+    public Address getAddress(){
+      return address;
+    }
+    public void requestStop(){
+      CompositeStoppable.stoppable(serverSocket).stop();
+    }
+    public void stop(){
+      requestStop();
+      executor.stop();
+    }
+  }
+;
 }
