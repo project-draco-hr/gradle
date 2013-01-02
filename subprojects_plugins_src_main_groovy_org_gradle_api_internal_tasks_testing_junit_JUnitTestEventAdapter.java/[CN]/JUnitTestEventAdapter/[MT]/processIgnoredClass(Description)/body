@@ -1,8 +1,18 @@
 {
   String className=className(description);
-  final TestClass testClass=new TestClass(description.getClass().getClassLoader().loadClass(className));
-  final List<FrameworkMethod> ignoreTestMethods=testClass.getAnnotatedMethods(Test.class);
-  for (  FrameworkMethod testMethod : ignoreTestMethods) {
-    testIgnored(Description.createTestDescription(testClass.getJavaClass(),testMethod.getName()));
+  final AllExceptIgnoredTestRunnerBuilder allExceptIgnoredTestRunnerBuilder=new AllExceptIgnoredTestRunnerBuilder();
+  try {
+    final Class<?> testClass=description.getClass().getClassLoader().loadClass(className);
+    Runner runner=allExceptIgnoredTestRunnerBuilder.runnerForClass(testClass);
+    if (runner == null) {
+      runner=Request.aClass(testClass).getRunner();
+    }
+    final Description runnerDescription=runner.getDescription();
+    for (    Description childrenDescription : runnerDescription.getChildren()) {
+      testIgnored(childrenDescription);
+    }
+  }
+ catch (  Throwable throwable) {
+    LoggerFactory.getLogger(getClass()).warn("Unable to process IgnoredClass",throwable);
   }
 }
