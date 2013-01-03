@@ -1,24 +1,6 @@
 {
-  ConfigurableFileCollection files=new DefaultConfigurableFileCollection("publication artifacts",fileResolver,taskResolver);
-  files.from(new Callable<Set<FileCollection>>(){
-    public Set<FileCollection> call() throws Exception {
-      return collect(getConfigurations(),new Transformer<FileCollection,Configuration>(){
-        public FileCollection transform(        Configuration configuration){
-          return configuration.getAllArtifacts().getFiles();
-        }
-      }
-);
-    }
+  if (component == null) {
+    return descriptorFile;
   }
-);
-  if (descriptorArtifact != null) {
-    files.from(new Callable<File>(){
-      public File call() throws Exception {
-        return getDescriptorFile();
-      }
-    }
-);
-    files.builtBy(descriptorArtifact);
-  }
-  return files;
+  return new UnionFileCollection(component.getArtifacts().getFiles(),descriptorFile);
 }

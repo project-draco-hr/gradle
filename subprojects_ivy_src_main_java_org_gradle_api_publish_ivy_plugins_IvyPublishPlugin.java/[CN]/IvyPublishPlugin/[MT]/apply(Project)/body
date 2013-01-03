@@ -1,13 +1,8 @@
 {
   project.getPlugins().apply(PublishingPlugin.class);
-  PublishingExtension extension=project.getExtensions().getByType(PublishingExtension.class);
-  Set<Configuration> visibleConfigurations=project.getConfigurations().matching(new Spec<Configuration>(){
-    public boolean isSatisfiedBy(    Configuration configuration){
-      return configuration.isVisible();
-    }
-  }
-);
-  extension.getPublications().add(createPublication("ivy",project,visibleConfigurations));
+  final PublishingExtension extension=project.getExtensions().getByType(PublishingExtension.class);
+  final PublicationContainerInternal publicationContainer=(PublicationContainerInternal)extension.getPublications();
+  publicationContainer.registerFactory(IvyPublication.class,new IvyPublicationFactory(dependencyMetaDataProvider,instantiator));
   TaskContainer tasks=project.getTasks();
   IvyPublicationDynamicDescriptorGenerationTaskCreator descriptorGenerationTaskCreator=new IvyPublicationDynamicDescriptorGenerationTaskCreator(project);
   descriptorGenerationTaskCreator.monitor(extension.getPublications());

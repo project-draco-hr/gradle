@@ -1,12 +1,10 @@
 {
-  XmlTransformer xmlTransformer=new XmlTransformer();
-  Action<? super XmlProvider> xmlAction=getXmlAction();
-  if (xmlAction != null) {
-    xmlTransformer.addAction(xmlAction);
-  }
   IvyModuleDescriptorInternal descriptorInternal=toIvyModuleDescriptorInternal(getDescriptor());
+  XmlTransformer xmlTransformer=new XmlTransformer();
+  xmlTransformer.addAction(descriptorInternal.getXmlAction());
+  Set<Configuration> publishConfigurations=createPopulatedConfiguration(descriptorInternal.getArtifacts(),descriptorInternal.getRuntimeDependencies());
   ModuleDescriptorConverter moduleDescriptorConverter=publicationServices.getDescriptorFileModuleConverter();
-  ModuleDescriptor moduleDescriptor=moduleDescriptorConverter.convert(descriptorInternal.getConfigurations(),descriptorInternal.getModule());
+  ModuleDescriptor moduleDescriptor=moduleDescriptorConverter.convert(publishConfigurations,descriptorInternal.getModule());
   IvyModuleDescriptorWriter ivyModuleDescriptorWriter=publicationServices.getIvyModuleDescriptorWriter();
   ivyModuleDescriptorWriter.write(moduleDescriptor,getDestination(),xmlTransformer);
 }

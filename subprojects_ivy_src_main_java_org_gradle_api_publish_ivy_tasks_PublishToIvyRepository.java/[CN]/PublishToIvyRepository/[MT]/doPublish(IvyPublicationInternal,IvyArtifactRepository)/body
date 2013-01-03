@@ -1,9 +1,15 @@
 {
   new PublishOperation(publication,repository){
     @Override protected void publish() throws Exception {
+      Factory<Configuration> configurationFactory=new Factory<Configuration>(){
+        public Configuration create(){
+          return getProject().getConfigurations().detachedConfiguration();
+        }
+      }
+;
       ArtifactPublisher artifactPublisher=publicationServices.createArtifactPublisher();
       IvyNormalizedPublication normalizedPublication=publication.asNormalisedPublication();
-      IvyPublisher publisher=new IvyPublisher(artifactPublisher);
+      IvyPublisher publisher=new IvyPublisher(artifactPublisher,configurationFactory);
       publisher.publish(normalizedPublication,repository);
     }
   }
