@@ -1,0 +1,22 @@
+{
+  Map<String,TestClassResult> results=resultsProvider.getResults();
+  AllTestResults model=new AllTestResults();
+  for (  Map.Entry<String,TestClassResult> stringTestClassResultEntry : results.entrySet()) {
+    final String suiteClassName=stringTestClassResultEntry.getKey();
+    final TestClassResult value=stringTestClassResultEntry.getValue();
+    final Set<TestMethodResult> collectedResults=value.getResults();
+    for (    TestMethodResult collectedResult : collectedResults) {
+      final TestResult testResult=model.addTest(suiteClassName,collectedResult.name,collectedResult.getDuration());
+      if (collectedResult.result.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
+        testResult.ignored();
+      }
+ else {
+        final List<Throwable> failures=collectedResult.result.getExceptions();
+        for (        Throwable throwable : failures) {
+          testResult.addFailure(throwable.getMessage(),stackTrace(throwable));
+        }
+      }
+    }
+  }
+  return model;
+}
