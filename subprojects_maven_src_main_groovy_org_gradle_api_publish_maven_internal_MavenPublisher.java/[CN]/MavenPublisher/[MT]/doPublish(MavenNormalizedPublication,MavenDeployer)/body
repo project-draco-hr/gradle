@@ -1,9 +1,10 @@
 {
+  Configuration publishConfiguration=createPopulatedConfiguration(publication);
   MavenPom deployerPom=deployer.getPom();
   copyIdentity(publication,deployerPom);
+  copyDependencies(publishConfiguration,deployerPom);
   deployerPom.withXml(publication.getPomWithXmlAction());
   Module module=new MavenProjectIdentityModuleAdapter(publication);
-  Configuration artifactsAsConfiguration=createPopulatedConfiguration(publication.getArtifacts());
   DependencyResolver dependencyResolver=Cast.cast(DependencyResolver.class,deployer);
-  artifactPublisher.publish(Collections.singleton(dependencyResolver),module,Collections.singleton(artifactsAsConfiguration),null);
+  artifactPublisher.publish(Collections.singleton(dependencyResolver),module,Collections.singleton(publishConfiguration),null);
 }
