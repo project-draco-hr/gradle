@@ -1,18 +1,4 @@
 {
-  if (!workingDirSet) {
-    inDirectory(testWorkDirProvider.getTestDirectory());
-  }
-  if (!gradleUserHomeDirSet) {
-    withGradleUserHomeDir(buildContext.getGradleUserHomeDir());
-  }
-  if (getDaemonIdleTimeoutSecs() == null) {
-    if (usingIsolatedDaemons || getDaemonBaseDir() != null) {
-      withDaemonIdleTimeoutSecs(20);
-    }
- else {
-      withDaemonIdleTimeoutSecs(DEFAULT_DAEMON_IDLE_TIMEOUT_SECS);
-    }
-  }
   if (!getClass().desiredAssertionStatus()) {
     throw new RuntimeException("Assertions must be enabled when running integration tests.");
   }
@@ -22,7 +8,7 @@
     gradleExecuter.assertCanExecute();
   }
  catch (  AssertionError assertionError) {
-    gradleExecuter=new ForkingGradleExecuter(dist.getGradleHomeDir());
+    gradleExecuter=new ForkingGradleExecuter(getTestDirectoryProvider(),dist.getGradleHomeDir());
     configureExecuter(gradleExecuter);
   }
   return gradleExecuter;
