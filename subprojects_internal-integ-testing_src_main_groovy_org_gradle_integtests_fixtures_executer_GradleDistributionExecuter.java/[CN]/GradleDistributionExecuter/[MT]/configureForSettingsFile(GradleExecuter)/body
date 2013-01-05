@@ -1,9 +1,13 @@
 {
   boolean settingsFound=false;
-  for (TestFile dir=new TestFile(getWorkingDir()); dir != null && dist.isFileUnderTest(dir) && !settingsFound; dir=dir.getParentFile()) {
+  TestFile workingDir=new TestFile(getWorkingDir());
+  TestFile dir=workingDir;
+  while (dir != null && testWorkDirProvider.getTestDirectory().isSelfOrDescendent(dir)) {
     if (dir.file("settings.gradle").isFile()) {
       settingsFound=true;
+      break;
     }
+    dir=dir.getParentFile();
   }
   if (settingsFound) {
     gradleExecuter.withSearchUpwards();
