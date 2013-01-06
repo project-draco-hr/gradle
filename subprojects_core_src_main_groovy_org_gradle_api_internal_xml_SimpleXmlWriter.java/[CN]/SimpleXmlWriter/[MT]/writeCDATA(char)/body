@@ -1,8 +1,16 @@
 {
-  if (needsCDATAEscaping(c)) {
+  if (needsCDATAEscaping(ch)) {
     writeRaw("]]><![CDATA[>");
   }
+ else   if (!isLegalCharacter(ch)) {
+    throw new IllegalArgumentException(String.format("Illegal XML character 0x%s",Integer.toHexString(ch)));
+  }
+ else   if (isRestrictedCharacter(ch)) {
+    writeRaw("]]>&#x");
+    writeRaw(Integer.toHexString(ch));
+    writeRaw(";<![CDATA[");
+  }
  else {
-    writeRaw(c);
+    writeRaw(ch);
   }
 }
