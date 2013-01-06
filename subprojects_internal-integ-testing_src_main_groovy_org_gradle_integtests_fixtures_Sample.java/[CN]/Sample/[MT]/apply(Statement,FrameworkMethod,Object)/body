@@ -1,12 +1,11 @@
 {
-  final GradleDistribution dist=RuleHelper.getField(target,GradleDistribution.class);
   final TestDirectoryProvider testDirectoryProvider=new TestDirectoryProviderFinder().findFor(target);
   final String sampleName=getSampleName(method);
   sampleDir=sampleName == null ? null : testDirectoryProvider.getTestDirectory().file(sampleName);
   return new Statement(){
     @Override public void evaluate() throws Throwable {
       if (sampleName != null) {
-        TestFile srcDir=dist.getSamplesDir().file(sampleName).assertIsDir();
+        TestFile srcDir=new IntegrationTestBuildContext().getSamplesDir().file(sampleName).assertIsDir();
         logger.debug("Copying sample '{}' to test directory.",sampleName);
         srcDir.copyTo(sampleDir);
       }
