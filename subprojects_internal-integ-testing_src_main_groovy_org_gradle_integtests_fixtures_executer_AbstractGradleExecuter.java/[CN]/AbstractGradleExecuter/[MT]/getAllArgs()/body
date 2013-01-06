@@ -26,7 +26,18 @@
     allArgs.add("dependencies");
   }
   if (!searchUpwards) {
-    allArgs.add("--no-search-upward");
+    boolean settingsFoundAboveInTestDir=false;
+    TestFile dir=new TestFile(getWorkingDir());
+    while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
+      if (dir.file("settings.gradle").isFile()) {
+        settingsFoundAboveInTestDir=true;
+        break;
+      }
+      dir=dir.getParentFile();
+    }
+    if (!settingsFoundAboveInTestDir) {
+      allArgs.add("--no-search-upward");
+    }
   }
   if (gradleUserHomeDir != null) {
     allArgs.add("--gradle-user-home");
@@ -34,6 +45,9 @@
   }
   allArgs.add("-Dorg.gradle.daemon.idletimeout=" + daemonIdleTimeoutSecs * 1000);
   allArgs.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
+  TestFile tmpDir=getTmpDir();
+  tmpDir.createDir();
+  allArgs.add(String.format("-Djava.io.tmpdir=%s",tmpDir));
   allArgs.addAll(args);
   allArgs.addAll(tasks);
   return allArgs;
