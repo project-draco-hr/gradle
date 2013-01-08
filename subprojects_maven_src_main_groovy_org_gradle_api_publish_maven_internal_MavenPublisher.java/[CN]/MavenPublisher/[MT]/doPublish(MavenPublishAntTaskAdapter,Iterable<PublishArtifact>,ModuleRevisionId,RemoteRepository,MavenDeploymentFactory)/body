@@ -1,0 +1,15 @@
+{
+  logger.info("Publishing to repository {}",publishResolver);
+  for (  PublishArtifact publishArtifact : publishArtifacts) {
+    checkArtifactFileExists(publishArtifact,moduleRevisionId);
+  }
+  for (  PublishArtifact publishArtifact : publishArtifacts) {
+    Artifact artifact=createIvyArtifact(publishArtifact,moduleRevisionId);
+    File artifactFile=publishArtifact.getFile();
+    if (!artifact.getType().equals("ivy")) {
+      artifactPomContainer.addArtifact(artifact,artifactFile);
+    }
+  }
+  MavenDeployment mavenDeployment=artifactPomContainer.createMavenDeployment();
+  publishResolver.publishToMavenRepository(mavenRepository,mavenDeployment);
+}
