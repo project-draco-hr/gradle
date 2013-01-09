@@ -1,0 +1,28 @@
+{
+  List<Map<String,?>> list=readJson();
+  return collect(list,new Transformer<ReleasedGradleVersion,Map<String,?>>(){
+    public ReleasedGradleVersion transform(    Map<String,?> jsonEntry){
+      ReleasedGradleVersion.Type type;
+      boolean current;
+      boolean jsonNightly=(Boolean)jsonEntry.get("nightly");
+      String jsonRcFor=(String)jsonEntry.get("rcFor");
+      boolean jsonActiveRc=(Boolean)jsonEntry.get("activeRc");
+      boolean jsonCurrent=(Boolean)jsonEntry.get("current");
+      String jsonVersion=(String)jsonEntry.get("version");
+      if (jsonNightly) {
+        type=NIGHTLY;
+        current=true;
+      }
+ else       if (jsonRcFor != null && jsonRcFor.length() > 0) {
+        type=RELEASE_CANDIDATE;
+        current=jsonActiveRc;
+      }
+ else {
+        type=FINAL;
+        current=jsonCurrent;
+      }
+      return new ReleasedGradleVersion(GradleVersion.version(jsonVersion),type,current);
+    }
+  }
+);
+}
