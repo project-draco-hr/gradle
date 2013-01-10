@@ -1,13 +1,8 @@
 {
+  validatePublication(publication);
+  File pomFile=createPomFile(publication);
   RemoteRepository mavenRepository=new MavenDeployerConfigurer(artifactRepository).createRepository();
-  Factory<MavenPom> mavenPomFactory=new DefaultMavenFactory().createMavenPomFactory(configurations,new DefaultConf2ScopeMappingContainer(),fileResolver);
-  MavenPom deployerPom=mavenPomFactory.create();
-  MavenDeploymentFactory mavenDeploymentFactory=new MavenDeploymentFactory(pomMetaInfoProvider,deployerPom);
-  copyIdentity(publication,deployerPom);
-  copyDependencies(publication,deployerPom);
-  deployerPom.withXml(publication.getPomWithXmlAction());
-  Module module=new MavenProjectIdentityModuleAdapter(publication);
   MavenPublishAntTaskAdapter mavenPublishAntTaskAdapter=new MavenPublishAntTaskAdapter(loggingManagerFactory.create());
-  ModuleRevisionId moduleRevisionId=IvyUtil.createModuleRevisionId(module);
-  doPublish(mavenPublishAntTaskAdapter,publication.getArtifacts(),moduleRevisionId,mavenRepository,mavenDeploymentFactory);
+  logger.info("Publishing to repository {}",mavenPublishAntTaskAdapter);
+  mavenPublishAntTaskAdapter.publishToMavenRepository(mavenRepository,pomFile,publication.getMainArtifact(),publication.getAdditionalArtifacts());
 }
