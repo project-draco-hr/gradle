@@ -1,0 +1,14 @@
+{
+  List<String> gradleOpts=new ArrayList<java.lang.String>(super.getGradleOpts());
+  for (  Map.Entry<String,String> entry : getImplicitJvmSystemProperties().entrySet()) {
+    String key=entry.getKey();
+    String value=entry.getValue();
+    if (value.contains(" ") && !getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
+      getLogger().warn("Removing '%s' from GRADLE_OPTS (value: %s) as it contains spaces, and this Gradle version (%s) cannot handle spaces in GRADLE_OPTS",key,value,getDistribution().getVersion().getVersion());
+      continue;
+    }
+    gradleOpts.add(String.format("-D%s=%s",key,value));
+  }
+  gradleOpts.add("-ea");
+  return gradleOpts;
+}
