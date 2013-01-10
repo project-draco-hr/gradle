@@ -7,7 +7,9 @@
     cmd="gradle";
   }
   builder.executable("cmd");
-  builder.args("/c",cmd);
+  List<String> allArgs=builder.getArgs();
+  builder.setArgs(Arrays.asList("/c",cmd));
+  builder.args(allArgs);
   String gradleHome=getDistribution().getGradleHomeDir().getAbsolutePath();
   Object path=builder.getEnvironment().get("PATH");
   if (path == null) {
@@ -15,6 +17,6 @@
   }
   builder.environment("Path",String.format("%s\\bin;%s",gradleHome,path));
   builder.environment("GRADLE_EXIT_CONSOLE","true");
-  LOG.info("Initializing windows process so that child process will be fully detached...");
+  getLogger().info("Initializing windows process so that child process will be fully detached...");
   new WindowsHandlesManipulator().uninheritStandardStreams();
 }

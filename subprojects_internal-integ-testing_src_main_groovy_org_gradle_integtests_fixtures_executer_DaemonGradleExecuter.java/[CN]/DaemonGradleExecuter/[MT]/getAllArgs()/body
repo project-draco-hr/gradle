@@ -1,12 +1,10 @@
 {
-  List<String> originalArgs=super.getAllArgs();
-  List<String> args=new ArrayList<String>();
-  args.add("--daemon");
-  args.addAll(originalArgs);
-  configureJvmArgs(args);
-  configureDefaultLogging(args);
-  if (getUserHomeDir() != null) {
-    args.add(String.format("-Duser.home=%s",getUserHomeDir().getPath()));
+  List<String> args=new ArrayList<String>(super.getAllArgs());
+  args.add(0,"--daemon");
+  if (!isQuiet() && isAllowExtraLogging()) {
+    if (!containsAny(args,asList("-i","--info","-d","--debug","-q","--quiet"))) {
+      args.add(0,"-i");
+    }
   }
   return args;
 }
