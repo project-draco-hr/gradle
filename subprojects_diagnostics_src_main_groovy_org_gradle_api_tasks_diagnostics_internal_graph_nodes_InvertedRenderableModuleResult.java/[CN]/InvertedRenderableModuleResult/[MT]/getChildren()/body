@@ -1,8 +1,10 @@
 {
-  return new LinkedHashSet<RenderableDependency>(Collections2.transform(module.getDependents(),new Function<DependencyResult,RenderableDependency>(){
-    public RenderableDependency apply(    DependencyResult input){
-      return new InvertedRenderableModuleResult(input.getFrom());
+  Map<ModuleVersionIdentifier,RenderableDependency> children=new LinkedHashMap<ModuleVersionIdentifier,RenderableDependency>();
+  for (  ResolvedDependencyResult dependent : module.getDependents()) {
+    InvertedRenderableModuleResult child=new InvertedRenderableModuleResult(dependent.getFrom());
+    if (!children.containsKey(child.getId())) {
+      children.put(child.getId(),child);
     }
   }
-));
+  return new LinkedHashSet<RenderableDependency>(children.values());
 }
