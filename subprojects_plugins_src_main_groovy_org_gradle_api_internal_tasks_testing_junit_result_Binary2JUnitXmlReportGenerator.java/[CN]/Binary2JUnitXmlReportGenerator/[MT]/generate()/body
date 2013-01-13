@@ -1,20 +1,22 @@
 {
   Clock clock=new Clock();
-  Iterable<TestClassResult> results=testResultsProvider.getResults();
-  for (  TestClassResult result : results) {
-    File file=new File(testResultsDir,"TEST-" + result.getClassName() + ".xml");
-    OutputStream output=null;
-    try {
-      output=new BufferedOutputStream(new FileOutputStream(file));
-      saxWriter.write(result,output);
-      output.close();
-    }
- catch (    Exception e) {
-      throw new GradleException(String.format("Could not write XML test results for %s to file %s.",result.getClassName(),file),e);
-    }
+  testResultsProvider.visitClasses(new Action<TestClassResult>(){
+    public void execute(    TestClassResult result){
+      File file=new File(testResultsDir,"TEST-" + result.getClassName() + ".xml");
+      OutputStream output=null;
+      try {
+        output=new BufferedOutputStream(new FileOutputStream(file));
+        saxWriter.write(result,output);
+        output.close();
+      }
+ catch (      Exception e) {
+        throw new GradleException(String.format("Could not write XML test results for %s to file %s.",result.getClassName(),file),e);
+      }
  finally {
-      IOUtils.closeQuietly(output);
+        IOUtils.closeQuietly(output);
+      }
     }
   }
+);
   LOG.info("Finished generating test XML results (" + clock.getTime() + ")");
 }
