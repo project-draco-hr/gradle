@@ -1,5 +1,11 @@
 {
-  File pomFile=createPomFile(publication);
+  publication.validateArtifacts();
   logger.info("Publishing to repository {}",artifactRepository);
-  doPublish(artifactRepository,pomFile,publication.getMainArtifact(),publication.getAdditionalArtifacts());
+  CustomDeployTask deployTask=createDeployTask();
+  MavenSettingsSupplier mavenSettingsSupplier=new EmptyMavenSettingsSupplier();
+  mavenSettingsSupplier.supply(deployTask);
+  addRepository(deployTask,artifactRepository);
+  addPomAndArtifact(deployTask,publication.getPomFile(),publication.getMainArtifact(),publication.getAdditionalArtifacts());
+  execute(deployTask);
+  mavenSettingsSupplier.done();
 }

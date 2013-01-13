@@ -1,16 +1,6 @@
 {
-  Callable<Object> pomDirCallable=new Callable<Object>(){
-    public Object call(){
-      return new File(project.getBuildDir(),"publications/" + name);
-    }
-  }
-;
   Module module=dependencyMetaDataProvider.getModule();
   MavenArtifactNotationParser artifactNotationParser=new MavenArtifactNotationParser(instantiator,module,project);
-  MavenPomInternal mavenPom=instantiator.newInstance(DefaultMavenPom.class);
   ModuleBackedMavenProjectIdentity projectIdentity=new ModuleBackedMavenProjectIdentity(module);
-  DefaultMavenPublication publication=instantiator.newInstance(DefaultMavenPublication.class,name,mavenPom,projectIdentity,null,artifactNotationParser);
-  ConventionMapping descriptorConventionMapping=new DslObject(publication).getConventionMapping();
-  descriptorConventionMapping.map("pomDir",pomDirCallable);
-  return publication;
+  return instantiator.newInstance(DefaultMavenPublication.class,name,projectIdentity,artifactNotationParser,instantiator);
 }
