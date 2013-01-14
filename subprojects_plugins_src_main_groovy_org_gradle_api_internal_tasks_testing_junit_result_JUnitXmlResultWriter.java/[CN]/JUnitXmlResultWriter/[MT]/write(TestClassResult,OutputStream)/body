@@ -1,0 +1,20 @@
+{
+  String className=result.getClassName();
+  try {
+    SimpleXmlWriter writer=new SimpleXmlWriter(output,"  ");
+    writer.startElement("testsuite").attribute("name",className).attribute("tests",String.valueOf(result.getTestsCount())).attribute("failures",String.valueOf(result.getFailuresCount())).attribute("errors","0").attribute("timestamp",DateUtils.format(result.getStartTime(),DateUtils.ISO8601_DATETIME_PATTERN)).attribute("hostname",hostName).attribute("time",String.valueOf(result.getDuration() / 1000.0));
+    writer.startElement("properties");
+    writer.endElement();
+    writeTests(writer,result.getResults(),className);
+    writer.startElement("system-out");
+    writeOutputs(writer,className,TestOutputEvent.Destination.StdOut);
+    writer.endElement();
+    writer.startElement("system-err");
+    writeOutputs(writer,className,TestOutputEvent.Destination.StdErr);
+    writer.endElement();
+    writer.endElement();
+  }
+ catch (  IOException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+}

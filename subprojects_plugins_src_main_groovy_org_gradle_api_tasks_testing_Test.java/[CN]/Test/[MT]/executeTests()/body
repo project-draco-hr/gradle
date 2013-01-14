@@ -5,9 +5,7 @@
   TestEventLogger eventLogger=new TestEventLogger(textOutputFactory,currentLevel,levelLogging,exceptionFormatter);
   addTestListener(eventLogger);
   addTestOutputListener(eventLogger);
-  File binaryResultsDir=new File(getTemporaryDir(),"binary-test-results");
-  getProject().delete(binaryResultsDir);
-  getProject().mkdir(binaryResultsDir);
+  File binaryResultsDir=getBinResultsDir();
   TestReportDataCollector testReportDataCollector=new TestReportDataCollector(binaryResultsDir);
   addTestListener(testReportDataCollector);
   addTestOutputListener(testReportDataCollector);
@@ -21,9 +19,14 @@
     testListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector,testCountLogger));
     testOutputListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector));
   }
-  final Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator=new Binary2JUnitXmlReportGenerator(getTestResultsDir(),testReportDataCollector);
+  Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator=new Binary2JUnitXmlReportGenerator(getTestResultsDir(),testReportDataCollector);
   binary2JUnitXmlReportGenerator.generate();
-  testReporter.generateReport(testReportDataCollector);
+  if (!isTestReport()) {
+    getLogger().info("Test report disabled, omitting generation of the HTML test report.");
+  }
+ else {
+    testReporter.generateReport(testReportDataCollector,getTestReportDir());
+  }
   testFramework=null;
   if (testCountLogger.hadFailures()) {
     handleTestFailures();
