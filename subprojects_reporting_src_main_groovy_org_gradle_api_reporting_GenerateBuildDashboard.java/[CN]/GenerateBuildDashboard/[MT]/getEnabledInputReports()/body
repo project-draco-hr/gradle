@@ -1,8 +1,9 @@
 {
-  return CollectionUtils.filter(inputReports,new Spec<Report>(){
-    public boolean isSatisfiedBy(    Report report){
-      return report.isEnabled();
+  Set<NamedDomainObjectSet<Report>> enabledReportSets=CollectionUtils.collect(aggregated,new Transformer<NamedDomainObjectSet<Report>,Reporting>(){
+    public NamedDomainObjectSet<Report> transform(    Reporting reporting){
+      return reporting.getReports().getEnabled();
     }
   }
 );
+  return new LinkedHashSet<Report>(CollectionUtils.flattenToList(Report.class,enabledReportSets));
 }

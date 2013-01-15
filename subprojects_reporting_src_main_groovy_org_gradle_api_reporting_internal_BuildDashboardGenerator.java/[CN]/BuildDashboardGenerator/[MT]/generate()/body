@@ -1,12 +1,22 @@
 {
+  BufferedWriter writer=null;
   try {
     GFileUtils.parentMkdirs(outputFile);
-    FileWriter writer=new FileWriter(outputFile);
+    writer=new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile),"UTF-8"));
     generate(writer);
-    writer.close();
     copyCss();
   }
  catch (  IOException e) {
-    throw new RuntimeException(e);
+    throw new UncheckedIOException(e);
+  }
+ finally {
+    if (writer != null) {
+      try {
+        writer.close();
+      }
+ catch (      IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
   }
 }
