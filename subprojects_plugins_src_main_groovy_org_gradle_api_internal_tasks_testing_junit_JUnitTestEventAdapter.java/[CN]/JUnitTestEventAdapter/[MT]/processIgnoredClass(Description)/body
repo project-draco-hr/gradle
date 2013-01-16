@@ -1,18 +1,7 @@
 {
+  IgnoredTestDescriptorProvider provider=new IgnoredTestDescriptorProvider();
   String className=className(description);
-  final AllExceptIgnoredTestRunnerBuilder allExceptIgnoredTestRunnerBuilder=new AllExceptIgnoredTestRunnerBuilder();
-  try {
-    final Class<?> testClass=description.getClass().getClassLoader().loadClass(className);
-    Runner runner=allExceptIgnoredTestRunnerBuilder.runnerForClass(testClass);
-    if (runner == null) {
-      runner=Request.aClass(testClass).getRunner();
-    }
-    final Description runnerDescription=runner.getDescription();
-    for (    Description childrenDescription : runnerDescription.getChildren()) {
-      testIgnored(childrenDescription);
-    }
-  }
- catch (  Throwable throwable) {
-    LoggerFactory.getLogger(getClass()).warn("Unable to process IgnoredClass",throwable);
+  for (  Description childDescription : provider.getAllDescriptions(description,className)) {
+    testIgnored(childDescription);
   }
 }
