@@ -1,5 +1,15 @@
 {
-  Configuration publishConfiguration=createPopulatedConfiguration(publication.getArtifacts());
   DependencyResolver dependencyResolver=Cast.cast(ArtifactRepositoryInternal.class,repository).createResolver();
-  artifactPublisher.publish(Collections.singleton(dependencyResolver),publication.getModule(),Collections.singleton(publishConfiguration),publication.getDescriptorFile());
+  ModuleRevisionId moduleRevisionId=IvyUtil.createModuleRevisionId(publication.getModule());
+  try {
+    for (    PublishArtifact publishArtifact : publication.getArtifacts()) {
+      Artifact ivyArtifact=createIvyArtifact(publishArtifact,moduleRevisionId);
+      dependencyResolver.publish(ivyArtifact,publishArtifact.getFile(),true);
+    }
+    Artifact artifact=DefaultArtifact.newIvyArtifact(moduleRevisionId,null);
+    dependencyResolver.publish(artifact,publication.getDescriptorFile(),true);
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
 }
