@@ -2,9 +2,15 @@
   IvyModuleDescriptorInternal descriptorInternal=toIvyModuleDescriptorInternal(getDescriptor());
   XmlTransformer xmlTransformer=new XmlTransformer();
   xmlTransformer.addAction(descriptorInternal.getXmlAction());
-  Set<Configuration> publishConfigurations=createPopulatedConfiguration(descriptorInternal.getArtifacts(),descriptorInternal.getRuntimeDependencies());
-  ModuleDescriptorConverter moduleDescriptorConverter=publicationServices.getDescriptorFileModuleConverter();
-  ModuleDescriptor moduleDescriptor=moduleDescriptorConverter.convert(publishConfigurations,descriptorInternal.getModule());
+  IvyDescriptorBuilder ivyDescriptorBuilder=new IvyDescriptorBuilder(publicationServices.getDescriptorFileModuleConverter(),descriptorInternal.getModule());
+  ivyDescriptorBuilder.addConfiguration("runtime");
+  ivyDescriptorBuilder.addConfiguration("default","runtime");
+  for (  Dependency runtimeDependency : descriptorInternal.getRuntimeDependencies()) {
+    ivyDescriptorBuilder.addDependency("runtime",runtimeDependency);
+  }
+  for (  PublishArtifact artifact : descriptorInternal.getArtifacts()) {
+    ivyDescriptorBuilder.addArtifact("runtime",artifact);
+  }
   IvyModuleDescriptorWriter ivyModuleDescriptorWriter=publicationServices.getIvyModuleDescriptorWriter();
-  ivyModuleDescriptorWriter.write(moduleDescriptor,getDestination(),xmlTransformer);
+  ivyModuleDescriptorWriter.write(ivyDescriptorBuilder.build(),getDestination(),xmlTransformer);
 }
