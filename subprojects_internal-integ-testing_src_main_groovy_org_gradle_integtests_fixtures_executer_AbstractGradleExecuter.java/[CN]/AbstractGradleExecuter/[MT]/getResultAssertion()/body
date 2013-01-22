@@ -3,8 +3,20 @@
   if (stackTraceChecksOn) {
     assertions.add(new Action<ExecutionResult>(){
       public void execute(      ExecutionResult executionResult){
-        assertOutputHasNoStackTraces(executionResult);
-        assertErrorHasNoStackTraces(executionResult);
+        assertNoStackTraces(executionResult.getOutput(),"Standard output");
+        String error=executionResult.getError();
+        if (executionResult instanceof ExecutionFailure) {
+          int pos=error.indexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
+          if (pos >= 0) {
+            error=error.substring(0,pos);
+          }
+        }
+        assertNoStackTraces(error,"Standard error");
+      }
+      private void assertNoStackTraces(      String output,      String displayName){
+        if (containsLine(matchesRegexp("\\s+(at\\s+)?[\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
+          throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n",displayName,output));
+        }
       }
     }
 );
@@ -12,7 +24,15 @@
   if (deprecationChecksOn) {
     assertions.add(new Action<ExecutionResult>(){
       public void execute(      ExecutionResult executionResult){
-        assertOutputHasNoDeprecationWarnings(executionResult);
+        assertNoDeprecationWarnings(executionResult.getOutput(),"Standard output");
+        assertNoDeprecationWarnings(executionResult.getError(),"Standard error");
+      }
+      private void assertNoDeprecationWarnings(      String output,      String displayName){
+        boolean javacWarning=containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
+        boolean deprecationWarning=containsLine(matchesRegexp(".* deprecated.*")).matches(output);
+        if (deprecationWarning && !javacWarning) {
+          throw new AssertionError(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n",displayName,output));
+        }
       }
     }
 );
