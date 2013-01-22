@@ -2,9 +2,8 @@
   File gradleUserHomeDir=GUtil.elvis(operationParameters.getGradleUserHomeDir(),StartParameter.DEFAULT_GRADLE_USER_HOME);
   DaemonParameters daemonParams=new DaemonParameters();
   boolean searchUpwards=operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
-  daemonParams.configureFromBuildDir(operationParameters.getProjectDir(),searchUpwards);
-  daemonParams.configureFromGradleUserHome(gradleUserHomeDir);
-  daemonParams.configureFromSystemProperties(System.getProperties());
+  GradleProperties properties=new GradlePropertiesConfigurer().prepareProperties(operationParameters.getProjectDir(),searchUpwards,gradleUserHomeDir,System.getProperties());
+  daemonParams.configureFrom(properties);
   List<String> defaultJvmArgs=daemonParams.getAllJvmArgs();
   daemonParams.setJvmArgs(operationParameters.getJvmArguments(defaultJvmArgs));
   File defaultJavaHome=daemonParams.getEffectiveJavaHome();

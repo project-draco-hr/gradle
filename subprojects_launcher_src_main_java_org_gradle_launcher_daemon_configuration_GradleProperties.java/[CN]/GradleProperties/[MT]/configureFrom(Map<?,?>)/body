@@ -1,0 +1,41 @@
+{
+  Object propertyValue=properties.get(IDLE_TIMEOUT_PROPERTY);
+  if (propertyValue != null) {
+    try {
+      idleTimeout=new Integer(propertyValue.toString());
+    }
+ catch (    NumberFormatException e) {
+      throw new GradleException(String.format("Unable to parse %s property. The value should be an int but is: %s",IDLE_TIMEOUT_PROPERTY,propertyValue));
+    }
+  }
+  propertyValue=properties.get(JVM_ARGS_PROPERTY);
+  if (propertyValue != null) {
+    jvmArgs=propertyValue.toString();
+  }
+  propertyValue=properties.get(DAEMON_ENABLED_PROPERTY);
+  if (propertyValue != null) {
+    daemonEnabled=isTrue(propertyValue);
+  }
+  propertyValue=properties.get(JAVA_HOME_PROPERTY);
+  if (propertyValue != null) {
+    javaHome=new File(propertyValue.toString());
+    if (!javaHome.isDirectory()) {
+      throw new GradleException(String.format("Java home supplied via '%s' is invalid. Dir does not exist: %s",JAVA_HOME_PROPERTY,propertyValue));
+    }
+    try {
+      Jvm.forHome(javaHome);
+    }
+ catch (    JavaHomeException e) {
+      throw new GradleException(String.format("Java home supplied via '%s' seems to be invalid: %s",JAVA_HOME_PROPERTY,propertyValue));
+    }
+  }
+  propertyValue=properties.get(DEBUG_MODE_PROPERTY);
+  if (propertyValue != null) {
+    debugMode=isTrue(propertyValue);
+  }
+  propertyValue=properties.get(CONFIGURE_ON_DEMAND_PROPERTY);
+  if (propertyValue != null) {
+    configureOnDemand=isTrue(propertyValue);
+  }
+  return this;
+}
