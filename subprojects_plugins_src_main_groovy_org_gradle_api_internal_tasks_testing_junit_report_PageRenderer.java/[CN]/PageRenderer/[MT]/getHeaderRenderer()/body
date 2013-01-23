@@ -1,37 +1,46 @@
 {
-  return new DomReportRenderer<T>(){
-    @Override public void render(    T model,    Element content){
+  return new AbstractHtmlReportRenderer<T>(){
+    @Override public void render(    T model,    SimpleHtmlWriter htmlWriter) throws IOException {
       PageRenderer.this.results=model;
-      renderBreadcrumbs(content);
-      Element summary=appendWithId(content,"div","summary");
-      Element row=appendTableAndRow(summary);
-      Element group=appendCell(row);
-      group.setAttribute("class","summaryGroup");
-      Element summaryRow=appendTableAndRow(group);
-      Element tests=appendCell(summaryRow);
-      tests.setAttribute("id","tests");
-      tests.setAttribute("class","infoBox");
-      Element div=appendWithText(tests,"div",results.getTestCount());
-      div.setAttribute("class","counter");
-      appendWithText(tests,"p","tests");
-      Element failures=appendCell(summaryRow);
-      failures.setAttribute("id","failures");
-      failures.setAttribute("class","infoBox");
-      div=appendWithText(failures,"div",results.getFailureCount());
-      div.setAttribute("class","counter");
-      appendWithText(failures,"p","failures");
-      Element duration=appendCell(summaryRow);
-      duration.setAttribute("id","duration");
-      duration.setAttribute("class","infoBox");
-      div=appendWithText(duration,"div",results.getFormattedDuration());
-      div.setAttribute("class","counter");
-      appendWithText(duration,"p","duration");
-      Element successRate=appendCell(row);
-      successRate.setAttribute("id","successRate");
-      successRate.setAttribute("class",String.format("infoBox %s",results.getStatusClass()));
-      div=appendWithText(successRate,"div",results.getFormattedSuccessRate());
-      div.setAttribute("class","percent");
-      appendWithText(successRate,"p","successful");
+      renderBreadcrumbs(htmlWriter);
+      htmlWriter.startElement("div").attribute("id","summary");
+      htmlWriter.startElement("table");
+      htmlWriter.startElement("tr");
+      htmlWriter.startElement("td");
+      htmlWriter.startElement("div").attribute("class","summaryGroup");
+      htmlWriter.startElement("table");
+      htmlWriter.startElement("tr");
+      htmlWriter.startElement("td");
+      htmlWriter.startElement("div").attribute("class","infoBox").attribute("id","tests");
+      htmlWriter.startElement("div").attribute("class","counter").characters(Integer.toString(results.getTestCount())).endElement();
+      htmlWriter.startElement("p").characters("tests").endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
+      htmlWriter.startElement("td");
+      htmlWriter.startElement("div").attribute("class","infoBox").attribute("id","failures");
+      htmlWriter.startElement("div").attribute("class","counter").characters(Integer.toString(results.getFailureCount())).endElement();
+      htmlWriter.startElement("p").characters("failures").endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
+      htmlWriter.startElement("td");
+      htmlWriter.startElement("div").attribute("class","infoBox").attribute("id","duration");
+      htmlWriter.startElement("div").attribute("class","counter").characters(results.getFormattedDuration()).endElement();
+      htmlWriter.startElement("p").characters("duration").endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
+      htmlWriter.startElement("td");
+      htmlWriter.startElement("div").attribute("class",String.format("infoBox %s",results.getStatusClass())).attribute("id","successRate");
+      htmlWriter.startElement("div").attribute("class","percent").characters(results.getFormattedSuccessRate()).endElement();
+      htmlWriter.startElement("p").characters("successful").endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
+      htmlWriter.endElement();
     }
   }
 ;

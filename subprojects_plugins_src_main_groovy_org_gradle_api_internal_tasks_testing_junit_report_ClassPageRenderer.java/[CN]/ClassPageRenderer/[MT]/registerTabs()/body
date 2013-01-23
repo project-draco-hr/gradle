@@ -1,25 +1,27 @@
 {
   addFailuresTab();
-  addTab("Tests",new Action<Element>(){
-    public void execute(    Element element){
-      renderTests(element);
+  addTab("Tests",new ErroringAction<SimpleHtmlWriter>(){
+    public void doExecute(    SimpleHtmlWriter writer) throws IOException {
+      renderTests(writer);
     }
   }
 );
-  final String stdOut=getOutputString(TestOutputEvent.Destination.StdOut);
-  if (stdOut.length() > 0) {
-    addTab("Standard output",new Action<Element>(){
-      public void execute(      Element element){
-        renderStd(element,stdOut);
+  if (resultsProvider.hasOutput(className,TestOutputEvent.Destination.StdOut)) {
+    addTab("Standard output",new ErroringAction<SimpleHtmlWriter>(){
+      @Override protected void doExecute(      SimpleHtmlWriter htmlWriter) throws IOException {
+        htmlWriter.startElement("span").attribute("class","code").startElement("pre").characters("");
+        resultsProvider.writeOutputs(className,TestOutputEvent.Destination.StdOut,htmlWriter);
+        htmlWriter.endElement().endElement();
       }
     }
 );
   }
-  final String stdErr=getOutputString(TestOutputEvent.Destination.StdErr);
-  if (stdErr.length() > 0) {
-    addTab("Standard error",new Action<Element>(){
-      public void execute(      Element element){
-        renderStd(element,stdErr);
+  if (resultsProvider.hasOutput(className,TestOutputEvent.Destination.StdErr)) {
+    addTab("Standard error",new ErroringAction<SimpleHtmlWriter>(){
+      @Override protected void doExecute(      SimpleHtmlWriter element) throws Exception {
+        element.startElement("span").attribute("class","code").startElement("pre").characters("");
+        resultsProvider.writeOutputs(className,TestOutputEvent.Destination.StdErr,element);
+        element.endElement().endElement();
       }
     }
 );
