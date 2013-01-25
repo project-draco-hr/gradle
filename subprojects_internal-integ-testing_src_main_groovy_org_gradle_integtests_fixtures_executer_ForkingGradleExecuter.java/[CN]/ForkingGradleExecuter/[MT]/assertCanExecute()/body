@@ -1,2 +1,16 @@
 {
+  if (!getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
+    Map<String,String> mergedEnvironmentVars=getMergedEnvironmentVars();
+    for (    String envVarName : Arrays.asList("JAVA_OPTS","GRADLE_OPTS")) {
+      String envVarValue=mergedEnvironmentVars.get(envVarName);
+      if (envVarValue == null) {
+        continue;
+      }
+      for (      String arg : JvmOptions.fromString(envVarValue)) {
+        if (arg.contains(" ")) {
+          throw new AssertionError(String.format("Env var %s contains arg with space (%s) which is not supported",envVarName,arg));
+        }
+      }
+    }
+  }
 }
