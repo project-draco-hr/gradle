@@ -10,8 +10,14 @@
       jvmArgs.add("-XX:+CMSPermGenSweepingEnabled");
       jvmArgs.add("-Dcom.sun.management.jmxremote");
     }
+    String quotedArgs=join(" ",collect(jvmArgs,new Transformer<String,String>(){
+      public String transform(      String input){
+        return String.format("'%s'",input);
+      }
+    }
+));
     List<String> gradleOpts=new ArrayList<String>(super.getGradleOpts());
-    gradleOpts.add("-Dorg.gradle.jvmArgs=" + join(" ",jvmArgs));
+    gradleOpts.add("-Dorg.gradle.jvmArgs=" + quotedArgs);
     return gradleOpts;
   }
 }
