@@ -1,14 +1,20 @@
 {
   TestNG testNg=new TestNG();
   testNg.setOutputDirectory(testReportDir.getAbsolutePath());
-  testNg.setDefaultSuiteName(options.getSuiteName());
-  testNg.setDefaultTestName(options.getTestName());
+  testNg.setDefaultSuiteName(options.getDefaultSuiteName());
+  testNg.setDefaultTestName(options.getDefaultTestName());
   testNg.setParallel(options.getParallel());
   testNg.setThreadCount(options.getThreadCount());
   try {
+    final Method setAnnotations=TestNG.class.getMethod("setAnnotations");
+    setAnnotations.invoke(testNg,options.getAnnotations());
     ReflectionUtil.invoke(testNg,"setAnnotations",options.getAnnotations());
   }
- catch (  MissingMethodException e) {
+ catch (  NoSuchMethodException e) {
+  }
+catch (  InvocationTargetException e) {
+  }
+catch (  IllegalAccessException e) {
   }
   if (options.getJavadocAnnotations()) {
     testNg.setSourcePath(CollectionUtils.join(File.pathSeparator,options.getTestResources()));
@@ -18,7 +24,7 @@
   testNg.setVerbose(0);
   testNg.setGroups(CollectionUtils.join(",",options.getIncludeGroups()));
   testNg.setExcludedGroups(CollectionUtils.join(",",options.getExcludeGroups()));
-  for (  String listenerClass : options.getListeners()) {
+  for (  String listenerClass : options.getListener()) {
     try {
       testNg.addListener(applicationClassLoader.loadClass(listenerClass).newInstance());
     }
