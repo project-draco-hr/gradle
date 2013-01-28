@@ -3,13 +3,14 @@
   XmlTransformer xmlTransformer=new XmlTransformer();
   xmlTransformer.addAction(descriptorInternal.getXmlAction());
   IvyDescriptorBuilder ivyDescriptorBuilder=new IvyDescriptorBuilder(publicationServices.getDescriptorFileModuleConverter(),descriptorInternal.getModule());
-  ivyDescriptorBuilder.addConfiguration("runtime");
-  ivyDescriptorBuilder.addConfiguration("default","runtime");
+  for (  IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations()) {
+    ivyDescriptorBuilder.addConfiguration(ivyConfiguration);
+    for (    IvyArtifact ivyArtifact : ivyConfiguration.getArtifacts()) {
+      ivyDescriptorBuilder.addArtifact(ivyConfiguration.getName(),ivyArtifact);
+    }
+  }
   for (  Dependency runtimeDependency : descriptorInternal.getRuntimeDependencies()) {
     ivyDescriptorBuilder.addDependency("runtime",runtimeDependency);
-  }
-  for (  IvyArtifact artifact : descriptorInternal.getArtifacts()) {
-    ivyDescriptorBuilder.addArtifact("runtime",artifact);
   }
   IvyModuleDescriptorWriter ivyModuleDescriptorWriter=publicationServices.getIvyModuleDescriptorWriter();
   ivyModuleDescriptorWriter.write(ivyDescriptorBuilder.build(),getDestination(),xmlTransformer);
