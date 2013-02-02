@@ -1,3 +1,10 @@
 {
-  return new DefaultBuildExecuter(asList(new OnlyWhenConfigureOnDemand(new ProjectEvaluatingAction(new TaskPathProjectEvaluator())),new DefaultTasksBuildExecutionAction(),new ExcludedTaskFilteringBuildConfigurationAction(),new TaskNameResolvingBuildConfigurationAction()),asList(new DryRunBuildExecutionAction(),new TaskCacheLockHandlingBuildExecuter(get(TaskArtifactStateCacheAccess.class)),new SelectedTaskExecutionAction()));
+  List<BuildConfigurationAction> configs=new LinkedList<BuildConfigurationAction>();
+  if (get(StartParameter.class).isConfigureOnDemand()) {
+    configs.add(new ProjectEvaluatingAction());
+  }
+  configs.add(new DefaultTasksBuildExecutionAction());
+  configs.add(new ExcludedTaskFilteringBuildConfigurationAction());
+  configs.add(new TaskNameResolvingBuildConfigurationAction());
+  return new DefaultBuildExecuter(configs,asList(new DryRunBuildExecutionAction(),new TaskCacheLockHandlingBuildExecuter(get(TaskArtifactStateCacheAccess.class)),new SelectedTaskExecutionAction()));
 }
