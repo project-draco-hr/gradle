@@ -2,6 +2,10 @@
   this.instantiator=instantiator;
   this.module=module;
   FileNotationParser fileNotationParser=new FileNotationParser(project);
-  NotationParserBuilder<MavenArtifact> parserBuilder=new NotationParserBuilder<MavenArtifact>().resultingType(MavenArtifact.class).parser(new ArchiveTaskNotationParser()).parser(new PublishArtifactNotationParser()).parser(new FileMapNotationParser(fileNotationParser)).parser(fileNotationParser);
+  ArchiveTaskNotationParser archiveTaskNotationParser=new ArchiveTaskNotationParser();
+  PublishArtifactNotationParser publishArtifactNotationParser=new PublishArtifactNotationParser();
+  NotationParser<MavenArtifact> sourceNotationParser=new NotationParserBuilder<MavenArtifact>().resultingType(MavenArtifact.class).parser(archiveTaskNotationParser).parser(publishArtifactNotationParser).parser(fileNotationParser).toComposite();
+  MavenArtifactMapNotationParser mavenArtifactMapNotationParser=new MavenArtifactMapNotationParser(sourceNotationParser,fileNotationParser);
+  NotationParserBuilder<MavenArtifact> parserBuilder=new NotationParserBuilder<MavenArtifact>().resultingType(MavenArtifact.class).parser(archiveTaskNotationParser).parser(publishArtifactNotationParser).parser(mavenArtifactMapNotationParser).parser(fileNotationParser);
   delegate=parserBuilder.toComposite();
 }
