@@ -1,8 +1,9 @@
 {
   Instantiator instantiator=get(Instantiator.class);
-  ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction=new ProjectDependenciesBuildInstruction(get(StartParameter.class).isBuildProjectDependencies());
-  ProjectDependencyFactory projectDependencyFactory=new ProjectDependencyFactory(projectDependenciesBuildInstruction,instantiator);
-  DependencyProjectNotationParser projParser=new DependencyProjectNotationParser(projectDependenciesBuildInstruction,instantiator);
+  ProjectAccessListener projectAccessListener=get(ProjectAccessListener.class);
+  DefaultProjectDependencyFactory factory=new DefaultProjectDependencyFactory(projectAccessListener,instantiator,get(StartParameter.class).isBuildProjectDependencies());
+  ProjectDependencyFactory projectDependencyFactory=new ProjectDependencyFactory(factory);
+  DependencyProjectNotationParser projParser=new DependencyProjectNotationParser(factory);
   NotationParser<? extends Dependency> moduleMapParser=new DependencyMapNotationParser<DefaultExternalModuleDependency>(instantiator,DefaultExternalModuleDependency.class);
   NotationParser<? extends Dependency> moduleStringParser=new DependencyStringNotationParser<DefaultExternalModuleDependency>(instantiator,DefaultExternalModuleDependency.class);
   NotationParser<? extends Dependency> selfResolvingDependencyFactory=new DependencyFilesNotationParser(instantiator);
