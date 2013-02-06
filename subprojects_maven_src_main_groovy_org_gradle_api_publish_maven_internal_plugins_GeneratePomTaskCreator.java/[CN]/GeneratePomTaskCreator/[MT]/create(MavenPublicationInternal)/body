@@ -4,6 +4,7 @@
   GenerateMavenPom generatePomTask=project.getTasks().add(descriptorTaskName,GenerateMavenPom.class);
   generatePomTask.setGroup("publishing");
   generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'",publication.getName()));
+  generatePomTask.setPom(publication.getPom());
   ConventionMapping descriptorTaskConventionMapping=new DslObject(generatePomTask).getConventionMapping();
   descriptorTaskConventionMapping.map("destination",new Callable<Object>(){
     public Object call() throws Exception {
@@ -11,11 +12,5 @@
     }
   }
 );
-  descriptorTaskConventionMapping.map("pom",new Callable<Object>(){
-    public Object call() throws Exception {
-      return publication.getPom();
-    }
-  }
-);
-  publication.setPomFile(generatePomTask.getPomFile());
+  publication.setPomFile(generatePomTask.getOutputs().getFiles());
 }
