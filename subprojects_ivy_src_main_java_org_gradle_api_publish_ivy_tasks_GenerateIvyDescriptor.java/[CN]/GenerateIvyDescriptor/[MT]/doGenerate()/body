@@ -1,17 +1,14 @@
 {
   IvyModuleDescriptorInternal descriptorInternal=toIvyModuleDescriptorInternal(getDescriptor());
-  XmlTransformer xmlTransformer=new XmlTransformer();
-  xmlTransformer.addAction(descriptorInternal.getXmlAction());
-  IvyDescriptorBuilder ivyDescriptorBuilder=new IvyDescriptorBuilder(publicationServices.getDescriptorFileModuleConverter(),descriptorInternal.getModule());
+  IvyDescriptorFileGenerator ivyGenerator=new IvyDescriptorFileGenerator(descriptorInternal.getModule());
   for (  IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations()) {
-    ivyDescriptorBuilder.addConfiguration(ivyConfiguration);
-    for (    IvyArtifact ivyArtifact : ivyConfiguration.getArtifacts()) {
-      ivyDescriptorBuilder.addArtifact(ivyConfiguration.getName(),ivyArtifact);
-    }
+    ivyGenerator.addConfiguration(ivyConfiguration);
+  }
+  for (  IvyArtifact ivyArtifact : descriptorInternal.getArtifacts()) {
+    ivyGenerator.addArtifact(ivyArtifact);
   }
   for (  Dependency runtimeDependency : descriptorInternal.getRuntimeDependencies()) {
-    ivyDescriptorBuilder.addDependency("runtime",runtimeDependency);
+    ivyGenerator.addDependency(runtimeDependency);
   }
-  IvyModuleDescriptorWriter ivyModuleDescriptorWriter=publicationServices.getIvyModuleDescriptorWriter();
-  ivyModuleDescriptorWriter.write(ivyDescriptorBuilder.build(),getDestination(),xmlTransformer);
+  ivyGenerator.withXml(descriptorInternal.getXmlAction()).writeTo(getDestination());
 }
