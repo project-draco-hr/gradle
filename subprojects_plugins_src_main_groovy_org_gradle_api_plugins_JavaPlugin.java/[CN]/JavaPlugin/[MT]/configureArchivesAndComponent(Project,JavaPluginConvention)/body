@@ -10,6 +10,9 @@
     }
   }
 );
-  project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(jar));
-  project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME).getArtifacts().add(new ArchivePublishArtifact(jar));
+  ArchivePublishArtifact jarArtifact=new ArchivePublishArtifact(jar);
+  Configuration runtimeConfiguration=project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
+  runtimeConfiguration.getArtifacts().add(jarArtifact);
+  project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
+  project.getComponents().add(new JavaLibrary(jarArtifact,runtimeConfiguration.getAllDependencies()));
 }
