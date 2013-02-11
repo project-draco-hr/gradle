@@ -1,8 +1,21 @@
 {
-  if (!taskPath.contains(Project.PATH_SEPARATOR)) {
-    throw new IllegalArgumentException("I can only find tasks based on a task path (e.g. containing ':'). However, '" + taskPath + "' was passed.");
+  if (projectPath.equals(Project.PATH_SEPARATOR)) {
+    return startFrom.getRootProject();
   }
-  String projectPath=StringUtils.substringBeforeLast(taskPath,Project.PATH_SEPARATOR);
-  projectPath=projectPath.length() == 0 ? Project.PATH_SEPARATOR : projectPath;
-  return findProjectNow(projectPath,startFrom);
+  Project current=startFrom;
+  if (projectPath.startsWith(Project.PATH_SEPARATOR)) {
+    current=current.getRootProject();
+    projectPath=projectPath.substring(1);
+  }
+  for (  String pattern : projectPath.split(Project.PATH_SEPARATOR)) {
+    Map<String,Project> children=current.getChildProjects();
+    NameMatcher matcher=new NameMatcher();
+    Project child=matcher.find(pattern,children);
+    if (child != null) {
+      current=child;
+      continue;
+    }
+    throw new ProjectLookupException(matcher.formatErrorMessage("project",current));
+  }
+  return (ProjectInternal)current;
 }
