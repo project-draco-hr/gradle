@@ -1,0 +1,17 @@
+{
+  Pom pom=new Pom();
+  pom.setProject(installOrDeployTask.getProject());
+  pom.setFile(publication.getPomFile());
+  installOrDeployTask.addPom(pom);
+  MavenArtifact mainArtifact=determineMainArtifact(publication.getName(),publication.getArtifacts());
+  installOrDeployTask.setFile(mainArtifact == null ? publication.getPomFile() : mainArtifact.getFile());
+  for (  MavenArtifact mavenArtifact : publication.getArtifacts()) {
+    if (mavenArtifact == mainArtifact) {
+      continue;
+    }
+    AttachedArtifact attachedArtifact=installOrDeployTask.createAttach();
+    attachedArtifact.setClassifier(mavenArtifact.getClassifier());
+    attachedArtifact.setFile(mavenArtifact.getFile());
+    attachedArtifact.setType(mavenArtifact.getExtension());
+  }
+}
