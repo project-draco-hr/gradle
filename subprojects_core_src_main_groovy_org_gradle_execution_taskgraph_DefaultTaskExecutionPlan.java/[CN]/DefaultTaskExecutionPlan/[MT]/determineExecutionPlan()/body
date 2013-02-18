@@ -1,6 +1,9 @@
 {
+  executionPlan.clear();
   List<TaskDependencyGraphNode> nodeQueue=new ArrayList<TaskDependencyGraphNode>(graph.getNodesWithoutIncomingEdges());
-  Collections.sort(nodeQueue);
+  if (nodeQueue.isEmpty()) {
+    throw new CircularReferenceException("Circular dependency between tasks.");
+  }
   Set<TaskDependencyGraphNode> visitingNodes=new HashSet<TaskDependencyGraphNode>();
   while (!nodeQueue.isEmpty()) {
     TaskDependencyGraphNode taskNode=nodeQueue.get(0);
@@ -15,6 +18,12 @@
     if (visitingNodes.add(taskNode)) {
       Set<TaskDependencyGraphNode> dependsOnTasks=new TreeSet<TaskDependencyGraphNode>(Collections.reverseOrder());
       dependsOnTasks.addAll(taskNode.getSuccessors());
+      dependsOnTasks=CollectionUtils.filter(dependsOnTasks,new Spec<TaskDependencyGraphNode>(){
+        public boolean isSatisfiedBy(        TaskDependencyGraphNode element){
+          return element.getRequired();
+        }
+      }
+);
       for (      TaskDependencyGraphNode dependsOnTask : dependsOnTasks) {
         if (visitingNodes.contains(dependsOnTask)) {
           throw new CircularReferenceException(String.format("Circular dependency between tasks. Cycle includes [%s, %s].",taskNode.getTask(),dependsOnTask.getTask()));

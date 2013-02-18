@@ -1,10 +1,11 @@
 {
   List<Task> queue=new ArrayList<Task>(tasks);
+  Collections.sort(queue);
   Set<Task> visiting=new HashSet<Task>();
   CachingTaskDependencyResolveContext context=new CachingTaskDependencyResolveContext();
   while (!queue.isEmpty()) {
     Task task=queue.get(0);
-    if (graph.hasTask(task)) {
+    if (graph.hasTask(task) && graph.getNode(task).getRequired()) {
       queue.remove(0);
       continue;
     }
@@ -27,6 +28,9 @@
       }
       if (dependencies.size() == 0) {
         graph.addNode(task);
+      }
+      for (      Task mustRunAfter : task.getMustRunAfter()) {
+        graph.addEdge(task,mustRunAfter,false);
       }
     }
   }
