@@ -1,9 +1,11 @@
 {
   executionPlan.clear();
-  List<TaskDependencyGraphNode> nodeQueue=new ArrayList<TaskDependencyGraphNode>(graph.getNodesWithoutIncomingEdges());
-  if (nodeQueue.isEmpty()) {
-    throw new CircularReferenceException("Circular dependency between tasks.");
+  List<TaskDependencyGraphNode> nodeQueue=CollectionUtils.collect(new ArrayList<Task>(entryTasks),new Transformer<TaskDependencyGraphNode,Task>(){
+    public TaskDependencyGraphNode transform(    Task original){
+      return graph.getNode(original);
+    }
   }
+);
   Set<TaskDependencyGraphNode> visitingNodes=new HashSet<TaskDependencyGraphNode>();
   while (!nodeQueue.isEmpty()) {
     TaskDependencyGraphNode taskNode=nodeQueue.get(0);
