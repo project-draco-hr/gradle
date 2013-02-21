@@ -1,12 +1,23 @@
 {
-  ProcessEnvironment environment;
+  if (USE_NATIVE_PLATFORM) {
+    try {
+      net.rubygrapefruit.platform.Process process=net.rubygrapefruit.platform.Native.get(Process.class);
+      return new NativePlatformBackedProcessEnvironment(process);
+    }
+ catch (    NativeIntegrationUnavailableException ex) {
+      LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
+    }
+catch (    NativeException ex) {
+      LOGGER.debug("Unable to load from native-platform backed ProcessEnvironment. Continuing with fallback. Failure: {}",format(ex));
+    }
+  }
   OperatingSystem operatingSystem=get(OperatingSystem.class);
   try {
     if (operatingSystem.isUnix()) {
-      environment=new LibCBackedProcessEnvironment(get(LibC.class));
+      return new LibCBackedProcessEnvironment(get(LibC.class));
     }
  else     if (operatingSystem.isWindows()) {
-      environment=new WindowsProcessEnvironment();
+      return new WindowsProcessEnvironment();
     }
  else {
       return new UnsupportedEnvironment();
@@ -16,5 +27,4 @@
     LOGGER.debug("Unable to load native library. Continuing with fallback. Failure: {}",format(e));
     return new UnsupportedEnvironment();
   }
-  return environment;
 }
