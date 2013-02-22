@@ -4,14 +4,13 @@
   }
   this.component=(SoftwareComponentInternal)component;
   configurations.maybeCreate("default");
-  for (  PublishArtifact publishArtifact : this.component.getArtifacts()) {
-    artifact(publishArtifact).setConf("master");
-    configurations.maybeCreate("master");
-    configurations.getByName("default").extend("master");
-  }
-  if (this.component.getRuntimeDependencies() != null) {
-    runtimeDependencies.addAll(this.component.getRuntimeDependencies());
-    configurations.maybeCreate("runtime");
-    configurations.getByName("default").extend("runtime");
+  for (  Usage usage : this.component.getUsages()) {
+    String conf=usage.getName();
+    configurations.maybeCreate(conf);
+    configurations.getByName("default").extend(conf);
+    for (    PublishArtifact publishArtifact : usage.getArtifacts()) {
+      artifact(publishArtifact).setConf(conf);
+    }
+    runtimeDependencies.addAll(usage.getDependencies());
   }
 }
