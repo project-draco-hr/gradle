@@ -3,10 +3,15 @@
     throw new InvalidUserDataException(String.format("Ivy publication '%s' cannot include multiple components",name));
   }
   this.component=(SoftwareComponentInternal)component;
+  configurations.maybeCreate("default");
   for (  PublishArtifact publishArtifact : this.component.getArtifacts()) {
-    artifact(publishArtifact).setConf("runtime");
+    artifact(publishArtifact).setConf("master");
+    configurations.maybeCreate("master");
+    configurations.getByName("default").extend("master");
   }
-  createConfiguration("runtime");
-  createConfiguration("default").extend("runtime");
-  runtimeDependencies.addAll(this.component.getRuntimeDependencies());
+  if (this.component.getRuntimeDependencies() != null) {
+    runtimeDependencies.addAll(this.component.getRuntimeDependencies());
+    configurations.maybeCreate("runtime");
+    configurations.getByName("default").extend("runtime");
+  }
 }
