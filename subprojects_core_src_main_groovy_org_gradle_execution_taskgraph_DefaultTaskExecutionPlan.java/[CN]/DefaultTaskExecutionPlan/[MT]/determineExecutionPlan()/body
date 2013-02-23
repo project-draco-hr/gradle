@@ -9,23 +9,14 @@
   Set<TaskDependencyGraphNode> visitingNodes=new HashSet<TaskDependencyGraphNode>();
   while (!nodeQueue.isEmpty()) {
     TaskDependencyGraphNode taskNode=nodeQueue.get(0);
-    if (!filter.isSatisfiedBy(taskNode.getTask())) {
-      nodeQueue.remove(0);
-      continue;
-    }
-    if (executionPlan.containsKey(taskNode.getTask())) {
+    if (!filter.isSatisfiedBy(taskNode.getTask()) || executionPlan.containsKey(taskNode.getTask()) || !taskNode.getRequired()) {
       nodeQueue.remove(0);
       continue;
     }
     if (visitingNodes.add(taskNode)) {
       Set<TaskDependencyGraphNode> dependsOnTasks=new TreeSet<TaskDependencyGraphNode>(Collections.reverseOrder());
-      dependsOnTasks.addAll(taskNode.getSuccessors());
-      dependsOnTasks=CollectionUtils.filter(dependsOnTasks,new Spec<TaskDependencyGraphNode>(){
-        public boolean isSatisfiedBy(        TaskDependencyGraphNode element){
-          return element.getRequired();
-        }
-      }
-);
+      dependsOnTasks.addAll(taskNode.getHardSuccessors());
+      dependsOnTasks.addAll(taskNode.getSoftSuccessors());
       for (      TaskDependencyGraphNode dependsOnTask : dependsOnTasks) {
         if (visitingNodes.contains(dependsOnTask)) {
           throw new CircularReferenceException(String.format("Circular dependency between tasks. Cycle includes [%s, %s].",taskNode.getTask(),dependsOnTask.getTask()));
@@ -37,7 +28,7 @@
       nodeQueue.remove(0);
       visitingNodes.remove(taskNode);
       Set<TaskInfo> dependencies=new HashSet<TaskInfo>();
-      for (      TaskDependencyGraphNode dependency : taskNode.getSuccessors()) {
+      for (      TaskDependencyGraphNode dependency : taskNode.getHardSuccessors()) {
         TaskInfo dependencyInfo=executionPlan.get(dependency.getTask());
         if (dependencyInfo != null) {
           dependencies.add(dependencyInfo);
