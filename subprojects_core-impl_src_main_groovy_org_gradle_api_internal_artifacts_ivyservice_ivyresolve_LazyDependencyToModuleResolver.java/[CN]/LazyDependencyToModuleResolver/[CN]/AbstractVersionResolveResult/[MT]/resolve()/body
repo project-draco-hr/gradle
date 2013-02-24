@@ -1,0 +1,25 @@
+{
+  if (resolveResult == null) {
+    resolveResult=new DefaultBuildableModuleVersionResolveResult();
+    try {
+      try {
+        dependencyResolver.resolve(dependency,resolveResult);
+      }
+ catch (      Throwable t) {
+        throw new ModuleVersionResolveException(dependency.getRequested(),t);
+      }
+      if (resolveResult.getFailure() instanceof ModuleVersionNotFoundException) {
+        throw notFound();
+      }
+      if (resolveResult.getFailure() != null) {
+        throw resolveResult.getFailure();
+      }
+      checkDescriptor(resolveResult.getMetaData());
+      resolveResult.setArtifactResolver(new ErrorHandlingArtifactResolver(resolveResult.getArtifactResolver()));
+    }
+ catch (    ModuleVersionResolveException e) {
+      resolveResult.failed(e);
+    }
+  }
+  return resolveResult;
+}
