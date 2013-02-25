@@ -1,0 +1,17 @@
+{
+  if (value == null || value.length() == 0) {
+    return type.cast(this);
+  }
+  int offset=0;
+  while (offset < value.length()) {
+    final int unicodeChar=value.codePointAt(offset);
+    if (Character.isISOControl(unicodeChar)) {
+      throw failure(String.format("%s cannot contain an ISO control character.",name));
+    }
+    if ('\\' == unicodeChar || '/' == unicodeChar) {
+      throw failure(String.format("%s cannot contain '\\' or '/'.",name));
+    }
+    offset+=Character.charCount(unicodeChar);
+  }
+  return type.cast(this);
+}
