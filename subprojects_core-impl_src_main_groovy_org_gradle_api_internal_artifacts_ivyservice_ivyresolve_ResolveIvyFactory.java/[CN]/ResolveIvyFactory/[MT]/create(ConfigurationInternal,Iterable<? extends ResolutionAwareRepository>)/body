@@ -3,19 +3,13 @@
   ResolutionRules resolutionRules=configuration.getResolutionStrategy().getResolutionRules();
   startParameterResolutionOverride.addResolutionRules(resolutionRules);
   LoopbackDependencyResolver loopbackDependencyResolver=new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME,userResolverChain,cacheLockingManager);
-  List<DependencyResolver> rawResolvers=resolverProvider.getResolvers();
-  IvySettings ivySettings=settingsConverter.convertForResolve(loopbackDependencyResolver,rawResolvers);
+  IvySettings ivySettings=settingsConverter.convertForResolve(loopbackDependencyResolver);
+  userResolverChain.setSettings(ivySettings);
   Ivy ivy=ivyFactory.createIvy(ivySettings);
   ResolveData resolveData=createResolveData(ivy,configuration.getName());
   IvyContextualiser contextualiser=new IvyContextualiser(ivy,resolveData);
-  for (  DependencyResolver rawResolver : rawResolvers) {
-    IvyAwareModuleVersionRepository moduleVersionRepository;
-    if (rawResolver instanceof ExternalResourceResolver) {
-      moduleVersionRepository=new ExternalResourceResolverAdapter((ExternalResourceResolver)rawResolver);
-    }
- else {
-      moduleVersionRepository=new IvyDependencyResolverAdapter(rawResolver);
-    }
+  for (  ResolutionAwareRepository repository : repositories) {
+    IvyAwareModuleVersionRepository moduleVersionRepository=repository.createResolveRepository();
     moduleVersionRepository.setSettings(ivySettings);
     LocalAwareModuleVersionRepository localAwareRepository;
     if (moduleVersionRepository.isLocal()) {
