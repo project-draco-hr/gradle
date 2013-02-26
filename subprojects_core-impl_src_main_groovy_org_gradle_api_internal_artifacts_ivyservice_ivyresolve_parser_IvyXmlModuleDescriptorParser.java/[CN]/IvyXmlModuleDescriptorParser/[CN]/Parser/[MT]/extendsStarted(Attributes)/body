@@ -2,10 +2,10 @@
   String parentOrganisation=attributes.getValue("organisation");
   String parentModule=attributes.getValue("module");
   String parentRevision=attributes.getValue("revision");
-  String location=attributes.getValue("location") != null ? attributes.getValue("location") : getDefaultParentLocation();
+  String location=elvis(attributes.getValue("location"),getDefaultParentLocation());
+  String extendType=elvis(attributes.getValue("extendType"),"all").toLowerCase();
+  List<String> extendTypes=Arrays.asList(extendType.split(","));
   ModuleDescriptor parent=null;
-  String extendType=attributes.getValue("extendType") != null ? attributes.getValue("extendType").toLowerCase() : "all";
-  List extendTypes=Arrays.asList(extendType.split(","));
   try {
     Message.debug("Trying to parse included ivy file :" + location);
     parent=parseOtherIvyFileOnFileSystem(location);
@@ -34,7 +34,7 @@ catch (  IOException e) {
   if (parent == null) {
     throw new ParseException("Unable to parse included ivy file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision,0);
   }
-  DefaultExtendsDescriptor ed=new DefaultExtendsDescriptor(parent.getModuleRevisionId(),parent.getResolvedModuleRevisionId(),attributes.getValue("location"),(String[])extendTypes.toArray(new String[extendTypes.size()]));
+  DefaultExtendsDescriptor ed=new DefaultExtendsDescriptor(parent.getModuleRevisionId(),parent.getResolvedModuleRevisionId(),attributes.getValue("location"),extendTypes.toArray(new String[extendTypes.size()]));
   getMd().addInheritedDescriptor(ed);
   mergeWithOtherModuleDescriptor(extendTypes,parent);
 }

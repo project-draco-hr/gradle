@@ -1,11 +1,9 @@
 {
-  String org=settings.substitute(attributes.getValue("org"));
-  org=org == null ? PatternMatcher.ANY_EXPRESSION : org;
-  String mod=settings.substitute(attributes.getValue("module"));
-  mod=mod == null ? PatternMatcher.ANY_EXPRESSION : mod;
+  String org=elvis(substitute(attributes.getValue("org")),PatternMatcher.ANY_EXPRESSION);
+  String mod=elvis(substitute(attributes.getValue("module")),PatternMatcher.ANY_EXPRESSION);
+  String name=substitute(attributes.getValue(managerAtt));
+  String rev=substitute(attributes.getValue("rev"));
   ConflictManager cm;
-  String name=settings.substitute(attributes.getValue(managerAtt));
-  String rev=settings.substitute(attributes.getValue("rev"));
   if (rev != null) {
     String[] revs=rev.split(",");
     for (int i=0; i < revs.length; i++) {
@@ -24,7 +22,7 @@
     addError("bad conflict manager: no manager nor rev");
     return;
   }
-  String matcherName=settings.substitute(attributes.getValue("matcher"));
+  String matcherName=substitute(attributes.getValue("matcher"));
   PatternMatcher matcher=matcherName == null ? defaultMatcher : settings.getMatcher(matcherName);
   if (matcher == null) {
     addError("unknown matcher: " + matcherName);

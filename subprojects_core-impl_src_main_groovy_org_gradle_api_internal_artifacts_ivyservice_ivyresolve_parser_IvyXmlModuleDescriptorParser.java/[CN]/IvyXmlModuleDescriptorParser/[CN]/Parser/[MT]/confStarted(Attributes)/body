@@ -1,22 +1,23 @@
 {
-  String conf=settings.substitute(attributes.getValue("name"));
+  String conf=substitute(attributes.getValue("name"));
 switch (state) {
 case State.CONF:
-    String visibility=settings.substitute(attributes.getValue("visibility"));
-  String ext=settings.substitute(attributes.getValue("extends"));
+    Configuration.Visibility visibility=Configuration.Visibility.getVisibility(elvis(substitute(attributes.getValue("visibility")),"public"));
+  String description=substitute(attributes.getValue("description"));
+String[] extend=substitute(attributes.getValue("extends")) == null ? null : substitute(attributes.getValue("extends")).split(",");
 String transitiveValue=attributes.getValue("transitive");
-boolean transitive=(transitiveValue == null) ? true : Boolean.valueOf(attributes.getValue("transitive")).booleanValue();
+boolean transitive=(transitiveValue == null) || Boolean.valueOf(attributes.getValue("transitive"));
 String deprecated=attributes.getValue("deprecated");
-Configuration configuration=new Configuration(conf,Configuration.Visibility.getVisibility(visibility == null ? "public" : visibility),settings.substitute(attributes.getValue("description")),ext == null ? null : ext.split(","),transitive,deprecated);
+Configuration configuration=new Configuration(conf,visibility,description,extend,transitive,deprecated);
 ExtendableItemHelper.fillExtraAttributes(settings,configuration,attributes,new String[]{"name","visibility","extends","transitive","description","deprecated"});
 getMd().addConfiguration(configuration);
 break;
 case State.PUB:
 if ("*".equals(conf)) {
 String[] confs=getMd().getConfigurationsNames();
-for (int i=0; i < confs.length; i++) {
-artifact.addConfiguration(confs[i]);
-getMd().addArtifact(confs[i],artifact);
+for (String confName : confs) {
+artifact.addConfiguration(confName);
+getMd().addArtifact(confName,artifact);
 }
 }
  else {
@@ -26,11 +27,11 @@ getMd().addArtifact(conf,artifact);
 break;
 case State.DEP:
 this.conf=conf;
-String mappeds=settings.substitute(attributes.getValue("mapped"));
+String mappeds=substitute(attributes.getValue("mapped"));
 if (mappeds != null) {
 String[] mapped=mappeds.split(",");
-for (int i=0; i < mapped.length; i++) {
-dd.addDependencyConfiguration(conf,mapped[i].trim());
+for (String depConf : mapped) {
+dd.addDependencyConfiguration(conf,depConf.trim());
 }
 }
 break;

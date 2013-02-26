@@ -1,16 +1,7 @@
 {
   try {
     if (state == State.DESCRIPTION) {
-      getBuffer().append("<").append(qName);
-      for (int i=0; i < attributes.getLength(); i++) {
-        getBuffer().append(" ");
-        getBuffer().append(attributes.getQName(i));
-        getBuffer().append("=\"");
-        getBuffer().append(attributes.getValue(i));
-        getBuffer().append("\"");
-      }
-      getBuffer().append(">");
-      return;
+      descriptionStarted(qName,attributes);
     }
  else     if ("ivy-module".equals(qName)) {
       ivyModuleStarted(attributes);
@@ -22,10 +13,10 @@
       extendsStarted(attributes);
     }
  else     if (state == State.INFO && "license".equals(qName)) {
-      getMd().addLicense(new License(settings.substitute(attributes.getValue("name")),settings.substitute(attributes.getValue("url"))));
+      getMd().addLicense(new License(substitute(attributes.getValue("name")),substitute(attributes.getValue("url"))));
     }
  else     if (state == State.INFO && "description".equals(qName)) {
-      getMd().setHomePage(settings.substitute(attributes.getValue("homepage")));
+      getMd().setHomePage(substitute(attributes.getValue("homepage")));
       state=State.DESCRIPTION;
       buffer=new StringBuffer();
     }
@@ -70,7 +61,7 @@
       confStarted(attributes);
     }
  else     if ("mapped".equals(qName)) {
-      dd.addDependencyConfiguration(conf,settings.substitute(attributes.getValue("name")));
+      dd.addDependencyConfiguration(conf,substitute(attributes.getValue("name")));
     }
  else     if (("conflict".equals(qName) && state == State.DEPS) || "manager".equals(qName) && state == State.CONFLICT) {
       managerStarted(attributes,state == State.CONFLICT ? "name" : "manager");

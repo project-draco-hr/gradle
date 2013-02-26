@@ -1,11 +1,12 @@
 {
   state=State.INFO;
-  String org=settings.substitute(attributes.getValue("organisation"));
-  String module=settings.substitute(attributes.getValue("module"));
-  String revision=settings.substitute(attributes.getValue("revision"));
-  String branch=settings.substitute(attributes.getValue("branch"));
-  getMd().setModuleRevisionId(ModuleRevisionId.newInstance(org,module,branch,revision,ExtendableItemHelper.getExtraAttributes(settings,attributes,new String[]{"organisation","module","revision","status","publication","branch","namespace","default","resolver"})));
-  String namespace=settings.substitute(attributes.getValue("namespace"));
+  String org=substitute(attributes.getValue("organisation"));
+  String module=substitute(attributes.getValue("module"));
+  String revision=substitute(attributes.getValue("revision"));
+  String branch=substitute(attributes.getValue("branch"));
+  Map extraAttributes=ExtendableItemHelper.getExtraAttributes(settings,attributes,new String[]{"organisation","module","revision","status","publication","branch","namespace","default","resolver"});
+  getMd().setModuleRevisionId(ModuleRevisionId.newInstance(org,module,branch,revision,extraAttributes));
+  String namespace=substitute(attributes.getValue("namespace"));
   if (namespace != null) {
     Namespace ns=settings.getNamespace(namespace);
     if (ns == null) {
@@ -15,10 +16,9 @@
       getMd().setNamespace(ns);
     }
   }
-  String status=settings.substitute(attributes.getValue("status"));
-  getMd().setStatus(status == null ? settings.getStatusManager().getDefaultStatus() : status);
-  getMd().setDefault(Boolean.valueOf(settings.substitute(attributes.getValue("default"))).booleanValue());
-  String pubDate=settings.substitute(attributes.getValue("publication"));
+  getMd().setStatus(elvis(substitute(attributes.getValue("status")),settings.getStatusManager().getDefaultStatus()));
+  getMd().setDefault(Boolean.valueOf(substitute(attributes.getValue("default"))));
+  String pubDate=substitute(attributes.getValue("publication"));
   if (pubDate != null && pubDate.length() > 0) {
     try {
       final SimpleDateFormat ivyDateFormat=new SimpleDateFormat(IVY_DATE_FORMAT_PATTERN);
