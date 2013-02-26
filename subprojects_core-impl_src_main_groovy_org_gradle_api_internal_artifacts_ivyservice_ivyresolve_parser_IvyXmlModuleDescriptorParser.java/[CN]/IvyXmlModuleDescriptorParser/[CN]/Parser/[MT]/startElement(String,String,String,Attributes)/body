@@ -35,7 +35,7 @@
     }
  else     if ("conflicts".equals(qName)) {
       if (!descriptorVersion.startsWith("1.")) {
-        Message.deprecated("using conflicts section is deprecated: " + "please use hints section instead. Ivy file URL: " + descriptorURL);
+        DeprecationLogger.nagUserWith("Using conflicts section in ivy.xml is deprecated: please use hints section instead. Ivy file URL: " + descriptorURL);
       }
       state=State.CONFLICT;
       checkConfigurations();
@@ -64,10 +64,10 @@
       dd.addDependencyConfiguration(conf,substitute(attributes.getValue("name")));
     }
  else     if (("conflict".equals(qName) && state == State.DEPS) || "manager".equals(qName) && state == State.CONFLICT) {
-      managerStarted(attributes,state == State.CONFLICT ? "name" : "manager");
+      LOGGER.info("Ivy.xml conflict managers are not supported by Gradle. Ignoring conflict manager declared in %s",getResource().getName());
     }
  else     if ("override".equals(qName) && state == State.DEPS) {
-      mediationOverrideStarted(attributes);
+      LOGGER.info("Ivy.xml dependency overrides are not supported by Gradle. Ignoring override declared in %s",getResource().getName());
     }
  else     if ("include".equals(qName) && state == State.CONF) {
       includeConfStarted(attributes);

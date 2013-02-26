@@ -7,28 +7,28 @@
   List<String> extendTypes=Arrays.asList(extendType.split(","));
   ModuleDescriptor parent=null;
   try {
-    Message.debug("Trying to parse included ivy file :" + location);
+    LOGGER.debug("Trying to parse included ivy file :" + location);
     parent=parseOtherIvyFileOnFileSystem(location);
     ModuleId expected=new ModuleId(parentOrganisation,parentModule);
     ModuleId pid=parent.getModuleRevisionId().getModuleId();
     if (!expected.equals(pid)) {
-      Message.verbose("Ignoring parent Ivy file " + location + "; expected "+ expected+ " but found "+ pid);
+      LOGGER.warn("Ignoring parent Ivy file " + location + "; expected "+ expected+ " but found "+ pid);
       parent=null;
     }
   }
  catch (  ParseException e) {
-    Message.warn("Unable to parse included ivy file " + location + ": "+ e.getMessage());
+    LOGGER.warn("Unable to parse included ivy file " + location + ": "+ e.getMessage());
   }
 catch (  IOException e) {
-    Message.warn("Unable to parse included ivy file " + location + ": "+ e.getMessage());
+    LOGGER.warn("Unable to parse included ivy file " + location + ": "+ e.getMessage());
   }
   if (parent == null) {
     try {
-      Message.debug("Trying to parse included ivy file by asking repository for module :" + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision);
+      LOGGER.debug("Trying to parse included ivy file by asking repository for module :" + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision);
       parent=parseOtherIvyFile(parentOrganisation,parentModule,parentRevision);
     }
  catch (    ParseException e) {
-      Message.warn("Unable to parse included ivy file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision);
+      LOGGER.warn("Unable to parse included ivy file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision);
     }
   }
   if (parent == null) {
