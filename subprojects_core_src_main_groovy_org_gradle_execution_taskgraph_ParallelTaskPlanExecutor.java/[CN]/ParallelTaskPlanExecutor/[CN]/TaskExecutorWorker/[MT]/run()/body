@@ -1,7 +1,9 @@
 {
-  TaskInfo taskInfo;
-  while ((taskInfo=taskExecutionPlan.getTaskToExecute(getTaskSpec())) != null) {
-    executeTaskWithCacheLock(taskInfo);
+  long start=System.currentTimeMillis();
+  TaskInfo task;
+  while ((task=taskExecutionPlan.getTaskToExecute()) != null) {
+    executeTaskWithCacheLock(task);
   }
-  LOGGER.info(Thread.currentThread() + " stopping");
+  long total=System.currentTimeMillis() - start;
+  LOGGER.info("Parallel worker [{}] stopped, busy: {}, idle: {}, waited for cache: {}",Thread.currentThread(),prettyTime(busyMs),prettyTime(total - busyMs),waitedForCacheMs);
 }

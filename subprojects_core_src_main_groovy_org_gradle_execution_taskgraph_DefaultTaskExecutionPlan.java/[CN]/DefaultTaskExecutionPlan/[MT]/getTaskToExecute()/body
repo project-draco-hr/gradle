@@ -1,0 +1,41 @@
+{
+  lock.lock();
+  try {
+    while (true) {
+      TaskInfo nextMatching=null;
+      boolean allTasksComplete=true;
+      for (      TaskInfo taskInfo : executionPlan.values()) {
+        allTasksComplete=allTasksComplete && taskInfo.isComplete();
+        if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && !runningProjects.contains(taskInfo.getTask().getProject().getPath())) {
+          nextMatching=taskInfo;
+          break;
+        }
+      }
+      if (allTasksComplete) {
+        return null;
+      }
+      if (nextMatching == null) {
+        try {
+          condition.await();
+        }
+ catch (        InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+ else {
+        if (nextMatching.allDependenciesSuccessful()) {
+          nextMatching.startExecution();
+          runningProjects.add(nextMatching.getTask().getProject().getPath());
+          return nextMatching;
+        }
+ else {
+          nextMatching.skipExecution();
+          condition.signalAll();
+        }
+      }
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+}
