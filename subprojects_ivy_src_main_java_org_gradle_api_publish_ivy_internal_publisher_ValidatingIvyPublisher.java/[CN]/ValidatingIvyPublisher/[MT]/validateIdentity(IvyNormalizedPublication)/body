@@ -1,7 +1,10 @@
 {
   IvyPublicationIdentity identity=publication.getProjectIdentity();
-  Node infoNode=getIvyFileInfoNode(publication.getDescriptorFile());
-  field(publication,"organisation",identity.getOrganisation()).notEmpty().validInFileName().matches((String)infoNode.attribute("organisation"));
-  field(publication,"module name",identity.getModule()).notEmpty().validInFileName().matches((String)infoNode.attribute("module"));
-  field(publication,"revision",identity.getRevision()).notEmpty().validInFileName().matches((String)infoNode.attribute("revision"));
+  IvyFieldValidator organisation=field(publication,"organisation",identity.getOrganisation()).notEmpty().validInFileName();
+  IvyFieldValidator moduleName=field(publication,"module name",identity.getModule()).notEmpty().validInFileName();
+  IvyFieldValidator revision=field(publication,"revision",identity.getRevision()).notEmpty().validInFileName();
+  ModuleRevisionId moduleId=parseIvyFile(publication);
+  organisation.matches(moduleId.getOrganisation());
+  moduleName.matches(moduleId.getName());
+  revision.matches(moduleId.getRevision());
 }
