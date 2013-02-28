@@ -1,7 +1,13 @@
 {
   RepositoryHandler repositories=publicationServices.createRepositoryHandler();
   PublicationContainer publications=instantiator.newInstance(GroovyPublicationContainer.class,instantiator);
-  project.getExtensions().create(PublishingExtension.NAME,DefaultPublishingExtension.class,repositories,publications);
+  final DefaultPublishingExtension defaultPublishingExtension=project.getExtensions().create(PublishingExtension.NAME,DefaultPublishingExtension.class,repositories,publications);
+  project.afterEvaluate(new Action<Project>(){
+    public void execute(    Project project){
+      defaultPublishingExtension.configureNow();
+    }
+  }
+);
   Task publishLifecycleTask=project.getTasks().add(PUBLISH_LIFECYCLE_TASK_NAME);
   publishLifecycleTask.setDescription("Publishes all publications produced by this project.");
   publishLifecycleTask.setGroup("publishing");
