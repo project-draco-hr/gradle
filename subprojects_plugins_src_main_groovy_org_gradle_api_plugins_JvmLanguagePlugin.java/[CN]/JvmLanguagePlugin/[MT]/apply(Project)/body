@@ -1,9 +1,15 @@
 {
   target.getPlugins().apply(LanguageBasePlugin.class);
-  JvmBinaryContainer container=instantiator.newInstance(DefaultJvmBinaryContainer.class,instantiator);
-  BinaryContainer extension=instantiator.newInstance(DefaultBinariesContainer.class,container);
-  target.getExtensions().add("binaries",extension);
-  container.all(new Action<ClassDirectoryBinary>(){
+  BinariesContainer binariesContainer=target.getExtensions().getByType(DefaultBinariesContainer.class);
+  jvmBinaryContainer=instantiator.newInstance(DefaultJvmBinaryContainer.class,instantiator);
+  binariesContainer.add(jvmBinaryContainer);
+  jvmBinaryContainer.registerFactory(ClassDirectoryBinary.class,new NamedDomainObjectFactory<ClassDirectoryBinary>(){
+    public ClassDirectoryBinary create(    String name){
+      return instantiator.newInstance(DefaultClassDirectoryBinary.class,name);
+    }
+  }
+);
+  jvmBinaryContainer.all(new Action<ClassDirectoryBinary>(){
     public void execute(    final ClassDirectoryBinary binary){
       ConventionMapping conventionMapping=new DslObject(binary).getConventionMapping();
       conventionMapping.map("classesDir",new Callable<File>(){
