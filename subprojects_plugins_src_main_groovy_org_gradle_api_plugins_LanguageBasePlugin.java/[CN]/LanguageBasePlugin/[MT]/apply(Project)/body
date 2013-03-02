@@ -1,4 +1,15 @@
 {
   target.getExtensions().create("binaries",DefaultBinariesContainer.class,instantiator);
-  target.getExtensions().create("sources",DefaultProjectSourceSet.class,instantiator);
+  ProjectSourceSet projectSourceSet=target.getExtensions().create("sources",DefaultProjectSourceSet.class,instantiator);
+  projectSourceSet.all(new Action<FunctionalSourceSet>(){
+    public void execute(    final FunctionalSourceSet functionalSourceSet){
+      functionalSourceSet.registerFactory(ResourceSet.class,new NamedDomainObjectFactory<ResourceSet>(){
+        public ResourceSet create(        String name){
+          return instantiator.newInstance(DefaultResourceSet.class,name,instantiator.newInstance(DefaultSourceDirectorySet.class,name,fileResolver),functionalSourceSet);
+        }
+      }
+);
+    }
+  }
+);
 }
