@@ -92,9 +92,7 @@
       htmlWriter.endElement().endElement();
       htmlWriter.startElement("div").attribute("class","tab").attribute("id","tab3");
       htmlWriter.startElement("h2").characters("Task Execution").endElement().startElement("table").startElement("thead").startElement("tr").startElement("th").characters("Task").endElement().startElement("th").attribute("class","numeric").characters("Duration").endElement().startElement("th").characters("Result").endElement().endElement().endElement();
-      htmlWriter.startElement("tr").startElement("td").characters("All dependencies").endElement().startElement("td").attribute("class","numeric").characters(DURATION_FORMAT.format(model.getDependencySets().getElapsedTime())).endElement().endElement();
-      final List<ProjectProfile> projects=model.getProjects();
-      CollectionUtils.sort(projects,new Comparator<ProjectProfile>(){
+      final List<ProjectProfile> projects=CollectionUtils.sort(model.getProjects(),new Comparator<ProjectProfile>(){
         public int compare(        ProjectProfile p1,        ProjectProfile p2){
           return Long.valueOf(p2.getTasks().getElapsedTime()).compareTo(p1.getTasks().getElapsedTime());
         }
@@ -102,15 +100,14 @@
 );
       for (      ProjectProfile project : projects) {
         htmlWriter.startElement("tr").startElement("td").characters(project.getPath()).endElement().startElement("td").attribute("class","numeric").characters(DURATION_FORMAT.format(project.getTasks().getElapsedTime())).endElement().startElement("td").characters("(total)").endElement().endElement();
-        final List<TaskExecution> taskExecutions=project.getTasks().getOperations();
-        CollectionUtils.sort(taskExecutions,new Comparator<TaskExecution>(){
+        final List<TaskExecution> taskExecutions=CollectionUtils.sort(project.getTasks().getOperations(),new Comparator<TaskExecution>(){
           public int compare(          TaskExecution p1,          TaskExecution p2){
             return Long.valueOf(p2.getElapsedTime()).compareTo(Long.valueOf(p1.getElapsedTime()));
           }
         }
 );
         for (        TaskExecution taskExecution : taskExecutions) {
-          htmlWriter.startElement("tr").startElement("td").attribute("class","identPath").characters(taskExecution.getPath()).endElement().startElement("td").attribute("class","numeric").characters(DURATION_FORMAT.format(taskExecution.getElapsedTime())).endElement().startElement("td").characters(taskExecution.getState().getSkipped() ? taskExecution.getState().getSkipMessage() : (taskExecution.getState().getDidWork()) ? "" : "Did No Work").endElement().endElement();
+          htmlWriter.startElement("tr").startElement("td").attribute("class","indentPath").characters(taskExecution.getPath()).endElement().startElement("td").attribute("class","numeric").characters(DURATION_FORMAT.format(taskExecution.getElapsedTime())).endElement().startElement("td").characters(taskExecution.getState().getSkipped() ? taskExecution.getState().getSkipMessage() : (taskExecution.getState().getDidWork()) ? "" : "Did No Work").endElement().endElement();
         }
       }
       htmlWriter.endElement().endElement().endElement();
