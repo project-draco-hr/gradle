@@ -1,25 +1,30 @@
 {
   final IvySettings ivySettingsDummy=new IvySettings();
-  final EventManager ivyEventManagerDummy=new EventManager();
-  final ConfigurationInternal configuration=context.mock(ConfigurationInternal.class);
   final Set<Configuration> configurations=createConfiguration();
   final File someDescriptorDestination=new File("somePath");
   final Module moduleDummy=context.mock(Module.class,"moduleForResolve");
+  final Ivy ivyStub=context.mock(Ivy.class);
   final IvyBackedArtifactPublisher ivyService=createIvyService();
-  setUpIvyFactory(ivySettingsDummy,ivyEventManagerDummy);
-  setUpForPublish(configurations,publishResolversDummy,moduleDummy,ivySettingsDummy);
   final Set<String> expectedConfigurations=Configurations.getNames(configurations,true);
   context.checking(new Expectations(){
 {
-      allowing(configuration).getHierarchy();
-      will(returnValue(configurations));
-      allowing(configuration).getModule();
-      will(returnValue(moduleDummy));
-      allowing(configuration).getResolutionStrategy();
-      will(returnValue(new DefaultResolutionStrategy()));
-      one(ivyDependencyPublisherMock).publish(expectedConfigurations,publishResolversDummy,publishModuleDescriptorDummy,someDescriptorDestination,ivyEventManagerDummy);
+      one(ivyFactoryStub).createIvy(ivySettingsDummy);
+      will(returnValue(ivyStub));
+      allowing(ivyStub).getSettings();
+      will(returnValue(ivySettingsDummy));
+      one(settingsConverterStub).convertForPublish();
+      will(returnValue(ivySettingsDummy));
+      one(publishModuleDescriptorConverter).convert(with(equalTo(configurations)),with(equalTo(moduleDummy)));
+      will(returnValue(publishModuleDescriptorDummy));
+      one(repo1).createPublisher();
+      will(returnValue(publisher1));
+      one(repo2).createPublisher();
+      will(returnValue(publisher2));
+      one(publisher1).setSettings(ivySettingsDummy);
+      one(publisher2).setSettings(ivySettingsDummy);
+      one(ivyDependencyPublisherMock).publish(expectedConfigurations,publishResolversDummy,publishModuleDescriptorDummy,someDescriptorDestination);
     }
   }
 );
-  ivyService.publish(publishRepositoriesDummy,configuration.getModule(),configuration.getHierarchy(),someDescriptorDestination);
+  ivyService.publish(publishRepositoriesDummy,moduleDummy,configurations,someDescriptorDestination);
 }

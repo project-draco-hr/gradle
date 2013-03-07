@@ -1,15 +1,17 @@
 {
-  DependencyResolver dependencyResolver=repository.createPublisher();
+  ModuleVersionPublisher publisher=repository.createPublisher();
   IvyPublicationIdentity projectIdentity=publication.getProjectIdentity();
   Map<String,String> extraAttributes=Collections.emptyMap();
   ModuleRevisionId moduleRevisionId=IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(),projectIdentity.getModule(),projectIdentity.getRevision(),extraAttributes);
   try {
+    Map<Artifact,File> artifactFiles=new LinkedHashMap<Artifact,File>();
     for (    IvyArtifact publishArtifact : publication.getArtifacts()) {
       Artifact ivyArtifact=createIvyArtifact(publishArtifact,moduleRevisionId);
-      dependencyResolver.publish(ivyArtifact,publishArtifact.getFile(),true);
+      artifactFiles.put(ivyArtifact,publishArtifact.getFile());
     }
     Artifact artifact=DefaultArtifact.newIvyArtifact(moduleRevisionId,null);
-    dependencyResolver.publish(artifact,publication.getDescriptorFile(),true);
+    artifactFiles.put(artifact,publication.getDescriptorFile());
+    publisher.publish(moduleRevisionId,artifactFiles);
   }
  catch (  IOException e) {
     throw new UncheckedIOException(e);
