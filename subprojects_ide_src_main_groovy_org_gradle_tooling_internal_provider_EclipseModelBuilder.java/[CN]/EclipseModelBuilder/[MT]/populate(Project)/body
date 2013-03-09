@@ -24,22 +24,20 @@
       sourceDirectories.add(new DefaultEclipseSourceDirectory(path,project.file(path)));
     }
   }
-  final EclipseProjectVersion3 eclipseProject=projectMapping.get(project.getPath());
-  ReflectionUtil.setProperty(eclipseProject,"classpath",externalDependencies);
-  ReflectionUtil.setProperty(eclipseProject,"projectDependencies",projectDependencies);
-  ReflectionUtil.setProperty(eclipseProject,"sourceDirectories",sourceDirectories);
-  if (ReflectionUtil.hasProperty(eclipseProject,"linkedResources")) {
-    List<DefaultEclipseLinkedResource> linkedResources=new LinkedList<DefaultEclipseLinkedResource>();
-    for (    Link r : eclipseModel.getProject().getLinkedResources()) {
-      linkedResources.add(new DefaultEclipseLinkedResource(r.getName(),r.getType(),r.getLocation(),r.getLocationUri()));
-    }
-    ReflectionUtil.setProperty(eclipseProject,"linkedResources",linkedResources);
+  DefaultEclipseProject eclipseProject=projectMapping.get(project.getPath());
+  eclipseProject.setClasspath(externalDependencies);
+  eclipseProject.setProjectDependencies(projectDependencies);
+  eclipseProject.setSourceDirectories(sourceDirectories);
+  List<DefaultEclipseLinkedResource> linkedResources=new LinkedList<DefaultEclipseLinkedResource>();
+  for (  Link r : eclipseModel.getProject().getLinkedResources()) {
+    linkedResources.add(new DefaultEclipseLinkedResource(r.getName(),r.getType(),r.getLocation(),r.getLocationUri()));
   }
-  List<EclipseTaskVersion1> out=new ArrayList<EclipseTaskVersion1>();
+  eclipseProject.setLinkedResources(linkedResources);
+  List<EclipseTaskVersion1> tasks=new ArrayList<EclipseTaskVersion1>();
   for (  final Task t : tasksFactory.getTasks(project)) {
-    out.add(new DefaultEclipseTask(eclipseProject,t.getPath(),t.getName(),t.getDescription()));
+    tasks.add(new DefaultEclipseTask(eclipseProject,t.getPath(),t.getName(),t.getDescription()));
   }
-  ReflectionUtil.setProperty(eclipseProject,"tasks",out);
+  eclipseProject.setTasks(tasks);
   for (  Project childProject : project.getChildProjects().values()) {
     populate(childProject);
   }
