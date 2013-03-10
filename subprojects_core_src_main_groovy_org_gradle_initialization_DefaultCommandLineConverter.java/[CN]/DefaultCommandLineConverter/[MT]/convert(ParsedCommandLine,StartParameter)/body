@@ -5,17 +5,11 @@
   convertCommandLineSystemProperties(systemProperties,startParameter,resolver);
   Map<String,String> projectProperties=projectPropertiesCommandLineConverter.convert(options);
   startParameter.getProjectProperties().putAll(projectProperties);
-  BuildLayoutParameters layout=new BuildLayoutParameters().setProjectDir(startParameter.getCurrentDir());
+  BuildLayoutParameters layout=new BuildLayoutParameters().setProjectDir(startParameter.getCurrentDir()).maybeUpdateFromSystemProperty(systemProperties,resolver);
   layoutCommandLineConverter.convert(options,layout);
-  if (layout.getGradleUserHomeDir() != null) {
-    startParameter.setGradleUserHomeDir(layout.getGradleUserHomeDir());
-  }
-  if (layout.getProjectDir() != null) {
-    startParameter.setProjectDir(layout.getProjectDir());
-  }
-  if (layout.getSearchUpwards() != null) {
-    startParameter.setSearchUpwards(layout.getSearchUpwards());
-  }
+  startParameter.setGradleUserHomeDir(layout.getGradleUserHomeDir());
+  startParameter.setProjectDir(layout.getProjectDir());
+  startParameter.setSearchUpwards(layout.getSearchUpwards());
   if (options.hasOption(BUILD_FILE)) {
     startParameter.setBuildFile(resolver.resolve(options.option(BUILD_FILE).getValue()));
   }
