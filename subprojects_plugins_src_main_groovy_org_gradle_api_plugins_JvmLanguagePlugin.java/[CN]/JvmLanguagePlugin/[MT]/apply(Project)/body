@@ -1,5 +1,17 @@
 {
   target.getPlugins().apply(LanguageBasePlugin.class);
+  ProjectSourceSet projectSourceSet=target.getExtensions().getByType(DefaultProjectSourceSet.class);
+  projectSourceSet.all(new Action<FunctionalSourceSet>(){
+    public void execute(    final FunctionalSourceSet functionalSourceSet){
+      functionalSourceSet.registerFactory(ResourceSet.class,new NamedDomainObjectFactory<ResourceSet>(){
+        public ResourceSet create(        String name){
+          return instantiator.newInstance(DefaultResourceSet.class,name,instantiator.newInstance(DefaultSourceDirectorySet.class,name,fileResolver),functionalSourceSet);
+        }
+      }
+);
+    }
+  }
+);
   BinariesContainer binariesContainer=target.getExtensions().getByType(DefaultBinariesContainer.class);
   jvmBinaryContainer=instantiator.newInstance(DefaultJvmBinaryContainer.class,instantiator);
   binariesContainer.add(jvmBinaryContainer);
