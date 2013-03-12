@@ -1,0 +1,29 @@
+{
+  final Set<Class<?>> categories=new HashSet<Class<?>>();
+  Category annotation=description.getAnnotation(Category.class);
+  if (annotation != null) {
+    categories.addAll(Arrays.asList(annotation.value()));
+  }
+  if (parent != null) {
+    annotation=parent.getAnnotation(Category.class);
+    if (annotation != null) {
+      categories.addAll(Arrays.asList(annotation.value()));
+    }
+  }
+  boolean result=inclusions.isEmpty();
+  for (  Class<?> category : categories) {
+    if (matches(category,inclusions)) {
+      result=true;
+      break;
+    }
+  }
+  if (result) {
+    for (    Class<?> category : categories) {
+      if (matches(category,exclusions)) {
+        result=false;
+        break;
+      }
+    }
+  }
+  return result;
+}
