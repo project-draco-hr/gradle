@@ -1,0 +1,36 @@
+{
+  List<TaskInfo> nodeQueue=CollectionUtils.collect(new ArrayList<Task>(entryTasks),new Transformer<TaskInfo,Task>(){
+    public TaskInfo transform(    Task original){
+      return graph.getNode(original);
+    }
+  }
+);
+  Set<TaskInfo> visitingNodes=new HashSet<TaskInfo>();
+  while (!nodeQueue.isEmpty()) {
+    TaskInfo taskNode=nodeQueue.get(0);
+    boolean filtered=!filter.isSatisfiedBy(taskNode.getTask());
+    if (filtered) {
+      taskNode.setRequired(false);
+    }
+    if (!taskNode.getRequired() || executionPlan.containsKey(taskNode.getTask())) {
+      nodeQueue.remove(0);
+      continue;
+    }
+    if (visitingNodes.add(taskNode)) {
+      ArrayList<TaskInfo> dependsOnTasks=new ArrayList<TaskInfo>();
+      addAllReversed(dependsOnTasks,taskNode.getHardSuccessors());
+      addAllReversed(dependsOnTasks,taskNode.getSoftSuccessors());
+      for (      TaskInfo dependsOnTask : dependsOnTasks) {
+        if (visitingNodes.contains(dependsOnTask)) {
+          throw new CircularReferenceException(String.format("Circular dependency between tasks. Cycle includes [%s, %s].",taskNode.getTask(),dependsOnTask.getTask()));
+        }
+        nodeQueue.add(0,dependsOnTask);
+      }
+    }
+ else {
+      nodeQueue.remove(0);
+      visitingNodes.remove(taskNode);
+      executionPlan.put(taskNode.getTask(),taskNode);
+    }
+  }
+}
