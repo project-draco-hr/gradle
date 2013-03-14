@@ -20,18 +20,18 @@
       throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()");
     }
   }
-  if (type == InternalBuildEnvironment.class && !version.supportsCompleteBuildEnvironment()) {
+  if (type == InternalBuildEnvironment.class && !version.isModelSupported(InternalBuildEnvironment.class)) {
     VersionOnlyBuildEnvironment out=new VersionOnlyBuildEnvironment(version.getVersion());
     return type.cast(out);
   }
-  if (version.clientHangsOnEarlyDaemonFailure() && version.isPostM6Model(type)) {
-    String message=String.format("I don't know how to build a model of type '%s'.",type.getSimpleName());
-    throw new UnsupportedOperationException(message);
-  }
-  if (type == InternalGradleProject.class && !version.supportsGradleProjectModel()) {
+  if (type == InternalGradleProject.class && !version.isModelSupported(InternalGradleProject.class)) {
     EclipseProjectVersion3 project=connection.run(EclipseProjectVersion3.class,operationParameters);
     GradleProject gradleProject=new GradleProjectConverter().convert(project);
-    return (T)gradleProject;
+    return type.cast(gradleProject);
+  }
+  if (!version.isModelSupported(type)) {
+    String message=String.format("I don't know how to build a model of type '%s'.",type.getSimpleName());
+    throw new UnsupportedOperationException(message);
   }
   return connection.run(type,operationParameters);
 }
