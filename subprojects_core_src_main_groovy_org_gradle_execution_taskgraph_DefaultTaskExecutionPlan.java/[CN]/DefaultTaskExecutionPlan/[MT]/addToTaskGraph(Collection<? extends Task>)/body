@@ -1,12 +1,20 @@
 {
   List<Task> queue=new ArrayList<Task>(tasks);
   Collections.sort(queue);
-  entryTasks.addAll(queue);
+  for (  Task task : queue) {
+    entryTasks.add(graph.addNode(task));
+  }
   Set<Task> visiting=new HashSet<Task>();
   CachingTaskDependencyResolveContext context=new CachingTaskDependencyResolveContext();
   while (!queue.isEmpty()) {
     Task task=queue.get(0);
-    if (graph.hasTask(task) && graph.getNode(task).getRequired()) {
+    TaskInfo node=graph.addNode(task);
+    if (node.getRequired()) {
+      queue.remove(0);
+      continue;
+    }
+    boolean filtered=!filter.isSatisfiedBy(task);
+    if (filtered) {
       queue.remove(0);
       continue;
     }
@@ -22,7 +30,7 @@
  else {
       queue.remove(0);
       visiting.remove(task);
-      TaskInfo node=graph.addRequiredNode(task);
+      node.setRequired(true);
       Set<? extends Task> dependencies=context.getDependencies(task);
       for (      Task dependency : dependencies) {
         graph.addHardEdge(node,dependency);
