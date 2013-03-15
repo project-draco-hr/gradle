@@ -11,8 +11,7 @@
       continue;
     }
     if (visiting.add(task)) {
-      Set<Task> dependsOnTasks=new TreeSet<Task>(Collections.reverseOrder());
-      dependsOnTasks.addAll(context.getDependencies(task));
+      Set<? extends Task> dependsOnTasks=context.getDependencies(task);
       for (      Task dependsOnTask : dependsOnTasks) {
         if (visiting.contains(dependsOnTask)) {
           throw new CircularReferenceException(String.format("Circular dependency between tasks. Cycle includes [%s, %s].",task,dependsOnTask));
@@ -23,7 +22,7 @@
  else {
       queue.remove(0);
       visiting.remove(task);
-      TaskInfo node=graph.addNode(task);
+      TaskInfo node=graph.addRequiredNode(task);
       Set<? extends Task> dependencies=context.getDependencies(task);
       for (      Task dependency : dependencies) {
         graph.addHardEdge(node,dependency);
