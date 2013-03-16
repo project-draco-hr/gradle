@@ -19,8 +19,12 @@
       }
       graph.getNodeValues(node,details.values,details.successors);
       for (      N connectedNode : details.successors) {
-        if (!seenNodes.containsKey(connectedNode)) {
+        NodeDetails<N,T> connectedNodeDetails=seenNodes.get(connectedNode);
+        if (connectedNodeDetails == null) {
           queue.add(0,connectedNode);
+        }
+ else         if (!connectedNodeDetails.finished) {
+          details.stronglyConnected=true;
         }
       }
     }
@@ -33,6 +37,7 @@
         NodeDetails<N,T> connectedNodeDetails=seenNodes.get(connectedNode);
         if (!connectedNodeDetails.finished) {
           details.minSeen=Math.min(details.minSeen,connectedNodeDetails.minSeen);
+          details.stronglyConnected=true;
         }
         details.values.addAll(connectedNodeDetails.values);
         graph.getEdgeValues(node,connectedNode,details.values);
@@ -41,13 +46,16 @@
         NodeDetails<N,T> rootDetails=components.get(details.minSeen);
         rootDetails.values.addAll(details.values);
         details.values.clear();
-        rootDetails.strongComponentMembers.addAll(details.strongComponentMembers);
+        rootDetails.componentMembers.addAll(details.componentMembers);
       }
  else {
-        for (        NodeDetails<N,T> componentMember : details.strongComponentMembers) {
+        for (        NodeDetails<N,T> componentMember : details.componentMembers) {
           cachedNodeValues.put(componentMember.node,details.values);
           componentMember.finished=true;
           components.remove(componentMember.component);
+        }
+        if (details.stronglyConnected) {
+          strongComponents.add(details);
         }
       }
     }
