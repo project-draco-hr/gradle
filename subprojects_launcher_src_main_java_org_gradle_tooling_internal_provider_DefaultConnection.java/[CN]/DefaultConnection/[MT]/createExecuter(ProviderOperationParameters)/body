@@ -1,6 +1,6 @@
 {
   LoggingServiceRegistry loggingServices;
-  DaemonParameters daemonParams=init(operationParameters,initGradleProperties(operationParameters));
+  Parameters params=initParams(operationParameters);
   BuildActionExecuter<BuildActionParameters> executer;
   if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
     loggingServices=embeddedExecuterSupport.getLoggingServices();
@@ -9,9 +9,9 @@
  else {
     loggingServices=embeddedExecuterSupport.getLoggingServices().newLogging();
     loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
-    DaemonClientServices clientServices=new DaemonClientServices(loggingServices,daemonParams,operationParameters.getStandardInput(SafeStreams.emptyInput()));
+    DaemonClientServices clientServices=new DaemonClientServices(loggingServices,params.daemonParams,operationParameters.getStandardInput(SafeStreams.emptyInput()));
     executer=clientServices.get(DaemonClient.class);
   }
   Factory<LoggingManagerInternal> loggingManagerFactory=loggingServices.getFactory(LoggingManagerInternal.class);
-  return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer,daemonParams),loggingManagerFactory);
+  return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer,params.daemonParams),loggingManagerFactory);
 }

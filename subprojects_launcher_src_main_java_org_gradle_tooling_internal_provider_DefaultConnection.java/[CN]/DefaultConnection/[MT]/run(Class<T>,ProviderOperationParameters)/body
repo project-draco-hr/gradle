@@ -3,15 +3,14 @@
   if (type.equals(Void.class) && tasks == null) {
     throw new IllegalArgumentException("No model type or tasks specified.");
   }
-  GradleProperties gradleProperties=initGradleProperties(providerParameters);
+  Parameters params=initParams(providerParameters);
   if (type == InternalBuildEnvironment.class) {
     if (tasks != null) {
       throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
     }
-    DaemonParameters daemonParameters=init(providerParameters,gradleProperties);
-    DefaultBuildEnvironment out=new DefaultBuildEnvironment(GradleVersion.current().getVersion(),daemonParameters.getEffectiveJavaHome(),daemonParameters.getEffectiveJvmArgs());
+    DefaultBuildEnvironment out=new DefaultBuildEnvironment(GradleVersion.current().getVersion(),params.daemonParams.getEffectiveJavaHome(),params.daemonParams.getEffectiveJvmArgs());
     return type.cast(out);
   }
   BuildAction<T> action=new BuildModelAction<T>(type,tasks != null);
-  return run(action,providerParameters,gradleProperties);
+  return run(action,providerParameters,params.properties);
 }
