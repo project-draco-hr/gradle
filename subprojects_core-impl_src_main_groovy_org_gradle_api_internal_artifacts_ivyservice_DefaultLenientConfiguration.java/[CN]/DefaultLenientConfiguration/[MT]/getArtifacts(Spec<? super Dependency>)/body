@@ -1,14 +1,19 @@
 {
-  Set<ResolvedArtifact> allArtifacts=getAllArtifacts(dependencySpec);
-  return CollectionUtils.filter(allArtifacts,new Spec<ResolvedArtifact>(){
-    public boolean isSatisfiedBy(    ResolvedArtifact element){
-      try {
-        File file=element.getFile();
-        return file != null;
+  final Set<ResolvedArtifact> allArtifacts=getAllArtifacts(dependencySpec);
+  return cacheLockingManager.useCache("retrieve artifacts from " + configuration,new Factory<Set<ResolvedArtifact>>(){
+    public Set<ResolvedArtifact> create(){
+      return CollectionUtils.filter(allArtifacts,new Spec<ResolvedArtifact>(){
+        public boolean isSatisfiedBy(        ResolvedArtifact element){
+          try {
+            File file=element.getFile();
+            return file != null;
+          }
+ catch (          ArtifactResolveException e) {
+            return false;
+          }
+        }
       }
- catch (      ArtifactResolveException e) {
-        return false;
-      }
+);
     }
   }
 );
