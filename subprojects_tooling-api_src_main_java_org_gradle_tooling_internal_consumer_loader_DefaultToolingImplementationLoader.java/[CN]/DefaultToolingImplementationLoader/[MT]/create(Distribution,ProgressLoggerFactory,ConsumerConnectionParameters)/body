@@ -14,14 +14,17 @@
     ProtocolToModelAdapter adapter=new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
     VersionDetails providerMetaData=new ProviderMetaDataRegistry().getVersionDetails(connection.getMetaData().getVersion());
     AbstractConsumerConnection adaptedConnection;
-    if (connection instanceof BuildActionRunner) {
+    if (connection instanceof ModelBuilder) {
+      adaptedConnection=new ModelBuilderBackedConsumerConnection(connection,providerMetaData,adapter);
+    }
+ else     if (connection instanceof BuildActionRunner) {
       adaptedConnection=new BuildActionRunnerBackedConsumerConnection(connection,providerMetaData,adapter);
     }
  else     if (connection instanceof InternalConnection) {
       adaptedConnection=new InternalConnectionBackedConsumerConnection(connection,providerMetaData,adapter);
     }
  else {
-      adaptedConnection=new AdaptedConnection(connection,providerMetaData,adapter);
+      adaptedConnection=new ConnectionVersion4BackedConsumerConnection(connection,providerMetaData,adapter);
     }
     adaptedConnection.configure(connectionParameters);
     return adaptedConnection;
