@@ -1,6 +1,6 @@
 {
   VersionDetails version=connection.getVersionDetails();
-  Class<?> protocolType=modelType == Void.class ? modelType : modelMapping.getProtocolType(modelType.asSubclass(Model.class));
+  Class<?> protocolType=version.mapModelTypeToProtocolType(modelType);
   if (protocolType == null) {
     throw new UnknownModelException("Unknown model: '" + modelType.getSimpleName() + "'.\n"+ "Most likely you are trying to acquire a model for a class that is not a valid Tooling API model class.\n"+ "Review the documentation on the version of Tooling API you use to find out what models can be build.");
   }
@@ -19,26 +19,22 @@
       throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()");
     }
   }
-  if (protocolType != Void.class && operationParameters.getTasks() != null) {
+  if (modelType != Void.class && operationParameters.getTasks() != null) {
     if (!version.supportsRunningTasksWhenBuildingModel()) {
       throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()");
     }
   }
-  if (modelType == BuildEnvironment.class && !version.isModelSupported(InternalBuildEnvironment.class)) {
+  if (modelType == BuildEnvironment.class && !version.isModelSupported(BuildEnvironment.class)) {
     VersionOnlyBuildEnvironment out=new VersionOnlyBuildEnvironment(version.getVersion());
     return modelType.cast(out);
   }
-  if (modelType == GradleProject.class && !version.isModelSupported(InternalGradleProject.class)) {
-    EclipseProjectVersion3 project=protocolToModelAdapter.adapt(EclipseProjectVersion3.class,connection.run(EclipseProjectVersion3.class,operationParameters),new ConsumerPropertyHandler(version));
+  if (modelType == GradleProject.class && !version.isModelSupported(GradleProject.class)) {
+    EclipseProjectVersion3 project=connection.run(EclipseProjectVersion3.class,operationParameters);
     GradleProject gradleProject=new GradleProjectConverter().convert(project);
     return modelType.cast(gradleProject);
   }
-  if (!version.isModelSupported(protocolType)) {
+  if (!version.isModelSupported(modelType)) {
     throw new UnsupportedOperationException(String.format("I don't know how to build a model of type '%s'.",modelType.getSimpleName()));
   }
-  Object result=connection.run(protocolType,operationParameters);
-  if (result == null) {
-    return null;
-  }
-  return protocolToModelAdapter.adapt(modelType,result,new ConsumerPropertyHandler(version));
+  return connection.run(modelType,operationParameters);
 }

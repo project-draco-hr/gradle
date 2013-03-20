@@ -11,16 +11,17 @@
       throw new UnsupportedVersionException(String.format("The specified %s is not supported by this tooling API version (%s, protocol version %s)",distribution.getDisplayName(),GradleVersion.current().getVersion(),protocolVersion));
     }
     ConnectionVersion4 connection=factory.create();
+    ProtocolToModelAdapter adapter=new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
     VersionDetails providerMetaData=new ProviderMetaDataRegistry().getVersionDetails(connection.getMetaData().getVersion());
     AbstractConsumerConnection adaptedConnection;
     if (connection instanceof BuildActionRunner) {
-      adaptedConnection=new BuildActionRunnerBackedConsumerConnection(connection,providerMetaData);
+      adaptedConnection=new BuildActionRunnerBackedConsumerConnection(connection,providerMetaData,adapter);
     }
  else     if (connection instanceof InternalConnection) {
-      adaptedConnection=new InternalConnectionBackedConsumerConnection(connection,providerMetaData);
+      adaptedConnection=new InternalConnectionBackedConsumerConnection(connection,providerMetaData,adapter);
     }
  else {
-      adaptedConnection=new AdaptedConnection(connection,providerMetaData);
+      adaptedConnection=new AdaptedConnection(connection,providerMetaData,adapter);
     }
     adaptedConnection.configure(connectionParameters);
     return adaptedConnection;
