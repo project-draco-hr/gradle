@@ -1,4 +1,5 @@
 {
+  Class<?> type=new ModelMapping().getProtocolTypeFromModelName(modelName);
   List<String> tasks=providerParameters.getTasks();
   if (type.equals(Void.class) && tasks == null) {
     throw new IllegalArgumentException("No model type or tasks specified.");
@@ -8,9 +9,8 @@
     if (tasks != null) {
       throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
     }
-    DefaultBuildEnvironment out=new DefaultBuildEnvironment(GradleVersion.current().getVersion(),params.daemonParams.getEffectiveJavaHome(),params.daemonParams.getEffectiveJvmArgs());
-    return type.cast(out);
+    return new DefaultBuildEnvironment(GradleVersion.current().getVersion(),params.daemonParams.getEffectiveJavaHome(),params.daemonParams.getEffectiveJvmArgs());
   }
-  BuildAction<T> action=new BuildModelAction<T>(type,tasks != null);
+  BuildAction<Object> action=new BuildModelAction(type,tasks != null);
   return run(action,providerParameters,params.properties);
 }
