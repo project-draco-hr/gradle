@@ -11,6 +11,24 @@
     }
     return new DefaultBuildEnvironment(GradleVersion.current().getVersion(),params.daemonParams.getEffectiveJavaHome(),params.daemonParams.getEffectiveJvmArgs());
   }
-  BuildAction<Object> action=new BuildModelAction(modelName,tasks != null);
-  return run(action,providerParameters,params.properties);
+  BuildAction<ToolingModel> action=new BuildModelAction(modelName,tasks != null);
+  ToolingModel model;
+  try {
+    model=run(action,providerParameters,params.properties);
+  }
+ catch (  RuntimeException e) {
+    for (Throwable t=e; t != null; t=t.getCause()) {
+      if (t instanceof UnsupportedOperationException) {
+        throw new InternalUnsupportedModelException();
+      }
+    }
+    throw e;
+  }
+  ClassLoader classLoader=classLoaderRegistry.getClassLoaderFor(model.getClassPath());
+  try {
+    return Message.receive(new ByteArrayInputStream(model.getSerializedModel()),classLoader);
+  }
+ catch (  Exception e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
 }
