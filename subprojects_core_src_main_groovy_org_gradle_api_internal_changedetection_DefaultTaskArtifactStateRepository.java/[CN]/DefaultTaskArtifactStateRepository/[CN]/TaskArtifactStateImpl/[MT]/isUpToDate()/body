@@ -1,20 +1,16 @@
 {
-  List<String> messages=execution.isUpToDate();
-  if (messages == null || messages.isEmpty()) {
+  final List<String> messages=new ArrayList<String>();
+  getStates().getAllTaskState().findChanges(new Action<TaskUpToDateStateChange>(){
+    public void execute(    TaskUpToDateStateChange taskUpToDateStateChange){
+      messages.add(taskUpToDateStateChange.getMessage());
+    }
+  }
+);
+  if (messages.isEmpty()) {
+    upToDate=true;
     LOGGER.info("Skipping {} as it is up-to-date.",task);
     return true;
   }
-  if (LOGGER.isInfoEnabled()) {
-    Formatter formatter=new Formatter();
-    formatter.format("Executing %s due to:",task);
-    for (int i=0; i < messages.size() && i < MAX_OUT_OF_DATE_MESSAGES; i++) {
-      String message=messages.get(i);
-      formatter.format("%n%s",message);
-    }
-    if (messages.size() > MAX_OUT_OF_DATE_MESSAGES) {
-      formatter.format("%n%d more ...",messages.size() - MAX_OUT_OF_DATE_MESSAGES);
-    }
-    LOGGER.info(formatter.toString());
-  }
+  logUpToDateMessages(messages);
   return false;
 }

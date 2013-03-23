@@ -1,0 +1,45 @@
+{
+  final FileCollectionSnapshot outputFilesBefore=outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
+  return new TaskUpToDateState(){
+    public void findChanges(    final Action<? super TaskUpToDateStateChange> failures){
+      if (previousExecution.getOutputFilesSnapshot() == null) {
+        failures.execute(new DescriptiveChange("Output file history is not available for %s.",task));
+        return;
+      }
+      outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(),new ChangeListener<File>(){
+        public void added(        File element){
+          failures.execute(new OutputFileChange(task,element,ChangeType.ADDED));
+        }
+        public void removed(        File element){
+          failures.execute(new OutputFileChange(task,element,ChangeType.REMOVED));
+        }
+        public void changed(        File element){
+          failures.execute(new OutputFileChange(task,element,ChangeType.MODIFIED));
+        }
+      }
+);
+    }
+    public void snapshotAfterTask(){
+      FileCollectionSnapshot lastExecutionOutputFiles;
+      if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
+        lastExecutionOutputFiles=outputFilesSnapshotter.emptySnapshot();
+      }
+ else {
+        lastExecutionOutputFiles=previousExecution.getOutputFilesSnapshot();
+      }
+      FileCollectionSnapshot newOutputFiles=outputFilesBefore.changesSince(lastExecutionOutputFiles).applyTo(lastExecutionOutputFiles,new ChangeListener<FileCollectionSnapshot.Merge>(){
+        public void added(        FileCollectionSnapshot.Merge element){
+          element.ignore();
+        }
+        public void removed(        FileCollectionSnapshot.Merge element){
+        }
+        public void changed(        FileCollectionSnapshot.Merge element){
+        }
+      }
+);
+      FileCollectionSnapshot outputFilesAfter=outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
+      currentExecution.setOutputFilesSnapshot(outputFilesAfter.changesSince(outputFilesBefore).applyTo(newOutputFiles));
+    }
+  }
+;
+}
