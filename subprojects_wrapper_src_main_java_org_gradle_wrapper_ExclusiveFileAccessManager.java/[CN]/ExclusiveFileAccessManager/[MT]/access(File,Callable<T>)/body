@@ -7,13 +7,9 @@
     long startAt=System.currentTimeMillis();
     FileLock lock=null;
     while (lock == null && System.currentTimeMillis() < startAt + timeoutMs) {
-      try {
-        randomAccessFile=new RandomAccessFile(lockFile,"rw");
-        channel=randomAccessFile.getChannel();
-        lock=locker.tryLock(channel);
-      }
- catch (      OverlappingFileLockException ignore) {
-      }
+      randomAccessFile=new RandomAccessFile(lockFile,"rw");
+      channel=randomAccessFile.getChannel();
+      lock=channel.tryLock();
       if (lock == null) {
         maybeCloseQuietly(channel);
         maybeCloseQuietly(randomAccessFile);
