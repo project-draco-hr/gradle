@@ -1,20 +1,15 @@
 {
   TaskInternal task=taskFactory.createTask(args);
-  Class<? extends Task> type=task.getClass();
-  List<Action<Task>> actions=actionsForType.get(type);
-  if (actions == null) {
-    actions=createActionsForType(type);
-    actionsForType.put(type,actions);
+  TaskClassInfo taskClassInfo=getTaskClassInfo(task.getClass());
+  for (  Factory<Action<Task>> actionFactory : taskClassInfo.taskActions) {
+    task.doFirst(actionFactory.create());
   }
-  for (  Action<Task> action : actions) {
-    task.doFirst(action);
-    if (action instanceof Validator) {
-      Validator validator=(Validator)action;
-      validator.addInputsAndOutputs(task);
-    }
-    if (action instanceof IncrementalTaskAction) {
-      task.setIncrementalTask(true);
-    }
+  if (taskClassInfo.hasIncrementalAction) {
+    task.setIncrementalTask(true);
+  }
+  if (taskClassInfo.validator != null) {
+    task.doFirst(taskClassInfo.validator);
+    taskClassInfo.validator.addInputsAndOutputs(task);
   }
   return task;
 }
