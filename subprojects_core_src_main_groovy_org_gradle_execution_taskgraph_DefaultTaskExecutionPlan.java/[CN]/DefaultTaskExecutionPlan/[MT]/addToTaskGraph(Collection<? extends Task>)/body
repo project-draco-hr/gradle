@@ -2,19 +2,20 @@
   List<Task> queue=new ArrayList<Task>(tasks);
   Collections.sort(queue);
   for (  Task task : queue) {
-    entryTasks.add(graph.addNode(task));
+    addEntryTask(task);
   }
   Set<Task> visiting=new HashSet<Task>();
   CachingTaskDependencyResolveContext context=new CachingTaskDependencyResolveContext();
   while (!queue.isEmpty()) {
     Task task=queue.get(0);
     TaskInfo node=graph.addNode(task);
-    if (node.getRequired()) {
+    if (node.getDependenciesProcessed()) {
       queue.remove(0);
       continue;
     }
     boolean filtered=!filter.isSatisfiedBy(task);
     if (filtered) {
+      node.setRequired(false);
       queue.remove(0);
       continue;
     }
@@ -25,6 +26,10 @@
           continue;
         }
         queue.add(0,dependsOnTask);
+      }
+      for (      Task finaliserTask : task.getFinalisedBy().getDependencies(task)) {
+        addFinaliserTaskToGraph(node,finaliserTask);
+        queue.add(finaliserTask);
       }
     }
  else {
@@ -38,6 +43,7 @@
       for (      Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
         graph.addSoftEdge(node,mustRunAfter);
       }
+      node.dependenciesProcessed();
     }
   }
 }
