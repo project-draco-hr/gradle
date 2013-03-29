@@ -1,15 +1,24 @@
 {
   Enumeration entries;
-  ZipFile zipFile;
-  zipFile=new ZipFile(zip);
-  entries=zipFile.entries();
-  while (entries.hasMoreElements()) {
-    ZipEntry entry=(ZipEntry)entries.nextElement();
-    if (entry.isDirectory()) {
-      (new File(dest,entry.getName())).mkdirs();
-      continue;
+  ZipFile zipFile=new ZipFile(zip);
+  try {
+    entries=zipFile.entries();
+    while (entries.hasMoreElements()) {
+      ZipEntry entry=(ZipEntry)entries.nextElement();
+      if (entry.isDirectory()) {
+        (new File(dest,entry.getName())).mkdirs();
+        continue;
+      }
+      OutputStream outputStream=new BufferedOutputStream(new FileOutputStream(new File(dest,entry.getName())));
+      try {
+        copyInputStream(zipFile.getInputStream(entry),outputStream);
+      }
+  finally {
+        outputStream.close();
+      }
     }
-    copyInputStream(zipFile.getInputStream(entry),new BufferedOutputStream(new FileOutputStream(new File(dest,entry.getName()))));
   }
-  zipFile.close();
+  finally {
+    zipFile.close();
+  }
 }
