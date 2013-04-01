@@ -1,4 +1,5 @@
 {
+  List<Task> finalisers=new ArrayList<Task>();
   List<Task> queue=new ArrayList<Task>(tasks);
   Collections.sort(queue);
   for (  Task task : queue) {
@@ -10,6 +11,7 @@
     Task task=queue.get(0);
     TaskInfo node=graph.addNode(task);
     if (node.getDependenciesProcessed()) {
+      requireWithDependenciesIfOnlyFinalising(node);
       queue.remove(0);
       continue;
     }
@@ -20,6 +22,9 @@
       continue;
     }
     if (visiting.add(task)) {
+      if (node.isOnlyFinalising()) {
+        finalisers.add(task);
+      }
       Set<? extends Task> dependsOnTasks=context.getDependencies(task);
       for (      Task dependsOnTask : dependsOnTasks) {
         if (visiting.contains(dependsOnTask)) {
@@ -28,14 +33,19 @@
         queue.add(0,dependsOnTask);
       }
       for (      Task finaliserTask : task.getFinalisedBy().getDependencies(task)) {
-        addFinaliserTaskToGraph(node,finaliserTask);
-        queue.add(finaliserTask);
+        addFinaliserNodeToGraph(queue,finaliserTask).addSoftSuccessor(node);
       }
     }
  else {
       queue.remove(0);
       visiting.remove(task);
-      node.setRequired(true);
+      if (finalisers.size() > 0) {
+        node.shouldNotRun();
+        finalisers.remove(task);
+      }
+ else {
+        node.setRequired(true);
+      }
       Set<? extends Task> dependencies=context.getDependencies(task);
       for (      Task dependency : dependencies) {
         graph.addHardEdge(node,dependency);
