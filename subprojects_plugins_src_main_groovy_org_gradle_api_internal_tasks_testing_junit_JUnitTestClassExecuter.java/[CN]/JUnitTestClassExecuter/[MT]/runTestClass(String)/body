@@ -2,23 +2,18 @@
   final Class<?> testClass=Class.forName(testClassName,true,applicationClassLoader);
   Request request=Request.aClass(testClass);
   if (options.hasCategoryConfiguration()) {
-    if (categoriesSupported()) {
-      Transformer<Class<?>,String> transformer=new Transformer<Class<?>,String>(){
-        public Class<?> transform(        final String original){
-          try {
-            return applicationClassLoader.loadClass(original);
-          }
- catch (          ClassNotFoundException e) {
-            throw new InvalidUserDataException(String.format("Can't load category class [%s].",original),e);
-          }
+    Transformer<Class<?>,String> transformer=new Transformer<Class<?>,String>(){
+      public Class<?> transform(      final String original){
+        try {
+          return applicationClassLoader.loadClass(original);
+        }
+ catch (        ClassNotFoundException e) {
+          throw new InvalidUserDataException(String.format("Can't load category class [%s].",original),e);
         }
       }
+    }
 ;
-      request=request.filterWith(new CategoryFilter(CollectionUtils.collect(options.getIncludeCategories(),transformer),CollectionUtils.collect(options.getExcludeCategories(),transformer)));
-    }
- else {
-      logger.warn(IGNORING_JUNIT_CATEGORY_CONFIGURATION);
-    }
+    request=request.filterWith(new CategoryFilter(CollectionUtils.collect(options.getIncludeCategories(),transformer),CollectionUtils.collect(options.getExcludeCategories(),transformer)));
   }
   Runner runner=request.getRunner();
   if (!org.junit.runner.manipulation.Filter.class.getName().equals(runner.getDescription().getDisplayName())) {
