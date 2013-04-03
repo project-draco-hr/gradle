@@ -14,15 +14,9 @@
  else   if (parameterTypes.length > 1) {
     throw new GradleException(String.format("Cannot use @TaskAction annotation on method %s.%s() as this method takes multiple parameters.",method.getDeclaringClass().getSimpleName(),method.getName()));
   }
-  if (methods.contains(method.getName())) {
+  if (processedMethods.contains(method.getName())) {
     return;
   }
-  methods.add(method.getName());
-  if (parameterTypes.length == 1) {
-    taskClassInfo.taskActions.add(new IncrementalTaskActionFactory(method));
-    taskClassInfo.hasIncrementalAction=true;
-  }
- else {
-    taskClassInfo.taskActions.add(new StandardTaskActionFactory(method));
-  }
+  taskClassInfo.taskActions.add(0,createActionFactory(method,parameterTypes));
+  processedMethods.add(method.getName());
 }
