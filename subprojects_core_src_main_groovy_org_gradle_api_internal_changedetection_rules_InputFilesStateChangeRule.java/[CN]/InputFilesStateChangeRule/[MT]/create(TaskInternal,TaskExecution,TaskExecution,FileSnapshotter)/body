@@ -1,2 +1,48 @@
 {
+  final FileCollectionSnapshot inputFilesSnapshot=inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
+  return new TaskStateChanges(){
+    private final ArrayList<FileChange> cachedChanges=new ArrayList<FileChange>();
+    private String lastFileChange;
+    public void findChanges(    final UpToDateChangeListener listener){
+      if (previousExecution.getInputFilesSnapshot() == null) {
+        if (listener.isAccepting()) {
+          listener.accept(new DescriptiveChange("Input file history is not available for %s.",task));
+        }
+        return;
+      }
+      for (      FileChange cachedChange : cachedChanges) {
+        if (!listener.isAccepting()) {
+          return;
+        }
+        listener.accept(cachedChange);
+      }
+      inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(),new FileCollectionSnapshot.SnapshotChangeListener(){
+        public void added(        String fileName){
+          accept(new InputFileChange(fileName,ChangeType.ADDED));
+        }
+        public void removed(        String fileName){
+          accept(new InputFileChange(fileName,ChangeType.REMOVED));
+        }
+        public void changed(        String fileName){
+          accept(new InputFileChange(fileName,ChangeType.MODIFIED));
+        }
+        public String getResumeAfter(){
+          return lastFileChange;
+        }
+        public boolean isStopped(){
+          return !listener.isAccepting();
+        }
+        private void accept(        InputFileChange change){
+          listener.accept(change);
+          cachedChanges.add(change);
+          lastFileChange=change.getPath();
+        }
+      }
+);
+    }
+    public void snapshotAfterTask(){
+      currentExecution.setInputFilesSnapshot(inputFilesSnapshot);
+    }
+  }
+;
 }
