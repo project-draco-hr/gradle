@@ -1,20 +1,26 @@
 {
   final FileCollectionSnapshot outputFilesBefore=outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
-  return new CachingUpToDateState(){
-    @Override protected void doFindChanges(    final Action<TaskUpToDateStateChange> action){
+  return new SimpleUpToDateState(){
+    @Override protected void addAllChanges(    final List<TaskUpToDateChange> changes){
       if (previousExecution.getOutputFilesSnapshot() == null) {
-        action.execute(new DescriptiveChange("Output file history is not available for %s.",task));
+        changes.add(new DescriptiveChange("Output file history is not available for %s.",task));
         return;
       }
-      outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(),new ChangeListener<File>(){
-        public void added(        File element){
-          action.execute(new OutputFileChange(element,ChangeType.ADDED));
+      outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(),new FileCollectionSnapshot.SnapshotChangeListener(){
+        public void added(        String element){
+          changes.add(new OutputFileChange(element,ChangeType.ADDED));
         }
-        public void removed(        File element){
-          action.execute(new OutputFileChange(element,ChangeType.REMOVED));
+        public void changed(        String element){
+          changes.add(new OutputFileChange(element,ChangeType.MODIFIED));
         }
-        public void changed(        File element){
-          action.execute(new OutputFileChange(element,ChangeType.MODIFIED));
+        public void removed(        String element){
+          changes.add(new OutputFileChange(element,ChangeType.REMOVED));
+        }
+        public String getResumeAfter(){
+          return null;
+        }
+        public boolean isStopped(){
+          return false;
         }
       }
 );

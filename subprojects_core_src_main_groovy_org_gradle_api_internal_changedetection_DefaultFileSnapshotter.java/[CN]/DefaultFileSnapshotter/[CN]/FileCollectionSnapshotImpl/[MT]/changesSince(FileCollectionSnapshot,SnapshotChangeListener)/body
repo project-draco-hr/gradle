@@ -1,0 +1,39 @@
+{
+  FileCollectionSnapshotImpl other=(FileCollectionSnapshotImpl)oldSnapshot;
+  Map<String,FileSnapshot> otherSnapshots=new HashMap<String,FileSnapshot>(other.snapshots);
+  boolean started=true;
+  String resumeAfter=listener.getResumeAfter();
+  if (resumeAfter != null) {
+    started=false;
+  }
+  for (  String currentFile : snapshots.keySet()) {
+    FileSnapshot otherFile=otherSnapshots.remove(currentFile);
+    if (!started) {
+      if (currentFile.equals(resumeAfter)) {
+        started=true;
+      }
+      continue;
+    }
+    if (otherFile == null) {
+      listener.added(currentFile);
+    }
+ else     if (!snapshots.get(currentFile).isUpToDate(otherFile)) {
+      listener.changed(currentFile);
+    }
+    if (listener.isStopped()) {
+      return;
+    }
+  }
+  for (  Map.Entry<String,FileSnapshot> entry : otherSnapshots.entrySet()) {
+    if (!started) {
+      if (entry.getKey().equals(resumeAfter)) {
+        started=true;
+      }
+      continue;
+    }
+    listener.removed(entry.getKey());
+    if (listener.isStopped()) {
+      return;
+    }
+  }
+}
