@@ -1,7 +1,7 @@
 {
   final FileCollectionSnapshot inputFilesSnapshot=inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
   return new TaskStateChanges(){
-    private final FileChangeCache fileChangeCache=new FileChangeCache();
+    private final FileChangeCache fileChangeCache=new FileChangeCache(maxCachedChanges);
     public void findChanges(    final UpToDateChangeListener listener){
       if (previousExecution.getInputFilesSnapshot() == null) {
         if (listener.isAccepting()) {
@@ -15,7 +15,13 @@
         }
         listener.accept(cachedChange);
       }
+      if (fileChangeCache.isComplete()) {
+        return;
+      }
       processUncachedChanges(listener);
+      if (listener.isAccepting()) {
+        fileChangeCache.hasSeenAllChanges();
+      }
     }
     private void processUncachedChanges(    final UpToDateChangeListener listener){
       inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(),new FileCollectionSnapshot.SnapshotChangeListener(){
@@ -29,7 +35,7 @@
           accept(new InputFileChange(fileName,ChangeType.MODIFIED));
         }
         public String getResumeAfter(){
-          return fileChangeCache.getLastChange();
+          return fileChangeCache.getLastCachedChange();
         }
         public boolean isStopped(){
           return !listener.isAccepting();
