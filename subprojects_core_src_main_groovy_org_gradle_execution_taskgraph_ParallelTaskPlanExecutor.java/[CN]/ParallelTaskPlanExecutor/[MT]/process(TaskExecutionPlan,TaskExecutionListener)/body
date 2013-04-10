@@ -1,8 +1,14 @@
 {
   stateCacheAccess.longRunningOperation("Executing all tasks",new Runnable(){
     public void run(){
-      doProcess(taskExecutionPlan,taskListener);
-      taskExecutionPlan.awaitCompletion();
+      DefaultExecutorFactory factory=new DefaultExecutorFactory();
+      try {
+        doProcess(taskExecutionPlan,taskListener,factory);
+        taskExecutionPlan.awaitCompletion();
+      }
+  finally {
+        factory.stop();
+      }
     }
   }
 );
