@@ -3,6 +3,8 @@
 {
       allowing(task).getActions();
       will(returnValue(toList(action1)));
+      allowing(task).getTaskActions();
+      will(returnValue(toList(action1)));
       one(listener).beforeActions(task);
       inSequence(sequence);
       one(state).setExecuting(true);
@@ -10,6 +12,8 @@
       one(state).setDidWork(true);
       inSequence(sequence);
       one(standardOutputCapture).start();
+      inSequence(sequence);
+      one(action1).contextualise(executionContext);
       inSequence(sequence);
       one(action1).execute(task);
       will(new CustomAction("Add action to actions list"){
@@ -19,6 +23,8 @@
         }
       }
 );
+      inSequence(sequence);
+      one(action1).contextualise(null);
       inSequence(sequence);
       one(standardOutputCapture).stop();
       one(state).executed(null);
@@ -30,5 +36,5 @@
     }
   }
 );
-  executer.execute(task,state);
+  executer.execute(task,state,executionContext);
 }

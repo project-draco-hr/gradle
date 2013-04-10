@@ -6,17 +6,18 @@
     throw new GradleException(String.format("Cannot use @TaskAction annotation on static method %s.%s().",method.getDeclaringClass().getSimpleName(),method.getName()));
   }
   final Class<?>[] parameterTypes=method.getParameterTypes();
+  if (parameterTypes.length > 1) {
+    throw new GradleException(String.format("Cannot use @TaskAction annotation on method %s.%s() as this method takes multiple parameters.",method.getDeclaringClass().getSimpleName(),method.getName()));
+  }
   if (parameterTypes.length == 1) {
     if (!parameterTypes[0].equals(TaskInputChanges.class)) {
       throw new GradleException(String.format("Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",method.getDeclaringClass().getSimpleName(),method.getName(),parameterTypes[0]));
     }
-  }
- else   if (parameterTypes.length > 1) {
-    throw new GradleException(String.format("Cannot use @TaskAction annotation on method %s.%s() as this method takes multiple parameters.",method.getDeclaringClass().getSimpleName(),method.getName()));
+    taskClassInfo.incremental=true;
   }
   if (processedMethods.contains(method.getName())) {
     return;
   }
-  taskClassInfo.taskActions.add(0,createActionFactory(method,parameterTypes));
+  taskClassInfo.taskActions.add(createActionFactory(method,parameterTypes));
   processedMethods.add(method.getName());
 }

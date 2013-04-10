@@ -1,7 +1,7 @@
 {
   context.checking(new Expectations(){
 {
-      allowing(task).getActions();
+      allowing(task).getTaskActions();
       will(returnValue(toList(action1,action2)));
       one(listener).beforeActions(task);
       inSequence(sequence);
@@ -11,8 +11,12 @@
       inSequence(sequence);
       one(standardOutputCapture).start();
       inSequence(sequence);
+      one(action1).contextualise(executionContext);
+      inSequence(sequence);
       one(action1).execute(task);
       will(throwException(new StopActionException("stop")));
+      inSequence(sequence);
+      one(action1).contextualise(null);
       inSequence(sequence);
       one(standardOutputCapture).stop();
       inSequence(sequence);
@@ -20,7 +24,11 @@
       inSequence(sequence);
       one(standardOutputCapture).start();
       inSequence(sequence);
+      one(action2).contextualise(executionContext);
+      inSequence(sequence);
       one(action2).execute(task);
+      inSequence(sequence);
+      one(action2).contextualise(null);
       inSequence(sequence);
       one(standardOutputCapture).stop();
       inSequence(sequence);
@@ -33,5 +41,5 @@
     }
   }
 );
-  executer.execute(task,state);
+  executer.execute(task,state,executionContext);
 }

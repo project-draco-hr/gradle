@@ -3,7 +3,7 @@
   final Collector<Throwable> wrappedFailure=collector();
   context.checking(new Expectations(){
 {
-      allowing(task).getActions();
+      allowing(task).getTaskActions();
       will(returnValue(toList(action1,action2)));
       one(listener).beforeActions(task);
       inSequence(sequence);
@@ -13,8 +13,12 @@
       inSequence(sequence);
       one(standardOutputCapture).start();
       inSequence(sequence);
+      one(action1).contextualise(executionContext);
+      inSequence(sequence);
       one(action1).execute(task);
       will(throwException(failure));
+      inSequence(sequence);
+      one(action1).contextualise(null);
       inSequence(sequence);
       one(standardOutputCapture).stop();
       inSequence(sequence);
@@ -28,7 +32,7 @@
     }
   }
 );
-  executer.execute(task,state);
+  executer.execute(task,state,executionContext);
   assertThat(wrappedFailure.get(),instanceOf(TaskExecutionException.class));
   TaskExecutionException exception=(TaskExecutionException)wrappedFailure.get();
   assertThat(exception.getTask(),equalTo((Task)task));
