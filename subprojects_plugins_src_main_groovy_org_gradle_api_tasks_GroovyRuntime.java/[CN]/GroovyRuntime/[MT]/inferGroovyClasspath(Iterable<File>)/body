@@ -1,23 +1,43 @@
 {
-  Configuration groovyConfiguration=project.getConfigurations().getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME);
-  if (!groovyConfiguration.getDependencies().isEmpty()) {
-    return groovyConfiguration;
+  return new LazilyInitializedFileCollection(){
+    @Override public FileCollection createDelegate(){
+      Configuration groovyConfiguration=project.getConfigurations().getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME);
+      if (!groovyConfiguration.getDependencies().isEmpty()) {
+        return groovyConfiguration;
+      }
+      GroovyJarFile groovyJar=findGroovyJarFile(classpath);
+      if (groovyJar == null) {
+        return groovyConfiguration;
+      }
+      if (groovyJar.isGroovyAll()) {
+        return project.files(groovyJar.getFile());
+      }
+      if (project.getRepositories().isEmpty()) {
+        return groovyConfiguration;
+      }
+      String notation=groovyJar.getDependencyNotation();
+      List<Dependency> dependencies=Lists.newArrayList();
+      dependencies.add(project.getDependencies().create(notation));
+      if (groovyJar.getVersion().getMajor() >= 2) {
+        dependencies.add(project.getDependencies().create(notation.replace(":groovy:",":groovy-ant:")));
+      }
+      return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
+    }
+    @Override public TaskDependency getBuildDependencies(){
+      Configuration groovyConfiguration=project.getConfigurations().getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME);
+      if (!groovyConfiguration.getDependencies().isEmpty()) {
+        return groovyConfiguration.getBuildDependencies();
+      }
+      if (classpath instanceof Buildable) {
+        return ((Buildable)classpath).getBuildDependencies();
+      }
+      return new TaskDependency(){
+        public Set<? extends Task> getDependencies(        Task task){
+          return Collections.emptySet();
+        }
+      }
+;
+    }
   }
-  GroovyJarFile groovyJar=findGroovyJarFile(classpath);
-  if (groovyJar == null) {
-    return groovyConfiguration;
-  }
-  if (groovyJar.isGroovyAll()) {
-    return project.files(groovyJar.getFile());
-  }
-  if (project.getRepositories().isEmpty()) {
-    return groovyConfiguration;
-  }
-  String notation=groovyJar.getDependencyNotation();
-  List<Dependency> dependencies=Lists.newArrayList();
-  dependencies.add(project.getDependencies().create(notation));
-  if (groovyJar.getVersion().getMajor() >= 2) {
-    dependencies.add(project.getDependencies().create(notation.replace(":groovy:",":groovy-ant:")));
-  }
-  return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
+;
 }
