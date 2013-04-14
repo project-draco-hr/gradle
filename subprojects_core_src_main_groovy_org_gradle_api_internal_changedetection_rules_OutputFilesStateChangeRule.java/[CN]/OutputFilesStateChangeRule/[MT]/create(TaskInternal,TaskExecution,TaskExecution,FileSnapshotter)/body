@@ -1,34 +1,21 @@
 {
   final FileCollectionSnapshot outputFilesBefore=outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
   return new TaskStateChanges(){
-    public void findChanges(    final UpToDateChangeListener listener){
+    public Iterator<TaskStateChange> iterator(){
       if (previousExecution.getOutputFilesSnapshot() == null) {
-        if (listener.isAccepting()) {
-          listener.accept(new DescriptiveChange("Output file history is not available."));
-        }
-        return;
+        return Collections.<TaskStateChange>singleton(new DescriptiveChange("Output file history is not available.")).iterator();
       }
-      outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(),new FileCollectionSnapshot.SnapshotChangeListener(){
-        public void added(        String element){
-          accept(new OutputFileChange(element,ChangeType.ADDED));
-        }
-        public void changed(        String element){
-          accept(new OutputFileChange(element,ChangeType.MODIFIED));
-        }
-        public void removed(        String element){
-          accept(new OutputFileChange(element,ChangeType.REMOVED));
-        }
-        public String getResumeAfter(){
-          return null;
-        }
-        public boolean isStopped(){
-          return !listener.isAccepting();
-        }
-        private void accept(        OutputFileChange change){
-          listener.accept(change);
+      return new AbstractIterator<TaskStateChange>(){
+        final FileCollectionSnapshot.ChangeIterator<String> changeIterator=outputFilesBefore.iterateChangesSince(previousExecution.getOutputFilesSnapshot());
+        final ChangeListenerAdapter listenerAdapter=new ChangeListenerAdapter();
+        @Override protected TaskStateChange computeNext(){
+          if (changeIterator.next(listenerAdapter)) {
+            return listenerAdapter.lastChange;
+          }
+          return endOfData();
         }
       }
-);
+;
     }
     public void snapshotAfterTask(){
       FileCollectionSnapshot lastExecutionOutputFiles;
