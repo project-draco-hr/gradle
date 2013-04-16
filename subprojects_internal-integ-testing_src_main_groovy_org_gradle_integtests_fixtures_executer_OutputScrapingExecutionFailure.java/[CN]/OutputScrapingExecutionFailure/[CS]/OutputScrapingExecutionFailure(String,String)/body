@@ -1,3 +1,39 @@
 {
   super(output,error);
+  java.util.regex.Matcher matcher=LOCATION_PATTERN.matcher(error);
+  if (matcher.find()) {
+    fileName=matcher.group(1).trim();
+    lineNumber=matcher.group(3);
+  }
+ else {
+    fileName="";
+    lineNumber="";
+  }
+  matcher=DESCRIPTION_PATTERN.matcher(error);
+  String problem;
+  if (matcher.find()) {
+    problem=matcher.group(1);
+  }
+ else {
+    problem="";
+  }
+  matcher=CAUSE_PATTERN.matcher(problem);
+  if (!matcher.find()) {
+    description=problem.trim();
+  }
+ else {
+    description=problem.substring(0,matcher.start()).trim();
+    while (true) {
+      int pos=matcher.end();
+      if (matcher.find(pos)) {
+        String cause=problem.substring(pos,matcher.start());
+        causes.add(cause);
+      }
+ else {
+        String cause=problem.substring(pos);
+        causes.add(cause);
+        break;
+      }
+    }
+  }
 }

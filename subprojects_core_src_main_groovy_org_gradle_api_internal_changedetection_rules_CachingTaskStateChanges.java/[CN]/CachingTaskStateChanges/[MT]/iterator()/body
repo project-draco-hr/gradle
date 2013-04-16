@@ -1,0 +1,20 @@
+{
+  if (delegateIterator == null || overrun) {
+    reset();
+  }
+  return new AbstractIterator<TaskStateChange>(){
+    final Iterator<TaskStateChange> cacheIterator=new ArrayList<TaskStateChange>(cache).iterator();
+    @Override protected TaskStateChange computeNext(){
+      if (cacheIterator.hasNext()) {
+        return cacheIterator.next();
+      }
+      if (delegateIterator.hasNext()) {
+        TaskStateChange next=delegateIterator.next();
+        maybeCache(next);
+        return next;
+      }
+      return endOfData();
+    }
+  }
+;
+}

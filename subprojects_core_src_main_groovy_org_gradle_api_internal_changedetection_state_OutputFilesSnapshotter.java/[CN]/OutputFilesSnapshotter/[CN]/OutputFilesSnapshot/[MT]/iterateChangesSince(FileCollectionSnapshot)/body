@@ -1,0 +1,21 @@
+{
+  final OutputFilesSnapshot other=(OutputFilesSnapshot)oldSnapshot;
+  final ChangeIterator<String> rootFileIdIterator=iterateRootFileIdChanges(other);
+  final ChangeIterator<String> fileIterator=filesSnapshot.iterateChangesSince(other.filesSnapshot);
+  final AddIgnoreChangeListenerAdapter listenerAdapter=new AddIgnoreChangeListenerAdapter();
+  return new ChangeIterator<String>(){
+    public boolean next(    final ChangeListener<String> listener){
+      listenerAdapter.withDelegate(listener);
+      if (rootFileIdIterator.next(listener)) {
+        return true;
+      }
+      while (fileIterator.next(listenerAdapter)) {
+        if (!listenerAdapter.wasIgnored) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+;
+}

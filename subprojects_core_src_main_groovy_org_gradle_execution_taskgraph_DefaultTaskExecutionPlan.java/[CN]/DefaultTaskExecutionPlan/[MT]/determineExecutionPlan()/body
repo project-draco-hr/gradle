@@ -1,0 +1,27 @@
+{
+  List<TaskInfo> nodeQueue=new ArrayList<TaskInfo>(entryTasks);
+  Set<TaskInfo> visitingNodes=new HashSet<TaskInfo>();
+  while (!nodeQueue.isEmpty()) {
+    TaskInfo taskNode=nodeQueue.get(0);
+    if (!taskNode.getRequired() || executionPlan.containsKey(taskNode.getTask())) {
+      nodeQueue.remove(0);
+      continue;
+    }
+    if (visitingNodes.add(taskNode)) {
+      ArrayList<TaskInfo> dependsOnTasks=new ArrayList<TaskInfo>();
+      addAllReversed(dependsOnTasks,taskNode.getHardSuccessors());
+      addAllReversed(dependsOnTasks,taskNode.getSoftSuccessors());
+      for (      TaskInfo dependsOnTask : dependsOnTasks) {
+        if (visitingNodes.contains(dependsOnTask)) {
+          onOrderingCycle();
+        }
+        nodeQueue.add(0,dependsOnTask);
+      }
+    }
+ else {
+      nodeQueue.remove(0);
+      visitingNodes.remove(taskNode);
+      executionPlan.put(taskNode.getTask(),taskNode);
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  final Map<String,Object> properties=new HashMap<String,Object>(task.getInputs().getProperties());
+  currentExecution.setInputProperties(properties);
+  return new SimpleTaskStateChanges(){
+    @Override protected void addAllChanges(    final List<TaskStateChange> changes){
+      DiffUtil.diff(properties,previousExecution.getInputProperties(),new ChangeListener<Map.Entry<String,Object>>(){
+        public void added(        Map.Entry<String,Object> element){
+          changes.add(new DescriptiveChange("Input property '%s' has been added for %s",element.getKey(),task));
+        }
+        public void removed(        Map.Entry<String,Object> element){
+          changes.add(new DescriptiveChange("Input property '%s' has been removed for %s",element.getKey(),task));
+        }
+        public void changed(        Map.Entry<String,Object> element){
+          changes.add(new DescriptiveChange("Value of input property '%s' has changed for %s",element.getKey(),task));
+        }
+      }
+);
+    }
+    public void snapshotAfterTask(){
+    }
+  }
+;
+}

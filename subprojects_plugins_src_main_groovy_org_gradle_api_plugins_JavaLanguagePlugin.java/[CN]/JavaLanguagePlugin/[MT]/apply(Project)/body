@@ -1,17 +1,13 @@
 {
-  final JvmLanguagePlugin jvmLanguagePlugin=target.getPlugins().apply(JvmLanguagePlugin.class);
-  JvmBinaryContainer jvmBinaryContainer=jvmLanguagePlugin.getJvmBinaryContainer();
+  target.getPlugins().apply(JvmLanguagePlugin.class);
+  JvmBinaryContainer jvmBinaryContainer=(JvmBinaryContainer)target.getExtensions().getByType(BinariesContainer.class).getByName("jvm");
   jvmBinaryContainer.all(new Action<ClassDirectoryBinary>(){
     public void execute(    final ClassDirectoryBinary binary){
       binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>(){
         public void execute(        JavaSourceSet javaSourceSet){
-          JavaCompile compileTask=(JavaCompile)binary.getCompileTask();
-          if (compileTask == null) {
-            compileTask=target.getTasks().add(binary.getTaskName("compile","java"),JavaCompile.class);
-            jvmLanguagePlugin.configureCompileTask(compileTask,javaSourceSet,binary);
-            binary.setCompileTask(compileTask);
-            binary.getClassesTask().dependsOn(compileTask);
-          }
+          JavaCompile compileTask=target.getTasks().create(binary.getTaskName("compile","java"),JavaCompile.class);
+          configureCompileTask(compileTask,javaSourceSet,binary);
+          binary.getClassesTask().dependsOn(compileTask);
         }
       }
 );
@@ -23,7 +19,7 @@
     public void execute(    final FunctionalSourceSet functionalSourceSet){
       functionalSourceSet.registerFactory(JavaSourceSet.class,new NamedDomainObjectFactory<JavaSourceSet>(){
         public JavaSourceSet create(        String name){
-          return instantiator.newInstance(DefaultJavaSourceSet.class,name,instantiator.newInstance(DefaultSourceDirectorySet.class),instantiator.newInstance(DefaultClasspath.class),functionalSourceSet);
+          return instantiator.newInstance(DefaultJavaSourceSet.class,name,instantiator.newInstance(DefaultSourceDirectorySet.class,name,fileResolver),instantiator.newInstance(DefaultClasspath.class,fileResolver,target.getTasks()),functionalSourceSet);
         }
       }
 );

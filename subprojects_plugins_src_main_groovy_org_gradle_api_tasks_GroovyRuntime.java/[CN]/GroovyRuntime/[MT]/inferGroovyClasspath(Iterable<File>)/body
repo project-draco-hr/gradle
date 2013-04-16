@@ -1,0 +1,39 @@
+{
+  final Configuration groovyConfiguration=project.getConfigurations().getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME);
+  if (!groovyConfiguration.getDependencies().isEmpty()) {
+    return groovyConfiguration;
+  }
+  return new LazilyInitializedFileCollection(){
+    @Override public FileCollection createDelegate(){
+      GroovyJarFile groovyJar=findGroovyJarFile(classpath);
+      if (groovyJar == null) {
+        throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s"));
+      }
+      if (groovyJar.isGroovyAll()) {
+        return project.files(groovyJar.getFile());
+      }
+      if (project.getRepositories().isEmpty()) {
+        throw new GradleException("Cannot infer Groovy class path because no repository is declared for the project.");
+      }
+      String notation=groovyJar.getDependencyNotation();
+      List<Dependency> dependencies=Lists.newArrayList();
+      dependencies.add(project.getDependencies().create(notation));
+      if (groovyJar.getVersion().getMajor() >= 2) {
+        dependencies.add(project.getDependencies().create(notation.replace(":groovy:",":groovy-ant:")));
+      }
+      return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
+    }
+    @Override public TaskDependency getBuildDependencies(){
+      if (classpath instanceof Buildable) {
+        return ((Buildable)classpath).getBuildDependencies();
+      }
+      return new TaskDependency(){
+        public Set<? extends Task> getDependencies(        Task task){
+          return Collections.emptySet();
+        }
+      }
+;
+    }
+  }
+;
+}

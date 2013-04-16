@@ -1,13 +1,11 @@
 {
   project.getPlugins().apply(PublishingPlugin.class);
   project.getExtensions().configure(PublishingExtension.class,new Action<PublishingExtension>(){
-    public void execute(    PublishingExtension publishingExtension){
-      final PublishingExtension extension=project.getExtensions().getByType(PublishingExtension.class);
-      final PublicationContainerInternal publicationContainer=(PublicationContainerInternal)extension.getPublications();
-      publicationContainer.registerFactory(IvyPublication.class,new IvyPublicationFactory(dependencyMetaDataProvider,instantiator,fileResolver));
-      TaskContainer tasks=project.getTasks();
+    public void execute(    PublishingExtension extension){
+      extension.getPublications().registerFactory(IvyPublication.class,new IvyPublicationFactory(dependencyMetaDataProvider,instantiator,fileResolver));
       IvyPublicationDynamicDescriptorGenerationTaskCreator descriptorGenerationTaskCreator=new IvyPublicationDynamicDescriptorGenerationTaskCreator(project);
       descriptorGenerationTaskCreator.monitor(extension.getPublications());
+      TaskContainer tasks=project.getTasks();
       Task publishLifecycleTask=tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
       IvyPublishDynamicTaskCreator publishTaskCreator=new IvyPublishDynamicTaskCreator(tasks,publishLifecycleTask);
       publishTaskCreator.monitor(extension.getPublications(),extension.getRepositories());

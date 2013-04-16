@@ -1,6 +1,6 @@
 {
   project.getPlugins().apply(JavaPlugin.class);
-  Configuration antlrConfiguration=project.getConfigurations().add(ANTLR_CONFIGURATION_NAME).setVisible(false).setTransitive(false).setDescription("The Antlr libraries to be used for this project.");
+  Configuration antlrConfiguration=project.getConfigurations().create(ANTLR_CONFIGURATION_NAME).setVisible(false).setTransitive(false).setDescription("The Antlr libraries to be used for this project.");
   project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(antlrConfiguration);
   project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>(){
     public void execute(    SourceSet sourceSet){
@@ -10,7 +10,7 @@
       antlrDirectoryDelegate.getAntlr().srcDir(srcDir);
       sourceSet.getAllSource().source(antlrDirectoryDelegate.getAntlr());
       final String taskName=sourceSet.getTaskName("generate","GrammarSource");
-      AntlrTask antlrTask=project.getTasks().add(taskName,AntlrTask.class);
+      AntlrTask antlrTask=project.getTasks().create(taskName,AntlrTask.class);
       antlrTask.setDescription(String.format("Processes the %s Antlr grammars.",sourceSet.getName()));
       antlrTask.setSource(antlrDirectoryDelegate.getAntlr());
       antlrTask.getConventionMapping().map("antlrClasspath",new Callable<Object>(){

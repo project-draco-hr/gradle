@@ -1,0 +1,25 @@
+{
+  final FileCollectionSnapshot inputFilesSnapshot=inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
+  return new TaskStateChanges(){
+    public Iterator<TaskStateChange> iterator(){
+      if (previousExecution.getInputFilesSnapshot() == null) {
+        return Collections.<TaskStateChange>singleton(new DescriptiveChange("Input file history is not available.")).iterator();
+      }
+      return new AbstractIterator<TaskStateChange>(){
+        final FileCollectionSnapshot.ChangeIterator<String> changeIterator=inputFilesSnapshot.iterateChangesSince(previousExecution.getInputFilesSnapshot());
+        final ChangeListenerAdapter listenerAdapter=new ChangeListenerAdapter();
+        @Override protected TaskStateChange computeNext(){
+          if (changeIterator.next(listenerAdapter)) {
+            return listenerAdapter.lastChange;
+          }
+          return endOfData();
+        }
+      }
+;
+    }
+    public void snapshotAfterTask(){
+      currentExecution.setInputFilesSnapshot(inputFilesSnapshot);
+    }
+  }
+;
+}

@@ -15,23 +15,22 @@
       throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()");
     }
   }
-  if (type != Void.class && operationParameters.getTasks() != null) {
+  if (modelType != Void.class && operationParameters.getTasks() != null) {
     if (!version.supportsRunningTasksWhenBuildingModel()) {
       throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()");
     }
   }
-  if (type == InternalBuildEnvironment.class && !version.supportsCompleteBuildEnvironment()) {
+  if (modelType == BuildEnvironment.class && !version.isModelSupported(BuildEnvironment.class)) {
     VersionOnlyBuildEnvironment out=new VersionOnlyBuildEnvironment(version.getVersion());
-    return type.cast(out);
+    return modelType.cast(out);
   }
-  if (version.clientHangsOnEarlyDaemonFailure() && version.isPostM6Model(type)) {
-    String message=String.format("I don't know how to build a model of type '%s'.",type.getSimpleName());
-    throw new UnsupportedOperationException(message);
-  }
-  if (type == InternalGradleProject.class && !version.supportsGradleProjectModel()) {
+  if (modelType == GradleProject.class && !version.isModelSupported(GradleProject.class)) {
     EclipseProjectVersion3 project=connection.run(EclipseProjectVersion3.class,operationParameters);
     GradleProject gradleProject=new GradleProjectConverter().convert(project);
-    return (T)gradleProject;
+    return modelType.cast(gradleProject);
   }
-  return connection.run(type,operationParameters);
+  if (!version.isModelSupported(modelType)) {
+    throw new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'.",version.getVersion(),modelType.getSimpleName()));
+  }
+  return connection.run(modelType,operationParameters);
 }

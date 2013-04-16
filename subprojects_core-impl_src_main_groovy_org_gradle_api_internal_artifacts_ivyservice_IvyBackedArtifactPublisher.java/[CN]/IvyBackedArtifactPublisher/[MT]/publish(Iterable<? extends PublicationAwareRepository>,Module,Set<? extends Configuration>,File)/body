@@ -1,9 +1,12 @@
 {
-  List<DependencyResolver> publishResolvers=new ArrayList<DependencyResolver>();
+  IvySettings settings=settingsConverter.convertForPublish();
+  Ivy ivy=ivyFactory.createIvy(settings);
+  List<ModuleVersionPublisher> publishResolvers=new ArrayList<ModuleVersionPublisher>();
   for (  PublicationAwareRepository repository : repositories) {
-    publishResolvers.add(repository.createPublisher());
+    ModuleVersionPublisher publisher=repository.createPublisher();
+    publisher.setSettings(ivy.getSettings());
+    publishResolvers.add(publisher);
   }
-  Ivy ivy=ivyForPublish(publishResolvers);
   Set<String> confs=Configurations.getNames(configurations,false);
-  dependencyPublisher.publish(confs,publishResolvers,publishModuleDescriptorConverter.convert(configurations,module),descriptor,ivy.getEventManager());
+  dependencyPublisher.publish(confs,publishResolvers,publishModuleDescriptorConverter.convert(configurations,module),descriptor);
 }

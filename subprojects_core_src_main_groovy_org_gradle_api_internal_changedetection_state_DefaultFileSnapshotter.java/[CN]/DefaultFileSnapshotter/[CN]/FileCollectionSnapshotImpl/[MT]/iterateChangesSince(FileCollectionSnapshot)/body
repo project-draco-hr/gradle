@@ -1,0 +1,31 @@
+{
+  FileCollectionSnapshotImpl other=(FileCollectionSnapshotImpl)oldSnapshot;
+  final Map<String,FileSnapshot> otherSnapshots=new HashMap<String,FileSnapshot>(other.snapshots);
+  final Iterator<String> currentFiles=snapshots.keySet().iterator();
+  return new ChangeIterator<String>(){
+    private Iterator<String> removedFiles;
+    public boolean next(    ChangeListener<String> listener){
+      while (currentFiles.hasNext()) {
+        String currentFile=currentFiles.next();
+        FileSnapshot otherFile=otherSnapshots.remove(currentFile);
+        if (otherFile == null) {
+          listener.added(currentFile);
+          return true;
+        }
+ else         if (!snapshots.get(currentFile).isUpToDate(otherFile)) {
+          listener.changed(currentFile);
+          return true;
+        }
+      }
+      if (removedFiles == null) {
+        removedFiles=otherSnapshots.keySet().iterator();
+      }
+      if (removedFiles.hasNext()) {
+        listener.removed(removedFiles.next());
+        return true;
+      }
+      return false;
+    }
+  }
+;
+}

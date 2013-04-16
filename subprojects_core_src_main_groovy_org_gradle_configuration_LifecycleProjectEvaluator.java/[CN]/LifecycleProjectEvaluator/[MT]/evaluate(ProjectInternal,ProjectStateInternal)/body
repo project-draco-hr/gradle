@@ -3,14 +3,23 @@
     return;
   }
   ProjectEvaluationListener listener=project.getProjectEvaluationBroadcaster();
-  listener.beforeEvaluate(project);
+  try {
+    listener.beforeEvaluate(project);
+  }
+ catch (  Exception e) {
+    addConfigurationFailure(project,state,e);
+    return;
+  }
   state.setExecuting(true);
   try {
-    evaluator.evaluate(project,state);
+    delegate.evaluate(project,state);
   }
-  finally {
+ catch (  Exception e) {
+    addConfigurationFailure(project,state,e);
+  }
+ finally {
     state.setExecuting(false);
     state.executed();
-    listener.afterEvaluate(project,state);
+    notifyAfterEvaluate(listener,project,state);
   }
 }

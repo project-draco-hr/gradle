@@ -1,0 +1,35 @@
+{
+  String prop=properties.get(IDLE_TIMEOUT_PROPERTY);
+  if (prop != null) {
+    try {
+      target.setIdleTimeout(new Integer(prop));
+    }
+ catch (    NumberFormatException e) {
+      throw new GradleException(String.format("Unable to parse %s property. The value should be an int but is: %s",IDLE_TIMEOUT_PROPERTY,prop));
+    }
+  }
+  prop=properties.get(JVM_ARGS_PROPERTY);
+  if (prop != null) {
+    target.setJvmArgs(JvmOptions.fromString(prop));
+  }
+  prop=properties.get(JAVA_HOME_PROPERTY);
+  if (prop != null) {
+    File javaHome=new File(prop);
+    if (!javaHome.isDirectory()) {
+      throw new GradleException(String.format("Java home supplied via '%s' is invalid. Invalid directory: %s",JAVA_HOME_PROPERTY,prop));
+    }
+    try {
+      Jvm.forHome(javaHome);
+    }
+ catch (    JavaHomeException e) {
+      throw new GradleException(String.format("Java home supplied via '%s' seems to be invalid: %s",JAVA_HOME_PROPERTY,prop));
+    }
+    target.setJavaHome(javaHome);
+  }
+  prop=properties.get(BASE_DIR_PROPERTY);
+  if (prop != null) {
+    target.setBaseDir(new File(prop));
+  }
+  target.setEnabled(isTrue(properties.get(DAEMON_ENABLED_PROPERTY)));
+  target.setDebug(isTrue(properties.get(DEBUG_MODE_PROPERTY)));
+}

@@ -1,0 +1,12 @@
+{
+  if (!task.getOutputs().getHasOutput()) {
+    LOGGER.info(String.format("%s has not declared any outputs, assuming that it is out-of-date.",StringUtils.capitalize(task.toString())));
+    return new NoHistoryArtifactState();
+  }
+  final TaskArtifactState state=repository.getStateFor(task);
+  if (startParameter.isRerunTasks()) {
+    LOGGER.info(String.format("Executing %s with '--rerun-tasks', assuming that it is out-of-date.",StringUtils.capitalize(task.toString())));
+    return new RerunTaskArtifactState(state,task);
+  }
+  return state;
+}

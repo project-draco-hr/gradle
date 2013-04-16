@@ -1,24 +1,28 @@
 {
   List<Task> queue=new ArrayList<Task>(tasks);
   Collections.sort(queue);
+  for (  Task task : queue) {
+    entryTasks.add(graph.addNode(task));
+  }
   Set<Task> visiting=new HashSet<Task>();
   CachingTaskDependencyResolveContext context=new CachingTaskDependencyResolveContext();
   while (!queue.isEmpty()) {
     Task task=queue.get(0);
-    if (!filter.isSatisfiedBy(task)) {
+    TaskInfo node=graph.addNode(task);
+    if (node.getRequired()) {
       queue.remove(0);
       continue;
     }
-    if (executionPlan.containsKey(task)) {
+    boolean filtered=!filter.isSatisfiedBy(task);
+    if (filtered) {
       queue.remove(0);
       continue;
     }
     if (visiting.add(task)) {
-      Set<Task> dependsOnTasks=new TreeSet<Task>(Collections.reverseOrder());
-      dependsOnTasks.addAll(context.getDependencies(task));
+      Set<? extends Task> dependsOnTasks=context.getDependencies(task);
       for (      Task dependsOnTask : dependsOnTasks) {
         if (visiting.contains(dependsOnTask)) {
-          throw new CircularReferenceException(String.format("Circular dependency between tasks. Cycle includes [%s, %s].",task,dependsOnTask));
+          continue;
         }
         queue.add(0,dependsOnTask);
       }
@@ -26,14 +30,14 @@
  else {
       queue.remove(0);
       visiting.remove(task);
-      Set<TaskInfo> dependencies=new HashSet<TaskInfo>();
-      for (      Task dependency : context.getDependencies(task)) {
-        TaskInfo dependencyInfo=executionPlan.get(dependency);
-        if (dependencyInfo != null) {
-          dependencies.add(dependencyInfo);
-        }
+      node.setRequired(true);
+      Set<? extends Task> dependencies=context.getDependencies(task);
+      for (      Task dependency : dependencies) {
+        graph.addHardEdge(node,dependency);
       }
-      executionPlan.put(task,new TaskInfo((TaskInternal)task,dependencies));
+      for (      Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
+        graph.addSoftEdge(node,mustRunAfter);
+      }
     }
   }
 }

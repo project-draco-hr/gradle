@@ -1,17 +1,20 @@
 {
   TaskInternal task=taskFactory.createTask(args);
-  Class<? extends Task> type=task.getClass();
-  List<Action<Task>> actions=actionsForType.get(type);
-  if (actions == null) {
-    actions=createActionsForType(type);
-    actionsForType.put(type,actions);
-  }
-  for (  Action<Task> action : actions) {
-    task.doFirst(action);
-    if (action instanceof Validator) {
-      Validator validator=(Validator)action;
-      validator.addInputsAndOutputs(task);
+  TaskClassInfo taskClassInfo=getTaskClassInfo(task.getClass());
+  if (taskClassInfo.incremental) {
+    task.getOutputs().upToDateWhen(new Spec<Task>(){
+      public boolean isSatisfiedBy(      Task element){
+        return true;
+      }
     }
+);
+  }
+  for (  Factory<Action<Task>> actionFactory : taskClassInfo.taskActions) {
+    task.doFirst(actionFactory.create());
+  }
+  if (taskClassInfo.validator != null) {
+    task.doFirst(taskClassInfo.validator);
+    taskClassInfo.validator.addInputsAndOutputs(task);
   }
   return task;
 }

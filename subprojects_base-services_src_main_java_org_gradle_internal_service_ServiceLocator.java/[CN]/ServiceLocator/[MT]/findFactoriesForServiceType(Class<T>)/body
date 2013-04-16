@@ -1,0 +1,17 @@
+{
+  List<Class<? extends T>> implementationClasses;
+  try {
+    implementationClasses=findServiceImplementations(serviceType);
+  }
+ catch (  ServiceLookupException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new ServiceLookupException(String.format("Could not determine implementation classes for service '%s'.",serviceType.getName()),e);
+  }
+  List<ServiceFactory<T>> factories=new ArrayList<ServiceFactory<T>>();
+  for (  Class<? extends T> implementationClass : implementationClasses) {
+    factories.add(new ServiceFactory<T>(serviceType,implementationClass));
+  }
+  return factories;
+}

@@ -1,0 +1,25 @@
+{
+  logger.debug("Executing actions for {}.",task);
+  final List<ContextAwareTaskAction> actions=new ArrayList<ContextAwareTaskAction>(task.getTaskActions());
+  for (  ContextAwareTaskAction action : actions) {
+    state.setDidWork(true);
+    task.getStandardOutputCapture().start();
+    try {
+      executeAction(task,action,context);
+    }
+ catch (    StopActionException e) {
+      logger.debug("Action stopped by some action with message: {}",e.getMessage());
+    }
+catch (    StopExecutionException e) {
+      logger.info("Execution stopped by some action with message: {}",e.getMessage());
+      break;
+    }
+catch (    Throwable t) {
+      return new TaskExecutionException(task,t);
+    }
+ finally {
+      task.getStandardOutputCapture().stop();
+    }
+  }
+  return null;
+}

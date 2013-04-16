@@ -1,7 +1,15 @@
 {
+  BuildLayoutParameters layout=new BuildLayoutParameters();
+  layoutConverter.convert(commandLine,layout);
+  Map<String,String> properties=new HashMap<String,String>();
+  layoutToPropertiesConverter.convert(layout,properties);
+  propertiesConverter.convert(commandLine,properties);
   StartParameter startParameter=new StartParameter();
-  startParameterConverter.convert(commandLine,startParameter);
-  DaemonParameters daemonParameters=propertiesConfigurer.configureParameters(startParameter);
+  propertiesToStartParameterConverter.convert(properties,startParameter);
+  commandLineConverter.convert(commandLine,startParameter);
+  DaemonParameters daemonParameters=new DaemonParameters(layout);
+  propertiesToDaemonParametersConverter.convert(properties,daemonParameters);
+  daemonConverter.convert(commandLine,daemonParameters);
   if (commandLine.hasOption(STOP)) {
     return stopAllDaemons(daemonParameters,loggingServices);
   }
@@ -9,7 +17,7 @@
     ForegroundDaemonConfiguration conf=new ForegroundDaemonConfiguration(daemonParameters.getUid(),daemonParameters.getBaseDir(),daemonParameters.getIdleTimeout());
     return Actions.toAction(new ForegroundDaemonMain(conf));
   }
-  if (useDaemon(commandLine,daemonParameters)) {
+  if (daemonParameters.isEnabled()) {
     return runBuildWithDaemon(startParameter,daemonParameters,loggingServices);
   }
   if (canUseCurrentProcess(daemonParameters)) {

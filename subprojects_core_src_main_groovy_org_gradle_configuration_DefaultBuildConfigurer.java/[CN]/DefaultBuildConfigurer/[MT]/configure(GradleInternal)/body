@@ -1,11 +1,12 @@
 {
-  gradle.addProjectEvaluationListener(new ImplicitTasksConfigurer());
   gradle.addProjectEvaluationListener(new ProjectDependencies2TaskResolver());
   if (gradle.getStartParameter().isConfigureOnDemand()) {
     SingleMessageLogger.informAboutIncubating("Configuration on demand");
     gradle.getRootProject().evaluate();
   }
  else {
-    gradle.getRootProject().allprojects((Action)new ConfigureProject());
+    for (    Project project : gradle.getRootProject().getAllprojects()) {
+      ((ProjectInternal)project).evaluate();
+    }
   }
 }

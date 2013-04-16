@@ -1,0 +1,45 @@
+{
+  final File lockFile=new File(exclusiveFile.getParentFile(),exclusiveFile.getName() + LOCK_FILE_SUFFIX);
+  lockFile.getParentFile().mkdirs();
+  RandomAccessFile randomAccessFile=null;
+  FileChannel channel=null;
+  try {
+    long startAt=System.currentTimeMillis();
+    FileLock lock=null;
+    while (lock == null && System.currentTimeMillis() < startAt + timeoutMs) {
+      randomAccessFile=new RandomAccessFile(lockFile,"rw");
+      channel=randomAccessFile.getChannel();
+      lock=channel.tryLock();
+      if (lock == null) {
+        maybeCloseQuietly(channel);
+        maybeCloseQuietly(randomAccessFile);
+        Thread.sleep(pollIntervalMs);
+      }
+    }
+    if (lock == null) {
+      throw new RuntimeException("Timeout of " + timeoutMs + " reached waiting for exclusive access to file: "+ exclusiveFile.getAbsolutePath());
+    }
+    try {
+      return task.call();
+    }
+  finally {
+      lock.release();
+      maybeCloseQuietly(channel);
+      channel=null;
+      maybeCloseQuietly(randomAccessFile);
+      randomAccessFile=null;
+    }
+  }
+ catch (  Exception e) {
+    if (e instanceof RuntimeException) {
+      throw (RuntimeException)e;
+    }
+ else {
+      throw new RuntimeException(e);
+    }
+  }
+ finally {
+    maybeCloseQuietly(channel);
+    maybeCloseQuietly(randomAccessFile);
+  }
+}

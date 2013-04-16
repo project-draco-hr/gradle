@@ -1,0 +1,37 @@
+{
+  if (targetType instanceof ParameterizedType) {
+    ParameterizedType parameterizedTargetType=(ParameterizedType)targetType;
+    if (parameterizedTargetType.getRawType() instanceof Class) {
+      Class<?> rawClass=(Class<?>)parameterizedTargetType.getRawType();
+      if (Iterable.class.isAssignableFrom(rawClass)) {
+        Type targetElementType=getElementType(parameterizedTargetType,0);
+        Collection<Object> convertedElements=collectionMapper.createEmptyCollection(rawClass);
+        for (        Object element : (Iterable<?>)value) {
+          convertedElements.add(convert(element,targetElementType));
+        }
+        if (rawClass.equals(DomainObjectSet.class)) {
+          return new ImmutableDomainObjectSet(convertedElements);
+        }
+ else {
+          return convertedElements;
+        }
+      }
+      if (Map.class.isAssignableFrom(rawClass)) {
+        Type targetKeyType=getElementType(parameterizedTargetType,0);
+        Type targetValueType=getElementType(parameterizedTargetType,1);
+        Map<Object,Object> convertedElements=collectionMapper.createEmptyMap(rawClass);
+        for (        Map.Entry<?,?> entry : ((Map<?,?>)value).entrySet()) {
+          convertedElements.put(convert(entry.getKey(),targetKeyType),convert(entry.getValue(),targetValueType));
+        }
+        return convertedElements;
+      }
+    }
+  }
+  if (targetType instanceof Class) {
+    if (((Class)targetType).isPrimitive()) {
+      return value;
+    }
+    return adapt((Class)targetType,value,override);
+  }
+  throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.",value.getClass(),targetType));
+}

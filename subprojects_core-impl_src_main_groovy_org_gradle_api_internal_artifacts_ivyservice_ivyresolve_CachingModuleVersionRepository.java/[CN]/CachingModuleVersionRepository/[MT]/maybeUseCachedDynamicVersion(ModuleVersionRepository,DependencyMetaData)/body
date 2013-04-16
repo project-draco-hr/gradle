@@ -1,15 +1,14 @@
 {
-  ModuleRevisionId originalId=original.getDescriptor().getDependencyRevisionId();
-  ModuleResolutionCache.CachedModuleResolution cachedModuleResolution=moduleResolutionCache.getCachedModuleResolution(repository,originalId);
+  ModuleVersionSelector requested=original.getRequested();
+  ModuleResolutionCache.CachedModuleResolution cachedModuleResolution=moduleResolutionCache.getCachedModuleResolution(repository,requested);
   if (cachedModuleResolution != null && cachedModuleResolution.isDynamicVersion()) {
-    ModuleVersionSelector selector=createModuleVersionSelector(originalId);
     ModuleVersionIdentifier resolvedVersion=cachedModuleResolution.getResolvedVersion();
-    if (cachePolicy.mustRefreshDynamicVersion(selector,resolvedVersion,cachedModuleResolution.getAgeMillis())) {
-      LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'",selector,repository.getName());
+    if (cachePolicy.mustRefreshDynamicVersion(requested,resolvedVersion,cachedModuleResolution.getAgeMillis())) {
+      LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'",requested,repository.getName());
       return original;
     }
  else {
-      LOGGER.debug("Found resolved revision in dynamic revision cache of '{}': Using '{}' for '{}'",repository.getName(),cachedModuleResolution.getResolvedVersion(),originalId);
+      LOGGER.debug("Found resolved revision in dynamic revision cache of '{}': Using '{}' for '{}'",repository.getName(),cachedModuleResolution.getResolvedVersion(),requested);
       return original.withRequestedVersion(DefaultModuleVersionSelector.newSelector(resolvedVersion.getGroup(),resolvedVersion.getName(),resolvedVersion.getVersion()));
     }
   }

@@ -1,0 +1,57 @@
+{
+  SimpleClassMetaDataRepository<ClassMetaData> repository=new SimpleClassMetaDataRepository<ClassMetaData>();
+  repository.load(getMetaDataFile());
+  final Set<String> excludedPrefixes=new HashSet<String>();
+  final Set<String> excludedPackages=new HashSet<String>();
+  for (  String excludePattern : excludePatterns) {
+    if (excludePattern.endsWith(".**")) {
+      String baseName=excludePattern.substring(0,excludePattern.length() - 3);
+      excludedPrefixes.add(baseName + '.');
+      excludedPackages.add(baseName);
+    }
+ else {
+      excludedPackages.add(excludePattern);
+    }
+  }
+  final Set<String> packages=new TreeSet<String>();
+  packages.addAll(extraPackages);
+  final Multimap<String,String> simpleNames=HashMultimap.create();
+  repository.each(new Action<ClassMetaData>(){
+    public void execute(    ClassMetaData classMetaData){
+      if (classMetaData.getOuterClassName() != null) {
+        return;
+      }
+      String packageName=classMetaData.getPackageName();
+      if (excludedPackages.contains(packageName)) {
+        return;
+      }
+      for (      String excludedPrefix : excludedPrefixes) {
+        if (packageName.startsWith(excludedPrefix)) {
+          return;
+        }
+      }
+      simpleNames.put(classMetaData.getSimpleName(),classMetaData.getClassName());
+      packages.add(packageName);
+    }
+  }
+);
+  for (  Map.Entry<String,Collection<String>> entry : simpleNames.asMap().entrySet()) {
+    if (entry.getValue().size() > 1) {
+      System.out.println(String.format("Multiple DSL types have short name '%s'",entry.getKey()));
+      for (      String className : entry.getValue()) {
+        System.out.println("    * " + className);
+      }
+    }
+  }
+  final PrintWriter writer=new PrintWriter(new FileWriter(getDestFile()));
+  try {
+    for (    String packageName : packages) {
+      writer.print("import ");
+      writer.print(packageName);
+      writer.println(".*");
+    }
+  }
+  finally {
+    writer.close();
+  }
+}
