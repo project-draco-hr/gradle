@@ -12,19 +12,19 @@
     }
     ConnectionVersion4 connection=factory.create();
     ProtocolToModelAdapter adapter=new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
-    VersionDetails providerMetaData=new ProviderMetaDataRegistry().getVersionDetails(connection.getMetaData().getVersion());
+    ModelMapping modelMapping=new ModelMapping();
     AbstractConsumerConnection adaptedConnection;
     if (connection instanceof ModelBuilder) {
-      adaptedConnection=new ModelBuilderBackedConsumerConnection(connection,providerMetaData,adapter);
+      adaptedConnection=new ModelBuilderBackedConsumerConnection(connection,adapter);
     }
  else     if (connection instanceof BuildActionRunner) {
-      adaptedConnection=new BuildActionRunnerBackedConsumerConnection(connection,providerMetaData,adapter);
+      adaptedConnection=new BuildActionRunnerBackedConsumerConnection(connection,modelMapping,adapter);
     }
  else     if (connection instanceof InternalConnection) {
-      adaptedConnection=new InternalConnectionBackedConsumerConnection(connection,providerMetaData,adapter);
+      adaptedConnection=new InternalConnectionBackedConsumerConnection(connection,modelMapping,adapter);
     }
  else {
-      adaptedConnection=new ConnectionVersion4BackedConsumerConnection(connection,providerMetaData,adapter);
+      adaptedConnection=new ConnectionVersion4BackedConsumerConnection(connection,modelMapping,adapter);
     }
     adaptedConnection.configure(connectionParameters);
     return adaptedConnection;
