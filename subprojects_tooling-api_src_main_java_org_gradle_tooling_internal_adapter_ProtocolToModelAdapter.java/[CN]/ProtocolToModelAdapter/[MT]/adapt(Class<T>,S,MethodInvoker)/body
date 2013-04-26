@@ -1,11 +1,10 @@
 {
-  if (protocolObject == null) {
-    return null;
+  return adapt(targetType,sourceObject,new Action<SourceObjectMapping>(){
+    public void execute(    SourceObjectMapping mapping){
+      if (mapping.getSourceObject() == sourceObject) {
+        mapping.mixIn(overrideMethodInvoker);
+      }
+    }
   }
-  Class<? extends T> target=targetTypeProvider.getTargetType(targetType,protocolObject);
-  if (target.isInstance(protocolObject)) {
-    return target.cast(protocolObject);
-  }
-  Object proxy=Proxy.newProxyInstance(target.getClassLoader(),new Class<?>[]{target},new InvocationHandlerImpl(protocolObject,overrideMethodInvoker));
-  return target.cast(proxy);
+);
 }
