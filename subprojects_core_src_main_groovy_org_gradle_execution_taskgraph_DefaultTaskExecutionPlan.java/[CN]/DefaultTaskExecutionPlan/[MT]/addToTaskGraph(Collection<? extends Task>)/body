@@ -1,5 +1,5 @@
 {
-  List<Task> finalisers=new ArrayList<Task>();
+  List<Task> finalizers=new ArrayList<Task>();
   List<Task> queue=new ArrayList<Task>(tasks);
   Collections.sort(queue);
   for (  Task task : queue) {
@@ -23,7 +23,7 @@
     }
     if (visiting.add(task)) {
       if (node.isOnlyFinalising()) {
-        finalisers.add(task);
+        finalizers.add(task);
       }
       Set<? extends Task> dependsOnTasks=context.getDependencies(task);
       for (      Task dependsOnTask : dependsOnTasks) {
@@ -32,16 +32,16 @@
         }
         queue.add(0,dependsOnTask);
       }
-      for (      Task finaliserTask : task.getFinalisedBy().getDependencies(task)) {
-        addFinaliserNodeToGraph(queue,finaliserTask).addSoftSuccessor(node);
+      for (      Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
+        addFinalizerNodeToGraph(queue,finalizerTask).addSoftSuccessor(node);
       }
     }
  else {
       queue.remove(0);
       visiting.remove(task);
-      if (finalisers.size() > 0) {
+      if (finalizers.size() > 0) {
         node.shouldNotRun();
-        finalisers.remove(task);
+        finalizers.remove(task);
       }
  else {
         node.setRequired(true);
@@ -49,11 +49,11 @@
       Set<? extends Task> dependencies=context.getDependencies(task);
       for (      Task dependency : dependencies) {
         graph.addHardEdge(node,dependency);
-        mustRunAfterFinalisers(node,dependency);
+        mustRunAfterFinalizers(node,dependency);
       }
       for (      Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
         graph.addSoftEdge(node,mustRunAfter);
-        mustRunAfterFinalisers(node,mustRunAfter);
+        mustRunAfterFinalizers(node,mustRunAfter);
       }
       node.dependenciesProcessed();
     }
