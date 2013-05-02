@@ -3,12 +3,13 @@
   if (resource == null) {
     throw new ClassNotFoundException(name);
   }
+  byte[] bytes;
   try {
-    byte[] bytes=loadBytecode(resource);
+    bytes=loadBytecode(resource);
     bytes=transform(bytes);
-    return super.defineClass(name,bytes,0,bytes.length);
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
+ catch (  Exception e) {
+    throw new GradleException(String.format("Could not load class '%s' from %s.",name,resource),e);
   }
+  return super.defineClass(name,bytes,0,bytes.length);
 }
