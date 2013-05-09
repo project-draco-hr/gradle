@@ -1,9 +1,9 @@
 {
-  List<Task> finalizers=new ArrayList<Task>();
   List<Task> queue=new ArrayList<Task>(tasks);
   Collections.sort(queue);
   for (  Task task : queue) {
-    addEntryTask(task);
+    TaskInfo node=graph.addNode(task);
+    entryTasks.add(node);
   }
   Set<Task> visiting=new HashSet<Task>();
   CachingTaskDependencyResolveContext context=new CachingTaskDependencyResolveContext();
@@ -11,20 +11,15 @@
     Task task=queue.get(0);
     TaskInfo node=graph.addNode(task);
     if (node.getDependenciesProcessed()) {
-      requireWithDependenciesIfOnlyFinalising(node);
       queue.remove(0);
       continue;
     }
     boolean filtered=!filter.isSatisfiedBy(task);
     if (filtered) {
-      node.setRequired(false);
       queue.remove(0);
       continue;
     }
     if (visiting.add(task)) {
-      if (node.isOnlyFinalising()) {
-        finalizers.add(task);
-      }
       Set<? extends Task> dependsOnTasks=context.getDependencies(task);
       for (      Task dependsOnTask : dependsOnTasks) {
         if (visiting.contains(dependsOnTask)) {
@@ -33,19 +28,12 @@
         queue.add(0,dependsOnTask);
       }
       for (      Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
-        addFinalizerNodeToGraph(queue,finalizerTask).addSoftSuccessor(node);
+        addFinalizerNode(queue,node,finalizerTask);
       }
     }
  else {
       queue.remove(0);
       visiting.remove(task);
-      if (finalizers.size() > 0) {
-        node.shouldNotRun();
-        finalizers.remove(task);
-      }
- else {
-        node.setRequired(true);
-      }
       Set<? extends Task> dependencies=context.getDependencies(task);
       for (      Task dependency : dependencies) {
         graph.addHardEdge(node,dependency);
