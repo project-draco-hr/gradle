@@ -2,16 +2,28 @@
   Object[] parameters=iTestResult.getParameters();
   String name=iTestResult.getName();
   if (parameters != null && parameters.length > 0) {
-    StringBuilder builder=new StringBuilder(name).append("[").append(iTestResult.getMethod().getCurrentInvocationCount()).append("](");
+    StringBuilder builder=new StringBuilder(name).append("[").append(iTestResult.getMethod().getCurrentInvocationCount()).append("]");
+    StringBuilder paramsListBuilder=new StringBuilder("(");
     int i=0;
     for (    Object parameter : parameters) {
-      builder.append(calculateParameterRepresentation(parameter));
+      if (parameter == null) {
+        paramsListBuilder.append("null");
+      }
+ else {
+        try {
+          paramsListBuilder.append(parameter.toString());
+        }
+ catch (        Exception e) {
+          iTestResult.setThrowable(new UnrepresentableParameterException(iTestResult,i,e));
+          return builder.toString();
+        }
+      }
       if (++i < parameters.length) {
-        builder.append(", ");
+        paramsListBuilder.append(", ");
       }
     }
-    builder.append(")");
-    return builder.toString();
+    paramsListBuilder.append(")");
+    return builder.append(paramsListBuilder.toString()).toString();
   }
  else {
     return name;
