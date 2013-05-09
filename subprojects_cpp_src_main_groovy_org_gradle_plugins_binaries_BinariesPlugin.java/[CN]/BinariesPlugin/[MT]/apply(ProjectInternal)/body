@@ -1,7 +1,21 @@
 {
   project.getPlugins().apply(BasePlugin.class);
+  project.getPlugins().apply(LanguageBasePlugin.class);
+  final BinariesContainer binaries=project.getExtensions().getByType(BinariesContainer.class);
   project.getExtensions().create("compilers",DefaultCompilerRegistry.class,instantiator);
   DefaultCompilerRegistry registry=project.getExtensions().getByType(DefaultCompilerRegistry.class);
-  project.getExtensions().create("executables",FactoryNamedDomainObjectContainer.class,Executable.class,instantiator,new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class,project,registry));
-  project.getExtensions().create("libraries",FactoryNamedDomainObjectContainer.class,Library.class,instantiator,new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class,project,registry));
+  NamedDomainObjectSet<Executable> executables=project.getExtensions().create("executables",FactoryNamedDomainObjectContainer.class,Executable.class,instantiator,new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class,project,registry));
+  executables.all(new Action<Executable>(){
+    public void execute(    Executable executable){
+      binaries.add(new DefaultExecutableBinary(executable));
+    }
+  }
+);
+  NamedDomainObjectSet<Library> libraries=project.getExtensions().create("libraries",FactoryNamedDomainObjectContainer.class,Library.class,instantiator,new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class,project,registry));
+  libraries.all(new Action<Library>(){
+    public void execute(    Library library){
+      binaries.add(new DefaultSharedLibraryBinary(library));
+    }
+  }
+);
 }
