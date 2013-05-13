@@ -10,14 +10,14 @@
       node.visitOutgoingDependencies(dependencies);
       for (      DependencyEdge dependency : dependencies) {
         LOGGER.debug("Visiting dependency {}",dependency);
-        DefaultModuleRevisionResolveState moduleRevision=dependency.resolveModuleRevisionId();
+        ModuleVersionResolveState moduleRevision=dependency.resolveModuleRevisionId();
         if (moduleRevision == null) {
           continue;
         }
         ModuleIdentifier moduleId=moduleRevision.id.getModule();
         if (moduleRevision.state == ModuleState.New) {
           ModuleResolveState module=resolveState.getModule(moduleId);
-          Collection<DefaultModuleRevisionResolveState> versions=module.getVersions();
+          Collection<ModuleVersionResolveState> versions=module.getVersions();
           if (versions.size() == 1) {
             LOGGER.debug("Selecting new module version {}",moduleRevision);
             module.select(moduleRevision);
@@ -25,7 +25,7 @@
  else {
             LOGGER.debug("Found new conflicting module version {}",moduleRevision);
             conflicts.add(moduleId);
-            DefaultModuleRevisionResolveState previouslySelected=module.clearSelection();
+            ModuleVersionResolveState previouslySelected=module.clearSelection();
             if (previouslySelected != null) {
               for (              ConfigurationNode configuration : previouslySelected.configurations) {
                 configuration.removeOutgoingEdges();
@@ -40,7 +40,7 @@
       ModuleIdentifier moduleId=conflicts.iterator().next();
       conflicts.remove(moduleId);
       ModuleResolveState module=resolveState.getModule(moduleId);
-      DefaultModuleRevisionResolveState selected=conflictResolver.select(module.getVersions(),resolveState.root.moduleRevision);
+      ModuleVersionResolveState selected=conflictResolver.select(module.getVersions(),resolveState.root.moduleRevision);
       LOGGER.debug("Selected {} from conflicting modules {}.",selected,module.getVersions());
       module.restart(selected);
     }
