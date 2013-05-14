@@ -1,0 +1,28 @@
+{
+  project.getPlugins().apply(ReportingBasePlugin.class);
+  final GenerateBuildDashboard buildDashboardTask=project.getTasks().create(BUILD_DASHBOARD_TASK_NAME,GenerateBuildDashboard.class);
+  DirectoryReport htmlReport=buildDashboardTask.getReports().getHtml();
+  ConventionMapping htmlReportConventionMapping=new DslObject(htmlReport).getConventionMapping();
+  htmlReportConventionMapping.map("destination",new Callable<Object>(){
+    public Object call() throws Exception {
+      return project.getExtensions().getByType(ReportingExtension.class).file("buildDashboard");
+    }
+  }
+);
+  Action<Task> captureReportingTasks=new Action<Task>(){
+    public void execute(    Task task){
+      if (!(task instanceof Reporting)) {
+        return;
+      }
+      Reporting reporting=(Reporting)task;
+      buildDashboardTask.aggregate(reporting);
+      if (!task.equals(buildDashboardTask)) {
+        buildDashboardTask.mustRunAfter(task);
+      }
+    }
+  }
+;
+  for (  Project aProject : project.getAllprojects()) {
+    aProject.getTasks().all(captureReportingTasks);
+  }
+}
