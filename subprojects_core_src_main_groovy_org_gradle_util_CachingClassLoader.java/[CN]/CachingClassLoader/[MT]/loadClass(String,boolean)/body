@@ -1,0 +1,19 @@
+{
+  Object cachedValue=loadedClasses.get(name);
+  if (cachedValue instanceof Class) {
+    return (Class<?>)cachedValue;
+  }
+ else   if (cachedValue == MISSING_CLASS) {
+    throw new ClassNotFoundException(name);
+  }
+  Class<?> result;
+  try {
+    result=super.loadClass(name,resolve);
+  }
+ catch (  ClassNotFoundException e) {
+    loadedClasses.putIfAbsent(name,MISSING_CLASS);
+    throw e;
+  }
+  loadedClasses.putIfAbsent(name,result);
+  return result;
+}
