@@ -1,0 +1,18 @@
+{
+  try {
+    return withConnection(new ConnectionAction<List<String>>(){
+      public List<String> execute(      Connection connection) throws Exception {
+        List<String> testNames=new ArrayList<String>();
+        ResultSet testExecutions=connection.createStatement().executeQuery("select distinct testName from testExecution order by testName");
+        while (testExecutions.next()) {
+          testNames.add(testExecutions.getString(1));
+        }
+        return testNames;
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(String.format("Could not load test history from datastore '%s'.",dbFile),e);
+  }
+}
