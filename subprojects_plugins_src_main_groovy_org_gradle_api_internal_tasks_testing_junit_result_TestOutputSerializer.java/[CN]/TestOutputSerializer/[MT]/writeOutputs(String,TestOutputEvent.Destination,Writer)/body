@@ -4,16 +4,19 @@
     return;
   }
   try {
-    Input input=new Input(new FileInputStream(file));
+    Reader reader=new InputStreamReader(new BufferedInputStream(new FileInputStream(file)),"UTF-8");
     try {
-      while (input.canReadInt()) {
-        input.readString();
-        String message=input.readString();
-        writer.write(message);
+      char[] buffer=new char[2048];
+      while (true) {
+        int read=reader.read(buffer);
+        if (read < 0) {
+          return;
+        }
+        writer.write(buffer,0,read);
       }
     }
   finally {
-      input.close();
+      reader.close();
     }
   }
  catch (  IOException e) {

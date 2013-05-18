@@ -21,17 +21,13 @@
     testListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector,testCountLogger));
     testOutputListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector));
   }
-  DirectoryReport junitXml=reports.getJunitXml();
-  if (junitXml.isEnabled()) {
-    Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator=new Binary2JUnitXmlReportGenerator(junitXml.getDestination(),testReportDataCollector);
-    binary2JUnitXmlReportGenerator.generate();
-  }
-  DirectoryReport html=reports.getHtml();
-  if (!html.isEnabled()) {
+  Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator=new Binary2JUnitXmlReportGenerator(getTestResultsDir(),testReportDataCollector);
+  binary2JUnitXmlReportGenerator.generate();
+  if (!isTestReport()) {
     getLogger().info("Test report disabled, omitting generation of the HTML test report.");
   }
  else {
-    testReporter.generateReport(testReportDataCollector,html.getDestination());
+    testReporter.generateReport(testReportDataCollector,getTestReportDir());
   }
   testFramework=null;
   if (testCountLogger.hadFailures()) {
