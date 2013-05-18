@@ -1,0 +1,37 @@
+{
+  try {
+    withConnection(new ConnectionAction<Void>(){
+      public Void execute(      Connection connection) throws Exception {
+        long testId;
+        PreparedStatement statement=connection.prepareStatement("insert into testExecution(executionTime, testName, targetVersion) values (?, ?, ?)");
+        try {
+          statement.setTimestamp(1,new Timestamp(results.getTestTime()));
+          statement.setString(2,results.getDisplayName());
+          statement.setString(3,results.getVersionUnderTest());
+          statement.execute();
+          ResultSet keys=statement.getGeneratedKeys();
+          keys.next();
+          testId=keys.getLong(1);
+        }
+  finally {
+          statement.close();
+        }
+        statement=connection.prepareStatement("insert into results(testExecution, version, executionTimeMs, heapUsageBytes) values (?, ?, ?, ?)");
+        try {
+          addOperations(statement,testId,results.getVersionUnderTest(),results.getCurrent());
+          for (          BaselineVersion baselineVersion : results.getBaselineVersions()) {
+            addOperations(statement,testId,baselineVersion.getVersion(),baselineVersion.getResults());
+          }
+        }
+  finally {
+          statement.close();
+        }
+        return null;
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(String.format("Could not open results datastore '%s'.",dbFile),e);
+  }
+}

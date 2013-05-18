@@ -1,0 +1,53 @@
+{
+  try {
+    return withConnection(new ConnectionAction<List<PerformanceResults>>(){
+      public List<PerformanceResults> execute(      Connection connection) throws Exception {
+        List<PerformanceResults> result=new ArrayList<PerformanceResults>();
+        PreparedStatement preparedStatement=connection.prepareStatement("select version, executionTimeMs, heapUsageBytes from results where testExecution = ?");
+        ResultSet testExecutions=connection.createStatement().executeQuery("select id, executionTime, testName, targetVersion from testExecution order by executionTime, testName");
+        while (testExecutions.next()) {
+          long id=testExecutions.getLong(1);
+          Timestamp executionTime=testExecutions.getTimestamp(2);
+          String testName=testExecutions.getString(3);
+          String versionUnderTest=testExecutions.getString(4);
+          PerformanceResults performanceResults=new PerformanceResults();
+          performanceResults.setTestTime(executionTime.getTime());
+          performanceResults.setDisplayName(testName);
+          performanceResults.setVersionUnderTest(versionUnderTest);
+          result.add(performanceResults);
+          preparedStatement.setLong(1,id);
+          Map<String,BaselineVersion> versions=new TreeMap<String,BaselineVersion>();
+          ResultSet builds=preparedStatement.executeQuery();
+          while (builds.next()) {
+            String version=builds.getString(1);
+            BigDecimal executionTimeMs=builds.getBigDecimal(2);
+            BigDecimal heapUsageBytes=builds.getBigDecimal(3);
+            MeasuredOperation operation=new MeasuredOperation();
+            operation.setExecutionTime(Duration.millis(executionTimeMs));
+            operation.setTotalMemoryUsed(DataAmount.bytes(heapUsageBytes));
+            if (version.equals(versionUnderTest)) {
+              performanceResults.getCurrent().add(operation);
+            }
+ else {
+              BaselineVersion baselineVersion=versions.get(version);
+              if (baselineVersion == null) {
+                baselineVersion=new BaselineVersion();
+                baselineVersion.setVersion(version);
+                versions.put(version,baselineVersion);
+              }
+              baselineVersion.getResults().add(operation);
+            }
+          }
+          performanceResults.setBaselineVersions(new ArrayList<BaselineVersion>(versions.values()));
+        }
+        testExecutions.close();
+        preparedStatement.close();
+        return result;
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(String.format("Could not load results from datastore '%s'.",dbFile),e);
+  }
+}
