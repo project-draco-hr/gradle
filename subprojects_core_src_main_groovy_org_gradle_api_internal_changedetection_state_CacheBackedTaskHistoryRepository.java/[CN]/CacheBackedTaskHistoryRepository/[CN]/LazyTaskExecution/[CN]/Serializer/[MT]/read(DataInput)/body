@@ -1,0 +1,24 @@
+{
+  LazyTaskExecution execution=new LazyTaskExecution();
+  execution.inputFilesSnapshotId=dataInput.readLong();
+  execution.outputFilesSnapshotId=dataInput.readLong();
+  execution.setTaskClass(dataInput.readUTF());
+  int outputFiles=dataInput.readInt();
+  Set<String> files=new HashSet<String>();
+  for (int j=0; j < outputFiles; j++) {
+    files.add(dataInput.readUTF());
+  }
+  execution.setOutputFiles(files);
+  int inputProperties=dataInput.readInt();
+  if (inputProperties > 0) {
+    byte[] serializedMap=new byte[inputProperties];
+    dataInput.readFully(serializedMap);
+    DefaultSerializer<Map> defaultSerializer=new DefaultSerializer<Map>(classLoader);
+    Map map=defaultSerializer.read(new ByteArrayInputStream(serializedMap));
+    execution.setInputProperties(map);
+  }
+ else {
+    execution.setInputProperties(new HashMap());
+  }
+  return execution;
+}
