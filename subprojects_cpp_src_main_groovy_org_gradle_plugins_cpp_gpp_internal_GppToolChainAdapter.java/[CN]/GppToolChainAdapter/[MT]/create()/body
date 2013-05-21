@@ -1,0 +1,15 @@
+{
+  return new ToolChain(){
+    public <T extends BinaryCompileSpec>Compiler<T> createCompiler(    Class<T> specType){
+      if (!specType.isAssignableFrom(CppCompileSpec.class)) {
+        throw new IllegalArgumentException(String.format("No suitable compiler available for %s.",specType));
+      }
+      determineVersion();
+      if (version == null) {
+        throw new IllegalStateException("Cannot create gpp compiler when it is not available");
+      }
+      return (Compiler<T>)new GppCompiler(executable,execActionFactory,canUseCommandFile(version));
+    }
+  }
+;
+}
