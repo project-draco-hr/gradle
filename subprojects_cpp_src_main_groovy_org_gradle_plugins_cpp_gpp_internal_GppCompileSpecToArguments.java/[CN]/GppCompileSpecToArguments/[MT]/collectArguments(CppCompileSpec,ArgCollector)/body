@@ -1,17 +1,9 @@
 {
+  collector.args("-c");
   collector.args(spec.getArgs());
-  collector.args("-o",spec.getOutputFile().getAbsolutePath());
-  if (spec instanceof LibraryCompileSpec) {
-    LibraryCompileSpec librarySpec=(LibraryCompileSpec)spec;
-    collector.args("-shared");
+  if (spec.isForDynamicLinking()) {
     if (!OperatingSystem.current().isWindows()) {
       collector.args("-fPIC");
-      if (OperatingSystem.current().isMacOsX()) {
-        collector.args("-Wl,-install_name," + librarySpec.getInstallName());
-      }
- else {
-        collector.args("-Wl,-soname," + librarySpec.getInstallName());
-      }
     }
   }
   for (  File file : spec.getIncludeRoots()) {
@@ -19,9 +11,6 @@
     collector.args(file.getAbsolutePath());
   }
   for (  File file : spec.getSource()) {
-    collector.args(file.getAbsolutePath());
-  }
-  for (  File file : spec.getLibs()) {
     collector.args(file.getAbsolutePath());
   }
 }
