@@ -2,20 +2,19 @@
   project.getPlugins().apply(BasePlugin.class);
   project.getPlugins().apply(LanguageBasePlugin.class);
   final BinariesContainer binaries=project.getExtensions().getByType(BinariesContainer.class);
-  project.getExtensions().create("compilers",DefaultCompilerRegistry.class,instantiator);
+  project.getExtensions().create("compilers",DefaultToolChainRegistry.class,instantiator);
   NamedDomainObjectSet<Executable> executables=project.getExtensions().create("executables",FactoryNamedDomainObjectContainer.class,Executable.class,instantiator,new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class,project));
   executables.all(new Action<Executable>(){
     public void execute(    Executable executable){
-      DefaultExecutableBinary executableBinary=instantiator.newInstance(DefaultExecutableBinary.class,executable);
-      binaries.add(executableBinary);
+      binaries.add(instantiator.newInstance(DefaultExecutableBinary.class,executable));
     }
   }
 );
   NamedDomainObjectSet<Library> libraries=project.getExtensions().create("libraries",FactoryNamedDomainObjectContainer.class,Library.class,instantiator,new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class,project));
   libraries.all(new Action<Library>(){
     public void execute(    Library library){
-      DefaultSharedLibraryBinary sharedLibraryBinary=instantiator.newInstance(DefaultSharedLibraryBinary.class,library);
-      binaries.add(sharedLibraryBinary);
+      binaries.add(instantiator.newInstance(DefaultSharedLibraryBinary.class,library));
+      binaries.add(instantiator.newInstance(DefaultStaticLibraryBinary.class,library));
     }
   }
 );

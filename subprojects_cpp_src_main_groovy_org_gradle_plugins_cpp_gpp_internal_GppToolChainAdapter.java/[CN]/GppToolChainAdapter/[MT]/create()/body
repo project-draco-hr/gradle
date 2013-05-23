@@ -1,0 +1,24 @@
+{
+  return new ToolChain(){
+    public <T extends BinaryCompileSpec>Compiler<T> createCompiler(    Class<T> specType){
+      if (!specType.isAssignableFrom(CppCompileSpec.class)) {
+        throw new IllegalArgumentException(String.format("No suitable compiler available for %s.",specType));
+      }
+      determineVersion();
+      if (version == null) {
+        throw new IllegalStateException("Cannot create gpp compiler when it is not available");
+      }
+      return (Compiler<T>)new GppCompiler(gppExecutable,execActionFactory,canUseCommandFile(version));
+    }
+    public Compiler<? super LinkerSpec> createLinker(    NativeBinary output){
+      if (output instanceof StaticLibraryBinary) {
+        return new ArStaticLibraryLinker(arExecutable,execActionFactory);
+      }
+      if (output instanceof SharedLibraryBinary) {
+        return new GppSharedLibraryLinker(gppExecutable,execActionFactory,canUseCommandFile(version));
+      }
+      return new GppExecutableLinker(gppExecutable,execActionFactory,canUseCommandFile(version));
+    }
+  }
+;
+}

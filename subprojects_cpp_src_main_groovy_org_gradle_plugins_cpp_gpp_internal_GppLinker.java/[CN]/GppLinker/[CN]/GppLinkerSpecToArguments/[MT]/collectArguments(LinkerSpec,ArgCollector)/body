@@ -1,0 +1,21 @@
+{
+  collector.args("-o",spec.getOutputFile().getAbsolutePath());
+  if (createSharedLibrary) {
+    collector.args("-shared");
+    if (!OperatingSystem.current().isWindows()) {
+      if (OperatingSystem.current().isMacOsX()) {
+        collector.args("-Wl,-install_name," + spec.getInstallName());
+      }
+ else {
+        collector.args("-Wl,-soname," + spec.getInstallName());
+      }
+    }
+  }
+  for (  File file : spec.getSource()) {
+    collector.args(file.getAbsolutePath());
+  }
+  for (  File file : spec.getLibs()) {
+    collector.args(file.getAbsolutePath());
+  }
+  collector.args(spec.getArgs());
+}

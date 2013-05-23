@@ -1,0 +1,20 @@
+{
+  return new ToolChain(){
+    public <T extends BinaryCompileSpec>Compiler<T> createCompiler(    Class<T> specType){
+      if (!specType.isAssignableFrom(CppCompileSpec.class)) {
+        throw new IllegalArgumentException(String.format("No suitable compiler available for %s.",specType));
+      }
+      return (Compiler<T>)new VisualCppCompiler(compilerExe,execActionFactory);
+    }
+    public Compiler<? super LinkerSpec> createLinker(    NativeBinary output){
+      if (output instanceof StaticLibraryBinary) {
+        return new VisualCppStaticLibraryLinker(staticLinkerExe,execActionFactory);
+      }
+      if (output instanceof SharedLibraryBinary) {
+        return new VisualCppDynamicLibraryLinker(linkerExe,execActionFactory);
+      }
+      return new VisualCppExecutableLinker(linkerExe,execActionFactory);
+    }
+  }
+;
+}
