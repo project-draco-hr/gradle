@@ -6,8 +6,14 @@
       }
       return (Compiler<T>)new VisualCppCompiler(compilerExe,execActionFactory);
     }
-    public <T extends BinaryCompileSpec>Compiler<T> createLinker(){
-      return (Compiler<T>)new VisualCppLinker(linkerExe,execActionFactory);
+    public Compiler<? super LinkerSpec> createLinker(    NativeBinary output){
+      if (output instanceof StaticLibraryBinary) {
+        return new VisualCppStaticLibraryLinker(staticLinkerExe,execActionFactory);
+      }
+      if (output instanceof SharedLibraryBinary) {
+        return new VisualCppDynamicLibraryLinker(linkerExe,execActionFactory);
+      }
+      return new VisualCppExecutableLinker(linkerExe,execActionFactory);
     }
   }
 ;
