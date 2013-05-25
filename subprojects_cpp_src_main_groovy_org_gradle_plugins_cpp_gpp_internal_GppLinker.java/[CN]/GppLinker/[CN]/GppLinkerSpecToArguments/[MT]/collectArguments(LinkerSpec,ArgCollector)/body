@@ -1,13 +1,14 @@
 {
   collector.args("-o",spec.getOutputFile().getAbsolutePath());
-  if (createSharedLibrary) {
+  if (spec instanceof SharedLibraryLinkerSpec) {
     collector.args("-shared");
     if (!OperatingSystem.current().isWindows()) {
+      String installName=((SharedLibraryLinkerSpec)spec).getInstallName();
       if (OperatingSystem.current().isMacOsX()) {
-        collector.args("-Wl,-install_name," + spec.getInstallName());
+        collector.args("-Wl,-install_name," + installName);
       }
  else {
-        collector.args("-Wl,-soname," + spec.getInstallName());
+        collector.args("-Wl,-soname," + installName);
       }
     }
   }
