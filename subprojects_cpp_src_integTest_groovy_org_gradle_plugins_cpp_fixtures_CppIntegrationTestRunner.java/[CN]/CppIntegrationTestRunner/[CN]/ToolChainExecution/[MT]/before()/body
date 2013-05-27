@@ -1,0 +1,15 @@
+{
+  System.out.println(String.format("Using compiler %s",toolChain.getDisplayName()));
+  AbstractBinariesIntegrationSpec.setToolChain(toolChain);
+  String compilerPath=Joiner.on(File.pathSeparator).join(toolChain.getPathEntries());
+  if (compilerPath.length() > 0) {
+    originalPath=System.getenv(pathVarName);
+    String path=compilerPath + File.pathSeparator + originalPath;
+    System.out.println(String.format("Using path %s",path));
+    PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName,path);
+  }
+  for (  Map.Entry<String,String> entry : toolChain.getEnvironmentVars().entrySet()) {
+    System.out.println(String.format("Using environment var %s -> %s",entry.getKey(),entry.getValue()));
+    PROCESS_ENVIRONMENT.setEnvironmentVariable(entry.getKey(),entry.getValue());
+  }
+}
