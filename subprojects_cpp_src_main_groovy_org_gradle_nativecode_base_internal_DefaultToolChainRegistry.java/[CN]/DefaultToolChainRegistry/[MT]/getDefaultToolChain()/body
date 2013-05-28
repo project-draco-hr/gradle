@@ -1,12 +1,15 @@
 {
   return new LazyToolChain(){
     @Override protected ToolChainInternal findFirstAvailableToolChain(){
+      List<String> messages=new ArrayList<String>();
       for (      ToolChainInternal adapter : searchOrder) {
-        if (adapter.isAvailable()) {
+        ToolChainAvailability availability=adapter.getAvailability();
+        if (availability.isAvailable()) {
           return adapter;
         }
+        messages.add(String.format("Could not load '%s': %s",adapter.getName(),availability.getUnavailableMessage()));
       }
-      throw new IllegalStateException(String.format("No tool chain is available. Searched for %s.",Joiner.on(", ").join(searchOrder)));
+      throw new IllegalStateException(String.format("No tool chain is available: %s",messages));
     }
   }
 ;
