@@ -1,0 +1,25 @@
+{
+  return new Action<File>(){
+    public void execute(    File lockTarget){
+      takeOwnership("Other process requested access to " + cacheDiplayName);
+      try {
+        FileLock lock=lockedFiles.get(lockTarget);
+        if (lock == null) {
+          return;
+        }
+        if (!lock.isContended()) {
+          LOG.info("Other process requested access to {} [busy: {}].",lockTarget,lock.isBusy());
+          lock.setContended(true);
+          if (!lock.isBusy()) {
+            lockedFiles.remove(lockTarget);
+            closeFileLock(lock);
+          }
+        }
+      }
+  finally {
+        releaseOwnership("Other process requested access to " + cacheDiplayName);
+      }
+    }
+  }
+;
+}
