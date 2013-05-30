@@ -2,7 +2,17 @@
   if (fileLock != null) {
     return false;
   }
-  fileLock=lockManager.lock(lockFile,Exclusive,cacheDiplayName,operationStack.get().getDescription());
+  if (lockedFiles.containsKey(lockFile)) {
+    FileLock cachedLock=lockedFiles.get(lockFile);
+    if (!cachedLock.getMode().equals(Exclusive)) {
+      throw new IllegalStateException("FileLock caching is only available for exclusive caches.");
+    }
+    fileLock=cachedLock;
+  }
+ else {
+    fileLock=lockManager.lock(lockFile,Exclusive,cacheDiplayName,operationStack.get().getDescription(),whenContended());
+    lockedFiles.put(lockFile,fileLock);
+  }
   for (  MultiProcessSafePersistentIndexedCache<?,?> cache : caches) {
     cache.onStartWork(operationStack.get().getDescription());
   }

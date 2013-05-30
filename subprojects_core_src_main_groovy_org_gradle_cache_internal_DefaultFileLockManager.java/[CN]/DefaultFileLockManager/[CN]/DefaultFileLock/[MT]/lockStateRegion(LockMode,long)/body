@@ -1,3 +1,20 @@
 {
-  return lockRegion(lockMode,timeout,STATE_REGION_POS,STATE_REGION_SIZE);
+  return lockRegion(lockMode,timeout,STATE_REGION_POS,STATE_REGION_SIZE,new Runnable(){
+    public void run(){
+      try {
+        OwnerInfo ownerInfo=readInformationRegion(timeout);
+        if (ownerInfo.port != -1) {
+          LOGGER.info("The file lock is held by a different Gradle process. Will attempt to ping owner at port {}",ownerInfo.port);
+          FileLockCommunicator.pingOwner(ownerInfo.port,target);
+        }
+ else {
+          LOGGER.info("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
+        }
+      }
+ catch (      Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+);
 }

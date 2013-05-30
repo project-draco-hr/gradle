@@ -1,0 +1,33 @@
+{
+  return new Runnable(){
+    public void run(){
+      try {
+        LOGGER.info("Starting file lock listener thread.");
+        doRun();
+      }
+ catch (      Throwable t) {
+        LOGGER.error("Problems handling incoming cache access requests.",t);
+      }
+ finally {
+        LOGGER.info("File lock listener thread completed.");
+      }
+    }
+    private void doRun(){
+      File requestedFileLock;
+      while ((requestedFileLock=communicator.receive()) != null) {
+        lock.lock();
+        Action<File> action;
+        try {
+          action=contendedActions.get(requestedFileLock);
+        }
+  finally {
+          lock.unlock();
+        }
+        if (action != null) {
+          action.execute(requestedFileLock);
+        }
+      }
+    }
+  }
+;
+}

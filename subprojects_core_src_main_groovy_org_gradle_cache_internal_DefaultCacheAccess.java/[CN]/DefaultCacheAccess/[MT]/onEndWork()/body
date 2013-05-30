@@ -3,10 +3,12 @@
     return false;
   }
   try {
-    for (    MultiProcessSafePersistentIndexedCache<?,?> cache : caches) {
-      cache.onEndWork();
+    if (fileLock.isContended() || fileLock.getMode() == Shared) {
+      closeFileLock(fileLock);
     }
-    fileLock.close();
+ else {
+      fileLock.setBusy(false);
+    }
   }
   finally {
     fileLock=null;

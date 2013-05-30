@@ -1,19 +1,25 @@
 {
-  Map<String,Long> snapshotDirIds=new HashMap<String,Long>();
-  for (  File file : files) {
-    Long dirId;
-    if (file.exists()) {
-      dirId=dirIdentiferCache.get(file.getAbsolutePath());
-      if (dirId == null) {
-        dirId=idGenerator.generateId();
-        dirIdentiferCache.put(file.getAbsolutePath(),dirId);
+  final Map<String,Long> snapshotDirIds=new HashMap<String,Long>();
+  final Set<File> theFiles=files.getFiles();
+  cacheAccess.useCache("create dir snapshots",new Runnable(){
+    public void run(){
+      for (      File file : theFiles) {
+        Long dirId;
+        if (file.exists()) {
+          dirId=dirIdentiferCache.get(file.getAbsolutePath());
+          if (dirId == null) {
+            dirId=idGenerator.generateId();
+            dirIdentiferCache.put(file.getAbsolutePath(),dirId);
+          }
+        }
+ else {
+          dirIdentiferCache.remove(file.getAbsolutePath());
+          dirId=null;
+        }
+        snapshotDirIds.put(file.getAbsolutePath(),dirId);
       }
     }
- else {
-      dirIdentiferCache.remove(file.getAbsolutePath());
-      dirId=null;
-    }
-    snapshotDirIds.put(file.getAbsolutePath(),dirId);
   }
+);
   return new OutputFilesSnapshot(snapshotDirIds,snapshotter.snapshot(files));
 }
