@@ -2,21 +2,21 @@
   project.getPlugins().apply(BasePlugin.class);
   project.getPlugins().apply(LanguageBasePlugin.class);
   final BinariesContainer binaries=project.getExtensions().getByType(BinariesContainer.class);
-  project.getExtensions().create("compilers",DefaultToolChainRegistry.class,instantiator);
+  final ToolChainRegistry toolChains=project.getExtensions().create("compilers",DefaultToolChainRegistry.class,instantiator);
   NamedDomainObjectSet<Executable> executables=project.getExtensions().create("executables",FactoryNamedDomainObjectContainer.class,Executable.class,instantiator,new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class));
   executables.all(new Action<Executable>(){
     public void execute(    Executable executable){
-      binaries.add(setupDefaults(project,instantiator.newInstance(DefaultExecutableBinary.class,executable)));
+      binaries.add(setupDefaults(project,instantiator.newInstance(DefaultExecutableBinary.class,executable,toolChains.getDefaultToolChain())));
     }
   }
 );
   NamedDomainObjectSet<Library> libraries=project.getExtensions().create("libraries",FactoryNamedDomainObjectContainer.class,Library.class,instantiator,new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class,project.getFileResolver()));
   libraries.withType(LibraryInternal.class,new Action<LibraryInternal>(){
     public void execute(    LibraryInternal library){
-      DefaultSharedLibraryBinary sharedLibraryBinary=instantiator.newInstance(DefaultSharedLibraryBinary.class,library);
+      DefaultSharedLibraryBinary sharedLibraryBinary=instantiator.newInstance(DefaultSharedLibraryBinary.class,library,toolChains.getDefaultToolChain());
       library.setDefaultBinary(sharedLibraryBinary);
       binaries.add(setupDefaults(project,sharedLibraryBinary));
-      binaries.add(setupDefaults(project,instantiator.newInstance(DefaultStaticLibraryBinary.class,library)));
+      binaries.add(setupDefaults(project,instantiator.newInstance(DefaultStaticLibraryBinary.class,library,toolChains.getDefaultToolChain())));
     }
   }
 );
