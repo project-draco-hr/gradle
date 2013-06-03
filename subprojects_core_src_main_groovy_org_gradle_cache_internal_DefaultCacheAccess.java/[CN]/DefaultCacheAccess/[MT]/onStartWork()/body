@@ -2,17 +2,8 @@
   if (fileLock != null) {
     return false;
   }
-  if (lockedFiles.containsKey(lockFile)) {
-    FileLock cachedLock=lockedFiles.get(lockFile);
-    if (!cachedLock.getMode().equals(Exclusive)) {
-      throw new IllegalStateException("FileLock caching is only available for exclusive caches.");
-    }
-    fileLock=cachedLock;
-  }
- else {
-    fileLock=lockManager.lock(lockFile,Exclusive,cacheDiplayName,operationStack.get().getDescription(),whenContended());
-    lockedFiles.put(lockFile,fileLock);
-  }
+  busy=true;
+  fileLock=lockManager.lock(lockFile,Exclusive,cacheDiplayName,operationStack.get().getDescription(),whenContended());
   for (  MultiProcessSafePersistentIndexedCache<?,?> cache : caches) {
     cache.onStartWork(operationStack.get().getDescription());
   }
