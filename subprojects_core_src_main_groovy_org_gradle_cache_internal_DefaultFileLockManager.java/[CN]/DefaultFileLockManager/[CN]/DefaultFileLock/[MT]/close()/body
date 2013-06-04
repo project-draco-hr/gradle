@@ -7,7 +7,21 @@
     lockedFiles.remove(target);
     try {
       if (lock != null && !lock.isShared()) {
-        lockFileAccess.setLength(INFORMATION_REGION_POS);
+        java.nio.channels.FileLock info;
+        try {
+          info=lockInformationRegion(LockMode.Exclusive);
+        }
+ catch (        InterruptedException e) {
+          throw throwAsUncheckedException(e);
+        }
+        if (info != null) {
+          try {
+            lockFileAccess.setLength(INFORMATION_REGION_POS);
+          }
+  finally {
+            info.release();
+          }
+        }
       }
     }
   finally {
