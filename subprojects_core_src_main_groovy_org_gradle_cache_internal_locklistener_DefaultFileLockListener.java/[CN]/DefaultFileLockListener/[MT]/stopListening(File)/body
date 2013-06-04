@@ -1,13 +1,18 @@
 {
+  StoppableExecutor stopMe=null;
   lock.lock();
   try {
     contendedActions.remove(target);
     if (contendedActions.isEmpty()) {
       communicator.stop();
-      executor.requestStop();
+      stopMe=executor;
+      stopMe.requestStop();
     }
   }
   finally {
     lock.unlock();
+  }
+  if (stopMe != null) {
+    stopMe.stop();
   }
 }

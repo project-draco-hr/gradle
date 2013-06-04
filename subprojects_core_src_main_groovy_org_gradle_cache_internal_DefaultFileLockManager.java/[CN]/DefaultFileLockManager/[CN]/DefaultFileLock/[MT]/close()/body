@@ -1,10 +1,15 @@
 {
+  try {
+    fileLockListener.stopListening(target);
+  }
+ catch (  Exception e) {
+    LOGGER.warn("Problems stopping the file lock listener of {}",displayName,e);
+  }
   if (lockFileAccess == null) {
     return;
   }
   try {
     LOGGER.debug("Releasing lock on {}.",displayName);
-    lockedFiles.remove(target);
     try {
       if (lock != null && !lock.isShared()) {
         java.nio.channels.FileLock info;
@@ -34,6 +39,6 @@
  finally {
     lock=null;
     lockFileAccess=null;
-    fileLockListener.lockClosed(target);
+    lockedFiles.remove(target);
   }
 }
