@@ -1,9 +1,9 @@
 {
   LOGGER.debug("Waiting to acquire {} lock on {}.",lockMode.toString().toLowerCase(),displayName);
-  long timeout=System.currentTimeMillis() + lockTimeoutMs;
-  java.nio.channels.FileLock stateRegionLock=lockStateRegion(lockMode,timeout);
+  long waitUntil=System.currentTimeMillis() + lockTimeoutMs;
+  java.nio.channels.FileLock stateRegionLock=lockStateRegion(lockMode,waitUntil);
   if (stateRegionLock == null) {
-    OwnerInfo ownerInfo=readInformationRegion();
+    OwnerInfo ownerInfo=readInformationRegion(System.currentTimeMillis() + lockTimeoutMs);
     throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",displayName,ownerInfo.pid,metaDataProvider.getProcessIdentifier(),ownerInfo.operation,operationDisplayName,lockFile));
   }
   try {
@@ -19,7 +19,7 @@
         lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
         lockFileAccess.writeBoolean(false);
       }
-      java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Exclusive);
+      java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Exclusive,System.currentTimeMillis() + lockTimeoutMs);
       if (informationRegionLock == null) {
         throw new IllegalStateException(String.format("Unable to lock the information region for lock %s",displayName));
       }

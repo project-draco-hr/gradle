@@ -5,7 +5,7 @@
       return fileLock;
     }
     if (port != -1) {
-      OwnerInfo ownerInfo=readInformationRegion();
+      OwnerInfo ownerInfo=readInformationRegion(System.currentTimeMillis() + lockTimeoutMs);
       if (ownerInfo.port != -1) {
         LOGGER.info("The file lock is held by a different Gradle process. Will attempt to ping owner at port {}",ownerInfo.port);
         FileLockCommunicator.pingOwner(ownerInfo.port,target);
@@ -16,6 +16,6 @@
     }
     Thread.sleep(200L);
   }
- while (System.currentTimeMillis() < timeout);
+ while (System.currentTimeMillis() < waitUntil);
   return null;
 }
