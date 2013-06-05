@@ -3,19 +3,19 @@
   project.getPlugins().apply(LanguageBasePlugin.class);
   final BinariesContainer binaries=project.getExtensions().getByType(BinariesContainer.class);
   final ToolChainRegistry toolChains=project.getExtensions().create("compilers",DefaultToolChainRegistry.class,instantiator);
-  NamedDomainObjectSet<Executable> executables=project.getExtensions().create("executables",FactoryNamedDomainObjectContainer.class,Executable.class,instantiator,new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class));
-  executables.all(new Action<Executable>(){
-    public void execute(    Executable executable){
-      binaries.add(setupDefaults(project,instantiator.newInstance(DefaultExecutableBinary.class,executable,toolChains.getDefaultToolChain())));
-    }
-  }
-);
-  NamedDomainObjectSet<Library> libraries=project.getExtensions().create("libraries",FactoryNamedDomainObjectContainer.class,Library.class,instantiator,new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class,project.getFileResolver()));
-  libraries.withType(Library.class,new Action<Library>(){
-    public void execute(    Library library){
-      DefaultSharedLibraryBinary sharedLibraryBinary=instantiator.newInstance(DefaultSharedLibraryBinary.class,library,toolChains.getDefaultToolChain());
-      binaries.add(setupDefaults(project,sharedLibraryBinary));
-      binaries.add(setupDefaults(project,instantiator.newInstance(DefaultStaticLibraryBinary.class,library,toolChains.getDefaultToolChain())));
+  final NamedDomainObjectSet<Executable> executables=project.getExtensions().create("executables",FactoryNamedDomainObjectContainer.class,Executable.class,instantiator,new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class));
+  final NamedDomainObjectSet<Library> libraries=project.getExtensions().create("libraries",FactoryNamedDomainObjectContainer.class,Library.class,instantiator,new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class,project.getFileResolver()));
+  configurationActions.add(new Action<ProjectInternal>(){
+    public void execute(    ProjectInternal projectInternal){
+      ToolChain defaultToolChain=toolChains.getDefaultToolChain();
+      for (      Library library : libraries) {
+        DefaultSharedLibraryBinary sharedLibraryBinary=instantiator.newInstance(DefaultSharedLibraryBinary.class,library,defaultToolChain);
+        register(setupDefaults(project,sharedLibraryBinary),library,binaries);
+        register(setupDefaults(project,instantiator.newInstance(DefaultStaticLibraryBinary.class,library,defaultToolChain)),library,binaries);
+      }
+      for (      Executable executable : executables) {
+        register(setupDefaults(project,instantiator.newInstance(DefaultExecutableBinary.class,executable,defaultToolChain)),executable,binaries);
+      }
     }
   }
 );
