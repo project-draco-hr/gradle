@@ -13,12 +13,18 @@
       }
     }
     private void doRun(){
-      File requestedFileLock;
-      while ((requestedFileLock=communicator.receive()) != null) {
+      while (true) {
+        long lockId;
+        try {
+          lockId=communicator.receive();
+        }
+ catch (        GracefullyStoppedException e) {
+          break;
+        }
         lock.lock();
         Runnable action;
         try {
-          action=contendedActions.get(requestedFileLock);
+          action=contendedActions.get(lockId);
           if (action == null) {
             return;
           }
