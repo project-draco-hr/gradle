@@ -1,11 +1,10 @@
 {
-  if (operationStack.get().isInLongRunningOperation()) {
-    operationStack.get().pushLongRunningOperation(operationDisplayName);
+  if (maybeReentrantLongRunningOperation(operationDisplayName)) {
     try {
       return action.create();
     }
   finally {
-      operationStack.get().popLongRunningOperation(operationDisplayName);
+      longOperationCompleted(operationDisplayName);
     }
   }
   checkThreadIsOwner();
