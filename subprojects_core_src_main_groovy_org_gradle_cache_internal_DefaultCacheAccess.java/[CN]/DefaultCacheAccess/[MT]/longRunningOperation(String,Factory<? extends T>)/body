@@ -1,11 +1,18 @@
 {
-  if (operationStack.get().isInLongRunningOperation()) {
-    operationStack.get().pushLongRunningOperation(operationDisplayName);
+  boolean isReentrant;
+  lock.lock();
+  try {
+    isReentrant=operations.maybeReentrantLongRunningOperation(operationDisplayName);
+  }
+  finally {
+    lock.unlock();
+  }
+  if (isReentrant) {
     try {
       return action.create();
     }
   finally {
-      operationStack.get().popLongRunningOperation(operationDisplayName);
+      popLongRunningOperation(operationDisplayName);
     }
   }
   checkThreadIsOwner();

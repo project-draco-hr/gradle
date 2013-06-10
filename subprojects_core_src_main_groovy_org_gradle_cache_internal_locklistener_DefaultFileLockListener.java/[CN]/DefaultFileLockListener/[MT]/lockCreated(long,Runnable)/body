@@ -1,0 +1,14 @@
+{
+  lock.lock();
+  try {
+    if (contendedActions.isEmpty()) {
+      communicator.start();
+      executor=new DefaultExecutorFactory().create("Listen for file lock access requests from other processes");
+      executor.execute(listener());
+    }
+    contendedActions.put(lockId,whenContended);
+  }
+  finally {
+    lock.unlock();
+  }
+}

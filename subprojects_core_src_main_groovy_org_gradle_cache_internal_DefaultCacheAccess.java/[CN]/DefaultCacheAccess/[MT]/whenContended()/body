@@ -1,0 +1,28 @@
+{
+  return new Runnable(){
+    public void run(){
+      lock.lock();
+      try {
+        LOG.info("Detected file lock contention of {} (fileLock={}, contended={}, owner={})",cacheDiplayName,fileLock != null,contended,owner);
+        if (fileLock == null) {
+          return;
+        }
+        if (owner != null) {
+          contended=true;
+          return;
+        }
+        takeOwnership("Other process requested access to " + cacheDiplayName);
+        try {
+          closeFileLock();
+        }
+  finally {
+          releaseOwnership("Other process requested access to " + cacheDiplayName);
+        }
+      }
+  finally {
+        lock.unlock();
+      }
+    }
+  }
+;
+}

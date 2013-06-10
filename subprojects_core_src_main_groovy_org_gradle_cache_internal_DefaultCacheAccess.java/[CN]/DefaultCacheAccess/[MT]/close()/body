@@ -1,22 +1,17 @@
 {
   lock.lock();
   try {
-    for (    MultiProcessSafePersistentIndexedCache<?,?> cache : caches) {
-      cache.close();
-    }
-    operationStack.remove();
+    operations.close();
     lockMode=null;
     owner=null;
     if (fileLock != null) {
-      try {
-        fileLock.close();
-      }
-  finally {
-        fileLock=null;
-      }
+      closeFileLock();
     }
   }
   finally {
+    if (cacheClosedCount != 1) {
+      LOG.info("Cache {} was closed {} times.",cacheDiplayName,cacheClosedCount);
+    }
     lock.unlock();
   }
 }

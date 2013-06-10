@@ -1,0 +1,28 @@
+{
+  this.port=port;
+  this.lockId=generator.generateId();
+  if (mode == LockMode.None) {
+    throw new UnsupportedOperationException("Locking mode None is not supported.");
+  }
+  this.target=target;
+  this.displayName=displayName;
+  this.operationDisplayName=operationDisplayName;
+  if (target.isDirectory()) {
+    lockFile=new File(target,target.getName() + ".lock");
+  }
+ else {
+    lockFile=new File(target.getParentFile(),target.getName() + ".lock");
+  }
+  GFileUtils.mkdirs(lockFile.getParentFile());
+  lockFile.createNewFile();
+  lockFileAccess=new RandomAccessFile(lockFile,"rw");
+  try {
+    lock=lock(mode);
+    integrityViolated=!getUnlockedCleanly();
+  }
+ catch (  Throwable t) {
+    lockFileAccess.close();
+    throw t;
+  }
+  this.mode=lock.isShared() ? LockMode.Shared : LockMode.Exclusive;
+}

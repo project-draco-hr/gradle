@@ -1,3 +1,11 @@
 {
-  return lockRegion(lockMode,timeout,INFORMATION_REGION_POS,INFORMATION_REGION_SIZE - INFORMATION_REGION_POS);
+  do {
+    java.nio.channels.FileLock fileLock=lockRegion(lockMode,INFORMATION_REGION_POS,INFORMATION_REGION_SIZE - INFORMATION_REGION_POS);
+    if (fileLock != null) {
+      return fileLock;
+    }
+    Thread.sleep(200L);
+  }
+ while (System.currentTimeMillis() < waitUntil);
+  return null;
 }

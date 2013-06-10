@@ -1,24 +1,59 @@
 {
-  if (lockFileAccess == null) {
-    return;
-  }
-  try {
-    LOGGER.debug("Releasing lock on {}.",displayName);
-    lockedFiles.remove(target);
-    try {
-      if (lock != null && !lock.isShared()) {
-        lockFileAccess.setLength(INFORMATION_REGION_POS);
+  CompositeStoppable stoppable=new CompositeStoppable();
+  stoppable.add(new Stoppable(){
+    public void stop(){
+      try {
+        fileLockListener.stopListening(lockId);
+      }
+ catch (      Exception e) {
+        throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName,e);
       }
     }
+  }
+);
+  stoppable.add(new Stoppable(){
+    public void stop(){
+      if (lockFileAccess == null) {
+        return;
+      }
+      try {
+        LOGGER.debug("Releasing lock on {}.",displayName);
+        try {
+          if (lock != null && !lock.isShared()) {
+            java.nio.channels.FileLock info;
+            try {
+              info=lockInformationRegion(LockMode.Exclusive,System.currentTimeMillis() + shortTimeoutMs);
+            }
+ catch (            InterruptedException e) {
+              throw throwAsUncheckedException(e);
+            }
+            if (info != null) {
+              try {
+                lockFileAccess.setLength(INFORMATION_REGION_POS);
+              }
   finally {
-      lockFileAccess.close();
+                info.release();
+              }
+            }
+          }
+        }
+  finally {
+          lockFileAccess.close();
+        }
+      }
+ catch (      Exception e) {
+        throw new RuntimeException("Problems releasing lock on " + displayName,e);
+      }
     }
   }
- catch (  IOException e) {
-    LOGGER.warn("Error releasing lock on {}: {}",displayName,e);
+);
+  stoppable.add(new Stoppable(){
+    public void stop(){
+      lock=null;
+      lockFileAccess=null;
+      lockedFiles.remove(target);
+    }
   }
- finally {
-    lock=null;
-    lockFileAccess=null;
-  }
+);
+  stoppable.stop();
 }
