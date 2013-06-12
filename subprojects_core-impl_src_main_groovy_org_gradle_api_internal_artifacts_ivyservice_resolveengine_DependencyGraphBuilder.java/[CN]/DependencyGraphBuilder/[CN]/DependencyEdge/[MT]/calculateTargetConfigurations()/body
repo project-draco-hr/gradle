@@ -4,21 +4,9 @@
   if (targetModuleVersion == null) {
     return;
   }
-  ModuleDescriptor targetDescriptor=targetModuleVersion.getDescriptor();
-  Set<String> targets=new LinkedHashSet<String>();
-  for (  String config : dependencyDescriptor.getModuleConfigurations()) {
-    if (config.equals("*")) {
-      collectTargetConfiguration(from.configurationName,targetDescriptor,targets);
-    }
- else     if (from.metaData.getHierarchy().contains(config)) {
-      collectTargetConfiguration(config,targetDescriptor,targets);
-    }
-  }
-  for (  String targetConfigurationName : targets) {
-    if (targetDescriptor.getConfiguration(targetConfigurationName) == null) {
-      throw new RuntimeException(String.format("Module version %s, configuration:%s declares a dependency on configuration '%s' which is not declared in the module descriptor for %s",from.moduleRevision.id,from.configurationName,targetConfigurationName,targetModuleRevision.id));
-    }
-    ConfigurationNode targetConfiguration=resolveState.getConfigurationNode(targetModuleRevision,targetConfigurationName);
-    targetConfigurations.add(targetConfiguration);
+  List<ConfigurationMetaData> targetConfigurations=resolveState.dependencyToConfigurationResolver.resolveTargetConfigurations(dependencyMetaData,from.metaData,targetModuleVersion);
+  for (  ConfigurationMetaData targetConfiguration : targetConfigurations) {
+    ConfigurationNode targetConfigurationNode=resolveState.getConfigurationNode(targetModuleRevision,targetConfiguration.getName());
+    this.targetConfigurations.add(targetConfigurationNode);
   }
 }
