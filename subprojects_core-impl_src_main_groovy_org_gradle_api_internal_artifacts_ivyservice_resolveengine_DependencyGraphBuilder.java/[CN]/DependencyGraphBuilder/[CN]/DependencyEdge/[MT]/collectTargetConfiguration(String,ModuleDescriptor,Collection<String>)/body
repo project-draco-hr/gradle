@@ -1,0 +1,22 @@
+{
+  String[] dependencyConfigurations=dependencyDescriptor.getDependencyConfigurations(mappingRhs,from.configurationName);
+  for (  String target : dependencyConfigurations) {
+    String candidate=target;
+    int startFallback=candidate.indexOf('(');
+    if (startFallback >= 0) {
+      if (candidate.charAt(candidate.length() - 1) == ')') {
+        String preferred=candidate.substring(0,startFallback);
+        if (targetModule.getConfiguration(preferred) != null) {
+          targetConfigs.add(preferred);
+          continue;
+        }
+        candidate=candidate.substring(startFallback + 1,candidate.length() - 1);
+      }
+    }
+    if (candidate.equals("*")) {
+      Collections.addAll(targetConfigs,targetModule.getConfigurationsNames());
+      continue;
+    }
+    targetConfigs.add(candidate);
+  }
+}

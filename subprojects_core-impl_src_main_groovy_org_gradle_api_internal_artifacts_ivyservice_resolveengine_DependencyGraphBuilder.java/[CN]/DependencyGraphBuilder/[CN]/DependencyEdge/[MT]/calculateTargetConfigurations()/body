@@ -5,10 +5,14 @@
     return;
   }
   ModuleDescriptor targetDescriptor=targetModuleVersion.getDescriptor();
-  IvyNode node=new IvyNode(resolveState.resolveData,targetDescriptor);
   Set<String> targets=new LinkedHashSet<String>();
-  for (  String targetConfiguration : targetConfigurationRules) {
-    Collections.addAll(targets,node.getRealConfs(targetConfiguration));
+  for (  String config : dependencyDescriptor.getModuleConfigurations()) {
+    if (config.equals("*")) {
+      collectTargetConfiguration(from.configurationName,targetDescriptor,targets);
+    }
+ else     if (from.metaData.getHierarchy().contains(config)) {
+      collectTargetConfiguration(config,targetDescriptor,targets);
+    }
   }
   for (  String targetConfigurationName : targets) {
     if (targetDescriptor.getConfiguration(targetConfigurationName) == null) {
