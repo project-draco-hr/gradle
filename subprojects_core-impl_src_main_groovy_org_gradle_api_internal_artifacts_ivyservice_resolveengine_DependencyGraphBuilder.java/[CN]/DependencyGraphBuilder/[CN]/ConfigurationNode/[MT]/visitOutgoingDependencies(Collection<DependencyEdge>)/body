@@ -29,20 +29,16 @@
     }
     removeOutgoingEdges();
   }
-  for (  DependencyMetaData dependency : moduleRevision.getDependencies()) {
+  for (  DependencyMetaData dependency : metaData.getDependencies()) {
     DependencyDescriptor dependencyDescriptor=dependency.getDescriptor();
     ModuleId targetModuleId=dependencyDescriptor.getDependencyRevisionId().getModuleId();
-    Set<String> targetConfigurations=getTargetConfigurations(dependencyDescriptor);
-    if (!targetConfigurations.isEmpty()) {
-      if (!selectorSpec.isSatisfiedBy(targetModuleId)) {
-        LOGGER.debug("{} is excluded from {}.",targetModuleId,this);
-      }
- else {
-        DependencyEdge dependencyEdge=new DependencyEdge(this,dependency,targetConfigurations,selectorSpec,resolveState);
-        outgoingEdges.add(dependencyEdge);
-        target.add(dependencyEdge);
-      }
+    if (!selectorSpec.isSatisfiedBy(targetModuleId)) {
+      LOGGER.debug("{} is excluded from {}.",targetModuleId,this);
+      continue;
     }
+    DependencyEdge dependencyEdge=new DependencyEdge(this,dependency,selectorSpec,resolveState);
+    outgoingEdges.add(dependencyEdge);
+    target.add(dependencyEdge);
   }
   previousTraversal=selectorSpec;
 }
