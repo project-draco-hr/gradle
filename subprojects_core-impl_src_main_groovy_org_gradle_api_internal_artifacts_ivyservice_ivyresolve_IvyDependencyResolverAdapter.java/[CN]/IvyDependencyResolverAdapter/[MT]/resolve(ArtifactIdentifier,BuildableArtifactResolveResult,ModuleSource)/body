@@ -1,0 +1,21 @@
+{
+  Artifact ivyArtifact=DefaultArtifactIdentifier.toArtifact(artifact);
+  ArtifactDownloadReport artifactDownloadReport=resolver.download(new Artifact[]{ivyArtifact},downloadOptions).getArtifactReport(ivyArtifact);
+  if (downloadFailed(artifactDownloadReport)) {
+    if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
+      EnhancedArtifactDownloadReport enhancedReport=(EnhancedArtifactDownloadReport)artifactDownloadReport;
+      result.failed(new ArtifactResolveException(artifact,enhancedReport.getFailure()));
+    }
+ else {
+      result.failed(new ArtifactResolveException(artifact,artifactDownloadReport.getDownloadDetails()));
+    }
+    return;
+  }
+  File localFile=artifactDownloadReport.getLocalFile();
+  if (localFile != null) {
+    result.resolved(localFile);
+  }
+ else {
+    result.notFound(artifact);
+  }
+}
