@@ -2,10 +2,11 @@
   DependencyDescriptor descriptor=dependency.getDescriptor();
   if (descriptor instanceof ProjectDependencyDescriptor) {
     ProjectDependencyDescriptor desc=(ProjectDependencyDescriptor)descriptor;
-    ModuleDescriptor moduleDescriptor=projectModuleRegistry.findProject(desc);
+    ModuleVersionPublishMetaData publishMetaData=projectModuleRegistry.findProject(desc);
+    ModuleDescriptor moduleDescriptor=publishMetaData.getModuleDescriptor();
     ModuleRevisionId moduleRevisionId=moduleDescriptor.getModuleRevisionId();
     ModuleVersionIdentifier moduleVersionIdentifier=DefaultModuleVersionIdentifier.newId(moduleRevisionId);
-    result.resolved(moduleVersionIdentifier,moduleDescriptor,artifactResolver);
+    result.resolved(moduleVersionIdentifier,moduleDescriptor,new ProjectArtifactResolver(publishMetaData));
   }
  else {
     resolver.resolve(dependency,result);
