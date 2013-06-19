@@ -1,0 +1,17 @@
+{
+  if (!moduleArtifact.isMetadata()) {
+    return null;
+  }
+  ArtifactResourceResolver artifactResourceResolver=new ArtifactResourceResolver(){
+    public ResolvedResource resolve(    Artifact artifact){
+      return resolvedResource;
+    }
+  }
+;
+  ArtifactDownloadReport report=download(moduleArtifact,artifactResourceResolver,downloader,new CacheDownloadOptions().setForce(true));
+  if (report.getDownloadStatus() == DownloadStatus.FAILED) {
+    Message.warn("problem while downloading module descriptor: " + resolvedResource.getResource() + ": "+ report.getDownloadDetails()+ " ("+ report.getDownloadTimeMillis()+ "ms)");
+    return null;
+  }
+  return parseModuleDescriptor(resolver,moduleArtifact,report.getLocalFile(),resolvedResource.getResource());
+}

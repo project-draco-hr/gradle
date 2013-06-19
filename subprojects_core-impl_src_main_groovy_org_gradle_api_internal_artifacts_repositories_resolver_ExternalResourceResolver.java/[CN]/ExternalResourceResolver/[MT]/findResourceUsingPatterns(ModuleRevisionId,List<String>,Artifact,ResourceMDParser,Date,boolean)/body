@@ -1,31 +1,7 @@
 {
-  List<ResolvedResource> resolvedResources=new ArrayList<ResolvedResource>();
-  Set<String> foundRevisions=new HashSet<String>();
-  boolean dynamic=getVersionMatcher().isDynamic(moduleRevision);
-  for (  String pattern : patternList) {
-    ResourcePattern resourcePattern=toResourcePattern(pattern);
-    ResolvedResource rres=findResourceUsingPattern(moduleRevision,resourcePattern,artifact,rmdparser,date,forDownload);
-    if ((rres != null) && !foundRevisions.contains(rres.getRevision())) {
-      foundRevisions.add(rres.getRevision());
-      resolvedResources.add(rres);
-      if (!dynamic) {
-        break;
-      }
-    }
+  boolean dynamic=getVersionMatcher().isDynamic(requestedModuleRevision);
+  if (dynamic) {
+    return findDynamicResourceUsingPatterns(requestedModuleRevision,patternList,artifact,rmdparser,date,forDownload);
   }
-  if (resolvedResources.size() > 1) {
-    ResolvedResource[] rress=resolvedResources.toArray(new ResolvedResource[resolvedResources.size()]);
-    List<ResolvedResource> sortedResources=getLatestStrategy().sort(rress);
-    for (int i=0; i < sortedResources.size() - 1; i++) {
-      ResolvedResource resolvedResource=sortedResources.get(i);
-      discardResource(resolvedResource.getResource());
-    }
-    return sortedResources.get(sortedResources.size() - 1);
-  }
- else   if (resolvedResources.size() == 1) {
-    return resolvedResources.get(0);
-  }
- else {
-    return null;
-  }
+  return findStaticResourceUsingPatterns(requestedModuleRevision,patternList,artifact,forDownload);
 }
