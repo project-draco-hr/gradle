@@ -1,8 +1,8 @@
 {
   String name=getName();
   VersionMatcher versionMatcher=getVersionMatcher();
-  List<String> sorted=versions.sortLatestFirst(getLatestStrategy());
-  for (  String version : sorted) {
+  for (  VersionList.ListedVersion listedVersion : versions.sortLatestFirst(getLatestStrategy())) {
+    String version=listedVersion.getVersion();
     ModuleRevisionId foundMrid=ModuleRevisionId.newInstance(mrid,version);
     if (!versionMatcher.accept(mrid,foundMrid)) {
       LOGGER.debug(name + ": rejected by version matcher: " + version);
@@ -10,7 +10,7 @@
     }
     boolean needsModuleDescriptor=versionMatcher.needModuleDescriptor(mrid,foundMrid);
     artifact=DefaultArtifact.cloneWithAnotherMrid(artifact,foundMrid);
-    String resourcePath=pattern.toPath(artifact);
+    String resourcePath=listedVersion.getPattern().toPath(artifact);
     Resource resource=getResource(resourcePath,artifact,forDownload || needsModuleDescriptor);
     String description=version + " [" + resource+ "]";
     if (!resource.exists()) {

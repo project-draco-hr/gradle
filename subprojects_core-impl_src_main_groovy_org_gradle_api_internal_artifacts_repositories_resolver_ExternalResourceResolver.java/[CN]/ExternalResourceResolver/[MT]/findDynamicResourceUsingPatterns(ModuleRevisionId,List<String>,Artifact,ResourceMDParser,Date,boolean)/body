@@ -1,31 +1,4 @@
 {
-  List<ResolvedResource> resolvedResources=new ArrayList<ResolvedResource>();
-  Set<String> foundRevisions=new HashSet<String>();
-  for (  String pattern : patternList) {
-    ResourcePattern resourcePattern=toResourcePattern(pattern);
-    VersionList versions=listVersions(requestedModuleRevision,resourcePattern,artifact);
-    ResolvedResource resource=findLatestResource(requestedModuleRevision,versions,rmdparser,date,resourcePattern,artifact,forDownload);
-    if (resource == null) {
-      LOGGER.debug("No resource found for {}: pattern={}",requestedModuleRevision,resourcePattern);
-    }
-    if ((resource != null) && !foundRevisions.contains(resource.getRevision())) {
-      foundRevisions.add(resource.getRevision());
-      resolvedResources.add(resource);
-    }
-  }
-  if (resolvedResources.size() > 1) {
-    ResolvedResource[] candidateVersions=resolvedResources.toArray(new ResolvedResource[resolvedResources.size()]);
-    List<ResolvedResource> sortedResources=getLatestStrategy().sort(candidateVersions);
-    for (int i=0; i < sortedResources.size() - 1; i++) {
-      ResolvedResource resolvedResource=sortedResources.get(i);
-      discardResource(resolvedResource.getResource());
-    }
-    return sortedResources.get(sortedResources.size() - 1);
-  }
- else   if (resolvedResources.size() == 1) {
-    return resolvedResources.get(0);
-  }
- else {
-    return null;
-  }
+  VersionList versionList=listVersionsForAllPatterns(requestedModuleRevision,patternList,artifact);
+  return findLatestResource(requestedModuleRevision,versionList,rmdparser,date,artifact,forDownload);
 }
