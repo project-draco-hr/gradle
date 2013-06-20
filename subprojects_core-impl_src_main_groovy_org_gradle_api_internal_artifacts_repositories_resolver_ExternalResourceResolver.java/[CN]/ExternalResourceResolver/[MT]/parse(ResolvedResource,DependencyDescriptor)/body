@@ -1,13 +1,14 @@
 {
-  ModuleRevisionId mrid=dd.getDependencyRevisionId();
-  ModuleDescriptorParser parser=ModuleDescriptorParserRegistry.getInstance().getParser(mdRef.getResource());
-  if (parser == null) {
-    throw new RuntimeException("no module descriptor parser available for " + mdRef.getResource());
+  ModuleRevisionId dependencyRevisionId=dd.getDependencyRevisionId();
+  if (getVersionMatcher().isDynamic(dependencyRevisionId)) {
+    dependencyRevisionId=ModuleRevisionId.newInstance(dependencyRevisionId,resolvedResource.getRevision());
   }
-  ModuleRevisionId resolvedMrid=mrid;
-  if (getVersionMatcher().isDynamic(mrid)) {
-    resolvedMrid=ModuleRevisionId.newInstance(mrid,mdRef.getRevision());
+  File moduleDescriptorFile;
+  if (repositoryCacheManager.isLocal()) {
+    moduleDescriptorFile=new File(resolvedResource.getResource().getName());
   }
-  Artifact moduleArtifact=parser.getMetadataArtifact(resolvedMrid,mdRef.getResource());
-  return getRepositoryCacheManager().cacheModuleDescriptor(this,mdRef,dd,moduleArtifact,resourceDownloader);
+ else {
+    moduleDescriptorFile=downloadModuleDescriptorFile(dependencyRevisionId,resolvedResource);
+  }
+  return parseModuleDescriptor(dependencyRevisionId,moduleDescriptorFile,resolvedResource.getResource());
 }
