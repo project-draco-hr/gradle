@@ -3,16 +3,9 @@
   Module module=((ConfigurationInternal)configuration).getModule();
   Set<Configuration> configurationsToPublish=configuration.getHierarchy();
   ArtifactPublisher artifactPublisher=publicationServices.createArtifactPublisher();
+  File descriptorDestination=isUploadDescriptor() ? getDescriptorDestination() : null;
+  List<PublicationAwareRepository> publishRepositories=collect(repositories,Transformers.cast(PublicationAwareRepository.class));
   try {
-    File descriptorDestination=isUploadDescriptor() ? getDescriptorDestination() : null;
-    if (descriptorDestination != null) {
-      Set<Configuration> allConfigurations=configurationsToPublish.iterator().next().getAll();
-      ModuleDescriptorConverter moduleDescriptorConverter=publicationServices.getDescriptorFileModuleConverter();
-      ModuleDescriptor moduleDescriptor=moduleDescriptorConverter.convert(allConfigurations,module).getModuleDescriptor();
-      IvyModuleDescriptorWriter ivyModuleDescriptorWriter=publicationServices.getIvyModuleDescriptorWriter();
-      ivyModuleDescriptorWriter.write(moduleDescriptor,descriptorDestination);
-    }
-    List<PublicationAwareRepository> publishRepositories=collect(repositories,Transformers.cast(PublicationAwareRepository.class));
     artifactPublisher.publish(publishRepositories,module,configurationsToPublish,descriptorDestination);
   }
  catch (  Exception e) {
