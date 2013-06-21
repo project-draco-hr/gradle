@@ -1,8 +1,10 @@
 {
   MavenPomInternal pomInternal=(MavenPomInternal)getPom();
-  MavenPomFileGenerator pomGenerator=new MavenPomFileGenerator();
-  copyIdentity(pomInternal,pomGenerator);
-  copyDependencies(pomInternal.getRuntimeDependencies(),pomGenerator);
+  MavenPomFileGenerator pomGenerator=new MavenPomFileGenerator(pomInternal.getProjectIdentity());
+  pomGenerator.setPackaging(pomInternal.getPackaging());
+  for (  MavenDependencyInternal runtimeDependency : pomInternal.getRuntimeDependencies()) {
+    pomGenerator.addRuntimeDependency(runtimeDependency);
+  }
   pomGenerator.withXml(pomInternal.getXmlAction());
   pomGenerator.writeTo(getDestination());
 }
