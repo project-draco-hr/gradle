@@ -5,6 +5,16 @@
     contendedActions.remove(lockId);
     if (contendedActions.isEmpty()) {
       communicator.stop();
+      try {
+        if (receiving != null) {
+          receiving.await();
+          receiving=null;
+        }
+      }
+ catch (      InterruptedException e) {
+        throw throwAsUncheckedException(e);
+      }
+      communicator=null;
       stopMe=executor;
       stopMe.requestStop();
     }

@@ -14,12 +14,25 @@
     }
     private void doRun(){
       while (true) {
+        lock.lock();
+        try {
+          if (communicator == null) {
+            return;
+          }
+          receiving=new CountDownLatch(1);
+        }
+  finally {
+          lock.unlock();
+        }
         long lockId;
         try {
           lockId=communicator.receive();
         }
  catch (        GracefullyStoppedException e) {
-          break;
+          return;
+        }
+ finally {
+          receiving.countDown();
         }
         lock.lock();
         Runnable action;
