@@ -3,7 +3,7 @@
   Set<TaskInfo> visitingNodes=new HashSet<TaskInfo>();
   while (!nodeQueue.isEmpty()) {
     TaskInfo taskNode=nodeQueue.get(0);
-    if (!taskNode.getRequired() || executionPlan.containsKey(taskNode.getTask())) {
+    if (taskNode.isNotRequired() || executionPlan.containsKey(taskNode.getTask())) {
       nodeQueue.remove(0);
       continue;
     }
@@ -22,6 +22,13 @@
       nodeQueue.remove(0);
       visitingNodes.remove(taskNode);
       executionPlan.put(taskNode.getTask(),taskNode);
+      ArrayList<TaskInfo> finalizerTasks=new ArrayList<TaskInfo>();
+      addAllReversed(finalizerTasks,taskNode.getFinalizers());
+      for (      TaskInfo finalizer : finalizerTasks) {
+        if (!visitingNodes.contains(finalizer)) {
+          nodeQueue.add(0,finalizer);
+        }
+      }
     }
   }
 }
