@@ -1,12 +1,13 @@
 {
-  FileCopyDetails details=(FileCopyDetails)fileDetails;
+  FileCopyDetails details=(FileCopyDetails)visitDetails;
+  DuplicatesStrategy strategy=determineStrategy(details);
   if (!visitedFiles.add(details.getRelativePath())) {
-    if (details.getDuplicatesStrategy() == DuplicatesStrategy.EXCLUDE) {
+    if (strategy == DuplicatesStrategy.exclude) {
       return;
     }
     if (warnOnIncludeDuplicate) {
       DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Including duplicate file %s",details.getRelativePath()));
     }
   }
-  getVisitor().visitFile(fileDetails);
+  super.visitFile(visitDetails);
 }
