@@ -1,0 +1,17 @@
+{
+  Project dependencyProject=dependency.getDependencyProject();
+  PublishingExtension publishing=dependencyProject.getExtensions().findByType(PublishingExtension.class);
+  if (publishing == null || publishing.getPublications().withType(PublicationInternal.class).isEmpty()) {
+    return new PublicationCoordinates(dependency.getGroup(),dependencyProject.getName(),dependency.getVersion());
+  }
+  Set<? extends PublicationInternal> publications=publishing.getPublications().withType(PublicationInternal.class);
+  Iterator<? extends PublicationInternal> iterator=publications.iterator();
+  PublicationCoordinates candidate=iterator.next().getCoordinates();
+  while (iterator.hasNext()) {
+    PublicationCoordinates alternative=iterator.next().getCoordinates();
+    if (!candidate.equals(alternative)) {
+      throw new UnsupportedOperationException("Publishing is not yet able to resolve a dependency on a project with multiple different publications.");
+    }
+  }
+  return candidate;
+}
