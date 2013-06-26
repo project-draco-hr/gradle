@@ -1,10 +1,11 @@
 {
   lock.lock();
   try {
-    if (contendedActions.isEmpty()) {
-      if (communicator == null) {
-        communicator=new FileLockCommunicator();
-      }
+    assertNotStopped();
+    if (communicator == null) {
+      throw new IllegalStateException("Must initialize the handler by reserving the port first.");
+    }
+    if (executor == null) {
       executor=executorFactory.create("Listen for file lock access requests from other processes");
       executor.execute(listener());
     }
