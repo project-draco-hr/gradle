@@ -1,6 +1,8 @@
 {
   final ProjectRegistry projectRegistry=context.mock(ProjectRegistry.class);
   final DefaultProjectDescriptor projectDescriptor=context.mock(DefaultProjectDescriptor.class);
+  final ServiceRegistryFactory services=context.mock(ServiceRegistryFactory.class);
+  final BuildClassLoaderRegistry classLoaderRegistry=context.mock(BuildClassLoaderRegistry.class);
   startParameter.setCurrentDir(settingsLocation.getSettingsDir());
   context.checking(new Expectations(){
 {
@@ -14,15 +16,17 @@
       will(returnValue(new File(settingsLocation.getSettingsDir(),"build.gradle")));
       allowing(settings).getClassLoader();
       will(returnValue(urlClassLoader));
-      allowing(gradle).getScriptClassLoader();
-      will(returnValue(scriptClassLoader));
+      allowing(services).get(BuildClassLoaderRegistry.class);
+      will(returnValue(classLoaderRegistry));
       allowing(gradle).getStartParameter();
       will(returnValue(startParameter));
+      allowing(gradle).getServices();
+      will(returnValue(services));
       allowing(settingsFinder).find(startParameter);
       will(returnValue(settingsLocation));
       one(settingsProcessor).process(gradle,settingsLocation,urlClassLoader,startParameter);
       will(returnValue(settings));
-      one(scriptClassLoader).addParent(urlClassLoader);
+      one(classLoaderRegistry).addRootClassLoader(urlClassLoader);
     }
   }
 );

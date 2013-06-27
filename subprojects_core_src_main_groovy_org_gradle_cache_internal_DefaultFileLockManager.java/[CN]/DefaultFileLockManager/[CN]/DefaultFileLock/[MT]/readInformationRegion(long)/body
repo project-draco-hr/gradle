@@ -1,0 +1,32 @@
+{
+  OwnerInfo out=new OwnerInfo();
+  out.pid="unknown";
+  out.operation="unknown";
+  out.port=-1;
+  java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Shared,waitUntil);
+  if (informationRegionLock == null) {
+    LOGGER.debug("Could not lock information region for {}. Ignoring.",displayName);
+  }
+ else {
+    try {
+      if (lockFileAccess.length() <= INFORMATION_REGION_POS) {
+        LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.",displayName);
+      }
+ else {
+        lockFileAccess.seek(INFORMATION_REGION_POS);
+        if (lockFileAccess.readByte() != INFORMATION_REGION_PROTOCOL) {
+          throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.",lockFile,displayName));
+        }
+        out.port=lockFileAccess.readInt();
+        out.lockId=lockFileAccess.readLong();
+        out.pid=lockFileAccess.readUTF();
+        out.operation=lockFileAccess.readUTF();
+        LOGGER.debug("Read following information from the file lock info region. Port: {}, owner: {}, operation: {}",out.port,out.pid,out.operation);
+      }
+    }
+  finally {
+      informationRegionLock.release();
+    }
+  }
+  return out;
+}

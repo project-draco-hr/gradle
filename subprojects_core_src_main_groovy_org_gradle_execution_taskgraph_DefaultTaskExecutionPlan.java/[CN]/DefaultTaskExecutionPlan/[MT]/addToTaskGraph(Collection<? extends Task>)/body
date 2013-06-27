@@ -1,43 +1,68 @@
 {
-  List<Task> queue=new ArrayList<Task>(tasks);
-  Collections.sort(queue);
-  for (  Task task : queue) {
-    entryTasks.add(graph.addNode(task));
+  List<TaskInfo> queue=new ArrayList<TaskInfo>();
+  List<Task> sortedTasks=new ArrayList<Task>(tasks);
+  Collections.sort(sortedTasks);
+  for (  Task task : sortedTasks) {
+    TaskInfo node=graph.addNode(task);
+    if (node.getMustNotRun()) {
+      requireWithDependencies(node);
+    }
+ else {
+      node.require();
+    }
+    entryTasks.add(node);
+    queue.add(node);
   }
-  Set<Task> visiting=new HashSet<Task>();
+  Set<TaskInfo> visiting=new HashSet<TaskInfo>();
   CachingTaskDependencyResolveContext context=new CachingTaskDependencyResolveContext();
   while (!queue.isEmpty()) {
-    Task task=queue.get(0);
-    TaskInfo node=graph.addNode(task);
-    if (node.getRequired()) {
+    TaskInfo node=queue.get(0);
+    if (node.getDependenciesProcessed()) {
       queue.remove(0);
       continue;
     }
+    TaskInternal task=node.getTask();
     boolean filtered=!filter.isSatisfiedBy(task);
     if (filtered) {
       queue.remove(0);
+      node.dependenciesProcessed();
+      node.doNotRequire();
       continue;
     }
-    if (visiting.add(task)) {
+    if (visiting.add(node)) {
       Set<? extends Task> dependsOnTasks=context.getDependencies(task);
       for (      Task dependsOnTask : dependsOnTasks) {
-        if (visiting.contains(dependsOnTask)) {
-          continue;
+        TaskInfo targetNode=graph.addNode(dependsOnTask);
+        node.addHardSuccessor(targetNode);
+        if (!visiting.contains(targetNode)) {
+          queue.add(0,targetNode);
         }
-        queue.add(0,dependsOnTask);
+      }
+      for (      Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
+        TaskInfo targetNode=graph.addNode(finalizerTask);
+        addFinalizerNode(node,targetNode);
+        if (!visiting.contains(targetNode)) {
+          queue.add(0,targetNode);
+        }
+      }
+      for (      Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
+        TaskInfo targetNode=graph.addNode(mustRunAfter);
+        node.addSoftSuccessor(targetNode);
+      }
+      if (node.isRequired()) {
+        for (        TaskInfo hardSuccessor : node.getHardSuccessors()) {
+          hardSuccessor.require();
+        }
+      }
+ else {
+        tasksInUnknownState.add(node);
       }
     }
  else {
       queue.remove(0);
-      visiting.remove(task);
-      node.setRequired(true);
-      Set<? extends Task> dependencies=context.getDependencies(task);
-      for (      Task dependency : dependencies) {
-        graph.addHardEdge(node,dependency);
-      }
-      for (      Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
-        graph.addSoftEdge(node,mustRunAfter);
-      }
+      visiting.remove(node);
+      node.dependenciesProcessed();
     }
   }
+  resolveTasksInUnknownState();
 }

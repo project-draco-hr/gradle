@@ -1,0 +1,15 @@
+{
+  File compilerExe=OperatingSystem.current().findInPath("cl.exe");
+  if (compilerExe != null) {
+    return new InstalledToolChain("visual c++");
+  }
+  compilerExe=new File("C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin/cl.exe");
+  if (compilerExe.isFile()) {
+    File binDir=compilerExe.getParentFile();
+    File vcDir=binDir.getParentFile();
+    File baseDir=vcDir.getParentFile();
+    File sdkDir=new File(baseDir.getParentFile(),"Microsoft SDKs/Windows/v7.0A");
+    return new InstalledToolChain("visual c++",new File(baseDir,"Common7/IDE"),binDir,new File(baseDir,"Common7/Tools"),new File(vcDir,"VCPackages"),new File(sdkDir,"Bin")).envVar("INCLUDE",new File(vcDir,"include").getAbsolutePath()).envVar("LIB",new File(vcDir,"lib").getAbsolutePath() + File.pathSeparator + new File(sdkDir,"lib").getAbsolutePath());
+  }
+  return new UnavailableToolChain("visual c++");
+}

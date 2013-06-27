@@ -1,0 +1,19 @@
+{
+  final CharSequence mock=context.mock(CharSequence.class);
+  final RuntimeException failure=new RuntimeException();
+  context.checking(new Expectations(){
+{
+      one(mock).subSequence(0,3);
+      will(throwException(failure));
+    }
+  }
+);
+  JavaMethod<CharSequence,CharSequence> method=JavaReflectionUtil.method(CharSequence.class,CharSequence.class,"subSequence",int.class,int.class);
+  try {
+    method.invoke(mock,0,3);
+    fail();
+  }
+ catch (  RuntimeException e) {
+    assertThat(e,sameInstance(failure));
+  }
+}

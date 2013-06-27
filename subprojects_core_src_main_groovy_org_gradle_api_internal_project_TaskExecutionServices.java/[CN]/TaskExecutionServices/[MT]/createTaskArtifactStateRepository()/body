@@ -1,8 +1,8 @@
 {
   TaskArtifactStateCacheAccess cacheAccess=get(TaskArtifactStateCacheAccess.class);
-  FileSnapshotter fileSnapshotter=new DefaultFileSnapshotter(new CachingHasher(new DefaultHasher(),cacheAccess));
+  FileSnapshotter fileSnapshotter=new DefaultFileSnapshotter(new CachingHasher(new DefaultHasher(),cacheAccess),cacheAccess);
   FileSnapshotter outputFilesSnapshotter=new OutputFilesSnapshotter(fileSnapshotter,new RandomLongIdGenerator(),cacheAccess);
-  TaskHistoryRepository taskHistoryRepository=new CacheBackedTaskHistoryRepository(cacheAccess,new CacheBackedFileSnapshotRepository(cacheAccess));
+  TaskHistoryRepository taskHistoryRepository=new CacheBackedTaskHistoryRepository(cacheAccess,new CacheBackedFileSnapshotRepository(cacheAccess,new RandomLongIdGenerator()));
   Instantiator instantiator=get(Instantiator.class);
   return new ShortCircuitTaskArtifactStateRepository(get(StartParameter.class),instantiator,new DefaultTaskArtifactStateRepository(taskHistoryRepository,instantiator,outputFilesSnapshotter,fileSnapshotter));
 }

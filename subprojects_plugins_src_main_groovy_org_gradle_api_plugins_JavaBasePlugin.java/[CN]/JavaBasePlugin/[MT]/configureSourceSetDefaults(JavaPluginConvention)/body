@@ -43,8 +43,8 @@
       functionalSourceSet.add(javaSourceSet);
       ResourceSet resourceSet=instantiator.newInstance(DefaultResourceSet.class,"resources",sourceSet.getResources(),functionalSourceSet);
       functionalSourceSet.add(resourceSet);
-      JvmBinaryContainer jvmBinaryContainer=(JvmBinaryContainer)project.getExtensions().getByType(BinariesContainer.class).getByName("jvm");
-      ClassDirectoryBinary binary=jvmBinaryContainer.create(sourceSet.getName(),ClassDirectoryBinary.class);
+      BinaryContainer binaryContainer=project.getExtensions().getByType(BinaryContainer.class);
+      ClassDirectoryBinary binary=binaryContainer.create(String.format("%sClasses",sourceSet.getName()),ClassDirectoryBinary.class);
       ConventionMapping conventionMapping=new DslObject(binary).getConventionMapping();
       conventionMapping.map("classesDir",new Callable<File>(){
         public File call() throws Exception {
@@ -60,7 +60,7 @@
 );
       binary.getSource().add(javaSourceSet);
       binary.getSource().add(resourceSet);
-      binary.getClassesTask().dependsOn(sourceSet.getOutput().getDirs());
+      binary.dependsOn(sourceSet.getOutput().getDirs());
     }
   }
 );

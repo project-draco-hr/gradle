@@ -1,0 +1,48 @@
+{
+  ModuleRevisionId moduleRevisionId=dependencyDescriptor.getDependencyRevisionId();
+  boolean isDynamic=getVersionMatcher().isDynamic(moduleRevisionId);
+  ResolvedResource ivyRef=findIvyFileRef(dependencyDescriptor);
+  if (ivyRef == null) {
+    if (!isAllownomd()) {
+      LOGGER.debug("No ivy file found for module '{}' in repository '{}'.",moduleRevisionId,getName());
+      result.missing();
+      return;
+    }
+    ModuleDescriptor nsMd=DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId,dependencyDescriptor.getAllDependencyArtifacts());
+    ResolvedResource artifactRef=findFirstArtifactRef(nsMd);
+    if (artifactRef == null) {
+      LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.",moduleRevisionId,getName());
+      result.missing();
+    }
+ else {
+      long lastModified=artifactRef.getLastModified();
+      if (lastModified != 0) {
+        ((DefaultModuleDescriptor)nsMd).setLastModified(lastModified);
+      }
+      LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.",moduleRevisionId,getName());
+      if (isDynamic) {
+        nsMd.setResolvedModuleRevisionId(ModuleRevisionId.newInstance(moduleRevisionId,artifactRef.getRevision()));
+      }
+      result.resolved(nsMd,isChanging(nsMd),null);
+    }
+  }
+ else {
+    try {
+      ModuleDescriptor nsMd;
+      if (ivyRef instanceof MDResolvedResource) {
+        nsMd=((MDResolvedResource)ivyRef).getDescriptor();
+      }
+ else {
+        nsMd=parse(ivyRef.getRevision(),ivyRef.getResource(),dependencyDescriptor);
+      }
+      if (isCheckconsistency()) {
+        checkDescriptorConsistency(moduleRevisionId,nsMd,ivyRef);
+      }
+      LOGGER.debug("Ivy file found for module '{}' in repository '{}'.",moduleRevisionId,getName());
+      result.resolved(nsMd,isChanging(nsMd),null);
+    }
+ catch (    ParseException e) {
+      result.failed(new ModuleVersionResolveException(moduleRevisionId,e));
+    }
+  }
+}

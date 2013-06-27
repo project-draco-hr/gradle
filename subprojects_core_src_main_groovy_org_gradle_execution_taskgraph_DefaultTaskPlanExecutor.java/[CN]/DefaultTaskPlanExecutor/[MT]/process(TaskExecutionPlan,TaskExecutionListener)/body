@@ -1,7 +1,9 @@
 {
-  TaskInfo taskInfo;
-  while ((taskInfo=taskExecutionPlan.getTaskToExecute()) != null) {
-    processTask(taskInfo,taskExecutionPlan,taskListener);
+  stateCacheAccess.longRunningOperation("Execute tasks",new Runnable(){
+    public void run(){
+      taskWorker(taskExecutionPlan,taskListener).run();
+      taskExecutionPlan.awaitCompletion();
+    }
   }
-  taskExecutionPlan.awaitCompletion();
+);
 }

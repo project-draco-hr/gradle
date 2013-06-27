@@ -7,10 +7,12 @@
     throw new IllegalStateException(String.format("Cannot lock %s as it has already been locked by this process.",targetDisplayName));
   }
   try {
-    return new DefaultFileLock(canonicalTarget,mode,targetDisplayName,operationDisplayName);
+    int port=fileLockContentionHandler.reservePort();
+    DefaultFileLock newLock=new DefaultFileLock(canonicalTarget,mode,targetDisplayName,operationDisplayName,port);
+    return newLock;
   }
  catch (  Throwable t) {
     lockedFiles.remove(canonicalTarget);
-    throw UncheckedException.throwAsUncheckedException(t);
+    throw throwAsUncheckedException(t);
   }
 }

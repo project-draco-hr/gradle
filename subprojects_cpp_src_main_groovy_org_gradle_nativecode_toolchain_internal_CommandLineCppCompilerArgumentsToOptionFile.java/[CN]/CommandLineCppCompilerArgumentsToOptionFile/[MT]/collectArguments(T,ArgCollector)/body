@@ -1,0 +1,18 @@
+{
+  GFileUtils.mkdirs(spec.getTempDir());
+  File optionsFile=new File(spec.getTempDir(),"compiler-options.txt");
+  try {
+    PrintWriter writer=new PrintWriter(optionsFile);
+    ArgWriter argWriter=argWriterFactory.transform(writer);
+    try {
+      toArguments.collectArguments(spec,argWriter);
+    }
+  finally {
+      writer.close();
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(String.format("Could not write compiler options file '%s'.",optionsFile.getAbsolutePath()),e);
+  }
+  collector.args(String.format("@%s",optionsFile.getAbsolutePath()));
+}

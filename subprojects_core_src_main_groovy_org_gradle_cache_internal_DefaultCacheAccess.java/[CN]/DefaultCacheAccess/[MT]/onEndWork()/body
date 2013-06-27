@@ -2,14 +2,8 @@
   if (fileLock == null) {
     return false;
   }
-  try {
-    for (    MultiProcessSafePersistentIndexedCache<?,?> cache : caches) {
-      cache.onEndWork();
-    }
-    fileLock.close();
-  }
-  finally {
-    fileLock=null;
+  if (contended || fileLock.getMode() == Shared) {
+    closeFileLock();
   }
   return true;
 }

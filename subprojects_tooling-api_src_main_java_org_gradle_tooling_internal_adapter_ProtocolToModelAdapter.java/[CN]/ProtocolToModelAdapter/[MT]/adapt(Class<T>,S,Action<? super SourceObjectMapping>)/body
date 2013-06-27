@@ -1,0 +1,23 @@
+{
+  if (sourceObject == null) {
+    return null;
+  }
+  Class<? extends T> wrapperType=targetTypeProvider.getTargetType(targetType,sourceObject);
+  DefaultSourceObjectMapping mapping=new DefaultSourceObjectMapping(sourceObject,targetType,wrapperType);
+  mapper.execute(mapping);
+  wrapperType=mapping.wrapperType.asSubclass(targetType);
+  if (wrapperType.isInstance(sourceObject)) {
+    return wrapperType.cast(sourceObject);
+  }
+  MethodInvoker overrideMethodInvoker=mapping.overrideInvoker;
+  MixInMethodInvoker mixInMethodInvoker=null;
+  if (mapping.mixInType != null) {
+    mixInMethodInvoker=new MixInMethodInvoker(mapping.mixInType,new ReflectionMethodInvoker(mapper));
+    overrideMethodInvoker=mixInMethodInvoker;
+  }
+  Object proxy=Proxy.newProxyInstance(wrapperType.getClassLoader(),new Class<?>[]{wrapperType},new InvocationHandlerImpl(sourceObject,overrideMethodInvoker,mapper));
+  if (mixInMethodInvoker != null) {
+    mixInMethodInvoker.setProxy(proxy);
+  }
+  return wrapperType.cast(proxy);
+}

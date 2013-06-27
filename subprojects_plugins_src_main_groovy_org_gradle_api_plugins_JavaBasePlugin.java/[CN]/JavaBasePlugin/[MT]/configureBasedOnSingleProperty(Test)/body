@@ -1,0 +1,15 @@
+{
+  String singleTest=getTaskPrefixedProperty(test,"single");
+  if (singleTest == null) {
+    test.getInputs().source(test.getCandidateClassFiles());
+    return;
+  }
+  test.doFirst(new Action<Task>(){
+    public void execute(    Task task){
+      test.getLogger().info("Running single tests with pattern: {}",test.getIncludes());
+    }
+  }
+);
+  test.setIncludes(WrapUtil.toSet(String.format("**/%s*.class",singleTest)));
+  failIfNoTestIsExecuted(test,singleTest);
+}

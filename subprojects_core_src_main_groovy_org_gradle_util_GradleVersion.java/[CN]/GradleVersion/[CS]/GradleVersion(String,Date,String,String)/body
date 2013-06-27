@@ -1,0 +1,49 @@
+{
+  this.version=version;
+  this.buildNumber=buildNumber;
+  this.commitId=commitId;
+  this.buildTime=buildTime == null ? null : formatBuildTime(buildTime);
+  Matcher matcher=VERSION_PATTERN.matcher(version);
+  if (!matcher.matches()) {
+    versionPart=null;
+    snapshot=null;
+    stage=null;
+    return;
+  }
+  versionPart=matcher.group(1);
+  if (matcher.group(3) != null) {
+    int stageNumber=0;
+    if (matcher.group(4).equals("milestone")) {
+      stageNumber=1;
+    }
+ else     if (matcher.group(4).equals("preview")) {
+      stageNumber=2;
+    }
+ else     if (matcher.group(4).equals("rc")) {
+      stageNumber=3;
+    }
+    String stageString=matcher.group(5);
+    stage=new Stage(stageNumber,stageString);
+  }
+ else {
+    stage=null;
+  }
+  if (matcher.group(7) != null) {
+    try {
+      if (matcher.group(8) != null) {
+        snapshot=new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
+      }
+ else {
+        SimpleDateFormat format=new SimpleDateFormat("yyyyMMddHHmmss");
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        snapshot=format.parse(matcher.group(7)).getTime();
+      }
+    }
+ catch (    ParseException e) {
+      throw UncheckedException.throwAsUncheckedException(e);
+    }
+  }
+ else {
+    snapshot=null;
+  }
+}

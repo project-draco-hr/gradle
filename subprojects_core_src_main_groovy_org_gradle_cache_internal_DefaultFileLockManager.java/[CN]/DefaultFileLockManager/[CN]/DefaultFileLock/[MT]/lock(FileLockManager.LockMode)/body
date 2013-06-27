@@ -1,33 +1,10 @@
 {
   LOGGER.debug("Waiting to acquire {} lock on {}.",lockMode.toString().toLowerCase(),displayName);
-  long timeout=System.currentTimeMillis() + lockTimeoutMs;
-  java.nio.channels.FileLock stateRegionLock=lockStateRegion(lockMode,timeout);
+  long waitUntil=System.currentTimeMillis() + lockTimeoutMs;
+  java.nio.channels.FileLock stateRegionLock=lockStateRegion(lockMode,waitUntil);
   if (stateRegionLock == null) {
-    String ownerPid="unknown";
-    String ownerOperation="unknown";
-    java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Shared,timeout);
-    if (informationRegionLock == null) {
-      LOGGER.debug("Could not lock information region for {}. Ignoring.",displayName);
-    }
- else {
-      try {
-        if (lockFileAccess.length() <= INFORMATION_REGION_POS) {
-          LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.",displayName);
-        }
- else {
-          lockFileAccess.seek(INFORMATION_REGION_POS);
-          if (lockFileAccess.readByte() != INFORMATION_REGION_PROTOCOL) {
-            throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.",lockFile,displayName));
-          }
-          ownerPid=lockFileAccess.readUTF();
-          ownerOperation=lockFileAccess.readUTF();
-        }
-      }
-  finally {
-        informationRegionLock.release();
-      }
-    }
-    throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",displayName,ownerPid,metaDataProvider.getProcessIdentifier(),ownerOperation,operationDisplayName,lockFile));
+    OwnerInfo ownerInfo=readInformationRegion(System.currentTimeMillis() + shortTimeoutMs);
+    throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",displayName,ownerInfo.pid,metaDataProvider.getProcessIdentifier(),ownerInfo.operation,operationDisplayName,lockFile));
   }
   try {
     if (lockFileAccess.length() > 0) {
@@ -42,13 +19,15 @@
         lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
         lockFileAccess.writeBoolean(false);
       }
-      java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Exclusive,timeout);
+      java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Exclusive,System.currentTimeMillis() + shortTimeoutMs);
       if (informationRegionLock == null) {
-        throw new IllegalStateException(String.format("Timeout waiting to lock the information region for lock %s",displayName));
+        throw new IllegalStateException(String.format("Unable to lock the information region for lock %s",displayName));
       }
       try {
         lockFileAccess.seek(INFORMATION_REGION_POS);
         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
+        lockFileAccess.writeInt(port);
+        lockFileAccess.writeLong(lockId);
         lockFileAccess.writeUTF(trimIfNecessary(metaDataProvider.getProcessIdentifier()));
         lockFileAccess.writeUTF(trimIfNecessary(operationDisplayName));
         lockFileAccess.setLength(lockFileAccess.getFilePointer());

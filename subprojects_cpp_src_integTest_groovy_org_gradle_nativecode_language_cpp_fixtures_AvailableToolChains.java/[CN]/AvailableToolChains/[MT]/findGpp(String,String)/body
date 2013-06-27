@@ -1,0 +1,16 @@
+{
+  String name=String.format("g++ %s",versionPrefix);
+  GppVersionDeterminer versionDeterminer=new GppVersionDeterminer();
+  for (  File candidate : OperatingSystem.current().findAllInPath("g++")) {
+    if (versionDeterminer.transform(candidate).startsWith(versionPrefix)) {
+      return new InstalledToolChain(name,candidate.getParentFile());
+    }
+  }
+  if (hardcodedFallback != null) {
+    File fallback=new File(hardcodedFallback);
+    if (fallback.isFile()) {
+      return new InstalledToolChain(name,fallback.getParentFile());
+    }
+  }
+  return new UnavailableToolChain(name);
+}

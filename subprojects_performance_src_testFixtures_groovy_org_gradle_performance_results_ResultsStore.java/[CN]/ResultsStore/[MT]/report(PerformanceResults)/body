@@ -1,0 +1,42 @@
+{
+  try {
+    withConnection(new ConnectionAction<Void>(){
+      public Void execute(      Connection connection) throws Exception {
+        long testId;
+        PreparedStatement statement=connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm) values (?, ?, ?, ?, ?, ?, ?, ?)");
+        try {
+          statement.setString(1,results.getTestId());
+          statement.setTimestamp(2,new Timestamp(results.getTestTime()));
+          statement.setString(3,results.getVersionUnderTest());
+          statement.setString(4,results.getTestProject());
+          statement.setObject(5,results.getTasks());
+          statement.setObject(6,results.getArgs());
+          statement.setString(7,results.getOperatingSystem());
+          statement.setString(8,results.getJvm());
+          statement.execute();
+          ResultSet keys=statement.getGeneratedKeys();
+          keys.next();
+          testId=keys.getLong(1);
+        }
+  finally {
+          statement.close();
+        }
+        statement=connection.prepareStatement("insert into testOperation(testExecution, version, executionTimeMs, heapUsageBytes) values (?, ?, ?, ?)");
+        try {
+          addOperations(statement,testId,null,results.getCurrent());
+          for (          BaselineVersion baselineVersion : results.getBaselineVersions()) {
+            addOperations(statement,testId,baselineVersion.getVersion(),baselineVersion.getResults());
+          }
+        }
+  finally {
+          statement.close();
+        }
+        return null;
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(String.format("Could not open results datastore '%s'.",dbFile),e);
+  }
+}

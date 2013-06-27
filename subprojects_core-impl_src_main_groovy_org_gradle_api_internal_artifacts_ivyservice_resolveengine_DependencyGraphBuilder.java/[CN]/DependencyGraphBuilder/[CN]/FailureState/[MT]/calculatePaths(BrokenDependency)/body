@@ -1,17 +1,17 @@
 {
-  Map<DefaultModuleRevisionResolveState,List<ModuleRevisionId>> shortestPaths=new LinkedHashMap<DefaultModuleRevisionResolveState,List<ModuleRevisionId>>();
-  List<ModuleRevisionId> rootPath=new ArrayList<ModuleRevisionId>();
+  Map<ModuleVersionResolveState,List<ModuleVersionIdentifier>> shortestPaths=new LinkedHashMap<ModuleVersionResolveState,List<ModuleVersionIdentifier>>();
+  List<ModuleVersionIdentifier> rootPath=new ArrayList<ModuleVersionIdentifier>();
   rootPath.add(root.moduleRevision.id);
   shortestPaths.put(root.moduleRevision,rootPath);
-  Set<DefaultModuleRevisionResolveState> directDependees=new LinkedHashSet<DefaultModuleRevisionResolveState>();
+  Set<ModuleVersionResolveState> directDependees=new LinkedHashSet<ModuleVersionResolveState>();
   for (  ConfigurationNode node : brokenDependency.requiredBy) {
     directDependees.add(node.moduleRevision);
   }
-  Set<DefaultModuleRevisionResolveState> seen=new HashSet<DefaultModuleRevisionResolveState>();
-  LinkedList<DefaultModuleRevisionResolveState> queue=new LinkedList<DefaultModuleRevisionResolveState>();
+  Set<ModuleVersionResolveState> seen=new HashSet<ModuleVersionResolveState>();
+  LinkedList<ModuleVersionResolveState> queue=new LinkedList<ModuleVersionResolveState>();
   queue.addAll(directDependees);
   while (!queue.isEmpty()) {
-    DefaultModuleRevisionResolveState version=queue.getFirst();
+    ModuleVersionResolveState version=queue.getFirst();
     if (version == root.moduleRevision) {
       queue.removeFirst();
     }
@@ -24,10 +24,10 @@
     }
  else {
       queue.remove();
-      List<ModuleRevisionId> shortest=null;
+      List<ModuleVersionIdentifier> shortest=null;
       for (      ConfigurationNode configuration : version.configurations) {
         for (        DependencyEdge dependencyEdge : configuration.incomingEdges) {
-          List<ModuleRevisionId> candidate=shortestPaths.get(dependencyEdge.from.moduleRevision);
+          List<ModuleVersionIdentifier> candidate=shortestPaths.get(dependencyEdge.from.moduleRevision);
           if (candidate == null) {
             continue;
           }
@@ -42,15 +42,15 @@
       if (shortest == null) {
         continue;
       }
-      List<ModuleRevisionId> path=new ArrayList<ModuleRevisionId>();
+      List<ModuleVersionIdentifier> path=new ArrayList<ModuleVersionIdentifier>();
       path.addAll(shortest);
       path.add(version.id);
       shortestPaths.put(version,path);
     }
   }
-  List<List<ModuleRevisionId>> paths=new ArrayList<List<ModuleRevisionId>>();
-  for (  DefaultModuleRevisionResolveState version : directDependees) {
-    List<ModuleRevisionId> path=shortestPaths.get(version);
+  List<List<ModuleVersionIdentifier>> paths=new ArrayList<List<ModuleVersionIdentifier>>();
+  for (  ModuleVersionResolveState version : directDependees) {
+    List<ModuleVersionIdentifier> path=shortestPaths.get(version);
     paths.add(path);
   }
   return paths;

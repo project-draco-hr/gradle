@@ -21,5 +21,7 @@
   methodVisitor.visitEnd();
   visitor.visitEnd();
   byte[] bytecode=visitor.toByteArray();
-  return (Class<T>)ReflectionUtil.invoke(type.getClassLoader(),"defineClass",new Object[]{typeName,bytecode,0,bytecode.length});
+  JavaMethod<ClassLoader,Class> method=JavaReflectionUtil.method(ClassLoader.class,Class.class,"defineClass",String.class,byte[].class,int.class,int.class);
+  @SuppressWarnings("unchecked") Class<T> clazz=method.invoke(type.getClassLoader(),typeName,bytecode,0,bytecode.length);
+  return clazz;
 }

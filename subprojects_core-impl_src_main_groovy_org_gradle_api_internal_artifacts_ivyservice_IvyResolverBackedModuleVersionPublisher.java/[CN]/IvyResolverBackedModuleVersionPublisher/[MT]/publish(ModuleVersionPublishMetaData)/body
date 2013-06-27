@@ -1,0 +1,20 @@
+{
+  boolean successfullyPublished=false;
+  try {
+    ModuleVersionIdentifier id=moduleVersion.getId();
+    ModuleRevisionId ivyId=ModuleRevisionId.newInstance(id.getGroup(),id.getName(),id.getVersion());
+    resolver.beginPublishTransaction(ivyId,true);
+    for (    Map.Entry<Artifact,File> entry : moduleVersion.getArtifacts().entrySet()) {
+      Artifact artifact=entry.getKey();
+      File artifactFile=entry.getValue();
+      resolver.publish(artifact,artifactFile,true);
+    }
+    resolver.commitPublishTransaction();
+    successfullyPublished=true;
+  }
+  finally {
+    if (!successfullyPublished) {
+      resolver.abortPublishTransaction();
+    }
+  }
+}

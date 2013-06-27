@@ -8,8 +8,12 @@
     if (lockMode == FileLockManager.LockMode.None) {
       return;
     }
+    if (fileLock != null) {
+      throw new IllegalStateException("File lock " + lockFile + " is already open.");
+    }
     fileLock=lockManager.lock(lockFile,lockMode,cacheDiplayName);
     takeOwnership(String.format("Access %s",cacheDiplayName));
+    lockManager.allowContention(fileLock,whenContended());
   }
   finally {
     lock.unlock();

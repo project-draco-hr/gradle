@@ -1,4 +1,10 @@
 {
+  Set<Configuration> allConfigurations=configurations.iterator().next().getAll();
+  ModuleVersionPublishMetaData publishMetaData=publishModuleDescriptorConverter.convert(allConfigurations,module);
+  if (descriptor != null) {
+    ModuleDescriptor moduleDescriptor=publishMetaData.getModuleDescriptor();
+    ivyModuleDescriptorWriter.write(moduleDescriptor,descriptor);
+  }
   IvySettings settings=settingsConverter.convertForPublish();
   Ivy ivy=ivyFactory.createIvy(settings);
   List<ModuleVersionPublisher> publishResolvers=new ArrayList<ModuleVersionPublisher>();
@@ -7,6 +13,7 @@
     publisher.setSettings(ivy.getSettings());
     publishResolvers.add(publisher);
   }
+  publishMetaData=publishModuleDescriptorConverter.convert(configurations,module);
   Set<String> confs=Configurations.getNames(configurations,false);
-  dependencyPublisher.publish(confs,publishResolvers,publishModuleDescriptorConverter.convert(configurations,module),descriptor);
+  dependencyPublisher.publish(confs,publishResolvers,publishMetaData,descriptor);
 }

@@ -1,0 +1,20 @@
+{
+  ModuleRevisionId dependencyRevisionId=dd.getDependencyRevisionId();
+  if (getVersionMatcher().isDynamic(dependencyRevisionId)) {
+    dependencyRevisionId=ModuleRevisionId.newInstance(dependencyRevisionId,revision);
+  }
+  File moduleDescriptorFile;
+  if (isLocal()) {
+    moduleDescriptorFile=new File(resource.getName());
+  }
+ else {
+    try {
+      moduleDescriptorFile=downloadModuleDescriptorFile(dependencyRevisionId,resource);
+    }
+ catch (    IOException e) {
+      LOGGER.warn("Problem while downloading module descriptor: {}: {}",resource,e.getMessage());
+      return null;
+    }
+  }
+  return parseModuleDescriptor(dependencyRevisionId,moduleDescriptorFile,resource);
+}
