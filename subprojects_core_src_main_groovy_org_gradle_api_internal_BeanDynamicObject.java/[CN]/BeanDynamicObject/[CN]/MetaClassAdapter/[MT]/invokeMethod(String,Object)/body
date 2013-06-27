@@ -9,6 +9,42 @@
     throw e;
   }
 catch (  MissingMethodException e) {
-    throw methodMissingException(name,arguments);
+    List<Method> methods=JavaReflectionUtil.findAllMethods(bean.getClass(),new Spec<Method>(){
+      public boolean isSatisfiedBy(      Method potentialMethod){
+        if (Modifier.isPrivate(potentialMethod.getModifiers()) && potentialMethod.getName().equals(name)) {
+          ParameterTypes parameterTypes=new ParameterTypes(potentialMethod.getParameterTypes());
+          return parameterTypes.isValidMethod(arguments);
+        }
+ else {
+          return false;
+        }
+      }
+    }
+);
+    if (methods.size() == 0) {
+      throw methodMissingException(name,arguments);
+    }
+    Method theMethod;
+    if (methods.size() == 1) {
+      theMethod=methods.get(0);
+    }
+ else {
+      final Class[] argTypes=collectArray(arguments,Class.class,Transformers.type());
+      List<ScoredItem<Method,Long>> scoredByParamDistance=score(methods,new Transformer<Long,Method>(){
+        public Long transform(        Method method){
+          return MetaClassHelper.calculateParameterDistance(argTypes,new ParameterTypes(method.getParameterTypes()));
+        }
+      }
+);
+      Collections.sort(scoredByParamDistance,new Comparator<ScoredItem<Method,Long>>(){
+        public int compare(        ScoredItem<Method,Long> o1,        ScoredItem<Method,Long> o2){
+          return o1.getScore().compareTo(o2.getScore());
+        }
+      }
+);
+      theMethod=scoredByParamDistance.get(0).getItem();
+    }
+    @SuppressWarnings("unchecked") JavaMethod<Object,Object> method=(JavaMethod<Object,Object>)JavaReflectionUtil.method(bean.getClass(),Object.class,theMethod);
+    return method.invoke(bean,arguments);
   }
 }

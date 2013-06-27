@@ -1,0 +1,21 @@
+{
+  for (  final Method method : target.getDeclaredMethods()) {
+    Method override=CollectionUtils.findFirst(collector,new Spec<Method>(){
+      public boolean isSatisfiedBy(      Method potentionOverride){
+        return potentionOverride.getName().equals(method.getName()) && Arrays.equals(potentionOverride.getParameterTypes(),method.getParameterTypes());
+      }
+    }
+);
+    if (override == null && predicate.isSatisfiedBy(method)) {
+      collector.add(method);
+      if (stopAtFirst) {
+        return collector;
+      }
+    }
+  }
+  Class<?> parent=target.getSuperclass();
+  if (parent != null) {
+    return findAllMethodsInternal(parent,predicate,collector,stopAtFirst);
+  }
+  return collector;
+}

@@ -1,3 +1,21 @@
 {
-  return !getMetaClass().respondsTo(bean,name,arguments).isEmpty();
+  boolean respondsTo=!getMetaClass().respondsTo(bean,name,arguments).isEmpty();
+  if (respondsTo) {
+    return true;
+  }
+ else {
+    Method method=JavaReflectionUtil.findMethod(bean.getClass(),new Spec<Method>(){
+      public boolean isSatisfiedBy(      Method potentialMethod){
+        if (Modifier.isPrivate(potentialMethod.getModifiers()) && potentialMethod.getName().equals(name)) {
+          ParameterTypes parameterTypes=new ParameterTypes(potentialMethod.getParameterTypes());
+          return parameterTypes.isValidMethod(arguments);
+        }
+ else {
+          return false;
+        }
+      }
+    }
+);
+    return method != null;
+  }
 }

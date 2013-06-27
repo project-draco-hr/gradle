@@ -1,23 +1,9 @@
 {
-  final Type helperType=Type.getType(MixInExtensibleDynamicObject.class);
   final String fieldSignature="L" + MixInExtensibleDynamicObject.class.getName().replaceAll("\\.","/") + ";";
   visitor.visitField(Opcodes.ACC_PRIVATE,"dynamicObjectHelper",fieldSignature,null,null);
   initDynamicObjectHelper=new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
-      String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(Object.class),dynamicObjectType});
-      visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitTypeInsn(Opcodes.NEW,helperType.getInternalName());
-      visitor.visitInsn(Opcodes.DUP);
-      visitor.visitVarInsn(Opcodes.ALOAD,0);
-      boolean useInheritedDynamicObject=GroovySystem.getMetaClassRegistry().getMetaClass(type).pickMethod("getAsDynamicObject",new Class[0]) != null;
-      if (useInheritedDynamicObject) {
-        visitor.visitVarInsn(Opcodes.ALOAD,0);
-        visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,Type.getType(type).getInternalName(),"getAsDynamicObject",Type.getMethodDescriptor(dynamicObjectType,new Type[0]));
-      }
- else {
-        visitor.visitInsn(Opcodes.ACONST_NULL);
-      }
-      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,helperType.getInternalName(),"<init>",helperTypeConstructorDesc);
+      generateCreateDynamicObject(visitor);
       visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
     }
   }
@@ -27,7 +13,7 @@
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
       String getterDescriptor=Type.getMethodDescriptor(ExtensibleDynamicObject.class.getDeclaredMethod("getConvention"));
-      visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,helperType.getInternalName(),"getConvention",getterDescriptor);
+      visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,dynamicObjectHelperType.getInternalName(),"getConvention",getterDescriptor);
     }
   }
 );
@@ -43,6 +29,16 @@
     public void add(    MethodVisitor visitor){
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
+      visitor.visitInsn(Opcodes.DUP);
+      Label nullBranch=new Label();
+      visitor.visitJumpInsn(Opcodes.IFNULL,nullBranch);
+      visitor.visitInsn(Opcodes.ARETURN);
+      visitor.visitLabel(nullBranch);
+      final Type helperType=Type.getType(MixInExtensibleDynamicObject.class);
+      String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,Type.getType(Object.class),dynamicObjectType);
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      generateCreateDynamicObject(visitor);
+      visitor.visitInsn(Opcodes.ARETURN);
     }
   }
 );
