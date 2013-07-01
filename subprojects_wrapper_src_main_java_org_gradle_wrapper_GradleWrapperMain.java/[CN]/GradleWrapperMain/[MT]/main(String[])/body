@@ -2,9 +2,16 @@
   File wrapperJar=wrapperJar();
   File propertiesFile=wrapperProperties(wrapperJar);
   File rootDir=rootDir(wrapperJar);
+  CommandLineParser parser=new CommandLineParser();
+  parser.allowUnknownOptions();
+  parser.option(GRADLE_USER_HOME_OPTION,GRADLE_USER_HOME_DETAILED_OPTION).hasArgument();
+  SystemPropertiesCommandLineConverter converter=new SystemPropertiesCommandLineConverter();
+  converter.configure(parser);
+  ParsedCommandLine options=parser.parse(args);
   Properties systemProperties=System.getProperties();
-  systemProperties.putAll(parseSystemPropertiesFromArgs(args));
-  addSystemProperties(rootDir);
+  systemProperties.putAll(converter.convert(options));
+  File gradleUserHome=gradleUserHome(options);
+  addSystemProperties(gradleUserHome,rootDir);
   WrapperExecutor wrapperExecutor=WrapperExecutor.forWrapperPropertiesFile(propertiesFile,System.out);
-  wrapperExecutor.execute(args,new Install(new Download("gradlew",wrapperVersion()),new PathAssembler(gradleUserHome())),new BootstrapMainStarter());
+  wrapperExecutor.execute(args,new Install(new Download("gradlew",wrapperVersion()),new PathAssembler(gradleUserHome)),new BootstrapMainStarter());
 }
