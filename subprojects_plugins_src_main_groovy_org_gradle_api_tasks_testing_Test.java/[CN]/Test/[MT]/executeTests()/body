@@ -8,7 +8,10 @@
   File binaryResultsDir=getBinResultsDir();
   getProject().delete(binaryResultsDir);
   getProject().mkdir(binaryResultsDir);
-  TestReportDataCollector testReportDataCollector=new TestReportDataCollector(binaryResultsDir);
+  Map<String,TestClassResult> results=new HashMap<String,TestClassResult>();
+  PersistedTestOutput persistedTestOutput=new PersistedTestOutput(binaryResultsDir);
+  PersistedTestOutput.Writer outputWriter=persistedTestOutput.writer();
+  TestReportDataCollector testReportDataCollector=new TestReportDataCollector(results,outputWriter);
   addTestListener(testReportDataCollector);
   addTestOutputListener(testReportDataCollector);
   TestCountLogger testCountLogger=new TestCountLogger(progressLoggerFactory);
@@ -20,11 +23,14 @@
   finally {
     testListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector,testCountLogger));
     testOutputListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector));
+    outputWriter.finishOutputs();
   }
+  new TestResultSerializer().write(results.values(),binaryResultsDir);
+  TestResultsProvider testResultsProvider=new InMemoryTestResultsProvider(results.values(),persistedTestOutput.reader());
   JUnitXmlReport junitXml=reports.getJunitXml();
   if (junitXml.isEnabled()) {
     TestOutputAssociation outputAssociation=junitXml.isOutputPerTestCase() ? TestOutputAssociation.WITH_TESTCASE : TestOutputAssociation.WITH_SUITE;
-    Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator=new Binary2JUnitXmlReportGenerator(junitXml.getDestination(),testReportDataCollector,outputAssociation);
+    Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator=new Binary2JUnitXmlReportGenerator(junitXml.getDestination(),testResultsProvider,outputAssociation);
     binary2JUnitXmlReportGenerator.generate();
   }
   DirectoryReport html=reports.getHtml();
@@ -32,7 +38,7 @@
     getLogger().info("Test report disabled, omitting generation of the HTML test report.");
   }
  else {
-    testReporter.generateReport(testReportDataCollector,html.getDestination());
+    testReporter.generateReport(testResultsProvider,html.getDestination());
   }
   testFramework=null;
   if (testCountLogger.hadFailures()) {
