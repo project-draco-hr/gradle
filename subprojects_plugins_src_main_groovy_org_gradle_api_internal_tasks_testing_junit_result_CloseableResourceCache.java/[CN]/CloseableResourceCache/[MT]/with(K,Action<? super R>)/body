@@ -1,0 +1,27 @@
+{
+  R resource;
+  try {
+    if (cache.containsKey(key)) {
+      resource=cache.get(key);
+    }
+ else {
+      try {
+        resource=resourceCreator.create(key);
+      }
+ catch (      Exception e) {
+        throw new RuntimeException("Error creating resource for key " + key,e);
+      }
+      cache.put(key,resource);
+    }
+    try {
+      action.execute(resource);
+    }
+ catch (    Exception e) {
+      throw new RuntimeException("Error executing action with resource " + resource + " for key "+ key,e);
+    }
+  }
+ catch (  RuntimeException e) {
+    cleanUpQuietly();
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+}
