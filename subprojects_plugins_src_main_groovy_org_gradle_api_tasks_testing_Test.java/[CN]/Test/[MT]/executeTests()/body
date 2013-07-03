@@ -9,8 +9,8 @@
   getProject().delete(binaryResultsDir);
   getProject().mkdir(binaryResultsDir);
   Map<String,TestClassResult> results=new HashMap<String,TestClassResult>();
-  PersistedTestOutput persistedTestOutput=new PersistedTestOutput(binaryResultsDir);
-  PersistedTestOutput.Writer outputWriter=persistedTestOutput.writer();
+  TestOutputStore testOutputStore=new TestOutputStore(binaryResultsDir);
+  TestOutputStore.Writer outputWriter=testOutputStore.writer();
   TestReportDataCollector testReportDataCollector=new TestReportDataCollector(results,outputWriter);
   addTestListener(testReportDataCollector);
   addTestOutputListener(testReportDataCollector);
@@ -26,7 +26,7 @@
     outputWriter.finishOutputs();
   }
   new TestResultSerializer().write(results.values(),binaryResultsDir);
-  TestResultsProvider testResultsProvider=new InMemoryTestResultsProvider(results.values(),persistedTestOutput.reader());
+  TestResultsProvider testResultsProvider=new InMemoryTestResultsProvider(results.values(),testOutputStore.reader());
   JUnitXmlReport junitXml=reports.getJunitXml();
   if (junitXml.isEnabled()) {
     TestOutputAssociation outputAssociation=junitXml.isOutputPerTestCase() ? TestOutputAssociation.WITH_TESTCASE : TestOutputAssociation.WITH_SUITE;
