@@ -11,6 +11,8 @@
   if (region.start < 0) {
     return;
   }
+  boolean ignoreClassLevel=!allClassOutput && testId != null;
+  boolean ignoreTestLevel=!allClassOutput && testId == null;
   final File file=getOutputsFile();
   try {
     Input input=new Input(new FileInputStream(file));
@@ -18,7 +20,8 @@
     try {
       while (input.total() <= region.stop) {
         boolean readStdout=input.readBoolean();
-        if (stdout != readStdout) {
+        boolean isClassLevel=input.readBoolean();
+        if (stdout != readStdout || (ignoreClassLevel && isClassLevel) || (ignoreTestLevel && !isClassLevel)) {
           skipNext(input);
           skipNext(input);
           skipNext(input);
