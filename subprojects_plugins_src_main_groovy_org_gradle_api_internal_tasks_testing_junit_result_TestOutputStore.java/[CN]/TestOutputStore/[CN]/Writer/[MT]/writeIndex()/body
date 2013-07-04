@@ -1,0 +1,25 @@
+{
+  Output indexOutput;
+  try {
+    indexOutput=new Output(new FileOutputStream(getIndexFile()));
+  }
+ catch (  FileNotFoundException e) {
+    throw new UncheckedIOException(e);
+  }
+  indexOutput.writeInt(index.size(),true);
+  for (  Map.Entry<String,Map<String,TestCaseRegion>> classEntry : index.entrySet()) {
+    String className=classEntry.getKey();
+    Map<String,TestCaseRegion> regions=classEntry.getValue();
+    indexOutput.writeString(className);
+    indexOutput.writeInt(regions.size(),true);
+    for (    Map.Entry<String,TestCaseRegion> testCaseEntry : regions.entrySet()) {
+      TestCaseRegion region=testCaseEntry.getValue();
+      indexOutput.writeString(region.name);
+      indexOutput.writeLong(region.stdOutRegion.start);
+      indexOutput.writeLong(region.stdOutRegion.stop);
+      indexOutput.writeLong(region.stdErrRegion.start);
+      indexOutput.writeLong(region.stdErrRegion.stop);
+    }
+  }
+  indexOutput.close();
+}

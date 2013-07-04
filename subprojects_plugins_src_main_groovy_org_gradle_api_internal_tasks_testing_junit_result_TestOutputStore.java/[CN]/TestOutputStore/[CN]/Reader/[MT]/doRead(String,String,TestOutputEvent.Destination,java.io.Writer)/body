@@ -1,16 +1,33 @@
 {
-  final File file=outputsFile(className,destination);
-  if (!file.exists()) {
+  Index targetIndex=index.children.get(className);
+  if (targetIndex != null && targetTestCaseName != null) {
+    targetIndex=targetIndex.children.get(targetTestCaseName);
+  }
+  if (targetIndex == null) {
     return;
   }
+  boolean stdout=destination == TestOutputEvent.Destination.StdOut;
+  Region region=stdout ? targetIndex.stdOut : targetIndex.stdErr;
+  if (region.start < 0) {
+    return;
+  }
+  final File file=getOutputsFile();
   try {
     Input input=new Input(new FileInputStream(file));
+    skip(input,region.start);
     try {
-      while (input.canReadInt()) {
-        String messageTestCaseName=input.readString();
-        String message=input.readString();
-        if (targetTestCaseName == null || targetTestCaseName.equals(messageTestCaseName)) {
-          writer.write(message);
+      while (input.position() <= region.stop) {
+        String readClassName=input.readString();
+        String readTestCaseName=input.readString();
+        boolean readStdout=input.readBoolean();
+        int readMessageLength=input.readInt(true);
+        boolean shouldWrite=readStdout == stdout && readClassName.equals(className) && (targetTestCaseName == null || targetTestCaseName.equals(readTestCaseName));
+        if (shouldWrite) {
+          byte[] bytes=input.readBytes(readMessageLength);
+          writer.write(new String(bytes,messageStorageCharset));
+        }
+ else {
+          input.skip(readMessageLength);
         }
       }
     }
