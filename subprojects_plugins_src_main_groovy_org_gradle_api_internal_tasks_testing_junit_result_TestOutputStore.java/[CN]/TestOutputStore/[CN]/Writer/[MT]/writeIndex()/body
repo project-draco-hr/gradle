@@ -7,14 +7,15 @@
     throw new UncheckedIOException(e);
   }
   indexOutput.writeInt(index.size(),true);
-  for (  Map.Entry<String,Map<String,TestCaseRegion>> classEntry : index.entrySet()) {
+  for (  Map.Entry<String,Map<Object,TestCaseRegion>> classEntry : index.entrySet()) {
     String className=classEntry.getKey();
-    Map<String,TestCaseRegion> regions=classEntry.getValue();
+    Map<Object,TestCaseRegion> regions=classEntry.getValue();
     indexOutput.writeString(className);
     indexOutput.writeInt(regions.size(),true);
-    for (    Map.Entry<String,TestCaseRegion> testCaseEntry : regions.entrySet()) {
+    for (    Map.Entry<Object,TestCaseRegion> testCaseEntry : regions.entrySet()) {
+      Object id=testCaseEntry.getKey();
       TestCaseRegion region=testCaseEntry.getValue();
-      indexOutput.writeString(region.name);
+      writeObject(id,indexOutput);
       indexOutput.writeLong(region.stdOutRegion.start);
       indexOutput.writeLong(region.stdOutRegion.stop);
       indexOutput.writeLong(region.stdErrRegion.start);

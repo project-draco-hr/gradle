@@ -1,0 +1,58 @@
+{
+  Index targetIndex=index.children.get(className);
+  if (targetIndex != null && testId != null) {
+    targetIndex=targetIndex.children.get(testId);
+  }
+  if (targetIndex == null) {
+    return;
+  }
+  boolean stdout=destination == TestOutputEvent.Destination.StdOut;
+  Region region=stdout ? targetIndex.stdOut : targetIndex.stdErr;
+  if (region.start < 0) {
+    return;
+  }
+  final File file=getOutputsFile();
+  try {
+    Input input=new Input(new FileInputStream(file));
+    skip(input,region.start);
+    try {
+      while (input.total() <= region.stop) {
+        boolean readStdout=input.readBoolean();
+        if (stdout != readStdout) {
+          skipNext(input);
+          skipNext(input);
+          skipNext(input);
+          continue;
+        }
+        String readClassName=readString(messageStorageCharset,input);
+        if (!className.equals(readClassName)) {
+          skipNext(input);
+          skipNext(input);
+          continue;
+        }
+        boolean shouldWrite;
+        if (testId == null) {
+          skipNext(input);
+          shouldWrite=true;
+        }
+ else {
+          Object readTestId=readObject(input);
+          shouldWrite=testId.equals(readTestId);
+        }
+        if (shouldWrite) {
+          String message=readString(messageStorageCharset,input);
+          writer.write(message);
+        }
+ else {
+          skipNext(input);
+        }
+      }
+    }
+  finally {
+      input.close();
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+}
