@@ -1,19 +1,22 @@
 {
-  Set<Configuration> allConfigurations=configurations.iterator().next().getAll();
-  ModuleVersionPublishMetaData publishMetaData=publishModuleDescriptorConverter.convert(allConfigurations,module);
-  if (descriptor != null) {
-    ModuleDescriptor moduleDescriptor=publishMetaData.getModuleDescriptor();
-    ivyModuleDescriptorWriter.write(moduleDescriptor,descriptor);
+  ivyContextManager.withIvy(new Action<Ivy>(){
+    public void execute(    Ivy ivy){
+      Set<Configuration> allConfigurations=configurations.iterator().next().getAll();
+      ModuleVersionPublishMetaData publishMetaData=publishModuleDescriptorConverter.convert(allConfigurations,module);
+      if (descriptor != null) {
+        ModuleDescriptor moduleDescriptor=publishMetaData.getModuleDescriptor();
+        ivyModuleDescriptorWriter.write(moduleDescriptor,descriptor);
+      }
+      List<ModuleVersionPublisher> publishResolvers=new ArrayList<ModuleVersionPublisher>();
+      for (      PublicationAwareRepository repository : repositories) {
+        ModuleVersionPublisher publisher=repository.createPublisher();
+        publisher.setSettings(ivy.getSettings());
+        publishResolvers.add(publisher);
+      }
+      publishMetaData=publishModuleDescriptorConverter.convert(configurations,module);
+      Set<String> confs=Configurations.getNames(configurations,false);
+      dependencyPublisher.publish(confs,publishResolvers,publishMetaData,descriptor);
+    }
   }
-  IvySettings settings=settingsConverter.convertForPublish();
-  Ivy ivy=ivyFactory.createIvy(settings);
-  List<ModuleVersionPublisher> publishResolvers=new ArrayList<ModuleVersionPublisher>();
-  for (  PublicationAwareRepository repository : repositories) {
-    ModuleVersionPublisher publisher=repository.createPublisher();
-    publisher.setSettings(ivy.getSettings());
-    publishResolvers.add(publisher);
-  }
-  publishMetaData=publishModuleDescriptorConverter.convert(configurations,module);
-  Set<String> confs=Configurations.getNames(configurations,false);
-  dependencyPublisher.publish(confs,publishResolvers,publishMetaData,descriptor);
+);
 }
