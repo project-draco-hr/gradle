@@ -1,38 +1,27 @@
 {
-  if (runner == null) {
-    Description description=Description.createSuiteDescription(String.format("%s(%s)",getDisplayName(),target.getName()));
-    notifier.fireTestIgnored(description);
-    return;
-  }
   RunNotifier nested=new RunNotifier();
   nested.addListener(new RunListener(){
     @Override public void testStarted(    Description description){
-      Description translated=descriptionTranslations.get(description);
+      Description translated=translateDescription(description);
       notifier.fireTestStarted(translated);
     }
     @Override public void testFailure(    Failure failure){
-      Description translated=descriptionTranslations.get(failure.getDescription());
+      Description translated=translateDescription(failure.getDescription());
       notifier.fireTestFailure(new Failure(translated,failure.getException()));
     }
     @Override public void testAssumptionFailure(    Failure failure){
-      Description translated=descriptionTranslations.get(failure.getDescription());
+      Description translated=translateDescription(failure.getDescription());
       notifier.fireTestAssumptionFailed(new Failure(translated,failure.getException()));
     }
     @Override public void testIgnored(    Description description){
-      Description translated=descriptionTranslations.get(description);
+      Description translated=translateDescription(description);
       notifier.fireTestIgnored(translated);
     }
     @Override public void testFinished(    Description description){
-      Description translated=descriptionTranslations.get(description);
+      Description translated=translateDescription(description);
       notifier.fireTestFinished(translated);
     }
   }
 );
-  before();
-  try {
-    runner.run(nested);
-  }
-  finally {
-    after();
-  }
+  runner.run(nested);
 }

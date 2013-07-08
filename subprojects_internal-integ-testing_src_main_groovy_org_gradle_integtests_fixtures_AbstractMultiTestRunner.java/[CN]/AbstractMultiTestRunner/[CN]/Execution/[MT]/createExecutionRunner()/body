@@ -1,0 +1,37 @@
+{
+  List<? extends Class<?>> targetClasses=loadTargetClasses();
+  RunnerBuilder runnerBuilder=new RunnerBuilder(){
+    @Override public Runner runnerForClass(    Class<?> testClass){
+      try {
+        for (Class<?> candidate=testClass; candidate != null; candidate=candidate.getSuperclass()) {
+          RunWith runWith=candidate.getAnnotation(RunWith.class);
+          if (runWith != null && !AbstractMultiTestRunner.class.isAssignableFrom(runWith.value())) {
+            try {
+              return (Runner)runWith.value().getConstructors()[0].newInstance(testClass);
+            }
+ catch (            Exception e) {
+              return new ErrorReportingRunner(testClass,e);
+            }
+          }
+        }
+        return new BlockJUnit4ClassRunner(testClass);
+      }
+ catch (      InitializationError initializationError) {
+        return new ErrorReportingRunner(testClass,initializationError);
+      }
+    }
+  }
+;
+  return new Suite(runnerBuilder,targetClasses.toArray(new Class<?>[targetClasses.size()])){
+    @Override public void run(    RunNotifier notifier){
+      before();
+      try {
+        super.run(notifier);
+      }
+  finally {
+        after();
+      }
+    }
+  }
+;
+}
