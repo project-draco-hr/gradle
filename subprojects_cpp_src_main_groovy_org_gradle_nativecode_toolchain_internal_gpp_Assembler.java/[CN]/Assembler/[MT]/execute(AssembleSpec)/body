@@ -1,3 +1,9 @@
 {
-  return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
+  boolean didWork=false;
+  CommandLineTool<AssembleSpec> commandLineAssembler=commandLineTool.inWorkDirectory(spec.getObjectFileDir());
+  for (  File sourceFile : spec.getSource()) {
+    WorkResult result=commandLineAssembler.withArguments(new GccCompileSpecToArguments(sourceFile)).execute(spec);
+    didWork=didWork || result.getDidWork();
+  }
+  return new SimpleWorkResult(didWork);
 }
