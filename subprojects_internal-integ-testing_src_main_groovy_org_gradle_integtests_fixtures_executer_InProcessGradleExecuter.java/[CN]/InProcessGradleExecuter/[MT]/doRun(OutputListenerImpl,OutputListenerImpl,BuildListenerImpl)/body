@@ -24,7 +24,12 @@
   converter.getSystemPropertiesConverter().convert(parsedCommandLine,properties);
   new PropertiesToStartParameterConverter().convert(properties,parameter);
   converter.convert(parsedCommandLine,parameter);
-  DefaultGradleLauncherFactory factory=(DefaultGradleLauncherFactory)GradleLauncher.getFactory();
+  DefaultGradleLauncherFactory factory=DeprecationLogger.whileDisabled(new Factory<DefaultGradleLauncherFactory>(){
+    public DefaultGradleLauncherFactory create(){
+      return (DefaultGradleLauncherFactory)GradleLauncher.getFactory();
+    }
+  }
+);
   factory.addListener(listener);
   GradleLauncher gradleLauncher=factory.newInstance(parameter);
   gradleLauncher.addStandardOutputListener(outputListener);
