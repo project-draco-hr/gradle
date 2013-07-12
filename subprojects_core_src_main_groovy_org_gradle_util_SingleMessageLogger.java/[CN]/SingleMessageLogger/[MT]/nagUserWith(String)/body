@@ -1,6 +1,11 @@
 {
-  if (isEnabled() && MESSAGES.add(message)) {
-    LOGGER.warn(message);
-    logTraceIfNecessary();
+  if (isEnabled()) {
+    LOCK.lock();
+    try {
+      handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(message,SingleMessageLogger.class));
+    }
+  finally {
+      LOCK.unlock();
+    }
   }
 }
