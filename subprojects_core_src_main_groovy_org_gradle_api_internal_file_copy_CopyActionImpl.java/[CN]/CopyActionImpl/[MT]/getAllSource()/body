@@ -1,8 +1,10 @@
 {
-  List<FileTree> sources=new ArrayList<FileTree>();
-  for (  CopySpecInternal spec : root.getAllSpecs()) {
-    FileTree source=spec.getSource();
-    sources.add(source);
+  final ImmutableList.Builder<FileTree> builder=ImmutableList.builder();
+  root.visit(new Action<CopySpecInternal>(){
+    public void execute(    CopySpecInternal copySpecInternal){
+      builder.add(copySpecInternal.getSource());
+    }
   }
-  return resolver.resolveFilesAsTree(sources);
+);
+  return new ImmutableCompositeFileTree(builder.build());
 }
