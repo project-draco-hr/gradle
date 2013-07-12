@@ -2,8 +2,7 @@
 synchronized (lock) {
     if (state == State.UNRESOLVED) {
       DependencyResolutionListener broadcast=getDependencyResolutionBroadcast();
-      ResolvableDependencies incoming=getIncoming();
-      broadcast.beforeResolve(incoming);
+      broadcast.beforeResolve(resolvableDependencies);
       cachedResolverResults=resolver.resolve(this);
       if (cachedResolverResults.getResolvedConfiguration().hasError()) {
         state=State.RESOLVED_WITH_FAILURES;
@@ -11,7 +10,8 @@ synchronized (lock) {
  else {
         state=State.RESOLVED;
       }
-      broadcast.afterResolve(incoming);
+      resolutionResultActions=null;
+      broadcast.afterResolve(resolvableDependencies);
     }
   }
 }
