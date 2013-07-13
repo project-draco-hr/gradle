@@ -1,0 +1,22 @@
+{
+  List<StackTraceElement> stack=usage.getStack();
+  if (stack.isEmpty()) {
+    return;
+  }
+  StackTraceElement directCaller=stack.get(0);
+  if (scripts.containsKey(directCaller.getFileName())) {
+    reportStackTraceElement(directCaller,target);
+    return;
+  }
+  int caller=1;
+  while (caller < stack.size() && stack.get(caller).getClassName().equals(directCaller.getClassName())) {
+    caller++;
+  }
+  if (caller == stack.size()) {
+    return;
+  }
+  StackTraceElement indirectCaller=stack.get(caller);
+  if (scripts.containsKey(indirectCaller.getFileName())) {
+    reportStackTraceElement(indirectCaller,target);
+  }
+}
