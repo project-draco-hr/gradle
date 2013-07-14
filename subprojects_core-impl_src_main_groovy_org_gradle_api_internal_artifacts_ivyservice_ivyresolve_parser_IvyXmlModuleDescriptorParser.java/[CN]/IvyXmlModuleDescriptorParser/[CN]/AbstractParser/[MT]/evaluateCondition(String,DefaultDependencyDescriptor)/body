@@ -1,0 +1,40 @@
+{
+  if (conf.charAt(0) != '[') {
+    return conf;
+  }
+  int endConditionIndex=conf.indexOf(']');
+  if (endConditionIndex == -1) {
+    addError("invalid conf " + conf + " for "+ dd);
+    return null;
+  }
+  String condition=conf.substring(1,endConditionIndex);
+  int notEqualIndex=condition.indexOf("!=");
+  if (notEqualIndex == -1) {
+    int equalIndex=condition.indexOf('=');
+    if (equalIndex == -1) {
+      addError("invalid conf " + conf + " for "+ dd.getDependencyRevisionId());
+      return null;
+    }
+    String leftOp=condition.substring(0,equalIndex).trim();
+    String rightOp=condition.substring(equalIndex + 1).trim();
+    if (leftOp.equals("org") || leftOp.equals("organization")) {
+      leftOp="organisation";
+    }
+    String attrValue=dd.getAttribute(leftOp);
+    if (!rightOp.equals(attrValue)) {
+      return null;
+    }
+  }
+ else {
+    String leftOp=condition.substring(0,notEqualIndex).trim();
+    String rightOp=condition.substring(notEqualIndex + 2).trim();
+    if (leftOp.equals("org") || leftOp.equals("organization")) {
+      leftOp="organisation";
+    }
+    String attrValue=dd.getAttribute(leftOp);
+    if (rightOp.equals(attrValue)) {
+      return null;
+    }
+  }
+  return conf.substring(endConditionIndex + 1);
+}
