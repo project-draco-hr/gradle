@@ -1,7 +1,7 @@
 {
   ModuleRevisionId moduleRevisionId=dependencyDescriptor.getDependencyRevisionId();
   boolean isDynamic=getVersionMatcher().isDynamic(moduleRevisionId);
-  ResolvedResource ivyRef=findIvyFileRef(dependencyDescriptor);
+  ResolvedArtifact ivyRef=findIvyFileRef(dependencyDescriptor);
   if (ivyRef == null) {
     if (!isAllownomd()) {
       LOGGER.debug("No ivy file found for module '{}' in repository '{}'.",moduleRevisionId,getName());
@@ -9,19 +9,19 @@
       return;
     }
     ModuleDescriptor nsMd=DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId,dependencyDescriptor.getAllDependencyArtifacts());
-    ResolvedResource artifactRef=findFirstArtifactRef(nsMd);
+    ResolvedArtifact artifactRef=findFirstArtifactRef(nsMd);
     if (artifactRef == null) {
       LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.",moduleRevisionId,getName());
       result.missing();
     }
  else {
-      long lastModified=artifactRef.getLastModified();
+      long lastModified=artifactRef.resource.getLastModified();
       if (lastModified != 0) {
         ((DefaultModuleDescriptor)nsMd).setLastModified(lastModified);
       }
       LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.",moduleRevisionId,getName());
       if (isDynamic) {
-        nsMd.setResolvedModuleRevisionId(ModuleRevisionId.newInstance(moduleRevisionId,artifactRef.getRevision()));
+        nsMd.setResolvedModuleRevisionId(artifactRef.artifact.getModuleRevisionId());
       }
       result.resolved(nsMd,isChanging(nsMd),null);
     }
@@ -30,10 +30,10 @@
     try {
       ModuleDescriptor nsMd;
       if (ivyRef instanceof MDResolvedResource) {
-        nsMd=((MDResolvedResource)ivyRef).getDescriptor();
+        nsMd=((MDResolvedResource)ivyRef).moduleDescriptor;
       }
  else {
-        nsMd=parse(ivyRef.getRevision(),ivyRef.getResource(),dependencyDescriptor);
+        nsMd=parse(ivyRef.artifact,ivyRef.resource);
       }
       if (isCheckconsistency()) {
         checkDescriptorConsistency(moduleRevisionId,nsMd,ivyRef);

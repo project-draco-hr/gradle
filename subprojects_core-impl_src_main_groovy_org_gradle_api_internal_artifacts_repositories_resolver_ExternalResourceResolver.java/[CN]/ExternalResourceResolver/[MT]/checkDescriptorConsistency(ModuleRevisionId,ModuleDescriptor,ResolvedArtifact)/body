@@ -9,16 +9,17 @@
   if (mrid.getBranch() != null && !mrid.getBranch().equals(md.getModuleRevisionId().getBranch())) {
     errors.add("bad branch name: expected='" + mrid.getBranch() + "' found='"+ md.getModuleRevisionId().getBranch()+ "'");
   }
-  if (ivyRef.getRevision() != null && !ivyRef.getRevision().startsWith("working@")) {
-    ModuleRevisionId expectedMrid=ModuleRevisionId.newInstance(mrid,ivyRef.getRevision());
+  String revision=ivyRef.artifact.getModuleRevisionId().getRevision();
+  if (revision != null && !revision.startsWith("working@")) {
+    ModuleRevisionId expectedMrid=ModuleRevisionId.newInstance(mrid,revision);
     if (!getVersionMatcher().accept(expectedMrid,md)) {
-      errors.add("bad revision: expected='" + ivyRef.getRevision() + "' found='"+ md.getModuleRevisionId().getRevision()+ "'");
+      errors.add("bad revision: expected='" + revision + "' found='"+ md.getModuleRevisionId().getRevision()+ "'");
     }
   }
   if (!getSettings().getStatusManager().isStatus(md.getStatus())) {
     errors.add("bad status: '" + md.getStatus() + "'; ");
   }
   if (errors.size() > 0) {
-    throw new ParseException(String.format("inconsistent module descriptor file found in '%s': %s",ivyRef.getResource(),errors.toString()),0);
+    throw new ParseException(String.format("inconsistent module descriptor file found in '%s': %s",ivyRef.resource,errors.toString()),0);
   }
 }
