@@ -1,5 +1,5 @@
 {
-  URI baseURI;
+  final URI baseURI;
   try {
     baseURI=new URI(parent);
   }
@@ -11,16 +11,20 @@
     return null;
   }
   try {
-    byte[] resourceContent=loadResourceContent(resource);
-    String contentType=resource.getContentType();
-    ApacheDirectoryListingParser directoryListingParser=new ApacheDirectoryListingParser();
-    try {
-      List<URI> uris=directoryListingParser.parse(baseURI,resourceContent,contentType);
-      return convertToStringList(uris);
+    return resource.read(new Transformer<List<String>,InputStream>(){
+      public List<String> transform(      InputStream inputStream){
+        String contentType=resource.getContentType();
+        ApacheDirectoryListingParser directoryListingParser=new ApacheDirectoryListingParser();
+        try {
+          List<URI> uris=directoryListingParser.parse(baseURI,inputStream,contentType);
+          return convertToStringList(uris);
+        }
+ catch (        Exception e) {
+          throw new ResourceException("Unable to parse Http directory listing",e);
+        }
+      }
     }
- catch (    Exception e) {
-      throw new ResourceException("Unable to parse Http directory listing",e);
-    }
+);
   }
   finally {
     resource.close();
