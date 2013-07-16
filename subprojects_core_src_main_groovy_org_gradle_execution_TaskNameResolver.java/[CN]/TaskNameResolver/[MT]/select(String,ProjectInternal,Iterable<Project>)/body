@@ -1,35 +1,44 @@
 {
-  SetMultimap<String,Task> selected=LinkedHashMultimap.create();
+  SetMultimap<String,TaskSelectionResult> selected=LinkedHashMultimap.create();
   Task task=project.getTasks().findByName(name);
   if (task != null) {
-    selected.put(task.getName(),task);
+    selected.put(task.getName(),new SimpleTaskSelectionResult(task));
   }
  else {
     task=project.getImplicitTasks().findByName(name);
     if (task != null) {
-      selected.put(task.getName(),task);
+      selected.put(task.getName(),new SimpleTaskSelectionResult(task));
     }
   }
   for (  Project additionalProject : additionalProjects) {
     task=additionalProject.getTasks().findByName(name);
     if (task != null) {
-      selected.put(task.getName(),task);
+      selected.put(task.getName(),new SimpleTaskSelectionResult(task));
     }
   }
   if (!selected.isEmpty()) {
     return selected;
   }
   for (  Task t : project.getTasks()) {
-    selected.put(t.getName(),t);
+    selected.put(t.getName(),new SimpleTaskSelectionResult(t));
   }
   for (  Task t : project.getImplicitTasks()) {
     if (!selected.containsKey(t.getName())) {
-      selected.put(t.getName(),t);
+      selected.put(t.getName(),new SimpleTaskSelectionResult(t));
     }
+  }
+  Map<String,Runnable> placeholderActions=project.getTasks().getPlaceholderActions();
+  for (  Map.Entry<String,Runnable> placeholderAction : placeholderActions.entrySet()) {
+    selected.put(placeholderAction.getKey(),new PlaceholderTaskSelectionResult(project.getTasks(),placeholderAction.getKey(),placeholderAction.getValue()));
   }
   for (  Project additionalProject : additionalProjects) {
     for (    Task t : additionalProject.getTasks()) {
-      selected.put(t.getName(),t);
+      selected.put(t.getName(),new SimpleTaskSelectionResult(t));
+    }
+    final ProjectInternal additionalProjectInternal=(ProjectInternal)additionalProject;
+    placeholderActions=additionalProjectInternal.getTasks().getPlaceholderActions();
+    for (    Map.Entry<String,Runnable> placeholderAction : placeholderActions.entrySet()) {
+      selected.put(placeholderAction.getKey(),new PlaceholderTaskSelectionResult(additionalProjectInternal.getTasks(),placeholderAction.getKey(),placeholderAction.getValue()));
     }
   }
   return selected;

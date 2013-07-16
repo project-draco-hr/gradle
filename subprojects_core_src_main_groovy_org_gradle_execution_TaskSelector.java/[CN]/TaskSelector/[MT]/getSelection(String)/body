@@ -1,5 +1,5 @@
 {
-  SetMultimap<String,Task> tasksByName;
+  SetMultimap<String,TaskSelectionResult> tasksByName;
   ProjectInternal project=gradle.getDefaultProject();
   ResolvedTaskPath taskPath=taskPathResolver.resolvePath(path,project);
   if (taskPath.isQualified()) {
@@ -8,14 +8,15 @@
  else {
     tasksByName=taskNameResolver.selectAll(path,project);
   }
-  Set<Task> tasks=tasksByName.get(taskPath.getTaskName());
+  Set<TaskSelectionResult> tasks=tasksByName.get(taskPath.getTaskName());
   if (!tasks.isEmpty()) {
-    return new TaskSelection(path,tasks);
+    return new TaskSelection(path,new HashSet<Task>(Collections2.transform(tasks,resolableTaskToTaskFunction)));
   }
   NameMatcher matcher=new NameMatcher();
   String actualName=matcher.find(taskPath.getTaskName(),tasksByName.keySet());
   if (actualName != null) {
-    return new TaskSelection(taskPath.getPrefix() + actualName,tasksByName.get(actualName));
+    final Collection<Task> transform1=Collections2.transform(tasksByName.get(actualName),resolableTaskToTaskFunction);
+    return new TaskSelection(taskPath.getPrefix() + actualName,new HashSet<Task>(transform1));
   }
   throw new TaskSelectionException(matcher.formatErrorMessage("task",project));
 }
