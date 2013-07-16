@@ -2,7 +2,12 @@
   final File tmpFile=temporaryFileProvider.createTemporaryFile("gradle_download","bin");
   try {
     resourceDownloader.download(artifact,resource,tmpFile);
-    return cacheDownloadedFile(artifact,resource,tmpFile);
+    return cacheLockingManager.useCache(String.format("Store %s",artifact),new Factory<File>(){
+      public File create(){
+        return fileStore.move(artifact.getId(),tmpFile).getFile();
+      }
+    }
+);
   }
   finally {
     tmpFile.delete();
