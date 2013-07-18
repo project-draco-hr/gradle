@@ -1,0 +1,52 @@
+{
+  final ZipOutputStream zipOutStr;
+  try {
+    zipOutStr=compressor.createArchiveOutputStream(zipFile);
+  }
+ catch (  Exception e) {
+    throw new GradleException(String.format("Could not create ZIP '%s'.",zipFile),e);
+  }
+  visitor.execute(new Action<FileCopyDetailsInternal>(){
+    public void execute(    FileCopyDetailsInternal details){
+      if (details.isDirectory()) {
+        visitDir(details);
+      }
+ else {
+        visitFile(details);
+      }
+    }
+    private void visitFile(    FileCopyDetails fileDetails){
+      try {
+        ZipEntry archiveEntry=new ZipEntry(fileDetails.getRelativePath().getPathString());
+        archiveEntry.setTime(fileDetails.getLastModified());
+        archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getMode());
+        zipOutStr.putNextEntry(archiveEntry);
+        fileDetails.copyTo(zipOutStr);
+        zipOutStr.closeEntry();
+      }
+ catch (      Exception e) {
+        throw new GradleException(String.format("Could not add %s to ZIP '%s'.",fileDetails,zipFile),e);
+      }
+    }
+    private void visitDir(    FileCopyDetails dirDetails){
+      try {
+        ZipEntry archiveEntry=new ZipEntry(dirDetails.getRelativePath().getPathString() + '/');
+        archiveEntry.setTime(dirDetails.getLastModified());
+        archiveEntry.setUnixMode(UnixStat.DIR_FLAG | dirDetails.getMode());
+        zipOutStr.putNextEntry(archiveEntry);
+        zipOutStr.closeEntry();
+      }
+ catch (      Exception e) {
+        throw new GradleException(String.format("Could not add %s to ZIP '%s'.",dirDetails,zipFile),e);
+      }
+    }
+  }
+);
+  try {
+    zipOutStr.close();
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+  return new SimpleWorkResult(true);
+}
