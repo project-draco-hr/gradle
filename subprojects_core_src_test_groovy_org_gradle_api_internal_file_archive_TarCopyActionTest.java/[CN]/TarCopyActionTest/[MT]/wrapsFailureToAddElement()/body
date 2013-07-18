@@ -1,0 +1,12 @@
+{
+  final TestFile tarFile=initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),new SimpleCompressor());
+  Throwable failure=new RuntimeException("broken");
+  try {
+    visit(action,brokenFile("dir/file1",failure));
+    fail();
+  }
+ catch (  GradleException e) {
+    assertThat(e.getMessage(),equalTo(String.format("Could not add [dir/file1] to TAR '%s'.",tarFile)));
+    assertThat(e.getCause(),sameInstance(failure));
+  }
+}

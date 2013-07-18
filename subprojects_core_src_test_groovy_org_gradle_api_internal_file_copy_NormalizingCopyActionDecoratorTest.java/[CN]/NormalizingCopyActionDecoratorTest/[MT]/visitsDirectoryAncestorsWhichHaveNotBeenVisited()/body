@@ -1,0 +1,33 @@
+{
+  final FileCopyDetailsInternal dir1=file("a/b/c",true);
+  final FileCopyDetailsInternal file1=file("a/b/c/file",false);
+  allowGetIncludeEmptyDirs();
+  decorator.execute(new Action<Action<? super FileCopyDetailsInternal>>(){
+    public void execute(    Action<? super FileCopyDetailsInternal> action){
+      context.checking(new Expectations(){
+{
+          one(delegateAction).execute(with(hasPath("a")));
+          one(delegateAction).execute(with(hasPath("a/b")));
+          one(delegateAction).execute(dir1);
+          one(delegateAction).execute(file1);
+        }
+      }
+);
+      action.execute(dir1);
+      action.execute(file1);
+      final FileCopyDetailsInternal dir2=file("a/b/d/e",true);
+      final FileCopyDetailsInternal file2=file("a/b/d/e/file",false);
+      context.checking(new Expectations(){
+{
+          one(delegateAction).execute(with(hasPath("a/b/d")));
+          one(delegateAction).execute(dir2);
+          one(delegateAction).execute(file2);
+        }
+      }
+);
+      action.execute(dir2);
+      action.execute(file2);
+    }
+  }
+);
+}
