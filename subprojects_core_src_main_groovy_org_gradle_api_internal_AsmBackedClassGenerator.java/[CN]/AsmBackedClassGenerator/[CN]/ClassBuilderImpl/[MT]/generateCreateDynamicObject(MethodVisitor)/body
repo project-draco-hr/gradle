@@ -1,16 +1,26 @@
 {
-  String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(Object.class),dynamicObjectType});
-  visitor.visitVarInsn(Opcodes.ALOAD,0);
-  visitor.visitTypeInsn(Opcodes.NEW,dynamicObjectHelperType.getInternalName());
-  visitor.visitInsn(Opcodes.DUP);
-  visitor.visitVarInsn(Opcodes.ALOAD,0);
-  boolean useInheritedDynamicObject=GroovySystem.getMetaClassRegistry().getMetaClass(type).pickMethod("getAsDynamicObject",new Class[0]) != null;
-  if (useInheritedDynamicObject) {
+  if (extensible) {
+    String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(Object.class),dynamicObjectType});
     visitor.visitVarInsn(Opcodes.ALOAD,0);
-    visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,Type.getType(type).getInternalName(),"getAsDynamicObject",Type.getMethodDescriptor(dynamicObjectType,new Type[0]));
+    visitor.visitTypeInsn(Opcodes.NEW,extensibleDynamicObjectHelperType.getInternalName());
+    visitor.visitInsn(Opcodes.DUP);
+    visitor.visitVarInsn(Opcodes.ALOAD,0);
+    boolean useInheritedDynamicObject=GroovySystem.getMetaClassRegistry().getMetaClass(type).pickMethod("getAsDynamicObject",new Class[0]) != null;
+    if (useInheritedDynamicObject) {
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,Type.getType(type).getInternalName(),"getAsDynamicObject",Type.getMethodDescriptor(dynamicObjectType,new Type[0]));
+    }
+ else {
+      visitor.visitInsn(Opcodes.ACONST_NULL);
+    }
+    visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,extensibleDynamicObjectHelperType.getInternalName(),"<init>",helperTypeConstructorDesc);
   }
  else {
-    visitor.visitInsn(Opcodes.ACONST_NULL);
+    String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(Object.class)});
+    visitor.visitVarInsn(Opcodes.ALOAD,0);
+    visitor.visitTypeInsn(Opcodes.NEW,nonExtensibleDynamicObjectHelperType.getInternalName());
+    visitor.visitInsn(Opcodes.DUP);
+    visitor.visitVarInsn(Opcodes.ALOAD,0);
+    visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,nonExtensibleDynamicObjectHelperType.getInternalName(),"<init>",helperTypeConstructorDesc);
   }
-  visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,dynamicObjectHelperType.getInternalName(),"<init>",helperTypeConstructorDesc);
 }
