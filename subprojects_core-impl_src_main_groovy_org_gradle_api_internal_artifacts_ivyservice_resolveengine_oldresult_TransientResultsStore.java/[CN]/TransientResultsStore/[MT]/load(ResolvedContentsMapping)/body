@@ -1,0 +1,38 @@
+{
+synchronized (lock) {
+    if (cache != null) {
+      return cache;
+    }
+    cache=new DefaultTransientConfigurationResults();
+    for (    ResolutionResultEvent e : events) {
+      if (e instanceof NewResolvedDependency) {
+        NewResolvedDependency ev=(NewResolvedDependency)e;
+        cache.allDependencies.put(ev.id,new DefaultResolvedDependency(ev.id.getId(),ev.id.getConfiguration()));
+      }
+ else       if (e instanceof ParentChildMapping) {
+        ParentChildMapping ev=(ParentChildMapping)e;
+        DefaultResolvedDependency parent=dep(cache.allDependencies.get(ev.parent));
+        DefaultResolvedDependency child=dep(cache.allDependencies.get(ev.child));
+        parent.addChild(child);
+      }
+ else       if (e instanceof FirstLevelDependency) {
+        FirstLevelDependency ev=(FirstLevelDependency)e;
+        cache.firstLevelDependencies.put(mapping.getModuleDependency(ev.id),cache.allDependencies.get(ev.id));
+      }
+ else       if (e instanceof ResolutionDone) {
+        ResolutionDone ev=(ResolutionDone)e;
+        cache.root=cache.allDependencies.get(ev.id);
+      }
+ else       if (e instanceof ParentSpecificArtifact) {
+        ParentSpecificArtifact ev=(ParentSpecificArtifact)e;
+        DefaultResolvedDependency child=dep(cache.allDependencies.get(ev.child));
+        DefaultResolvedDependency parent=dep(cache.allDependencies.get(ev.parent));
+        child.addParentSpecificArtifacts(parent,newHashSet(mapping.getArtifact(ev.artifactId)));
+      }
+ else {
+        throw new IllegalStateException("Unknown resolution event: " + e);
+      }
+    }
+    return cache;
+  }
+}
