@@ -1,7 +1,19 @@
 {
   try {
     URL schemaURL=validate ? getSchemaURL() : null;
-    XMLHelper.parse(descriptorURL,schemaURL,this);
+    InputStream xmlStream=URLHandlerRegistry.getDefault().openStream(descriptorURL);
+    try {
+      InputSource inSrc=new InputSource(xmlStream);
+      inSrc.setSystemId(descriptorURL.toExternalForm());
+      XMLHelper.parse(inSrc,schemaURL,this,null);
+    }
+  finally {
+      try {
+        xmlStream.close();
+      }
+ catch (      IOException e) {
+      }
+    }
     checkConfigurations();
     replaceConfigurationWildcards();
     getMd().setModuleArtifact(DefaultArtifact.newIvyArtifact(getMd().getResolvedModuleRevisionId(),getMd().getPublicationDate()));
@@ -14,11 +26,11 @@
     getMd().check();
   }
  catch (  ParserConfigurationException ex) {
-    throw new IllegalStateException(ex.getMessage() + " in " + descriptorURL,ex);
+    throw new IllegalStateException(ex.getMessage() + " in " + getResource().getName(),ex);
   }
 catch (  Exception ex) {
     checkErrors();
-    ParseException pe=new ParseException(ex.getMessage() + " in " + descriptorURL,0);
+    ParseException pe=new ParseException(ex.getMessage() + " in " + getResource().getName(),0);
     pe.initCause(ex);
     throw pe;
   }
