@@ -1,37 +1,28 @@
 {
-  try {
-    URL schemaURL=validate ? getSchemaURL() : null;
-    InputStream xmlStream=URLHandlerRegistry.getDefault().openStream(descriptorURL);
-    try {
-      InputSource inSrc=new InputSource(xmlStream);
+  getResource().read(new Action<InputStream>(){
+    public void execute(    InputStream inputStream){
+      URL schemaURL=validate ? getSchemaURL() : null;
+      InputSource inSrc=new InputSource(inputStream);
       inSrc.setSystemId(descriptorURL.toExternalForm());
-      XMLHelper.parse(inSrc,schemaURL,this,null);
-    }
-  finally {
       try {
-        xmlStream.close();
+        XMLHelper.parse(inSrc,schemaURL,Parser.this,null);
       }
- catch (      IOException e) {
-      }
-    }
-    checkConfigurations();
-    replaceConfigurationWildcards();
-    getMd().setModuleArtifact(DefaultArtifact.newIvyArtifact(getMd().getResolvedModuleRevisionId(),getMd().getPublicationDate()));
-    if (!artifactsDeclared) {
-      String[] configurationNames=getMd().getConfigurationsNames();
-      for (      String configurationName : configurationNames) {
-        getMd().addArtifact(configurationName,new MDArtifact(getMd(),getMd().getModuleRevisionId().getName(),"jar","jar"));
+ catch (      Exception e) {
+        throw new MetaDataParseException("Ivy file",getResource(),e);
       }
     }
-    getMd().check();
   }
- catch (  ParserConfigurationException ex) {
-    throw new IllegalStateException(ex.getMessage() + " in " + getResource().getName(),ex);
+);
+  checkErrors();
+  checkConfigurations();
+  replaceConfigurationWildcards();
+  getMd().setModuleArtifact(DefaultArtifact.newIvyArtifact(getMd().getResolvedModuleRevisionId(),getMd().getPublicationDate()));
+  if (!artifactsDeclared) {
+    String[] configurationNames=getMd().getConfigurationsNames();
+    for (    String configurationName : configurationNames) {
+      getMd().addArtifact(configurationName,new MDArtifact(getMd(),getMd().getModuleRevisionId().getName(),"jar","jar"));
+    }
   }
-catch (  Exception ex) {
-    checkErrors();
-    ParseException pe=new ParseException(ex.getMessage() + " in " + getResource().getName(),0);
-    pe.initCause(ex);
-    throw pe;
-  }
+  checkErrors();
+  getMd().check();
 }

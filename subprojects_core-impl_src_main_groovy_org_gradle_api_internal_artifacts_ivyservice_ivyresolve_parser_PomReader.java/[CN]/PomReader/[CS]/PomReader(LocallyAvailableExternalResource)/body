@@ -1,0 +1,19 @@
+{
+  final String systemId=resource.getLocalResource().getFile().toURI().toASCIIString();
+  Document pomDomDoc=resource.read(new Transformer<Document,InputStream>(){
+    public Document transform(    InputStream inputStream){
+      try {
+        return parseToDom(inputStream,systemId);
+      }
+ catch (      Exception e) {
+        throw new MetaDataParseException("POM",resource,e);
+      }
+    }
+  }
+);
+  projectElement=pomDomDoc.getDocumentElement();
+  if (!PROJECT.equals(projectElement.getNodeName()) && !MODEL.equals(projectElement.getNodeName())) {
+    throw new SAXParseException("project must be the root tag",systemId,systemId,0,0);
+  }
+  parentElement=getFirstChildElement(projectElement,PARENT);
+}
