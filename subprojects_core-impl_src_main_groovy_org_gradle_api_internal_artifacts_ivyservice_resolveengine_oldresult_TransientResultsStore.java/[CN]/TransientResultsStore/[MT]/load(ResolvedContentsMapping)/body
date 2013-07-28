@@ -4,8 +4,6 @@ synchronized (lock) {
       return cache;
     }
     cache=new DefaultTransientConfigurationResults();
-    DataInput input=new DataInputStream(new ByteArrayInputStream(eventsStream.toByteArray()));
-    eventsStream=null;
     output=null;
     try {
       while (true) {
@@ -14,25 +12,25 @@ synchronized (lock) {
         ResolvedConfigurationIdentifier id;
 switch (type) {
 case 1:
-          id=s.read(input);
+          id=s.read((DataInput)input);
         cache.allDependencies.put(id,new DefaultResolvedDependency(id.getId(),id.getConfiguration()));
       break;
 case 2:
-    id=s.read(input);
+    id=s.read((DataInput)input);
   cache.root=cache.allDependencies.get(id);
 return cache;
 case 3:
-id=s.read(input);
+id=s.read((DataInput)input);
 cache.firstLevelDependencies.put(mapping.getModuleDependency(id),cache.allDependencies.get(id));
 break;
 case 4:
-DefaultResolvedDependency parent=cache.allDependencies.get(s.read(input));
-DefaultResolvedDependency child=cache.allDependencies.get(s.read(input));
+DefaultResolvedDependency parent=cache.allDependencies.get(s.read((DataInput)input));
+DefaultResolvedDependency child=cache.allDependencies.get(s.read((DataInput)input));
 parent.addChild(child);
 break;
 case 5:
-DefaultResolvedDependency c=cache.allDependencies.get(s.read(input));
-DefaultResolvedDependency p=cache.allDependencies.get(s.read(input));
+DefaultResolvedDependency c=cache.allDependencies.get(s.read((DataInput)input));
+DefaultResolvedDependency p=cache.allDependencies.get(s.read((DataInput)input));
 c.addParentSpecificArtifacts(p,newHashSet(mapping.getArtifact(input.readLong())));
 break;
 }
