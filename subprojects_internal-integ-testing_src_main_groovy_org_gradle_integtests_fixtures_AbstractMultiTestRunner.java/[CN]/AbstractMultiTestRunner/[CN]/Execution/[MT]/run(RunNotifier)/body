@@ -23,5 +23,18 @@
     }
   }
 );
-  runner.run(nested);
+  boolean classEnabled=isEnabled(new ClassBackedTestDetails(target));
+  if (!classEnabled) {
+    for (    Description description : descriptionTranslations.keySet()) {
+      if (description.getMethodName() == null) {
+        continue;
+      }
+      disabledTests.add(description);
+    }
+  }
+  runEnabledTests(nested);
+  for (  Description disabledTest : disabledTests) {
+    nested.fireTestStarted(disabledTest);
+    nested.fireTestIgnored(disabledTest);
+  }
 }
