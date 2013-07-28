@@ -4,35 +4,42 @@ synchronized (lock) {
       return cache;
     }
     cache=new DefaultTransientConfigurationResults();
-    for (    ResolutionResultEvent e : events) {
-      if (e instanceof NewResolvedDependency) {
-        NewResolvedDependency ev=(NewResolvedDependency)e;
-        cache.allDependencies.put(ev.id,new DefaultResolvedDependency(ev.id.getId(),ev.id.getConfiguration()));
-      }
- else       if (e instanceof ParentChildMapping) {
-        ParentChildMapping ev=(ParentChildMapping)e;
-        DefaultResolvedDependency parent=cache.allDependencies.get(ev.parent);
-        DefaultResolvedDependency child=cache.allDependencies.get(ev.child);
-        parent.addChild(child);
-      }
- else       if (e instanceof FirstLevelDependency) {
-        FirstLevelDependency ev=(FirstLevelDependency)e;
-        cache.firstLevelDependencies.put(mapping.getModuleDependency(ev.id),cache.allDependencies.get(ev.id));
-      }
- else       if (e instanceof ResolutionDone) {
-        ResolutionDone ev=(ResolutionDone)e;
-        cache.root=cache.allDependencies.get(ev.id);
-      }
- else       if (e instanceof ParentSpecificArtifact) {
-        ParentSpecificArtifact ev=(ParentSpecificArtifact)e;
-        DefaultResolvedDependency child=cache.allDependencies.get(ev.child);
-        DefaultResolvedDependency parent=cache.allDependencies.get(ev.parent);
-        child.addParentSpecificArtifacts(parent,newHashSet(mapping.getArtifact(ev.artifactId)));
-      }
- else {
-        throw new IllegalStateException("Unknown resolution event: " + e);
-      }
-    }
-    return cache;
-  }
+    DataInput input=new DataInputStream(new ByteArrayInputStream(eventsStream.toByteArray()));
+    eventsStream=null;
+    output=null;
+    try {
+      while (true) {
+        ResolvedConfigurationIdentifierSerializer s=new ResolvedConfigurationIdentifierSerializer();
+        short type=input.readShort();
+        ResolvedConfigurationIdentifier id;
+switch (type) {
+case 1:
+          id=s.read(input);
+        cache.allDependencies.put(id,new DefaultResolvedDependency(id.getId(),id.getConfiguration()));
+      break;
+case 2:
+    id=s.read(input);
+  cache.root=cache.allDependencies.get(id);
+return cache;
+case 3:
+id=s.read(input);
+cache.firstLevelDependencies.put(mapping.getModuleDependency(id),cache.allDependencies.get(id));
+break;
+case 4:
+DefaultResolvedDependency parent=cache.allDependencies.get(s.read(input));
+DefaultResolvedDependency child=cache.allDependencies.get(s.read(input));
+parent.addChild(child);
+break;
+case 5:
+DefaultResolvedDependency c=cache.allDependencies.get(s.read(input));
+DefaultResolvedDependency p=cache.allDependencies.get(s.read(input));
+c.addParentSpecificArtifacts(p,newHashSet(mapping.getArtifact(input.readLong())));
+break;
+}
+}
+}
+ catch (IOException e) {
+throw throwAsUncheckedException(e);
+}
+}
 }
