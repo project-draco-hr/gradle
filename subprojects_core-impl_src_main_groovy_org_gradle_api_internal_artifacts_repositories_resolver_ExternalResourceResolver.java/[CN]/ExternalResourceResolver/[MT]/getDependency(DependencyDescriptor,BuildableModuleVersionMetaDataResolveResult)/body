@@ -28,18 +28,19 @@
   }
  else {
     try {
-      ModuleDescriptor nsMd;
-      if (ivyRef instanceof MDResolvedResource) {
-        nsMd=((MDResolvedResource)ivyRef).moduleDescriptor;
+      ModuleVersionMetaData moduleVersionMetaData;
+      if (ivyRef instanceof DownloadedAndParsedResolvedArtifact) {
+        moduleVersionMetaData=((DownloadedAndParsedResolvedArtifact)ivyRef).moduleVersionMetaData;
       }
  else {
-        nsMd=parse(ivyRef.artifact,ivyRef.resource);
+        moduleVersionMetaData=parse(ivyRef.artifact,ivyRef.resource);
       }
+      ModuleDescriptor descriptor=moduleVersionMetaData.getDescriptor();
       if (isCheckconsistency()) {
-        checkDescriptorConsistency(moduleRevisionId,nsMd,ivyRef);
+        checkDescriptorConsistency(moduleRevisionId,descriptor,ivyRef);
       }
       LOGGER.debug("Ivy file found for module '{}' in repository '{}'.",moduleRevisionId,getName());
-      result.resolved(nsMd,isChanging(nsMd),null);
+      result.resolved(descriptor,isChanging(descriptor),null);
     }
  catch (    MetaDataParseException e) {
       result.failed(new ModuleVersionResolveException(moduleRevisionId,e));

@@ -24,19 +24,18 @@
       continue;
     }
     if (versionMatcher.needModuleDescriptor(mrid,foundMrid)) {
-      MDResolvedResource parsedResource=rmdparser.parse(resource,artifact);
-      if (parsedResource == null) {
+      ModuleVersionMetaData metaData=rmdparser.parse(resource,artifact);
+      if (metaData == null) {
         LOGGER.debug(name + ": impossible to get module descriptor resource: " + description);
         discardResource(resource);
         continue;
       }
-      ModuleDescriptor md=parsedResource.moduleDescriptor;
-      if (!versionMatcher.accept(mrid,md)) {
+      if (!versionMatcher.accept(mrid,metaData.getDescriptor())) {
         LOGGER.debug(name + ": md rejected by version matcher: " + description);
         discardResource(resource);
         continue;
       }
-      return parsedResource;
+      return new DownloadedAndParsedResolvedArtifact(resource,artifact,metaData);
     }
     return new ResolvedArtifact(resource,artifact);
   }
