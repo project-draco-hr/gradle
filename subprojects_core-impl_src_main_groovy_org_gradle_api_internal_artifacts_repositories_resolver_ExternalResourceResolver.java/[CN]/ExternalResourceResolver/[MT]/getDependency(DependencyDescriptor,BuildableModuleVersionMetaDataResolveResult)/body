@@ -8,8 +8,8 @@
       result.missing();
       return;
     }
-    DefaultModuleDescriptor nsMd=DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId,dependencyDescriptor.getAllDependencyArtifacts());
-    ResolvedArtifact artifactRef=findFirstArtifactRef(nsMd);
+    DefaultModuleDescriptor generatedModuleDescriptor=DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId,dependencyDescriptor.getAllDependencyArtifacts());
+    ResolvedArtifact artifactRef=findAnyArtifact(generatedModuleDescriptor);
     if (artifactRef == null) {
       LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.",moduleRevisionId,getName());
       result.missing();
@@ -17,23 +17,23 @@
  else {
       long lastModified=artifactRef.resource.getLastModified();
       if (lastModified != 0) {
-        nsMd.setLastModified(lastModified);
+        generatedModuleDescriptor.setLastModified(lastModified);
       }
       LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.",moduleRevisionId,getName());
       if (isDynamic) {
-        nsMd.setResolvedModuleRevisionId(artifactRef.artifact.getModuleRevisionId());
+        generatedModuleDescriptor.setResolvedModuleRevisionId(artifactRef.artifact.getModuleRevisionId());
       }
-      result.resolved(nsMd,isChanging(nsMd),null);
+      result.resolved(generatedModuleDescriptor,isChanging(generatedModuleDescriptor),null);
     }
   }
  else {
     try {
       ModuleVersionMetaData moduleVersionMetaData;
-      if (ivyRef instanceof DownloadedAndParsedResolvedArtifact) {
-        moduleVersionMetaData=((DownloadedAndParsedResolvedArtifact)ivyRef).moduleVersionMetaData;
+      if (ivyRef instanceof DownloadedAndParsedMetaDataArtifact) {
+        moduleVersionMetaData=((DownloadedAndParsedMetaDataArtifact)ivyRef).moduleVersionMetaData;
       }
  else {
-        moduleVersionMetaData=parse(ivyRef.artifact,ivyRef.resource);
+        moduleVersionMetaData=parse(ivyRef.artifact.getId(),ivyRef.resource);
       }
       ModuleDescriptor descriptor=moduleVersionMetaData.getDescriptor();
       if (isCheckconsistency()) {
