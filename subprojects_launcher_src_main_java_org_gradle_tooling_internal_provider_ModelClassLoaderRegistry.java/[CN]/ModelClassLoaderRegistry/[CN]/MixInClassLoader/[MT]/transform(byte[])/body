@@ -1,0 +1,19 @@
+{
+  ClassReader classReader=new ClassReader(bytes);
+  AnnotationDetector detector=new AnnotationDetector();
+  classReader.accept(detector,ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE);
+  if (!detector.found) {
+    return bytes;
+  }
+  if (findLoadedClass(detector.interfaceName) == null) {
+    ClassWriter emptyWriter=new ClassWriter(0);
+    emptyWriter.visit(Opcodes.V1_5,Opcodes.ACC_PUBLIC | Opcodes.ACC_INTERFACE,detector.interfaceName.replace(".","/"),null,Type.getType(Object.class).getInternalName(),null);
+    emptyWriter.visitEnd();
+    byte[] emptyBytecode=emptyWriter.toByteArray();
+    defineClass(detector.interfaceName,emptyBytecode,0,emptyBytecode.length);
+  }
+  ClassWriter classWriter=new ClassWriter(0);
+  classReader.accept(new TransformingAdapter(classWriter,detector.interfaceName),0);
+  bytes=classWriter.toByteArray();
+  return bytes;
+}
