@@ -1,31 +1,34 @@
 {
   String name=getName();
   VersionMatcher versionMatcher=getVersionMatcher();
+  ModuleVersionIdentifier requestedVersion=DefaultModuleVersionIdentifier.newId(mrid);
   for (  VersionList.ListedVersion listedVersion : versions.sortLatestFirst(getLatestStrategy())) {
     String version=listedVersion.getVersion();
     ModuleRevisionId foundMrid=ModuleRevisionId.newInstance(mrid,version);
-    if (!versionMatcher.accept(mrid,foundMrid)) {
+    ModuleVersionIdentifier foundVersion=DefaultModuleVersionIdentifier.newId(foundMrid);
+    if (!versionMatcher.accept(requestedVersion,foundVersion)) {
       LOGGER.debug(name + ": rejected by version matcher: " + version);
       continue;
     }
-    boolean needsModuleDescriptor=versionMatcher.needModuleDescriptor(mrid,foundMrid);
+    boolean needsMetadata=versionMatcher.needModuleMetadata(requestedVersion,foundVersion);
     artifact=DefaultArtifact.cloneWithAnotherMrid(artifact,foundMrid);
     String resourcePath=listedVersion.getPattern().toPath(artifact);
-    ExternalResource resource=getResource(resourcePath,artifact.getId(),forDownload || needsModuleDescriptor);
+    ExternalResource resource=getResource(resourcePath,artifact.getId(),forDownload || needsMetadata);
     String description=version + " [" + resource+ "]";
     if (!resource.exists()) {
       LOGGER.debug(name + ": unreachable: " + description);
       discardResource(resource);
       continue;
     }
-    if (versionMatcher.needModuleDescriptor(mrid,foundMrid)) {
-      ModuleVersionMetaData metaData=parseMetaDataArtifact(artifact,resource);
+    if (needsMetadata) {
+      MutableModuleVersionMetaData metaData=getArtifactMetadata(artifact,resource);
       if (metaData == null) {
         LOGGER.debug(name + ": impossible to get module descriptor resource: " + description);
         discardResource(resource);
         continue;
       }
-      if (!versionMatcher.accept(mrid,metaData.getDescriptor())) {
+      metadataProcessor.process(new ModuleDetailsAdapter(metaData));
+      if (!versionMatcher.accept(requestedVersion,metaData)) {
         LOGGER.debug(name + ": md rejected by version matcher: " + description);
         discardResource(resource);
         continue;

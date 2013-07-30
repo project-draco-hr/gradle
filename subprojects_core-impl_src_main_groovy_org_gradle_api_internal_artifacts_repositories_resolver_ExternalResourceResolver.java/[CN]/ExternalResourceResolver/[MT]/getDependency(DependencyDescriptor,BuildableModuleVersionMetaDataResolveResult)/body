@@ -1,6 +1,7 @@
 {
   ModuleRevisionId moduleRevisionId=dependencyDescriptor.getDependencyRevisionId();
-  boolean isDynamic=getVersionMatcher().isDynamic(moduleRevisionId);
+  ModuleVersionIdentifier moduleVersion=DefaultModuleVersionIdentifier.newId(moduleRevisionId);
+  boolean isDynamic=getVersionMatcher().isDynamic(moduleVersion);
   ResolvedArtifact ivyRef=findIvyFileRef(dependencyDescriptor);
   if (ivyRef == null) {
     if (!isAllownomd()) {
@@ -33,14 +34,13 @@
         moduleVersionMetaData=((DownloadedAndParsedMetaDataArtifact)ivyRef).moduleVersionMetaData;
       }
  else {
-        moduleVersionMetaData=parse(ivyRef.artifact.getId(),ivyRef.resource);
+        moduleVersionMetaData=getArtifactMetadata(ivyRef.artifact,ivyRef.resource);
       }
-      ModuleDescriptor descriptor=moduleVersionMetaData.getDescriptor();
       if (isCheckconsistency()) {
-        checkDescriptorConsistency(moduleRevisionId,descriptor,ivyRef);
+        checkMetadataConsistency(moduleVersion,moduleVersionMetaData,ivyRef);
       }
       LOGGER.debug("Ivy file found for module '{}' in repository '{}'.",moduleRevisionId,getName());
-      result.resolved(descriptor,isChanging(descriptor),null);
+      result.resolved(moduleVersionMetaData.getDescriptor(),isChanging(moduleVersionMetaData.getDescriptor()),null);
     }
  catch (    MetaDataParseException e) {
       result.failed(new ModuleVersionResolveException(moduleRevisionId,e));
