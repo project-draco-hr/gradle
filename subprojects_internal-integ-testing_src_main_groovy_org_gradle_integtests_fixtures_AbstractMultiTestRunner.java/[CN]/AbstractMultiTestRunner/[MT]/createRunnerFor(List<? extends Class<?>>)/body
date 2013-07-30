@@ -1,0 +1,20 @@
+{
+  RunnerBuilder runnerBuilder=new RunnerBuilder(){
+    @Override public Runner runnerForClass(    Class<?> testClass) throws Throwable {
+      for (Class<?> candidate=testClass; candidate != null; candidate=candidate.getSuperclass()) {
+        RunWith runWith=candidate.getAnnotation(RunWith.class);
+        if (runWith != null && !AbstractMultiTestRunner.class.isAssignableFrom(runWith.value())) {
+          try {
+            return (Runner)runWith.value().getConstructors()[0].newInstance(testClass);
+          }
+ catch (          InvocationTargetException e) {
+            throw e.getTargetException();
+          }
+        }
+      }
+      return new BlockJUnit4ClassRunner(testClass);
+    }
+  }
+;
+  return new Suite(runnerBuilder,targetClasses.toArray(new Class<?>[targetClasses.size()]));
+}
