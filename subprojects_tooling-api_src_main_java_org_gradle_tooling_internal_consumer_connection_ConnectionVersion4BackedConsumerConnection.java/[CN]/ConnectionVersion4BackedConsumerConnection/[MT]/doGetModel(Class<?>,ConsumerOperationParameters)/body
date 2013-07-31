@@ -1,3 +1,15 @@
 {
-  return getDelegate().getModel(protocolType.asSubclass(ProjectVersion3.class),operationParameters);
+  VersionDetails versionDetails=getVersionDetails();
+  if (modelType == BuildEnvironment.class && !versionDetails.isModelSupported(BuildEnvironment.class)) {
+    return new VersionOnlyBuildEnvironment(versionDetails.getVersion());
+  }
+  if (modelType == GradleProject.class && !versionDetails.isModelSupported(GradleProject.class)) {
+    EclipseProjectVersion3 project=(EclipseProjectVersion3)getDelegate().getModel(EclipseProjectVersion3.class,operationParameters);
+    return new GradleProjectConverter().convert(project);
+  }
+  if (!versionDetails.isModelSupported(modelType)) {
+    throw Exceptions.unknownModel(modelType,versionDetails.getVersion());
+  }
+  Class<? extends ProjectVersion3> protocolType=modelMapping.getProtocolType(modelType).asSubclass(ProjectVersion3.class);
+  return getDelegate().getModel(protocolType,operationParameters);
 }
