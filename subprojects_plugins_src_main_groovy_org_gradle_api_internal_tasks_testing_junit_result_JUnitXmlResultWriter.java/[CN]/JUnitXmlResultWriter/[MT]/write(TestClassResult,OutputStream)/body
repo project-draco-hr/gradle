@@ -1,16 +1,17 @@
 {
   String className=result.getClassName();
+  long classId=result.getId();
   try {
     SimpleXmlWriter writer=new SimpleXmlWriter(output,"  ");
     writer.startElement("testsuite").attribute("name",className).attribute("tests",String.valueOf(result.getTestsCount())).attribute("failures",String.valueOf(result.getFailuresCount())).attribute("errors","0").attribute("timestamp",DateUtils.format(result.getStartTime(),DateUtils.ISO8601_DATETIME_PATTERN)).attribute("hostname",hostName).attribute("time",String.valueOf(result.getDuration() / 1000.0));
     writer.startElement("properties");
     writer.endElement();
-    writeTests(writer,result.getResults(),className);
+    writeTests(writer,result.getResults(),className,classId);
     writer.startElement("system-out");
-    writeOutputs(writer,className,outputAssociation.equals(TestOutputAssociation.WITH_SUITE),TestOutputEvent.Destination.StdOut);
+    writeOutputs(writer,classId,outputAssociation.equals(TestOutputAssociation.WITH_SUITE),TestOutputEvent.Destination.StdOut);
     writer.endElement();
     writer.startElement("system-err");
-    writeOutputs(writer,className,outputAssociation.equals(TestOutputAssociation.WITH_SUITE),TestOutputEvent.Destination.StdErr);
+    writeOutputs(writer,classId,outputAssociation.equals(TestOutputAssociation.WITH_SUITE),TestOutputEvent.Destination.StdErr);
     writer.endElement();
     writer.endElement();
   }

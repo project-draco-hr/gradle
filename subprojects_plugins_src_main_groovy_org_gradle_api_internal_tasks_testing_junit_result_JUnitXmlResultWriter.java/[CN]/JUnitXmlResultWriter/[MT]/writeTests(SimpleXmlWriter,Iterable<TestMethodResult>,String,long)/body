@@ -1,0 +1,20 @@
+{
+  for (  TestMethodResult methodResult : methodResults) {
+    String testCase=methodResult.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
+    writer.startElement(testCase).attribute("name",methodResult.getName()).attribute("classname",className).attribute("time",String.valueOf(methodResult.getDuration() / 1000.0));
+    for (    Throwable failure : methodResult.getExceptions()) {
+      writer.startElement("failure").attribute("message",failureMessage(failure)).attribute("type",failure.getClass().getName());
+      writer.characters(stackTrace(failure));
+      writer.endElement();
+    }
+    if (outputAssociation.equals(TestOutputAssociation.WITH_TESTCASE)) {
+      writer.startElement("system-out");
+      writeOutputs(writer,classId,methodResult.getId(),TestOutputEvent.Destination.StdOut);
+      writer.endElement();
+      writer.startElement("system-err");
+      writeOutputs(writer,classId,methodResult.getId(),TestOutputEvent.Destination.StdErr);
+      writer.endElement();
+    }
+    writer.endElement();
+  }
+}

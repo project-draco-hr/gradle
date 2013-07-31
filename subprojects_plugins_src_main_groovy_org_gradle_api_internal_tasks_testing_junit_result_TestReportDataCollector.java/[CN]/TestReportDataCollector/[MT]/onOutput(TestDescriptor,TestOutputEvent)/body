@@ -6,8 +6,15 @@
   TestDescriptorInternal testDescriptorInternal=(TestDescriptorInternal)testDescriptor;
   TestClassResult classResult=results.get(className);
   if (classResult == null) {
-    classResult=new TestClassResult(className,0);
+    classResult=new TestClassResult(internalIdCounter++,className,0);
     results.put(className,classResult);
   }
-  outputWriter.onOutput(getInternalId(testDescriptorInternal),testDescriptorInternal,outputEvent.getDestination(),outputEvent.getMessage());
+  String name=testDescriptor.getName();
+  boolean isClassLevelOutput=name.equals(className);
+  if (isClassLevelOutput) {
+    outputWriter.onOutput(classResult.getId(),outputEvent);
+  }
+ else {
+    outputWriter.onOutput(classResult.getId(),getInternalId(testDescriptorInternal),outputEvent);
+  }
 }

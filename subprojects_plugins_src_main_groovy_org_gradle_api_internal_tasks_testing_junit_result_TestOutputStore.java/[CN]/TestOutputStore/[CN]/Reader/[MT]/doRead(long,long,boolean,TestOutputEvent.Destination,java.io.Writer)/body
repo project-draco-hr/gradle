@@ -1,0 +1,55 @@
+{
+  Index targetIndex=index.children.get(classId);
+  if (targetIndex != null && testId != 0) {
+    targetIndex=targetIndex.children.get(testId);
+  }
+  if (targetIndex == null) {
+    return;
+  }
+  boolean stdout=destination == TestOutputEvent.Destination.StdOut;
+  Region region=stdout ? targetIndex.stdOut : targetIndex.stdErr;
+  if (region.start < 0) {
+    return;
+  }
+  boolean ignoreClassLevel=!allClassOutput && testId != 0;
+  boolean ignoreTestLevel=!allClassOutput && testId == 0;
+  final File file=getOutputsFile();
+  try {
+    Input input=new Input(new FileInputStream(file));
+    skip(input,region.start);
+    try {
+      while (input.total() <= region.stop) {
+        boolean readStdout=input.readBoolean();
+        long readClassId=input.readLong(true);
+        long readTestId=input.readLong(true);
+        boolean isClassLevel=readTestId == 0;
+        if (stdout != readStdout || classId != readClassId) {
+          skipNext(input);
+          continue;
+        }
+        if (ignoreClassLevel && isClassLevel) {
+          skipNext(input);
+          continue;
+        }
+        if (ignoreTestLevel && !isClassLevel) {
+          skipNext(input);
+          continue;
+        }
+        if (testId == 0 || testId == readTestId) {
+          String message=readString(messageStorageCharset,input);
+          writer.write(message);
+        }
+ else {
+          skipNext(input);
+          continue;
+        }
+      }
+    }
+  finally {
+      input.close();
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+}

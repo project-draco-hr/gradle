@@ -11,13 +11,13 @@
  catch (  FileNotFoundException e) {
     throw new UncheckedIOException(e);
   }
-  IndexBuilder<String> rootBuilder=null;
+  IndexBuilder rootBuilder=null;
   try {
     int numClasses=input.readInt(true);
-    rootBuilder=new IndexBuilder<String>(String.class);
+    rootBuilder=new IndexBuilder();
     for (int classCounter=0; classCounter < numClasses; ++classCounter) {
-      String className=input.readString();
-      IndexBuilder<Long> classBuilder=new IndexBuilder<Long>(Long.class);
+      long classId=input.readLong(true);
+      IndexBuilder classBuilder=new IndexBuilder();
       int numEntries=input.readInt(true);
       for (int entryCounter=0; entryCounter < numEntries; ++entryCounter) {
         long testId=input.readLong(true);
@@ -25,7 +25,7 @@
         Region stdErr=new Region(input.readLong(),input.readLong());
         classBuilder.add(testId,new Index(stdOut,stdErr));
       }
-      rootBuilder.add(className,classBuilder.build());
+      rootBuilder.add(classId,classBuilder.build());
     }
   }
   finally {
