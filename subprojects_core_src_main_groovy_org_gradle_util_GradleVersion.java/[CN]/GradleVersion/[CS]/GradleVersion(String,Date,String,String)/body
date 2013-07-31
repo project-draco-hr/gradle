@@ -5,38 +5,39 @@
   this.buildTime=buildTime == null ? null : formatBuildTime(buildTime);
   Matcher matcher=VERSION_PATTERN.matcher(version);
   if (!matcher.matches()) {
-    versionPart=null;
-    snapshot=null;
-    stage=null;
-    return;
+    throw new IllegalArgumentException(String.format("'%s' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')",version));
   }
   versionPart=matcher.group(1);
-  if (matcher.group(3) != null) {
-    int stageNumber=0;
-    if (matcher.group(4).equals("milestone")) {
-      stageNumber=1;
+  majorPart=Integer.parseInt(matcher.group(2),10);
+  if (matcher.group(4) != null) {
+    int stageNumber;
+    if (matcher.group(5).equals("milestone")) {
+      stageNumber=STAGE_MILESTONE;
     }
- else     if (matcher.group(4).equals("preview")) {
+ else     if (matcher.group(5).equals("preview")) {
       stageNumber=2;
     }
- else     if (matcher.group(4).equals("rc")) {
+ else     if (matcher.group(5).equals("rc")) {
       stageNumber=3;
     }
-    String stageString=matcher.group(5);
+ else {
+      stageNumber=1;
+    }
+    String stageString=matcher.group(6);
     stage=new Stage(stageNumber,stageString);
   }
  else {
     stage=null;
   }
-  if (matcher.group(7) != null) {
+  if (matcher.group(8) != null) {
     try {
-      if (matcher.group(8) != null) {
-        snapshot=new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
+      if (matcher.group(9) != null) {
+        snapshot=new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(8)).getTime();
       }
  else {
         SimpleDateFormat format=new SimpleDateFormat("yyyyMMddHHmmss");
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
-        snapshot=format.parse(matcher.group(7)).getTime();
+        snapshot=format.parse(matcher.group(8)).getTime();
       }
     }
  catch (    ParseException e) {
