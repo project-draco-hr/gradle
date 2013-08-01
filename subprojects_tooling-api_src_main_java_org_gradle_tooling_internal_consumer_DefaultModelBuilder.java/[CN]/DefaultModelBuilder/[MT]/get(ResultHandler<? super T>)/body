@@ -1,12 +1,8 @@
 {
-  connection.run(modelType,operationParameters,new ResultHandlerAdapter<T>(handler){
-    @Override protected String connectionFailureMessage(    Throwable failure){
-      String message=String.format("Could not fetch model of type '%s' using %s.",modelType.getSimpleName(),connection.getDisplayName());
-      if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
-        message+="\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
-      }
-      return message;
+  connection.run(new AsyncConnection.ConnectionAction<T>(){
+    public T run(    ConsumerConnection connection){
+      return connection.run(modelType,operationParameters);
     }
   }
-);
+,new ResultHandlerAdapter<T>(handler));
 }
