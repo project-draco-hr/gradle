@@ -1,16 +1,15 @@
 {
   String name=getName();
-  VersionMatcher versionMatcher=getVersionMatcher();
   ModuleVersionIdentifier requestedVersion=DefaultModuleVersionIdentifier.newId(mrid);
   for (  VersionList.ListedVersion listedVersion : versions.sortLatestFirst(getLatestStrategy())) {
     String version=listedVersion.getVersion();
     ModuleRevisionId foundMrid=ModuleRevisionId.newInstance(mrid,version);
     ModuleVersionIdentifier foundVersion=DefaultModuleVersionIdentifier.newId(foundMrid);
-    if (!versionMatcher.accept(requestedVersion,foundVersion)) {
+    if (!getVersionMatcher().accept(requestedVersion,foundVersion)) {
       LOGGER.debug(name + ": rejected by version matcher: " + version);
       continue;
     }
-    boolean needsMetadata=versionMatcher.needModuleMetadata(requestedVersion,foundVersion);
+    boolean needsMetadata=getVersionMatcher().needModuleMetadata(requestedVersion,foundVersion);
     artifact=DefaultArtifact.cloneWithAnotherMrid(artifact,foundMrid);
     String resourcePath=listedVersion.getPattern().toPath(artifact);
     ExternalResource resource=getResource(resourcePath,artifact.getId(),forDownload || needsMetadata);
@@ -28,7 +27,7 @@
         continue;
       }
       metadataProcessor.process(new ModuleDetailsAdapter(metaData));
-      if (!versionMatcher.accept(requestedVersion,metaData)) {
+      if (!getVersionMatcher().accept(requestedVersion,metaData)) {
         LOGGER.debug(name + ": md rejected by version matcher: " + description);
         discardResource(resource);
         continue;
