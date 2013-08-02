@@ -27,18 +27,23 @@
   }
   new TestResultSerializer(binaryResultsDir).write(results.values());
   TestResultsProvider testResultsProvider=new InMemoryTestResultsProvider(results.values(),testOutputStore.reader());
-  JUnitXmlReport junitXml=reports.getJunitXml();
-  if (junitXml.isEnabled()) {
-    TestOutputAssociation outputAssociation=junitXml.isOutputPerTestCase() ? TestOutputAssociation.WITH_TESTCASE : TestOutputAssociation.WITH_SUITE;
-    Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator=new Binary2JUnitXmlReportGenerator(junitXml.getDestination(),testResultsProvider,outputAssociation);
-    binary2JUnitXmlReportGenerator.generate();
-  }
-  DirectoryReport html=reports.getHtml();
-  if (!html.isEnabled()) {
-    getLogger().info("Test report disabled, omitting generation of the HTML test report.");
-  }
+  try {
+    JUnitXmlReport junitXml=reports.getJunitXml();
+    if (junitXml.isEnabled()) {
+      TestOutputAssociation outputAssociation=junitXml.isOutputPerTestCase() ? TestOutputAssociation.WITH_TESTCASE : TestOutputAssociation.WITH_SUITE;
+      Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator=new Binary2JUnitXmlReportGenerator(junitXml.getDestination(),testResultsProvider,outputAssociation);
+      binary2JUnitXmlReportGenerator.generate();
+    }
+    DirectoryReport html=reports.getHtml();
+    if (!html.isEnabled()) {
+      getLogger().info("Test report disabled, omitting generation of the HTML test report.");
+    }
  else {
-    testReporter.generateReport(testResultsProvider,html.getDestination());
+      testReporter.generateReport(testResultsProvider,html.getDestination());
+    }
+  }
+  finally {
+    CompositeStoppable.stoppable(testResultsProvider).stop();
   }
   testFramework=null;
   if (testCountLogger.hadFailures()) {

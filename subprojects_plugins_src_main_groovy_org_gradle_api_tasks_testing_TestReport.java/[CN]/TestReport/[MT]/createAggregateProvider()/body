@@ -1,8 +1,14 @@
 {
-  return new AggregateTestResultsProvider(collect(getTestResultDirs(),new Transformer<TestResultsProvider,File>(){
-    public TestResultsProvider transform(    File dir){
-      return new BinaryResultBackedTestResultsProvider(dir);
+  List<TestResultsProvider> resultsProviders=new LinkedList<TestResultsProvider>();
+  try {
+    return new AggregateTestResultsProvider(collect(getTestResultDirs(),resultsProviders,new Transformer<TestResultsProvider,File>(){
+      public TestResultsProvider transform(      File dir){
+        return new BinaryResultBackedTestResultsProvider(dir);
+      }
     }
-  }
 ));
+  }
+  finally {
+    stoppable(resultsProviders).stop();
+  }
 }

@@ -13,43 +13,48 @@
   }
   boolean ignoreClassLevel=!allClassOutput && testId != 0;
   boolean ignoreTestLevel=!allClassOutput && testId == 0;
-  final File file=getOutputsFile();
   try {
-    Input input=new Input(new FileInputStream(file));
-    skip(input,region.start);
-    try {
-      while (input.total() <= region.stop) {
-        boolean readStdout=input.readBoolean();
-        long readClassId=input.readLong(true);
-        long readTestId=input.readLong(true);
-        boolean isClassLevel=readTestId == 0;
-        if (stdout != readStdout || classId != readClassId) {
-          skipNext(input);
-          continue;
+    dataFile.seek(region.start);
+    while (dataFile.getFilePointer() <= region.stop) {
+      dataFile.read(recordHeaderBuffer);
+      Input input=new Input(recordHeaderBuffer);
+      boolean readStdout=input.readBoolean();
+      long readClassId=input.readLong();
+      long readTestId=input.readLong();
+      int readLength=input.readInt();
+      input.close();
+      boolean isClassLevel=readTestId == 0;
+      if (stdout != readStdout || classId != readClassId) {
+        dataFile.skipBytes(readLength);
+        continue;
+      }
+      if (ignoreClassLevel && isClassLevel) {
+        dataFile.skipBytes(readLength);
+        continue;
+      }
+      if (ignoreTestLevel && !isClassLevel) {
+        dataFile.skipBytes(readLength);
+        continue;
+      }
+      if (testId == 0 || testId == readTestId) {
+        byte[] stringBytes=new byte[readLength];
+        dataFile.read(stringBytes);
+        String message;
+        try {
+          message=new String(stringBytes,messageStorageCharset.name());
         }
-        if (ignoreClassLevel && isClassLevel) {
-          skipNext(input);
-          continue;
+ catch (        UnsupportedEncodingException e) {
+          throw UncheckedException.throwAsUncheckedException(e);
         }
-        if (ignoreTestLevel && !isClassLevel) {
-          skipNext(input);
-          continue;
-        }
-        if (testId == 0 || testId == readTestId) {
-          String message=readString(messageStorageCharset,input);
-          writer.write(message);
-        }
+        writer.write(message);
+      }
  else {
-          skipNext(input);
-          continue;
-        }
+        dataFile.skipBytes(readLength);
+        continue;
       }
     }
-  finally {
-      input.close();
-    }
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
+ catch (  IOException e1) {
+    throw new UncheckedIOException(e1);
   }
 }

@@ -2,7 +2,15 @@
   boolean stdout=outputEvent.getDestination() == TestOutputEvent.Destination.StdOut;
   mark(classId,testId,stdout);
   output.writeBoolean(stdout);
-  output.writeLong(classId,true);
-  output.writeLong(testId,true);
-  writeString(outputEvent.getMessage(),messageStorageCharset,output);
+  output.writeLong(classId);
+  output.writeLong(testId);
+  byte[] bytes;
+  try {
+    bytes=outputEvent.getMessage().getBytes(messageStorageCharset.name());
+  }
+ catch (  UnsupportedEncodingException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+  output.writeInt(bytes.length);
+  output.writeBytes(bytes);
 }
