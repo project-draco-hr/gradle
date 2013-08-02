@@ -1,0 +1,22 @@
+{
+  lock.lock();
+  try {
+    if (usages.containsKey(Thread.currentThread())) {
+      throw new IllegalStateException(String.format("Cannot stop %s from a thread that is using it.",displayName));
+    }
+    while (!usages.isEmpty()) {
+      try {
+        condition.await();
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+    if (state != State.STOPPED) {
+      state=State.STOPPED;
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+}

@@ -1,0 +1,42 @@
+{
+  lock.lock();
+  try {
+switch (state) {
+case STOPPING:
+      throw new IllegalStateException(String.format("Cannot use %s as it is currently stopping.",displayName));
+case STOPPED:
+    throw new IllegalStateException(String.format("Cannot use %s as it has been stopped.",displayName));
+}
+Integer depth=usages.get(Thread.currentThread());
+if (depth == null) {
+  usages.put(Thread.currentThread(),1);
+}
+ else {
+  usages.put(Thread.currentThread(),depth + 1);
+}
+}
+  finally {
+lock.unlock();
+}
+try {
+runnable.run();
+}
+  finally {
+lock.lock();
+try {
+  Integer depth=usages.remove(Thread.currentThread());
+  if (depth > 1) {
+    usages.put(Thread.currentThread(),depth - 1);
+  }
+  if (usages.isEmpty()) {
+    condition.signalAll();
+    if (state == State.STOPPING) {
+      state=State.STOPPED;
+    }
+  }
+}
+  finally {
+  lock.unlock();
+}
+}
+}
