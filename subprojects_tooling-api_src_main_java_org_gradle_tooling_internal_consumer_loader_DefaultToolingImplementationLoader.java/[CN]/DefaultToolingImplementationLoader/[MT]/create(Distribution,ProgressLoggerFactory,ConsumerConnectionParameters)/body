@@ -14,7 +14,10 @@
     ProtocolToModelAdapter adapter=new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
     ModelMapping modelMapping=new ModelMapping();
     AbstractConsumerConnection adaptedConnection;
-    if (connection instanceof ModelBuilder) {
+    if (connection instanceof ModelBuilder && connection instanceof ClientBuildActionExecutor) {
+      adaptedConnection=new ActionAwareConsumerConnection(connection,adapter);
+    }
+ else     if (connection instanceof ModelBuilder) {
       adaptedConnection=new ModelBuilderBackedConsumerConnection(connection,adapter);
     }
  else     if (connection instanceof BuildActionRunner) {
