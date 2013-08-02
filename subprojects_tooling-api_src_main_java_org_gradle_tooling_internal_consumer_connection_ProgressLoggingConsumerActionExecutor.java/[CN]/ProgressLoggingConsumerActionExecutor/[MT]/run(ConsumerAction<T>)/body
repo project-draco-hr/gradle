@@ -1,0 +1,20 @@
+{
+  ConsumerOperationParameters parameters=action.getParameters();
+  ProgressListenerAdapter listener=new ProgressListenerAdapter(parameters.getProgressListener());
+  ListenerManager listenerManager=loggingProvider.getListenerManager();
+  listenerManager.addListener(listener);
+  try {
+    ProgressLogger progressLogger=loggingProvider.getProgressLoggerFactory().newOperation(ProgressLoggingConsumerActionExecutor.class);
+    progressLogger.setDescription("Build");
+    progressLogger.started();
+    try {
+      return actionExecutor.run(action);
+    }
+  finally {
+      progressLogger.completed();
+    }
+  }
+  finally {
+    listenerManager.removeListener(listener);
+  }
+}
