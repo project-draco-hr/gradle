@@ -1,7 +1,6 @@
 {
   ModuleRevisionId moduleRevisionId=dependencyDescriptor.getDependencyRevisionId();
-  ModuleVersionIdentifier moduleVersion=DefaultModuleVersionIdentifier.newId(moduleRevisionId);
-  boolean isDynamic=getVersionMatcher().isDynamic(moduleVersion);
+  boolean isDynamic=versionMatcher.isDynamic(moduleRevisionId.getRevision());
   ResolvedArtifact ivyRef=findIvyFileRef(dependencyDescriptor);
   if (ivyRef == null) {
     if (!isAllownomd()) {
@@ -37,7 +36,7 @@
         moduleVersionMetaData=getArtifactMetadata(ivyRef.artifact,ivyRef.resource);
       }
       if (isCheckconsistency()) {
-        checkMetadataConsistency(moduleVersion,moduleVersionMetaData,ivyRef);
+        checkMetadataConsistency(DefaultModuleVersionSelector.newSelector(moduleRevisionId),moduleVersionMetaData,ivyRef);
       }
       LOGGER.debug("Ivy file found for module '{}' in repository '{}'.",moduleRevisionId,getName());
       result.resolved(moduleVersionMetaData.getDescriptor(),isChanging(moduleVersionMetaData.getDescriptor()),null);

@@ -1,19 +1,17 @@
 {
+  String requestedVersion=requestedRevision.getRevision();
   String name=getName();
-  ModuleVersionIdentifier requestedVersion=DefaultModuleVersionIdentifier.newId(mrid);
-  for (  VersionList.ListedVersion listedVersion : versions.sortLatestFirst(getLatestStrategy())) {
-    String version=listedVersion.getVersion();
-    ModuleRevisionId foundMrid=ModuleRevisionId.newInstance(mrid,version);
-    ModuleVersionIdentifier foundVersion=DefaultModuleVersionIdentifier.newId(foundMrid);
-    if (!getVersionMatcher().accept(requestedVersion,foundVersion)) {
-      LOGGER.debug(name + ": rejected by version matcher: " + version);
+  for (  VersionList.ListedVersion listedVersion : versions.sortLatestFirst(latestStrategy)) {
+    String foundVersion=listedVersion.getVersion();
+    if (!versionMatcher.accept(requestedVersion,foundVersion)) {
+      LOGGER.debug(name + ": rejected by version matcher: " + foundVersion);
       continue;
     }
-    boolean needsMetadata=getVersionMatcher().needModuleMetadata(requestedVersion,foundVersion);
-    artifact=DefaultArtifact.cloneWithAnotherMrid(artifact,foundMrid);
+    boolean needsMetadata=versionMatcher.needModuleMetadata(requestedVersion,foundVersion);
+    artifact=DefaultArtifact.cloneWithAnotherMrid(artifact,ModuleRevisionId.newInstance(requestedRevision,foundVersion));
     String resourcePath=listedVersion.getPattern().toPath(artifact);
     ExternalResource resource=getResource(resourcePath,artifact.getId(),forDownload || needsMetadata);
-    String description=version + " [" + resource+ "]";
+    String description=foundVersion + " [" + resource+ "]";
     if (!resource.exists()) {
       LOGGER.debug(name + ": unreachable: " + description);
       discardResource(resource);
@@ -27,7 +25,7 @@
         continue;
       }
       metadataProcessor.process(new ModuleDetailsAdapter(metaData));
-      if (!getVersionMatcher().accept(requestedVersion,metaData)) {
+      if (!versionMatcher.accept(requestedVersion,metaData)) {
         LOGGER.debug(name + ": md rejected by version matcher: " + description);
         discardResource(resource);
         continue;
