@@ -1,0 +1,27 @@
+{
+  spec.walk(new Action<CopySpecInternal>(){
+    public void execute(    final CopySpecInternal spec){
+      FileTree source=spec.getSource();
+      source.visit(new FileVisitor(){
+        public void visitDir(        FileVisitDetails dirDetails){
+          visit(dirDetails);
+        }
+        public void visitFile(        FileVisitDetails fileDetails){
+          visit(fileDetails);
+        }
+        private void visit(        FileVisitDetails visitDetails){
+          DefaultFileCopyDetails details=instantiator.newInstance(DefaultFileCopyDetails.class,visitDetails,spec,fileSystem);
+          for (          Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
+            action.execute(details);
+            if (details.isExcluded()) {
+              return;
+            }
+          }
+          action.execute(details);
+        }
+      }
+);
+    }
+  }
+);
+}
