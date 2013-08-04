@@ -4,7 +4,13 @@
   }
  catch (  Exception e) {
     LOG.debug("Problem receiving message to the daemon. Performing 'on failure' operation...");
-    onFailure.run();
-    throw new GradleException("Unable to receive a message from the daemon.",e);
+    if (!hasReceived) {
+      onFailure.run();
+      throw new StaleDaemonAddressException("Unable to receive a message from the daemon.",e);
+    }
+    throw new DaemonConnectionException("Unable to receive the message to the daemon.",e);
+  }
+ finally {
+    hasReceived=true;
   }
 }
