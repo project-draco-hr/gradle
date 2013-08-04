@@ -1,23 +1,17 @@
 {
   if ("pom".equals(packaging)) {
-    DependencyResolver resolver=parserSettings.getResolver(mrid);
-    if (resolver != null) {
-      DefaultArtifact artifact=new DefaultArtifact(mrid,new Date(),artifactId,"jar","jar");
-      if (!ArtifactOrigin.isUnknown(resolver.locate(artifact))) {
-        ivyModuleDescriptor.addArtifact("master",artifact);
-      }
+    DefaultArtifact artifact=new DefaultArtifact(mrid,new Date(),artifactId,"jar","jar");
+    if (parserSettings.artifactExists(artifact)) {
+      ivyModuleDescriptor.addArtifact("master",artifact);
     }
     return;
   }
   if (!isKnownJarPackaging(packaging)) {
-    DependencyResolver resolver=parserSettings.getResolver(mrid);
-    if (resolver != null) {
-      DefaultArtifact artifact=new DefaultArtifact(mrid,new Date(),artifactId,packaging,packaging);
-      if (!ArtifactOrigin.isUnknown(resolver.locate(artifact))) {
-        ivyModuleDescriptor.addArtifact("master",artifact);
-        DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
-        return;
-      }
+    DefaultArtifact artifact=new DefaultArtifact(mrid,new Date(),artifactId,packaging,packaging);
+    if (parserSettings.artifactExists(artifact)) {
+      ivyModuleDescriptor.addArtifact("master",artifact);
+      DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
+      return;
     }
   }
   ivyModuleDescriptor.addArtifact("master",new DefaultArtifact(mrid,new Date(),artifactId,packaging,"jar"));
