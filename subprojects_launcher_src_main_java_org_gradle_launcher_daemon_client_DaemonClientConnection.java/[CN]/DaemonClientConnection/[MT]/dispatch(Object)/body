@@ -5,10 +5,9 @@
   }
  catch (  Exception e) {
     LOG.debug("Problem dispatching message to the daemon. Performing 'on failure' operation...");
-    if (!hasReceived) {
-      onFailure.run();
-      throw new StaleDaemonAddressException("Unable to dispatch the message to the daemon.",e);
+    if (!hasReceived && staleAddressDetector.maybeStaleAddress(e)) {
+      throw new StaleDaemonAddressException("Could not dispatch a message to the daemon.",e);
     }
-    throw new DaemonConnectionException("Unable to dispatch the message to the daemon.",e);
+    throw new DaemonConnectionException("Could not dispatch a message to the daemon.",e);
   }
 }

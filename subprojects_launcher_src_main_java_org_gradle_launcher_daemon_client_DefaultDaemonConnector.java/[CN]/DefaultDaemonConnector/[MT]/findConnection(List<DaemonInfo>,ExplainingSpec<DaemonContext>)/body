@@ -1,11 +1,11 @@
 {
-  for (  DaemonInfo daemonInfo : daemonInfos) {
+  for (  final DaemonInfo daemonInfo : daemonInfos) {
     if (!constraint.isSatisfiedBy(daemonInfo.getContext())) {
-      LOGGER.debug("Found daemon (address: {}, idle: {}) however it's context does not match the desired criteria.\n" + constraint.whyUnsatisfied(daemonInfo.getContext()) + "\n"+ "  Looking for a different daemon...",daemonInfo.getAddress(),daemonInfo.isIdle());
+      LOGGER.debug("Found daemon (address: {}, idle: {}) however its context does not match the desired criteria.\n" + constraint.whyUnsatisfied(daemonInfo.getContext()) + "\n"+ "  Looking for a different daemon...",daemonInfo.getAddress(),daemonInfo.isIdle());
       continue;
     }
     try {
-      return connectToDaemon(daemonInfo);
+      return connectToDaemon(daemonInfo,new CleanupOnStaleAddress(daemonInfo,true));
     }
  catch (    ConnectException e) {
       LOGGER.debug("Cannot connect to the daemon at " + daemonInfo.getAddress() + " due to "+ e+ ". Trying a different daemon...");
