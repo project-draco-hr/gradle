@@ -12,7 +12,7 @@
             }
           }
  else {
-            maybeVisit(details.getRelativePath().getParent(),details.getCopySpec(),action);
+            maybeVisit(details.getRelativePath().getParent(),details.isIncludeEmptyDirs(),action);
             action.execute(details);
           }
         }
@@ -21,23 +21,23 @@
       for (      RelativePath path : new LinkedHashSet<RelativePath>(pendingDirs.keySet())) {
         List<FileCopyDetailsInternal> detailsList=new ArrayList<FileCopyDetailsInternal>(pendingDirs.get(path));
         for (        FileCopyDetailsInternal details : detailsList) {
-          if (details.getCopySpec().getIncludeEmptyDirs()) {
-            maybeVisit(path,details.getCopySpec(),action);
+          if (details.isIncludeEmptyDirs()) {
+            maybeVisit(path,details.isIncludeEmptyDirs(),action);
           }
         }
       }
       visitedDirs.clear();
       pendingDirs.clear();
     }
-    private void maybeVisit(    RelativePath path,    CopySpecInternal copySpec,    Action<? super FileCopyDetailsInternal> delegateAction){
+    private void maybeVisit(    RelativePath path,    boolean includeEmptyDirs,    Action<? super FileCopyDetailsInternal> delegateAction){
       if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
         return;
       }
-      maybeVisit(path.getParent(),copySpec,delegateAction);
+      maybeVisit(path.getParent(),includeEmptyDirs,delegateAction);
       List<FileCopyDetailsInternal> detailsForPath=pendingDirs.removeAll(path);
       FileCopyDetailsInternal dir;
       if (detailsForPath.isEmpty()) {
-        dir=new StubbedFileCopyDetails(path,copySpec);
+        dir=new StubbedFileCopyDetails(path,includeEmptyDirs);
       }
  else {
         dir=detailsForPath.get(0);
