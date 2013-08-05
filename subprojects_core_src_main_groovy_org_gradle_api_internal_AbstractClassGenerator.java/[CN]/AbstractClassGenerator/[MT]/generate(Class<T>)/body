@@ -1,43 +1,9 @@
 {
-  Map<Class<?>,Class<?>> cache=GENERATED_CLASSES.get(getClass());
-  if (cache == null) {
-synchronized (getClass()) {
-      cache=GENERATED_CLASSES.get(getClass());
-      if (cache == null) {
-        cache=new ReferenceMap(AbstractReferenceMap.WEAK,AbstractReferenceMap.WEAK);
-        GENERATED_CLASSES.put(getClass(),cache);
-        CACHE_LOCKS.put(getClass(),new ConcurrentHashMap<Class<?>,Lock>(2));
-      }
-    }
-  }
-  Class<?> generatedClass=cache.get(type);
-  if (generatedClass != null) {
-    return generatedClass.asSubclass(type);
-  }
-  if (Modifier.isPrivate(type.getModifiers())) {
-    throw new GradleException(String.format("Cannot create a proxy class for private class '%s'.",type.getSimpleName()));
-  }
-  if (Modifier.isAbstract(type.getModifiers())) {
-    throw new GradleException(String.format("Cannot create a proxy class for abstract class '%s'.",type.getSimpleName()));
-  }
-  ConcurrentHashMap<Class<?>,Lock> locks=CACHE_LOCKS.get(getClass());
-  Lock lock=new ReentrantLock();
-  Lock existingLock=locks.putIfAbsent(type,lock);
-  if (existingLock != null) {
-    lock=existingLock;
-  }
-  lock.lock();
   try {
-    Class<?> subclass=cache.get(type);
-    if (subclass == null) {
-      subclass=doGenerate(type);
-      cache.put(type,subclass);
-      cache.put(subclass,subclass);
-    }
-    return subclass.asSubclass(type);
+    CACHE_LOCK.lock();
+    return generateUnderLock(type);
   }
   finally {
-    locks.remove(type);
-    lock.unlock();
+    CACHE_LOCK.unlock();
   }
 }

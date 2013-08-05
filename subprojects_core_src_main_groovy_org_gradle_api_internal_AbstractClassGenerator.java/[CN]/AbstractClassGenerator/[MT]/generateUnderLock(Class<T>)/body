@@ -1,4 +1,19 @@
 {
+  Map<Class<?>,Class<?>> cache=GENERATED_CLASSES.get(getClass());
+  if (cache == null) {
+    cache=new ReferenceMap(AbstractReferenceMap.WEAK,AbstractReferenceMap.WEAK);
+    GENERATED_CLASSES.put(getClass(),cache);
+  }
+  Class<?> generatedClass=cache.get(type);
+  if (generatedClass != null) {
+    return generatedClass.asSubclass(type);
+  }
+  if (Modifier.isPrivate(type.getModifiers())) {
+    throw new GradleException(String.format("Cannot create a proxy class for private class '%s'.",type.getSimpleName()));
+  }
+  if (Modifier.isAbstract(type.getModifiers())) {
+    throw new GradleException(String.format("Cannot create a proxy class for abstract class '%s'.",type.getSimpleName()));
+  }
   Class<? extends T> subclass;
   try {
     ClassBuilder<T> builder=start(type);
@@ -120,5 +135,7 @@
  catch (  Throwable e) {
     throw new GradleException(String.format("Could not generate a proxy class for class %s.",type.getName()),e);
   }
+  cache.put(type,subclass);
+  cache.put(subclass,subclass);
   return subclass;
 }
