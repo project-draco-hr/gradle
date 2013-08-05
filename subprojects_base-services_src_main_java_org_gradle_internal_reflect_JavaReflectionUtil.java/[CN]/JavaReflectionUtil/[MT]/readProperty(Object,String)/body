@@ -1,18 +1,12 @@
 {
   try {
-    Method getterMethod;
-    try {
-      getterMethod=target.getClass().getMethod(toMethodName("get",property));
+    Method getterMethod=findGetterMethod(target,property);
+    if (getterMethod == null) {
+      throw new NoSuchMethodException(String.format("could not find getter method for property '%s'",property));
     }
- catch (    NoSuchMethodException e) {
-      try {
-        getterMethod=target.getClass().getMethod(toMethodName("is",property));
-      }
- catch (      NoSuchMethodException e2) {
-        throw e;
-      }
+ else {
+      return getterMethod.invoke(target);
     }
-    return getterMethod.invoke(target);
   }
  catch (  Exception e) {
     throw UncheckedException.throwAsUncheckedException(e);
