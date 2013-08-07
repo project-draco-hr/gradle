@@ -4,7 +4,8 @@
     launcher.addListener(new TasksCompletionListener(){
       public void onTasksFinished(      GradleInternal gradle){
         ToolingModelBuilder builder=getToolingModelBuilderRegistry(gradle).getBuilder(modelName);
-        model=builder.buildAll(modelName,gradle.getDefaultProject());
+        Object result=builder.buildAll(modelName,gradle.getDefaultProject());
+        model=getPayloadSerializer(gradle).serialize(result);
       }
     }
 );
@@ -15,13 +16,12 @@
       public void onConfigure(      GradleInternal gradle){
         ensureAllProjectsEvaluated(gradle);
         ToolingModelBuilder builder=getToolingModelBuilderRegistry(gradle).getBuilder(modelName);
-        model=builder.buildAll(modelName,gradle.getDefaultProject());
+        Object result=builder.buildAll(modelName,gradle.getDefaultProject());
+        model=getPayloadSerializer(gradle).serialize(result);
       }
     }
 );
     buildController.configure();
   }
-  List<URL> classpath=model == null ? Collections.<URL>emptyList() : ClasspathUtil.getClasspath(model.getClass().getClassLoader());
-  byte[] serializedModel=GUtil.serialize(model);
-  return new ToolingModel(classpath,serializedModel);
+  return model;
 }
