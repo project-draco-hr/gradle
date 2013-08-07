@@ -1,6 +1,14 @@
 {
   PayloadSerializer payloadSerializer=((DefaultGradleLauncher)buildController.getLauncher()).getGradle().getServices().get(PayloadSerializer.class);
   ClientBuildAction<?> action=(ClientBuildAction<?>)payloadSerializer.deserialize(this.action);
-  Object result=action.execute();
+  Object result=action.execute(new InternalBuildController(){
+    public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
+      throw new UnsupportedOperationException();
+    }
+    public BuildResult<?> getModel(    ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
+      throw new UnsupportedOperationException();
+    }
+  }
+);
   return payloadSerializer.serialize(result);
 }
