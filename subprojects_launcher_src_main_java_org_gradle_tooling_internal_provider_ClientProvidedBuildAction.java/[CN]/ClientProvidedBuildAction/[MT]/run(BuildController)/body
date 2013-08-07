@@ -1,12 +1,23 @@
 {
-  PayloadSerializer payloadSerializer=((DefaultGradleLauncher)buildController.getLauncher()).getGradle().getServices().get(PayloadSerializer.class);
+  final DefaultGradleLauncher gradleLauncher=(DefaultGradleLauncher)buildController.getLauncher();
+  PayloadSerializer payloadSerializer=gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
   InternalBuildAction<?> action=(InternalBuildAction<?>)payloadSerializer.deserialize(this.action);
   Object result=action.execute(new InternalBuildController(){
     public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
       throw new UnsupportedOperationException();
     }
-    public BuildResult<?> getModel(    ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
-      throw new UnsupportedOperationException();
+    public BuildResult<?> getModel(    final ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
+      final AtomicReference<Object> result=new AtomicReference<Object>();
+      gradleLauncher.addListener(new ModelConfigurationListener(){
+        public void onConfigure(        GradleInternal gradle){
+          ToolingModelBuilder builder=gradleLauncher.getGradle().getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class).getBuilder(modelIdentifier.getName());
+          Object model=builder.buildAll(modelIdentifier.getName(),gradle.getDefaultProject());
+          result.set(model);
+        }
+      }
+);
+      buildController.configure();
+      return new ProviderBuildResult<Object>(result.get());
     }
   }
 );
