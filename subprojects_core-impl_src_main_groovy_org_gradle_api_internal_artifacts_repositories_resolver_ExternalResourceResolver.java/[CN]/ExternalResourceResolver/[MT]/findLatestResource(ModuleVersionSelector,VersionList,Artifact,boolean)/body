@@ -1,5 +1,5 @@
 {
-  String requestedVersion=requestedRevision.getRevision();
+  String requestedVersion=selector.getVersion();
   String name=getName();
   for (  VersionList.ListedVersion listedVersion : versions.sortLatestFirst(latestStrategy)) {
     String foundVersion=listedVersion.getVersion();
@@ -8,7 +8,8 @@
       LOGGER.debug(name + ": rejected by version matcher: " + foundVersion);
       continue;
     }
-    artifact=DefaultArtifact.cloneWithAnotherMrid(artifact,ModuleRevisionId.newInstance(requestedRevision,foundVersion));
+    ModuleRevisionId revision=IvyUtil.createModuleRevisionId(selector.getGroup(),selector.getName(),foundVersion,null);
+    artifact=DefaultArtifact.cloneWithAnotherMrid(artifact,revision);
     String resourcePath=listedVersion.getPattern().toPath(artifact);
     ExternalResource resource=getResource(resourcePath,artifact.getId(),forDownload || needsMetadata);
     String description=foundVersion + " [" + resource+ "]";
