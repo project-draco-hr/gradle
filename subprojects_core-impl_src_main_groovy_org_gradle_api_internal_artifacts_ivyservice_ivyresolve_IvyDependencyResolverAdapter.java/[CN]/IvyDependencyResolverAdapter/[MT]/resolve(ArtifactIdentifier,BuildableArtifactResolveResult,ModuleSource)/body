@@ -1,6 +1,12 @@
 {
-  Artifact ivyArtifact=DefaultArtifactIdentifier.toArtifact(artifact);
-  ArtifactDownloadReport artifactDownloadReport=resolver.download(new Artifact[]{ivyArtifact},downloadOptions).getArtifactReport(ivyArtifact);
+  final Artifact ivyArtifact=DefaultArtifactIdentifier.toArtifact(artifact);
+  DownloadReport download=cacheAccess.useCache("ivy download",new Factory<DownloadReport>(){
+    public DownloadReport create(){
+      return resolver.download(new Artifact[]{ivyArtifact},downloadOptions);
+    }
+  }
+);
+  ArtifactDownloadReport artifactDownloadReport=download.getArtifactReport(ivyArtifact);
   if (downloadFailed(artifactDownloadReport)) {
     if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
       EnhancedArtifactDownloadReport enhancedReport=(EnhancedArtifactDownloadReport)artifactDownloadReport;
