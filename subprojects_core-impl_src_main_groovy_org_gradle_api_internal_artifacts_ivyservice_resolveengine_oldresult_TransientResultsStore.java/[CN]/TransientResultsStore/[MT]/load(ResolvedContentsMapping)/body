@@ -1,10 +1,11 @@
 {
 synchronized (lock) {
-    if (cache != null) {
-      return cache;
+    TransientConfigurationResults cached=cache.load();
+    if (cached != null) {
+      return cached;
     }
     LOG.info("Loading dependency resolution results from disk (old model).");
-    cache=new DefaultTransientConfigurationResults();
+    DefaultTransientConfigurationResults results=new DefaultTransientConfigurationResults();
     output=null;
     try {
       while (true) {
@@ -14,24 +15,25 @@ synchronized (lock) {
 switch (type) {
 case 1:
           id=s.read((DataInput)input);
-        cache.allDependencies.put(id,new DefaultResolvedDependency(id.getId(),id.getConfiguration()));
+        results.allDependencies.put(id,new DefaultResolvedDependency(id.getId(),id.getConfiguration()));
       break;
 case 2:
     id=s.read((DataInput)input);
-  cache.root=cache.allDependencies.get(id);
-return cache;
+  results.root=results.allDependencies.get(id);
+cache.store(results);
+return results;
 case 3:
 id=s.read((DataInput)input);
-cache.firstLevelDependencies.put(mapping.getModuleDependency(id),cache.allDependencies.get(id));
+results.firstLevelDependencies.put(mapping.getModuleDependency(id),results.allDependencies.get(id));
 break;
 case 4:
-DefaultResolvedDependency parent=cache.allDependencies.get(s.read((DataInput)input));
-DefaultResolvedDependency child=cache.allDependencies.get(s.read((DataInput)input));
+DefaultResolvedDependency parent=results.allDependencies.get(s.read((DataInput)input));
+DefaultResolvedDependency child=results.allDependencies.get(s.read((DataInput)input));
 parent.addChild(child);
 break;
 case 5:
-DefaultResolvedDependency c=cache.allDependencies.get(s.read((DataInput)input));
-DefaultResolvedDependency p=cache.allDependencies.get(s.read((DataInput)input));
+DefaultResolvedDependency c=results.allDependencies.get(s.read((DataInput)input));
+DefaultResolvedDependency p=results.allDependencies.get(s.read((DataInput)input));
 c.addParentSpecificArtifacts(p,newHashSet(mapping.getArtifact(input.readLong())));
 break;
 }

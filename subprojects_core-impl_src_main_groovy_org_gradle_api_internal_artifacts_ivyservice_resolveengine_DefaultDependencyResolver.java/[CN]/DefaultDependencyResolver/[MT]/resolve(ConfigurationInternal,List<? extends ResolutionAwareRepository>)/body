@@ -19,8 +19,10 @@
       conflictResolver=new VersionSelectionReasonResolver(conflictResolver);
       DependencyGraphBuilder builder=new DependencyGraphBuilder(idResolver,projectDependencyResolver,conflictResolver,new DefaultDependencyToConfigurationResolver());
       ResolutionResultBuilder newGraphBuilder=new ResolutionResultBuilder();
-      BinaryStore binaryStore=storeFactory.createStore(configuration);
-      DefaultResolvedConfigurationBuilder oldGraphBuilder=new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory,binaryStore);
+      BinaryStore binaryStore=storeFactory.createBinaryStore(configuration);
+      Store<TransientConfigurationResults> resultsCache=storeFactory.createCachedStore(configuration);
+      TransientResultsStore resultsStore=new TransientResultsStore(binaryStore,resultsCache);
+      DefaultResolvedConfigurationBuilder oldGraphBuilder=new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory,resultsStore);
       builder.resolve(configuration,newGraphBuilder,oldGraphBuilder);
       DefaultLenientConfiguration result=new DefaultLenientConfiguration(configuration,oldGraphBuilder,cacheLockingManager);
       return new ResolverResults(new DefaultResolvedConfiguration(result),newGraphBuilder.getResult());
