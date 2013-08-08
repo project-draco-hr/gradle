@@ -1,0 +1,50 @@
+{
+  try {
+    final Map<ClassLoader,Short> classLoadersIds=new HashMap<ClassLoader,Short>();
+    final Map<Short,ClassLoaderDetails> classLoaderDetails=new HashMap<Short,ClassLoaderDetails>();
+    final Set<ClassLoader> systemClassLoaders=new HashSet<ClassLoader>();
+    for (ClassLoader cl=ClassLoader.getSystemClassLoader().getParent(); cl != null; cl=cl.getParent()) {
+      systemClassLoaders.add(cl);
+    }
+    ByteArrayOutputStream content=new ByteArrayOutputStream();
+    ObjectOutputStream objectStream=new ObjectOutputStream(content){
+      @Override protected void writeClassDescriptor(      ObjectStreamClass desc) throws IOException {
+        Class<?> targetClass=desc.forClass();
+        writeClassLoader(targetClass);
+        writeUTF(targetClass.getName());
+      }
+      @Override protected void annotateProxyClass(      Class<?> cl) throws IOException {
+        writeClassLoader(cl);
+        writeInt(cl.getInterfaces().length);
+        for (        Class<?> type : cl.getInterfaces()) {
+          writeClassDescriptor(ObjectStreamClass.lookupAny(type));
+        }
+      }
+      private void writeClassLoader(      Class<?> targetClass) throws IOException {
+        writeShort(getClassLoaderId(targetClass));
+      }
+      private short getClassLoaderId(      Class<?> targetClass){
+        ClassLoader classLoader=targetClass.getClassLoader();
+        if (classLoader == null || systemClassLoaders.contains(classLoader)) {
+          return SYSTEM_CLASS_LOADER_ID;
+        }
+        Short id=classLoadersIds.get(classLoader);
+        if (id != null) {
+          return id;
+        }
+        ClassLoaderDetails details=map.getDetails(classLoader);
+        id=(short)(classLoadersIds.size() + SYSTEM_CLASS_LOADER_ID + 1);
+        classLoadersIds.put(classLoader,id);
+        classLoaderDetails.put(id,details);
+        return id;
+      }
+    }
+;
+    objectStream.writeObject(payload);
+    objectStream.close();
+    return new SerializedPayload(classLoaderDetails,content.toByteArray());
+  }
+ catch (  IOException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+}

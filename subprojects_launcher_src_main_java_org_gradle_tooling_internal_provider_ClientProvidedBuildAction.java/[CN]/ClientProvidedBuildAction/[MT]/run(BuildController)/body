@@ -1,25 +1,25 @@
 {
   final DefaultGradleLauncher gradleLauncher=(DefaultGradleLauncher)buildController.getLauncher();
   PayloadSerializer payloadSerializer=gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
-  InternalBuildAction<?> action=(InternalBuildAction<?>)payloadSerializer.deserialize(this.action);
-  Object result=action.execute(new InternalBuildController(){
-    public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
-      throw new UnsupportedOperationException();
-    }
-    public BuildResult<?> getModel(    final ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
-      final AtomicReference<Object> result=new AtomicReference<Object>();
-      gradleLauncher.addListener(new ModelConfigurationListener(){
-        public void onConfigure(        GradleInternal gradle){
-          ToolingModelBuilder builder=gradleLauncher.getGradle().getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class).getBuilder(modelIdentifier.getName());
+  final InternalBuildAction<?> action=(InternalBuildAction<?>)payloadSerializer.deserialize(this.action);
+  final AtomicReference<Object> result=new AtomicReference<Object>();
+  gradleLauncher.addListener(new ModelConfigurationListener(){
+    public void onConfigure(    final GradleInternal gradle){
+      InternalBuildController internalBuildController=new InternalBuildController(){
+        public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
+          return new ProviderBuildResult<Object>(gradle);
+        }
+        public BuildResult<?> getModel(        final ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
+          ToolingModelBuilder builder=gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class).getBuilder(modelIdentifier.getName());
           Object model=builder.buildAll(modelIdentifier.getName(),gradle.getDefaultProject());
-          result.set(model);
+          return new ProviderBuildResult<Object>(model);
         }
       }
-);
-      buildController.configure();
-      return new ProviderBuildResult<Object>(result.get());
+;
+      result.set(action.execute(internalBuildController));
     }
   }
 );
-  return new SerializedPayload(Collections.<URL>emptyList(),GUtil.serialize(result));
+  buildController.configure();
+  return payloadSerializer.serialize(result.get());
 }

@@ -1,0 +1,21 @@
+{
+  final PayloadSerializer.ClassLoaderDetails actionClassLoader=new PayloadSerializer.ClassLoaderDetails(UUID.randomUUID(),serializationDetails.getActionClassPath());
+  SerializedPayload serializedAction=payloadSerializer.serialize(clientAction,new PayloadSerializer.SerializeMap(){
+    public PayloadSerializer.ClassLoaderDetails getDetails(    ClassLoader target){
+      return actionClassLoader;
+    }
+  }
+);
+  BuildAction<SerializedPayload> action=new ClientProvidedBuildAction(serializedAction);
+  Parameters params=initParams(providerParameters);
+  SerializedPayload result=run(action,providerParameters,params.properties);
+  return payloadSerializer.deserialize(result,new PayloadSerializer.DeserializeMap(){
+    public ClassLoader getClassLoader(    PayloadSerializer.ClassLoaderDetails classLoaderDetails){
+      if (classLoaderDetails.uuid.equals(actionClassLoader.uuid)) {
+        return serializationDetails.getResultClassLoader();
+      }
+      return null;
+    }
+  }
+);
+}
