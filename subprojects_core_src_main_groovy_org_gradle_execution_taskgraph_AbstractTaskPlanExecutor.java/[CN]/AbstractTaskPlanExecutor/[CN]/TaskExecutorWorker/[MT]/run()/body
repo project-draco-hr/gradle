@@ -1,9 +1,16 @@
 {
+  long busy=0;
   long start=System.currentTimeMillis();
   TaskInfo task;
   while ((task=taskExecutionPlan.getTaskToExecute()) != null) {
-    executeTaskWithCacheLock(task);
+    final String taskPath=task.getTask().getPath();
+    LOGGER.info("{} ({}) started.",taskPath,Thread.currentThread());
+    long startTask=System.currentTimeMillis();
+    processTask(task);
+    long taskDuration=System.currentTimeMillis() - startTask;
+    busy+=taskDuration;
+    LOGGER.info("{} ({}) completed. Took {}.",taskPath,Thread.currentThread(),prettyTime(taskDuration));
   }
   long total=System.currentTimeMillis() - start;
-  LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}",Thread.currentThread(),prettyTime(busyMs),prettyTime(total - busyMs));
+  LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}",Thread.currentThread(),prettyTime(busy),prettyTime(total - busy));
 }
