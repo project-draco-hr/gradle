@@ -1,3 +1,14 @@
 {
   this.classLoaderRegistry=classLoaderRegistry;
+  if (Jvm.current().getJavaVersion().isJava6Compatible()) {
+    try {
+      classLookup=(Transformer<ObjectStreamClass,Class<?>>)getClass().getClassLoader().loadClass("org.gradle.tooling.internal.provider.jdk6.Jdk6ClassLookup").newInstance();
+    }
+ catch (    Exception e) {
+      throw UncheckedException.throwAsUncheckedException(e);
+    }
+  }
+ else {
+    classLookup=new ReflectionClassLookup();
+  }
 }

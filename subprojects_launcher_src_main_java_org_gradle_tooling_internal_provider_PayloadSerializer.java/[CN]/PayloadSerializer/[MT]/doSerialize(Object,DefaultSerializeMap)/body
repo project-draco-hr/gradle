@@ -10,15 +10,18 @@
     ObjectOutputStream objectStream=new ObjectOutputStream(content){
       @Override protected void writeClassDescriptor(      ObjectStreamClass desc) throws IOException {
         Class<?> targetClass=desc.forClass();
-        writeClassLoader(targetClass);
-        writeUTF(targetClass.getName());
+        writeClass(targetClass);
       }
       @Override protected void annotateProxyClass(      Class<?> cl) throws IOException {
         writeClassLoader(cl);
         writeInt(cl.getInterfaces().length);
         for (        Class<?> type : cl.getInterfaces()) {
-          writeClassDescriptor(ObjectStreamClass.lookupAny(type));
+          writeClass(type);
         }
+      }
+      private void writeClass(      Class<?> targetClass) throws IOException {
+        writeClassLoader(targetClass);
+        writeUTF(targetClass.getName());
       }
       private void writeClassLoader(      Class<?> targetClass) throws IOException {
         writeShort(getClassLoaderId(targetClass));
