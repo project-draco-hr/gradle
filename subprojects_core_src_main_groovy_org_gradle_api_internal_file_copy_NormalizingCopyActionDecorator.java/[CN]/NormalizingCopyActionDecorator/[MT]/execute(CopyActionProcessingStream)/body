@@ -2,9 +2,9 @@
   final Set<RelativePath> visitedDirs=new HashSet<RelativePath>();
   final ListMultimap<RelativePath,FileCopyDetailsInternal> pendingDirs=ArrayListMultimap.create();
   WorkResult result=delegate.execute(new CopyActionProcessingStream(){
-    public void process(    final Action<? super FileCopyDetailsInternal> action){
-      stream.process(new Action<FileCopyDetailsInternal>(){
-        public void execute(        FileCopyDetailsInternal details){
+    public void process(    final CopyActionProcessingStreamAction action){
+      stream.process(new CopyActionProcessingStreamAction(){
+        public void processFile(        FileCopyDetailsInternal details){
           if (details.isDirectory()) {
             RelativePath path=details.getRelativePath();
             if (!visitedDirs.contains(path)) {
@@ -13,7 +13,7 @@
           }
  else {
             maybeVisit(details.getRelativePath().getParent(),details.isIncludeEmptyDirs(),action);
-            action.execute(details);
+            action.processFile(details);
           }
         }
       }
@@ -29,7 +29,7 @@
       visitedDirs.clear();
       pendingDirs.clear();
     }
-    private void maybeVisit(    RelativePath path,    boolean includeEmptyDirs,    Action<? super FileCopyDetailsInternal> delegateAction){
+    private void maybeVisit(    RelativePath path,    boolean includeEmptyDirs,    CopyActionProcessingStreamAction delegateAction){
       if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
         return;
       }
@@ -42,7 +42,7 @@
  else {
         dir=detailsForPath.get(0);
       }
-      delegateAction.execute(dir);
+      delegateAction.processFile(dir);
     }
   }
 );
