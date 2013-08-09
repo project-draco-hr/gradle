@@ -4,13 +4,14 @@
   VersionMatcher versionMatcher=ResolverStrategy.INSTANCE.getVersionMatcher();
   LatestStrategy comparatorLatestStrategy=ResolverStrategy.INSTANCE.getLatestStrategy();
   UserResolverChain userResolverChain=new UserResolverChain(versionMatcher,comparatorLatestStrategy);
+  DependencyToModuleVersionResolver parentLookupResolver=new ParentModuleLookupResolver(userResolverChain,cacheLockingManager);
   for (  ResolutionAwareRepository repository : repositories) {
     ConfiguredModuleVersionRepository moduleVersionRepository=repository.createResolver();
     if (moduleVersionRepository instanceof IvyAwareModuleVersionRepository) {
       ivyContextualize((IvyAwareModuleVersionRepository)moduleVersionRepository,userResolverChain,configuration.getName());
     }
     if (moduleVersionRepository instanceof ExternalResourceResolver) {
-      ((ExternalResourceResolver)moduleVersionRepository).setResolver(userResolverChain);
+      ((ExternalResourceResolver)moduleVersionRepository).setResolver(parentLookupResolver);
     }
     LocalAwareModuleVersionRepository localAwareRepository;
     if (moduleVersionRepository.isLocal()) {
@@ -19,7 +20,7 @@
  else {
       ModuleVersionRepository wrapperRepository=new CacheLockingModuleVersionRepository(moduleVersionRepository,cacheLockingManager);
       wrapperRepository=startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
-      localAwareRepository=new CachingModuleVersionRepository(wrapperRepository,moduleResolutionCache,moduleDescriptorCache,artifactAtRepositoryCachedResolutionIndex,userResolverChain,configuration.getResolutionStrategy().getCachePolicy(),timeProvider);
+      localAwareRepository=new CachingModuleVersionRepository(wrapperRepository,moduleResolutionCache,moduleDescriptorCache,artifactAtRepositoryCachedResolutionIndex,parentLookupResolver,configuration.getResolutionStrategy().getCachePolicy(),timeProvider);
     }
     if (moduleVersionRepository.isDynamicResolveMode()) {
       localAwareRepository=new IvyDynamicResolveModuleVersionRepository(localAwareRepository);
