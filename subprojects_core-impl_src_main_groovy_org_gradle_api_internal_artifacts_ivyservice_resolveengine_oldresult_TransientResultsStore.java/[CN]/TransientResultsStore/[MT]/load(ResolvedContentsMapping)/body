@@ -4,14 +4,18 @@ synchronized (lock) {
     if (cached != null) {
       return cached;
     }
-    LOG.info("Loading dependency resolution results from disk (old model).");
+    Clock clock=new Clock();
     DefaultTransientConfigurationResults results=new DefaultTransientConfigurationResults();
-    output=null;
+    DataInputStream input=binaryStore.getInput();
+    int valuesRead=0;
+    short lastValue=-1;
     try {
       while (true) {
         ResolvedConfigurationIdentifierSerializer s=new ResolvedConfigurationIdentifierSerializer();
         short type=input.readShort();
         ResolvedConfigurationIdentifier id;
+        valuesRead++;
+        lastValue=type;
 switch (type) {
 case 1:
           id=s.read((DataInput)input);
@@ -21,6 +25,7 @@ case 2:
     id=s.read((DataInput)input);
   results.root=results.allDependencies.get(id);
 cache.store(results);
+LOG.info("Loaded dependency resolution results ({}) from {}",clock.getTime(),binaryStore);
 return results;
 case 3:
 id=s.read((DataInput)input);
@@ -40,7 +45,7 @@ break;
 }
 }
  catch (IOException e) {
-throw new RuntimeException("Problems loading the resolution result from byte stream.",e);
+throw new RuntimeException("Problems loading the resolution result (" + clock.getTime() + ") from "+ binaryStore.diagnose()+ ". Read "+ valuesRead+ " values, last was: "+ lastValue,e);
 }
 }
 }
