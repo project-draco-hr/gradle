@@ -1,0 +1,21 @@
+{
+  ToolChainRegistry toolChains=project.getExtensions().getByType(ToolChainRegistry.class);
+  ExecutableContainer executables=project.getExtensions().getByType(ExecutableContainer.class);
+  LibraryContainer libraries=project.getExtensions().getByType(LibraryContainer.class);
+  BinaryContainer binaries=project.getExtensions().getByType(BinaryContainer.class);
+  List<? extends ToolChain> availableToolChains=toolChains.getAvailableToolChains();
+  NativeBinaryFactory factory=new NativeBinaryFactory(instantiator,project,availableToolChains);
+  for (  ToolChain toolChain : availableToolChains) {
+    for (    Library library : libraries) {
+      for (      Flavor flavor : library.getFlavors()) {
+        binaries.add(factory.createNativeBinary(DefaultSharedLibraryBinary.class,library,toolChain,flavor));
+        binaries.add(factory.createNativeBinary(DefaultStaticLibraryBinary.class,library,toolChain,flavor));
+      }
+    }
+    for (    Executable executable : executables) {
+      for (      Flavor flavor : executable.getFlavors()) {
+        binaries.add(factory.createNativeBinary(DefaultExecutableBinary.class,executable,toolChain,flavor));
+      }
+    }
+  }
+}
