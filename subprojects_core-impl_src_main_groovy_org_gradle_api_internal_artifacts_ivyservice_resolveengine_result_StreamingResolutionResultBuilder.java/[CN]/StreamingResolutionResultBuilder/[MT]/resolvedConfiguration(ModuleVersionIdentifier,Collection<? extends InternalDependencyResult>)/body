@@ -1,0 +1,19 @@
+{
+  if (!dependencies.isEmpty()) {
+    try {
+      output.writeShort(DEPENDENCY);
+      new ModuleVersionIdentifierSerializer().write((DataOutput)output,from);
+      output.writeInt(dependencies.size());
+      InternalDependencyResultSerializer s=new InternalDependencyResultSerializer();
+      for (      InternalDependencyResult dependency : dependencies) {
+        s.write(output,dependency);
+        if (dependency.getFailure() != null) {
+          failures.put(dependency.getRequested(),dependency.getFailure());
+        }
+      }
+    }
+ catch (    IOException e) {
+      throw throwAsUncheckedException(e);
+    }
+  }
+}
