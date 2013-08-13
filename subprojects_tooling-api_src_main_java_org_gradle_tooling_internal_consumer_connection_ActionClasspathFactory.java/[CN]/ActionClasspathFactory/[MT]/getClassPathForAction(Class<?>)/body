@@ -1,0 +1,20 @@
+{
+  Set<URL> fullClassPath=new LinkedHashSet<URL>();
+  lock.lock();
+  try {
+    for (    Class<?> actionClass : actionClasses) {
+      Collection<URL> classPath=classPathCache.get(actionClass);
+      if (classPath == null) {
+        Set<Class<?>> visited=new HashSet<Class<?>>();
+        classPath=new LinkedHashSet<URL>();
+        find(actionClass,visited,classPath);
+        classPathCache.put(actionClass,classPath);
+      }
+      fullClassPath.addAll(classPath);
+    }
+  }
+  finally {
+    lock.unlock();
+  }
+  return new ArrayList<URL>(fullClassPath);
+}

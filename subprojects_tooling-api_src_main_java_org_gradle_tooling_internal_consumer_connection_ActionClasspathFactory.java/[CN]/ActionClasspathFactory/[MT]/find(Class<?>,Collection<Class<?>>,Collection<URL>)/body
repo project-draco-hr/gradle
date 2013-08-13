@@ -1,0 +1,63 @@
+{
+  ClassLoader targetClassLoader=target.getClassLoader();
+  if (targetClassLoader == null) {
+    return;
+  }
+  if (!visited.add(target)) {
+    return;
+  }
+  String resourceName=target.getName().replace(".","/") + ".class";
+  URL resource=targetClassLoader.getResource(resourceName);
+  try {
+    if (resource == null) {
+      LOGGER.warn("Could not determine classpath for {}",target);
+      return;
+    }
+    File classPathRoot=ClasspathUtil.getClasspathForResource(resource,resourceName);
+    dest.add(classPathRoot.toURI().toURL());
+    LOGGER.info("==> LOOKING FOR {}",target);
+    LOGGER.info("    * ClassLoader: {}",targetClassLoader);
+    CodeSource codeSource=target.getProtectionDomain().getCodeSource();
+    LOGGER.info("    * Code-source: {}",codeSource == null ? null : codeSource.getLocation());
+    LOGGER.info("    * Resource: {}",resource);
+    LOGGER.info("    * Classpath root: {}",classPathRoot);
+    ClassReader reader;
+    InputStream inputStream=resource.openStream();
+    try {
+      reader=new ClassReader(inputStream);
+    }
+  finally {
+      inputStream.close();
+    }
+    char[] charBuffer=new char[reader.getMaxStringLength()];
+    for (int i=1; i < reader.getItemCount(); i++) {
+      int itemOffset=reader.getItem(i);
+      if (itemOffset > 0 && reader.readByte(itemOffset - 1) == 7) {
+        String classDescriptor=reader.readUTF8(itemOffset,charBuffer);
+        Type type=Type.getObjectType(classDescriptor);
+        while (type.getSort() == Type.ARRAY) {
+          type=type.getElementType();
+        }
+        if (type.getSort() != Type.OBJECT) {
+          continue;
+        }
+        String className=type.getClassName();
+        if (className.equals(target.getName())) {
+          continue;
+        }
+        Class<?> cl;
+        try {
+          cl=Class.forName(className,false,targetClassLoader);
+        }
+ catch (        ClassNotFoundException e) {
+          LOGGER.warn("Could not determine classpath for {}",target);
+          continue;
+        }
+        find(cl,visited,dest);
+      }
+    }
+  }
+ catch (  Exception e) {
+    throw new GradleException(String.format("Could not determine the class-path for %s.",target),e);
+  }
+}
