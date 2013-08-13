@@ -1,0 +1,43 @@
+{
+  DataInputStream input=store.getInput();
+  ResolutionResultBuilder builder=new ResolutionResultBuilder();
+  int valuesRead=0;
+  short type=-1;
+  Clock clock=new Clock();
+  try {
+    while (true) {
+      ModuleVersionIdentifierSerializer s=new ModuleVersionIdentifierSerializer();
+      type=input.readShort();
+      valuesRead++;
+switch (type) {
+case ROOT:
+        ModuleVersionIdentifier id=s.read((DataInput)input);
+      builder.start(id);
+    break;
+case MODULE:
+  ModuleVersionSelection sel=new ModuleVersionSelectionSerializer().read((DataInput)input);
+builder.resolvedModuleVersion(sel);
+break;
+case DEPENDENCY:
+id=s.read((DataInput)input);
+int size=input.readInt();
+InternalDependencyResultSerializer depSerializer=new InternalDependencyResultSerializer();
+List<InternalDependencyResult> deps=new LinkedList<InternalDependencyResult>();
+for (int i=0; i < size; i++) {
+deps.add(depSerializer.read(input,failures));
+}
+builder.resolvedConfiguration(id,deps);
+break;
+case DONE:
+ResolvedModuleVersionResult root=builder.complete().getRoot();
+LOG.info("Loaded resolution results ({}) from {}",clock.getTime(),store);
+return root;
+default :
+throw new IllegalArgumentException("Unknown value type: " + type);
+}
+}
+}
+ catch (IOException e) {
+throw new RuntimeException("Problems loading the resolution results (" + clock.getTime() + ") from "+ store.diagnose()+ ". Read "+ valuesRead+ " values, last was: "+ type,e);
+}
+}
