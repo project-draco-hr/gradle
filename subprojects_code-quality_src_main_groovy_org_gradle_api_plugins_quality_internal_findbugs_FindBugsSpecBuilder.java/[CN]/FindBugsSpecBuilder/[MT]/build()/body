@@ -8,12 +8,19 @@
   if (reports != null && !reports.getEnabled().isEmpty()) {
     if (reports.getEnabled().size() == 1) {
       FindBugsReportsImpl reportsImpl=(FindBugsReportsImpl)reports;
-      args.add("-" + reportsImpl.getFirstEnabled().getName());
+      String outputArg="-" + reportsImpl.getFirstEnabled().getName();
+      if (reportsImpl.getFirstEnabled() instanceof FindBugsXmlReportImpl) {
+        FindBugsXmlReportImpl r=(FindBugsXmlReportImpl)reportsImpl.getFirstEnabled();
+        if (r.isWithMessages()) {
+          outputArg+=":withMessages";
+        }
+      }
+      args.add(outputArg);
       args.add("-outputFile");
       args.add(reportsImpl.getFirstEnabled().getDestination().getAbsolutePath());
     }
  else {
-      throw new InvalidUserDataException("FindBugs tasks can only have one report enabled, however both the XML and HTML report are enabled. You need to disable one of them.");
+      throw new InvalidUserDataException("FindBugs tasks can only have one report enabled, however more than one report was enabled. You need to disable all but one of them.");
     }
   }
   if (has(sources)) {
