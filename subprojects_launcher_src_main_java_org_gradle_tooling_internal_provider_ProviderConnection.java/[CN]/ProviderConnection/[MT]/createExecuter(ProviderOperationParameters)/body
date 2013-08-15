@@ -3,11 +3,11 @@
   Parameters params=initParams(operationParameters);
   BuildActionExecuter<BuildActionParameters> executer;
   if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
-    loggingServices=embeddedExecuterSupport.getLoggingServices();
-    executer=embeddedExecuterSupport.getExecuter();
+    loggingServices=this.loggingServices;
+    executer=new InProcessBuildActionExecuter(gradleLauncherFactory);
   }
  else {
-    loggingServices=embeddedExecuterSupport.getLoggingServices().newLogging();
+    loggingServices=this.loggingServices.newLogging();
     loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
     DaemonClientServices clientServices=new DaemonClientServices(loggingServices,params.daemonParams,operationParameters.getStandardInput(SafeStreams.emptyInput()));
     executer=clientServices.get(DaemonClient.class);
