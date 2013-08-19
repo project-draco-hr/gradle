@@ -1,0 +1,16 @@
+{
+  HashMap<String,PropertyAccessor> properties=new HashMap<String,PropertyAccessor>();
+  for (  Method method : target.getMethods()) {
+    if (method.getName().startsWith("get") && isGetter(method)) {
+      String propertyName=method.getName().substring(3);
+      propertyName=Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+      properties.put(propertyName,new GetterMethodBackedPropertyAccessor(propertyName,method));
+    }
+ else     if (method.getName().startsWith("is") && isBooleanGetter(method)) {
+      String propertyName=method.getName().substring(2);
+      propertyName=Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+      properties.put(propertyName,new GetterMethodBackedPropertyAccessor(propertyName,method));
+    }
+  }
+  return properties;
+}

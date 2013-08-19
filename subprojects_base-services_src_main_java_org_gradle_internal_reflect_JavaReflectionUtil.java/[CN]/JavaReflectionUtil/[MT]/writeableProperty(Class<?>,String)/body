@@ -1,0 +1,16 @@
+{
+  String setterName=toMethodName("set",property);
+  for (  final Method method : target.getMethods()) {
+    if (!method.getName().equals(setterName)) {
+      continue;
+    }
+    if (method.getParameterTypes().length != 1) {
+      continue;
+    }
+    if (Modifier.isStatic(method.getModifiers())) {
+      continue;
+    }
+    return new MethodBackedPropertyMutator(property,method);
+  }
+  throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s' on class %s.",property,target.getSimpleName()));
+}

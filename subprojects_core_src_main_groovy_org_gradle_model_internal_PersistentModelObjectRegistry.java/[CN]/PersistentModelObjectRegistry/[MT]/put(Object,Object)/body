@@ -4,30 +4,25 @@
   }
   FlattenedObject flattened=new FlattenedObject();
   Class<?> type=modelObject.getClass();
-  for (Class<?> current=type; current != Object.class; current=current.getSuperclass()) {
-    for (    Method method : current.getMethods()) {
-      if (method.getName().startsWith("get") && method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers())) {
-        String prop=StringUtils.uncapitalize(method.getName().substring(3));
-        if (prop.equals("metaClass") || prop.equals("class")) {
-          continue;
-        }
-        Object value;
-        try {
-          value=method.invoke(modelObject);
-        }
- catch (        Exception e) {
-          throw new GradleException(String.format("Could not get property %s for model %s (%s)",prop,identifier,modelObject.getClass().getSimpleName()),e);
-        }
-        if (value != null && value.getClass().getAnnotation(ModelType.class) != null) {
-          Object valueId=instanceToId.get(value);
-          if (valueId == null) {
-            throw new IllegalStateException(String.format("Model %s (%s) references an unknown model object of type %s.",identifier,modelObject.getClass().getSimpleName(),value.getClass().getSimpleName()));
-          }
-          value=new Reference(value.getClass().getName(),valueId);
-        }
-        flattened.properties.put(prop,value);
-      }
+  for (  PropertyAccessor property : JavaReflectionUtil.readableProperties(type).values()) {
+    if (property.getName().equals("metaClass") || property.getName().equals("class")) {
+      continue;
     }
+    Object value;
+    try {
+      value=property.getValue(modelObject);
+    }
+ catch (    Exception e) {
+      throw new GradleException(String.format("Could not get property %s for model %s (%s)",property.getName(),identifier,modelObject.getClass().getSimpleName()),e);
+    }
+    if (value != null && value.getClass().getAnnotation(ModelType.class) != null) {
+      Object valueId=instanceToId.get(value);
+      if (valueId == null) {
+        throw new IllegalStateException(String.format("Model %s (%s) references an unknown model object of type %s.",identifier,modelObject.getClass().getSimpleName(),value.getClass().getSimpleName()));
+      }
+      value=new Reference(value.getClass().getName(),valueId);
+    }
+    flattened.properties.put(property.getName(),value);
   }
   idToInstance.put(identifier,modelObject);
   instanceToId.put(modelObject,identifier);

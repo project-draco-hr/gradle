@@ -26,7 +26,12 @@
       }
       value=get(reference.identifier,referenceType);
     }
-    JavaReflectionUtil.writeProperty(modelObject,entry.getKey(),value);
+    try {
+      JavaReflectionUtil.writeableProperty(modelObject.getClass(),entry.getKey()).setValue(modelObject,value);
+    }
+ catch (    Exception e) {
+      throw new GradleException(String.format("Could not set property %s for model %s (%s)",entry.getKey(),identifier,type.getSimpleName()),e);
+    }
   }
   idToInstance.put(identifier,modelObject);
   instanceToId.put(modelObject,identifier);
