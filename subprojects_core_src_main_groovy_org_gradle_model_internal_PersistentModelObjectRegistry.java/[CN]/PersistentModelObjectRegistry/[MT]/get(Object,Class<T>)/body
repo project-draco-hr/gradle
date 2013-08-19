@@ -1,0 +1,34 @@
+{
+  Object modelObject=idToInstance.get(identifier);
+  if (modelObject != null) {
+    return type.cast(modelObject);
+  }
+  FlattenedObject flattened=store.get(identifier);
+  if (flattened == null) {
+    return null;
+  }
+  try {
+    modelObject=type.newInstance();
+  }
+ catch (  Exception e) {
+    throw new GradleException(String.format("Could not create an instance of %s.",type.getSimpleName()),e);
+  }
+  for (  Map.Entry<String,Object> entry : flattened.properties.entrySet()) {
+    Object value=entry.getValue();
+    if (value instanceof Reference) {
+      Reference reference=(Reference)value;
+      Class<?> referenceType;
+      try {
+        referenceType=type.getClassLoader().loadClass(reference.type);
+      }
+ catch (      ClassNotFoundException e) {
+        throw new GradleException(String.format("Could not locate type %s referenced by model %s (%s)",reference.type,identifier,type.getSimpleName()));
+      }
+      value=get(reference.identifier,referenceType);
+    }
+    JavaReflectionUtil.writeProperty(modelObject,entry.getKey(),value);
+  }
+  idToInstance.put(identifier,modelObject);
+  instanceToId.put(modelObject,identifier);
+  return type.cast(modelObject);
+}

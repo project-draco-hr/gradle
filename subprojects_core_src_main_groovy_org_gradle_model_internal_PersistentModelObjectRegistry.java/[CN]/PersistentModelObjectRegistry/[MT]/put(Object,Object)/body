@@ -1,0 +1,35 @@
+{
+  if (modelObject.getClass().getAnnotation(ModelType.class) == null) {
+    throw new IllegalArgumentException(String.format("Cannot persist object of class %s, as this class is not marked @%s",modelObject.getClass().getSimpleName(),ModelType.class.getSimpleName()));
+  }
+  FlattenedObject flattened=new FlattenedObject();
+  Class<?> type=modelObject.getClass();
+  for (Class<?> current=type; current != Object.class; current=current.getSuperclass()) {
+    for (    Method method : current.getMethods()) {
+      if (method.getName().startsWith("get") && method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers())) {
+        String prop=StringUtils.uncapitalize(method.getName().substring(3));
+        if (prop.equals("metaClass") || prop.equals("class")) {
+          continue;
+        }
+        Object value;
+        try {
+          value=method.invoke(modelObject);
+        }
+ catch (        Exception e) {
+          throw new GradleException(String.format("Could not get property %s for model %s (%s)",prop,identifier,modelObject.getClass().getSimpleName()),e);
+        }
+        if (value != null && value.getClass().getAnnotation(ModelType.class) != null) {
+          Object valueId=instanceToId.get(value);
+          if (valueId == null) {
+            throw new IllegalStateException(String.format("Model %s (%s) references an unknown model object of type %s.",identifier,modelObject.getClass().getSimpleName(),value.getClass().getSimpleName()));
+          }
+          value=new Reference(value.getClass().getName(),valueId);
+        }
+        flattened.properties.put(prop,value);
+      }
+    }
+  }
+  idToInstance.put(identifier,modelObject);
+  instanceToId.put(modelObject,identifier);
+  store.put(identifier,flattened);
+}
