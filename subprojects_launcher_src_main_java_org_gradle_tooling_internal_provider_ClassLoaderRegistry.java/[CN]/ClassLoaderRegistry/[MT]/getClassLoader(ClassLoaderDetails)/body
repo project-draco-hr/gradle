@@ -1,0 +1,27 @@
+{
+  lock.lock();
+  try {
+    ClassLoader classLoader=classLoaderIds.get(details.uuid);
+    if (classLoader != null) {
+      return classLoader;
+    }
+    ClassLoader parent=null;
+    if (details.parents.size() == 1) {
+      parent=getClassLoader(details.parents.get(0));
+    }
+ else     if (details.parents.size() > 1) {
+      MultiParentClassLoader multiParentClassLoader=new MultiParentClassLoader();
+      for (      ClassLoaderDetails parentDetails : details.parents) {
+        multiParentClassLoader.addParent(getClassLoader(parentDetails));
+      }
+      parent=new CachingClassLoader(multiParentClassLoader);
+    }
+    classLoader=classLoaderFactory.getClassLoaderFor(details.classPath,parent);
+    classLoaderIds.put(details.uuid,classLoader);
+    classLoaderDetails.put(classLoader,details);
+    return classLoader;
+  }
+  finally {
+    lock.unlock();
+  }
+}

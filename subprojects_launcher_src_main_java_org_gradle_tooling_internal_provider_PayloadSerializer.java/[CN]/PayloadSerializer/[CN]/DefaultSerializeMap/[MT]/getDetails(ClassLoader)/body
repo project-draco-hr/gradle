@@ -1,41 +1,10 @@
 {
-  lock.lock();
-  try {
-    ClassLoaderDetails details=classLoaderDetails.get(classLoader);
-    if (details != null) {
-      return details;
-    }
-    if (overrides != null) {
-      details=overrides.getDetails(classLoader);
-    }
-    if (details == null) {
-      final List<URL> classpath=new ArrayList<URL>();
-      final List<ClassLoader> parents=new ArrayList<ClassLoader>();
-      new ClassLoaderVisitor(){
-        @Override public void visit(        ClassLoader candidate){
-          if (candidate == classLoader) {
-            super.visit(candidate);
-          }
- else {
-            parents.add(candidate);
-          }
-        }
-        @Override public void visitClassPath(        URL[] classPath){
-          classpath.addAll(Arrays.asList(classPath));
-        }
-      }
-.visit(classLoader);
-      UUID uuid=UUID.randomUUID();
-      details=new ClassLoaderDetails(uuid,classpath);
-      for (      ClassLoader parent : parents) {
-        details.parents.add(getDetails(parent));
-      }
-    }
-    classLoaderDetails.put(classLoader,details);
-    classLoaderIds.put(details.uuid,classLoader);
-    return details;
+  ClassLoaderDetails details=null;
+  if (overrides != null) {
+    details=overrides.getDetails(classLoader);
   }
-  finally {
-    lock.unlock();
+  if (details == null) {
+    details=classLoaderRegistry.getDetails(classLoader);
   }
+  return details;
 }

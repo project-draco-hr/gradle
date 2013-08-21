@@ -1,0 +1,22 @@
+{
+  lock.lock();
+  try {
+    ClassLoaderDetails details=classLoaderDetails.get(classLoader);
+    if (details != null) {
+      return details;
+    }
+    ClassLoaderSpecVisitor visitor=new ClassLoaderSpecVisitor(classLoader);
+    visitor.visit(classLoader);
+    UUID uuid=UUID.randomUUID();
+    details=new ClassLoaderDetails(uuid,visitor.classPath);
+    for (    ClassLoader parent : visitor.parents) {
+      details.parents.add(getDetails(parent));
+    }
+    classLoaderDetails.put(classLoader,details);
+    classLoaderIds.put(details.uuid,classLoader);
+    return details;
+  }
+  finally {
+    lock.unlock();
+  }
+}
