@@ -1,9 +1,11 @@
 {
   final UUID classLoaderId=UUID.randomUUID();
+  final Set<ClassLoader> candidates=new LinkedHashSet<ClassLoader>();
   SerializedPayload serializedAction=payloadSerializer.serialize(clientAction,new SerializeMap(){
     Set<URL> classPath=new LinkedHashSet<URL>();
     public UUID visitClass(    Class<?> target){
       classpathInferer.getClassPathFor(target,classPath);
+      candidates.add(target.getClassLoader());
       return classLoaderId;
     }
     public Iterable<ClassLoaderDetails> getClassLoaders(){
@@ -15,9 +17,16 @@
   Parameters params=initParams(providerParameters);
   SerializedPayload result=run(action,providerParameters,params.properties);
   return payloadSerializer.deserialize(result,new DeserializeMap(){
-    public ClassLoader getClassLoader(    ClassLoaderDetails classLoaderDetails){
+    public Class<?> resolveClass(    ClassLoaderDetails classLoaderDetails,    String className) throws ClassNotFoundException {
       if (classLoaderDetails.uuid.equals(classLoaderId)) {
-        return serializationDetails.getResultClassLoader();
+        for (        ClassLoader candidate : candidates) {
+          try {
+            return candidate.loadClass(className);
+          }
+ catch (          ClassNotFoundException e) {
+          }
+        }
+        throw new UnsupportedOperationException("Unexpected class received in response.");
       }
       return null;
     }

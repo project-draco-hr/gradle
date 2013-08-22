@@ -1,13 +1,7 @@
 {
   try {
-    final Map<Short,ClassLoader> classLoaders=new HashMap<Short,ClassLoader>();
-    for (ClassLoader cl=ClassLoader.getSystemClassLoader().getParent(); cl != null; cl=cl.getParent()) {
-      classLoaders.put(SYSTEM_CLASS_LOADER_ID,ClassLoader.getSystemClassLoader().getParent());
-    }
-    Map<Short,ClassLoaderDetails> detailsMap=(Map<Short,ClassLoaderDetails>)payload.getHeader();
-    for (    Map.Entry<Short,ClassLoaderDetails> entry : detailsMap.entrySet()) {
-      classLoaders.put(entry.getKey(),map.getClassLoader(entry.getValue()));
-    }
+    final ClassLoader systemClassLoader=ClassLoader.getSystemClassLoader().getParent();
+    final Map<Short,ClassLoaderDetails> classLoaderDetails=(Map<Short,ClassLoaderDetails>)payload.getHeader();
     final ObjectInputStream objectStream=new ObjectInputStream(new ByteArrayInputStream(payload.getSerializedModel())){
       @Override protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
         Class<?> aClass=readClass();
@@ -21,22 +15,21 @@
         return desc.forClass();
       }
       private Class<?> readClass() throws IOException, ClassNotFoundException {
-        ClassLoader classLoader=readClassLoader();
+        short id=readShort();
         String className=readUTF();
-        return Class.forName(className,false,classLoader);
+        if (id == SYSTEM_CLASS_LOADER_ID) {
+          return Class.forName(className,false,systemClassLoader);
+        }
+        ClassLoaderDetails classLoader=classLoaderDetails.get(id);
+        return map.resolveClass(classLoader,className);
       }
       @Override protected Class<?> resolveProxyClass(      String[] interfaces) throws IOException, ClassNotFoundException {
-        ClassLoader classLoader=readClassLoader();
         int count=readInt();
         Class<?>[] actualInterfaces=new Class<?>[count];
         for (int i=0; i < count; i++) {
           actualInterfaces[i]=readClass();
         }
-        return Proxy.getProxyClass(classLoader,actualInterfaces);
-      }
-      private ClassLoader readClassLoader() throws IOException {
-        short id=readShort();
-        return classLoaders.get(id);
+        return Proxy.getProxyClass(actualInterfaces[0].getClassLoader(),actualInterfaces);
       }
     }
 ;
