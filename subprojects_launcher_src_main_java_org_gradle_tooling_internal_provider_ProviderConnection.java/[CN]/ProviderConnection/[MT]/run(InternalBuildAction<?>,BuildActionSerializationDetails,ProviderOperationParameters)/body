@@ -1,9 +1,13 @@
 {
-  List<URL> classPath=actionClasspathFactory.getClassPathFor(serializationDetails.getActionClasses());
-  final ClassLoaderDetails actionClassLoader=new ClassLoaderDetails(UUID.randomUUID(),new MutableURLClassLoader.Spec(classPath));
+  final UUID classLoaderId=UUID.randomUUID();
   SerializedPayload serializedAction=payloadSerializer.serialize(clientAction,new SerializeMap(){
-    public ClassLoaderDetails getDetails(    ClassLoader target){
-      return actionClassLoader;
+    Set<URL> classPath=new LinkedHashSet<URL>();
+    public UUID visitClass(    Class<?> target){
+      actionClasspathFactory.getClassPathFor(target,classPath);
+      return classLoaderId;
+    }
+    public Iterable<ClassLoaderDetails> getClassLoaders(){
+      return Arrays.asList(new ClassLoaderDetails(classLoaderId,new MutableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
     }
   }
 );
@@ -12,7 +16,7 @@
   SerializedPayload result=run(action,providerParameters,params.properties);
   return payloadSerializer.deserialize(result,new DeserializeMap(){
     public ClassLoader getClassLoader(    ClassLoaderDetails classLoaderDetails){
-      if (classLoaderDetails.uuid.equals(actionClassLoader.uuid)) {
+      if (classLoaderDetails.uuid.equals(classLoaderId)) {
         return serializationDetails.getResultClassLoader();
       }
       return null;
