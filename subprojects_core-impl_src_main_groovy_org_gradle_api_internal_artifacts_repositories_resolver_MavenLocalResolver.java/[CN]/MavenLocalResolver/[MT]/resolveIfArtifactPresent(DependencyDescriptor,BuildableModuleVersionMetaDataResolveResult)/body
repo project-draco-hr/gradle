@@ -1,0 +1,23 @@
+{
+  ModuleRevisionId moduleRevisionId=dependencyDescriptor.getDependencyRevisionId();
+  ResolvedArtifact ivyRef=findIvyFileRef(dependencyDescriptor);
+  if (ivyRef == null) {
+    super.getDependency(dependencyDescriptor,result);
+  }
+ else {
+    ModuleVersionMetaData metaData=getArtifactMetadata(ivyRef.getArtifact(),ivyRef.getResource());
+    if (!metaData.isMetaDataOnly()) {
+      DefaultModuleDescriptor generatedModuleDescriptor=DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId,dependencyDescriptor.getAllDependencyArtifacts());
+      ResolvedArtifact artifactRef=findAnyArtifact(generatedModuleDescriptor);
+      if (artifactRef != null) {
+        super.getDependency(dependencyDescriptor,result);
+      }
+ else {
+        LOGGER.debug("Ivy file found for module '{}' in repository '{}' but no artifact found. Checking next repository.",moduleRevisionId,getName());
+      }
+    }
+ else {
+      super.getDependency(dependencyDescriptor,result);
+    }
+  }
+}
