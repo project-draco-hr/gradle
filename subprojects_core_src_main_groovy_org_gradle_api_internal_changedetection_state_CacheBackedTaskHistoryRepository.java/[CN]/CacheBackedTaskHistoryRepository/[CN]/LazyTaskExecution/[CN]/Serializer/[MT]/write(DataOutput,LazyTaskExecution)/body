@@ -12,7 +12,9 @@
  else {
     DefaultSerializer<Map> defaultSerializer=new DefaultSerializer<Map>(classLoader);
     ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
-    defaultSerializer.write(outputStream,execution.getInputProperties());
+    OutputStreamBackedEncoder encoder=new OutputStreamBackedEncoder(outputStream);
+    defaultSerializer.write(encoder,execution.getInputProperties());
+    encoder.flush();
     byte[] serializedMap=outputStream.toByteArray();
     dataOutput.writeInt(serializedMap.length);
     dataOutput.write(serializedMap);
