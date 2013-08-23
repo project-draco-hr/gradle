@@ -1,0 +1,27 @@
+{
+  final DeserializeMap deserializeMap=delegate.newDeserializeSession();
+  return new DeserializeMap(){
+    public Class<?> resolveClass(    ClassLoaderDetails classLoaderDetails,    String className) throws ClassNotFoundException {
+      Set<ClassLoader> candidates;
+      lock.lock();
+      try {
+        candidates=classLoaders.get(classLoaderDetails.uuid);
+      }
+  finally {
+        lock.unlock();
+      }
+      if (candidates != null) {
+        for (        ClassLoader candidate : candidates) {
+          try {
+            return candidate.loadClass(className);
+          }
+ catch (          ClassNotFoundException e) {
+          }
+        }
+        throw new UnsupportedOperationException("Unexpected class received in response.");
+      }
+      return deserializeMap.resolveClass(classLoaderDetails,className);
+    }
+  }
+;
+}

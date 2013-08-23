@@ -1,0 +1,25 @@
+{
+  return new SerializeMap(){
+    final Map<ClassLoader,Short> classLoaderIds=new HashMap<ClassLoader,Short>();
+    final Map<Short,ClassLoaderDetails> classLoaderDetails=new HashMap<Short,ClassLoaderDetails>();
+    public short visitClass(    Class<?> target){
+      ClassLoader classLoader=target.getClassLoader();
+      Short id=classLoaderIds.get(classLoader);
+      if (id != null) {
+        return id;
+      }
+      if (classLoaderIds.size() == Short.MAX_VALUE) {
+        throw new UnsupportedOperationException();
+      }
+      ClassLoaderDetails details=getDetails(classLoader);
+      id=(short)(classLoaderIds.size() + 1);
+      classLoaderIds.put(classLoader,id);
+      classLoaderDetails.put(id,details);
+      return id;
+    }
+    public Map<Short,ClassLoaderDetails> getClassLoaders(){
+      return classLoaderDetails;
+    }
+  }
+;
+}
