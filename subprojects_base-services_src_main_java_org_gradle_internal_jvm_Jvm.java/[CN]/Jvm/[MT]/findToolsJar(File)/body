@@ -10,11 +10,14 @@
       return toolsJar;
     }
   }
-  if (javaHome.getName().matches("jre\\d+") && os.isWindows()) {
-    javaHome=new File(javaHome.getParentFile(),String.format("jdk%s",SystemProperties.getJavaVersion()));
-    toolsJar=new File(javaHome,"lib/tools.jar");
-    if (toolsJar.exists()) {
-      return toolsJar;
+  if (os.isWindows()) {
+    String version=SystemProperties.getJavaVersion();
+    if (javaHome.getName().matches("jre\\d+") || javaHome.getName().equals(String.format("jre%s",version))) {
+      javaHome=new File(javaHome.getParentFile(),String.format("jdk%s",version));
+      toolsJar=new File(javaHome,"lib/tools.jar");
+      if (toolsJar.exists()) {
+        return toolsJar;
+      }
     }
   }
   return null;
