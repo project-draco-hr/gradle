@@ -1,0 +1,25 @@
+{
+  Map<String,DefaultFileSnapshotter.FileSnapshot> snapshots=new HashMap<String,DefaultFileSnapshotter.FileSnapshot>();
+  DefaultFileSnapshotter.FileCollectionSnapshotImpl snapshot=new DefaultFileSnapshotter.FileCollectionSnapshotImpl(snapshots);
+  int snapshotsCount=decoder.readInt();
+  for (int i=0; i < snapshotsCount; i++) {
+    String key=decoder.readString();
+    byte fileSnapshotKind=decoder.readByte();
+    if (fileSnapshotKind == 1) {
+      snapshots.put(key,new DefaultFileSnapshotter.DirSnapshot());
+    }
+ else     if (fileSnapshotKind == 2) {
+      snapshots.put(key,new DefaultFileSnapshotter.MissingFileSnapshot());
+    }
+ else     if (fileSnapshotKind == 3) {
+      byte hashSize=decoder.readByte();
+      byte[] hash=new byte[hashSize];
+      decoder.readBytes(hash);
+      snapshots.put(key,new DefaultFileSnapshotter.FileHashSnapshot(hash));
+    }
+ else {
+      throw new RuntimeException("Unable to read serialized file collection snapshot. Unrecognized value found in the data stream.");
+    }
+  }
+  return snapshot;
+}

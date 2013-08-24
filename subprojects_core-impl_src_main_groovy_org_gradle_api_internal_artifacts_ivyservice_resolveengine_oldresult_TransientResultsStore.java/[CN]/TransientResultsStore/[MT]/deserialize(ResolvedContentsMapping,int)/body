@@ -1,44 +1,49 @@
 {
   Clock clock=new Clock();
   DefaultTransientConfigurationResults results=new DefaultTransientConfigurationResults();
-  DataInputStream input=binaryStore.getInput();
   int valuesRead=0;
-  short type=-1;
+  byte type=-1;
   try {
-    input.skipBytes(offset);
-    while (true) {
-      ResolvedConfigurationIdentifierSerializer s=new ResolvedConfigurationIdentifierSerializer();
-      type=input.readShort();
-      ResolvedConfigurationIdentifier id;
-      valuesRead++;
+    DataInputStream input=binaryStore.getInput();
+    try {
+      input.skipBytes(offset);
+      InputStreamBackedDecoder decoder=new InputStreamBackedDecoder(input);
+      while (true) {
+        type=decoder.readByte();
+        ResolvedConfigurationIdentifier id;
+        valuesRead++;
 switch (type) {
 case NEW_DEP:
-        id=s.read((DataInput)input);
-      results.allDependencies.put(id,new DefaultResolvedDependency(id.getId(),id.getConfiguration()));
-    break;
+          id=resolvedConfigurationIdentifierSerializer.read(decoder);
+        results.allDependencies.put(id,new DefaultResolvedDependency(id.getId(),id.getConfiguration()));
+      break;
 case ROOT:
-  id=s.read((DataInput)input);
-results.root=results.allDependencies.get(id);
+    id=resolvedConfigurationIdentifierSerializer.read(decoder);
+  results.root=results.allDependencies.get(id);
 LOG.debug("Loaded resolved configuration results ({}) from {}",clock.getTime(),binaryStore);
 return results;
 case FIRST_LVL:
-id=s.read((DataInput)input);
+id=resolvedConfigurationIdentifierSerializer.read(decoder);
 results.firstLevelDependencies.put(mapping.getModuleDependency(id),results.allDependencies.get(id));
 break;
 case PARENT_CHILD:
-DefaultResolvedDependency parent=results.allDependencies.get(s.read((DataInput)input));
-DefaultResolvedDependency child=results.allDependencies.get(s.read((DataInput)input));
+DefaultResolvedDependency parent=results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
+DefaultResolvedDependency child=results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
 parent.addChild(child);
 break;
 case PARENT_ARTIFACT:
-DefaultResolvedDependency c=results.allDependencies.get(s.read((DataInput)input));
-DefaultResolvedDependency p=results.allDependencies.get(s.read((DataInput)input));
-c.addParentSpecificArtifacts(p,newHashSet(mapping.getArtifact(input.readLong())));
+DefaultResolvedDependency c=results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
+DefaultResolvedDependency p=results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
+c.addParentSpecificArtifacts(p,newHashSet(mapping.getArtifact(decoder.readLong())));
 break;
 }
 }
 }
- catch (IOException e) {
+  finally {
+input.close();
+}
+}
+ catch (Exception e) {
 throw new RuntimeException("Problems loading the resolved configuration (" + clock.getTime() + ") from "+ binaryStore.diagnose()+ ". Read "+ valuesRead+ " values, last was: "+ type,e);
 }
 }

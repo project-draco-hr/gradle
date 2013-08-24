@@ -1,0 +1,16 @@
+{
+  ModuleVersionSelector requested=moduleVersionSelectorSerializer.read(decoder);
+  ModuleVersionSelectionReason reason=moduleVersionSelectionReasonSerializer.read(decoder);
+  byte resultByte=decoder.readByte();
+  if (resultByte == SUCCESSFUL) {
+    ModuleVersionSelection selected=moduleVersionSelectionSerializer.read(decoder);
+    return new DefaultInternalDependencyResult(requested,selected,reason,null);
+  }
+ else   if (resultByte == FAILED) {
+    ModuleVersionResolveException failure=failures.get(requested);
+    return new DefaultInternalDependencyResult(requested,null,reason,failure);
+  }
+ else {
+    throw new IllegalArgumentException("Unknown result byte: " + resultByte);
+  }
+}
