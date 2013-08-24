@@ -1,0 +1,55 @@
+{
+  StringBuilder sb=new StringBuilder();
+  for (  CacheData data : cache.values()) {
+    data.maybeExpire();
+    sb.append(data.expirationMarker.getName()).append(":").append(data.data.size()).append(", ");
+  }
+  if (!cache.isEmpty()) {
+    LOG.info("In-memory task history cache contains {} entries: {}",cache.size(),sb);
+  }
+  return new PersistentCache(){
+    public File getBaseDir(){
+      return target.getBaseDir();
+    }
+    public <K,V>PersistentIndexedCache<K,V> createCache(    File cacheFile,    Class<K> keyType,    Serializer<V> valueSerializer){
+      PersistentIndexedCache<K,V> out=target.createCache(cacheFile,keyType,valueSerializer);
+      return memCached(cacheFile,out);
+    }
+    public <K,V>PersistentIndexedCache<K,V> createCache(    File cacheFile,    Class<K> keyType,    Class<V> valueType){
+      throw new UnsupportedOperationException("Not supported atm");
+    }
+    public <K,V>PersistentIndexedCache<K,V> createCache(    File cacheFile,    Serializer<K> keySerializer,    Serializer<V> valueSerializer){
+      throw new UnsupportedOperationException("Not supported atm");
+    }
+    public <T>T longRunningOperation(    String operationDisplayName,    Factory<? extends T> action){
+      beforeUnlocked();
+      try {
+        return target.longRunningOperation(operationDisplayName,action);
+      }
+  finally {
+        beforeLocked();
+      }
+    }
+    public <T>T useCache(    final String operationDisplayName,    final Factory<? extends T> action){
+      return target.useCache(operationDisplayName,new Factory<T>(){
+        public T create(){
+          beforeLocked();
+          try {
+            return target.useCache(operationDisplayName,action);
+          }
+  finally {
+            beforeUnlocked();
+          }
+        }
+      }
+);
+    }
+    public void useCache(    String operationDisplayName,    Runnable action){
+      useCache(operationDisplayName,Factories.toFactory(action));
+    }
+    public void longRunningOperation(    String operationDisplayName,    Runnable action){
+      longRunningOperation(operationDisplayName,Factories.toFactory(action));
+    }
+  }
+;
+}
