@@ -4,7 +4,7 @@
       public TestExecutionHistory execute(      Connection connection) throws Exception {
         List<PerformanceResults> results=new ArrayList<PerformanceResults>();
         Set<String> allVersions=new TreeSet<String>();
-        PreparedStatement executionsForName=connection.prepareStatement("select id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm from testExecution where testId = ? order by executionTime desc");
+        PreparedStatement executionsForName=connection.prepareStatement("select id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
         PreparedStatement buildsForTest=connection.prepareStatement("select version, executionTimeMs, heapUsageBytes from testOperation where testExecution = ?");
         executionsForName.setString(1,testName);
         ResultSet testExecutions=executionsForName.executeQuery();
@@ -19,6 +19,8 @@
           performanceResults.setArgs(toArray(testExecutions.getObject(6)));
           performanceResults.setOperatingSystem(testExecutions.getString(7));
           performanceResults.setJvm(testExecutions.getString(8));
+          performanceResults.setVcsBranch(testExecutions.getString(9));
+          performanceResults.setVcsCommit(testExecutions.getString(10));
           results.add(performanceResults);
           buildsForTest.setLong(1,id);
           ResultSet builds=buildsForTest.executeQuery();
@@ -42,7 +44,7 @@
         testExecutions.close();
         buildsForTest.close();
         executionsForName.close();
-        return new TestExecutionHistory(new ArrayList<String>(allVersions),results);
+        return new TestExecutionHistory(testName,new ArrayList<String>(allVersions),results);
       }
     }
 );
