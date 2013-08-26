@@ -11,12 +11,14 @@
     return javaHome;
   }
   if (OperatingSystem.current().isMacOsX()) {
-    File registeredJvms=new File("/Library/Java/JavaVirtualMachines");
-    if (registeredJvms.isDirectory()) {
-      for (      File candidate : registeredJvms.listFiles()) {
-        javaHome=GFileUtils.canonicalise(new File(candidate,"Contents/Home"));
-        if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome,"bin/java").isFile()) {
-          return javaHome;
+    List<File> installDirs=Arrays.asList(new File("/System/Library/Java/JavaVirtualMachines"),new File("/Library/Java/JavaVirtualMachines"));
+    for (    File installDir : installDirs) {
+      if (installDir.isDirectory()) {
+        for (        File candidate : installDir.listFiles()) {
+          javaHome=GFileUtils.canonicalise(new File(candidate,"Contents/Home"));
+          if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome,"bin/java").isFile()) {
+            return javaHome;
+          }
         }
       }
     }

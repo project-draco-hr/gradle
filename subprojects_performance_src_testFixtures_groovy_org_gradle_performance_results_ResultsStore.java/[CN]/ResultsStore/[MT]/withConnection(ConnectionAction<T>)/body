@@ -3,16 +3,14 @@
     dbFile.getParentFile().mkdirs();
     Class.forName("org.h2.Driver");
     connection=DriverManager.getConnection(String.format("jdbc:h2:%s",dbFile.getAbsolutePath()),"sa","");
-  }
-  try {
-    Statement statement=connection.createStatement();
-    statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
-    statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
-    statement.close();
-  }
- catch (  Exception e) {
-    connection.close();
-    connection=null;
+    try {
+      initSchema(connection);
+    }
+ catch (    Exception e) {
+      connection.close();
+      connection=null;
+      throw e;
+    }
   }
   return action.execute(connection);
 }

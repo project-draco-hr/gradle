@@ -1,0 +1,22 @@
+{
+  encoder.writeLong(execution.inputFilesSnapshotId);
+  encoder.writeLong(execution.outputFilesSnapshotId);
+  encoder.writeString(execution.getTaskClass());
+  encoder.writeInt(execution.getOutputFiles().size());
+  for (  String outputFile : execution.getOutputFiles()) {
+    encoder.writeString(outputFile);
+  }
+  if (execution.getInputProperties() == null) {
+    encoder.writeInt(0);
+  }
+ else {
+    DefaultSerializer<Map> defaultSerializer=new DefaultSerializer<Map>(classLoader);
+    ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
+    OutputStreamBackedEncoder propsEncoder=new OutputStreamBackedEncoder(outputStream);
+    defaultSerializer.write(propsEncoder,execution.getInputProperties());
+    propsEncoder.flush();
+    byte[] serializedMap=outputStream.toByteArray();
+    encoder.writeInt(serializedMap.length);
+    encoder.writeBytes(serializedMap);
+  }
+}

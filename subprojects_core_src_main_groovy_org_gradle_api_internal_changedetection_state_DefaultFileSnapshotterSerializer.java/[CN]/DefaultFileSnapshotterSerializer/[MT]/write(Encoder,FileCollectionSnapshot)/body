@@ -1,0 +1,20 @@
+{
+  DefaultFileSnapshotter.FileCollectionSnapshotImpl cached=(DefaultFileSnapshotter.FileCollectionSnapshotImpl)value;
+  encoder.writeInt(cached.snapshots.size());
+  for (  String key : cached.snapshots.keySet()) {
+    encoder.writeString(key);
+    DefaultFileSnapshotter.FileSnapshot fileSnapshot=cached.snapshots.get(key);
+    if (fileSnapshot instanceof DefaultFileSnapshotter.DirSnapshot) {
+      encoder.writeByte((byte)1);
+    }
+ else     if (fileSnapshot instanceof DefaultFileSnapshotter.MissingFileSnapshot) {
+      encoder.writeByte((byte)2);
+    }
+ else     if (fileSnapshot instanceof DefaultFileSnapshotter.FileHashSnapshot) {
+      encoder.writeByte((byte)3);
+      byte[] hash=((DefaultFileSnapshotter.FileHashSnapshot)fileSnapshot).hash;
+      encoder.writeByte((byte)hash.length);
+      encoder.writeBytes(hash);
+    }
+  }
+}

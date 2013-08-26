@@ -1,0 +1,82 @@
+{
+  new Html(writer){
+{
+      html();
+      head();
+      headSection(this);
+      title().text("Profile report").end();
+      end();
+      body();
+      div().id("content");
+      h2().text("All tests").end();
+      List<String> testNames=store.getTestNames();
+      table().classAttr("history");
+      for (      String testName : testNames) {
+        TestExecutionHistory testHistory=store.getTestResults(testName);
+        tr();
+        th().colspan("6").classAttr("test-execution");
+        a().name(testName).end();
+        text(testName);
+        end();
+        end();
+        tr();
+        th().colspan("3").end();
+        th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
+        th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage").end();
+        end();
+        tr();
+        th().text("Date").end();
+        th().text("Test version").end();
+        th().text("Branch").end();
+        for (        String version : testHistory.getBaselineVersions()) {
+          th().text(version).end();
+        }
+        th().text("Current").end();
+        for (        String version : testHistory.getBaselineVersions()) {
+          th().text(version).end();
+        }
+        th().text("Current").end();
+        end();
+        for (int i=0; i < testHistory.getResults().size() && i < 5; i++) {
+          PerformanceResults performanceResults=testHistory.getResults().get(i);
+          tr();
+          td().text(timeStampFormat.format(new Date(performanceResults.getTestTime()))).end();
+          td().text(performanceResults.getVersionUnderTest()).end();
+          td().text(performanceResults.getVcsBranch()).end();
+          for (          String version : testHistory.getBaselineVersions()) {
+            BaselineVersion baselineVersion=performanceResults.baseline(version);
+            if (baselineVersion.getResults().isEmpty()) {
+              td().text("").end();
+            }
+ else {
+              td().text(baselineVersion.getResults().avgTime().format()).end();
+            }
+          }
+          td().text(performanceResults.getCurrent().avgTime().format()).end();
+          for (          String version : testHistory.getBaselineVersions()) {
+            BaselineVersion baselineVersion=performanceResults.baseline(version);
+            if (baselineVersion.getResults().isEmpty()) {
+              td().text("").end();
+            }
+ else {
+              td().text(baselineVersion.getResults().avgMemory().format()).end();
+            }
+          }
+          td().text(performanceResults.getCurrent().avgMemory().format()).end();
+          end();
+        }
+        tr();
+        td().colspan("6");
+        String url=testName.replaceAll("\\s+","-") + ".html";
+        a().href(url).text("details...").end();
+        end();
+        end();
+      }
+      end();
+      end();
+      footer(this);
+      endAll();
+    }
+  }
+;
+}
