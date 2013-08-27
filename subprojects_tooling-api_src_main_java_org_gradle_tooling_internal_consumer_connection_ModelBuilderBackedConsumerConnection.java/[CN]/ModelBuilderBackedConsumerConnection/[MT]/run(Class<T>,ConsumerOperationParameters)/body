@@ -1,5 +1,12 @@
 {
   ModelIdentifier modelIdentifier=modelMapping.getModelIdentifierFromModelType(type);
-  Object model=builder.getModel(modelIdentifier,operationParameters).getModel();
+  BuildResult<?> result;
+  try {
+    result=builder.getModel(modelIdentifier,operationParameters);
+  }
+ catch (  InternalUnsupportedModelException e) {
+    throw new UnknownModelException(String.format("No model of type '%s' is available in this build.",type.getSimpleName()),e);
+  }
+  Object model=result.getModel();
   return adapter.adapt(type,model);
 }
