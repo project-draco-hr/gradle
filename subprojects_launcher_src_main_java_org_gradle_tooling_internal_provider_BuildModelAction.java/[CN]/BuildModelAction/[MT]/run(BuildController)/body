@@ -1,11 +1,27 @@
 {
   DefaultGradleLauncher launcher=(DefaultGradleLauncher)buildController.getLauncher();
+  final AtomicReference<SerializedPayload> model=new AtomicReference<SerializedPayload>();
+  final AtomicReference<RuntimeException> failure=new AtomicReference<RuntimeException>();
+  final Action<GradleInternal> action=new Action<GradleInternal>(){
+    public void execute(    GradleInternal gradle){
+      ToolingModelBuilderRegistry builderRegistry=getToolingModelBuilderRegistry(gradle);
+      ToolingModelBuilder builder;
+      try {
+        builder=builderRegistry.getBuilder(modelName);
+      }
+ catch (      UnknownModelException e) {
+        failure.set((InternalUnsupportedModelException)(new InternalUnsupportedModelException().initCause(e)));
+        return;
+      }
+      Object result=builder.buildAll(modelName,gradle.getDefaultProject());
+      model.set(getPayloadSerializer(gradle).serialize(result));
+    }
+  }
+;
   if (runTasks) {
     launcher.addListener(new TasksCompletionListener(){
       public void onTasksFinished(      GradleInternal gradle){
-        ToolingModelBuilder builder=getToolingModelBuilderRegistry(gradle).getBuilder(modelName);
-        Object result=builder.buildAll(modelName,gradle.getDefaultProject());
-        model=getPayloadSerializer(gradle).serialize(result);
+        action.execute(gradle);
       }
     }
 );
@@ -15,13 +31,14 @@
     launcher.addListener(new ModelConfigurationListener(){
       public void onConfigure(      GradleInternal gradle){
         ensureAllProjectsEvaluated(gradle);
-        ToolingModelBuilder builder=getToolingModelBuilderRegistry(gradle).getBuilder(modelName);
-        Object result=builder.buildAll(modelName,gradle.getDefaultProject());
-        model=getPayloadSerializer(gradle).serialize(result);
+        action.execute(gradle);
       }
     }
 );
     buildController.configure();
   }
-  return model;
+  if (failure.get() != null) {
+    throw failure.get();
+  }
+  return new BuildActionResult(model.get(),null);
 }

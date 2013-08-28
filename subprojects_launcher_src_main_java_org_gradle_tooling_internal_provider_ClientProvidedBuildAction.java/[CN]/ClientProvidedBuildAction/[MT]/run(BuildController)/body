@@ -1,16 +1,24 @@
 {
   final DefaultGradleLauncher gradleLauncher=(DefaultGradleLauncher)buildController.getLauncher();
-  PayloadSerializer payloadSerializer=gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
+  final PayloadSerializer payloadSerializer=gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
   final InternalBuildAction<?> action=(InternalBuildAction<?>)payloadSerializer.deserialize(this.action);
-  final AtomicReference<Object> result=new AtomicReference<Object>();
+  final AtomicReference<SerializedPayload> result=new AtomicReference<SerializedPayload>();
+  final AtomicReference<SerializedPayload> failure=new AtomicReference<SerializedPayload>();
   gradleLauncher.addListener(new ModelConfigurationListener(){
     public void onConfigure(    final GradleInternal gradle){
       ToolingModelBuilderRegistry builderRegistry=gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
       InternalBuildController internalBuildController=new DefaultBuildController(gradle,builderRegistry);
-      result.set(action.execute(internalBuildController));
+      Object model=null;
+      try {
+        model=action.execute(internalBuildController);
+      }
+ catch (      RuntimeException e) {
+        failure.set(payloadSerializer.serialize(e));
+      }
+      result.set(payloadSerializer.serialize(model));
     }
   }
 );
   buildController.configure();
-  return payloadSerializer.serialize(result.get());
+  return new BuildActionResult(result.get(),failure.get());
 }
