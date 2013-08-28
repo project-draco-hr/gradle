@@ -1,0 +1,24 @@
+{
+  for (  LocalClassLoader localClassLoader : new ArrayList<LocalClassLoader>(classLoaders.values())) {
+    Set<ClassLoader> localCandidates=new LinkedHashSet<ClassLoader>();
+    for (    Reference<ClassLoader> reference : localClassLoader.classLoaders) {
+      ClassLoader cl=reference.get();
+      if (cl != null) {
+        localCandidates.add(cl);
+      }
+    }
+    if (localCandidates.isEmpty()) {
+      classLoaders.remove(localClassLoader.uuid);
+      continue;
+    }
+    if (localCandidates.equals(candidates)) {
+      return localClassLoader.uuid;
+    }
+  }
+  LocalClassLoader details=new LocalClassLoader(UUID.randomUUID());
+  for (  ClassLoader candidate : candidates) {
+    details.classLoaders.add(new WeakReference<ClassLoader>(candidate));
+  }
+  classLoaders.put(details.uuid,details);
+  return details.uuid;
+}
