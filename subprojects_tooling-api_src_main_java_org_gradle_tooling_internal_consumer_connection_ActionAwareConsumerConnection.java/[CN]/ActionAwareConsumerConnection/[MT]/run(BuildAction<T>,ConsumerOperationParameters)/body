@@ -1,3 +1,10 @@
 {
-  return executor.run(new BuildActionAdapter<T>(action,adapter),operationParameters).getModel();
+  BuildResult<T> result;
+  try {
+    result=executor.run(new BuildActionAdapter<T>(action,adapter),operationParameters);
+  }
+ catch (  InternalBuildActionFailureException e) {
+    throw new BuildActionFailureException("The supplied build action failed with an exception.",e.getCause());
+  }
+  return result.getModel();
 }
