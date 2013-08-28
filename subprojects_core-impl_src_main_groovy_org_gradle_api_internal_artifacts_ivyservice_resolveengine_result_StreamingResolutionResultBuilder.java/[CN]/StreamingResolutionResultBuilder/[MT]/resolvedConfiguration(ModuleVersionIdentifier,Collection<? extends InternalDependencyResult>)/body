@@ -1,18 +1,18 @@
 {
   if (!dependencies.isEmpty()) {
-    try {
-      encoder.writeByte(DEPENDENCY);
-      moduleVersionIdentifierSerializer.write(encoder,from);
-      encoder.writeInt(dependencies.size());
-      for (      InternalDependencyResult dependency : dependencies) {
-        internalDependencyResultSerializer.write(encoder,dependency);
-        if (dependency.getFailure() != null) {
-          failures.put(dependency.getRequested(),dependency.getFailure());
+    store.write(new EncodedWriteAction(){
+      public void write(      FlushableEncoder encoder) throws IOException {
+        encoder.writeByte(DEPENDENCY);
+        moduleVersionIdentifierSerializer.write(encoder,from);
+        encoder.writeInt(dependencies.size());
+        for (        InternalDependencyResult dependency : dependencies) {
+          internalDependencyResultSerializer.write(encoder,dependency);
+          if (dependency.getFailure() != null) {
+            failures.put(dependency.getRequested(),dependency.getFailure());
+          }
         }
       }
     }
- catch (    Exception e) {
-      throw throwAsUncheckedException(e);
-    }
+);
   }
 }

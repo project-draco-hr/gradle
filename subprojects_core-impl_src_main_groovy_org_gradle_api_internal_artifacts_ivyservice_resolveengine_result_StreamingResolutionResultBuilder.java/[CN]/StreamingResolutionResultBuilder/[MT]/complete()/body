@@ -1,11 +1,11 @@
 {
-  try {
-    encoder.writeByte(DONE);
-    encoder.flush();
+  store.write(new EncodedWriteAction(){
+    public void write(    FlushableEncoder encoder) throws IOException {
+      encoder.writeByte(DONE);
+    }
   }
- catch (  IOException e) {
-    throw throwAsUncheckedException(e);
-  }
-  RootFactory rootSource=new RootFactory(store,offset,failures,cache);
+);
+  BinaryStore.BinaryData data=store.done();
+  RootFactory rootSource=new RootFactory(data,failures,cache);
   return new DefaultResolutionResult(rootSource);
 }

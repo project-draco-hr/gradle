@@ -3,23 +3,20 @@
   DefaultTransientConfigurationResults results=new DefaultTransientConfigurationResults();
   int valuesRead=0;
   byte type=-1;
+  InputStreamBackedDecoder decoder=new InputStreamBackedDecoder(input);
   try {
-    DataInputStream input=binaryStore.getInput();
-    try {
-      input.skipBytes(offset);
-      InputStreamBackedDecoder decoder=new InputStreamBackedDecoder(input);
-      while (true) {
-        type=decoder.readByte();
-        ResolvedConfigurationIdentifier id;
-        valuesRead++;
+    while (true) {
+      type=decoder.readByte();
+      ResolvedConfigurationIdentifier id;
+      valuesRead++;
 switch (type) {
 case NEW_DEP:
-          id=resolvedConfigurationIdentifierSerializer.read(decoder);
-        results.allDependencies.put(id,new DefaultResolvedDependency(id.getId(),id.getConfiguration()));
-      break;
+        id=resolvedConfigurationIdentifierSerializer.read(decoder);
+      results.allDependencies.put(id,new DefaultResolvedDependency(id.getId(),id.getConfiguration()));
+    break;
 case ROOT:
-    id=resolvedConfigurationIdentifierSerializer.read(decoder);
-  results.root=results.allDependencies.get(id);
+  id=resolvedConfigurationIdentifierSerializer.read(decoder);
+results.root=results.allDependencies.get(id);
 LOG.debug("Loaded resolved configuration results ({}) from {}",clock.getTime(),binaryStore);
 return results;
 case FIRST_LVL:
@@ -36,14 +33,12 @@ DefaultResolvedDependency c=results.allDependencies.get(resolvedConfigurationIde
 DefaultResolvedDependency p=results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
 c.addParentSpecificArtifacts(p,newHashSet(mapping.getArtifact(decoder.readLong())));
 break;
+default :
+throw new IOException("Unknown value type read from stream: " + type);
 }
 }
 }
-  finally {
-input.close();
-}
-}
- catch (Exception e) {
-throw new RuntimeException("Problems loading the resolved configuration (" + clock.getTime() + ") from "+ binaryStore.diagnose()+ ". Read "+ valuesRead+ " values, last was: "+ type,e);
+ catch (IOException e) {
+throw new IOException("Problems loading (" + clock.getTime() + ") the resolved configuration. Read "+ valuesRead+ " values, last was: "+ type,e);
 }
 }
