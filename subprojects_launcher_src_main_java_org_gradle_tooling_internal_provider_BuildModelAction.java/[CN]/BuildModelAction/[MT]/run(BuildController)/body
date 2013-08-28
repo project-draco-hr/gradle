@@ -1,6 +1,7 @@
 {
   DefaultGradleLauncher launcher=(DefaultGradleLauncher)buildController.getLauncher();
-  final AtomicReference<SerializedPayload> model=new AtomicReference<SerializedPayload>();
+  final PayloadSerializer payloadSerializer=launcher.getGradle().getServices().get(PayloadSerializer.class);
+  final AtomicReference<Object> model=new AtomicReference<Object>();
   final AtomicReference<RuntimeException> failure=new AtomicReference<RuntimeException>();
   final Action<GradleInternal> action=new Action<GradleInternal>(){
     public void execute(    GradleInternal gradle){
@@ -14,7 +15,7 @@
         return;
       }
       Object result=builder.buildAll(modelName,gradle.getDefaultProject());
-      model.set(getPayloadSerializer(gradle).serialize(result));
+      model.set(result);
     }
   }
 ;
@@ -40,5 +41,5 @@
   if (failure.get() != null) {
     throw failure.get();
   }
-  return new BuildActionResult(model.get(),null);
+  return new BuildActionResult(payloadSerializer.serialize(model.get()),null);
 }
