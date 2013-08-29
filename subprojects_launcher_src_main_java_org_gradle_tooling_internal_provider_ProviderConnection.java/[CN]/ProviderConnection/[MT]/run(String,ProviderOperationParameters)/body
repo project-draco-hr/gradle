@@ -11,18 +11,6 @@
     }
     return new DefaultBuildEnvironment(GradleVersion.current().getVersion(),params.daemonParams.getEffectiveJavaHome(),params.daemonParams.getEffectiveJvmArgs());
   }
-  BuildAction<SerializedPayload> action=new BuildModelAction(modelName,tasks != null);
-  SerializedPayload model;
-  try {
-    model=run(action,providerParameters,params.properties);
-  }
- catch (  RuntimeException e) {
-    for (Throwable t=e; t != null; t=t.getCause()) {
-      if (t instanceof UnsupportedOperationException) {
-        throw new InternalUnsupportedModelException();
-      }
-    }
-    throw e;
-  }
-  return payloadSerializer.deserialize(model);
+  BuildAction<BuildActionResult> action=new BuildModelAction(modelName,tasks != null);
+  return run(action,providerParameters,params.properties);
 }

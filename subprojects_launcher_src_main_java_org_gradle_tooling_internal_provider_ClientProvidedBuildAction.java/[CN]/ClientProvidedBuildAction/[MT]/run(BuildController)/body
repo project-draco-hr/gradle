@@ -1,25 +1,26 @@
 {
   final DefaultGradleLauncher gradleLauncher=(DefaultGradleLauncher)buildController.getLauncher();
-  PayloadSerializer payloadSerializer=gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
+  final PayloadSerializer payloadSerializer=gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
   final InternalBuildAction<?> action=(InternalBuildAction<?>)payloadSerializer.deserialize(this.action);
   final AtomicReference<Object> result=new AtomicReference<Object>();
+  final AtomicReference<RuntimeException> failure=new AtomicReference<RuntimeException>();
   gradleLauncher.addListener(new ModelConfigurationListener(){
     public void onConfigure(    final GradleInternal gradle){
-      InternalBuildController internalBuildController=new InternalBuildController(){
-        public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
-          return new ProviderBuildResult<Object>(gradle);
-        }
-        public BuildResult<?> getModel(        final ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
-          ToolingModelBuilder builder=gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class).getBuilder(modelIdentifier.getName());
-          Object model=builder.buildAll(modelIdentifier.getName(),gradle.getDefaultProject());
-          return new ProviderBuildResult<Object>(model);
-        }
+      InternalBuildController internalBuildController=new DefaultBuildController(gradle);
+      Object model=null;
+      try {
+        model=action.execute(internalBuildController);
       }
-;
-      result.set(action.execute(internalBuildController));
+ catch (      RuntimeException e) {
+        failure.set(new InternalBuildActionFailureException(e));
+      }
+      result.set(model);
     }
   }
 );
   buildController.configure();
-  return payloadSerializer.serialize(result.get());
+  if (failure.get() != null) {
+    return new BuildActionResult(null,payloadSerializer.serialize(failure.get()));
+  }
+  return new BuildActionResult(payloadSerializer.serialize(result.get()),null);
 }

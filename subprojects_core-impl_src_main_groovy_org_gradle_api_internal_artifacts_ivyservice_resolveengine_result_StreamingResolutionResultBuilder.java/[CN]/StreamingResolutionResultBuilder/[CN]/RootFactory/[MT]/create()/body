@@ -2,7 +2,17 @@
 synchronized (lock) {
     return cache.load(new Factory<ResolvedModuleVersionResult>(){
       public ResolvedModuleVersionResult create(){
-        return createNow();
+        try {
+          return data.read(new BinaryStore.ReadAction<ResolvedModuleVersionResult>(){
+            public ResolvedModuleVersionResult read(            DataInputStream input) throws IOException {
+              return deserialize(input);
+            }
+          }
+);
+        }
+  finally {
+          data.done();
+        }
       }
     }
 );

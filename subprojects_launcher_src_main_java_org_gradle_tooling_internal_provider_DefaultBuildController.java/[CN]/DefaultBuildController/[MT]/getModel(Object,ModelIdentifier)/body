@@ -1,0 +1,24 @@
+{
+  ToolingModelBuilderRegistry modelBuilderRegistry;
+  ProjectInternal project;
+  if (target == null) {
+    project=gradle.getDefaultProject();
+  }
+ else   if (target instanceof BasicGradleProject) {
+    BasicGradleProject gradleProject=(BasicGradleProject)target;
+    project=gradle.getRootProject().project(gradleProject.getPath());
+  }
+ else {
+    throw new IllegalArgumentException("Don't know how to build models for " + target);
+  }
+  modelBuilderRegistry=project.getServices().get(ToolingModelBuilderRegistry.class);
+  ToolingModelBuilder builder;
+  try {
+    builder=modelBuilderRegistry.getBuilder(modelIdentifier.getName());
+  }
+ catch (  UnknownModelException e) {
+    throw (InternalUnsupportedModelException)(new InternalUnsupportedModelException()).initCause(e);
+  }
+  Object model=builder.buildAll(modelIdentifier.getName(),project);
+  return new ProviderBuildResult<Object>(model);
+}

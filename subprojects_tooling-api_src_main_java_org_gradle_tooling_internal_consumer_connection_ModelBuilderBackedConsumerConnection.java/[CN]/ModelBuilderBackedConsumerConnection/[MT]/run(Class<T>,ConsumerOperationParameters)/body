@@ -1,5 +1,12 @@
 {
   ModelIdentifier modelIdentifier=modelMapping.getModelIdentifierFromModelType(type);
-  Object model=builder.getModel(modelIdentifier,operationParameters).getModel();
+  BuildResult<?> result;
+  try {
+    result=builder.getModel(modelIdentifier,operationParameters);
+  }
+ catch (  InternalUnsupportedModelException e) {
+    throw Exceptions.unknownModel(type,e);
+  }
+  Object model=result.getModel();
   return adapter.adapt(type,model);
 }
