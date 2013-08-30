@@ -1,0 +1,31 @@
+{
+  PrintWriter out=new PrintWriter(output);
+  List<PerformanceResults> sortedResults=testHistory.getResultsOldestFirst();
+  out.println("{");
+  out.println("\"labels\": [");
+  for (int i=0; i < sortedResults.size(); i++) {
+    PerformanceResults results=sortedResults.get(i);
+    if (i > 0) {
+      out.print(", ");
+    }
+    out.print("\"" + format.date(new Date(results.getTestTime())) + "\"");
+  }
+  out.println("],");
+  out.print("\"executionTime\":");
+  render(testHistory,new Transformer<String,MeasuredOperationList>(){
+    public String transform(    MeasuredOperationList original){
+      return format.seconds(original.avgTime());
+    }
+  }
+,out);
+  out.println(",");
+  out.print("\"heapUsage\":");
+  render(testHistory,new Transformer<String,MeasuredOperationList>(){
+    public String transform(    MeasuredOperationList original){
+      return format.megabytes(original.avgMemory());
+    }
+  }
+,out);
+  out.println("}");
+  out.flush();
+}

@@ -1,0 +1,38 @@
+{
+  List<PerformanceResults> sortedResults=testHistory.getResultsOldestFirst();
+  out.println("  [{");
+  out.println("    \"label\": \"current\",");
+  out.print("    \"data\": [ ");
+  for (int j=0; j < sortedResults.size(); j++) {
+    PerformanceResults results=sortedResults.get(j);
+    if (j > 0) {
+      out.print(", ");
+    }
+    out.print("[" + j + ", "+ valueRenderer.transform(results.getCurrent())+ "]");
+  }
+  out.println("]");
+  out.print("  }");
+  for (int i=0; i < testHistory.getBaselineVersions().size(); i++) {
+    String version=testHistory.getBaselineVersions().get(i);
+    out.println(",");
+    out.println("  {");
+    out.println("    \"label\": \"" + version + "\",");
+    out.print("\"data\": [");
+    boolean empty=true;
+    for (int j=0; j < sortedResults.size(); j++) {
+      PerformanceResults results=sortedResults.get(j);
+      MeasuredOperationList measuredOperations=results.baseline(version).getResults();
+      if (!measuredOperations.isEmpty()) {
+        if (!empty) {
+          out.print(", ");
+        }
+        out.print("[" + j + ", "+ valueRenderer.transform(measuredOperations)+ "]");
+        empty=false;
+      }
+    }
+    out.println("]");
+    out.print("  }");
+  }
+  out.println();
+  out.println("]");
+}
