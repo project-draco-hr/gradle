@@ -1,20 +1,20 @@
 {
   FailureState failureState=new FailureState(resolveState.root);
   ModuleVersionIdentifier root=resolveState.root.toId();
-  listener.start(root);
+  newModelBuilder.start(root);
   for (  ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
     if (resolvedConfiguration.isSelected()) {
-      result.newResolvedDependency(resolvedConfiguration.getResult());
+      oldModelBuilder.newResolvedDependency(resolvedConfiguration.getResult());
       resolvedConfiguration.collectFailures(failureState);
-      listener.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
+      newModelBuilder.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
     }
   }
   for (  ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
     if (resolvedConfiguration.isSelected()) {
-      resolvedConfiguration.attachToParents(result);
-      listener.resolvedConfiguration(resolvedConfiguration.toId(),resolvedConfiguration.outgoingEdges);
+      resolvedConfiguration.attachToParents(oldModelBuilder);
+      newModelBuilder.resolvedConfiguration(resolvedConfiguration.toId(),resolvedConfiguration.outgoingEdges);
     }
   }
-  failureState.attachFailures(result);
-  result.done(resolveState.root.getResult());
+  failureState.attachFailures(oldModelBuilder);
+  oldModelBuilder.done(resolveState.root.getResult());
 }
