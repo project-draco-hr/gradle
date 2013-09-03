@@ -1,0 +1,24 @@
+{
+  if (!isAllownomd()) {
+    LOGGER.debug("No ivy file found for module '{}' in repository '{}'.",moduleRevisionId,getName());
+    result.missing();
+    return;
+  }
+  DefaultModuleDescriptor generatedModuleDescriptor=DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId,dependencyDescriptor.getAllDependencyArtifacts());
+  ResolvedArtifact artifactRef=findAnyArtifact(generatedModuleDescriptor);
+  if (artifactRef == null) {
+    LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.",moduleRevisionId,getName());
+    result.missing();
+  }
+ else {
+    long lastModified=artifactRef.resource.getLastModified();
+    if (lastModified != 0) {
+      generatedModuleDescriptor.setLastModified(lastModified);
+    }
+    LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.",moduleRevisionId,getName());
+    if (isDynamic) {
+      generatedModuleDescriptor.setResolvedModuleRevisionId(artifactRef.artifact.getModuleRevisionId());
+    }
+    result.resolved(generatedModuleDescriptor,isChanging(generatedModuleDescriptor),null);
+  }
+}
