@@ -1,11 +1,12 @@
 {
   String storeKey=Thread.currentThread().getId() + id;
   DefaultBinaryStore store=stores.get(storeKey);
-  if (store == null) {
+  if (store == null || isFull(store)) {
     File storeFile=temp.createTemporaryFile("gradle",".bin");
     storeFile.deleteOnExit();
     store=new DefaultBinaryStore(storeFile);
     stores.put(storeKey,store);
+    cleanUpLater.add(store);
   }
   return store;
 }
