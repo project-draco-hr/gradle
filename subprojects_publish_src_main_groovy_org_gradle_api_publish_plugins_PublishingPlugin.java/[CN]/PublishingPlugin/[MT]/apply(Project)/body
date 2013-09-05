@@ -1,14 +1,16 @@
 {
   RepositoryHandler repositories=publicationServices.createRepositoryHandler();
   PublicationContainer publications=instantiator.newInstance(DefaultPublicationContainer.class,instantiator);
-  project.getExtensions().create(PublishingExtension.NAME,DefaultPublishingExtension.class,repositories,publications);
-  Task publishLifecycleTask=project.getTasks().create(PUBLISH_LIFECYCLE_TASK_NAME);
-  publishLifecycleTask.setDescription("Publishes all publications produced by this project.");
-  publishLifecycleTask.setGroup(PUBLISH_TASK_GROUP);
-  configurationActions.add(new Action<ProjectInternal>(){
-    public void execute(    ProjectInternal projectInternal){
+  PublishingExtension extension=project.getExtensions().create(PublishingExtension.NAME,DefaultPublishingExtension.class,repositories,publications);
+  ModelPath extensionModelPath=ModelPath.path(PublishingExtension.NAME);
+  modelRules.register(extensionModelPath.toString(),extension);
+  modelRules.rule(new ModelRule(){
+    public void triggerDeferredConfigurables(    PublishingExtension publishingExtension){
       project.getExtensions().getByType(DefaultPublishingExtension.class);
     }
   }
 );
+  Task publishLifecycleTask=project.getTasks().create(PUBLISH_LIFECYCLE_TASK_NAME);
+  publishLifecycleTask.setDescription("Publishes all publications produced by this project.");
+  publishLifecycleTask.setGroup(PUBLISH_TASK_GROUP);
 }

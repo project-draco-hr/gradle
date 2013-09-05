@@ -1,0 +1,18 @@
+{
+  if (store.containsKey(path)) {
+    return store.get(path);
+  }
+  Object model=createModel(path);
+  Collection<ModelMutation<?>> modelMutations=mutators.removeAll(path);
+  for (  ModelMutation modelMutation : modelMutations) {
+    fireMutation(model,modelMutation);
+  }
+  Set<ModelPath> promisedPaths=getPromisedPaths();
+  for (  ModelPath modelPath : promisedPaths) {
+    if (path.isDirectChild(modelPath)) {
+      getClosedModel(modelPath);
+    }
+  }
+  store.put(path,model);
+  return model;
+}

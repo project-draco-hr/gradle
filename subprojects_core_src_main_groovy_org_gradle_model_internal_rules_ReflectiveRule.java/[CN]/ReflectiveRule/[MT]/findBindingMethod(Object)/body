@@ -1,0 +1,14 @@
+{
+  Class<?> objectClass=object.getClass();
+  List<Method> declaredMethods=filter(Arrays.asList(objectClass.getDeclaredMethods()),new Spec<Method>(){
+    public boolean isSatisfiedBy(    Method element){
+      int modifiers=element.getModifiers();
+      return !isPrivate(modifiers) && !isStatic(modifiers) && !element.isSynthetic();
+    }
+  }
+);
+  if (declaredMethods.size() != 1) {
+    throw new IllegalArgumentException(objectClass + " rule must have exactly 1 public method, has: " + join(", ",toStringList(declaredMethods)));
+  }
+  return declaredMethods.get(0);
+}

@@ -1,0 +1,43 @@
+{
+  final Method bindingMethod=findBindingMethod(modelRule);
+  final List<BindableParameter<?>> initialBindings=bindings(bindingMethod);
+  boolean unsatisfied=CollectionUtils.any(initialBindings,new Spec<BindableParameter<?>>(){
+    public boolean isSatisfiedBy(    BindableParameter<?> element){
+      return element.getPath() == null;
+    }
+  }
+);
+  if (unsatisfied) {
+    modelRegistry.registerListener(new ModelCreationListener(){
+      private List<BindableParameter<?>> bindings=initialBindings;
+      public boolean onCreate(      ModelPath path,      Class<?> type){
+        ImmutableList.Builder<BindableParameter<?>> bindingsBuilder=ImmutableList.builder();
+        boolean unsatisfied=false;
+        for (        BindableParameter<?> binding : bindings) {
+          if (binding.getPath() == null) {
+            if (binding.getType().isAssignableFrom(type)) {
+              bindingsBuilder.add(copyBindingWithPath(path,binding));
+              continue;
+            }
+ else {
+              unsatisfied=true;
+            }
+          }
+          bindingsBuilder.add(binding);
+        }
+        bindings=bindingsBuilder.build();
+        if (unsatisfied) {
+          return false;
+        }
+ else {
+          registerMutator(modelRegistry,modelRule,bindingMethod,bindings);
+          return true;
+        }
+      }
+    }
+);
+  }
+ else {
+    registerMutator(modelRegistry,modelRule,bindingMethod,initialBindings);
+  }
+}

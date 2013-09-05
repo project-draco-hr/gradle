@@ -8,13 +8,8 @@
   project.getExtensions().configure(PublishingExtension.class,new Action<PublishingExtension>(){
     public void execute(    PublishingExtension extension){
       extension.getPublications().registerFactory(MavenPublication.class,new MavenPublicationFactory(dependencyMetaDataProvider,instantiator,fileResolver));
-      GeneratePomTaskCreator descriptorGenerationTaskCreator=new GeneratePomTaskCreator(project);
-      descriptorGenerationTaskCreator.monitor(extension.getPublications());
-      MavenPublishDynamicTaskCreator publishTaskCreator=new MavenPublishDynamicTaskCreator(tasks,publishLifecycleTask);
-      publishTaskCreator.monitor(extension.getPublications(),extension.getRepositories());
-      MavenPublishLocalDynamicTaskCreator publishLocalTaskCreator=new MavenPublishLocalDynamicTaskCreator(tasks,publishLocalLifecycleTask);
-      publishLocalTaskCreator.monitor(extension.getPublications());
     }
   }
 );
+  modelRules.rule(new MavenPublishTaskModelRule(project,publishLifecycleTask,publishLocalLifecycleTask));
 }

@@ -1,0 +1,30 @@
+{
+  PublicationContainer publications=publishingExtension.getPublications();
+  RepositoryHandler repositories=publishingExtension.getRepositories();
+  for (  final IvyPublicationInternal publication : publications.withType(IvyPublicationInternal.class)) {
+    final String publicationName=publication.getName();
+    final String descriptorTaskName=String.format("generateDescriptorFileFor%sPublication",capitalize(publicationName));
+    GenerateIvyDescriptor descriptorTask=tasks.create(descriptorTaskName,GenerateIvyDescriptor.class);
+    descriptorTask.setDescription(String.format("Generates the Ivy Module Descriptor XML file for publication '%s'.",publication.getName()));
+    descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+    descriptorTask.setDescriptor(publication.getDescriptor());
+    ConventionMapping descriptorTaskConventionMapping=new DslObject(descriptorTask).getConventionMapping();
+    descriptorTaskConventionMapping.map("destination",new Callable<Object>(){
+      public Object call() throws Exception {
+        return new File(project.getBuildDir(),"publications/" + publication.getName() + "/ivy.xml");
+      }
+    }
+);
+    publication.setDescriptorFile(descriptorTask.getOutputs().getFiles());
+    for (    IvyArtifactRepository repository : repositories.withType(IvyArtifactRepository.class)) {
+      final String repositoryName=repository.getName();
+      final String publishTaskName=String.format("publish%sPublicationTo%sRepository",capitalize(publicationName),capitalize(repositoryName));
+      PublishToIvyRepository publishTask=tasks.create(publishTaskName,PublishToIvyRepository.class);
+      publishTask.setPublication(publication);
+      publishTask.setRepository(repository);
+      publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+      publishTask.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'.",publicationName,repositoryName));
+      tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME).dependsOn(publishTask);
+    }
+  }
+}
