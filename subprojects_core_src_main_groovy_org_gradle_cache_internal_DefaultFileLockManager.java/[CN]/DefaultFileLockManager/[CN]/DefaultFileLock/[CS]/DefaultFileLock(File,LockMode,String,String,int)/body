@@ -18,7 +18,9 @@
   lockFileAccess=new RandomAccessFile(lockFile,"rw");
   try {
     lock=lock(mode);
-    integrityViolated=!getUnlockedCleanly();
+    int previousOwnerId=getPreviousOwnerId();
+    hasNewOwner=previousOwnerId != ownerId;
+    integrityViolated=previousOwnerId == UNKNOWN_PREVIOUS_OWNER;
   }
  catch (  Throwable t) {
     lockFileAccess.close();
