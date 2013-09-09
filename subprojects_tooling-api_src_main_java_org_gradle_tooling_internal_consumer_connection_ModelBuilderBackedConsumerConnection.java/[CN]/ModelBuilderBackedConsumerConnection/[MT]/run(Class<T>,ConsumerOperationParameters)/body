@@ -2,7 +2,21 @@
   ModelIdentifier modelIdentifier=modelMapping.getModelIdentifierFromModelType(type);
   BuildResult<?> result;
   try {
-    result=builder.getModel(modelIdentifier,operationParameters);
+    if (type == GradleBuild.class && !gradleBuildModelSupported()) {
+      BuildResult<?> gradleProjectBuildResult=builder.getModel(modelMapping.getModelIdentifierFromModelType(GradleProject.class),operationParameters);
+      final Object gradleProjectModel=gradleProjectBuildResult.getModel();
+      final GradleProject adapt=adapter.adapt(GradleProject.class,gradleProjectModel);
+      final DefaultGradleBuild convert=new GradleBuildConverter().convert(adapt,operationParameters);
+      result=new BuildResult(){
+        public Object getModel(){
+          return convert;
+        }
+      }
+;
+    }
+ else {
+      result=builder.getModel(modelIdentifier,operationParameters);
+    }
   }
  catch (  InternalUnsupportedModelException e) {
     throw Exceptions.unknownModel(type,e);
