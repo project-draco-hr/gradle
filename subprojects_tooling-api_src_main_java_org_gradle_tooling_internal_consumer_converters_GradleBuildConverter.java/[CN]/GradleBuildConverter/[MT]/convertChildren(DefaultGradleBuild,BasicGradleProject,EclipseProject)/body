@@ -1,0 +1,17 @@
+{
+  final DomainObjectSet<? extends EclipseProject> children=project.getChildren();
+  final List<? extends EclipseProject> childProjects=new ArrayList<EclipseProject>(children);
+  Collections.sort(childProjects,new Comparator<EclipseProject>(){
+    public int compare(    EclipseProject gp1,    EclipseProject gp2){
+      return gp1.getGradleProject().getName().compareTo(gp2.getGradleProject().getName());
+    }
+  }
+);
+  for (  EclipseProject childProject : childProjects) {
+    BasicGradleProject basicGradleProject=toBasicGradleProject(childProject);
+    gradleBuild.addProject(basicGradleProject);
+    basicGradleProject.setParent(rootProject);
+    rootProject.addChild(basicGradleProject);
+    convertChildren(gradleBuild,basicGradleProject,childProject);
+  }
+}
