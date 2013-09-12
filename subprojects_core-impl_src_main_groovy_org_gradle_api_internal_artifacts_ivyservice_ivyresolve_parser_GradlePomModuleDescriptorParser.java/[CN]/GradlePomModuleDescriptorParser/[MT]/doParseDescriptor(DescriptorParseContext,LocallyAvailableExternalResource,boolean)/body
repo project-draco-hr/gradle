@@ -11,14 +11,14 @@
     pomReader.setProperty((String)prop.getKey(),(String)prop.getValue());
     mdBuilder.addProperty((String)prop.getKey(),(String)prop.getValue());
   }
-  ModuleDescriptor parentDescr=null;
+  PomReader parentDescr=null;
   if (pomReader.hasParent()) {
     ModuleRevisionId parentModRevID=ModuleRevisionId.newInstance(pomReader.getParentGroupId(),pomReader.getParentArtifactId(),pomReader.getParentVersion());
     parentDescr=parseOtherPom(parserSettings,parentModRevID);
     if (parentDescr == null) {
       throw new IOException("Impossible to load parent for " + resource.getName() + ". Parent="+ parentModRevID);
     }
-    Map parentPomProps=GradlePomModuleDescriptorBuilder.extractPomProperties(parentDescr.getExtraInfo());
+    Map parentPomProps=GradlePomModuleDescriptorBuilder.extractPomProperties(parentDescr.getPomProperties());
     for (    Object o : parentPomProps.entrySet()) {
       Map.Entry prop=(Map.Entry)o;
       pomReader.setProperty((String)prop.getKey(),(String)prop.getValue());
@@ -37,13 +37,13 @@
       LOGGER.error("POM relocation to an other version number is not fully supported in Gradle : {} relocated to {}.",mdBuilder.getModuleDescriptor().getModuleRevisionId(),relocation);
       LOGGER.warn("Please update your dependency to directly use the correct version '{}'.",relocation);
       LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
-      ModuleDescriptor relocatedModule=parseOtherPom(parserSettings,relocation);
+      PomReader relocatedModule=parseOtherPom(parserSettings,relocation);
       if (relocatedModule == null) {
         throw new ParseException("impossible to load module " + relocation + " to which "+ mdBuilder.getModuleDescriptor().getModuleRevisionId()+ " has been relocated",0);
       }
-      DependencyDescriptor[] dds=relocatedModule.getDependencies();
-      for (      DependencyDescriptor dd : dds) {
-        mdBuilder.addDependency(dd);
+      List<PomDependencyData> pomDependencyDataList=relocatedModule.getDependencies();
+      for (      PomDependencyData pomDependencyData : pomDependencyDataList) {
+        mdBuilder.addDependency(pomDependencyData);
       }
     }
  else {
@@ -70,27 +70,27 @@
     pomReader.setProperty("pom.version",version);
     pomReader.setProperty("version",version);
     if (parentDescr != null) {
-      mdBuilder.addExtraInfos(parentDescr.getExtraInfo());
-      List depMgt=GradlePomModuleDescriptorBuilder.getDependencyManagements(parentDescr);
-      for (      Object aDepMgt : depMgt) {
-        mdBuilder.addDependencyMgt((PomDependencyMgt)aDepMgt);
+      mdBuilder.addExtraInfos(parentDescr.getPomProperties());
+      List<PomDependencyMgt> depMgt=parentDescr.getDependencyMgt();
+      for (      PomDependencyMgt aDepMgt : depMgt) {
+        mdBuilder.addDependencyMgt(aDepMgt);
       }
-      List plugins=GradlePomModuleDescriptorBuilder.getPlugins(parentDescr);
-      for (      Object plugin : plugins) {
-        mdBuilder.addPlugin((PomDependencyMgt)plugin);
+      List<PomPluginElement> plugins=parentDescr.getPlugins();
+      for (      PomPluginElement plugin : plugins) {
+        mdBuilder.addPlugin(plugin);
       }
     }
     for (    Object o : pomReader.getDependencyMgt()) {
       PomDependencyMgt dep=(PomDependencyMgt)o;
       if ("import".equals(dep.getScope())) {
         ModuleRevisionId importModRevID=ModuleRevisionId.newInstance(dep.getGroupId(),dep.getArtifactId(),dep.getVersion());
-        ModuleDescriptor importDescr=parseOtherPom(parserSettings,importModRevID);
+        PomReader importDescr=parseOtherPom(parserSettings,importModRevID);
         if (importDescr == null) {
           throw new IOException("Impossible to import module for " + resource.getName() + "."+ " Import="+ importModRevID);
         }
-        List depMgt=GradlePomModuleDescriptorBuilder.getDependencyManagements(importDescr);
-        for (        Object aDepMgt : depMgt) {
-          mdBuilder.addDependencyMgt((PomDependencyMgt)aDepMgt);
+        List<PomDependencyMgt> depMgt=importDescr.getDependencyMgt();
+        for (        PomDependencyMgt aDepMgt : depMgt) {
+          mdBuilder.addDependencyMgt(aDepMgt);
         }
       }
  else {
@@ -102,8 +102,8 @@
       mdBuilder.addDependency(dep);
     }
     if (parentDescr != null) {
-      for (int i=0; i < parentDescr.getDependencies().length; i++) {
-        mdBuilder.addDependency(parentDescr.getDependencies()[i]);
+      for (      PomDependencyData pomDependencyData : parentDescr.getDependencies()) {
+        mdBuilder.addDependency(pomDependencyData);
       }
     }
     for (    Object o : pomReader.getPlugins()) {
