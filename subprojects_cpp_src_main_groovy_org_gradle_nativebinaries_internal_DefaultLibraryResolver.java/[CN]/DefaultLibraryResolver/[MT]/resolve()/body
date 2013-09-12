@@ -1,12 +1,16 @@
 {
   for (  LibraryBinary candidate : library.getBinaries().withType(type)) {
-    if (library.getFlavors().size() == 1) {
-      return candidate.resolve();
+    if (library.getFlavors().size() > 1 && !flavor.equals(candidate.getFlavor())) {
+      continue;
     }
-    if (flavor.equals(candidate.getFlavor())) {
-      return candidate.resolve();
+    if (toolChain != null && !toolChain.getName().equals(candidate.getToolChain().getName())) {
+      continue;
     }
+    if (platform.getArchitecture() != candidate.getTargetPlatform().getArchitecture()) {
+      continue;
+    }
+    return candidate.resolve();
   }
   String typeName=type == SharedLibraryBinary.class ? "shared" : "static";
-  throw new InvalidUserDataException(String.format("No %s library binary available for %s with %s",typeName,library,flavor));
+  throw new InvalidUserDataException(String.format("No %s library binary available for %s with [flavor: '%s', toolChain: '%s', platform: '%s']",typeName,library,flavor.getName(),toolChain.getName(),platform.getArchitecture()));
 }
