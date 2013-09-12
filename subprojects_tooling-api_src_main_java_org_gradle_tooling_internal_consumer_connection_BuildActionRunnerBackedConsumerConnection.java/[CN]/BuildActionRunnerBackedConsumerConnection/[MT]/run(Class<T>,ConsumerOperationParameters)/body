@@ -1,5 +1,11 @@
 {
-  VersionDetails versionDetails=getVersionDetails();
+  final VersionDetails versionDetails=getVersionDetails();
+  if (type == GradleBuild.class && !versionDetails.isModelSupported(GradleBuild.class)) {
+    Class<?> eclipseModelPrototypeType=modelMapping.getProtocolType(EclipseProject.class);
+    Object eclipseModel=buildActionRunner.run(eclipseModelPrototypeType,operationParameters).getModel();
+    final EclipseProject adapt=adapter.adapt(EclipseProject.class,eclipseModel);
+    return adapter.adapt(type,new GradleBuildConverter().convert(adapt));
+  }
   if (!versionDetails.isModelSupported(type)) {
     throw Exceptions.unsupportedModel(type,versionDetails.getVersion());
   }
