@@ -1,8 +1,14 @@
 {
   checkAvailable();
-  if (installDir != null) {
-    VisualStudioInstall install=new VisualStudioInstall(installDir);
-    install.configureTools(tools,targetPlatform);
+  if (installDir == null && targetPlatform.getArchitecture() == Platform.Architecture.TOOL_CHAIN_DEFAULT) {
+    return new VisualCppPlatformToolChain();
   }
+  File cppExe=tools.locate(ToolType.CPP_COMPILER);
+  VisualStudioLocation vsLocation=VisualStudioLocation.findByCandidate(GUtil.elvis(installDir,cppExe));
+  if (!vsLocation.isFound()) {
+    throw new IllegalStateException("Could not find visual studio install, so cannot target platform " + targetPlatform.getArchitecture());
+  }
+  VisualStudioInstall install=new VisualStudioInstall(vsLocation.getVisualStudioDir(),vsLocation.getWindowsSdkDir());
+  install.configureTools(tools,targetPlatform);
   return new VisualCppPlatformToolChain();
 }
