@@ -1,7 +1,13 @@
 {
   Factory<PersistentIndexedCache> factory=new Factory<PersistentIndexedCache>(){
     public PersistentIndexedCache create(){
-      PersistentIndexedCacheParameters parameters=new PersistentIndexedCacheParameters(cacheFile(cacheName),keyType,valueSerializer).cacheDecorator(withInMemoryCaching());
+      final File cacheFile=cacheFile(cacheName);
+      PersistentIndexedCacheParameters parameters=new PersistentIndexedCacheParameters(cacheFile,keyType,valueSerializer).cacheDecorator(new Transformer<MultiProcessSafePersistentIndexedCache<Object,Object>,MultiProcessSafePersistentIndexedCache<Object,Object>>(){
+        public MultiProcessSafePersistentIndexedCache<Object,Object> transform(        MultiProcessSafePersistentIndexedCache<Object,Object> original){
+          return inMemoryDecorator.withMemoryCaching(cacheFile,original);
+        }
+      }
+);
       return getCache().createCache(parameters);
     }
   }
