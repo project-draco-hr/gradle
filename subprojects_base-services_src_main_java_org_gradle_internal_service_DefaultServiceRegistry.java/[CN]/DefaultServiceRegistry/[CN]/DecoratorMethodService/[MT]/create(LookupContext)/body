@@ -1,0 +1,18 @@
+{
+  Type paramType=method.getGenericParameterTypes()[0];
+  Object value=new DefaultLookupContext().find(paramType,parentServices);
+  if (value == null) {
+    throw new ServiceLookupException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available in parent registries.",format(method.getGenericReturnType()),method.getDeclaringClass().getSimpleName(),method.getName(),format(paramType)));
+  }
+  Object result;
+  try {
+    result=invoke(method,target,value);
+  }
+ catch (  Exception e) {
+    throw new ServiceLookupException(String.format("Could not create service of type %s using %s.%s().",format(method.getGenericReturnType()),method.getDeclaringClass().getSimpleName(),method.getName()),e);
+  }
+  if (result == null) {
+    throw new ServiceLookupException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",format(method.getGenericReturnType()),method.getDeclaringClass().getSimpleName(),method.getName()));
+  }
+  return result;
+}

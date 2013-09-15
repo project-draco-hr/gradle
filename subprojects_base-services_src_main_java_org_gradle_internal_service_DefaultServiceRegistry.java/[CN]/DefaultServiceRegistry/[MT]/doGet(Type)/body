@@ -2,8 +2,10 @@
   if (closed) {
     throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.",format(serviceType),this));
   }
-  List<T> result=new ArrayList<T>();
   DefaultLookupContext context=new DefaultLookupContext();
-  allServices.getAll(context,serviceType,result);
-  return result;
+  Object t=context.find(serviceType,allServices);
+  if (t != null) {
+    return t;
+  }
+  throw new UnknownServiceException(serviceType,String.format("No service of type %s available in %s.",format(serviceType),this));
 }

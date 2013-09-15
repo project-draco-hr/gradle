@@ -1,12 +1,11 @@
 {
   if (closed) {
-    throw new IllegalStateException(String.format("Cannot locate factory for objects of type %s, as %s has been closed.",type.getSimpleName(),this));
+    throw new IllegalStateException(String.format("Cannot locate factory for objects of type %s, as %s has been closed.",format(type),this));
   }
-  for (  Provider provider : providers) {
-    Factory<T> factory=provider.getFactory(type);
-    if (factory != null) {
-      return factory;
-    }
+  DefaultLookupContext context=new DefaultLookupContext();
+  Factory<T> factory=allServices.getFactory(context,type);
+  if (factory != null) {
+    return factory;
   }
-  throw new UnknownServiceException(type,String.format("No factory for objects of type %s available in %s.",type.getSimpleName(),this));
+  throw new UnknownServiceException(type,String.format("No factory for objects of type %s available in %s.",format(type),this));
 }

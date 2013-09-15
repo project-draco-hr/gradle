@@ -1,10 +1,13 @@
 {
-  this.parent=parent;
+  this.parentServices=parents.length == 0 ? null : new CompositeProvider();
   this.ownServices=new OwnServices();
-  providers.add(ownServices);
-  if (parent != null) {
-    providers.add(new ParentServices());
+  allServices.providers.add(ownServices);
+  if (parentServices != null) {
+    allServices.providers.add(parentServices);
+    for (    ServiceRegistry parent : parents) {
+      parentServices.providers.add(new ParentServices(parent));
+    }
   }
-  registeredProviders=providers.subList(1,1);
+  registeredProviders=allServices.providers.subList(1,1);
   findProviderMethods(this);
 }

@@ -1,0 +1,26 @@
+{
+  Object[] params=new Object[method.getParameterTypes().length];
+  for (int i=0; i < method.getGenericParameterTypes().length; i++) {
+    Type paramType=method.getGenericParameterTypes()[i];
+    try {
+      params[i]=paramType.equals(ServiceRegistry.class) ? DefaultServiceRegistry.this : context.find(paramType,allServices);
+    }
+ catch (    ServiceDependencyCycle e) {
+      throw new ServiceLookupException(String.format("Cannot create service of type %s using %s.%s() as there is a cycle in its dependencies.",format(method.getGenericReturnType()),method.getDeclaringClass().getSimpleName(),method.getName()),e);
+    }
+    if (params[i] == null) {
+      throw new ServiceLookupException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available.",format(method.getGenericReturnType()),method.getDeclaringClass().getSimpleName(),method.getName(),format(paramType)));
+    }
+  }
+  Object result;
+  try {
+    result=invoke(method,target,params);
+  }
+ catch (  Exception e) {
+    throw new ServiceLookupException(String.format("Could not create service of type %s using %s.%s().",format(method.getGenericReturnType()),method.getDeclaringClass().getSimpleName(),method.getName()),e);
+  }
+  if (result == null) {
+    throw new ServiceLookupException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",format(method.getGenericReturnType()),method.getDeclaringClass().getSimpleName(),method.getName()));
+  }
+  return result;
+}

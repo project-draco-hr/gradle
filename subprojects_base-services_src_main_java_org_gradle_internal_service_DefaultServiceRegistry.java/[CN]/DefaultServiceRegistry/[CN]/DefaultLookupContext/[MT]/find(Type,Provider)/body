@@ -1,0 +1,46 @@
+{
+  if (!visiting.add(serviceType)) {
+    throw new ServiceDependencyCycle(String.format("Cycle in dependencies of service of type %s.",format(serviceType)));
+  }
+  try {
+    if (serviceType instanceof ParameterizedType) {
+      ParameterizedType parameterizedType=(ParameterizedType)serviceType;
+      if (parameterizedType.getRawType().equals(Factory.class)) {
+        Type typeArg=parameterizedType.getActualTypeArguments()[0];
+        if (typeArg instanceof Class) {
+          return provider.getFactory(this,(Class)typeArg);
+        }
+        if (typeArg instanceof WildcardType) {
+          WildcardType wildcardType=(WildcardType)typeArg;
+          if (wildcardType.getLowerBounds().length == 1 && wildcardType.getUpperBounds().length == 1) {
+            if (wildcardType.getLowerBounds()[0] instanceof Class && wildcardType.getUpperBounds()[0].equals(Object.class)) {
+              return provider.getFactory(this,(Class<Object>)wildcardType.getLowerBounds()[0]);
+            }
+          }
+          if (wildcardType.getLowerBounds().length == 0 && wildcardType.getUpperBounds().length == 1) {
+            if (wildcardType.getUpperBounds()[0] instanceof Class) {
+              return provider.getFactory(this,(Class<Object>)wildcardType.getUpperBounds()[0]);
+            }
+          }
+        }
+      }
+    }
+ else     if (serviceType instanceof Class) {
+      Class<?> serviceClass=(Class<?>)serviceType;
+      if (serviceType.equals(Factory.class)) {
+        throw new IllegalArgumentException("Cannot locate service of raw type Factory.");
+      }
+      if (serviceClass.isArray()) {
+        throw new IllegalArgumentException(String.format("Cannot locate service of array type %s[].",serviceClass.getComponentType().getSimpleName()));
+      }
+      if (serviceClass.isAnnotation()) {
+        throw new IllegalArgumentException(String.format("Cannot locate service of annotation type @%s.",serviceClass.getSimpleName()));
+      }
+      return provider.getService(this,serviceClass);
+    }
+    throw new UnsupportedOperationException(String.format("Cannot locate service of type %s yet.",format(serviceType)));
+  }
+  finally {
+    visiting.remove(serviceType);
+  }
+}
