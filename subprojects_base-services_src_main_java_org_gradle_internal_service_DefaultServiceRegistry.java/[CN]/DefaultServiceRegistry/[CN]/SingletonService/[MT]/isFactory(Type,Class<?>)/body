@@ -1,0 +1,21 @@
+{
+  Class c=toClass(type);
+  if (!Factory.class.isAssignableFrom(c)) {
+    return false;
+  }
+  if (type instanceof ParameterizedType) {
+    ParameterizedType parameterizedType=(ParameterizedType)type;
+    if (parameterizedType.getRawType().equals(Factory.class)) {
+      Type actualType=parameterizedType.getActualTypeArguments()[0];
+      if (actualType instanceof Class<?> && elementType.isAssignableFrom((Class<?>)actualType)) {
+        return true;
+      }
+    }
+  }
+  for (  Type interfaceType : c.getGenericInterfaces()) {
+    if (isFactory(interfaceType,elementType)) {
+      return true;
+    }
+  }
+  return false;
+}

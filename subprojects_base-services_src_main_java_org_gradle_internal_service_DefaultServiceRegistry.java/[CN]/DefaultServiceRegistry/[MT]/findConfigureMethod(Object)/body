@@ -11,9 +11,15 @@
       DefaultLookupContext context=new DefaultLookupContext();
       for (int i=0; i < method.getGenericParameterTypes().length; i++) {
         Type paramType=method.getGenericParameterTypes()[i];
-        params[i]=paramType.equals(ServiceRegistration.class) ? newRegistration() : context.find(paramType,allServices);
-        if (params[i] == null) {
-          throw new ServiceLookupException(String.format("Cannot configure services using %s.%s() as required service of type %s is not available.",method.getDeclaringClass().getSimpleName(),method.getName(),format(paramType)));
+        if (paramType.equals(ServiceRegistration.class)) {
+          params[i]=newRegistration();
+        }
+ else {
+          ServiceProvider paramProvider=context.find(paramType,allServices);
+          if (paramProvider == null) {
+            throw new ServiceLookupException(String.format("Cannot configure services using %s.%s() as required service of type %s is not available.",method.getDeclaringClass().getSimpleName(),method.getName(),format(paramType)));
+          }
+          params[i]=paramProvider.get();
         }
       }
       try {
