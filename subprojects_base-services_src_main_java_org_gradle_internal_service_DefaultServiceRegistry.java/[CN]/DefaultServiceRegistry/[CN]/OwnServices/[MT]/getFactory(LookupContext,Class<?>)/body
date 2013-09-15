@@ -1,13 +1,25 @@
 {
-  ServiceProvider match=null;
+  List<ServiceProvider> candidates=new ArrayList<ServiceProvider>();
   for (  Provider provider : providers) {
     ServiceProvider factory=provider.getFactory(context,type);
     if (factory != null) {
-      if (match != null) {
-        throw new ServiceLookupException(String.format("Multiple factories for objects of type %s available in %s.",format(type),DefaultServiceRegistry.this.toString()));
-      }
-      match=factory;
+      candidates.add(factory);
     }
   }
-  return match;
+  if (candidates.size() == 0) {
+    return null;
+  }
+  if (candidates.size() == 1) {
+    return candidates.get(0);
+  }
+  Set<String> descriptions=new TreeSet<String>();
+  for (  ServiceProvider candidate : candidates) {
+    descriptions.add(candidate.getDisplayName());
+  }
+  Formatter formatter=new Formatter();
+  formatter.format("Multiple factories for objects of type %s available in %s:",format(type),DefaultServiceRegistry.this.toString());
+  for (  String description : descriptions) {
+    formatter.format("%n   - %s",description);
+  }
+  throw new ServiceLookupException(formatter.toString());
 }
