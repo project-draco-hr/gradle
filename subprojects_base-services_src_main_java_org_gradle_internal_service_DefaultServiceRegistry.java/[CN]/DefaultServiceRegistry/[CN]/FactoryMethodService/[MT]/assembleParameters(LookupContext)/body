@@ -1,0 +1,16 @@
+{
+  Object[] params=new Object[method.getParameterTypes().length];
+  for (int i=0; i < method.getGenericParameterTypes().length; i++) {
+    Type paramType=method.getGenericParameterTypes()[i];
+    try {
+      params[i]=paramType.equals(ServiceRegistry.class) ? DefaultServiceRegistry.this : context.find(paramType,allServices);
+    }
+ catch (    ServiceValidationException e) {
+      throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as there is a problem with required service of type %s.",format(method.getGenericReturnType()),method.getDeclaringClass().getSimpleName(),method.getName(),format(paramType)),e);
+    }
+    if (params[i] == null) {
+      throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available.",format(method.getGenericReturnType()),method.getDeclaringClass().getSimpleName(),method.getName(),format(paramType)));
+    }
+  }
+  return params;
+}

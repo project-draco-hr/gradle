@@ -1,6 +1,6 @@
 {
   if (!visiting.add(serviceType)) {
-    throw new ServiceDependencyCycle(String.format("Cycle in dependencies of service of type %s.",format(serviceType)));
+    throw new ServiceValidationException(String.format("Cycle in dependencies of service of type %s.",format(serviceType)));
   }
   try {
     if (serviceType instanceof ParameterizedType) {
@@ -28,17 +28,17 @@
  else     if (serviceType instanceof Class) {
       Class<?> serviceClass=(Class<?>)serviceType;
       if (serviceType.equals(Factory.class)) {
-        throw new IllegalArgumentException("Cannot locate service of raw type Factory.");
+        throw new ServiceValidationException("Cannot locate service of raw type Factory.");
       }
       if (serviceClass.isArray()) {
-        throw new IllegalArgumentException(String.format("Cannot locate service of array type %s[].",serviceClass.getComponentType().getSimpleName()));
+        throw new ServiceValidationException(String.format("Cannot locate service of array type %s[].",serviceClass.getComponentType().getSimpleName()));
       }
       if (serviceClass.isAnnotation()) {
-        throw new IllegalArgumentException(String.format("Cannot locate service of annotation type @%s.",serviceClass.getSimpleName()));
+        throw new ServiceValidationException(String.format("Cannot locate service of annotation type @%s.",serviceClass.getSimpleName()));
       }
       return provider.getService(this,serviceClass);
     }
-    throw new UnsupportedOperationException(String.format("Cannot locate service of type %s yet.",format(serviceType)));
+    throw new ServiceValidationException(String.format("Cannot locate service of type %s.",format(serviceType)));
   }
   finally {
     visiting.remove(serviceType);

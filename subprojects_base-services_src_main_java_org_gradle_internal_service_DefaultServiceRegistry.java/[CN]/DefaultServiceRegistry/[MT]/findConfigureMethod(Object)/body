@@ -1,0 +1,28 @@
+{
+  for (Class<?> type=target.getClass(); type != Object.class; type=type.getSuperclass()) {
+    for (    Method method : type.getDeclaredMethods()) {
+      if (!method.getName().equals("configure")) {
+        continue;
+      }
+      if (!method.getReturnType().equals(Void.TYPE)) {
+        throw new ServiceLookupException(String.format("Method %s.%s() must return void.",type.getSimpleName(),method.getName()));
+      }
+      Object[] params=new Object[method.getGenericParameterTypes().length];
+      DefaultLookupContext context=new DefaultLookupContext();
+      for (int i=0; i < method.getGenericParameterTypes().length; i++) {
+        Type paramType=method.getGenericParameterTypes()[i];
+        params[i]=paramType.equals(ServiceRegistration.class) ? newRegistration() : context.find(paramType,allServices);
+        if (params[i] == null) {
+          throw new ServiceLookupException(String.format("Cannot configure services using %s.%s() as required service of type %s is not available.",method.getDeclaringClass().getSimpleName(),method.getName(),format(paramType)));
+        }
+      }
+      try {
+        invoke(method,target,params);
+      }
+ catch (      Exception e) {
+        throw new ServiceLookupException(String.format("Could not configure services using %s.%s().",method.getDeclaringClass().getSimpleName(),method.getName()),e);
+      }
+      return;
+    }
+  }
+}
