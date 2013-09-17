@@ -1,0 +1,21 @@
+{
+  if (serviceType instanceof ParameterizedType) {
+    ParameterizedType parameterizedType=(ParameterizedType)serviceType;
+    List<TypeSpec> paramSpecs=new ArrayList<TypeSpec>();
+    for (    Type paramType : parameterizedType.getActualTypeArguments()) {
+      paramSpecs.add(toSpec(paramType));
+    }
+    return new ParameterizedTypeSpec(serviceType,toSpec(parameterizedType.getRawType()),paramSpecs);
+  }
+ else   if (serviceType instanceof Class) {
+    Class<?> serviceClass=(Class<?>)serviceType;
+    if (serviceClass.isArray()) {
+      throw new ServiceValidationException("Locating services with array type is not supported.");
+    }
+    if (serviceClass.isAnnotation()) {
+      throw new ServiceValidationException("Locating services with annotation type is not supported.");
+    }
+    return new ClassSpec(serviceClass);
+  }
+  throw new ServiceValidationException(String.format("Locating services with type %s is not supported.",format(serviceType)));
+}
