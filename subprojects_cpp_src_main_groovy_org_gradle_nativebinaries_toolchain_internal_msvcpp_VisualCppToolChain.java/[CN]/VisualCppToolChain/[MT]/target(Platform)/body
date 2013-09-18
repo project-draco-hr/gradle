@@ -4,11 +4,15 @@
     return new VisualCppPlatformToolChain();
   }
   File cppExe=tools.locate(ToolType.CPP_COMPILER);
-  VisualStudioLocation vsLocation=VisualStudioLocation.findByCandidate(GUtil.elvis(installDir,cppExe));
-  if (!vsLocation.isFound()) {
+  File visualStudioDir=visualStudioLocator.locateVisualStudio(GUtil.elvis(installDir,cppExe));
+  if (visualStudioDir == null) {
     throw new IllegalStateException("Could not find visual studio install, so cannot target platform " + targetPlatform.getArchitecture());
   }
-  VisualStudioInstall install=new VisualStudioInstall(vsLocation.getVisualStudioDir(),vsLocation.getWindowsSdkDir());
+  File windowsSdkDir=visualStudioLocator.locateWindowsSdk();
+  if (windowsSdkDir == null) {
+    throw new IllegalStateException("Could not find Windows SDK, so cannot target platform " + targetPlatform.getArchitecture());
+  }
+  VisualStudioInstall install=new VisualStudioInstall(visualStudioDir,new WindowsSdk(windowsSdkDir));
   install.configureTools(tools,targetPlatform);
   return new VisualCppPlatformToolChain();
 }

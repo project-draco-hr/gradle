@@ -3,9 +3,11 @@
   if (compilerExe != null) {
     return new InstalledVisualCpp("visual c++");
   }
-  VisualStudioLocation vsLocation=VisualStudioLocation.findDefault();
-  if (vsLocation.isFound()) {
-    VisualStudioInstall install=new VisualStudioInstall(vsLocation.getVisualStudioDir(),vsLocation.getWindowsSdkDir());
+  VisualStudioLocator vsLocator=new VisualStudioLocator();
+  File visualStudioDir=vsLocator.locateDefaultVisualStudio();
+  File windowsSdkDir=vsLocator.locateWindowsSdk();
+  if (visualStudioDir != null && windowsSdkDir != null) {
+    VisualStudioInstall install=new VisualStudioInstall(visualStudioDir,new WindowsSdk(windowsSdkDir));
     return new InstalledVisualCpp("visual c++").withInstall(install);
   }
   return new UnavailableToolChain("visual c++");
