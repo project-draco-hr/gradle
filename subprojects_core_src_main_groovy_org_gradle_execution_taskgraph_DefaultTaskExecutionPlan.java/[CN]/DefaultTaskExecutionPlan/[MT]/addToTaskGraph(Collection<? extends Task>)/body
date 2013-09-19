@@ -33,7 +33,7 @@
       Set<? extends Task> dependsOnTasks=context.getDependencies(task);
       for (      Task dependsOnTask : dependsOnTasks) {
         TaskInfo targetNode=graph.addNode(dependsOnTask);
-        node.addHardSuccessor(targetNode);
+        node.addDependencySuccessor(targetNode);
         if (!visiting.contains(targetNode)) {
           queue.add(0,targetNode);
         }
@@ -47,11 +47,15 @@
       }
       for (      Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
         TaskInfo targetNode=graph.addNode(mustRunAfter);
-        node.addSoftSuccessor(targetNode);
+        node.addMustSuccessor(targetNode);
+      }
+      for (      Task shouldRunAfter : task.getShouldRunAfter().getDependencies(task)) {
+        TaskInfo targetNode=graph.addNode(shouldRunAfter);
+        node.addShouldSuccessor(targetNode);
       }
       if (node.isRequired()) {
-        for (        TaskInfo hardSuccessor : node.getHardSuccessors()) {
-          hardSuccessor.require();
+        for (        TaskInfo successor : node.getDependencySuccessors()) {
+          successor.require();
         }
       }
  else {
