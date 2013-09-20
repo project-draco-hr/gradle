@@ -1,0 +1,15 @@
+{
+  final Action<SourceObjectMapping> mapper=new PropertyHandlerFactory().forVersion(versionDetails);
+  if (modelType == BuildEnvironment.class && !versionDetails.isModelSupported(BuildEnvironment.class)) {
+    return adapter.adapt(modelType,new VersionOnlyBuildEnvironment(versionDetails.getVersion()),mapper);
+  }
+  if (modelType == GradleProject.class && !versionDetails.isModelSupported(GradleProject.class)) {
+    EclipseProjectVersion3 project=(EclipseProjectVersion3)delegate.getModel(EclipseProjectVersion3.class,operationParameters);
+    return adapter.adapt(modelType,new GradleProjectConverter().convert(project),mapper);
+  }
+  if (!versionDetails.isModelSupported(modelType)) {
+    throw Exceptions.unsupportedModel(modelType,versionDetails.getVersion());
+  }
+  Class<? extends ProjectVersion3> protocolType=modelMapping.getProtocolType(modelType).asSubclass(ProjectVersion3.class);
+  return adapter.adapt(modelType,delegate.getModel(protocolType,operationParameters),mapper);
+}
