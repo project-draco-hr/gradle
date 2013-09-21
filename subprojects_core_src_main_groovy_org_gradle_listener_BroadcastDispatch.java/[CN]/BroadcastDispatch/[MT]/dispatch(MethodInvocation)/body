@@ -1,20 +1,17 @@
 {
-  try {
-    ExceptionTrackingFailureHandler tracker=new ExceptionTrackingFailureHandler(LOGGER);
-    for (    Dispatch<MethodInvocation> handler : new ArrayList<Dispatch<MethodInvocation>>(handlers.values())) {
-      try {
-        handler.dispatch(invocation);
-      }
- catch (      UncheckedException e) {
-        tracker.dispatchFailed(invocation,e.getCause());
-      }
-catch (      Throwable t) {
-        tracker.dispatchFailed(invocation,t);
-      }
+  List<Throwable> failures=new ArrayList<Throwable>();
+  for (  Dispatch<MethodInvocation> handler : new ArrayList<Dispatch<MethodInvocation>>(handlers.values())) {
+    try {
+      handler.dispatch(invocation);
     }
-    tracker.stop();
+ catch (    UncheckedException e) {
+      failures.add(e.getCause());
+    }
+catch (    Throwable t) {
+      failures.add(t);
+    }
   }
- catch (  DispatchException t) {
-    throw new ListenerNotificationException(getErrorMessage(),t.getCause());
+  if (!failures.isEmpty()) {
+    throw new ListenerNotificationException(getErrorMessage(),failures);
   }
 }
