@@ -1,12 +1,12 @@
 {
-  ExecHandleBuilder exec=execHandleBuilderFactory.create();
+  ExecAction exec=execActionFactory.newExecAction();
   exec.executable(gccBinary.getAbsolutePath());
   exec.setWorkingDir(gccBinary.getParentFile());
   exec.args("-v");
   ByteArrayOutputStream baos=new ByteArrayOutputStream();
   exec.setErrorOutput(baos);
-  ExecHandle handle=exec.build();
-  ExecResult result=handle.start().waitForFinish();
+  exec.setIgnoreExitValue(true);
+  ExecResult result=exec.execute();
   int exitValue=result.getExitValue();
   if (exitValue == 0) {
     String output=new String(baos.toByteArray());
