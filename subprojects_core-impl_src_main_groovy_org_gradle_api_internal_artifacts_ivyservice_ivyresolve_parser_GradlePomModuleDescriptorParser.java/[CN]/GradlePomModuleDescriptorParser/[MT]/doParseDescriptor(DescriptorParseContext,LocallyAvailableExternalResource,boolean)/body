@@ -9,9 +9,6 @@
   if (pomReader.hasParent()) {
     ModuleRevisionId parentModRevID=ModuleRevisionId.newInstance(pomReader.getParentGroupId(),pomReader.getParentArtifactId(),pomReader.getParentVersion());
     parentDescr=parseOtherPom(parserSettings,parentModRevID);
-    if (parentDescr == null) {
-      throw new IOException("Impossible to load parent for " + resource.getName() + ". Parent="+ parentModRevID);
-    }
     Map parentPomProps=mdBuilder.extractPomProperties();
     for (    Object o : parentPomProps.entrySet()) {
       Map.Entry prop=(Map.Entry)o;
@@ -32,9 +29,6 @@
       LOGGER.warn("Please update your dependency to directly use the correct version '{}'.",relocation);
       LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
       PomReader relocatedModule=parseOtherPom(parserSettings,relocation);
-      if (relocatedModule == null) {
-        throw new ParseException("impossible to load module " + relocation + " to which "+ mdBuilder.getModuleDescriptor().getModuleRevisionId()+ " has been relocated",0);
-      }
       List<PomDependencyData> pomDependencyDataList=relocatedModule.getDependencies();
       for (      PomDependencyData pomDependencyData : pomDependencyDataList) {
         mdBuilder.addDependency(pomDependencyData);
@@ -79,9 +73,6 @@
       if ("import".equals(dep.getScope())) {
         ModuleRevisionId importModRevID=ModuleRevisionId.newInstance(dep.getGroupId(),dep.getArtifactId(),dep.getVersion());
         PomReader importDescr=parseOtherPom(parserSettings,importModRevID);
-        if (importDescr == null) {
-          throw new IOException("Impossible to import module for " + resource.getName() + "."+ " Import="+ importModRevID);
-        }
         List<PomDependencyMgt> depMgt=importDescr.getDependencyMgt();
         for (        PomDependencyMgt aDepMgt : depMgt) {
           mdBuilder.addDependencyMgt(aDepMgt);
