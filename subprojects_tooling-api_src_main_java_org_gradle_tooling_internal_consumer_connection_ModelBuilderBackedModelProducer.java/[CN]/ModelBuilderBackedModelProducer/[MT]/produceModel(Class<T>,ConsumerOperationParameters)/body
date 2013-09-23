@@ -3,6 +3,12 @@
     throw Exceptions.unsupportedModel(type,versionDetails.getVersion());
   }
   final ModelIdentifier modelIdentifier=modelMapping.getModelIdentifierFromModelType(type);
-  BuildResult<?> result=builder.getModel(modelIdentifier,operationParameters);
+  BuildResult<?> result;
+  try {
+    result=builder.getModel(modelIdentifier,operationParameters);
+  }
+ catch (  InternalUnsupportedModelException e) {
+    throw Exceptions.unknownModel(type,e);
+  }
   return adapter.adapt(type,result.getModel());
 }
