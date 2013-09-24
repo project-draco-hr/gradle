@@ -1,8 +1,6 @@
 {
-  LOGGER.info("Starting Gradle compiler daemon with fork options {}.",forkOptions);
-  if (LOGGER.isDebugEnabled()) {
-    LOGGER.debug(forkOptions.toString());
-  }
+  LOG.debug("Starting Gradle compiler daemon with fork options {}.",forkOptions);
+  Clock clock=new Clock();
   WorkerProcessBuilder builder=project.getServices().getFactory(WorkerProcessBuilder.class).create();
   builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel());
   builder.applicationClasspath(forkOptions.getClasspath());
@@ -21,6 +19,6 @@
   CompilerDaemonServerProtocol server=process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
   CompilerDaemonClient client=new CompilerDaemonClient(forkOptions,process,server);
   process.getConnection().addIncoming(CompilerDaemonClientProtocol.class,client);
-  LOGGER.info("Started Gradle compiler daemon with fork options {}.",forkOptions);
+  LOG.info("Started Gradle compiler daemon ({}) with fork options {}.",clock.getTime(),forkOptions);
   return client;
 }
