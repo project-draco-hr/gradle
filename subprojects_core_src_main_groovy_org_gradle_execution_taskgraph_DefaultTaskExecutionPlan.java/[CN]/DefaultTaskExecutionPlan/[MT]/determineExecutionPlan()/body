@@ -3,7 +3,7 @@
   Set<TaskInfo> visitingNodes=new HashSet<TaskInfo>();
   Stack<TaskDependencyGraphEdge> walkedShouldRunAfterEdges=new Stack<TaskDependencyGraphEdge>();
   Stack<TaskInfo> path=new Stack<TaskInfo>();
-  HashMap<TaskInfo,LinkedHashMap<Task,TaskInfo>> planBeforeVisiting=new HashMap<TaskInfo,LinkedHashMap<Task,TaskInfo>>();
+  HashMap<TaskInfo,Integer> planBeforeVisiting=new HashMap<TaskInfo,Integer>();
   while (!nodeQueue.isEmpty()) {
     TaskInfo taskNode=nodeQueue.get(0);
     if (taskNode.isIncludeInGraph() || executionPlan.containsKey(taskNode.getTask())) {
@@ -12,8 +12,8 @@
     }
     if (visitingNodes.add(taskNode)) {
       recordEdgeIfArrivedViaShouldRunAfter(walkedShouldRunAfterEdges,path,taskNode);
-      takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting,taskNode);
       removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes,taskNode);
+      takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting,taskNode);
       ArrayList<TaskInfo> successors=new ArrayList<TaskInfo>();
       addAllSuccessorsInReverseOrder(taskNode,successors);
       for (      TaskInfo successor : successors) {
