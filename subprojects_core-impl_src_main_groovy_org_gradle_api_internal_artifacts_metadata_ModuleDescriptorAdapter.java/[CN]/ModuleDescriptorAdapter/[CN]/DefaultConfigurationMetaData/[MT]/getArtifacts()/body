@@ -1,9 +1,12 @@
 {
   if (artifacts == null) {
-    artifacts=new LinkedHashSet<Artifact>();
+    Set<Artifact> seen=new HashSet<Artifact>();
+    artifacts=new LinkedHashSet<ModuleVersionArtifactMetaData>();
     for (    String ancestor : hierarchy) {
       for (      Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-        artifacts.add(artifact);
+        if (seen.add(artifact)) {
+          artifacts.add(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier,artifact));
+        }
       }
     }
   }
