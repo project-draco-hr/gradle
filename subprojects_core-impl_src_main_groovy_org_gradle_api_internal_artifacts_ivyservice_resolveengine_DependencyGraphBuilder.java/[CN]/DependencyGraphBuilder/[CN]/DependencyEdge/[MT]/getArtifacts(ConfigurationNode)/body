@@ -1,14 +1,11 @@
 {
-  String[] targetConfigurations=from.metaData.getHierarchy().toArray(new String[from.metaData.getHierarchy().size()]);
-  DependencyArtifactDescriptor[] dependencyArtifacts=dependencyDescriptor.getDependencyArtifacts(targetConfigurations);
-  if (dependencyArtifacts.length == 0) {
+  Set<ModuleVersionArtifactMetaData> dependencyArtifacts=dependencyMetaData.getArtifacts(from.metaData,childConfiguration.metaData);
+  if (dependencyArtifacts.isEmpty()) {
     return Collections.emptySet();
   }
   Set<ResolvedArtifact> artifacts=new LinkedHashSet<ResolvedArtifact>();
-  for (  DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-    ModuleRevisionId id=childConfiguration.moduleRevision.metaData.getDescriptor().getModuleRevisionId();
-    Artifact artifact=new DefaultArtifact(id,null,artifactDescriptor.getName(),artifactDescriptor.getType(),artifactDescriptor.getExt(),artifactDescriptor.getUrl(),artifactDescriptor.getQualifiedExtraAttributes());
-    artifacts.add(resolveState.builder.newArtifact(childConfiguration.getResult(),artifact,targetModuleRevision.resolve().getArtifactResolver()));
+  for (  ModuleVersionArtifactMetaData artifact : dependencyArtifacts) {
+    artifacts.add(resolveState.builder.newArtifact(childConfiguration.getResult(),artifact.getArtifact(),targetModuleRevision.resolve().getArtifactResolver()));
   }
   return artifacts;
 }
