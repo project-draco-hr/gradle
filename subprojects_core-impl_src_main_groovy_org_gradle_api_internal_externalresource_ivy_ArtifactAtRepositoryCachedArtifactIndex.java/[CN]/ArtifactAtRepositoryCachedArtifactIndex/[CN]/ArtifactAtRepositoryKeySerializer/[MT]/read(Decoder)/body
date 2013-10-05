@@ -2,8 +2,20 @@
   String repositoryId=decoder.readString();
   ModuleVersionIdentifier moduleVersionIdentifier=modIdSerializer.read(decoder);
   String artifactName=decoder.readString();
+  String type=decoder.readString();
   String extension=decoder.readNullableString();
-  String classifier=decoder.readNullableString();
-  String type=decoder.readNullableString();
-  return new ArtifactAtRepositoryKey(repositoryId,new DefaultArtifactIdentifier(moduleVersionIdentifier,artifactName,type,extension,classifier));
+  int attrCount=decoder.readSizeInt();
+  Map<String,String> attributes;
+  if (attrCount == 0) {
+    attributes=Collections.emptyMap();
+  }
+ else {
+    attributes=new HashMap<String,String>(attrCount);
+    for (int i=0; i < attrCount; i++) {
+      String key=decoder.readString();
+      String value=decoder.readString();
+      attributes.put(key,value);
+    }
+  }
+  return new ArtifactAtRepositoryKey(repositoryId,new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier,artifactName,type,extension,attributes));
 }

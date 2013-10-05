@@ -1,9 +1,14 @@
 {
   encoder.writeString(value.getRepositoryId());
-  ArtifactIdentifier artifact=value.getArtifactId();
+  DefaultModuleVersionArtifactIdentifier artifact=(DefaultModuleVersionArtifactIdentifier)value.getArtifactId();
   modIdSerializer.write(encoder,artifact.getModuleVersionIdentifier());
   encoder.writeString(artifact.getName());
+  encoder.writeString(artifact.getType());
   encoder.writeNullableString(artifact.getExtension());
-  encoder.writeNullableString(artifact.getClassifier());
-  encoder.writeNullableString(artifact.getType());
+  Map<String,String> attributes=artifact.getAttributes();
+  encoder.writeSizeInt(attributes.size());
+  for (  Map.Entry<String,String> entry : attributes.entrySet()) {
+    encoder.writeString(entry.getKey());
+    encoder.writeString(entry.getValue());
+  }
 }
