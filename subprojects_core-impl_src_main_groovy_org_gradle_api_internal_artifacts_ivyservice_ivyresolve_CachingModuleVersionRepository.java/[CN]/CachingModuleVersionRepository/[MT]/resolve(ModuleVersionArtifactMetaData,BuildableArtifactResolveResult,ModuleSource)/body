@@ -1,0 +1,34 @@
+{
+  DefaultArtifactIdentifier artifactIdentifier=new DefaultArtifactIdentifier(artifact.getArtifact());
+  ArtifactAtRepositoryKey resolutionCacheIndexKey=new ArtifactAtRepositoryKey(delegate.getId(),artifactIdentifier);
+  CachedArtifact cached=artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
+  final CachingModuleSource cachedModuleSource=(CachingModuleSource)moduleSource;
+  final BigInteger descriptorHash=cachedModuleSource.getDescriptorHash();
+  if (cached != null) {
+    long age=timeProvider.getCurrentTime() - cached.getCachedAt();
+    final boolean isChangingModule=cachedModuleSource.isChangingModule();
+    if (cached.isMissing()) {
+      if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,null,age,isChangingModule,descriptorHash.equals(cached.getDescriptorHash()))) {
+        LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache",artifact);
+        result.notFound(artifact.getId());
+        return;
+      }
+    }
+ else {
+      File cachedArtifactFile=cached.getCachedFile();
+      if (!cachePolicy.mustRefreshArtifact(artifactIdentifier,cachedArtifactFile,age,isChangingModule,descriptorHash.equals(cached.getDescriptorHash()))) {
+        LOGGER.debug("Found artifact '{}' in resolver cache: {}",artifact,cachedArtifactFile);
+        result.resolved(cachedArtifactFile);
+        return;
+      }
+    }
+  }
+  delegate.resolve(artifact,result,cachedModuleSource.getDelegate());
+  LOGGER.debug("Downloaded artifact '{}' from resolver: {}",artifact,delegate.getName());
+  if (result.getFailure() instanceof ArtifactNotFoundException) {
+    artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey,descriptorHash);
+  }
+ else {
+    artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey,result.getFile(),descriptorHash);
+  }
+}
