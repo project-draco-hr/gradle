@@ -1,3 +1,17 @@
 {
-  return new ModuleDescriptorAdapter(id,moduleDescriptor);
+  return new ModuleDescriptorAdapter(id,moduleDescriptor){
+    @Override protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(    ConfigurationMetaData configurationMetaData){
+      Set<ModuleVersionArtifactMetaData> result=new LinkedHashSet<ModuleVersionArtifactMetaData>();
+      Set<ModuleVersionArtifactIdentifier> seen=new HashSet<ModuleVersionArtifactIdentifier>();
+      for (      String configName : configurationMetaData.getHierarchy()) {
+        for (        DefaultLocalArtifactMetaData localArtifactMetaData : artifactsByConfig.get(configName)) {
+          if (seen.add(localArtifactMetaData.id)) {
+            result.add(localArtifactMetaData);
+          }
+        }
+      }
+      return result;
+    }
+  }
+;
 }
