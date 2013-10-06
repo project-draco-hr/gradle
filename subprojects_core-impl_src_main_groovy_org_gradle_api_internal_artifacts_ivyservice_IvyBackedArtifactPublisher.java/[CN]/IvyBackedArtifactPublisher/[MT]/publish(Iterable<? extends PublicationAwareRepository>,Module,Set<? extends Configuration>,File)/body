@@ -2,10 +2,12 @@
   ivyContextManager.withIvy(new Action<Ivy>(){
     public void execute(    Ivy ivy){
       Set<Configuration> allConfigurations=configurations.iterator().next().getAll();
-      ModuleVersionPublishMetaData publishMetaData=publishModuleDescriptorConverter.convert(allConfigurations,module);
+      BuildableModuleVersionPublishMetaData publishMetaData=publishModuleDescriptorConverter.convert(allConfigurations,module);
       if (descriptor != null) {
         ModuleDescriptor moduleDescriptor=publishMetaData.getModuleDescriptor();
         ivyModuleDescriptorWriter.write(moduleDescriptor,descriptor);
+        Artifact artifact=MDArtifact.newIvyArtifact(publishMetaData.getModuleDescriptor());
+        publishMetaData.addArtifact(artifact,descriptor);
       }
       List<ModuleVersionPublisher> publishResolvers=new ArrayList<ModuleVersionPublisher>();
       for (      PublicationAwareRepository repository : repositories) {
@@ -14,8 +16,7 @@
         publishResolvers.add(publisher);
       }
       publishMetaData=publishModuleDescriptorConverter.convert(configurations,module);
-      Set<String> confs=Configurations.getNames(configurations,false);
-      dependencyPublisher.publish(confs,publishResolvers,publishMetaData,descriptor);
+      dependencyPublisher.publish(publishResolvers,publishMetaData);
     }
   }
 );
