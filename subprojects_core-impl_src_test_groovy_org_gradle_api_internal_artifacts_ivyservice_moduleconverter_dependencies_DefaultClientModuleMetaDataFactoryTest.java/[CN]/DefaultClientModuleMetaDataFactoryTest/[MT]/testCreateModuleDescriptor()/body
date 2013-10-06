@@ -1,0 +1,13 @@
+{
+  DependencyDescriptor dependencyDescriptorDummy=context.mock(DependencyDescriptor.class);
+  DependencyDescriptorFactorySpy dependencyDescriptorFactorySpy=new DependencyDescriptorFactorySpy(dependencyDescriptorDummy);
+  DefaultClientModuleMetaDataFactory clientModuleDescriptorFactory=new DefaultClientModuleMetaDataFactory();
+  clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactorySpy);
+  ModuleDependency dependencyMock=context.mock(ModuleDependency.class);
+  final ModuleRevisionId moduleRevisionId=ModuleRevisionId.newInstance("org","name","version");
+  MutableModuleVersionMetaData metaData=clientModuleDescriptorFactory.createModuleDescriptor(moduleRevisionId,WrapUtil.toSet(dependencyMock));
+  ModuleDescriptor moduleDescriptor=metaData.getDescriptor();
+  assertThat(moduleDescriptor.getModuleRevisionId(),equalTo(moduleRevisionId));
+  assertThatDescriptorHasOnlyDefaultConfiguration(moduleDescriptor);
+  assertCorrectCallToDependencyDescriptorFactory(dependencyDescriptorFactorySpy,Dependency.DEFAULT_CONFIGURATION,moduleDescriptor,dependencyMock);
+}
