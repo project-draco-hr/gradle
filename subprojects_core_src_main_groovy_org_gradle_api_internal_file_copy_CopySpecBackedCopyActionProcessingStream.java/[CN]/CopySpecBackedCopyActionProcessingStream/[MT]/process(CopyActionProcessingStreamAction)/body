@@ -1,37 +1,3 @@
 {
-  spec.walk(new Action<CopySpecInternal>(){
-    public void execute(    final CopySpecInternal spec){
-      FileTree source=spec.getSource();
-      source.visit(new FileVisitor(){
-        public void visitDir(        FileVisitDetails dirDetails){
-          processDir(dirDetails);
-        }
-        public void visitFile(        FileVisitDetails fileDetails){
-          processFile(fileDetails);
-        }
-        private void processDir(        FileVisitDetails visitDetails){
-          DefaultFileCopyDetails details=createDefaultFileCopyDetails(visitDetails);
-          if (details.isExcluded()) {
-            return;
-          }
-          action.processFile(details);
-        }
-        private void processFile(        FileVisitDetails visitDetails){
-          DefaultFileCopyDetails details=createDefaultFileCopyDetails(visitDetails);
-          for (          Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
-            action.execute(details);
-            if (details.isExcluded()) {
-              return;
-            }
-          }
-          action.processFile(details);
-        }
-        private DefaultFileCopyDetails createDefaultFileCopyDetails(        FileVisitDetails visitDetails){
-          return instantiator.newInstance(DefaultFileCopyDetails.class,visitDetails,spec,fileSystem);
-        }
-      }
-);
-    }
-  }
-);
+  spec.walk(new CopySpecActionImpl(action,instantiator,fileSystem));
 }
