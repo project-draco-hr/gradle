@@ -1,0 +1,20 @@
+{
+  int wildcardPos=pattern.indexOf("/*/");
+  int patternPos=pattern.indexOf("/[");
+  if (wildcardPos < 0 && patternPos < 0) {
+    throw new IllegalArgumentException(String.format("Unsupported pattern '%s'",pattern));
+  }
+  int chopAt;
+  if (wildcardPos >= 0 && patternPos >= 0) {
+    chopAt=Math.min(wildcardPos,patternPos);
+  }
+ else   if (wildcardPos >= 0) {
+    chopAt=wildcardPos;
+  }
+ else {
+    chopAt=patternPos;
+  }
+  String pathPart=pattern.substring(0,chopAt);
+  String patternPart=pattern.substring(chopAt + 1);
+  addForPattern(finders,new File(rootCachesDirectory,pathPart),new IvyResourcePattern(patternPart));
+}
