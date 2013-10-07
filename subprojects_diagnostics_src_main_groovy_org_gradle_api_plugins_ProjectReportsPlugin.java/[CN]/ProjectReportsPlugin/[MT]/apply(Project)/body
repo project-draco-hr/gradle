@@ -44,8 +44,22 @@
     }
   }
 );
+  HtmlDependencyReportTask htmlDependencyReportTask=project.getTasks().create(HTML_DEPENDENCY_REPORT,HtmlDependencyReportTask.class);
+  htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
+  htmlDependencyReportTask.conventionMapping("outputDirectory",new Callable<Object>(){
+    public Object call() throws Exception {
+      return new File(convention.getProjectReportDir(),"dependencies");
+    }
+  }
+);
+  htmlDependencyReportTask.conventionMapping("projects",new Callable<Object>(){
+    public Object call() throws Exception {
+      return convention.getProjects();
+    }
+  }
+);
   Task projectReportTask=project.getTasks().create(PROJECT_REPORT);
-  projectReportTask.dependsOn(TASK_REPORT,PROPERTY_REPORT,DEPENDENCY_REPORT);
+  projectReportTask.dependsOn(TASK_REPORT,PROPERTY_REPORT,DEPENDENCY_REPORT,HTML_DEPENDENCY_REPORT);
   projectReportTask.setDescription("Generates a report about your project.");
   projectReportTask.setGroup("reporting");
 }
