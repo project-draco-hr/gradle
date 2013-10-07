@@ -1,10 +1,15 @@
 {
-switch (targetPlatform.getArchitecture()) {
-case I386:
+  ArchitectureInternal architecture=(ArchitectureInternal)targetPlatform.getArchitecture();
+  if (architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT) {
+    return args();
+  }
+  ArchitectureInternal.InstructionSet is=architecture.getInstructionSet();
+  int rs=architecture.getRegisterSize();
+  if (is == ArchitectureInternal.InstructionSet.X86 && rs == 32) {
     return args("-m32");
-case AMD64:
-  return args("-m64");
-default :
-return args();
-}
+  }
+  if (is == ArchitectureInternal.InstructionSet.X86 && rs == 64) {
+    return args("-m64");
+  }
+  return args();
 }
