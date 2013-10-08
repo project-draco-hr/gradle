@@ -1,0 +1,44 @@
+{
+  final List<Task> tasks=CollectionUtils.sort(selection.getTasks(),new Comparator<Task>(){
+    public int compare(    Task o1,    Task o2){
+      return o1.getPath().compareTo(o2.getPath());
+    }
+  }
+);
+  output.text("Detailed task description for ").withStyle(UserInput).println(taskPath);
+  final Set<Class> taskTypes=new TreeSet<Class>(new Comparator<Class>(){
+    public int compare(    Class o1,    Class o2){
+      return o1.getSimpleName().compareTo(o2.getSimpleName());
+    }
+  }
+);
+  taskTypes.addAll(CollectionUtils.collect(tasks,new Transformer<Class,Task>(){
+    public Class transform(    Task original){
+      return original.getClass().getSuperclass();
+    }
+  }
+));
+  for (  final Class taskType : taskTypes) {
+    final Set<Task> tasksByType=new TreeSet<Task>(CollectionUtils.filter(tasks,new Spec<Task>(){
+      public boolean isSatisfiedBy(      Task element){
+        return element.getClass().getSuperclass().equals(taskType);
+      }
+    }
+));
+    output.println();
+    output.text(tasksByType.size() > 1 ? "Paths" : "Path").println();
+    for (    Task task : tasksByType) {
+      output.text(INDENT).withStyle(UserInput).println(task.getPath());
+    }
+    output.println();
+    output.text("Type").println();
+    output.text(INDENT).withStyle(UserInput).text(taskType.getSimpleName());
+    output.println(" (" + taskType + ")");
+    output.println();
+    printTaskDescription(output,tasksByType);
+    output.println();
+    if (taskTypes.size() > 1) {
+      output.println("----------------------");
+    }
+  }
+}
