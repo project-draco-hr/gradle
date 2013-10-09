@@ -5,8 +5,10 @@
   Factory<AntBuilder> antBuilderFactory=getServices().getFactory(AntBuilder.class);
   JavaCompilerFactory inProcessCompilerFactory=new InProcessJavaCompilerFactory();
   tempFileProvider=projectInternal.getServices().get(TemporaryFileProvider.class);
-  DefaultJavaCompilerFactory javaCompilerFactory=new DefaultJavaCompilerFactory(projectInternal,antBuilderFactory,inProcessCompilerFactory);
-  GroovyCompilerFactory groovyCompilerFactory=new GroovyCompilerFactory(projectInternal,antBuilder,classPathRegistry,javaCompilerFactory);
+  CompilerDaemonManager compilerDaemonManager=getServices().get(CompilerDaemonManager.class);
+  InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory=getServices().get(InProcessCompilerDaemonFactory.class);
+  DefaultJavaCompilerFactory javaCompilerFactory=new DefaultJavaCompilerFactory(projectInternal,antBuilderFactory,inProcessCompilerFactory,compilerDaemonManager);
+  GroovyCompilerFactory groovyCompilerFactory=new GroovyCompilerFactory(projectInternal,antBuilder,classPathRegistry,javaCompilerFactory,compilerDaemonManager,inProcessCompilerDaemonFactory);
   Compiler<GroovyJavaJointCompileSpec> delegatingCompiler=new DelegatingGroovyCompiler(groovyCompilerFactory);
   compiler=new IncrementalGroovyCompiler(delegatingCompiler,getOutputs());
 }

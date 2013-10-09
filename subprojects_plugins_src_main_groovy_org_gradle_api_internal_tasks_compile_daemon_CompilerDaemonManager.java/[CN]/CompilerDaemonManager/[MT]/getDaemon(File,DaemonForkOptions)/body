@@ -1,0 +1,15 @@
+{
+synchronized (lock) {
+    for (    CompilerDaemonClient client : clients) {
+      if (client.isCompatibleWith(forkOptions) && client.isIdle()) {
+        client.setIdle(false);
+        return client;
+      }
+    }
+  }
+  CompilerDaemonClient client=compilerDaemonStarter.startDaemon(workingDir,forkOptions).setIdle(false);
+synchronized (lock) {
+    clients.add(client);
+  }
+  return client;
+}
