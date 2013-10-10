@@ -1,0 +1,24 @@
+{
+  final Set<Class> taskTypes=new TreeSet<Class>(new Comparator<Class>(){
+    public int compare(    Class o1,    Class o2){
+      return o1.getSimpleName().compareTo(o2.getSimpleName());
+    }
+  }
+);
+  taskTypes.addAll(CollectionUtils.collect(tasks,new Transformer<Class,Task>(){
+    public Class transform(    Task original){
+      return original.getClass().getSuperclass();
+    }
+  }
+));
+  Map<Class,List<Task>> tasksGroupedByType=new HashMap<Class,List<Task>>();
+  for (  final Class taskType : taskTypes) {
+    tasksGroupedByType.put(taskType,CollectionUtils.filter(tasks,new Spec<Task>(){
+      public boolean isSatisfiedBy(      Task element){
+        return element.getClass().getSuperclass().equals(taskType);
+      }
+    }
+));
+  }
+  return tasksGroupedByType;
+}
