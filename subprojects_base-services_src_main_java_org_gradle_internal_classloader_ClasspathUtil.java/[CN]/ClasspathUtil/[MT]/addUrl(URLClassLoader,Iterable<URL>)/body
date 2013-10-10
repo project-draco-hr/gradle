@@ -1,9 +1,13 @@
 {
+  Set<URL> original=new HashSet<URL>();
+  Collections.addAll(original,classLoader.getURLs());
   try {
     Method method=URLClassLoader.class.getDeclaredMethod("addURL",URL.class);
     method.setAccessible(true);
     for (    URL classpathElement : classpathElements) {
-      method.invoke(classLoader,classpathElement);
+      if (original.add(classpathElement)) {
+        method.invoke(classLoader,classpathElement);
+      }
     }
   }
  catch (  Throwable t) {
