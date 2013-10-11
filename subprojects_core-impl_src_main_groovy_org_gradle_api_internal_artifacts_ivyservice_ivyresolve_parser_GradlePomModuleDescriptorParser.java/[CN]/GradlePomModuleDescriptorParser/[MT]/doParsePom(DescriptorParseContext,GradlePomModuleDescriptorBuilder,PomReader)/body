@@ -7,6 +7,7 @@
     for (    Map.Entry<String,String> entry : parentPomProps.entrySet()) {
       pomReader.setProperty(entry.getKey(),entry.getValue());
     }
+    pomReader.addDependencyMgts(parentDescr.getDependencyMgt());
   }
   pomReader.resolveGAV();
   String groupId=pomReader.getGroupId();
@@ -43,7 +44,7 @@
   }
  else {
     if (parentDescr != null) {
-      List<PomDependencyMgt> depMgt=parentDescr.getDependencyMgt();
+      Set<PomDependencyMgt> depMgt=parentDescr.getDependencyMgt();
       for (      PomDependencyMgt aDepMgt : depMgt) {
         mdBuilder.addDependencyMgt(aDepMgt);
       }
@@ -57,7 +58,8 @@
       if ("import".equals(dep.getScope())) {
         ModuleRevisionId importModRevID=ModuleRevisionId.newInstance(dep.getGroupId(),dep.getArtifactId(),dep.getVersion());
         PomReader importDescr=parseOtherPom(parserSettings,importModRevID);
-        List<PomDependencyMgt> depMgt=importDescr.getDependencyMgt();
+        Set<PomDependencyMgt> depMgt=importDescr.getDependencyMgt();
+        pomReader.addDependencyMgts(depMgt);
         for (        PomDependencyMgt aDepMgt : depMgt) {
           mdBuilder.addDependencyMgt(aDepMgt);
         }
