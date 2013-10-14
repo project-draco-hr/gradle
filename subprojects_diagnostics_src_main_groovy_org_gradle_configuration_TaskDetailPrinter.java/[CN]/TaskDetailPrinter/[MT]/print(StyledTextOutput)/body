@@ -6,17 +6,18 @@
   }
 );
   output.text("Detailed task information for ").withStyle(UserInput).println(taskPath);
-  final Map<Class,List<Task>> classListMap=groupTasksByType(tasks);
-  final List<Map.Entry<Class,List<Task>>> entries=CollectionUtils.sort(classListMap.entrySet(),new Comparator<Map.Entry<Class,List<Task>>>(){
-    public int compare(    Map.Entry<Class,List<Task>> o1,    Map.Entry<Class,List<Task>> o2){
-      return o1.getKey().getSimpleName().compareTo(o2.getKey().getSimpleName());
+  final ListMultimap<Class,Task> classListMap=groupTasksByType(tasks);
+  final Set<Class> classes=classListMap.keySet();
+  boolean multipleClasses=classes.size() > 1;
+  final List<Class> sortedClasses=CollectionUtils.sort(classes,new Comparator<Class>(){
+    public int compare(    Class o1,    Class o2){
+      return o1.getSimpleName().compareTo(o2.getSimpleName());
     }
   }
 );
-  for (  Map.Entry<Class,List<Task>> entry : entries) {
+  for (  Class clazz : sortedClasses) {
     output.println();
-    final List<Task> tasksByType=entry.getValue();
-    final Class clazz=entry.getKey();
+    final List<Task> tasksByType=classListMap.get(clazz);
     output.text(tasksByType.size() > 1 ? "Paths" : "Path").println();
     for (    Task task : tasksByType) {
       output.text(INDENT).withStyle(UserInput).println(task.getPath());
@@ -28,7 +29,7 @@
     output.println();
     printTaskDescription(output,tasksByType);
     output.println();
-    if (classListMap.size() > 1) {
+    if (multipleClasses) {
       output.println("----------------------");
     }
   }
