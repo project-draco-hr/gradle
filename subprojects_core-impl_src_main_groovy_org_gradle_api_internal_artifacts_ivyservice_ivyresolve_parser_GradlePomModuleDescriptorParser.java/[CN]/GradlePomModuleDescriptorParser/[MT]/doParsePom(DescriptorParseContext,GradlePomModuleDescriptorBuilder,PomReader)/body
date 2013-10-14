@@ -23,7 +23,7 @@
       LOGGER.warn("Please update your dependency to directly use the correct version '{}'.",relocation);
       LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
       PomReader relocatedModule=parseOtherPom(parserSettings,relocation);
-      Collection<PomDependencyData> pomDependencyDataList=relocatedModule.getDependencies().values();
+      List<PomDependencyData> pomDependencyDataList=relocatedModule.getDependencies();
       for (      PomDependencyData pomDependencyData : pomDependencyDataList) {
         mdBuilder.addDependency(pomDependencyData);
       }
@@ -48,14 +48,18 @@
         mdBuilder.addPlugin(plugin);
       }
       pomReader.addDependencyMgts(parentDescr.getDependencyMgt());
-      pomReader.addDependencies(parentDescr.getDependencies());
     }
     overrideDependencyMgtsWithImported(parserSettings,pomReader);
     for (    PomDependencyMgt dependencyMgt : pomReader.getDependencyMgt().values()) {
       mdBuilder.addDependencyMgt(dependencyMgt);
     }
-    for (    PomDependencyData dependency : pomReader.getDependencies().values()) {
+    for (    PomDependencyData dependency : pomReader.getDependencies()) {
       mdBuilder.addDependency(dependency);
+    }
+    if (parentDescr != null) {
+      for (      PomDependencyData pomDependencyData : parentDescr.getDependencies()) {
+        mdBuilder.addDependency(pomDependencyData);
+      }
     }
     for (    Object o : pomReader.getPlugins()) {
       PomPluginElement plugin=(PomPluginElement)o;
