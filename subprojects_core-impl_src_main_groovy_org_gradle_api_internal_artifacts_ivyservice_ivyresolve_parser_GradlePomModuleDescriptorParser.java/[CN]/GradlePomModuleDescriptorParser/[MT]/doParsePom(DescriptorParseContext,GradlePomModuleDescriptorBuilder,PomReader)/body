@@ -7,7 +7,6 @@
     for (    Map.Entry<String,String> entry : parentPomProps.entrySet()) {
       pomReader.setProperty(entry.getKey(),entry.getValue());
     }
-    pomReader.addDependencyMgts(parentDescr.getDependencyMgt());
   }
   pomReader.resolveGAV();
   String groupId=pomReader.getGroupId();
@@ -44,33 +43,18 @@
   }
  else {
     if (parentDescr != null) {
-      Set<PomDependencyMgt> depMgt=parentDescr.getDependencyMgt();
-      for (      PomDependencyMgt aDepMgt : depMgt) {
-        mdBuilder.addDependencyMgt(aDepMgt);
-      }
       List<PomPluginElement> plugins=parentDescr.getPlugins();
       for (      PomPluginElement plugin : plugins) {
         mdBuilder.addPlugin(plugin);
       }
+      pomReader.addDependencyMgts(parentDescr.getDependencyMgt());
     }
-    for (    Object o : pomReader.getDependencyMgt()) {
-      PomDependencyMgt dep=(PomDependencyMgt)o;
-      if ("import".equals(dep.getScope())) {
-        ModuleRevisionId importModRevID=ModuleRevisionId.newInstance(dep.getGroupId(),dep.getArtifactId(),dep.getVersion());
-        PomReader importDescr=parseOtherPom(parserSettings,importModRevID);
-        Set<PomDependencyMgt> depMgt=importDescr.getDependencyMgt();
-        pomReader.addDependencyMgts(depMgt);
-        for (        PomDependencyMgt aDepMgt : depMgt) {
-          mdBuilder.addDependencyMgt(aDepMgt);
-        }
-      }
- else {
-        mdBuilder.addDependencyMgt(dep);
-      }
+    overrideDependencyMgtsWithImported(parserSettings,pomReader);
+    for (    PomDependencyMgt dependencyMgt : pomReader.getDependencyMgt().values()) {
+      mdBuilder.addDependencyMgt(dependencyMgt);
     }
-    for (    Object o : pomReader.getDependencies()) {
-      PomDependencyData dep=(PomDependencyData)o;
-      mdBuilder.addDependency(dep);
+    for (    PomDependencyData dependency : pomReader.getDependencies()) {
+      mdBuilder.addDependency(dependency);
     }
     if (parentDescr != null) {
       for (      PomDependencyData pomDependencyData : parentDescr.getDependencies()) {
