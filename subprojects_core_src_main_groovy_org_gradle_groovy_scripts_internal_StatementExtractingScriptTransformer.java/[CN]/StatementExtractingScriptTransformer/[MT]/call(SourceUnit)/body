@@ -1,0 +1,48 @@
+{
+  filterStatements(source,statementSpec);
+  Iterator<ImportNode> iter=source.getAST().getImports().iterator();
+  while (iter.hasNext()) {
+    ImportNode importedClass=iter.next();
+    if (!isVisible(source,importedClass.getClassName())) {
+      try {
+        Field field=ModuleNode.class.getDeclaredField("imports");
+        field.setAccessible(true);
+        Map value=(Map)field.get(source.getAST());
+        value.remove(importedClass.getAlias());
+      }
+ catch (      Exception e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+  }
+  iter=source.getAST().getStaticImports().values().iterator();
+  while (iter.hasNext()) {
+    ImportNode importedClass=iter.next();
+    if (!isVisible(source,importedClass.getClassName())) {
+      iter.remove();
+    }
+  }
+  iter=source.getAST().getStaticStarImports().values().iterator();
+  while (iter.hasNext()) {
+    ImportNode importedClass=iter.next();
+    if (!isVisible(source,importedClass.getClassName())) {
+      iter.remove();
+    }
+  }
+  ClassNode scriptClass=AstUtils.getScriptClass(source);
+  Iterator<ClassNode> classes=source.getAST().getClasses().iterator();
+  while (classes.hasNext()) {
+    ClassNode classNode=classes.next();
+    if (classNode != scriptClass) {
+      classes.remove();
+    }
+  }
+  if (scriptClass != null) {
+    for (    MethodNode methodNode : new ArrayList<MethodNode>(scriptClass.getMethods())) {
+      if (!methodNode.getName().equals("run")) {
+        AstUtils.removeMethod(scriptClass,methodNode);
+      }
+    }
+  }
+  source.getAST().getMethods().clear();
+}
