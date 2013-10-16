@@ -18,30 +18,29 @@
   boolean ignoreTestLevel=!allClassOutput && testId == 0;
   try {
     dataFile.seek(region.start);
-    while (dataFile.getFilePointer() <= region.stop) {
-      dataFile.read(recordHeaderBuffer);
-      Input input=new Input(recordHeaderBuffer);
-      boolean readStdout=input.readBoolean();
-      long readClassId=input.readLong();
-      long readTestId=input.readLong();
-      int readLength=input.readInt();
-      input.close();
+    long maxPos=region.stop - region.start;
+    KryoBackedDecoder decoder=new KryoBackedDecoder(new RandomAccessFileInputStream(dataFile));
+    while (decoder.getReadPosition() <= maxPos) {
+      boolean readStdout=decoder.readBoolean();
+      long readClassId=decoder.readSmallLong();
+      long readTestId=decoder.readSmallLong();
+      int readLength=decoder.readSmallInt();
       boolean isClassLevel=readTestId == 0;
       if (stdout != readStdout || classId != readClassId) {
-        dataFile.skipBytes(readLength);
+        decoder.skipBytes(readLength);
         continue;
       }
       if (ignoreClassLevel && isClassLevel) {
-        dataFile.skipBytes(readLength);
+        decoder.skipBytes(readLength);
         continue;
       }
       if (ignoreTestLevel && !isClassLevel) {
-        dataFile.skipBytes(readLength);
+        decoder.skipBytes(readLength);
         continue;
       }
       if (testId == 0 || testId == readTestId) {
         byte[] stringBytes=new byte[readLength];
-        dataFile.read(stringBytes);
+        decoder.readBytes(stringBytes);
         String message;
         try {
           message=new String(stringBytes,messageStorageCharset.name());
@@ -52,7 +51,7 @@
         writer.write(message);
       }
  else {
-        dataFile.skipBytes(readLength);
+        decoder.skipBytes(readLength);
       }
     }
   }
