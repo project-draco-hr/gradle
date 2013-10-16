@@ -1,14 +1,17 @@
 {
   Element dependenciesElement=getFirstChildElement(projectElement,DEPENDENCIES);
-  List<PomDependencyData> dependencies=new LinkedList<PomDependencyData>();
+  Map<String,PomDependencyData> dependencies=new LinkedHashMap<String,PomDependencyData>();
   if (dependenciesElement != null) {
     NodeList childs=dependenciesElement.getChildNodes();
     for (int i=0; i < childs.getLength(); i++) {
       Node node=childs.item(i);
       if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-        dependencies.add(new PomDependencyData((Element)node));
+        PomDependencyData pomDependencyData=new PomDependencyData((Element)node);
+        String key=createPomDependencyMgtKey(pomDependencyData.getGroupId(),pomDependencyData.getArtifactId());
+        dependencies.put(key,pomDependencyData);
       }
     }
   }
-  return dependencies;
+  inheritedDependencies.putAll(dependencies);
+  return inheritedDependencies;
 }
