@@ -1,11 +1,9 @@
 {
-  List<PomDependencyMgt> importedDependencyMgts=new ArrayList<PomDependencyMgt>();
+  Map<String,PomDependencyMgt> importedDependencyMgts=new LinkedHashMap<String,PomDependencyMgt>();
   for (  PomDependencyMgt currentDependencyMgt : currentDependencyMgts) {
-    if (DEPENDENCY_IMPORT_SCOPE.equals(currentDependencyMgt.getScope())) {
+    if (isDependencyImportScoped(currentDependencyMgt)) {
       PomReader importDescr=parseImportedPom(parseContext,currentDependencyMgt);
-      for (      PomDependencyMgt importedDependencyMgt : importDescr.getDependencyMgt().values()) {
-        importedDependencyMgts.add(importedDependencyMgt);
-      }
+      importedDependencyMgts.putAll(importDescr.getDependencyMgt());
     }
   }
   return importedDependencyMgts;
