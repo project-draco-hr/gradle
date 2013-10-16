@@ -1,12 +1,10 @@
 {
-  if (!testDescriptor.isComposite()) {
-    String className=testDescriptor.getClassName();
-    TestMethodResult methodResult=new TestMethodResult(getInternalId((TestDescriptorInternal)testDescriptor),testDescriptor.getName(),result);
-    TestClassResult classResult=results.get(className);
-    if (classResult == null) {
-      classResult=new TestClassResult(internalIdCounter++,className,result.getStartTime());
-      results.put(className,classResult);
-    }
-    classResult.add(methodResult);
+  String className=testDescriptor.getClassName();
+  TestMethodResult methodResult=currentTestMethods.remove(testDescriptor).completed(result);
+  TestClassResult classResult=results.get(className);
+  if (classResult == null) {
+    classResult=new TestClassResult(internalIdCounter++,className,result.getStartTime());
+    results.put(className,classResult);
   }
+  classResult.add(methodResult);
 }
