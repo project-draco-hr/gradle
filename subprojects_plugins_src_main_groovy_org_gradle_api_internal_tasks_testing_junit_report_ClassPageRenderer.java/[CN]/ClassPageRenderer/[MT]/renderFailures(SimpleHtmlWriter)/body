@@ -2,7 +2,14 @@
   for (  TestResult test : getResults().getFailures()) {
     htmlWriter.startElement("div").attribute("class","test").startElement("a").attribute("name",test.getId().toString()).characters("").endElement().startElement("h3").attribute("class",test.getStatusClass()).characters(test.getName()).endElement();
     for (    TestFailure failure : test.getFailures()) {
-      codePanelRenderer.render(failure.getStackTrace(),htmlWriter);
+      String message;
+      if (GUtil.isTrue(failure.getMessage()) && !failure.getStackTrace().contains(failure.getMessage())) {
+        message=failure.getMessage() + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator()+ failure.getStackTrace();
+      }
+ else {
+        message=failure.getStackTrace();
+      }
+      codePanelRenderer.render(message,htmlWriter);
     }
     htmlWriter.endElement();
   }
