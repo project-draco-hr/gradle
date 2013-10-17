@@ -4,13 +4,13 @@
   TestResult.ResultType resultType=TestResult.ResultType.values()[decoder.readSmallInt()];
   long duration=decoder.readSmallLong();
   long endTime=decoder.readLong();
-  boolean hasFailures=decoder.readBoolean();
-  List<Throwable> failures;
-  if (hasFailures) {
-    failures=(List<Throwable>)Message.receive(decoder.getInputStream(),getClass().getClassLoader());
+  TestMethodResult methodResult=new TestMethodResult(id,name,resultType,duration,endTime);
+  int failures=decoder.readSmallInt();
+  for (int i=0; i < failures; i++) {
+    String exceptionType=decoder.readString();
+    String message=decoder.readString();
+    String stackTrace=decoder.readString();
+    methodResult.addFailure(message,stackTrace,exceptionType);
   }
- else {
-    failures=Collections.emptyList();
-  }
-  return new TestMethodResult(id,name,resultType,duration,endTime,failures);
+  return methodResult;
 }
