@@ -1,4 +1,14 @@
 {
-  PluginTarget target=new PluginApplicationNotationParser().parseType(options);
-  delegate.getPlugins().apply(target.getId());
+  PluginRequest request=new PluginApplicationNotationParser().parseType(options);
+  PluginResolution resolution=null;
+  for (  PluginResolver repository : repositories) {
+    resolution=repository.resolve(request);
+    if (resolution != null) {
+      break;
+    }
+  }
+  if (resolution == null) {
+    throw new UnknownPluginException("Cannot resolve plugin request " + request + " from repositories: "+ CollectionUtils.toStringList(repositories));
+  }
+  pluginResolutionHandler.execute(resolution);
 }
