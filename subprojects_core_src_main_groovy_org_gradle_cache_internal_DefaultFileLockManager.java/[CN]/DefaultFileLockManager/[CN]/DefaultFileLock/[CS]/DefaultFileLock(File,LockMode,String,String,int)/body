@@ -15,15 +15,15 @@
   }
   GFileUtils.mkdirs(lockFile.getParentFile());
   lockFile.createNewFile();
-  lockFileAccess=new RandomAccessFile(lockFile,"rw");
+  fileLockAccess=new FileLockAccess(lockFile,displayName);
   try {
     lock=lock(mode);
     int previousOwnerId=getPreviousOwnerId();
     hasNewOwner=previousOwnerId != ownerId;
-    integrityViolated=previousOwnerId == UNKNOWN_PREVIOUS_OWNER;
+    integrityViolated=previousOwnerId == FileLockAccess.UNKNOWN_PREVIOUS_OWNER;
   }
  catch (  Throwable t) {
-    lockFileAccess.close();
+    fileLockAccess.close();
     throw t;
   }
   this.mode=lock.isShared() ? LockMode.Shared : LockMode.Exclusive;
