@@ -1,0 +1,25 @@
+{
+  if (target instanceof PluginAware) {
+    PluginHandler pluginHandler=new DefaultPluginHandler((PluginAware)target,instantiator,new Action<PluginResolution>(){
+      public void execute(      PluginResolution pluginResolution){
+        Set<File> classpathFiles=pluginResolution.resolveClasspath();
+        ClassPath classPath=new DefaultClassPath(classpathFiles);
+        ClassLoader classLoader=new URLClassLoader(classPath.getAsURLArray(),this.getClass().getClassLoader());
+        Class<?> aClass;
+        try {
+          aClass=classLoader.loadClass(pluginResolution.getClassName());
+        }
+ catch (        ClassNotFoundException e) {
+          throw UncheckedException.throwAsUncheckedException(e);
+        }
+        ((PluginAware)target).getPlugins().apply((Class<? extends Plugin>)aClass);
+      }
+    }
+);
+    pluginHandler.getResolvers().add(new PluginRegistryPluginResolver(pluginRegistry));
+    return pluginHandler;
+  }
+ else {
+    return new NonPluggableTargetPluginHandler(target);
+  }
+}
