@@ -7,7 +7,6 @@
     for (    Map.Entry<String,String> entry : parentPomProps.entrySet()) {
       pomReader.setProperty(entry.getKey(),entry.getValue());
     }
-    pomReader.addDependencyMgts(parentDescr.getDependencyMgt());
   }
   pomReader.resolveGAV();
   String groupId=pomReader.getGroupId();
@@ -24,7 +23,7 @@
       LOGGER.warn("Please update your dependency to directly use the correct version '{}'.",relocation);
       LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
       PomReader relocatedModule=parseOtherPom(parserSettings,relocation);
-      List<PomDependencyData> pomDependencyDataList=relocatedModule.getDependencies();
+      Collection<PomDependencyData> pomDependencyDataList=relocatedModule.getDependencies().values();
       for (      PomDependencyData pomDependencyData : pomDependencyDataList) {
         mdBuilder.addDependency(pomDependencyData);
       }
@@ -44,34 +43,13 @@
   }
  else {
     if (parentDescr != null) {
-      Set<PomDependencyMgt> depMgt=parentDescr.getDependencyMgt();
-      for (      PomDependencyMgt aDepMgt : depMgt) {
-        mdBuilder.addDependencyMgt(aDepMgt);
-      }
+      pomReader.addInheritedDependencyMgts(parentDescr.getDependencyMgt());
+      pomReader.addInheritedDependencies(parentDescr.getDependencies());
     }
-    for (    Object o : pomReader.getDependencyMgt()) {
-      PomDependencyMgt dep=(PomDependencyMgt)o;
-      if ("import".equals(dep.getScope())) {
-        ModuleRevisionId importModRevID=ModuleRevisionId.newInstance(dep.getGroupId(),dep.getArtifactId(),dep.getVersion());
-        PomReader importDescr=parseOtherPom(parserSettings,importModRevID);
-        Set<PomDependencyMgt> depMgt=importDescr.getDependencyMgt();
-        pomReader.addDependencyMgts(depMgt);
-        for (        PomDependencyMgt aDepMgt : depMgt) {
-          mdBuilder.addDependencyMgt(aDepMgt);
-        }
-      }
- else {
-        mdBuilder.addDependencyMgt(dep);
-      }
-    }
-    for (    Object o : pomReader.getDependencies()) {
-      PomDependencyData dep=(PomDependencyData)o;
-      mdBuilder.addDependency(dep);
-    }
-    if (parentDescr != null) {
-      for (      PomDependencyData pomDependencyData : parentDescr.getDependencies()) {
-        mdBuilder.addDependency(pomDependencyData);
-      }
+    overrideDependencyMgtsWithImported(parserSettings,pomReader);
+    addDependencyMgtsToBuilder(mdBuilder,pomReader.getDependencyMgt().values());
+    for (    PomDependencyData dependency : pomReader.getDependencies().values()) {
+      mdBuilder.addDependency(dependency);
     }
   }
 }

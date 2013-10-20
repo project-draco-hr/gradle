@@ -1,11 +1,10 @@
 {
   FailureState failureState=new FailureState(resolveState.root);
-  ModuleVersionIdentifier root=resolveState.root.toId();
-  newModelBuilder.start(root);
+  newModelBuilder.start(resolveState.root.moduleRevision.id);
   for (  ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
     if (resolvedConfiguration.isSelected()) {
       resolvedConfiguration.validate();
-      oldModelBuilder.newResolvedDependency(resolvedConfiguration.getResult());
+      oldModelBuilder.newResolvedDependency(resolvedConfiguration.id);
       resolvedConfiguration.collectFailures(failureState);
       newModelBuilder.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
     }
@@ -17,5 +16,5 @@
     }
   }
   failureState.attachFailures(oldModelBuilder);
-  oldModelBuilder.done(resolveState.root.getResult());
+  oldModelBuilder.done(resolveState.root.id);
 }
