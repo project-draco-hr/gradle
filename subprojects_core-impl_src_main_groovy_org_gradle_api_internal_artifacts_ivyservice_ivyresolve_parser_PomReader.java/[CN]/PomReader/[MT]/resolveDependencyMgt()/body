@@ -1,17 +1,6 @@
 {
-  Map<String,PomDependencyMgt> resolvedDependencyMgts=new LinkedHashMap<String,PomDependencyMgt>();
-  Element dependenciesElement=getFirstChildElement(projectElement,DEPENDENCY_MGT);
-  dependenciesElement=getFirstChildElement(dependenciesElement,DEPENDENCIES);
-  if (dependenciesElement != null) {
-    NodeList childs=dependenciesElement.getChildNodes();
-    for (int i=0; i < childs.getLength(); i++) {
-      Node node=childs.item(i);
-      if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-        PomDependencyMgt pomDependencyMgt=new PomDependencyMgtElement((Element)node);
-        String key=createPomDependencyMgtKey(pomDependencyMgt.getGroupId(),pomDependencyMgt.getArtifactId());
-        resolvedDependencyMgts.put(key,pomDependencyMgt);
-      }
-    }
-  }
-  return resolvedDependencyMgts;
+  Map<String,PomDependencyMgt> dependencies=new LinkedHashMap<String,PomDependencyMgt>();
+  dependencies.putAll(inheritedDependencyMgts);
+  dependencies.putAll(getPomDependencyMgt());
+  return dependencies;
 }
