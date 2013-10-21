@@ -2,21 +2,12 @@
   if (target instanceof PluginAware) {
     PluginHandler pluginHandler=new DefaultPluginHandler((PluginAware)target,instantiator,new Action<PluginResolution>(){
       public void execute(      PluginResolution pluginResolution){
-        Set<File> classpathFiles=pluginResolution.resolveClasspath();
-        ClassPath classPath=new DefaultClassPath(classpathFiles);
-        ClassLoader classLoader=new URLClassLoader(classPath.getAsURLArray(),this.getClass().getClassLoader());
-        Class<?> aClass;
-        try {
-          aClass=classLoader.loadClass(pluginResolution.getClassName());
-        }
- catch (        ClassNotFoundException e) {
-          throw UncheckedException.throwAsUncheckedException(e);
-        }
-        ((PluginAware)target).getPlugins().apply((Class<? extends Plugin>)aClass);
+        Class<? extends Plugin> pluginClass=pluginResolution.resolve(this.getClass().getClassLoader());
+        ((PluginAware)target).getPlugins().apply(pluginClass);
       }
     }
 );
-    pluginHandler.getResolvers().add(new PluginRegistryPluginResolver(pluginRegistry));
+    addDefaultResolvers(pluginHandler);
     return pluginHandler;
   }
  else {

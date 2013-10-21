@@ -1,0 +1,20 @@
+{
+  final Dependency dependency=mapper.map(pluginRequest,dependencyResolutionServices.getDependencyHandler());
+  if (dependency == null) {
+    return null;
+  }
+ else {
+    return new PluginResolution(){
+      public Class<? extends Plugin> resolve(      ClassLoader parentClassLoader){
+        Configuration configuration=dependencyResolutionServices.getConfigurationContainer().detachedConfiguration(dependency);
+        dependencyResolutionServices.getResolveRepositoryHandler().jcenter();
+        Set<File> resolve=configuration.resolve();
+        ClassLoader classLoader=new URLClassLoader(new DefaultClassPath(resolve).getAsURLArray(),parentClassLoader);
+        PluginRegistry pluginRegistry=new DefaultPluginRegistry(classLoader,instantiator);
+        Class<? extends Plugin> typeForId=pluginRegistry.getTypeForId(pluginRequest.getId());
+        return typeForId;
+      }
+    }
+;
+  }
+}
