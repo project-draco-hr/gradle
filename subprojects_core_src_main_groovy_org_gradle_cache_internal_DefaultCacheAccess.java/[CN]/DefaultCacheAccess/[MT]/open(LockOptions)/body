@@ -1,0 +1,21 @@
+{
+  lock.lock();
+  try {
+    if (owner != null) {
+      throw new IllegalStateException(String.format("Cannot open the %s, as it is already in use.",cacheDiplayName));
+    }
+    this.lockOptions=lockOptions;
+    if (lockOptions.getMode() == FileLockManager.LockMode.None) {
+      return;
+    }
+    if (fileLock != null) {
+      throw new IllegalStateException("File lock " + lockFile + " is already open.");
+    }
+    fileLock=lockManager.lock(lockFile,lockOptions,cacheDiplayName);
+    takeOwnership(String.format("Access %s",cacheDiplayName));
+    lockManager.allowContention(fileLock,whenContended());
+  }
+  finally {
+    lock.unlock();
+  }
+}
