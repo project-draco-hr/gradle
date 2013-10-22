@@ -1,13 +1,13 @@
 {
   List<File> previousSources=previousSourcesCache.get(PREVIOUS_FILES);
   previousSources=previousSources == null ? Collections.<File>emptyList() : previousSources;
-  final IncrementalCompileFiles result=new IncrementalCompileFiles(previousSources,fileStateCache,dependencyParser);
+  final IncrementalCompileFiles result=new IncrementalCompileFiles(previousSources);
   for (  File sourceFile : sourceFiles) {
     result.processSource(sourceFile);
   }
-  for (  File removed : result.getRemoved()) {
+  for (  File removed : result.getRemovedSources()) {
     purgeRemoved(removed,result);
   }
   previousSourcesCache.put(PREVIOUS_FILES,new ArrayList<File>(sourceFiles));
-  return result;
+  return new DefaultIncrementalCompilation(result.getModifiedSources(),result.getRemovedSources());
 }
