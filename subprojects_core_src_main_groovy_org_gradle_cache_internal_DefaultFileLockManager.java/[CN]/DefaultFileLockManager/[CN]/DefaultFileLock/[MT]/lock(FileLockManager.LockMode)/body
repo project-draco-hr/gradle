@@ -7,9 +7,9 @@
     throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",displayName,ownerInfo.pid,metaDataProvider.getProcessIdentifier(),ownerInfo.operation,operationDisplayName,lockFile));
   }
   try {
-    fileLockAccess.assertStateInfoIntegral();
+    StateInfo stateInfo;
     if (!stateRegionLock.isShared()) {
-      fileLockAccess.ensureStateInfo();
+      stateInfo=fileLockAccess.ensureStateInfo();
       java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Exclusive,System.currentTimeMillis() + shortTimeoutMs);
       if (informationRegionLock == null) {
         throw new IllegalStateException(String.format("Unable to lock the information region for %s",displayName));
@@ -21,11 +21,15 @@
         informationRegionLock.release();
       }
     }
+ else {
+      stateInfo=fileLockAccess.readStateInfo();
+    }
+    LOGGER.debug("Lock acquired.");
+    lock=stateRegionLock;
+    return stateInfo;
   }
  catch (  Throwable t) {
     stateRegionLock.release();
     throw t;
   }
-  LOGGER.debug("Lock acquired.");
-  return stateRegionLock;
 }
