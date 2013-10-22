@@ -3,11 +3,9 @@
     throw new InsufficientLockModeException("An exclusive lock is required for this operation");
   }
   try {
-    integrityViolated=true;
-    markDirty();
+    lockState=lockFileAccess.markDirty(lockState);
     action.run();
-    markClean();
-    integrityViolated=false;
+    lockState=lockFileAccess.markClean(lockState);
   }
  catch (  Throwable t) {
     throw throwAsUncheckedException(t);

@@ -1,0 +1,14 @@
+{
+  if (lockFileAccess.length() <= infoRegionPos) {
+    return new LockInfo();
+  }
+ else {
+    lockFileAccess.seek(infoRegionPos);
+    DataInputStream inputStream=new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(lockFileAccess)));
+    byte protocolVersion=inputStream.readByte();
+    if (protocolVersion != lockInfoSerializer.getVersion()) {
+      throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file. Expected %s, found %s.",lockInfoSerializer.getVersion(),protocolVersion));
+    }
+    return lockInfoSerializer.read(inputStream);
+  }
+}

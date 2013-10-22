@@ -3,44 +3,33 @@
   long waitUntil=System.currentTimeMillis() + lockTimeoutMs;
   java.nio.channels.FileLock stateRegionLock=lockStateRegion(lockMode,waitUntil);
   if (stateRegionLock == null) {
-    OwnerInfo ownerInfo=readInformationRegion(System.currentTimeMillis() + shortTimeoutMs);
-    throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",displayName,ownerInfo.pid,metaDataProvider.getProcessIdentifier(),ownerInfo.operation,operationDisplayName,lockFile));
+    LockInfo lockInfo=readInformationRegion(System.currentTimeMillis() + shortTimeoutMs);
+    throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",displayName,lockInfo.pid,metaDataProvider.getProcessIdentifier(),lockInfo.operation,operationDisplayName,lockFile));
   }
   try {
-    if (lockFileAccess.length() > 0) {
-      lockFileAccess.seek(STATE_REGION_POS);
-      if (lockFileAccess.readByte() != STATE_REGION_PROTOCOL) {
-        throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.",lockFile,displayName));
-      }
-    }
+    LockState lockState;
     if (!stateRegionLock.isShared()) {
-      if (lockFileAccess.length() < STATE_REGION_SIZE) {
-        lockFileAccess.seek(STATE_REGION_POS);
-        lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-        lockFileAccess.writeInt(UNKNOWN_PREVIOUS_OWNER);
-      }
+      lockState=lockFileAccess.ensureLockState();
       java.nio.channels.FileLock informationRegionLock=lockInformationRegion(LockMode.Exclusive,System.currentTimeMillis() + shortTimeoutMs);
       if (informationRegionLock == null) {
         throw new IllegalStateException(String.format("Unable to lock the information region for %s",displayName));
       }
       try {
-        lockFileAccess.seek(INFORMATION_REGION_POS);
-        lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
-        lockFileAccess.writeInt(port);
-        lockFileAccess.writeLong(lockId);
-        lockFileAccess.writeUTF(trimIfNecessary(metaDataProvider.getProcessIdentifier()));
-        lockFileAccess.writeUTF(trimIfNecessary(operationDisplayName));
-        lockFileAccess.setLength(lockFileAccess.getFilePointer());
+        lockFileAccess.writeLockInfo(port,lockId,metaDataProvider.getProcessIdentifier(),operationDisplayName);
       }
   finally {
         informationRegionLock.release();
       }
     }
+ else {
+      lockState=lockFileAccess.readLockState();
+    }
+    LOGGER.debug("Lock acquired.");
+    lock=stateRegionLock;
+    return lockState;
   }
  catch (  Throwable t) {
     stateRegionLock.release();
     throw t;
   }
-  LOGGER.debug("Lock acquired.");
-  return stateRegionLock;
 }

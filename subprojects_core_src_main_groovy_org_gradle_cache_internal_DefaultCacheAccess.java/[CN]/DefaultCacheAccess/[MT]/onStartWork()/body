@@ -2,9 +2,10 @@
   if (fileLock != null) {
     return false;
   }
-  fileLock=lockManager.lock(lockFile,Exclusive,cacheDiplayName,operations.getDescription());
+  fileLock=lockManager.lock(lockFile,lockOptions.withMode(Exclusive),cacheDisplayName,operations.getDescription());
+  stateAtOpen=fileLock.getState();
   for (  UnitOfWorkParticipant cache : caches) {
-    cache.onStartWork(operations.getDescription(),fileLock.getHasNewOwner());
+    cache.onStartWork(operations.getDescription(),stateAtOpen);
   }
   lockManager.allowContention(fileLock,whenContended());
   return true;

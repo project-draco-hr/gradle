@@ -1,10 +1,20 @@
 {
   try {
     cacheClosedCount++;
-    new CompositeStoppable().add(caches).add(fileLock).stop();
+    try {
+      new CompositeStoppable().add(caches).stop();
+      FileLock.State state=fileLock.getState();
+      for (      MultiProcessSafePersistentIndexedCache cache : caches) {
+        cache.onEndWork(state);
+      }
+    }
+  finally {
+      fileLock.close();
+    }
   }
   finally {
     fileLock=null;
+    stateAtOpen=null;
     contended=false;
   }
 }
