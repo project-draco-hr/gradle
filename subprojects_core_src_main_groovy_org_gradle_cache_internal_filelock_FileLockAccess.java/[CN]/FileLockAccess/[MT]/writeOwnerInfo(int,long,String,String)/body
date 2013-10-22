@@ -1,9 +1,13 @@
 {
   lockFileAccess.seek(infoRegionPos);
-  lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
-  lockFileAccess.writeInt(port);
-  lockFileAccess.writeLong(lockId);
-  lockFileAccess.writeUTF(trimIfNecessary(pid));
-  lockFileAccess.writeUTF(trimIfNecessary(operation));
+  DataOutputStream outstr=new DataOutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(lockFileAccess)));
+  outstr.writeByte(ownerInfoProtocol.getVersion());
+  OwnerInfo ownerInfo=new OwnerInfo();
+  ownerInfo.port=port;
+  ownerInfo.lockId=lockId;
+  ownerInfo.pid=pid;
+  ownerInfo.operation=operation;
+  ownerInfoProtocol.write(outstr,ownerInfo);
+  outstr.flush();
   lockFileAccess.setLength(lockFileAccess.getFilePointer());
 }
