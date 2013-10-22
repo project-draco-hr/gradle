@@ -15,14 +15,14 @@
   }
   GFileUtils.mkdirs(lockFile.getParentFile());
   lockFile.createNewFile();
-  fileLockAccess=new FileLockAccess(lockFile,displayName,new StateInfoAccess(options.getStateInfoProtocol()));
+  lockFileAccess=new LockFileAccess(lockFile,displayName,new StateInfoAccess(options.getStateInfoProtocol()));
   try {
-    StateInfo stateInfo=lock(options.getMode());
-    hasNewOwner=stateInfo.getPreviousOwnerId() != ownerId;
-    integrityViolated=stateInfo.isDirty();
+    LockState lockState=lock(options.getMode());
+    hasNewOwner=lockState.getPreviousOwnerId() != ownerId;
+    integrityViolated=lockState.isDirty();
   }
  catch (  Throwable t) {
-    fileLockAccess.close();
+    lockFileAccess.close();
     throw t;
   }
   this.mode=lock.isShared() ? LockMode.Shared : LockMode.Exclusive;

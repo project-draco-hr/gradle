@@ -1,0 +1,14 @@
+{
+  if (lockFileAccess.length() <= infoRegionPos) {
+    LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.",displayName);
+    return new LockInfo();
+  }
+ else {
+    lockFileAccess.seek(infoRegionPos);
+    DataInputStream inputStream=new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(lockFileAccess)));
+    if (inputStream.readByte() != lockInfoSerializer.getVersion()) {
+      throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.",lockFile,displayName));
+    }
+    return lockInfoSerializer.readState(inputStream);
+  }
+}
