@@ -1,5 +1,5 @@
 {
-  Map<String,PomDependencyData> dependencies=new LinkedHashMap<String,PomDependencyData>();
+  Map<MavenDependencyKey,PomDependencyData> dependencies=new LinkedHashMap<MavenDependencyKey,PomDependencyData>();
   Element dependenciesElement=getFirstChildElement(projectElement,DEPENDENCIES);
   if (dependenciesElement != null) {
     NodeList childs=dependenciesElement.getChildNodes();
@@ -7,12 +7,12 @@
       Node node=childs.item(i);
       if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
         PomDependencyData pomDependencyData=new PomDependencyData((Element)node);
-        String key=createPomDependencyMgtKey(pomDependencyData.getGroupId(),pomDependencyData.getArtifactId());
+        MavenDependencyKey key=new MavenDependencyKey(pomDependencyData.getGroupId(),pomDependencyData.getArtifactId(),pomDependencyData.getType(),pomDependencyData.getClassifier());
         dependencies.put(key,pomDependencyData);
       }
     }
   }
-  for (  Map.Entry<String,PomDependencyData> entry : inheritedDependencies.entrySet()) {
+  for (  Map.Entry<MavenDependencyKey,PomDependencyData> entry : inheritedDependencies.entrySet()) {
     if (!dependencies.containsKey(entry.getKey())) {
       dependencies.put(entry.getKey(),entry.getValue());
     }
