@@ -1,2 +1,12 @@
 {
+  if (result.getResultType() == TestResult.ResultType.FAILURE && result.getException() instanceof TestSuiteExecutionException) {
+    TestMethodResult methodResult=new TestMethodResult(internalIdCounter++,result.getException().getMessage());
+    for (    Throwable throwable : result.getExceptions()) {
+      methodResult.addFailure(failureMessage(throwable),stackTrace(throwable),exceptionClassName(throwable));
+    }
+    methodResult.completed(result);
+    TestClassResult classResult=new TestClassResult(internalIdCounter++,suite.getName(),result.getStartTime());
+    classResult.add(methodResult);
+    results.put(suite.getName(),classResult);
+  }
 }
