@@ -1,0 +1,18 @@
+{
+  if (!isAllownomd()) {
+    return null;
+  }
+  DefaultModuleDescriptor generatedModuleDescriptor=getDefaultModuleDescriptor(dependencyDescriptor,moduleRevisionId);
+  ResolvedArtifact artifactRef=findAnyArtifact(generatedModuleDescriptor);
+  if (artifactRef == null) {
+    return null;
+  }
+  long lastModified=artifactRef.resource.getLastModified();
+  if (lastModified != 0) {
+    generatedModuleDescriptor.setLastModified(lastModified);
+  }
+  LOGGER.debug("No meta-data file found for module '{}' in repository '{}', using default data instead.",moduleRevisionId,getName());
+  ModuleDescriptorAdapter metaData=new ModuleDescriptorAdapter(generatedModuleDescriptor);
+  metaData.setChanging(isChanging(generatedModuleDescriptor));
+  return new DownloadedAndParsedMetaDataArtifact(artifactRef.resource,artifactRef.artifact,metaData);
+}

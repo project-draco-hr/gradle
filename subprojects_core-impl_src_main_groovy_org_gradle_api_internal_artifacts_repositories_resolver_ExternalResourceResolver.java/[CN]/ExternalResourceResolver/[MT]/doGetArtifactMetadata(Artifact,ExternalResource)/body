@@ -1,19 +1,12 @@
 {
-  if (artifact.isMetadata()) {
-    ModuleRevisionId dependencyRevisionId=artifact.getId().getModuleRevisionId();
-    LocallyAvailableExternalResource cachedResource;
-    try {
-      cachedResource=repositoryCacheManager.downloadAndCacheArtifactFile(artifact.getId(),resourceDownloader,resource);
-    }
- catch (    IOException e) {
-      LOGGER.warn("Problem while downloading module descriptor: {}: {}",resource,e.getMessage());
-      return null;
-    }
-    return metaDataParser.parseMetaData(new ExternalResourceResolverDescriptorParseContext(nestedResolver,this,dependencyRevisionId),cachedResource);
+  ModuleRevisionId dependencyRevisionId=artifact.getId().getModuleRevisionId();
+  LocallyAvailableExternalResource cachedResource;
+  try {
+    cachedResource=repositoryCacheManager.downloadAndCacheArtifactFile(artifact.getId(),resourceDownloader,resource);
   }
- else {
-    DefaultModuleDescriptor md=DefaultModuleDescriptor.newDefaultInstance(artifact.getModuleRevisionId());
-    md.setStatus("integration");
-    return new ModuleDescriptorAdapter(md);
+ catch (  IOException e) {
+    LOGGER.warn("Problem while downloading module descriptor: {}: {}",resource,e.getMessage());
+    return null;
   }
+  return metaDataParser.parseMetaData(new ExternalResourceResolverDescriptorParseContext(nestedResolver,this,dependencyRevisionId),cachedResource);
 }
