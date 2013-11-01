@@ -13,14 +13,16 @@
   for (  Class clazz : sortedClasses) {
     output.println();
     final List<Task> tasksByType=classListMap.get(clazz);
-    output.text(tasksByType.size() > 1 ? "Paths" : "Path").println();
+    final LinePrefixingStyledTextOutput pathOutput=createIndentedOutput(output,INDENT);
+    pathOutput.println(tasksByType.size() > 1 ? "Paths" : "Path");
     for (    Task task : tasksByType) {
-      output.text(INDENT).withStyle(UserInput).println(task.getPath());
+      pathOutput.withStyle(UserInput).println(task.getPath());
     }
     output.println();
-    output.text("Type").println();
-    output.text(INDENT).withStyle(UserInput).text(clazz.getSimpleName());
-    output.println(String.format(" (%s)",clazz.getName()));
+    final LinePrefixingStyledTextOutput typeOutput=createIndentedOutput(output,INDENT);
+    typeOutput.println("Type");
+    typeOutput.withStyle(UserInput).text(clazz.getSimpleName());
+    typeOutput.println(String.format(" (%s)",clazz.getName()));
     printlnCommandlineOptions(output,clazz);
     output.println();
     printTaskDescription(output,tasksByType);

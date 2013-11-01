@@ -9,19 +9,20 @@
     final CommandLineOptionDescriptor descriptor=optionsIterator.next();
     final String optionString=String.format("--%s",descriptor.getOption().options()[0]);
     output.text(INDENT).withStyle(UserInput).text(optionString);
-    output.text(INDENT).println(descriptor.getOption().description());
-    final Class availableValuesType=descriptor.getArgumentType();
-    if (availableValuesType.isEnum()) {
-      final Object[] enumConstants=availableValuesType.getEnumConstants();
-      indentForOptionDescription(output,optionString);
-      output.text("Takes an enum value of type (").withStyle(UserInput).text(availableValuesType.getName()).println(").");
-      indentForOptionDescription(output,optionString);
-      output.println("Available values are:");
-      for (      Object enumConstant : enumConstants) {
-        indentForOptionDescription(output,optionString);
-        output.text(INDENT);
-        output.withStyle(UserInput).println(enumConstant);
+    output.text(INDENT).text(descriptor.getOption().description());
+    final List<String> availableValues=descriptor.getAvailableValues();
+    if (!availableValues.isEmpty()) {
+      final int optionDescriptionOffset=2 * INDENT.length() + optionString.length();
+      final LinePrefixingStyledTextOutput prefixedOutput=createIndentedOutput(output,optionDescriptionOffset);
+      prefixedOutput.println();
+      prefixedOutput.println("Available values are:");
+      for (      String value : availableValues) {
+        prefixedOutput.text(INDENT);
+        prefixedOutput.withStyle(UserInput).println(value);
       }
+    }
+ else {
+      output.println();
     }
     if (optionsIterator.hasNext()) {
       output.println();
