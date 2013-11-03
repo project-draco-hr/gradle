@@ -1,40 +1,12 @@
 {
   final Throwable causeThrowable=getCause(classLoader);
-  Throwable throwable=null;
-  if (serializedException != null) {
-    try {
-      final ExceptionReplacingObjectInputStream ois=new ExceptionReplacingObjectInputStream(new ByteArrayInputStream(serializedException),classLoader){
-        @Override protected Object resolveObject(        Object obj) throws IOException {
-          if (obj instanceof CausePlaceholder) {
-            return causeThrowable;
-          }
-          return super.resolveObject(obj);
-        }
-      }
-;
-      throwable=(Throwable)ois.readObject();
-    }
- catch (    ClassNotFoundException e) {
-    }
-catch (    InvalidClassException e) {
-      try {
-        Constructor<?> constructor=classLoader.loadClass(type).getConstructor(String.class);
-        throwable=(Throwable)constructor.newInstance(message);
-        throwable.initCause(causeThrowable);
-        throwable.setStackTrace(stackTrace);
-      }
- catch (      ClassNotFoundException e1) {
-      }
-catch (      NoSuchMethodException e1) {
-      }
-catch (      Throwable t) {
-        throw UncheckedException.throwAsUncheckedException(t);
-      }
-    }
+  try {
+    return tryDeserialize(classLoader,causeThrowable);
   }
-  if (throwable == null) {
-    throwable=new PlaceholderException(type,message,toString,toStringRuntimeExec,causeThrowable);
-    throwable.setStackTrace(stackTrace);
+ catch (  Throwable ignored) {
+    LOGGER.info("Ignoring error de-serializing throwable",ignored);
+    Throwable placeholder=new PlaceholderException(type,message,toString,toStringRuntimeExec,causeThrowable);
+    placeholder.setStackTrace(stackTrace);
+    return placeholder;
   }
-  return throwable;
 }

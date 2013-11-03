@@ -1,35 +1,8 @@
 {
-  ByteArrayOutputStream outstr=new ByteArrayOutputStream();
-  ObjectOutputStream oos=new ExceptionReplacingObjectOutputStream(outstr){
-    @Override protected Object replaceObject(    Object obj) throws IOException {
-      if (obj == throwable) {
-        return throwable;
-      }
-      if (obj == throwable.getCause()) {
-        return new CausePlaceholder();
-      }
-      return super.replaceObject(obj);
-    }
-  }
-;
   try {
-    oos.writeObject(throwable);
-    oos.close();
-    serializedException=outstr.toByteArray();
+    tryPopulateFrom(throwable);
   }
- catch (  NotSerializableException e) {
+ catch (  Throwable ignored) {
+    LOGGER.info("Ignoring error serializing exception",ignored);
   }
-  type=throwable.getClass().getName();
-  message=throwable.getMessage();
-  try {
-    toString=throwable.toString();
-  }
- catch (  RuntimeException toStringRE) {
-    toString=null;
-    toStringRuntimeExec=toStringRE;
-  }
-  if (throwable.getCause() != null) {
-    cause=new ExceptionPlaceholder(throwable.getCause());
-  }
-  stackTrace=throwable.getStackTrace();
 }
