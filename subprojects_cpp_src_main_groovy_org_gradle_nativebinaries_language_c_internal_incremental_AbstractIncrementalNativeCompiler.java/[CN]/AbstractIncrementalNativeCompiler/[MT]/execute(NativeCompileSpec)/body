@@ -1,0 +1,15 @@
+{
+  final PersistentCache cache=openCache(task);
+  final AtomicReference<WorkResult> result=new AtomicReference<WorkResult>();
+  cache.useCache("incremental compile",new Runnable(){
+    public void run(){
+      final IncrementalCompileProcessor processor=createProcessor(includes,cache);
+      result.set(doIncrementalCompile(processor,spec));
+    }
+  }
+);
+  if (cache instanceof ReferencablePersistentCache) {
+    ((ReferencablePersistentCache)cache).close();
+  }
+  return result.get();
+}
