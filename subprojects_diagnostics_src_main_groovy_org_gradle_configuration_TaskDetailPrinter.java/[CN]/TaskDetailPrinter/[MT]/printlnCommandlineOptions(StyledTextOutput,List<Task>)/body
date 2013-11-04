@@ -1,0 +1,41 @@
+{
+  List<CommandLineOptionDescriptor> allOptions=new ArrayList<CommandLineOptionDescriptor>();
+  for (  Task task : tasks) {
+    allOptions.addAll(commandLineOptionReader.getCommandLineOptions(task));
+  }
+  if (!allOptions.isEmpty()) {
+    output.println();
+    output.text("Options").println();
+  }
+  final ListMultimap<String,CommandLineOptionDescriptor> optionsByName=groupDescriptorsByName(allOptions);
+  Iterator<String> optionNames=sort(optionsByName.asMap().keySet()).iterator();
+  while (optionNames.hasNext()) {
+    final String currentOption=optionNames.next();
+    final List<CommandLineOptionDescriptor> descriptorsForCurrentName=optionsByName.get(currentOption);
+    final String optionString=String.format("--%s",currentOption);
+    output.text(INDENT).withStyle(UserInput).text(optionString);
+    final List<String> availableValues=withoutDuplicates(flattenToList(String.class,collect(descriptorsForCurrentName,new Transformer<List<String>,CommandLineOptionDescriptor>(){
+      public List<String> transform(      CommandLineOptionDescriptor original){
+        return original.getAvailableValues();
+      }
+    }
+)));
+    output.text(INDENT).text(descriptorsForCurrentName.iterator().next().getOption().description());
+    if (!availableValues.isEmpty()) {
+      final int optionDescriptionOffset=2 * INDENT.length() + optionString.length();
+      final LinePrefixingStyledTextOutput prefixedOutput=createIndentedOutput(output,optionDescriptionOffset);
+      prefixedOutput.println();
+      prefixedOutput.println("Available values are:");
+      for (      String value : sort(availableValues)) {
+        prefixedOutput.text(INDENT);
+        prefixedOutput.withStyle(UserInput).println(value);
+      }
+    }
+ else {
+      output.println();
+    }
+    if (optionNames.hasNext()) {
+      output.println();
+    }
+  }
+}
