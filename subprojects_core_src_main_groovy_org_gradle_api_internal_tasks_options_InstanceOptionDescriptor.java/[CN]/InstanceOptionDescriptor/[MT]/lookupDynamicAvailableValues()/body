@@ -1,0 +1,15 @@
+{
+  for (Class<?> type=object.getClass(); type != Object.class && type != null; type=type.getSuperclass()) {
+    for (    Method method : type.getDeclaredMethods()) {
+      if (Collection.class.isAssignableFrom(method.getReturnType()) && method.getParameterTypes().length == 0) {
+        OptionValues optionValues=method.getAnnotation(OptionValues.class);
+        if (optionValues != null && optionValues.value()[0].equals(getName())) {
+          final JavaMethod<Object,Collection> methodToInvoke=JavaReflectionUtil.method(Object.class,Collection.class,method);
+          Collection values=methodToInvoke.invoke(object);
+          return CollectionUtils.stringize(CollectionUtils.toList(values));
+        }
+      }
+    }
+  }
+  return Collections.emptyList();
+}
