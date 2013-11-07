@@ -1,29 +1,10 @@
 {
   project.getPlugins().apply(BasePlugin.class);
   project.getPlugins().apply(LanguageBasePlugin.class);
-  modelRules.register("toolChains",ToolChainRegistryInternal.class,new Factory<ToolChainRegistryInternal>(){
-    public ToolChainRegistryInternal create(){
-      return instantiator.newInstance(DefaultToolChainRegistry.class,instantiator);
-    }
-  }
-);
-  modelRules.rule(new ModelFinalizer(){
-    void createDefaultToolChain(    ToolChainRegistryInternal toolChains){
-      if (toolChains.isEmpty()) {
-        toolChains.addDefaultToolChain();
-      }
-    }
-  }
-);
+  modelRules.register("toolChains",ToolChainRegistryInternal.class,new ToolChainFactory(instantiator));
+  modelRules.rule(new AddDefaultToolchainIfRequired());
   modelRules.rule(new CreateNativeBinaries(instantiator,(ProjectInternal)project));
-  modelRules.rule(new ModelRule(){
-    void closeBinariesForTasks(    TaskContainer tasks,    BinaryContainer binaries){
-      for (      Binary binary : binaries) {
-        LOGGER.debug(binary.getName());
-      }
-    }
-  }
-);
+  modelRules.rule(new CloseBinariesForTasks());
   project.getExtensions().create("targetPlatforms",DefaultPlatformContainer.class,instantiator);
   project.getExtensions().create("buildTypes",DefaultBuildTypeContainer.class,instantiator);
   project.getExtensions().create("executables",DefaultExecutableContainer.class,instantiator);
