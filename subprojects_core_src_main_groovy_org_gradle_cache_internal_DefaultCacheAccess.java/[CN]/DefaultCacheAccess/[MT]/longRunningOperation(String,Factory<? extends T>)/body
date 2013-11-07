@@ -1,37 +1,9 @@
 {
-  boolean isReentrant;
-  lock.lock();
-  try {
-    isReentrant=operations.maybeReentrantLongRunningOperation(operationDisplayName);
-  }
-  finally {
-    lock.unlock();
-  }
-  if (isReentrant) {
-    try {
-      return action.create();
-    }
-  finally {
-      popLongRunningOperation(operationDisplayName);
-    }
-  }
-  lock.lock();
-  boolean wasEnded;
-  try {
-    checkThreadIsOwner();
-    wasEnded=onEndWork();
-    parkOwner(operationDisplayName);
-  }
-  finally {
-    lock.unlock();
-  }
+  boolean wasEnded=startLongRunningOperation(operationDisplayName);
   try {
     return action.create();
   }
   finally {
-    restoreOwner(operationDisplayName);
-    if (wasEnded) {
-      onStartWork();
-    }
+    finishLongRunningOperation(wasEnded);
   }
 }
