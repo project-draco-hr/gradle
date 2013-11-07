@@ -1,0 +1,20 @@
+{
+  boolean wasEnded;
+  lock.lock();
+  try {
+    if (operations.isInCacheAction()) {
+      checkThreadIsOwner();
+      wasEnded=onEndWork();
+      owner=null;
+      condition.signalAll();
+    }
+ else {
+      wasEnded=false;
+    }
+    operations.pushLongRunningOperation(operationDisplayName);
+  }
+  finally {
+    lock.unlock();
+  }
+  return wasEnded;
+}
