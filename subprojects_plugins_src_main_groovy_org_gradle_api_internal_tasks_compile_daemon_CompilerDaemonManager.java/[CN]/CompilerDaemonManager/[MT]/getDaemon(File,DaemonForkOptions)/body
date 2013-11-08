@@ -1,15 +1,17 @@
 {
-synchronized (lock) {
-    for (    CompilerDaemonClient client : clients) {
-      if (client.isCompatibleWith(forkOptions) && client.isIdle()) {
-        client.setIdle(false);
-        return client;
+  return new CompilerDaemon(){
+    public <T extends CompileSpec>CompileResult execute(    org.gradle.api.internal.tasks.compile.Compiler<T> compiler,    T spec){
+      CompilerDaemonClient client=clientsManager.reserveIdleClient(forkOptions);
+      if (client == null) {
+        client=clientsManager.reserveNewClient(workingDir,forkOptions);
+      }
+      try {
+        return client.execute(compiler,spec);
+      }
+  finally {
+        clientsManager.release(client);
       }
     }
   }
-  CompilerDaemonClient client=compilerDaemonStarter.startDaemon(workingDir,forkOptions).setIdle(false);
-synchronized (lock) {
-    clients.add(client);
-  }
-  return client;
+;
 }
