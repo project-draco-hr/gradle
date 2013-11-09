@@ -5,12 +5,13 @@
       throw new IllegalStateException("input forwarder has already been started");
     }
     disconnectableInput=new DisconnectableInputStream(input,bufferSize);
-    outputBuffer=new LineBufferingOutputStream(forwardTo,bufferSize);
+    outputBuffer=new LineBufferingOutputStream(handler,bufferSize);
     forwardingExecuter=executorFactory.create("forward input");
     forwardingExecuter.execute(new Runnable(){
       public void run(){
         byte[] buffer=new byte[bufferSize];
         int readCount;
+        Throwable readFailure=null;
         try {
           while (true) {
             try {
@@ -23,25 +24,19 @@
               break;
             }
 catch (            IOException e) {
-              throw UncheckedException.throwAsUncheckedException(e);
+              readFailure=e;
+              break;
             }
-            try {
-              outputBuffer.write(buffer,0,readCount);
-            }
- catch (            IOException e) {
-              throw UncheckedException.throwAsUncheckedException(e);
-            }
+            outputBuffer.write(buffer,0,readCount);
           }
+          outputBuffer.flush();
         }
-  finally {
-          try {
-            outputBuffer.close();
-          }
- catch (          IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-          }
+ catch (        IOException e) {
+          throw UncheckedException.throwAsUncheckedException(e);
         }
-        onFinish.run();
+ finally {
+          handler.endOfStream(readFailure);
+        }
       }
     }
 );
