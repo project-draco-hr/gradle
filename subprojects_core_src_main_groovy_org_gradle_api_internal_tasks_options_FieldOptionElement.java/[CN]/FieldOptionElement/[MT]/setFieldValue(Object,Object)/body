@@ -1,9 +1,9 @@
 {
-  field.setAccessible(true);
   try {
-    field.set(object,value);
+    Method setter=object.getClass().getMethod("set" + StringUtils.capitalize(field.getName()),optionType);
+    invokeMethod(object,setter,value);
   }
- catch (  IllegalAccessException e) {
-    throw new GradleException(String.format("Cannot apply option value %s on field %s of object %s",value,field.getName(),object));
+ catch (  NoSuchMethodException e) {
+    throw new OptionValidationException(String.format("No setter for Option annotated field '%s' in class '%s'.",getElementName(),getDeclaredClass()));
   }
 }
