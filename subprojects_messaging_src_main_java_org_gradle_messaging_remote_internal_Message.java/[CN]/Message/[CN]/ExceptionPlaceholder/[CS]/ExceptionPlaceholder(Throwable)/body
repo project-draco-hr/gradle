@@ -1,8 +1,57 @@
 {
+  type=throwable.getClass().getName();
   try {
-    tryPopulateFrom(throwable);
+    stackTrace=throwable.getStackTrace();
   }
  catch (  Throwable ignored) {
-    LOGGER.info("Ignoring error serializing exception",ignored);
+    LOGGER.debug("Ignoring error extracting stack trace",ignored);
+  }
+  try {
+    message=throwable.getMessage();
+  }
+ catch (  Throwable ignored) {
+    LOGGER.debug("Ignoring error extracting message",ignored);
+  }
+  try {
+    toString=throwable.toString();
+  }
+ catch (  RuntimeException toStringRE) {
+    toStringRuntimeExec=toStringRE;
+  }
+catch (  Throwable ignored) {
+    LOGGER.debug("Ignoring error calling toString",ignored);
+  }
+  Throwable causeTmp;
+  try {
+    causeTmp=throwable.getCause();
+  }
+ catch (  Throwable ignored) {
+    LOGGER.debug("Ignoring error extracting cause",ignored);
+    causeTmp=null;
+  }
+  final Throwable causeFinal=causeTmp;
+  ByteArrayOutputStream outstr=new ByteArrayOutputStream();
+  ObjectOutputStream oos=new ExceptionReplacingObjectOutputStream(outstr){
+    @Override protected Object replaceObject(    Object obj) throws IOException {
+      if (obj == throwable) {
+        return throwable;
+      }
+      if (obj == causeFinal) {
+        return new CausePlaceholder();
+      }
+      return super.replaceObject(obj);
+    }
+  }
+;
+  try {
+    oos.writeObject(throwable);
+    oos.close();
+    serializedException=outstr.toByteArray();
+  }
+ catch (  Throwable ignored) {
+    LOGGER.debug("Ignoring error serializing throwable",ignored);
+  }
+  if (causeFinal != null) {
+    cause=new ExceptionPlaceholder(causeFinal);
   }
 }
