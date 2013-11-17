@@ -1,5 +1,13 @@
 {
-  if (creations.remove(ModelPath.path(path)) == null) {
-    throw new RuntimeException("Tried to remove model " + path + " but it is not registered");
+  ModelPath modelPath=ModelPath.path(path);
+  if (creations.remove(modelPath) == null) {
+    if (store.remove(modelPath) == null) {
+      throw new RuntimeException("Tried to remove model " + path + " but it is not registered");
+    }
+ else {
+      if (isDependedOn(modelPath)) {
+        throw new RuntimeException("Tried to remove model " + path + " but it is depended on by other model elements");
+      }
+    }
   }
 }
