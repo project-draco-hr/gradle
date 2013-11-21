@@ -1,6 +1,9 @@
 {
   List<TaskInfo> nodeQueue=new ArrayList<TaskInfo>(entryTasks);
   Set<TaskInfo> visitingNodes=new HashSet<TaskInfo>();
+  Stack<TaskDependencyGraphEdge> walkedShouldRunAfterEdges=new Stack<TaskDependencyGraphEdge>();
+  Stack<TaskInfo> path=new Stack<TaskInfo>();
+  HashMap<TaskInfo,Integer> planBeforeVisiting=new HashMap<TaskInfo,Integer>();
   while (!nodeQueue.isEmpty()) {
     TaskInfo taskNode=nodeQueue.get(0);
     if (taskNode.isIncludeInGraph() || executionPlan.containsKey(taskNode.getTask())) {
@@ -8,19 +11,33 @@
       continue;
     }
     if (visitingNodes.add(taskNode)) {
-      ArrayList<TaskInfo> dependsOnTasks=new ArrayList<TaskInfo>();
-      addAllReversed(dependsOnTasks,taskNode.getHardSuccessors());
-      addAllReversed(dependsOnTasks,taskNode.getSoftSuccessors());
-      for (      TaskInfo dependsOnTask : dependsOnTasks) {
-        if (visitingNodes.contains(dependsOnTask)) {
-          onOrderingCycle();
+      recordEdgeIfArrivedViaShouldRunAfter(walkedShouldRunAfterEdges,path,taskNode);
+      removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes,taskNode);
+      takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting,taskNode);
+      ArrayList<TaskInfo> successors=new ArrayList<TaskInfo>();
+      addAllSuccessorsInReverseOrder(taskNode,successors);
+      for (      TaskInfo successor : successors) {
+        if (visitingNodes.contains(successor)) {
+          if (!walkedShouldRunAfterEdges.empty()) {
+            TaskDependencyGraphEdge toBeRemoved=walkedShouldRunAfterEdges.pop();
+            toBeRemoved.getFrom().removeShouldRunAfterSuccessor(toBeRemoved.getTo());
+            restorePath(path,toBeRemoved);
+            restoreQueue(nodeQueue,visitingNodes,toBeRemoved);
+            restoreExecutionPlan(planBeforeVisiting,toBeRemoved);
+            break;
+          }
+ else {
+            onOrderingCycle();
+          }
         }
-        nodeQueue.add(0,dependsOnTask);
+        nodeQueue.add(0,successor);
       }
+      path.push(taskNode);
     }
  else {
       nodeQueue.remove(0);
       visitingNodes.remove(taskNode);
+      path.pop();
       executionPlan.put(taskNode.getTask(),taskNode);
       ArrayList<TaskInfo> finalizerTasks=new ArrayList<TaskInfo>();
       addAllReversed(finalizerTasks,taskNode.getFinalizers());
