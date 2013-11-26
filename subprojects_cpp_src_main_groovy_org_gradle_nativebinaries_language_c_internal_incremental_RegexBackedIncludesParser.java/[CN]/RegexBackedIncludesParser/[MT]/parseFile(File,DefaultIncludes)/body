@@ -1,0 +1,27 @@
+{
+  Pattern includePattern=Pattern.compile("#include\\s+((<[^>]+>)|(\"[^\"]+\"))",Pattern.CASE_INSENSITIVE);
+  try {
+    BufferedReader bf=new BufferedReader(new FileReader(file));
+    try {
+      String line;
+      while ((line=bf.readLine()) != null) {
+        Matcher m=includePattern.matcher(line);
+        while (m.find()) {
+          String include=m.group(1);
+          if (include.startsWith("<")) {
+            includes.getSystemIncludes().add(strip(include));
+          }
+ else {
+            includes.getQuotedIncludes().add(strip(include));
+          }
+        }
+      }
+    }
+  finally {
+      bf.close();
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+}

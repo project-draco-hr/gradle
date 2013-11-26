@@ -1,11 +1,42 @@
 {
+  type=throwable.getClass().getName();
+  try {
+    stackTrace=throwable.getStackTrace();
+  }
+ catch (  Throwable ignored) {
+    LOGGER.debug("Ignoring failure to extract throwable stack trace.",ignored);
+    stackTrace=new StackTraceElement[0];
+  }
+  try {
+    message=throwable.getMessage();
+  }
+ catch (  Throwable failure) {
+    getMessageExec=failure;
+  }
+  try {
+    toString=throwable.toString();
+  }
+ catch (  Throwable failure) {
+    toStringRuntimeExec=failure;
+  }
+  Throwable causeTmp;
+  try {
+    causeTmp=throwable.getCause();
+  }
+ catch (  Throwable ignored) {
+    LOGGER.debug("Ignoring failure to extract throwable cause.",ignored);
+    causeTmp=null;
+  }
+  final Throwable causeFinal=causeTmp;
   ByteArrayOutputStream outstr=new ByteArrayOutputStream();
   ObjectOutputStream oos=new ExceptionReplacingObjectOutputStream(outstr){
+    boolean seenFirst;
     @Override protected Object replaceObject(    Object obj) throws IOException {
-      if (obj == throwable) {
-        return throwable;
+      if (!seenFirst) {
+        seenFirst=true;
+        return obj;
       }
-      if (obj == throwable.getCause()) {
+      if (obj == causeFinal) {
         return new CausePlaceholder();
       }
       return super.replaceObject(obj);
@@ -17,19 +48,10 @@
     oos.close();
     serializedException=outstr.toByteArray();
   }
- catch (  NotSerializableException e) {
+ catch (  Throwable ignored) {
+    LOGGER.debug("Ignoring failure to serialize throwable.",ignored);
   }
-  type=throwable.getClass().getName();
-  message=throwable.getMessage();
-  try {
-    toString=throwable.toString();
+  if (causeFinal != null) {
+    cause=new ExceptionPlaceholder(causeFinal);
   }
- catch (  RuntimeException toStringRE) {
-    toString=null;
-    toStringRuntimeExec=toStringRE;
-  }
-  if (throwable.getCause() != null) {
-    cause=new ExceptionPlaceholder(throwable.getCause());
-  }
-  stackTrace=throwable.getStackTrace();
 }

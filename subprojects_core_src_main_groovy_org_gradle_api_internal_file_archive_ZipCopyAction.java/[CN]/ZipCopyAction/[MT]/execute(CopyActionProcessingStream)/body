@@ -6,14 +6,11 @@
  catch (  Exception e) {
     throw new GradleException(String.format("Could not create ZIP '%s'.",zipFile),e);
   }
-  try {
-    stream.process(new StreamAction(zipOutStr));
+  IoActions.withResource(zipOutStr,new Action<ZipOutputStream>(){
+    public void execute(    ZipOutputStream outputStream){
+      stream.process(new StreamAction(outputStream));
+    }
   }
- catch (  Exception e) {
-    UncheckedException.throwAsUncheckedException(e);
-  }
- finally {
-    IOUtils.closeQuietly(zipOutStr);
-  }
+);
   return new SimpleWorkResult(true);
 }

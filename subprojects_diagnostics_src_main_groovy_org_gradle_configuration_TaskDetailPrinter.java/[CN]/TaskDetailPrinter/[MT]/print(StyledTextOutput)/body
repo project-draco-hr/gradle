@@ -1,0 +1,34 @@
+{
+  final List<Task> tasks=sort(selection.getTasks());
+  output.text("Detailed task information for ").withStyle(UserInput).println(taskPath);
+  final ListMultimap<Class,Task> classListMap=groupTasksByType(tasks);
+  final Set<Class> classes=classListMap.keySet();
+  boolean multipleClasses=classes.size() > 1;
+  final List<Class> sortedClasses=sort(classes,new Comparator<Class>(){
+    public int compare(    Class o1,    Class o2){
+      return o1.getSimpleName().compareTo(o2.getSimpleName());
+    }
+  }
+);
+  for (  Class clazz : sortedClasses) {
+    output.println();
+    final List<Task> tasksByType=classListMap.get(clazz);
+    final LinePrefixingStyledTextOutput pathOutput=createIndentedOutput(output,INDENT);
+    pathOutput.println(tasksByType.size() > 1 ? "Paths" : "Path");
+    for (    Task task : tasksByType) {
+      pathOutput.withStyle(UserInput).println(task.getPath());
+    }
+    output.println();
+    final LinePrefixingStyledTextOutput typeOutput=createIndentedOutput(output,INDENT);
+    typeOutput.println("Type");
+    typeOutput.withStyle(UserInput).text(clazz.getSimpleName());
+    typeOutput.println(String.format(" (%s)",clazz.getName()));
+    printlnCommandlineOptions(output,tasksByType);
+    output.println();
+    printTaskDescription(output,tasksByType);
+    output.println();
+    if (multipleClasses) {
+      output.println("----------------------");
+    }
+  }
+}

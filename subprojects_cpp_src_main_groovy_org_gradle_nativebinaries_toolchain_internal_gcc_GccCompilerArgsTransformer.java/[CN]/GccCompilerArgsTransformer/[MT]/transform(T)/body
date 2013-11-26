@@ -1,0 +1,22 @@
+{
+  List<String> args=new ArrayList<String>();
+  Collections.addAll(args,"-x",getLanguage());
+  for (  String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
+    args.add("-D" + macroArg);
+  }
+  args.addAll(spec.getAllArgs());
+  args.add("-c");
+  if (spec.isPositionIndependentCode()) {
+    if (!OperatingSystem.current().isWindows()) {
+      args.add("-fPIC");
+    }
+  }
+  for (  File file : spec.getIncludeRoots()) {
+    args.add("-I");
+    args.add(file.getAbsolutePath());
+  }
+  for (  File file : spec.getSourceFiles()) {
+    args.add(file.getAbsolutePath());
+  }
+  return args;
+}

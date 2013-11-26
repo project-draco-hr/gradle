@@ -1,28 +1,25 @@
 {
-  final TarOutputStream tarOutStr;
-  OutputStream outStr;
+  final OutputStream outStr;
   try {
     outStr=compressor.createArchiveOutputStream(tarFile);
   }
  catch (  Exception e) {
     throw new GradleException(String.format("Could not create TAR '%s'.",tarFile),e);
   }
-  try {
-    tarOutStr=new TarOutputStream(outStr);
+  IoActions.withResource(outStr,new ErroringAction<OutputStream>(){
+    @Override protected void doExecute(    final OutputStream outStr) throws Exception {
+      TarOutputStream tarOutStr;
+      try {
+        tarOutStr=new TarOutputStream(outStr);
+      }
+ catch (      Exception e) {
+        throw new GradleException(String.format("Could not create TAR '%s'.",tarFile),e);
+      }
+      tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
+      stream.process(new StreamAction(tarOutStr));
+      tarOutStr.close();
+    }
   }
- catch (  Exception e) {
-    IOUtils.closeQuietly(outStr);
-    throw new GradleException(String.format("Could not create TAR '%s'.",tarFile),e);
-  }
-  tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
-  try {
-    stream.process(new StreamAction(tarOutStr));
-  }
- catch (  Exception e) {
-    UncheckedException.throwAsUncheckedException(e);
-  }
- finally {
-    IOUtils.closeQuietly(tarOutStr);
-  }
+);
   return new SimpleWorkResult(true);
 }

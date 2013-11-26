@@ -1,11 +1,12 @@
 {
-  Set<Artifact> seen=new HashSet<Artifact>();
+  Map<Artifact,ModuleVersionArtifactMetaData> ivyArtifacts=new HashMap<Artifact,ModuleVersionArtifactMetaData>();
+  for (  ModuleVersionArtifactMetaData artifact : getArtifacts()) {
+    ivyArtifacts.put(artifact.getArtifact(),artifact);
+  }
   Set<ModuleVersionArtifactMetaData> artifacts=new LinkedHashSet<ModuleVersionArtifactMetaData>();
   for (  String ancestor : configurationMetaData.getHierarchy()) {
     for (    Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-      if (seen.add(artifact)) {
-        artifacts.add(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier,artifact));
-      }
+      artifacts.add(ivyArtifacts.get(artifact));
     }
   }
   return artifacts;

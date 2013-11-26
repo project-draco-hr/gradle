@@ -116,13 +116,17 @@
     }
     for (    MetaBeanProperty property : settableProperties) {
       Collection<MetaMethod> methodsForProperty=methods.get(property.getName());
-      if (methodsForProperty.isEmpty()) {
-        builder.addSetMethod(property);
-      }
- else       if (conventionProperties.contains(property)) {
-        for (        MetaMethod method : methodsForProperty) {
-          builder.overrideSetMethod(property,method);
+      boolean hasSetMethod=false;
+      for (      MetaMethod method : methodsForProperty) {
+        if (method.getParameterTypes().length == 1) {
+          if (conventionProperties.contains(property)) {
+            builder.overrideSetMethod(property,method);
+          }
+          hasSetMethod=true;
         }
+      }
+      if (!hasSetMethod) {
+        builder.addSetMethod(property);
       }
     }
     for (    Constructor<?> constructor : type.getConstructors()) {

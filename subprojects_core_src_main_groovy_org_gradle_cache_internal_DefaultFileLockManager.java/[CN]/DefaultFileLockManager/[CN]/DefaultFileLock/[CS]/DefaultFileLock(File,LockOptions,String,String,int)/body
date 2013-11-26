@@ -15,7 +15,8 @@
   }
   GFileUtils.mkdirs(lockFile.getParentFile());
   lockFile.createNewFile();
-  lockFileAccess=new LockFileAccess(lockFile,new LockStateAccess(options.getLockStateSerializer()));
+  LockStateSerializer stateProtocol=options.isUseCrossVersionImplementation() ? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
+  lockFileAccess=new LockFileAccess(lockFile,new LockStateAccess(stateProtocol));
   try {
     lockState=lock(options.getMode());
   }

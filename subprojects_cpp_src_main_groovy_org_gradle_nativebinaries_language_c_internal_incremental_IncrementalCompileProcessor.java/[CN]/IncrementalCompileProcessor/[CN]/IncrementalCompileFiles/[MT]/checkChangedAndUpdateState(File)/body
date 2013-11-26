@@ -1,0 +1,24 @@
+{
+  boolean changed=false;
+  if (processed.containsKey(file)) {
+    return processed.get(file);
+  }
+  processed.put(file,false);
+  FileState state=findState(file);
+  if (state == null) {
+    state=new FileState();
+  }
+  byte[] currentHash=hasher.hash(file);
+  if (hasChanged(state,currentHash)) {
+    changed=true;
+    state.setHash(currentHash);
+    state.setDependencies(dependencyParser.parseDependencies(file));
+    saveState(file,state);
+  }
+  for (  File dep : state.getDependencies()) {
+    Boolean depChanged=checkChangedAndUpdateState(dep);
+    changed=changed || depChanged;
+  }
+  processed.put(file,changed);
+  return changed;
+}

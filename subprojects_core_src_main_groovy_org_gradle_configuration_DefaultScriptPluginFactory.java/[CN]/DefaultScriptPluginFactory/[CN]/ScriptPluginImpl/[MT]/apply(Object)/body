@@ -15,15 +15,17 @@
     services.add(ScriptHandlerInternal.class,defaultScriptHandler);
     classLoaderProvider=defaultScriptHandler;
   }
+  ScriptClassLoader scriptClassLoader=classLoaderProvider.getClassLoader();
+  services.add(PluginHandler.class,pluginHandlerFactory.createPluginHandler(target,scriptClassLoader));
   ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
-  compiler.setClassloader(classLoaderProvider.getClassLoader());
-  BuildScriptClasspathScriptTransformer classpathScriptTransformer=new BuildScriptClasspathScriptTransformer(classpathClosureName);
+  compiler.setClassloader(scriptClassLoader);
+  StatementExtractingScriptTransformer classpathScriptTransformer=new StatementExtractingScriptTransformer(classpathClosureName,new IsScriptBlockWithNameSpec(classpathClosureName,"plugins"));
   compiler.setTransformer(classpathScriptTransformer);
   ScriptRunner<? extends BasicScript> classPathScriptRunner=compiler.compile(scriptType);
   classPathScriptRunner.getScript().init(target,services);
   classPathScriptRunner.run();
   classLoaderProvider.updateClassPath();
-  compiler.setTransformer(new BuildScriptTransformer(classpathScriptTransformer));
+  compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert()));
   ScriptRunner<? extends BasicScript> runner=compiler.compile(scriptType);
   runner.getScript().init(target,services);
   if (scriptAware != null) {

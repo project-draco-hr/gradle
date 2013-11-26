@@ -1,0 +1,43 @@
+{
+  List<OptionDescriptor> allOptions=new ArrayList<OptionDescriptor>();
+  for (  Task task : tasks) {
+    allOptions.addAll(optionReader.getOptions(task));
+  }
+  if (!allOptions.isEmpty()) {
+    output.println();
+    output.text("Options").println();
+  }
+  final ListMultimap<String,OptionDescriptor> optionsByName=groupDescriptorsByName(allOptions);
+  Iterator<String> optionNames=sort(optionsByName.asMap().keySet()).iterator();
+  while (optionNames.hasNext()) {
+    final String currentOption=optionNames.next();
+    final List<OptionDescriptor> descriptorsForCurrentName=optionsByName.get(currentOption);
+    final String optionString=String.format("--%s",currentOption);
+    output.text(INDENT).withStyle(UserInput).text(optionString);
+    List<List<String>> availableValuesByDescriptor=collect(descriptorsForCurrentName,new Transformer<List<String>,OptionDescriptor>(){
+      public List<String> transform(      OptionDescriptor original){
+        return original.getAvailableValues();
+      }
+    }
+);
+    List<String> commonAvailableValues=intersection(availableValuesByDescriptor);
+    final List<String> availableValues=withoutDuplicates(commonAvailableValues);
+    output.text(INDENT).text(descriptorsForCurrentName.iterator().next().getDescription());
+    if (!availableValues.isEmpty()) {
+      final int optionDescriptionOffset=2 * INDENT.length() + optionString.length();
+      final LinePrefixingStyledTextOutput prefixedOutput=createIndentedOutput(output,optionDescriptionOffset);
+      prefixedOutput.println();
+      prefixedOutput.println("Available values are:");
+      for (      String value : sort(availableValues)) {
+        prefixedOutput.text(INDENT);
+        prefixedOutput.withStyle(UserInput).println(value);
+      }
+    }
+ else {
+      output.println();
+    }
+    if (optionNames.hasNext()) {
+      output.println();
+    }
+  }
+}

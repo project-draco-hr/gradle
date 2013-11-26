@@ -6,13 +6,9 @@
   testNg.setParallel(options.getParallel());
   testNg.setThreadCount(options.getThreadCount());
   try {
-    final Method setAnnotations=TestNG.class.getMethod("setAnnotations");
-    setAnnotations.invoke(testNg,options.getAnnotations());
+    JavaReflectionUtil.method(TestNG.class,Object.class,"setAnnotations").invoke(testNg,options.getAnnotations());
   }
  catch (  NoSuchMethodException e) {
-  }
-catch (  Exception e) {
-    throw new GradleException(String.format("Could not configure TestNG annotations with value '%s'.",options.getAnnotations()),e);
   }
   if (options.getJavadocAnnotations()) {
     testNg.setSourcePath(CollectionUtils.join(File.pathSeparator,options.getTestResources()));
@@ -34,8 +30,12 @@ catch (  Exception e) {
     testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
   }
  else {
-    Class[] classes=testClasses.toArray(new Class[testClasses.size()]);
-    testNg.setTestClasses(classes);
+    if (options.getIncludedTests().isEmpty()) {
+      testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
+    }
+ else {
+      configureXmlTestSuite(testNg,testClasses,options.getIncludedTests());
+    }
   }
   testNg.run();
 }

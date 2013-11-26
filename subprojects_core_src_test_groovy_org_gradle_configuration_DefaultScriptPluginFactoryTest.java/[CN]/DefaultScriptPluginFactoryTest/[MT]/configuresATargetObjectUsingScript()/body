@@ -5,6 +5,7 @@
       Sequence sequence=context.sequence("seq");
       ScriptSource sourceWithImportsMock=context.mock(ScriptSource.class,"imports");
       LoggingManagerInternal loggingManagerMock=context.mock(LoggingManagerInternal.class);
+      one(pluginHandlerFactoryMock).createPluginHandler(target,scriptClassLoader);
       one(loggingManagerFactoryMock).create();
       will(returnValue(loggingManagerMock));
       one(importsReaderMock).withImports(scriptSourceMock);
@@ -13,11 +14,11 @@
       will(returnValue(scriptCompilerMock));
       one(scriptHandlerFactoryMock).create(sourceWithImportsMock,parentClassLoader);
       will(returnValue(scriptHandlerMock));
-      allowing(scriptHandlerMock).getClassLoader();
+      ((ScriptClassLoaderProvider)allowing(scriptHandlerMock)).getClassLoader();
       will(returnValue(scriptClassLoader));
       one(scriptCompilerMock).setClassloader(scriptClassLoader);
       inSequence(sequence);
-      one(scriptCompilerMock).setTransformer(with(any(ClasspathScriptTransformer.class)));
+      one(scriptCompilerMock).setTransformer(with(any(StatementExtractingScriptTransformer.class)));
       inSequence(sequence);
       one(scriptCompilerMock).compile(DefaultScript.class);
       will(returnValue(classPathScriptRunnerMock));

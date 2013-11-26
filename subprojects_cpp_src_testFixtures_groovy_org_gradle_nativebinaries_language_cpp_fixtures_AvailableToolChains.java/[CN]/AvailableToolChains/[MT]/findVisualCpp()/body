@@ -1,0 +1,14 @@
+{
+  File compilerExe=OperatingSystem.current().findInPath("cl.exe");
+  if (compilerExe != null) {
+    return new InstalledVisualCpp("visual c++");
+  }
+  VisualStudioLocator vsLocator=new DefaultVisualStudioLocator();
+  VisualStudioLocator.SearchResult searchResult=vsLocator.locateDefaultVisualStudio();
+  File visualStudioDir=searchResult.getResult();
+  if (visualStudioDir != null) {
+    VisualStudioInstall install=new VisualStudioInstall(visualStudioDir,searchResult.getVersion());
+    return new InstalledVisualCpp("visual c++").withInstall(install);
+  }
+  return new UnavailableToolChain("visual c++");
+}

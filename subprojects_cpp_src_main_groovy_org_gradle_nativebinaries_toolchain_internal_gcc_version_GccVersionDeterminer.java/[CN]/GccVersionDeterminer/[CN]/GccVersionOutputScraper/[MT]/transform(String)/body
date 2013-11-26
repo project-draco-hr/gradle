@@ -1,5 +1,5 @@
 {
-  Pattern pattern=Pattern.compile(".*gcc version (\\S+).*",Pattern.DOTALL);
+  Pattern pattern=Pattern.compile(GCC_VERSION_PATTERN,Pattern.DOTALL);
   Matcher matcher=pattern.matcher(output);
   if (matcher.matches()) {
     String scrapedVersion=matcher.group(1);
@@ -7,7 +7,13 @@
     return scrapedVersion;
   }
  else {
-    LOGGER.warn("Unable to extract g++ version number from \"{}\" with pattern \"{}\"",output,pattern);
+    Matcher xcodeGccMatcher=Pattern.compile(APPLE_LLVM_PATTERN,Pattern.DOTALL).matcher(output);
+    if (xcodeGccMatcher.matches()) {
+      LOGGER.debug("Do not treat g++ as GCC on OSX 10.9: it is actually just a thin wrapper around clang.");
+    }
+ else {
+      LOGGER.warn("Unable to extract g++ version number from \"{}\" with pattern \"{}\"",output,pattern);
+    }
     return null;
   }
 }

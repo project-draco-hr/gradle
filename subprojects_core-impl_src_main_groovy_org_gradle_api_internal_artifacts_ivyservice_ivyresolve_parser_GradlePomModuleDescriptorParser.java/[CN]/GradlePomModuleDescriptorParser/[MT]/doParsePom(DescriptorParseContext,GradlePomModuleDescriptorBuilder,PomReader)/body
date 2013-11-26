@@ -3,10 +3,7 @@
   if (pomReader.hasParent()) {
     ModuleRevisionId parentModRevID=ModuleRevisionId.newInstance(pomReader.getParentGroupId(),pomReader.getParentArtifactId(),pomReader.getParentVersion());
     parentDescr=parseOtherPom(parserSettings,parentModRevID);
-    Map<String,String> parentPomProps=parentDescr.getProperties();
-    for (    Map.Entry<String,String> entry : parentPomProps.entrySet()) {
-      pomReader.setProperty(entry.getKey(),entry.getValue());
-    }
+    pomReader.setPomParent(parentDescr);
   }
   pomReader.resolveGAV();
   String groupId=pomReader.getGroupId();
@@ -42,22 +39,9 @@
     }
   }
  else {
-    if (parentDescr != null) {
-      List<PomPluginElement> plugins=parentDescr.getPlugins();
-      for (      PomPluginElement plugin : plugins) {
-        mdBuilder.addPlugin(plugin);
-      }
-      pomReader.addInheritedDependencyMgts(parentDescr.getDependencyMgt());
-      pomReader.addInheritedDependencies(parentDescr.getDependencies());
-    }
     overrideDependencyMgtsWithImported(parserSettings,pomReader);
-    addDependencyMgtsToBuilder(mdBuilder,pomReader.getDependencyMgt().values());
     for (    PomDependencyData dependency : pomReader.getDependencies().values()) {
       mdBuilder.addDependency(dependency);
-    }
-    for (    Object o : pomReader.getPlugins()) {
-      PomPluginElement plugin=(PomPluginElement)o;
-      mdBuilder.addPlugin(plugin);
     }
   }
 }

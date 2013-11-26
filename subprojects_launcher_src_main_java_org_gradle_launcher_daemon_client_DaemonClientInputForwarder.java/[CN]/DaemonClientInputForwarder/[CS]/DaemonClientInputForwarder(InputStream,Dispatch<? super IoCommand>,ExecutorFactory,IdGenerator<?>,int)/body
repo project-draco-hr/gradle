@@ -1,7 +1,17 @@
 {
-  this.inputStream=inputStream;
-  this.dispatch=dispatch;
-  this.executorFactory=executorFactory;
-  this.idGenerator=idGenerator;
-  this.bufferSize=bufferSize;
+  TextStream handler=new TextStream(){
+    public void text(    String input){
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Forwarding input to daemon: '{}'",input.replace("\n","\\n"));
+      }
+      dispatch.dispatch(new ForwardInput(idGenerator.generateId(),input.getBytes()));
+    }
+    public void endOfStream(    @Nullable Throwable failure){
+      CloseInput message=new CloseInput(idGenerator.generateId());
+      LOGGER.debug("Dispatching close input message: {}",message);
+      dispatch.dispatch(message);
+    }
+  }
+;
+  forwarder=new InputForwarder(inputStream,handler,executorFactory,bufferSize);
 }
