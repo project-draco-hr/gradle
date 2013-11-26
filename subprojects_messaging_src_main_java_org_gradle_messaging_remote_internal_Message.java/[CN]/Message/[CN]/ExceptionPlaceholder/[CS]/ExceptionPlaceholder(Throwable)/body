@@ -4,30 +4,27 @@
     stackTrace=throwable.getStackTrace();
   }
  catch (  Throwable ignored) {
-    LOGGER.debug("Ignoring error extracting stack trace",ignored);
+    LOGGER.debug("Ignoring failure to extract throwable stack trace.",ignored);
     stackTrace=new StackTraceElement[0];
   }
   try {
     message=throwable.getMessage();
   }
- catch (  Throwable ignored) {
-    LOGGER.debug("Ignoring error extracting message",ignored);
+ catch (  Throwable failure) {
+    getMessageExec=failure;
   }
   try {
     toString=throwable.toString();
   }
- catch (  RuntimeException toStringRE) {
-    toStringRuntimeExec=toStringRE;
-  }
-catch (  Throwable ignored) {
-    LOGGER.debug("Ignoring error calling toString",ignored);
+ catch (  Throwable failure) {
+    toStringRuntimeExec=failure;
   }
   Throwable causeTmp;
   try {
     causeTmp=throwable.getCause();
   }
  catch (  Throwable ignored) {
-    LOGGER.debug("Ignoring error extracting cause",ignored);
+    LOGGER.debug("Ignoring failure to extract throwable cause.",ignored);
     causeTmp=null;
   }
   final Throwable causeFinal=causeTmp;
@@ -50,7 +47,7 @@ catch (  Throwable ignored) {
     serializedException=outstr.toByteArray();
   }
  catch (  Throwable ignored) {
-    LOGGER.debug("Ignoring error serializing throwable",ignored);
+    LOGGER.debug("Ignoring failure to serialize throwable.",ignored);
   }
   if (causeFinal != null) {
     cause=new ExceptionPlaceholder(causeFinal);

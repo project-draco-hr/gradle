@@ -1,12 +1,37 @@
 {
   final Throwable causeThrowable=getCause(classLoader);
+  if (serializedException != null) {
+    final ExceptionReplacingObjectInputStream ois=new ExceptionReplacingObjectInputStream(new ByteArrayInputStream(serializedException),classLoader){
+      @Override protected Object resolveObject(      Object obj) throws IOException {
+        if (obj instanceof CausePlaceholder) {
+          return causeThrowable;
+        }
+        return super.resolveObject(obj);
+      }
+    }
+;
+    try {
+      return (Throwable)ois.readObject();
+    }
+ catch (    Throwable failure) {
+      LOGGER.info("Ignoring failure to de-serialize throwable.",failure);
+    }
+  }
   try {
-    return tryDeserialize(classLoader,causeThrowable);
+    Constructor<?> constructor=classLoader.loadClass(type).getConstructor(String.class);
+    Throwable reconstructed=(Throwable)constructor.newInstance(message);
+    reconstructed.initCause(causeThrowable);
+    reconstructed.setStackTrace(stackTrace);
+    return reconstructed;
   }
- catch (  Throwable ignored) {
-    LOGGER.info("Ignoring error de-serializing throwable",ignored);
-    Throwable placeholder=new PlaceholderException(type,message,toString,toStringRuntimeExec,causeThrowable);
-    placeholder.setStackTrace(stackTrace);
-    return placeholder;
+ catch (  ClassNotFoundException ignored) {
   }
+catch (  NoSuchMethodException ignored) {
+  }
+catch (  Throwable ignored) {
+    LOGGER.info("Ignoring failure to recreate throwable.",ignored);
+  }
+  Throwable placeholder=new PlaceholderException(type,message,getMessageExec,toString,toStringRuntimeExec,causeThrowable);
+  placeholder.setStackTrace(stackTrace);
+  return placeholder;
 }
