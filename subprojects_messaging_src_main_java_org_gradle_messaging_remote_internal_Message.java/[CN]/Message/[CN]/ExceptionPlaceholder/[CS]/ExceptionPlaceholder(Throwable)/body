@@ -30,9 +30,11 @@
   final Throwable causeFinal=causeTmp;
   ByteArrayOutputStream outstr=new ByteArrayOutputStream();
   ObjectOutputStream oos=new ExceptionReplacingObjectOutputStream(outstr){
+    boolean seenFirst;
     @Override protected Object replaceObject(    Object obj) throws IOException {
-      if (obj == throwable) {
-        return throwable;
+      if (!seenFirst) {
+        seenFirst=true;
+        return obj;
       }
       if (obj == causeFinal) {
         return new CausePlaceholder();
