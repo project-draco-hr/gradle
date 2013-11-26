@@ -4,13 +4,14 @@
   xmlTest.setName("Gradle test");
   for (  Class klass : testClasses) {
     XmlClass xmlClass=null;
-    for (    DefaultTestSelectionSpec includedTest : includedTests) {
-      if (includedTest.matchesClass(klass.getName()) && includedTest.matchesAnyMethodIn(klass)) {
+    for (    TestSelectionSpec included : includedTests) {
+      TestSelectionMatcher matcher=new TestSelectionMatcher(included);
+      if (matcher.matchesClass(klass.getName()) && matcher.matchesAnyMethodIn(klass)) {
         if (xmlClass == null) {
           xmlClass=new XmlClass(klass,true);
           xmlTest.getXmlClasses().add(xmlClass);
         }
-        XmlInclude method=new XmlInclude(includedTest.getMethodPattern());
+        XmlInclude method=new XmlInclude(included.getMethodPattern());
         xmlClass.getIncludedMethods().add(method);
       }
     }
