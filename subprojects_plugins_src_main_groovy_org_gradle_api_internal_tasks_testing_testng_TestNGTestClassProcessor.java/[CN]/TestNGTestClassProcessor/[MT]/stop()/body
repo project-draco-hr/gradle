@@ -15,6 +15,9 @@
   }
   testNg.setUseDefaultListeners(options.getUseDefaultListeners());
   testNg.addListener((Object)adaptListener(testResultProcessor));
+  if (!options.getIncludedTests().isEmpty()) {
+    testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
+  }
   testNg.setVerbose(0);
   testNg.setGroups(CollectionUtils.join(",",options.getIncludeGroups()));
   testNg.setExcludedGroups(CollectionUtils.join(",",options.getExcludeGroups()));
@@ -30,12 +33,7 @@
     testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
   }
  else {
-    if (options.getIncludedTests().isEmpty()) {
-      testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
-    }
- else {
-      configureXmlTestSuite(testNg,testClasses,options.getIncludedTests());
-    }
+    testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
   }
   testNg.run();
 }
