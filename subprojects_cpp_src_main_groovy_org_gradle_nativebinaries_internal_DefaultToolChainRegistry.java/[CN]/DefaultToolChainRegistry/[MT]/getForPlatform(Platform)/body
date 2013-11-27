@@ -1,0 +1,16 @@
+{
+  List<String> messages=new ArrayList<String>();
+  for (  ToolChainInternal toolChain : searchOrder) {
+    if (!toolChain.getAvailability().isAvailable()) {
+      messages.add(String.format("Could not load '%s': %s",toolChain.getName(),toolChain.getAvailability().getUnavailableMessage()));
+      continue;
+    }
+    if (toolChain.canTargetPlatform(targetPlatform)) {
+      return toolChain;
+    }
+ else {
+      messages.add(String.format("Tool chain '%s' cannot build for platform '%s'",toolChain.getName(),targetPlatform.getName()));
+    }
+  }
+  return new UnavailableToolChain(messages);
+}
