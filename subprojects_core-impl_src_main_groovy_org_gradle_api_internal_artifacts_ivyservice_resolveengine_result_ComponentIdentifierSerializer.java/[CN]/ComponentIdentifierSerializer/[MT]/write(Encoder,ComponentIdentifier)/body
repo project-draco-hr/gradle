@@ -2,19 +2,19 @@
   if (value == null) {
     throw new IllegalArgumentException("Provided component identifier may not be null");
   }
-  if (!IMPLEMENTATIONS.containsValue(value.getClass())) {
-    throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
-  }
-  int id=IMPLEMENTATIONS.inverse().get(value.getClass());
-  encoder.writeInt(id);
   if (value instanceof DefaultModuleComponentIdentifier) {
     ModuleComponentIdentifier moduleComponentIdentifier=(ModuleComponentIdentifier)value;
+    encoder.writeByte(Implementation.MODULE.getId());
     encoder.writeString(moduleComponentIdentifier.getGroup());
     encoder.writeString(moduleComponentIdentifier.getModule());
     encoder.writeString(moduleComponentIdentifier.getVersion());
   }
  else   if (value instanceof DefaultBuildComponentIdentifier) {
     BuildComponentIdentifier buildComponentIdentifier=(BuildComponentIdentifier)value;
+    encoder.writeByte(Implementation.BUILD.getId());
     encoder.writeString(buildComponentIdentifier.getProjectPath());
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
   }
 }

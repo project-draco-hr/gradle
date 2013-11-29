@@ -1,0 +1,27 @@
+{
+  ivyContextManager.withIvy(new Action<Ivy>(){
+    public void execute(    Ivy ivy){
+      Set<Configuration> allConfigurations=configuration.getAll();
+      Set<Configuration> configurationsToPublish=configuration.getHierarchy();
+      MutableLocalComponentMetaData componentMetaData=publishLocalComponentFactory.convert(allConfigurations,module);
+      if (descriptor != null) {
+        ModuleDescriptor moduleDescriptor=componentMetaData.getModuleDescriptor();
+        ivyModuleDescriptorWriter.write(moduleDescriptor,descriptor);
+      }
+      componentMetaData=publishLocalComponentFactory.convert(configurationsToPublish,module);
+      BuildableModuleVersionPublishMetaData publishMetaData=componentMetaData.toPublishMetaData();
+      if (descriptor != null) {
+        Artifact artifact=MDArtifact.newIvyArtifact(componentMetaData.getModuleDescriptor());
+        publishMetaData.addArtifact(artifact,descriptor);
+      }
+      List<ModuleVersionPublisher> publishResolvers=new ArrayList<ModuleVersionPublisher>();
+      for (      PublicationAwareRepository repository : repositories) {
+        ModuleVersionPublisher publisher=repository.createPublisher();
+        publisher.setSettings(ivy.getSettings());
+        publishResolvers.add(publisher);
+      }
+      dependencyPublisher.publish(publishResolvers,publishMetaData);
+    }
+  }
+);
+}
