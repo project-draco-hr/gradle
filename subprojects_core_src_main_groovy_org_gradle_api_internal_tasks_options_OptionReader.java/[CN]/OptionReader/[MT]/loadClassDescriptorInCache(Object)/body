@@ -1,11 +1,14 @@
 {
   final Collection<OptionElement> optionElements=getOptionElements(target);
+  List<JavaMethod<Object,Collection>> optionValueMethods=loadValueMethodForOption(target.getClass());
   Set<String> processedOptionElements=new HashSet<String>();
   for (  OptionElement optionElement : optionElements) {
     if (processedOptionElements.contains(optionElement.getOptionName())) {
       throw new OptionValidationException(String.format("Option '%s' linked to multiple elements in class '%s'.",optionElement.getOptionName(),target.getClass().getName()));
     }
     processedOptionElements.add(optionElement.getOptionName());
-    cachedStaticClassDescriptors.put(target.getClass(),optionElement);
+    JavaMethod<Object,Collection> optionValueMethodForOption=getOptionValueMethodForOption(optionValueMethods,optionElement);
+    cachedOptionElements.put(target.getClass(),optionElement);
+    cachedOptionValueMethods.put(optionElement,optionValueMethodForOption);
   }
 }

@@ -1,11 +1,12 @@
 {
   final Class<?> targetClass=target.getClass();
   Map<String,OptionDescriptor> options=new HashMap<String,OptionDescriptor>();
-  if (!cachedStaticClassDescriptors.containsKey(targetClass)) {
+  if (!cachedOptionElements.containsKey(targetClass)) {
     loadClassDescriptorInCache(target);
   }
-  for (  OptionElement optionElement : cachedStaticClassDescriptors.get(targetClass)) {
-    options.put(optionElement.getOptionName(),new InstanceOptionDescriptor(target,optionElement));
+  for (  OptionElement optionElement : cachedOptionElements.get(targetClass)) {
+    JavaMethod<Object,Collection> optionValueMethod=cachedOptionValueMethods.get(optionElement);
+    options.put(optionElement.getOptionName(),new InstanceOptionDescriptor(target,optionElement,optionValueMethod));
   }
   return CollectionUtils.sort(options.values());
 }
