@@ -1,0 +1,14 @@
+{
+  DependencyResolutionServices services=dependencyManagementServices.create(fileResolver,dependencyMetaDataProvider,projectFinder,context);
+  RepositoryHandler repositoryHandler=services.getResolveRepositoryHandler();
+  ConfigurationContainer configurationContainer=services.getConfigurationContainer();
+  DependencyHandler dependencyHandler=services.getDependencyHandler();
+  Collection<Object> key=Arrays.asList(scriptSource.getClassName(),parentScope);
+  ScriptHandlerInternal originalHandler=classLoaderCache.get(key);
+  if (originalHandler == null) {
+    DefaultScriptHandler handler=new DefaultScriptHandler(scriptSource,repositoryHandler,dependencyHandler,configurationContainer,parentScope);
+    classLoaderCache.put(key,handler);
+    return handler;
+  }
+  return new NoClassLoaderUpdateScriptHandler(originalHandler.getBaseCompilationClassLoader(),originalHandler.getClassLoader(),repositoryHandler,dependencyHandler,scriptSource,configurationContainer);
+}
