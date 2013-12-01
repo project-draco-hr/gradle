@@ -1,11 +1,23 @@
 {
-  MutableURLClassLoader mutableClassLoader=classLoader.getMutableClassLoader();
-  for (  File file : getClasspathConfiguration().getFiles()) {
-    try {
-      mutableClassLoader.addURL(file.toURI().toURL());
+  if (classLoader == null) {
+    ClassLoader current=baseClassLoader;
+    Set<File> classPath=getClasspathConfiguration().getFiles();
+    if (!classPath.isEmpty()) {
+      MutableURLClassLoader mutableClassLoader=new MutableURLClassLoader(current);
+      addClassPath(mutableClassLoader);
+      current=mutableClassLoader;
     }
- catch (    MalformedURLException e) {
-      throw new RuntimeException(e);
+    if (!parents.isEmpty()) {
+      parents.add(0,current);
+      current=new CachingClassLoader(new MultiParentClassLoader(parents));
+    }
+    this.classLoader=current;
+  }
+ else {
+    addClassPath(scriptClassPathClassLoader);
+    for (    ClassLoader parent : parents) {
+      multiParentClassLoader.addParent(parent);
     }
   }
+  parents=null;
 }
