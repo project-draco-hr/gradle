@@ -7,7 +7,8 @@
   loggingManager.setLevel(startParameter.getLogLevel());
   loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
   loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
-  listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));
+  LoggerProvider loggerProvider=(tracker.getCurrentBuild() == null) ? buildProgressLogger : LoggerProvider.NO_OP;
+  listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class),loggerProvider));
   if (tracker.getCurrentBuild() == null) {
     listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class),serviceRegistry.get(StyledTextOutputFactory.class),startParameter,requestMetaData));
   }

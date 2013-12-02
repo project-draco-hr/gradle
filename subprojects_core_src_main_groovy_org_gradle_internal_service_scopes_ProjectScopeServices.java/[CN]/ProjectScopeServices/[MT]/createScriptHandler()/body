@@ -1,11 +1,11 @@
 {
   ScriptHandlerFactory factory=new DefaultScriptHandlerFactory(get(DependencyManagementServices.class),get(FileResolver.class),get(DependencyMetaDataProvider.class));
-  ClassLoader parentClassLoader;
+  ScriptCompileScope parentScope;
   if (project.getParent() != null) {
-    parentClassLoader=project.getParent().getBuildscript().getClassLoader();
+    parentScope=project.getParent().getServices().get(ScriptCompileScope.class);
   }
  else {
-    parentClassLoader=get(BuildClassLoaderRegistry.class).getScriptClassLoader();
+    parentScope=get(BuildClassLoaderRegistry.class).getRootCompileScope();
   }
-  return factory.create(project.getBuildScriptSource(),parentClassLoader,project);
+  return factory.create(project.getBuildScriptSource(),parentScope,project);
 }
