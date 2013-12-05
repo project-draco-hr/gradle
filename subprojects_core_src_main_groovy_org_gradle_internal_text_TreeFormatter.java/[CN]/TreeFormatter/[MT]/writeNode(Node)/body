@@ -1,0 +1,27 @@
+{
+  if (node.prefix == null) {
+    node.prefix=node.isRoot() ? "" : node.parent.prefix + "    ";
+  }
+  StyledTextOutput output=new LinePrefixingStyledTextOutput(original,node.prefix);
+  if (!node.valueWritten) {
+    output.append(node.parent.prefix);
+    output.append("  - ");
+    output.append(node.value);
+  }
+  if (node.canCollapseFirstChild()) {
+    output.append(": ");
+    Node firstChild=node.firstChild;
+    output.append(firstChild.value);
+    firstChild.valueWritten=true;
+    firstChild.prefix=node.prefix;
+    writeNode(firstChild);
+  }
+ else   if (node.firstChild != null) {
+    original.format(":%n");
+    writeNode(node.firstChild);
+  }
+  if (node.nextSibling != null) {
+    original.format("%n");
+    writeNode(node.nextSibling);
+  }
+}
