@@ -2,15 +2,25 @@
   List<String> messages=new ArrayList<String>();
   for (  ToolChainInternal toolChain : searchOrder) {
     if (!toolChain.getAvailability().isAvailable()) {
-      messages.add(String.format("Could not load '%s': %s",toolChain.getName(),toolChain.getAvailability().getUnavailableMessage()));
+      messages.add(String.format("Tool chain '%s': %s",toolChain.getName(),toolChain.getAvailability().getUnavailableMessage()));
       continue;
     }
     if (toolChain.canTargetPlatform(targetPlatform)) {
       return toolChain;
     }
  else {
-      messages.add(String.format("Tool chain '%s' cannot build for platform '%s'",toolChain.getName(),targetPlatform.getName()));
+      messages.add(String.format("Tool chain '%s' cannot build for platform '%s'.",toolChain.getName(),targetPlatform.getName()));
     }
   }
-  return new UnavailableToolChain(messages);
+  if (messages.isEmpty()) {
+    messages.add("No tool chain plugin applied.");
+  }
+  TreeFormatter failureMessage=new TreeFormatter();
+  failureMessage.node(String.format("No tool chain is available to build for platform '%s':",targetPlatform.getName()));
+  failureMessage.startChildren();
+  for (  String message : messages) {
+    failureMessage.node(message);
+  }
+  failureMessage.endChildren();
+  return new UnavailableToolChain(failureMessage.toString());
 }
