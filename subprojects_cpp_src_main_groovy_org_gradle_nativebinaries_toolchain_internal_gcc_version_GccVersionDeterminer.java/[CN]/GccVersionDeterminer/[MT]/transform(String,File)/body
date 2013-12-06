@@ -1,0 +1,17 @@
+{
+  Pattern pattern=Pattern.compile(GCC_VERSION_PATTERN,Pattern.DOTALL);
+  Matcher matcher=pattern.matcher(output);
+  if (matcher.matches()) {
+    String scrapedVersion=matcher.group(1);
+    return new DefaultGccVersionResult(scrapedVersion);
+  }
+ else {
+    Matcher xcodeGccMatcher=Pattern.compile(APPLE_LLVM_PATTERN,Pattern.DOTALL).matcher(output);
+    if (xcodeGccMatcher.matches()) {
+      return new BrokenResult(String.format("XCode %s is a wrapper around Clang. Treating it as Clang and not GCC.",gccBinary.getName()));
+    }
+ else {
+      return new BrokenResult(String.format("Could not determine GCC version: %s produced unexpected output.",gccBinary.getName()));
+    }
+  }
+}
