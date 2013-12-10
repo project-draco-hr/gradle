@@ -1,6 +1,6 @@
 {
-  if (!foundSdks.isEmpty()) {
-    return true;
+  if (result != null) {
+    return result;
   }
   Map<File,String> foundPaths=new HashMap<File,String>();
   locateSdksInRegistry(foundPaths);
@@ -12,5 +12,14 @@
   if (defaultSdk == null) {
     determineDefaultSdk(foundPaths);
   }
-  return !foundSdks.isEmpty();
+  result=new ToolSearchResult(){
+    public boolean isAvailable(){
+      return defaultSdk != null;
+    }
+    public void explain(    TreeVisitor<? super String> visitor){
+      visitor.node(String.format("%s could not be found.",SDK_DISPLAY_NAME));
+    }
+  }
+;
+  return result;
 }
