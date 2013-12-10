@@ -15,15 +15,14 @@
     services.add(ScriptHandlerInternal.class,defaultScriptHandler);
     classLoaderProvider=defaultScriptHandler;
   }
- else   if (ProjectScript.class.isAssignableFrom(scriptType)) {
-    services.add(ScriptHandler.class,((Project)target).getBuildscript());
-  }
   services.add(PluginHandler.class,pluginHandlerFactory.createPluginHandler(target,classLoaderProvider));
   ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
   compiler.setClassloader(classLoaderProvider.getBaseCompilationClassLoader());
-  StatementExtractingScriptTransformer classpathScriptTransformer=new StatementExtractingScriptTransformer(classpathClosureName,new IsScriptBlockWithNameSpec(classpathClosureName,"plugins"));
+  Map<String,org.gradle.api.Transformer<Statement,Statement>> blockTransforms=ImmutableMap.of(classpathClosureName,Transformers.<Statement>noOpTransformer(),"plugins",new ScriptBlockToServiceConfigurationTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY,PluginHandler.class));
+  FilteredScriptBlockTransformer scriptBlockTransformer=new FilteredScriptBlockTransformer(blockTransforms);
+  StatementExtractingScriptTransformer classpathScriptTransformer=new StatementExtractingScriptTransformer(classpathClosureName,scriptBlockTransformer);
   compiler.setTransformer(classpathScriptTransformer);
-  ScriptRunner<? extends BasicScript> classPathScriptRunner=compiler.compile(ClasspathDefiningScript.class);
+  ScriptRunner<? extends BasicScript> classPathScriptRunner=compiler.compile(scriptType);
   classPathScriptRunner.getScript().init(target,services);
   classPathScriptRunner.run();
   classLoaderProvider.updateClassPath();
