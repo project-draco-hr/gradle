@@ -1,0 +1,21 @@
+{
+  try {
+    WindowsRegistryAccess localMachine=WindowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
+    String currentPath=localMachine.readString(REGISTRY_ROOTPATH_SDK,REGISTRY_CURRENTFOLDER);
+    String currentVersion=formatVersion(localMachine.readString(REGISTRY_ROOTPATH_SDK,REGISTRY_CURRENTVERSION));
+    String foundVersion=foundPaths.get(currentPath);
+    if (foundVersion != null) {
+      defaultSdk=foundSdks.get(foundVersion);
+    }
+ else {
+      defaultSdk=foundSdks.get(currentVersion);
+    }
+  }
+ catch (  WindowsRegistryException e) {
+  }
+ finally {
+    if (defaultSdk == null && !foundSdks.isEmpty()) {
+      defaultSdk=foundSdks.entrySet().iterator().next().getValue();
+    }
+  }
+}
