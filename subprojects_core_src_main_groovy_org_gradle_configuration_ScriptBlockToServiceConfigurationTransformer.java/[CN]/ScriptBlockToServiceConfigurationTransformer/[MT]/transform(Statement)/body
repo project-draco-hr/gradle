@@ -1,0 +1,11 @@
+{
+  ExpressionStatement expressionStatement=(ExpressionStatement)original;
+  MethodCallExpression methodCall=(MethodCallExpression)expressionStatement.getExpression();
+  ArgumentListExpression args=(ArgumentListExpression)methodCall.getArguments();
+  Expression closureArg=args.getExpression(0);
+  PropertyExpression servicesProperty=new PropertyExpression(VariableExpression.THIS_EXPRESSION,servicesFieldName);
+  MethodCallExpression getServiceMethodCall=new MethodCallExpression(servicesProperty,"get",new ArgumentListExpression(new ClassExpression(new ClassNode(serviceClass))));
+  ClassNode configureUtilClass=new ClassNode(ConfigureUtil.class);
+  Expression configureMethodCall=new StaticMethodCallExpression(configureUtilClass,"configure",new ArgumentListExpression(closureArg,getServiceMethodCall));
+  return new ExpressionStatement(configureMethodCall);
+}
