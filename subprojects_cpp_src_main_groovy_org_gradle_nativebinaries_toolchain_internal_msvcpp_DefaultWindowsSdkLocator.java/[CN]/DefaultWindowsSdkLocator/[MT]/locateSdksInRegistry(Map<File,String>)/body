@@ -1,28 +1,21 @@
 {
   try {
-    WindowsRegistryAccess localMachine=windowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
-    List<String> subkeys=localMachine.getSubkeys(REGISTRY_ROOTPATH_SDK);
+    List<String> subkeys=windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,REGISTRY_ROOTPATH_SDK);
     for (    String subkey : subkeys) {
       try {
         String basePath=REGISTRY_ROOTPATH_SDK + "\\" + subkey;
-        File folder=new File(localMachine.readString(basePath,REGISTRY_FOLDER));
-        String version=formatVersion(localMachine.readString(basePath,REGISTRY_VERSION));
-        String name;
-        try {
-          name=localMachine.readString(basePath,REGISTRY_NAME);
-        }
- catch (        WindowsRegistryException e) {
-          name=NAME_SDK + " " + version;
-        }
+        File folder=new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,basePath,REGISTRY_FOLDER));
+        String version=formatVersion(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,basePath,REGISTRY_VERSION));
+        String name=windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,basePath,REGISTRY_NAME);
         if (isWindowsSdk(folder)) {
           foundPaths.put(folder,version);
           addSdk(folder,version,name);
         }
       }
- catch (      WindowsRegistryException e) {
+ catch (      MissingRegistryEntryException e) {
       }
     }
   }
- catch (  WindowsRegistryException e) {
+ catch (  MissingRegistryEntryException e) {
   }
 }
