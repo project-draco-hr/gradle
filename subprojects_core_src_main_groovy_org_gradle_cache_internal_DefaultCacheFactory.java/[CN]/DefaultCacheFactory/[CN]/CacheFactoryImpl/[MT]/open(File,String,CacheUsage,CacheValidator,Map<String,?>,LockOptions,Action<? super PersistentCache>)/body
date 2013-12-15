@@ -1,4 +1,36 @@
 {
-  DirCacheReference dirCacheReference=doOpenDir(cacheDir,displayName,usage,cacheValidator,properties,lockOptions,initializer);
-  return dirCacheReference.getCache();
+  File canonicalDir=GFileUtils.canonicalise(cacheDir);
+  DirCacheReference dirCacheReference=dirCaches.get(canonicalDir);
+  if (dirCacheReference == null) {
+    if (lockOptions.getMode().equals(LockMode.None)) {
+      DefaultPersistentDirectoryCache nestedCache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,usage,validator,properties,lockOptions.withMode(LockMode.Exclusive),action,lockManager);
+      DelegateOnDemandPersistentDirectoryCache onDemandDache=new DelegateOnDemandPersistentDirectoryCache(nestedCache);
+      onDemandDache.open();
+      dirCacheReference=new DirCacheReference(onDemandDache,properties,lockOptions);
+      dirCaches.put(canonicalDir,dirCacheReference);
+    }
+ else {
+      ReferencablePersistentCache cache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,usage,validator,properties,lockOptions,action,lockManager);
+      cache.open();
+      dirCacheReference=new DirCacheReference(cache,properties,lockOptions);
+      dirCaches.put(canonicalDir,dirCacheReference);
+    }
+  }
+ else {
+    if (usage == CacheUsage.REBUILD && dirCacheReference.rebuiltBy != this) {
+      throw new IllegalStateException(String.format("Cannot rebuild cache '%s' as it is already open.",cacheDir));
+    }
+    if (!lockOptions.equals(dirCacheReference.lockOptions)) {
+      throw new IllegalStateException(String.format("Cache '%s' is already open with different options.",cacheDir));
+    }
+    if (!properties.equals(dirCacheReference.properties)) {
+      throw new IllegalStateException(String.format("Cache '%s' is already open with different state.",cacheDir));
+    }
+  }
+  if (usage == CacheUsage.REBUILD) {
+    dirCacheReference.rebuiltBy=this;
+  }
+  ReferenceTrackingCache wrapper=new ReferenceTrackingCache(dirCacheReference);
+  caches.add(wrapper);
+  return wrapper;
 }
