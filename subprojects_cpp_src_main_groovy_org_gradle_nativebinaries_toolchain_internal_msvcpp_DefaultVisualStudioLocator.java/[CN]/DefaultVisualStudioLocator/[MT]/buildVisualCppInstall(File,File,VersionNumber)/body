@@ -5,6 +5,7 @@
   Map<Architecture,File> libraryPaths=new HashMap<Architecture,File>();
   Map<Architecture,File> includePaths=new HashMap<Architecture,File>();
   Map<Architecture,String> assemblerFilenames=new HashMap<Architecture,String>();
+  Map<Architecture,Map<String,String>> definitions=new HashMap<Architecture,Map<String,String>>();
   NotationParser<Object,Architecture> architectureParser=ArchitectureNotationParser.parser();
   Architecture amd64=architectureParser.parseNotation(ARCHITECTURE_AMD64);
   Architecture x86=architectureParser.parseNotation(ARCHITECTURE_X86);
@@ -23,17 +24,22 @@
       File binPath=new File(basePath,binPaths[i]);
       File libPath=new File(basePath,libPaths[i]);
       if (binPath.isDirectory() && libPath.isDirectory()) {
+        Map<String,String> definitionsList=new LinkedHashMap<String,String>();
         List<File> pathsList=new ArrayList<File>();
         pathsList.add(commonTools);
         pathsList.add(commonIde);
-        if (i != 0) {
+        if (architecture != amd64) {
           pathsList.add(new File(basePath,binPaths[0]));
+        }
+        if (architecture == arm) {
+          definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE,"1");
         }
         binaryPaths.put(architecture,binPath);
         libraryPaths.put(architecture,libPath);
         includePaths.put(architecture,includePath);
         assemblerFilenames.put(architecture,asmFilenames[i]);
         paths.put(architecture,pathsList);
+        definitions.put(architecture,definitionsList);
       }
     }
   }
@@ -47,22 +53,27 @@
       File binPath=new File(basePath,binPaths[i]);
       File libPath=new File(basePath,libPaths[i]);
       if (binPath.isDirectory() && libPath.isDirectory()) {
+        Map<String,String> definitionsList=new LinkedHashMap<String,String>();
         List<File> pathsList=new ArrayList<File>();
         pathsList.add(commonTools);
         pathsList.add(commonIde);
-        if (i != 0) {
+        if (architecture != x86) {
           pathsList.add(new File(basePath,binPaths[0]));
+        }
+        if (architecture == arm) {
+          definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE,"1");
         }
         binaryPaths.put(architecture,binPath);
         libraryPaths.put(architecture,libPath);
         includePaths.put(architecture,includePath);
         assemblerFilenames.put(architecture,asmFilenames[i]);
         paths.put(architecture,pathsList);
+        definitions.put(architecture,definitionsList);
       }
     }
   }
   if (binaryPaths.isEmpty()) {
     return null;
   }
-  return new VisualCppInstall(NAME_VISUALCPP + " " + version,version,x86,paths,binaryPaths,libraryPaths,includePaths,assemblerFilenames);
+  return new VisualCppInstall(NAME_VISUALCPP + " " + version,version,x86,paths,binaryPaths,libraryPaths,includePaths,assemblerFilenames,definitions);
 }
