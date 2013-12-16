@@ -1,9 +1,17 @@
 {
   checkRequestedComponentSelectorType(left);
   checkRequestedComponentSelectorType(right);
-  checkSameComponentSelectorTypeForBothDependencyEdges(left,right);
-  if (left.getRequested() instanceof ProjectComponentSelector && right.getRequested() instanceof ProjectComponentSelector) {
+  if (isLeftProjectButRightIsModuleComponentSelector(left,right)) {
+    return -1;
+  }
+  if (isLeftModuleButRightIsProjectComponentSelector(left,right)) {
+    return 1;
+  }
+  if (isLeftAndRightProjectComponentSelector(left,right)) {
     return compareProjectComponentSelectors(left,right);
   }
-  return compareModuleComponentSelectors(left,right);
+  if (isLeftAndRightModuleComponentSelector(left,right)) {
+    return compareModuleComponentSelectors(left,right);
+  }
+  throw new IllegalArgumentException("Unexpected component selector type comparison (left: " + left.getRequested().getClass().getName() + ", right: "+ right.getRequested().getClass().getName()+ ")");
 }
