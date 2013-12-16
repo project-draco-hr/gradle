@@ -2,15 +2,8 @@
   project.getExtensions().add("platforms",platforms);
   project.getExtensions().add("buildTypes",buildTypes);
   project.getExtensions().add("flavors",flavors);
-  NativeBinaryFactory factory=new NativeBinaryFactory(instantiator,resolver,project,platforms,buildTypes,flavors);
-  for (  NativeComponentInternal component : allComponents()) {
-    for (    Platform platform : getPlatforms(component,platforms)) {
-      ToolChain toolChain=toolChains.getForPlatform(platform);
-      for (      BuildType buildType : getBuildTypes(component,buildTypes)) {
-        for (        Flavor flavor : getFlavors(component,flavors)) {
-          binaries.addAll(factory.createNativeBinaries(component,toolChain,platform,buildType,flavor));
-        }
-      }
-    }
+  Transformer<Collection<NativeBinary>,NativeComponent> factory=new NativeBinaryFactory(instantiator,resolver,project,toolChains,platforms,buildTypes,flavors);
+  for (  NativeComponent component : allComponents()) {
+    binaries.addAll(factory.transform(component));
   }
 }
