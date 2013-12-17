@@ -1,6 +1,12 @@
 {
   lock.lock();
   try {
+    if (owner == null) {
+      owner=Thread.currentThread();
+    }
+ else     if (lockOptions.getMode() != Shared && owner != Thread.currentThread()) {
+      throw new IllegalStateException(String.format("Cannot close %s as it is currently being used by another thread.",cacheDisplayName));
+    }
     if (fileLock != null) {
       closeFileLock();
     }
