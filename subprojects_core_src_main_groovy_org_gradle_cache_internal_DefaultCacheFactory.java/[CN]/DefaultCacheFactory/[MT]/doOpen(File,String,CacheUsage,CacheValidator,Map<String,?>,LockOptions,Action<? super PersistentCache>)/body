@@ -6,18 +6,18 @@
       DefaultPersistentDirectoryCache nestedCache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,usage,validator,properties,lockOptions.withMode(LockMode.Exclusive),action,lockManager);
       DelegateOnDemandPersistentDirectoryCache onDemandDache=new DelegateOnDemandPersistentDirectoryCache(nestedCache);
       onDemandDache.open();
-      dirCacheReference=new DirCacheReference(onDemandDache,properties,lockOptions);
+      dirCacheReference=new DirCacheReference(onDemandDache,properties,lockOptions,usage == CacheUsage.REBUILD);
       dirCaches.put(canonicalDir,dirCacheReference);
     }
  else {
       ReferencablePersistentCache cache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,usage,validator,properties,lockOptions,action,lockManager);
       cache.open();
-      dirCacheReference=new DirCacheReference(cache,properties,lockOptions);
+      dirCacheReference=new DirCacheReference(cache,properties,lockOptions,usage == CacheUsage.REBUILD);
       dirCaches.put(canonicalDir,dirCacheReference);
     }
   }
  else {
-    if (usage == CacheUsage.REBUILD && dirCacheReference.rebuiltBy != this) {
+    if (usage == CacheUsage.REBUILD && !dirCacheReference.rebuild) {
       throw new IllegalStateException(String.format("Cannot rebuild cache '%s' as it is already open.",cacheDir));
     }
     if (!lockOptions.equals(dirCacheReference.lockOptions)) {
@@ -26,9 +26,6 @@
     if (!properties.equals(dirCacheReference.properties)) {
       throw new IllegalStateException(String.format("Cache '%s' is already open with different state.",cacheDir));
     }
-  }
-  if (usage == CacheUsage.REBUILD) {
-    dirCacheReference.rebuiltBy=this;
   }
   return new ReferenceTrackingCache(dirCacheReference);
 }
