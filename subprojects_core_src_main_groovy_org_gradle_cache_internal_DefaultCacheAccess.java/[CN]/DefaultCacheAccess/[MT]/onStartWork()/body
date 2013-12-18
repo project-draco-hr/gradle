@@ -4,7 +4,12 @@
   }
   fileLock=lockManager.lock(lockFile,lockOptions.withMode(Exclusive),cacheDisplayName,operations.getDescription());
   if (initializationAction.requiresInitialization(fileLock)) {
-    throw new UnsupportedOperationException("Not implemented yet.");
+    fileLock.writeFile(new Runnable(){
+      public void run(){
+        initializationAction.initialize(fileLock);
+      }
+    }
+);
   }
   stateAtOpen=fileLock.getState();
   for (  UnitOfWorkParticipant cache : caches) {

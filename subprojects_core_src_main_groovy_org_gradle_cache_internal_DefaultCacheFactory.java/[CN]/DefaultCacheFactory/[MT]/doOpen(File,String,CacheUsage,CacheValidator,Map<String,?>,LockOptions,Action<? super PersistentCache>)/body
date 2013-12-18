@@ -2,19 +2,10 @@
   File canonicalDir=GFileUtils.canonicalise(cacheDir);
   DirCacheReference dirCacheReference=dirCaches.get(canonicalDir);
   if (dirCacheReference == null) {
-    if (lockOptions.getMode().equals(LockMode.None)) {
-      DefaultPersistentDirectoryCache nestedCache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,usage,validator,properties,lockOptions.withMode(LockMode.Exclusive),action,lockManager);
-      DelegateOnDemandPersistentDirectoryCache onDemandDache=new DelegateOnDemandPersistentDirectoryCache(nestedCache);
-      onDemandDache.open();
-      dirCacheReference=new DirCacheReference(onDemandDache,properties,lockOptions,usage == CacheUsage.REBUILD);
-      dirCaches.put(canonicalDir,dirCacheReference);
-    }
- else {
-      ReferencablePersistentCache cache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,usage,validator,properties,lockOptions,action,lockManager);
-      cache.open();
-      dirCacheReference=new DirCacheReference(cache,properties,lockOptions,usage == CacheUsage.REBUILD);
-      dirCaches.put(canonicalDir,dirCacheReference);
-    }
+    ReferencablePersistentCache cache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,usage,validator,properties,lockOptions,action,lockManager);
+    cache.open();
+    dirCacheReference=new DirCacheReference(cache,properties,lockOptions,usage == CacheUsage.REBUILD);
+    dirCaches.put(canonicalDir,dirCacheReference);
   }
  else {
     if (usage == CacheUsage.REBUILD && !dirCacheReference.rebuild) {
