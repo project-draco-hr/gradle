@@ -1,24 +1,24 @@
 {
   if (!didRebuild) {
-    if (cacheUsage != CacheUsage.ON) {
+    if (cacheUsage == CacheUsage.REBUILD) {
       LOGGER.debug("Invalidating {} as cache usage is set to rebuild.",this);
-      return false;
+      return true;
     }
     if (validator != null && !validator.isValid()) {
       LOGGER.debug("Invalidating {} as cache validator return false.",this);
-      return false;
+      return true;
     }
   }
   if (!lock.getUnlockedCleanly()) {
     LOGGER.debug("Invalidating {} as it was not closed cleanly.",this);
-    return false;
+    return true;
   }
   Properties currentProperties=GUtil.loadProperties(propertiesFile);
   for (  Map.Entry<?,?> entry : properties.entrySet()) {
     if (!entry.getValue().toString().equals(currentProperties.getProperty(entry.getKey().toString()))) {
       LOGGER.debug("Invalidating {} as cache property {} has changed value.",this,entry.getKey());
-      return false;
+      return true;
     }
   }
-  return true;
+  return false;
 }
