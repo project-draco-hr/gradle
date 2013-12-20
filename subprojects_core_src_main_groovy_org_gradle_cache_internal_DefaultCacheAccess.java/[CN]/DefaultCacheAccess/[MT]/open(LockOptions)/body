@@ -9,9 +9,9 @@
       return;
     }
     if (fileLock != null) {
-      throw new IllegalStateException("File lock " + lockFile + " is already open.");
+      throw new IllegalStateException("File lock " + lockTarget + " is already open.");
     }
-    fileLock=lockManager.lock(lockFile,lockOptions,cacheDisplayName);
+    fileLock=lockManager.lock(lockTarget,lockOptions,cacheDisplayName);
     boolean rebuild=initializationAction.requiresInitialization(fileLock);
     if (rebuild) {
       if (lockOptions.getMode() == Exclusive) {
@@ -25,7 +25,7 @@
  else {
         for (int tries=0; rebuild && tries < 3; tries++) {
           fileLock.close();
-          fileLock=lockManager.lock(lockFile,lockOptions.withMode(Exclusive),cacheDisplayName,"Initialize cache");
+          fileLock=lockManager.lock(lockTarget,lockOptions.withMode(Exclusive),cacheDisplayName,"Initialize cache");
           rebuild=initializationAction.requiresInitialization(fileLock);
           if (rebuild) {
             fileLock.writeFile(new Runnable(){
@@ -36,7 +36,7 @@
 );
           }
           fileLock.close();
-          fileLock=lockManager.lock(lockFile,lockOptions,cacheDisplayName);
+          fileLock=lockManager.lock(lockTarget,lockOptions,cacheDisplayName);
           rebuild=initializationAction.requiresInitialization(fileLock);
         }
         if (rebuild) {
@@ -46,7 +46,6 @@
     }
     stateAtOpen=fileLock.getState();
     takeOwnership(String.format("Access %s",cacheDisplayName));
-    lockManager.allowContention(fileLock,whenContended());
   }
  catch (  Throwable throwable) {
     if (fileLock != null) {
