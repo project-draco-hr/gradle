@@ -1,12 +1,14 @@
 {
+  final File cacheFile=new File(baseDir,parameters.getCacheName() + ".bin");
   Factory<BTreePersistentIndexedCache<K,V>> indexedCacheFactory=new Factory<BTreePersistentIndexedCache<K,V>>(){
     public BTreePersistentIndexedCache<K,V> create(){
-      File cacheFile=new File(baseDir,parameters.getCacheName() + ".bin");
       return doCreateCache(cacheFile,parameters.getKeySerializer(),parameters.getValueSerializer());
     }
   }
 ;
-  MultiProcessSafePersistentIndexedCache<K,V> indexedCache=parameters.decorate(new DefaultMultiProcessSafePersistentIndexedCache<K,V>(indexedCacheFactory,fileAccess));
+  MultiProcessSafePersistentIndexedCache<K,V> indexedCache=new DefaultMultiProcessSafePersistentIndexedCache<K,V>(indexedCacheFactory,fileAccess);
+  InMemoryPersistentCacheDecorator decorator=parameters.getCacheDecorator();
+  indexedCache=decorator == null ? indexedCache : decorator.withMemoryCaching(cacheFile.getAbsolutePath(),indexedCache);
   lock.lock();
   try {
     caches.add(indexedCache);
