@@ -1,17 +1,23 @@
 {
   File compilerInPath=os.findInPath(COMPILER_FILENAME);
-  if (compilerInPath != null) {
-    Search search=locateInHierarchy(VISUAL_STUDIO_DISPLAY_NAME,compilerInPath,isVisualStudio());
-    if (search.isAvailable()) {
-      File installDir=search.getResult();
-      LOGGER.debug("Found Visual Studio install {} using system path",installDir);
-      if (!foundInstalls.containsKey(installDir)) {
-        addVisualStudioInstall(installDir,VERSION_PATH,NAME_PATH);
-      }
-      pathInstall=foundInstalls.get(installDir);
-    }
- else {
-      LOGGER.debug("Ignoring candidate Visual Studio install for {} as it does not look like a Visual Studio installation.",compilerInPath);
+  if (compilerInPath == null) {
+    LOGGER.debug("No visual c++ compiler found in system path.");
+    return;
+  }
+  File visualCppDir=compilerInPath.getParentFile().getParentFile();
+  if (!isVisualCpp(visualCppDir)) {
+    visualCppDir=visualCppDir.getParentFile();
+    if (!isVisualCpp(visualCppDir)) {
+      LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.",compilerInPath);
+      return;
     }
   }
+  LOGGER.debug("Found Visual C++ install {} using system path",visualCppDir);
+  File visualStudioDir=visualCppDir.getParentFile();
+  if (!foundInstalls.containsKey(visualStudioDir)) {
+    VisualCppInstall visualCpp=buildVisualCppInstall(visualStudioDir,visualCppDir,VersionNumber.UNKNOWN);
+    VisualStudioInstall visualStudio=new VisualStudioInstall(visualStudioDir,VersionNumber.UNKNOWN,"Visual C++ from system path",visualCpp);
+    foundInstalls.put(visualStudioDir,visualStudio);
+  }
+  pathInstall=foundInstalls.get(visualStudioDir);
 }

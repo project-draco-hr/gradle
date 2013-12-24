@@ -1,17 +1,21 @@
 {
   try {
-    List<String> valueNames=windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,baseKey + REGISTRY_ROOTPATH_VS);
-    for (    String valueName : valueNames) {
-      if (valueName.length() == 0) {
+    List<String> visualCppVersions=windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,baseKey + REGISTRY_ROOTPATH_VC);
+    for (    String valueName : visualCppVersions) {
+      if (!valueName.matches("\\d+\\.\\d+")) {
         continue;
       }
-      File installDir=new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,baseKey + REGISTRY_ROOTPATH_VS,valueName));
-      if (isVisualStudio(installDir)) {
-        LOGGER.debug("Found Visual Studio {} at {}",valueName,installDir);
-        addVisualStudioInstall(installDir,valueName,NAME_VISUALSTUDIO + " " + valueName);
+      File visualCppDir=new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,baseKey + REGISTRY_ROOTPATH_VC,valueName));
+      if (isVisualCpp(visualCppDir)) {
+        LOGGER.debug("Found Visual C++ {} at {}",valueName,visualCppDir);
+        VersionNumber version=VersionNumber.parse(valueName);
+        File visualStudioDir=visualCppDir.getParentFile();
+        VisualCppInstall visualCpp=buildVisualCppInstall(visualStudioDir,visualCppDir,version);
+        VisualStudioInstall visualStudio=new VisualStudioInstall(visualStudioDir,version,"Visual C++ " + valueName,visualCpp);
+        foundInstalls.put(visualStudioDir,visualStudio);
       }
  else {
-        LOGGER.debug("Ignoring candidate Visual Studio directory {} as it does not look like a Visual Studio installation.",installDir);
+        LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.",visualCppDir);
       }
     }
   }
