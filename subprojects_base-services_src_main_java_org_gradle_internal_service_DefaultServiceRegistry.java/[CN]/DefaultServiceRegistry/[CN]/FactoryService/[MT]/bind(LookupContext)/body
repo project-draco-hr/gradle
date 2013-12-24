@@ -1,0 +1,23 @@
+{
+  Type[] parameterTypes=getParameterTypes();
+  paramProviders=new ServiceProvider[parameterTypes.length];
+  for (int i=0; i < parameterTypes.length; i++) {
+    Type paramType=parameterTypes[i];
+    try {
+      if (paramType.equals(ServiceRegistry.class)) {
+        paramProviders[i]=getThisAsProvider();
+      }
+ else {
+        ServiceProvider paramProvider=context.find(paramType,allServices);
+        if (paramProvider == null) {
+          throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available.",format(serviceType),getFactory().getDeclaringClass().getSimpleName(),getFactory().getName(),format(paramType)));
+        }
+        paramProviders[i]=paramProvider;
+        paramProvider.requiredBy(this);
+      }
+    }
+ catch (    ServiceValidationException e) {
+      throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as there is a problem with parameter #%s of type %s.",format(serviceType),getFactory().getDeclaringClass().getSimpleName(),getFactory().getName(),i + 1,format(paramType)),e);
+    }
+  }
+}
