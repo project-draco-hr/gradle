@@ -1,24 +1,11 @@
 {
-  if (result != null) {
-    return result;
+  if (!initialised) {
+    locateInstallsInRegistry();
+    locateInstallInPath();
+    initialised=true;
   }
-  locateInstallsInRegistry();
-  locateInstallInPath();
   if (candidate != null) {
-    locateUserSpecifiedInstall(candidate);
+    return new SearchResultImpl(locateUserSpecifiedInstall(candidate));
   }
-  final VisualStudioInstall defaultInstall=determineDefaultInstall();
-  result=new SearchResult(){
-    public VisualStudioInstall getVisualStudio(){
-      return defaultInstall;
-    }
-    public boolean isAvailable(){
-      return defaultInstall != null;
-    }
-    public void explain(    TreeVisitor<? super String> visitor){
-      visitor.node(String.format("%s could not be found.",VISUAL_STUDIO_DISPLAY_NAME));
-    }
-  }
-;
-  return result;
+  return new SearchResultImpl(determineDefaultInstall());
 }

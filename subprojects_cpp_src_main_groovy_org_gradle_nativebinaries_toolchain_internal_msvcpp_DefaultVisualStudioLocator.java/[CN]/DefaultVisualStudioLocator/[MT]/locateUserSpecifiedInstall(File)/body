@@ -1,14 +1,14 @@
 {
-  File visualCppDir=new File(candidate,"VC");
-  if (!isVisualStudio(candidate) || !isVisualCpp(visualCppDir)) {
+  File visualStudioDir=GFileUtils.canonicalise(candidate);
+  File visualCppDir=new File(visualStudioDir,"VC");
+  if (!isVisualStudio(visualStudioDir) || !isVisualCpp(visualCppDir)) {
     LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.",candidate);
-    return;
+    return null;
   }
-  File visualStudioDir=candidate;
   if (!foundInstalls.containsKey(visualStudioDir)) {
-    VisualCppInstall visualCpp=buildVisualCppInstall(visualStudioDir,visualCppDir,VersionNumber.UNKNOWN);
-    VisualStudioInstall visualStudio=new VisualStudioInstall(visualStudioDir,VersionNumber.UNKNOWN,"Visual C++ from user provided path",visualCpp);
+    VisualCppInstall visualCpp=buildVisualCppInstall("Visual C++ from user provided path",visualStudioDir,visualCppDir,VersionNumber.UNKNOWN);
+    VisualStudioInstall visualStudio=new VisualStudioInstall(visualStudioDir,visualCpp);
     foundInstalls.put(visualStudioDir,visualStudio);
   }
-  userInstall=foundInstalls.get(visualStudioDir);
+  return foundInstalls.get(visualStudioDir);
 }

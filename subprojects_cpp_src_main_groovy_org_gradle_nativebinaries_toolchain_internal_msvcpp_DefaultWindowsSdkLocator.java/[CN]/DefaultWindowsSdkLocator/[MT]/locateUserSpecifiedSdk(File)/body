@@ -1,11 +1,10 @@
 {
-  Search search=locateInHierarchy(SDK_DISPLAY_NAME,candidate,isWindowsSdk());
-  if (search.isAvailable()) {
-    candidate=search.getResult();
-    LOGGER.debug("Found Windows SDK {} using configured path",candidate);
-    if (!foundSdks.containsKey(candidate)) {
-      addSdk(candidate,VERSION_USER,NAME_USER);
-    }
-    userSdk=foundSdks.get(candidate);
+  File sdkDir=GFileUtils.canonicalise(candidate);
+  if (!isWindowsSdk(sdkDir)) {
+    return null;
   }
+  if (!foundSdks.containsKey(sdkDir)) {
+    addSdk(sdkDir,VERSION_USER,NAME_USER);
+  }
+  return foundSdks.get(sdkDir);
 }

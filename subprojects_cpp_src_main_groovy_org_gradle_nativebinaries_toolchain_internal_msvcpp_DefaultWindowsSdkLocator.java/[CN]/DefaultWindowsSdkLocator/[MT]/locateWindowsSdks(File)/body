@@ -1,25 +1,12 @@
 {
-  if (result != null) {
-    return result;
+  if (!initialised) {
+    locateSdksInRegistry();
+    locateKitsInRegistry();
+    locateSdkInPath();
+    initialised=true;
   }
-  locateSdksInRegistry();
-  locateKitsInRegistry();
-  locateSdkInPath();
   if (candidate != null) {
-    locateUserSpecifiedSdk(candidate);
+    return new SearchResultImpl(locateUserSpecifiedSdk(candidate));
   }
-  final WindowsSdk defaultSdk=determineDefaultSdk();
-  result=new SearchResult(){
-    public WindowsSdk getSdk(){
-      return defaultSdk;
-    }
-    public boolean isAvailable(){
-      return defaultSdk != null;
-    }
-    public void explain(    TreeVisitor<? super String> visitor){
-      visitor.node(String.format("%s could not be found.",SDK_DISPLAY_NAME));
-    }
-  }
-;
-  return result;
+  return new SearchResultImpl(determineDefaultSdk());
 }
