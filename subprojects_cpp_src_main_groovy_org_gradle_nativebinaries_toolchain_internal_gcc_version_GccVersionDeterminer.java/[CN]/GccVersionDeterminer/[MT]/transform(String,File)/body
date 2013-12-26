@@ -1,17 +1,24 @@
 {
-  Pattern pattern=Pattern.compile(GCC_VERSION_PATTERN,Pattern.DOTALL);
-  Matcher matcher=pattern.matcher(output);
-  if (matcher.matches()) {
-    String scrapedVersion=matcher.group(1);
-    return new DefaultGccVersionResult(scrapedVersion);
-  }
- else {
-    Matcher xcodeGccMatcher=Pattern.compile(APPLE_LLVM_PATTERN,Pattern.DOTALL).matcher(output);
-    if (xcodeGccMatcher.matches()) {
-      return new BrokenResult(String.format("XCode %s is a wrapper around Clang. Treating it as Clang and not GCC.",gccBinary.getName()));
-    }
- else {
-      return new BrokenResult(String.format("Could not determine GCC version: %s produced unexpected output.",gccBinary.getName()));
+  BufferedReader reader=new BufferedReader(new StringReader(output));
+  String line;
+  Map<String,String> defines=new HashMap<String,String>();
+  try {
+    while ((line=reader.readLine()) != null) {
+      Matcher matcher=DEFINE_PATTERN.matcher(line);
+      if (!matcher.matches()) {
+        return new BrokenResult(String.format("Could not determine GCC version: %s produced unexpected output.",gccBinary.getName()));
+      }
+      defines.put(matcher.group(1),matcher.group(2));
     }
   }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+  if (!defines.containsKey("__GNUC__")) {
+    return new BrokenResult(String.format("Could not determine GCC version: %s produced unexpected output.",gccBinary.getName()));
+  }
+  if (defines.containsKey("__clang__")) {
+    return new BrokenResult(String.format("XCode %s is a wrapper around Clang. Treating it as Clang and not GCC.",gccBinary.getName()));
+  }
+  return new DefaultGccVersionResult(defines.get("__GNUC__"));
 }
