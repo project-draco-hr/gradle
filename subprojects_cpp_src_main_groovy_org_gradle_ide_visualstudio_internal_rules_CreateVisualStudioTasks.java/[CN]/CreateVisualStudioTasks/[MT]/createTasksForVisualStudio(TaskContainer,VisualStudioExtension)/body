@@ -4,9 +4,17 @@
     vsProject.builtBy(createFiltersFileTask(tasks,vsProject));
   }
   for (  VisualStudioSolution vsSolution : visualStudioExtension.getSolutions()) {
-    vsSolution.setLifecycleTask(tasks.create(vsSolution.getName() + "VisualStudio"));
+    Task solutionTask=tasks.create(vsSolution.getName() + "VisualStudio");
+    solutionTask.setDescription(String.format("Generates the '%s' Visual Studio solution file.",vsSolution.getName()));
+    vsSolution.setLifecycleTask(solutionTask);
     vsSolution.builtBy(createSolutionTask(tasks,vsSolution));
-    Task lifecycleTask=tasks.create(vsSolution.getComponent().getName() + "VisualStudio").dependsOn(vsSolution);
+    ProjectNativeComponent component=vsSolution.getComponent();
+    Task lifecycleTask=tasks.create(component.getName() + "VisualStudio").dependsOn(vsSolution);
     lifecycleTask.setGroup("IDE");
+    lifecycleTask.setDescription(String.format("Generates the Visual Studio solution for %s.",component));
   }
+  Delete cleanTask=tasks.create("cleanVisualStudio",Delete.class);
+  cleanTask.delete("visualStudio");
+  cleanTask.setGroup("IDE");
+  cleanTask.setDescription("Removes all Visual Studio project and solution files");
 }
