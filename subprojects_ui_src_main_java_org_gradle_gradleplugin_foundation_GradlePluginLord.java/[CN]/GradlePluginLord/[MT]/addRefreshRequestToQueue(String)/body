@@ -1,15 +1,15 @@
 {
-  if (!isStarted) {
-    return null;
-  }
-  if (queueManager.hasRequestOfType(RefreshTaskListRequest.TYPE)) {
-    return null;
-  }
   String fullCommandLine=ImplicitTasksConfigurer.TASKS_TASK;
   if (additionalCommandLineArguments != null) {
     fullCommandLine+=' ' + additionalCommandLineArguments;
   }
   fullCommandLine=alterCommandLine(fullCommandLine);
+  List<Request> currentRequests=queueManager.findRequestsOfType(RefreshTaskListRequest.TYPE);
+  for (  Request currentRequest : currentRequests) {
+    if (currentRequest.getFullCommandLine().equals(fullCommandLine)) {
+      return currentRequest;
+    }
+  }
   final RefreshTaskListRequest request=new RefreshTaskListRequest(getNextRequestID(),fullCommandLine,queueManager,this);
   queueManager.addRequestToQueue(request);
   requestObserverLord.notifyObservers(new ObserverLord.ObserverNotification<RequestObserver>(){
