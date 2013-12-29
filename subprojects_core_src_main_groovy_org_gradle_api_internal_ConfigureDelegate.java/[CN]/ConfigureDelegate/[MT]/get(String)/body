@@ -1,12 +1,21 @@
 {
-  if (_delegate.hasProperty(name)) {
+  boolean isAlreadyConfiguring=_configuring.get();
+  _configuring.set(true);
+  try {
+    if (_delegate.hasProperty(name)) {
+      return _delegate.getProperty(name);
+    }
+    try {
+      return _owner.getProperty(name);
+    }
+ catch (    groovy.lang.MissingPropertyException e) {
+    }
+    if (!isAlreadyConfiguring) {
+      _configure(name,EMPTY_PARAMS);
+    }
     return _delegate.getProperty(name);
   }
-  try {
-    return _owner.getProperty(name);
+  finally {
+    _configuring.set(isAlreadyConfiguring);
   }
- catch (  groovy.lang.MissingPropertyException e) {
-  }
-  _configure(name,EMPTY_PARAMS);
-  return _delegate.getProperty(name);
 }

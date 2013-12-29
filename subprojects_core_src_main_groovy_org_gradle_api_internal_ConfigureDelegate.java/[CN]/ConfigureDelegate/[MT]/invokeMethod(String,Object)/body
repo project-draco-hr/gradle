@@ -1,6 +1,6 @@
 {
   Object[] params=(Object[])paramsObj;
-  boolean isTopLevelCall=!_configuring.get();
+  boolean isAlreadyConfiguring=_configuring.get();
   _configuring.set(true);
   try {
     if (_delegate.hasMethod(name,params)) {
@@ -11,12 +11,12 @@
     }
  catch (    groovy.lang.MissingMethodException e) {
     }
-    if (isTopLevelCall && _isConfigureMethod(name,params)) {
+    if (!isAlreadyConfiguring && _isConfigureMethod(name,params)) {
       _configure(name,params);
     }
     return _delegate.invokeMethod(name,params);
   }
   finally {
-    _configuring.set(!isTopLevelCall);
+    _configuring.set(isAlreadyConfiguring);
   }
 }
