@@ -2,18 +2,22 @@
   boolean isAlreadyConfiguring=_configuring.get();
   _configuring.set(true);
   try {
-    if (_delegate.hasProperty(name)) {
+    MissingPropertyException failure;
+    try {
       return _delegate.getProperty(name);
+    }
+ catch (    MissingPropertyException e) {
+      failure=e;
     }
     try {
       return _owner.getProperty(name);
     }
- catch (    groovy.lang.MissingPropertyException e) {
+ catch (    MissingPropertyException e) {
     }
-    if (!isAlreadyConfiguring) {
-      _configure(name,EMPTY_PARAMS);
+    if (isAlreadyConfiguring) {
+      throw failure;
     }
-    return _delegate.getProperty(name);
+    return _configure(name,EMPTY_PARAMS);
   }
   finally {
     _configuring.set(isAlreadyConfiguring);
