@@ -1,6 +1,9 @@
 {
-  if (requirement.getProjectPath() != null) {
-    throw new PrebuiltLibraryResolveException("Cannot resolve prebuilt library in another project.");
+  ProjectInternal project=projectFinder.getProject(requirement.getProjectPath());
+  NamedDomainObjectSet<PrebuiltLibraries> repositories=project.getModelRegistry().get("repositories",Repositories.class).withType(PrebuiltLibraries.class);
+  if (repositories.isEmpty()) {
+    throw new PrebuiltLibraryResolveException("Project does not have any prebuilt library repositories.");
   }
-  return prebuiltLibraries.getByName(requirement.getLibraryName()).getBinaries();
+  PrebuiltLibrary prebuiltLibrary=getPrebuiltLibrary(repositories,requirement.getLibraryName());
+  return prebuiltLibrary.getBinaries();
 }
