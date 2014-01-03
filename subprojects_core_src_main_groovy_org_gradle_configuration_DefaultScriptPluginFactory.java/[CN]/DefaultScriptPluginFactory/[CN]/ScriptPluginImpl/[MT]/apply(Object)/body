@@ -15,7 +15,13 @@
     services.add(ScriptHandlerInternal.class,defaultScriptHandler);
     classLoaderProvider=defaultScriptHandler;
   }
-  services.add(PluginHandler.class,pluginHandlerFactory.createPluginHandler(target,classLoaderProvider));
+  List<PluginRequest> pluginRequests=new LinkedList<PluginRequest>();
+  if (target instanceof PluginAware) {
+    services.add(PluginHandler.class,new DefaultPluginHandler(pluginRequests));
+  }
+ else {
+    services.add(PluginHandler.class,new NonPluggableTargetPluginHandler(target));
+  }
   ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
   compiler.setClassloader(classLoaderProvider.getBaseCompilationClassLoader());
   Map<String,org.gradle.api.Transformer<Statement,Statement>> blockTransforms=ImmutableMap.of(classpathClosureName,Transformers.<Statement>noOpTransformer(),"plugins",new ScriptBlockToServiceConfigurationTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY,PluginHandler.class));
@@ -25,6 +31,11 @@
   ScriptRunner<? extends BasicScript> classPathScriptRunner=compiler.compile(scriptType);
   classPathScriptRunner.getScript().init(target,services);
   classPathScriptRunner.run();
+  if (!pluginRequests.isEmpty()) {
+    @SuppressWarnings("ConstantConditions") PluginResolutionApplicator resolutionApplicator=new PluginResolutionApplicator((PluginAware)target,pluginParentClassLoader,classLoaderProvider);
+    PluginRequestApplicator requestApplicator=new PluginRequestApplicator(pluginResolver,resolutionApplicator);
+    requestApplicator.applyPlugin(pluginRequests);
+  }
   classLoaderProvider.updateClassPath();
   compiler.setClassloader(classLoaderProvider.getScriptCompileClassLoader());
   compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert()));
