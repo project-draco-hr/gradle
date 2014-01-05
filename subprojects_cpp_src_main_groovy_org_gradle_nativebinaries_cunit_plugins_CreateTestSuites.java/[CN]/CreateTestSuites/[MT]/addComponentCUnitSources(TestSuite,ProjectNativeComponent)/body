@@ -1,0 +1,16 @@
+{
+  ProjectSourceSet projectSourceSet=project.getExtensions().getByType(ProjectSourceSet.class);
+  FunctionalSourceSet componentTestSources=projectSourceSet.maybeCreate(suite.getName());
+  CSourceSet cunitSourceSet=(CSourceSet)componentTestSources.findByName("cunit");
+  if (cunitSourceSet == null) {
+    cunitSourceSet=componentTestSources.create("cunit",CSourceSet.class);
+  }
+  if (cunitSourceSet.getSource().getSrcDirs().isEmpty()) {
+    cunitSourceSet.getSource().srcDir(String.format("src/%s/%s",componentTestSources.getName(),cunitSourceSet.getName()));
+  }
+  for (  LanguageSourceSet componentSourceSet : testedComponent.getSource().withType(CSourceSet.class)) {
+    cunitSourceSet.lib(componentSourceSet);
+  }
+  suite.source(cunitSourceSet);
+  suite.source(testedComponent.getSource());
+}
