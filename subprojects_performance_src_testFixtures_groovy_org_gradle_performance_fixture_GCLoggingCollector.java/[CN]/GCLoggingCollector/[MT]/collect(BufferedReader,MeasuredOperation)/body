@@ -1,6 +1,5 @@
 {
-  Pattern gcLinePattern=Pattern.compile(".+: \\[GC");
-  Pattern collectionEventPattern=Pattern.compile("\\d+\\.\\d+: \\[GC \\d+\\.\\d+: \\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)");
+  Pattern collectionEventPattern=Pattern.compile("\\d+\\.\\d+: \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\.\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)");
   Pattern memoryPoolPattern=Pattern.compile("([\\w\\s]+) total (\\d+)K, used (\\d+)K \\[.+");
   long totalHeapUsage=0;
   long maxUsage=0;
@@ -13,18 +12,14 @@
     if (line == null || line.equals("Heap")) {
       break;
     }
-    Matcher matcher=gcLinePattern.matcher(line);
-    if (!matcher.lookingAt()) {
-      continue;
-    }
-    events++;
-    matcher=collectionEventPattern.matcher(line);
+    Matcher matcher=collectionEventPattern.matcher(line);
     if (!matcher.lookingAt()) {
       throw new IllegalArgumentException("Unrecognized garbage collection event found in garbage collection log: " + line);
     }
-    long start=Long.parseLong(matcher.group(1));
-    long end=Long.parseLong(matcher.group(2));
-    long committed=Long.parseLong(matcher.group(3));
+    events++;
+    long start=Long.parseLong(matcher.group(2));
+    long end=Long.parseLong(matcher.group(3));
+    long committed=Long.parseLong(matcher.group(4));
     if (start < usageAtPreviousCollection) {
       throw new IllegalArgumentException("Unexpected max heap size found in garbage collection event: " + line);
     }
@@ -49,7 +44,7 @@
       continue;
     }
     String pool=matcher.group(1).trim();
-    if (pool.contains("perm gen")) {
+    if (pool.toLowerCase().contains("perm gen") || pool.toLowerCase().contains("permgen")) {
       continue;
     }
     long committed=Long.parseLong(matcher.group(2));
