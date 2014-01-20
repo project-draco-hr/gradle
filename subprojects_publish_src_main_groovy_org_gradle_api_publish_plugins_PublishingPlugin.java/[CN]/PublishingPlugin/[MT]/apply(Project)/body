@@ -2,6 +2,13 @@
   RepositoryHandler repositories=publicationServices.createRepositoryHandler();
   PublicationContainer publications=instantiator.newInstance(DefaultPublicationContainer.class,instantiator);
   PublishingExtension extension=project.getExtensions().create(PublishingExtension.NAME,DefaultPublishingExtension.class,repositories,publications);
+  extension.getPublications().whenObjectAdded(new Action<Publication>(){
+    public void execute(    Publication publication){
+      PublicationInternal internalPublication=(PublicationInternal)publication;
+      publicationRegistry.registerPublication(project.getPath(),new DefaultProjectPublication(internalPublication.getCoordinates()));
+    }
+  }
+);
   ModelPath extensionModelPath=ModelPath.path(PublishingExtension.NAME);
   modelRules.register(extensionModelPath.toString(),extension);
   modelRules.rule(new ModelRule(){
