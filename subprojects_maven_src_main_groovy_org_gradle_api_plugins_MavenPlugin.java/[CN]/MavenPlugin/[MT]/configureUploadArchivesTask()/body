@@ -1,0 +1,26 @@
+{
+  project.getTasks().withType(Upload.class).matching(new Spec<Upload>(){
+    public boolean isSatisfiedBy(    Upload upload){
+      return upload.getName().equals(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
+    }
+  }
+).all(new Action<Upload>(){
+    public void execute(    Upload upload){
+      upload.getRepositories().matching(new Spec<ArtifactRepository>(){
+        public boolean isSatisfiedBy(        ArtifactRepository element){
+          return element instanceof MavenResolver;
+        }
+      }
+).all(new Action<ArtifactRepository>(){
+        public void execute(        ArtifactRepository repository){
+          MavenResolver resolver=(MavenResolver)repository;
+          MavenPom pom=resolver.getPom();
+          ModuleVersionIdentifier publicationId=new DefaultModuleVersionIdentifier(pom.getGroupId(),pom.getArtifactId(),pom.getVersion());
+          publicationRegistry.registerPublication(project.getPath(),new DefaultProjectPublication(publicationId));
+        }
+      }
+);
+    }
+  }
+);
+}
