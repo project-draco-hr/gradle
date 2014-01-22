@@ -1,11 +1,13 @@
 {
   RepositoryHandler repositories=publicationServices.createRepositoryHandler();
   PublicationContainer publications=instantiator.newInstance(DefaultPublicationContainer.class,instantiator);
-  PublishingExtension extension=project.getExtensions().create(PublishingExtension.NAME,DefaultPublishingExtension.class,repositories,publications);
-  extension.getPublications().whenObjectAdded(new Action<Publication>(){
-    public void execute(    Publication publication){
-      PublicationInternal internalPublication=(PublicationInternal)publication;
-      publicationRegistry.registerPublication(project.getPath(),new DefaultProjectPublication(internalPublication.getCoordinates()));
+  final PublishingExtension extension=project.getExtensions().create(PublishingExtension.NAME,DefaultPublishingExtension.class,repositories,publications);
+  project.afterEvaluate(new Action<Project>(){
+    public void execute(    Project project){
+      for (      Publication publication : extension.getPublications()) {
+        PublicationInternal internalPublication=(PublicationInternal)publication;
+        publicationRegistry.registerPublication(project.getPath(),new DefaultProjectPublication(internalPublication.getCoordinates()));
+      }
     }
   }
 );
