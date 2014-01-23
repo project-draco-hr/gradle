@@ -1,0 +1,32 @@
+{
+  if (!(statement instanceof ExpressionStatement)) {
+    return null;
+  }
+  ExpressionStatement expressionStatement=(ExpressionStatement)statement;
+  if (!(expressionStatement.getExpression() instanceof MethodCallExpression)) {
+    return null;
+  }
+  MethodCallExpression methodCall=(MethodCallExpression)expressionStatement.getExpression();
+  if (!AstUtils.targetIsThis(methodCall)) {
+    return null;
+  }
+  if (!(methodCall.getMethod() instanceof ConstantExpression)) {
+    return null;
+  }
+  String methodName=methodCall.getMethod().getText();
+  if (methodName.equals(PLUGINS) || methodName.equals(classpathBlockName)) {
+    if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
+      return null;
+    }
+    ArgumentListExpression args=(ArgumentListExpression)methodCall.getArguments();
+    if (args.getExpressions().size() == 1 && args.getExpression(0) instanceof ClosureExpression) {
+      return new ScriptBlock(methodName,(ClosureExpression)args.getExpression(0));
+    }
+ else {
+      return null;
+    }
+  }
+ else {
+    return null;
+  }
+}
