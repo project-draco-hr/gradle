@@ -1,0 +1,22 @@
+{
+  ScriptBlock scriptBlock=detectScriptBlock(statement);
+  if (scriptBlock == null) {
+    seenNonClasspathStatement=true;
+    return null;
+  }
+ else {
+    if (scriptBlock.getName().equals(PLUGINS)) {
+      if (seenNonClasspathStatement) {
+        String message=String.format("only %s {} and and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",classpathBlockName,PLUGINS,PLUGINS);
+        sourceUnit.getErrorCollector().addError(new SyntaxException(message,statement.getLineNumber(),statement.getColumnNumber()),sourceUnit);
+        return statement;
+      }
+ else {
+        return PLUGIN_BLOCK_TRANSFORMER.transform(scriptBlock);
+      }
+    }
+ else {
+      return statement;
+    }
+  }
+}
