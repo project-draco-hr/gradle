@@ -1,20 +1,20 @@
 {
-  if (outputStream == null) {
+  if (encoder == null) {
     try {
-      outputStream=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
+      encoder=new KryoBackedEncoder(new FileOutputStream(file));
     }
  catch (    FileNotFoundException e) {
       throw throwAsUncheckedException(e);
     }
   }
   if (offset == -1) {
-    offset=outputStream.size();
+    offset=encoder.getWritePosition();
     if (offset == Integer.MAX_VALUE) {
       throw new IllegalStateException("Unable to write to binary store. " + "The bytes offset has reached a point where using it is unsafe. Please report this error.");
     }
   }
   try {
-    write.write(new OutputStreamBackedEncoder(outputStream));
+    write.write(encoder);
   }
  catch (  Exception e) {
     throw new RuntimeException("Problems writing to " + diagnose(),e);
