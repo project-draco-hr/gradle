@@ -31,8 +31,18 @@
   classPathScriptRunner.getScript().init(target,services);
   classPathScriptRunner.run();
   if (!pluginRequests.isEmpty()) {
+    ClassPath extraClassPath=classLoaderProvider.getExtraClassPath();
+    PluginResolver effectivePluginResolver;
+    if (extraClassPath.isEmpty()) {
+      effectivePluginResolver=pluginResolver;
+    }
+ else {
+      ClassLoader extraClassPathClassLoader=new URLClassLoader(extraClassPath.getAsURLArray());
+      PluginDescriptorLocator pluginDescriptorLocator=new ClassloaderBackedPluginDescriptorLocator(extraClassPathClassLoader);
+      effectivePluginResolver=new NotInPluginRegistryPluginResolverCheck(pluginResolver,pluginDescriptorLocator);
+    }
     @SuppressWarnings("ConstantConditions") PluginResolutionApplicator resolutionApplicator=new PluginResolutionApplicator((PluginAware)target,pluginParentClassLoader,classLoaderProvider);
-    PluginRequestApplicator requestApplicator=new PluginRequestApplicator(pluginResolver,resolutionApplicator);
+    PluginRequestApplicator requestApplicator=new PluginRequestApplicator(effectivePluginResolver,resolutionApplicator);
     requestApplicator.applyPlugin(pluginRequests);
   }
   classLoaderProvider.updateClassPath();
