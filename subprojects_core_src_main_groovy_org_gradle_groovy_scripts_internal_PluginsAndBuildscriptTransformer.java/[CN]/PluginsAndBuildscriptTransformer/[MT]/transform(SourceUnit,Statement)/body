@@ -6,6 +6,7 @@
   }
  else {
     if (scriptBlock.getName().equals(PLUGINS)) {
+      seenPluginsBlock=true;
       if (seenNonClasspathStatement) {
         String message=String.format("only %s {} and and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",classpathBlockName,PLUGINS,PLUGINS);
         sourceUnit.getErrorCollector().addError(new SyntaxException(message,statement.getLineNumber(),statement.getColumnNumber()),sourceUnit);
@@ -16,6 +17,10 @@
       }
     }
  else {
+      if (seenPluginsBlock) {
+        String message=String.format("all %s {} blocks must appear before any %s {} blocks in the script",classpathBlockName,PLUGINS);
+        sourceUnit.getErrorCollector().addError(new SyntaxException(message,statement.getLineNumber(),statement.getColumnNumber()),sourceUnit);
+      }
       return statement;
     }
   }
