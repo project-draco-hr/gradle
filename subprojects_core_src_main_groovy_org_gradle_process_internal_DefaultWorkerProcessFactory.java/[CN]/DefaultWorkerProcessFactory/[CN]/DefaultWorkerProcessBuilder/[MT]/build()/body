@@ -3,9 +3,10 @@
     throw new IllegalStateException("No worker action specified for this worker process.");
   }
   final DefaultWorkerProcess workerProcess=new DefaultWorkerProcess(120,TimeUnit.SECONDS);
-  ConnectionAcceptor acceptor=server.accept(new Action<ObjectConnectionCompletion>(){
-    public void execute(    ObjectConnectionCompletion completion){
-      workerProcess.onConnect(completion.create(messagingClassLoader));
+  ConnectionAcceptor acceptor=server.accept(new Action<ObjectConnection>(){
+    public void execute(    ObjectConnection connection){
+      connection.useDefaultSerialization(messagingClassLoader);
+      workerProcess.onConnect(connection);
     }
   }
 );
