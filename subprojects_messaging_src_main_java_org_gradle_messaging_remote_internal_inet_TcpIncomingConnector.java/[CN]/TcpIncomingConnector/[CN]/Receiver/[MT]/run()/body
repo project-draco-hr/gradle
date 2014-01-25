@@ -2,7 +2,7 @@
   try {
     try {
       while (true) {
-        SocketChannel socket=serverSocket.accept();
+        final SocketChannel socket=serverSocket.accept();
         InetSocketAddress remoteSocketAddress=(InetSocketAddress)socket.socket().getRemoteSocketAddress();
         InetAddress remoteInetAddress=remoteSocketAddress.getAddress();
         if (!allowRemote && !addressFactory.isLocal(remoteInetAddress)) {
@@ -10,11 +10,16 @@
           socket.close();
           continue;
         }
-        SocketConnection<T> connection=new SocketConnection<T>(socket,serializer);
-        Address localAddress=connection.getLocalAddress();
-        Address remoteAddress=connection.getRemoteAddress();
-        LOGGER.debug("Accepted connection from {} to {}.",remoteAddress,localAddress);
-        action.execute(new ConnectEvent<Connection<T>>(connection,localAddress,remoteAddress));
+        LOGGER.debug("Accepted connection from {} to {}.",socket.socket().getRemoteSocketAddress(),socket.socket().getLocalSocketAddress());
+        action.execute(new ConnectCompletion(){
+          public <T>Connection<T> create(          ClassLoader messageClassLoader){
+            return new SocketConnection<T>(socket,new DefaultMessageSerializer<T>(messageClassLoader));
+          }
+          public <T>Connection<T> create(          MessageSerializer<T> serializer){
+            return new SocketConnection<T>(socket,serializer);
+          }
+        }
+);
       }
     }
  catch (    ClosedChannelException e) {
