@@ -5,14 +5,25 @@
         RunWith runWith=candidate.getAnnotation(RunWith.class);
         if (runWith != null && !AbstractMultiTestRunner.class.isAssignableFrom(runWith.value())) {
           try {
-            return (Runner)runWith.value().getConstructors()[0].newInstance(testClass);
+            Runner r=(Runner)runWith.value().getConstructors()[0].newInstance(testClass);
+            return filter(r);
           }
  catch (          InvocationTargetException e) {
             throw e.getTargetException();
           }
         }
       }
-      return new BlockJUnit4ClassRunner(testClass);
+      return filter(new BlockJUnit4ClassRunner(testClass));
+    }
+    private Runner filter(    Runner r){
+      for (      Filter filter : filters) {
+        try {
+          ((Filterable)r).filter(filter);
+        }
+ catch (        NoTestsRemainException e) {
+        }
+      }
+      return r;
     }
   }
 ;
