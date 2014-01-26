@@ -1,5 +1,12 @@
 {
-  MessageSerializer<InterHubMessage> serializer=new InterHubMessageSerializer(new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,new MethodInvocationSerializer(methodParamClassLoader,new JavaSerializer<Object[]>(methodParamClassLoader))));
+  if (methodParamClassLoader == null) {
+    methodParamClassLoader=getClass().getClassLoader();
+  }
+  StatefulSerializer<Object[]> paramSerializer=this.paramSerializer;
+  if (paramSerializer == null) {
+    paramSerializer=new JavaSerializer<Object[]>(methodParamClassLoader);
+  }
+  MessageSerializer<InterHubMessage> serializer=new InterHubMessageSerializer(new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,new MethodInvocationSerializer(methodParamClassLoader,paramSerializer)));
   connection=completion.create(serializer);
   hub.addConnection(connection);
   completion=null;
