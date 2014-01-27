@@ -1,12 +1,9 @@
 {
-  ProcessParentingInitializer.intitialize();
-  ProcessBuilder processBuilder=processBuilderFactory.createProcessBuilder(execHandle);
   try {
-    Process process;
-synchronized (START_LOCK) {
-      process=processBuilder.start();
-      streamsHandler.connectStreams(process,execHandle.getDisplayName());
-    }
+    ProcessBuilder processBuilder=processBuilderFactory.createProcessBuilder(execHandle);
+    final ProcessLauncher processLauncher=Native.get(ProcessLauncher.class);
+    Process process=processLauncher.start(processBuilder);
+    streamsHandler.connectStreams(process,execHandle.getDisplayName());
     setProcess(process);
     execHandle.started();
     LOGGER.debug("waiting until streams are handled...");
