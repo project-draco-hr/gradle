@@ -1,11 +1,12 @@
 {
-  ScriptPlugin configurer=configurerFactory.create(settingsLocation.getSettingsScriptSource());
-  configurer.setParentScope(new ScriptCompileScope(){
+  ScriptCompileScope scriptCompileScope=new ScriptCompileScope(){
     public ClassLoader getScriptCompileClassLoader(){
       return settings.getClassLoader();
     }
   }
-);
-  configurer.setScriptBaseClass(SettingsScript.class);
+;
+  ScriptSource settingsScriptSource=settingsLocation.getSettingsScriptSource();
+  ScriptHandlerInternal scriptHandlerInternal=scriptHandlerFactory.create(settingsScriptSource,scriptCompileScope);
+  ScriptPlugin configurer=configurerFactory.create(settingsScriptSource,scriptHandlerInternal,"buildscript",SettingsScript.class);
   configurer.apply(settings);
 }
