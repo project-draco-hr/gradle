@@ -1,21 +1,14 @@
 {
   String canonicalRoot;
-  String canonicalCurrent;
-  String canonicalFile;
+  String canonicalFrom;
+  String canonicalTo;
   try {
     canonicalRoot=rootDir.getCanonicalPath();
-    canonicalCurrent=currentDir.getCanonicalPath();
-    canonicalFile=file.getCanonicalPath();
+    canonicalFrom=currentDir.getCanonicalPath();
+    canonicalTo=file.getCanonicalPath();
   }
  catch (  IOException e) {
     return file.getAbsolutePath();
   }
-  if (!canonicalCurrent.contains(canonicalRoot) || !canonicalFile.contains(canonicalRoot)) {
-    return file.getAbsolutePath();
-  }
-  String relativeFile=canonicalFile.substring(canonicalRoot.length());
-  if (canonicalCurrent.equals(canonicalRoot)) {
-    return relativeFile.length() == 0 ? "." : relativeFile.substring(1);
-  }
-  return findPathUpTo(new File(canonicalCurrent),new File(canonicalRoot)) + relativeFile;
+  return findRelativePathInRoot(canonicalRoot,canonicalFrom,canonicalTo);
 }
