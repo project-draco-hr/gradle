@@ -1,0 +1,31 @@
+{
+  if (classLoader == null) {
+    if (locked) {
+      if (local == null && exportingClassLoader == null) {
+        classLoader=parent.getChildClassLoader();
+        childrenParent=classLoader;
+      }
+ else       if (exportingClassLoader == null) {
+        localClassLoader=new MultiParentClassLoader(parent.getChildClassLoader());
+        classLoader=new CachingClassLoader(localClassLoader);
+        childrenParent=parent.getChildClassLoader();
+      }
+ else       if (local == null) {
+        classLoader=exportingClassLoader;
+        childrenParent=classLoader;
+      }
+ else {
+        createFlexibleLoaderStructure();
+      }
+    }
+ else {
+      createFlexibleLoaderStructure();
+    }
+    if (local != null) {
+      for (      ClassLoader localClassLoader : local) {
+        addLocal(localClassLoader);
+      }
+    }
+  }
+  return classLoader;
+}
