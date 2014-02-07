@@ -1,17 +1,11 @@
 {
+  this.project=project;
   project.getPlugins().apply(BasePlugin.class);
   DefaultMavenFactory mavenFactory=new DefaultMavenFactory();
   final MavenPluginConvention pluginConvention=addConventionObject(project,mavenFactory);
   final DefaultDeployerFactory deployerFactory=new DefaultDeployerFactory(mavenFactory,loggingManagerFactory,fileResolver,pluginConvention,project.getConfigurations(),pluginConvention.getConf2ScopeMappings());
-  project.getTasks().withType(Upload.class,new Action<Upload>(){
-    public void execute(    Upload upload){
-      RepositoryHandler repositories=upload.getRepositories();
-      DefaultRepositoryHandler handler=(DefaultRepositoryHandler)repositories;
-      DefaultMavenRepositoryHandlerConvention repositoryConvention=new DefaultMavenRepositoryHandlerConvention(handler,deployerFactory);
-      new DslObject(repositories).getConvention().getPlugins().put("maven",repositoryConvention);
-    }
-  }
-);
+  configureUploadTasks(deployerFactory);
+  configureUploadArchivesTask();
   PluginContainer plugins=project.getPlugins();
   plugins.withType(JavaPlugin.class,new Action<JavaPlugin>(){
     public void execute(    JavaPlugin javaPlugin){

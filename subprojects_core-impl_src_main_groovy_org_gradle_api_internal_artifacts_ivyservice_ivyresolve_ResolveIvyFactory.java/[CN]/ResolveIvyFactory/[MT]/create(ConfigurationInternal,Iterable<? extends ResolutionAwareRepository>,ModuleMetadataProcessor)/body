@@ -1,0 +1,30 @@
+{
+  ResolutionRules resolutionRules=configuration.getResolutionStrategy().getResolutionRules();
+  startParameterResolutionOverride.addResolutionRules(resolutionRules);
+  UserResolverChain userResolverChain=new UserResolverChain(versionMatcher,latestStrategy);
+  DependencyToModuleVersionResolver parentLookupResolver=new ParentModuleLookupResolver(userResolverChain,cacheLockingManager);
+  for (  ResolutionAwareRepository repository : repositories) {
+    ConfiguredModuleVersionRepository moduleVersionRepository=repository.createResolver();
+    if (moduleVersionRepository instanceof IvyAwareModuleVersionRepository) {
+      ivyContextualize((IvyAwareModuleVersionRepository)moduleVersionRepository,userResolverChain,configuration.getName());
+    }
+    if (moduleVersionRepository instanceof ExternalResourceResolver) {
+      ((ExternalResourceResolver)moduleVersionRepository).setResolver(parentLookupResolver);
+    }
+    LocalAwareModuleVersionRepository localAwareRepository;
+    if (moduleVersionRepository.isLocal()) {
+      localAwareRepository=new LocalModuleVersionRepository(moduleVersionRepository);
+    }
+ else {
+      ModuleVersionRepository wrapperRepository=new CacheLockingModuleVersionRepository(moduleVersionRepository,cacheLockingManager);
+      wrapperRepository=startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
+      localAwareRepository=new CachingModuleVersionRepository(wrapperRepository,moduleResolutionCache,moduleMetaDataCache,artifactAtRepositoryCachedResolutionIndex,parentLookupResolver,configuration.getResolutionStrategy().getCachePolicy(),timeProvider,metadataProcessor);
+    }
+    if (moduleVersionRepository.isDynamicResolveMode()) {
+      localAwareRepository=new IvyDynamicResolveModuleVersionRepository(localAwareRepository);
+    }
+    localAwareRepository=inMemoryCache.cached(localAwareRepository);
+    userResolverChain.add(localAwareRepository);
+  }
+  return userResolverChain;
+}

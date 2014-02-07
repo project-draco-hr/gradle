@@ -9,5 +9,15 @@
   if (operationParameters.getStandardInput() != null) {
     throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()",versionDetails.getVersion());
   }
+  OutputStream out=operationParameters.getStandardOutput();
+  if (out != null) {
+    try {
+      String deprecationMessage=String.format("Connecting to Gradle build version %s %s%s",versionDetails.getVersion(),SingleMessageLogger.getDeprecationMessage(),System.getProperty("line.separator"));
+      out.write(deprecationMessage.getBytes());
+    }
+ catch (    IOException e) {
+      throw new RuntimeException("Cannot write to stream",e);
+    }
+  }
   return super.run(type,operationParameters);
 }

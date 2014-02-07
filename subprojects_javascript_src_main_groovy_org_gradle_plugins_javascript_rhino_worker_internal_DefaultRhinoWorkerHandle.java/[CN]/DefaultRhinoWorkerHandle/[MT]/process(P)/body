@@ -4,6 +4,7 @@
   workerProcess.start();
   workerProcess.getConnection().addIncoming(RhinoWorkerClientProtocol.class,receiver);
   @SuppressWarnings("unchecked") RhinoClientWorkerProtocol<P> worker=workerProcess.getConnection().addOutgoing(RhinoClientWorkerProtocol.class);
+  workerProcess.getConnection().connect();
   worker.process(payload);
   try {
     latch.await();
@@ -11,6 +12,7 @@
  catch (  InterruptedException e) {
     throw UncheckedException.throwAsUncheckedException(e);
   }
+  workerProcess.waitForStop();
   if (receiver.initialisationError != null) {
     throw UncheckedException.throwAsUncheckedException(receiver.initialisationError);
   }

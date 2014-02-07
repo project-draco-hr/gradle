@@ -1,0 +1,19 @@
+{
+  configurationActionContainer.add(new Action<Project>(){
+    public void execute(    Project project){
+      Upload uploadArchives=project.getTasks().withType(Upload.class).findByName(UPLOAD_ARCHIVES_TASK_NAME);
+      if (uploadArchives == null) {
+        return;
+      }
+      boolean hasIvyRepo=!uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
+      if (!hasIvyRepo) {
+        return;
+      }
+      ConfigurationInternal configuration=(ConfigurationInternal)uploadArchives.getConfiguration();
+      ModuleInternal module=configuration.getModule();
+      ModuleVersionIdentifier publicationId=new DefaultModuleVersionIdentifier(module.getGroup(),module.getName(),module.getVersion());
+      publicationRegistry.registerPublication(module.getProjectPath(),new DefaultProjectPublication(publicationId));
+    }
+  }
+);
+}

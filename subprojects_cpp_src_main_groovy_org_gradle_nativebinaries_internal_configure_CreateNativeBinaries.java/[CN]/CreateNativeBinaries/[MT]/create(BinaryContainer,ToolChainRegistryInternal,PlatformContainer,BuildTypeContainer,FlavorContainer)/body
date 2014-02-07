@@ -1,0 +1,13 @@
+{
+  project.getExtensions().add("platforms",platforms);
+  project.getExtensions().add("buildTypes",buildTypes);
+  project.getExtensions().add("flavors",flavors);
+  Action<ProjectNativeBinary> configureBinaryAction=new ProjectNativeBinaryInitializer(project);
+  NativeBinariesFactory factory=new DefaultNativeBinariesFactory(instantiator,configureBinaryAction,resolver);
+  BinaryNamingSchemeBuilder namingSchemeBuilder=new DefaultBinaryNamingSchemeBuilder();
+  Action<ProjectNativeComponent> createBinariesAction=new ProjectNativeComponentInitializer(factory,namingSchemeBuilder,toolChains,platforms,buildTypes,flavors);
+  for (  ProjectNativeComponent component : allComponents()) {
+    createBinariesAction.execute(component);
+    binaries.addAll(component.getBinaries());
+  }
+}

@@ -1,33 +1,39 @@
 {
-  ListIterator<PatternStep> patternIt=steps.listIterator();
-  ListIterator<String> testIt=pathToTest.segmentIterator();
+  String[] segments=pathToTest.getSegments();
+  int nextSegment=0;
+  int nextPattern=0;
   boolean seenGreedy=false;
-  PatternStep patternStep;
-  while (testIt.hasNext()) {
-    String nextToTest=testIt.next();
-    if (!patternIt.hasNext()) {
-      return false;
-    }
-    patternStep=patternIt.next();
-    if (patternStep.isGreedy()) {
+  while (nextSegment < segments.length && nextPattern < steps.size()) {
+    String currentSegment=segments[nextSegment];
+    nextSegment++;
+    PatternStep currentPattern=steps.get(nextPattern);
+    nextPattern++;
+    if (currentPattern.isGreedy()) {
       seenGreedy=true;
-      advancePatternStepToNextNonGreedy(patternIt);
-      if (!patternIt.hasNext()) {
+      while (nextPattern < steps.size() && steps.get(nextPattern).isGreedy()) {
+        nextPattern++;
+      }
+      if (nextPattern == steps.size()) {
         return true;
       }
-      patternStep=patternIt.next();
-      while (!(patternStep.matches(nextToTest,!testIt.hasNext() && pathToTest.isFile()) && ((patternIt.hasNext() == testIt.hasNext()) || nextPatternIsGreedy(patternIt)))) {
-        if (!testIt.hasNext()) {
+      currentPattern=steps.get(nextPattern);
+      nextPattern++;
+      while (!currentPattern.matches(currentSegment)) {
+        if (nextSegment == segments.length) {
           return partialMatchDirs && !pathToTest.isFile();
         }
-        nextToTest=testIt.next();
+        currentSegment=segments[nextSegment];
+        nextSegment++;
       }
     }
  else {
-      if (!patternStep.matches(nextToTest,!testIt.hasNext() && pathToTest.isFile())) {
+      if (!currentPattern.matches(currentSegment)) {
         if (seenGreedy) {
-          rewindPatternStepToPreviousGreedy(patternIt);
-          testIt.previous();
+          nextPattern--;
+          while (!steps.get(nextPattern).isGreedy()) {
+            nextPattern--;
+          }
+          nextSegment--;
         }
  else {
           return false;
@@ -35,8 +41,11 @@
       }
     }
   }
-  if (!patternIt.hasNext()) {
+  if (nextSegment == segments.length && nextPattern == steps.size()) {
     return true;
   }
-  return isTerminatingMatch(pathToTest,patternIt);
+  if (nextPattern == steps.size() - 1 && steps.get(nextPattern).isGreedy()) {
+    return true;
+  }
+  return !pathToTest.isFile() && partialMatchDirs;
 }

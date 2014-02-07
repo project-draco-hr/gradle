@@ -1,0 +1,19 @@
+{
+  File resourceCompiler=os.findInPath(RESOURCE_FILENAME);
+  if (resourceCompiler == null) {
+    LOGGER.debug("Could not find Windows resource compiler in system path.");
+    return;
+  }
+  File sdkDir=GFileUtils.canonicalise(resourceCompiler.getParentFile().getParentFile());
+  if (!isWindowsSdk(sdkDir)) {
+    sdkDir=sdkDir.getParentFile();
+    if (!isWindowsSdk(sdkDir)) {
+      LOGGER.debug("Ignoring candidate Windows SDK for {} as it does not look like a Windows SDK installation.",resourceCompiler);
+    }
+  }
+  LOGGER.debug("Found Windows SDK {} using system path",sdkDir);
+  if (!foundSdks.containsKey(sdkDir)) {
+    addSdk(sdkDir,"path","Path-resolved Windows SDK");
+  }
+  pathSdk=foundSdks.get(sdkDir);
+}

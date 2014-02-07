@@ -1,21 +1,9 @@
 {
   List<String> args=new ArrayList<String>();
   args.addAll(spec.getSystemArgs());
-  for (  String userArg : spec.getArgs()) {
-    args.add("-Xlinker");
-    args.add(userArg);
-  }
   if (spec instanceof SharedLibraryLinkerSpec) {
     args.add("-shared");
-    if (!OperatingSystem.current().isWindows()) {
-      String installName=((SharedLibraryLinkerSpec)spec).getInstallName();
-      if (OperatingSystem.current().isMacOsX()) {
-        args.add("-Wl,-install_name," + installName);
-      }
- else {
-        args.add("-Wl,-soname," + installName);
-      }
-    }
+    maybeSetInstallName((SharedLibraryLinkerSpec)spec,args);
   }
   args.add("-o");
   args.add(spec.getOutputFile().getAbsolutePath());
@@ -27,6 +15,9 @@
   }
   for (  File pathEntry : spec.getLibraryPath()) {
     throw new UnsupportedOperationException("Library Path not yet supported on GCC");
+  }
+  for (  String userArg : spec.getArgs()) {
+    args.add(userArg);
   }
   return args;
 }

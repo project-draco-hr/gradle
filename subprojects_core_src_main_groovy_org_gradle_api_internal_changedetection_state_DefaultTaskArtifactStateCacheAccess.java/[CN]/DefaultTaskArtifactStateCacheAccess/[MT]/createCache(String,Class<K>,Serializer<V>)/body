@@ -1,16 +1,4 @@
 {
-  Factory<PersistentIndexedCache> factory=new Factory<PersistentIndexedCache>(){
-    public PersistentIndexedCache create(){
-      final File cacheFile=cacheFile(cacheName);
-      PersistentIndexedCacheParameters parameters=new PersistentIndexedCacheParameters(cacheFile,keyType,valueSerializer).cacheDecorator(new Transformer<MultiProcessSafePersistentIndexedCache<Object,Object>,MultiProcessSafePersistentIndexedCache<Object,Object>>(){
-        public MultiProcessSafePersistentIndexedCache<Object,Object> transform(        MultiProcessSafePersistentIndexedCache<Object,Object> original){
-          return inMemoryDecorator.withMemoryCaching(cacheFile,original);
-        }
-      }
-);
-      return getCache().createCache(parameters);
-    }
-  }
-;
-  return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class,factory).getSource();
+  PersistentIndexedCacheParameters<K,V> parameters=new PersistentIndexedCacheParameters<K,V>(cacheName,keyType,valueSerializer).cacheDecorator(inMemoryDecorator);
+  return cache.createCache(parameters);
 }

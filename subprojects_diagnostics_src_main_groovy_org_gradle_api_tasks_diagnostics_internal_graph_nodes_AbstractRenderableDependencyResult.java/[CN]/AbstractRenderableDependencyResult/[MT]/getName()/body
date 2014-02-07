@@ -1,6 +1,15 @@
 {
-  if (requestedEqualsSelected()) {
+  ComponentSelector requested=getRequested();
+  ComponentIdentifier selected=getActual();
+  if (requested.matchesStrictly(selected)) {
     return getSimpleName();
   }
-  return getVerboseName();
+  if (requested instanceof ModuleComponentSelector && selected instanceof ModuleComponentIdentifier) {
+    ModuleComponentSelector requestedModuleComponentSelector=(ModuleComponentSelector)requested;
+    ModuleComponentIdentifier selectedModuleComponentedIdentifier=(ModuleComponentIdentifier)selected;
+    if (isSameGroupAndModuleButDifferentVersion(requestedModuleComponentSelector,selectedModuleComponentedIdentifier)) {
+      return getSimpleName() + " -> " + selectedModuleComponentedIdentifier.getVersion();
+    }
+  }
+  return getSimpleName() + " -> " + selected.getDisplayName();
 }

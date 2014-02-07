@@ -5,6 +5,11 @@
   TestEventLogger eventLogger=new TestEventLogger(textOutputFactory,currentLevel,levelLogging,exceptionFormatter);
   addTestListener(eventLogger);
   addTestOutputListener(eventLogger);
+  TestListener noTestsReporter=null;
+  if (!getFilter().getIncludePatterns().isEmpty()) {
+    noTestsReporter=new NoMatchingTestsReporter("No tests found for given includes: " + getFilter().getIncludePatterns());
+    addTestListener(noTestsReporter);
+  }
   File binaryResultsDir=getBinResultsDir();
   getProject().delete(binaryResultsDir);
   getProject().mkdir(binaryResultsDir);
@@ -23,6 +28,9 @@
   finally {
     testListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector,testCountLogger));
     testOutputListenerBroadcaster.removeAll(asList(eventLogger,testReportDataCollector));
+    if (noTestsReporter != null) {
+      testListenerBroadcaster.remove(noTestsReporter);
+    }
     outputWriter.close();
   }
   new TestResultSerializer(binaryResultsDir).write(results.values());

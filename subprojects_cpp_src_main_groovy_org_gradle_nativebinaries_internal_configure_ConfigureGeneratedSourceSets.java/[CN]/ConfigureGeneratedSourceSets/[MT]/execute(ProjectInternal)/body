@@ -1,0 +1,15 @@
+{
+  ProjectSourceSet projectSourceSet=project.getExtensions().getByType(ProjectSourceSet.class);
+  for (  FunctionalSourceSet functionalSourceSet : projectSourceSet) {
+    for (    LanguageSourceSetInternal languageSourceSet : functionalSourceSet.withType(LanguageSourceSetInternal.class)) {
+      Task generatorTask=languageSourceSet.getGeneratorTask();
+      if (generatorTask != null) {
+        languageSourceSet.builtBy(generatorTask);
+        maybeSetSourceDir(languageSourceSet.getSource(),generatorTask,"sourceDir");
+        if (languageSourceSet instanceof HeaderExportingSourceSet) {
+          maybeSetSourceDir(((HeaderExportingSourceSet)languageSourceSet).getExportedHeaders(),generatorTask,"headerDir");
+        }
+      }
+    }
+  }
+}

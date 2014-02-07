@@ -2,19 +2,16 @@
   ExecAction exec=execActionFactory.newExecAction();
   exec.executable(gccBinary.getAbsolutePath());
   exec.setWorkingDir(gccBinary.getParentFile());
-  exec.args("-v");
+  exec.args("-dM","-E","-");
   ByteArrayOutputStream baos=new ByteArrayOutputStream();
-  exec.setErrorOutput(baos);
+  exec.setStandardOutput(baos);
   exec.setIgnoreExitValue(true);
   ExecResult result=exec.execute();
   int exitValue=result.getExitValue();
   if (exitValue == 0) {
-    String output=new String(baos.toByteArray());
-    LOGGER.debug("Output from '{} -v {}",gccBinary.getPath(),output);
-    return output;
+    return new String(baos.toByteArray());
   }
  else {
-    LOGGER.warn("Executing '{} -v' return exit code {}, cannot use",gccBinary.getPath(),exitValue);
     return null;
   }
 }

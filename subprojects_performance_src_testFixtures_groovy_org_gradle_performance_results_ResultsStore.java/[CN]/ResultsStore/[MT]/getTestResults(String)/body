@@ -3,9 +3,14 @@
     return withConnection(new ConnectionAction<TestExecutionHistory>(){
       public TestExecutionHistory execute(      Connection connection) throws Exception {
         List<PerformanceResults> results=new ArrayList<PerformanceResults>();
-        Set<String> allVersions=new TreeSet<String>();
+        Set<String> allVersions=new TreeSet<String>(new Comparator<String>(){
+          public int compare(          String o1,          String o2){
+            return GradleVersion.version(o1).compareTo(GradleVersion.version(o2));
+          }
+        }
+);
         PreparedStatement executionsForName=connection.prepareStatement("select id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
-        PreparedStatement buildsForTest=connection.prepareStatement("select version, executionTimeMs, heapUsageBytes from testOperation where testExecution = ?");
+        PreparedStatement operationsForExecution=connection.prepareStatement("select version, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
         executionsForName.setString(1,testName);
         ResultSet testExecutions=executionsForName.executeQuery();
         while (testExecutions.next()) {
@@ -22,18 +27,20 @@
           performanceResults.setVcsBranch(testExecutions.getString(9));
           performanceResults.setVcsCommit(testExecutions.getString(10));
           results.add(performanceResults);
-          buildsForTest.setLong(1,id);
-          ResultSet builds=buildsForTest.executeQuery();
+          operationsForExecution.setLong(1,id);
+          ResultSet builds=operationsForExecution.executeQuery();
           while (builds.next()) {
             String version=builds.getString(1);
             if ("1.7".equals(version) && performanceResults.getTestTime() <= ignoreV17Before) {
               continue;
             }
-            BigDecimal executionTimeMs=builds.getBigDecimal(2);
-            BigDecimal heapUsageBytes=builds.getBigDecimal(3);
             MeasuredOperation operation=new MeasuredOperation();
-            operation.setExecutionTime(Duration.millis(executionTimeMs));
-            operation.setTotalMemoryUsed(DataAmount.bytes(heapUsageBytes));
+            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(2)));
+            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(3)));
+            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(4)));
+            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(5)));
+            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(6)));
+            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(7)));
             if (version == null) {
               performanceResults.getCurrent().add(operation);
             }
@@ -45,7 +52,7 @@
           }
         }
         testExecutions.close();
-        buildsForTest.close();
+        operationsForExecution.close();
         executionsForName.close();
         return new TestExecutionHistory(testName,new ArrayList<String>(allVersions),results);
       }

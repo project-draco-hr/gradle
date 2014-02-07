@@ -1,16 +1,11 @@
 {
-  cacheAccess.longRunningOperation("Executing all tasks",new Runnable(){
-    public void run(){
-      StoppableExecutor executor=executorFactory.create("Task worker");
-      try {
-        startAdditionalWorkers(taskExecutionPlan,taskListener,executor);
-        taskWorker(taskExecutionPlan,taskListener).run();
-        taskExecutionPlan.awaitCompletion();
-      }
-  finally {
-        executor.stop();
-      }
-    }
+  StoppableExecutor executor=executorFactory.create("Task worker");
+  try {
+    startAdditionalWorkers(taskExecutionPlan,taskListener,executor);
+    taskWorker(taskExecutionPlan,taskListener).run();
+    taskExecutionPlan.awaitCompletion();
   }
-);
+  finally {
+    executor.stop();
+  }
 }

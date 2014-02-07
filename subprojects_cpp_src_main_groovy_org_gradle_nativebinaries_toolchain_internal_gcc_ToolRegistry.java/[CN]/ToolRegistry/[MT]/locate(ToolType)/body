@@ -1,9 +1,10 @@
 {
   String exeName=executableNames.get(key);
-  if (executables.containsKey(exeName)) {
-    return executables.get(exeName);
+  CommandLineToolSearchResult result=executables.get(exeName);
+  if (result == null) {
+    File exe=findExecutable(operatingSystem,exeName);
+    result=exe == null || !exe.isFile() ? new MissingTool(key,exeName,pathEntries) : new FoundTool(exe);
+    executables.put(exeName,result);
   }
-  File exe=findExecutable(operatingSystem,exeName);
-  executables.put(exeName,exe);
-  return exe;
+  return result;
 }

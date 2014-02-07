@@ -1,0 +1,17 @@
+{
+  for (  NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getAllResolutions()) {
+    String linkage=getLinkage(resolution);
+    if ("api".equals(linkage)) {
+      resolution.setRequirement(new ApiAdaptedNativeLibraryRequirement(resolution.getRequirement()));
+    }
+  }
+  delegate.resolve(nativeBinaryResolveResult);
+  for (  NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getAllResolutions()) {
+    if (resolution.getRequirement() instanceof ApiAdaptedNativeLibraryRequirement) {
+      ApiAdaptedNativeLibraryRequirement adaptedRequirement=(ApiAdaptedNativeLibraryRequirement)resolution.getRequirement();
+      resolution.setRequirement(adaptedRequirement.getOriginal());
+      resolution.setLibraryBinary(null);
+      resolution.setNativeDependencySet(new ApiNativeDependencySet(resolution.getNativeDependencySet()));
+    }
+  }
+}

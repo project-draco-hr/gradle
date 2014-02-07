@@ -1,0 +1,27 @@
+{
+  List<String> visualCppVersions;
+  try {
+    visualCppVersions=windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,baseKey + REGISTRY_ROOTPATH_VC);
+  }
+ catch (  MissingRegistryEntryException e) {
+    return;
+  }
+  for (  String valueName : visualCppVersions) {
+    if (!valueName.matches("\\d+\\.\\d+")) {
+      continue;
+    }
+    File visualCppDir=new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,baseKey + REGISTRY_ROOTPATH_VC,valueName));
+    visualCppDir=GFileUtils.canonicalise(visualCppDir);
+    File visualStudioDir=visualCppDir.getParentFile();
+    if (isVisualCpp(visualCppDir) && isVisualStudio(visualStudioDir)) {
+      LOGGER.debug("Found Visual C++ {} at {}",valueName,visualCppDir);
+      VersionNumber version=VersionNumber.parse(valueName);
+      VisualCppInstall visualCpp=buildVisualCppInstall("Visual C++ " + valueName,visualStudioDir,visualCppDir,version);
+      VisualStudioInstall visualStudio=new VisualStudioInstall(visualStudioDir,visualCpp);
+      foundInstalls.put(visualStudioDir,visualStudio);
+    }
+ else {
+      LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.",visualCppDir);
+    }
+  }
+}

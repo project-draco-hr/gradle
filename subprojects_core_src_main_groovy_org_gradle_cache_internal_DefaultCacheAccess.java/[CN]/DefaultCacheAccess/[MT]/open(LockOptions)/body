@@ -1,22 +1,60 @@
 {
   lock.lock();
   try {
-    if (owner != null) {
-      throw new IllegalStateException(String.format("Cannot open the %s, as it is already in use.",cacheDisplayName));
+    if (this.lockOptions != null) {
+      throw new IllegalStateException(String.format("Cannot open the %s, as it has already been opened.",cacheDisplayName));
     }
     this.lockOptions=lockOptions;
     if (lockOptions.getMode() == FileLockManager.LockMode.None) {
       return;
     }
     if (fileLock != null) {
-      throw new IllegalStateException("File lock " + lockFile + " is already open.");
+      throw new IllegalStateException("File lock " + lockTarget + " is already open.");
     }
-    fileLock=lockManager.lock(lockFile,lockOptions,cacheDisplayName);
+    fileLock=lockManager.lock(lockTarget,lockOptions,cacheDisplayName);
+    boolean rebuild=initializationAction.requiresInitialization(fileLock);
+    if (rebuild) {
+      if (lockOptions.getMode() == Exclusive) {
+        fileLock.writeFile(new Runnable(){
+          public void run(){
+            initializationAction.initialize(fileLock);
+          }
+        }
+);
+      }
+ else {
+        for (int tries=0; rebuild && tries < 3; tries++) {
+          fileLock.close();
+          fileLock=lockManager.lock(lockTarget,lockOptions.withMode(Exclusive),cacheDisplayName,"Initialize cache");
+          rebuild=initializationAction.requiresInitialization(fileLock);
+          if (rebuild) {
+            fileLock.writeFile(new Runnable(){
+              public void run(){
+                initializationAction.initialize(fileLock);
+              }
+            }
+);
+          }
+          fileLock.close();
+          fileLock=lockManager.lock(lockTarget,lockOptions,cacheDisplayName);
+          rebuild=initializationAction.requiresInitialization(fileLock);
+        }
+        if (rebuild) {
+          throw new CacheOpenException(String.format("Failed to initialize %s",cacheDisplayName));
+        }
+      }
+    }
     stateAtOpen=fileLock.getState();
     takeOwnership(String.format("Access %s",cacheDisplayName));
-    lockManager.allowContention(fileLock,whenContended());
   }
-  finally {
+ catch (  Throwable throwable) {
+    if (fileLock != null) {
+      fileLock.close();
+      fileLock=null;
+    }
+    throw UncheckedException.throwAsUncheckedException(throwable);
+  }
+ finally {
     lock.unlock();
   }
 }
