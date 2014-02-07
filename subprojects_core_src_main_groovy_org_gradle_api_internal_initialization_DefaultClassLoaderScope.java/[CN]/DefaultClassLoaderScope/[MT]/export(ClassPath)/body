@@ -7,9 +7,10 @@
   }
  else {
     if (exportingClassLoader == null) {
-      exportingClassLoader=new MutableURLClassLoader(parent.getChildClassLoader());
+      exportingClassLoader=new MultiParentClassLoader();
     }
-    exportingClassLoader.addURLs(classpath.getAsURLs());
-    return exportingClassLoader;
+    ClassLoader classLoader=classLoaderCache.get(parent.getChildClassLoader(),classpath,null);
+    exportingClassLoader.addParent(classLoader);
+    return classLoader;
   }
 }
