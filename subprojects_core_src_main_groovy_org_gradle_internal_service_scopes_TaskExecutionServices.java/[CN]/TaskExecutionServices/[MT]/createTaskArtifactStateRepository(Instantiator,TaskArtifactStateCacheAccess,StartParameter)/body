@@ -1,6 +1,9 @@
 {
   FileCollectionSnapshotter fileCollectionSnapshotter=new DefaultFileCollectionSnapshotter(new CachingFileSnapshotter(new DefaultHasher(),cacheAccess),cacheAccess);
   FileCollectionSnapshotter outputFilesSnapshotter=new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter,new RandomLongIdGenerator(),cacheAccess);
-  TaskHistoryRepository taskHistoryRepository=new CacheBackedTaskHistoryRepository(cacheAccess,new CacheBackedFileSnapshotRepository(cacheAccess,new RandomLongIdGenerator()));
+  SerializerRegistry<FileCollectionSnapshot> serializerRegistry=new DefaultSerializerRegistry<FileCollectionSnapshot>();
+  fileCollectionSnapshotter.registerSerializers(serializerRegistry);
+  outputFilesSnapshotter.registerSerializers(serializerRegistry);
+  TaskHistoryRepository taskHistoryRepository=new CacheBackedTaskHistoryRepository(cacheAccess,new CacheBackedFileSnapshotRepository(cacheAccess,serializerRegistry.build(),new RandomLongIdGenerator()));
   return new ShortCircuitTaskArtifactStateRepository(startParameter,instantiator,new DefaultTaskArtifactStateRepository(taskHistoryRepository,instantiator,outputFilesSnapshotter,fileCollectionSnapshotter));
 }
