@@ -1,4 +1,9 @@
 {
   this.idGenerator=idGenerator;
-  cache=cacheAccess.createCache("fileSnapshots",Long.class,new FileSnapshotSerializer());
+  DefaultFileSnapshotterSerializer defaultSnapshotSerializer=new DefaultFileSnapshotterSerializer();
+  OutputFilesSnapshotSerializer outputSnapshotSerializer=new OutputFilesSnapshotSerializer(defaultSnapshotSerializer);
+  DefaultSerializerRegistry<FileCollectionSnapshot> registry=new DefaultSerializerRegistry<FileCollectionSnapshot>();
+  registry.register(DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl.class,defaultSnapshotSerializer);
+  registry.register(OutputFilesCollectionSnapshotter.OutputFilesSnapshot.class,outputSnapshotSerializer);
+  cache=cacheAccess.createCache("fileSnapshots",Long.class,registry.build());
 }
