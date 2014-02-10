@@ -1,0 +1,18 @@
+{
+  if (!canBuild(modelName)) {
+    throw new GradleException("Unknown model name " + modelName);
+  }
+  Set<String> taskSelectorNames=Sets.newHashSet();
+  for (  Project child : project.getSubprojects()) {
+    DefaultBuildInvocations childBuildInvocations=buildAll(modelName,child);
+    for (    TaskSelector ts : childBuildInvocations.getTaskSelectors()) {
+      taskSelectorNames.add(ts.getName());
+    }
+    taskSelectorNames.addAll(child.getTasks().getNames());
+  }
+  List<DefaultGradleTaskSelector> selectors=Lists.newArrayList();
+  for (  String selectorName : taskSelectorNames) {
+    selectors.add(new DefaultGradleTaskSelector().setName(selectorName).setProjectDir(project.getProjectDir()).setDisplayName(String.format("%s built in %s and subprojects.",selectorName,project.getName())));
+  }
+  return new DefaultBuildInvocations().setSelectors(selectors);
+}
