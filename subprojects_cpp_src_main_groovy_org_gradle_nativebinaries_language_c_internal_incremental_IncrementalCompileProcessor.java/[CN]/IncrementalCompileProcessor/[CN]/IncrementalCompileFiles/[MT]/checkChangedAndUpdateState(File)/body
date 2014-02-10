@@ -18,9 +18,15 @@
     state.setDependencies(dependencyParser.parseDependencies(file));
     saveState(file,state);
   }
-  for (  File dep : state.getDependencies()) {
-    boolean depChanged=checkChangedAndUpdateState(dep);
-    changed=changed || depChanged;
+  for (  SourceDependency dep : state.getDependencies()) {
+    if (dep.isUnknown()) {
+      LOGGER.info(String.format("Cannot determine changed state of included '%s' in source file '%s'. Assuming changed.",dep.getInclude(),file.getName()));
+      changed=true;
+    }
+ else {
+      boolean depChanged=checkChangedAndUpdateState(dep.getFile());
+      changed=changed || depChanged;
+    }
   }
   processed.put(file,changed);
   return changed;
