@@ -1,0 +1,15 @@
+{
+  DependencyDescriptor descriptor=dependency.getDescriptor();
+  final ModuleRevisionId dependencyRevisionId=descriptor.getDependencyRevisionId();
+  final String uniqueSnapshotVersion=findUniqueSnapshotVersion(dependencyRevisionId);
+  if (uniqueSnapshotVersion != null) {
+    DependencyDescriptor enrichedDescriptor=enrichDependencyDescriptorWithSnapshotVersionInfo(descriptor,dependencyRevisionId,uniqueSnapshotVersion);
+    findStaticDependency(new DefaultDependencyMetaData(enrichedDescriptor),result);
+    if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+      result.setModuleSource(new TimestampedModuleSource(uniqueSnapshotVersion));
+    }
+  }
+ else {
+    findStaticDependency(dependency,result);
+  }
+}
