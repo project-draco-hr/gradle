@@ -1,0 +1,17 @@
+{
+  Set<String> taskSelectorNames=Sets.newHashSet();
+  for (  GradleProject child : project.getChildren()) {
+    DefaultBuildInvocations childBuildInvocations=buildAll(child);
+    for (    TaskSelector ts : childBuildInvocations.getTaskSelectors()) {
+      taskSelectorNames.add(ts.getName());
+    }
+    for (    GradleTask task : child.getTasks()) {
+      taskSelectorNames.add(task.getName());
+    }
+  }
+  List<DefaultGradleTaskSelector> selectors=Lists.newArrayList();
+  for (  String selectorName : taskSelectorNames) {
+    selectors.add(new DefaultGradleTaskSelector().setName(selectorName).setProjectDir(project.getBuildScript().getSourceFile().getParentFile()).setDisplayName(String.format("%s built in %s and subprojects.",selectorName,project.getName())));
+  }
+  return new DefaultBuildInvocations().setSelectors(selectors);
+}
