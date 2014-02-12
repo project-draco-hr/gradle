@@ -1,4 +1,5 @@
 {
+  Map<String,ClassDependents> dependents=new HashMap<String,ClassDependents>();
   Iterator output=FileUtils.iterateFiles(compiledClassesDir,new String[]{"class"},true);
   ClassNameProvider nameProvider=new ClassNameProvider(compiledClassesDir);
   while (output.hasNext()) {
@@ -11,15 +12,16 @@
       ClassAnalysis analysis=new ClassDependenciesAnalyzer().getClassAnalysis(className,classFile);
       for (      String dependency : analysis.getClassDependencies()) {
         if (!dependency.equals(className) && dependency.startsWith(packagePrefix)) {
-          getOrCreateDependentMapping(dependency).addClass(className);
+          getOrCreateDependentMapping(dependents,dependency).addClass(className);
         }
       }
       if (analysis.isDependentToAll()) {
-        getOrCreateDependentMapping(className).setDependentToAll();
+        getOrCreateDependentMapping(dependents,className).setDependentToAll();
       }
     }
  catch (    IOException e) {
       throw new RuntimeException("Problems extracting class dependency from " + classFile,e);
     }
   }
+  return new ClassDependencyInfo(dependents);
 }
