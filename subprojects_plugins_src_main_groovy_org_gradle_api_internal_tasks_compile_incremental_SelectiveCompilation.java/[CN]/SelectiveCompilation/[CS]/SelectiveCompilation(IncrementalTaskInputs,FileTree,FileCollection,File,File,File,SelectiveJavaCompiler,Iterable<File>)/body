@@ -3,7 +3,7 @@
   this.compiler=compiler;
   Clock clock=new Clock();
   final InputOutputMapper mapper=new InputOutputMapper(sourceDirs,compileDestination);
-  final ClassDependencyTree tree=ClassDependencyTree.loadFrom(classTreeCache);
+  final ClassDependencyInfo dependencyInfo=ClassDependencyInfo.loadFrom(dependencyInfoFile);
   final PatternSet changedSourceOnly=new PatternSet();
   inputs.outOfDate(new Action<InputFileDetails>(){
     public void execute(    InputFileDetails inputFileDetails){
@@ -16,7 +16,7 @@
         JavaSourceClass source=mapper.toJavaSourceClass(inputFile);
         compiler.addStaleClass(source);
         changedSourceOnly.include(source.getRelativePath());
-        Set<String> actualDependents=tree.getActualDependents(source.getClassName());
+        Set<String> actualDependents=dependencyInfo.getActualDependents(source.getClassName());
         if (actualDependents == null) {
           rebuildNeeded="change to " + source.getClassName() + " requires full rebuild";
           return;
@@ -35,7 +35,7 @@
         }
         Iterable<String> classes=delta.getChangedClasses();
         for (        String c : classes) {
-          Set<String> actualDependents=tree.getActualDependents(c);
+          Set<String> actualDependents=dependencyInfo.getActualDependents(c);
           for (          String d : actualDependents) {
             JavaSourceClass dSource=mapper.toJavaSourceClass(d);
             compiler.addStaleClass(dSource);
