@@ -1,0 +1,25 @@
+{
+  ModuleVersionSelector requested=original.getRequested();
+  ModuleIdentifier moduleId=new DefaultModuleIdentifier(requested.getGroup(),requested.getName());
+  ModuleResolutionCache.CachedModuleResolution cachedModuleResolution=moduleResolutionCache.getCachedModuleResolution(delegate,moduleId);
+  if (cachedModuleResolution != null) {
+    ModuleVersions versionList=cachedModuleResolution.getModuleVersions();
+    ModuleVersionIdentifier dummyId=new DefaultModuleVersionIdentifier(moduleId.getGroup(),moduleId.getName(),"0");
+    if (cachePolicy.mustRefreshDynamicVersion(requested,dummyId,cachedModuleResolution.getAgeMillis())) {
+      LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'",requested,delegate.getName());
+    }
+ else {
+      if (versionList.isEmpty()) {
+        if (cachedModuleResolution.getAgeMillis() == 0) {
+          result.noVersions();
+        }
+ else {
+          result.probablyNoVersions();
+        }
+      }
+ else {
+        result.listed(versionList);
+      }
+    }
+  }
+}

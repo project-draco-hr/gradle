@@ -1,0 +1,15 @@
+{
+  ModuleVersionSelector selector=dependency.getRequested();
+  for (  Versioned candidate : selectionResult.getVersions().sortLatestFirst(latestStrategy)) {
+    moduleAccess.getDependency(dependency.withRequestedVersion(candidate.getVersion()),resolveResult);
+    if (resolveResult.getState() != BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+      resolveResult.reset();
+      return true;
+    }
+    if (versionMatcher.accept(selector.getVersion(),resolveResult.getMetaData())) {
+      return true;
+    }
+    resolveResult.reset();
+  }
+  return false;
+}
