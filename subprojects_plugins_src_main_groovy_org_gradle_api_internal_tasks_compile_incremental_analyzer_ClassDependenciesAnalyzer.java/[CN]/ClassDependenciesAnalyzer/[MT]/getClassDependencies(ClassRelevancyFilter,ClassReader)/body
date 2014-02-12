@@ -1,0 +1,22 @@
+{
+  List<String> out=new LinkedList<String>();
+  char[] charBuffer=new char[reader.getMaxStringLength()];
+  for (int i=1; i < reader.getItemCount(); i++) {
+    int itemOffset=reader.getItem(i);
+    if (itemOffset > 0 && reader.readByte(itemOffset - 1) == 7) {
+      String classDescriptor=reader.readUTF8(itemOffset,charBuffer);
+      Type type=Type.getObjectType(classDescriptor);
+      while (type.getSort() == Type.ARRAY) {
+        type=type.getElementType();
+      }
+      if (type.getSort() != Type.OBJECT) {
+        continue;
+      }
+      String name=type.getClassName();
+      if (filter.isRelevant(name)) {
+        out.add(name);
+      }
+    }
+  }
+  return out;
+}

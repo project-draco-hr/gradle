@@ -1,6 +1,11 @@
 {
-  if (compileOptions.isIncremental()) {
-    getLogger().warn("Incremental java compilation is still work in progress. Regular compilation will be used.");
+  if (!maybeCompileIncrementally(inputs)) {
+    compile();
+    if (compileOptions.isIncremental()) {
+      Clock clock=new Clock();
+      ClassDependencyTree tree=new ClassDependencyTree(getDestinationDir());
+      tree.writeTo(getClassTreeCache());
+      LOG.lifecycle("{} performed class dependency analysis in {}",getPath(),clock.getTime());
+    }
   }
-  compile();
 }
