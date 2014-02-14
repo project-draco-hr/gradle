@@ -1,0 +1,19 @@
+{
+  DownloadedAndParsedMetaDataArtifact metaDataArtifact=findMetaDataArtifact(dependency,artifactResolver);
+  if (metaDataArtifact != null) {
+    MutableModuleVersionMetaData moduleVersionMetaData=metaDataArtifact.moduleVersionMetaData;
+    LOGGER.debug("Metadata file found for module '{}' in repository '{}'.",dependency.getRequested(),getName());
+    result.resolved(moduleVersionMetaData,null);
+    return;
+  }
+  if (isAllownomd()) {
+    DownloadedAndParsedMetaDataArtifact defaultArtifact=findDefaultArtifact(dependency,artifactResolver);
+    if (defaultArtifact != null) {
+      LOGGER.debug("Artifact file found for module '{}' in repository '{}'.",dependency.getRequested(),getName());
+      result.resolved(defaultArtifact.moduleVersionMetaData,null);
+      return;
+    }
+  }
+  LOGGER.debug("No meta-data file or artifact found for module '{}' in repository '{}'.",dependency.getRequested(),getName());
+  result.missing();
+}
