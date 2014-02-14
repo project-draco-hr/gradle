@@ -1,16 +1,17 @@
 {
-  Artifact artifact=getMetaDataArtifactFor(dependency);
-  if (artifact == null) {
+  ArtifactRevisionId artifactIdentifier=getMetaDataArtifactFor(dependency);
+  if (artifactIdentifier == null) {
     return null;
   }
-  ResolvedArtifact metaDataResource=findStaticResourceUsingPatterns(ivyPatterns,artifact,true);
+  ResolvedArtifact metaDataResource=findStaticResourceUsingPatterns(ivyPatterns,artifactIdentifier,true);
   if (metaDataResource == null) {
     return null;
   }
-  MutableModuleVersionMetaData moduleVersionMetaData=getArtifactMetadata(dependency,artifact.getId(),metaDataResource.getResource());
+  MutableModuleVersionMetaData moduleVersionMetaData=getArtifactMetadata(dependency,artifactIdentifier,metaDataResource.getResource());
   if (isCheckconsistency()) {
-    ModuleRevisionId moduleRevisionId=dependency.getDescriptor().getDependencyRevisionId();
-    checkMetadataConsistency(DefaultModuleVersionIdentifier.newId(moduleRevisionId),moduleVersionMetaData,metaDataResource);
+    ModuleVersionSelector requested=dependency.getRequested();
+    ModuleVersionIdentifier requestedId=DefaultModuleVersionIdentifier.newId(requested.getGroup(),requested.getName(),requested.getVersion());
+    checkMetadataConsistency(requestedId,moduleVersionMetaData,metaDataResource);
   }
-  return new DownloadedAndParsedMetaDataArtifact(metaDataResource.resource,metaDataResource.artifact,moduleVersionMetaData);
+  return new DownloadedAndParsedMetaDataArtifact(metaDataResource.resource,metaDataResource.artifactId,moduleVersionMetaData);
 }

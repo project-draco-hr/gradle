@@ -1,4 +1,12 @@
 {
-  MutableModuleVersionMetaData rawMetaData=doGetArtifactMetadata(artifactId,resource);
+  ExternalResourceResolverDescriptorParseContext context=new ExternalResourceResolverDescriptorParseContext(nestedResolver,this,artifactId.getModuleRevisionId());
+  LocallyAvailableExternalResource cachedResource;
+  try {
+    cachedResource=repositoryCacheManager.downloadAndCacheArtifactFile(artifactId,resourceDownloader,resource);
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+  MutableModuleVersionMetaData rawMetaData=metaDataParser.parseMetaData(context,cachedResource);
   return processRawMetaData(rawMetaData);
 }
