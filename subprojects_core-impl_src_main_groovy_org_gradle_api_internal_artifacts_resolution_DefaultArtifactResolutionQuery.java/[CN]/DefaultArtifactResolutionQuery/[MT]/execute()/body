@@ -1,0 +1,16 @@
+{
+  final List<Dependency> artifactDependencies=createArtifactDependencies();
+  Configuration configuration=configurationContainer.detachedConfiguration(artifactDependencies.toArray(new Dependency[artifactDependencies.size()]));
+  Multimap<ComponentIdentifier,JvmLibraryArtifact> jvmLibraryArtifacts=ArrayListMultimap.create();
+  LenientConfiguration lenientConfiguration=configuration.getResolvedConfiguration().getLenientConfiguration();
+  Set<ResolvedArtifact> resolvedArtifacts=lenientConfiguration.getArtifacts(Specs.satisfyAll());
+  for (  ResolvedArtifact artifact : resolvedArtifacts) {
+    ModuleComponentIdentifier componentId=toComponentIdentifier(artifact.getModuleVersion().getId());
+    jvmLibraryArtifacts.put(componentId,toJvmLibraryArtifact(artifact));
+  }
+  Set<JvmLibrary> jvmLibraries=Sets.newHashSet();
+  for (  Map.Entry<ComponentIdentifier,Collection<JvmLibraryArtifact>> entry : jvmLibraryArtifacts.asMap().entrySet()) {
+    jvmLibraries.add(new DefaultJvmLibrary(entry.getKey(),ImmutableList.copyOf(entry.getValue())));
+  }
+  return new DefaultArtifactResolutionQueryResult(jvmLibraries);
+}
