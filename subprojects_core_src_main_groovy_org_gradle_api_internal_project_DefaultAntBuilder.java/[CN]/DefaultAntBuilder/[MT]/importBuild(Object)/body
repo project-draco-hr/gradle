@@ -1,0 +1,26 @@
+{
+  File file=gradleProject.file(antBuildFile);
+  final File baseDir=file.getParentFile();
+  Set<String> existingAntTargets=new HashSet<String>(getAntProject().getTargets().keySet());
+  File oldBaseDir=getAntProject().getBaseDir();
+  getAntProject().setBaseDir(baseDir);
+  try {
+    getAntProject().setUserProperty(MagicNames.ANT_FILE,file.getAbsolutePath());
+    ProjectHelper.configureProject(getAntProject(),file);
+  }
+ catch (  Exception e) {
+    throw new GradleException("Could not import Ant build file '" + String.valueOf(file) + "'.",e);
+  }
+ finally {
+    getAntProject().setBaseDir(oldBaseDir);
+  }
+  getAntProject().getTargets().remove("");
+  Set<String> newAntTargets=new HashSet<String>(getAntProject().getTargets().keySet());
+  newAntTargets.removeAll(existingAntTargets);
+  for (  String name : newAntTargets) {
+    Target target=getAntProject().getTargets().get(name);
+    AntTarget task=gradleProject.getTasks().create(target.getName(),AntTarget.class);
+    task.setTarget(target);
+    task.setBaseDir(baseDir);
+  }
+}
