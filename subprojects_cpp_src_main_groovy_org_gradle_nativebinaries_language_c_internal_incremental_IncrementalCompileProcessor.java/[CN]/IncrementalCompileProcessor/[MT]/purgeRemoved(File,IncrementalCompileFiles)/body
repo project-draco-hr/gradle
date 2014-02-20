@@ -1,12 +1,12 @@
 {
-  FileState state=fileStateCache.get(removed);
-  if (state == null || result.getTouchedSources().contains(removed)) {
+  FileState state=fileStateCache.get(removedSource);
+  if (state == null || result.getTouchedSources().contains(removedSource)) {
     return;
   }
-  fileStateCache.remove(removed);
-  for (  SourceDependency sourceDependency : state.getDependencies()) {
-    if (!sourceDependency.isUnknown()) {
-      purgeRemoved(sourceDependency.getFile(),result);
+  fileStateCache.remove(removedSource);
+  for (  ResolvedInclude resolvedInclude : resolveIncludes(removedSource,state.getIncludes())) {
+    if (!resolvedInclude.isUnknown()) {
+      purgeRemoved(resolvedInclude.getFile(),result);
     }
   }
 }

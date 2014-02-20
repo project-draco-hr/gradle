@@ -12,13 +12,25 @@
     state=new FileState();
   }
   byte[] currentHash=snapshotter.snapshot(file).getHash();
+  Set<ResolvedInclude> resolvedIncludes;
   if (hasChanged(state,currentHash)) {
+    SourceIncludes sourceIncludes=sourceIncludesParser.parseIncludes(file);
+    resolvedIncludes=resolveIncludes(file,sourceIncludes);
     changed=true;
     state.setHash(currentHash);
-    state.setDependencies(dependencyParser.parseDependencies(file));
+    state.setIncludes(sourceIncludes);
+    state.setResolvedIncludes(resolvedIncludes);
     saveState(file,state);
   }
-  for (  SourceDependency dep : state.getDependencies()) {
+ else {
+    resolvedIncludes=resolveIncludes(file,state.getIncludes());
+    if (!state.getResolvedIncludes().equals(resolvedIncludes)) {
+      changed=true;
+      state.setResolvedIncludes(resolvedIncludes);
+      saveState(file,state);
+    }
+  }
+  for (  ResolvedInclude dep : resolvedIncludes) {
     if (dep.isUnknown()) {
       LOGGER.info(String.format("Cannot determine changed state of included '%s' in source file '%s'. Assuming changed.",dep.getInclude(),file.getName()));
       changed=true;
