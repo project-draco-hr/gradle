@@ -3,7 +3,11 @@
   Enumeration dependencies=target.getDependencies();
   while (dependencies.hasMoreElements()) {
     String name=(String)dependencies.nextElement();
-    tasks.add(getProject().getTasks().getByName(name));
+    Task dependency=getProject().getTasks().findByName(name);
+    if (dependency == null) {
+      throw new UnknownTaskException(String.format("Imported Ant target '%s' depends on target or task '%s' which does not exist",getName(),name));
+    }
+    tasks.add(dependency);
   }
   return tasks;
 }
