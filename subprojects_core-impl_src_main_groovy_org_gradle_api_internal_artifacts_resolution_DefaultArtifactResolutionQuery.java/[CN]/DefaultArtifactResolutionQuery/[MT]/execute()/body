@@ -12,5 +12,9 @@
   for (  Map.Entry<ComponentIdentifier,Collection<JvmLibraryArtifact>> entry : jvmLibraryArtifacts.asMap().entrySet()) {
     jvmLibraries.add(new DefaultJvmLibrary(entry.getKey(),ImmutableList.copyOf(entry.getValue())));
   }
-  return new DefaultArtifactResolutionQueryResult(jvmLibraries);
+  Set<UnresolvedSoftwareComponent> unresolvedComponents=Sets.newHashSet();
+  for (  UnresolvedDependency dependency : lenientConfiguration.getUnresolvedModuleDependencies()) {
+    unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(toComponentIdentifier(dependency.getSelector()),dependency.getProblem()));
+  }
+  return new DefaultArtifactResolutionQueryResult(jvmLibraries,unresolvedComponents);
 }
