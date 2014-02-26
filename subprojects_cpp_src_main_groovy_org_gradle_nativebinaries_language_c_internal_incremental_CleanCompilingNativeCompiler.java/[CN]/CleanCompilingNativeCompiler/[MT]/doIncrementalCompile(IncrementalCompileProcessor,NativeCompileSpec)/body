@@ -1,5 +1,9 @@
 {
   processor.processSourceFiles(spec.getSourceFiles());
-  cleanPreviousOutputs(spec);
-  return delegateCompiler.execute(spec);
+  boolean deleted=cleanPreviousOutputs(spec);
+  WorkResult compileResult=delegateCompiler.execute(spec);
+  if (deleted && !compileResult.getDidWork()) {
+    return new SimpleWorkResult(deleted);
+  }
+  return compileResult;
 }
