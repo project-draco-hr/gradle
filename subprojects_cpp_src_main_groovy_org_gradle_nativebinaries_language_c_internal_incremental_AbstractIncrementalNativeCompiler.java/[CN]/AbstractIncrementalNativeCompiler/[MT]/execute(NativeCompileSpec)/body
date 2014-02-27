@@ -1,9 +1,15 @@
 {
-  return cacheAccess.useCache("incremental compile",new Factory<WorkResult>(){
-    public WorkResult create(){
-      IncrementalCompileProcessor processor=createProcessor(includes);
-      return doIncrementalCompile(processor,spec);
+  final PersistentCache cache=openCache(task);
+  try {
+    return cache.useCache("incremental compile",new Factory<WorkResult>(){
+      public WorkResult create(){
+        IncrementalCompileProcessor processor=createProcessor(includes,cache);
+        return doIncrementalCompile(processor,spec);
+      }
     }
-  }
 );
+  }
+  finally {
+    cache.close();
+  }
 }
