@@ -1,0 +1,18 @@
+{
+  if (startIndex >= parts.length) {
+    return END_OF_PATH_MATCHER;
+  }
+  int pos=startIndex;
+  while (pos < parts.length && parts[pos].equals("**")) {
+    pos++;
+  }
+  if (pos > startIndex) {
+    return new GreedyPathMatcher(compile(parts,pos,caseSensitive));
+  }
+  List<PatternStep> steps=new ArrayList<PatternStep>(parts.length - startIndex);
+  while (pos < parts.length && !parts[pos].equals("**")) {
+    steps.add(PatternStepFactory.getStep(parts[pos],caseSensitive));
+    pos++;
+  }
+  return new FixedStepsPathMatcher(steps,compile(parts,pos,caseSensitive));
+}
