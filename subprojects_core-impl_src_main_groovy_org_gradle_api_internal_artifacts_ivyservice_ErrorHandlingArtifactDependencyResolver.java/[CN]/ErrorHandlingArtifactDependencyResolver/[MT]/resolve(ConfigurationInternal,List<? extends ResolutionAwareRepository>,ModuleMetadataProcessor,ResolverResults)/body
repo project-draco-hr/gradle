@@ -1,12 +1,12 @@
 {
-  final ResolverResults results;
   try {
-    results=dependencyResolver.resolve(configuration,repositories,metadataProcessor);
+    dependencyResolver.resolve(configuration,repositories,metadataProcessor,results);
   }
  catch (  final Throwable e) {
-    return new ResolverResults(new BrokenResolvedConfiguration(e,configuration),wrapException(e,configuration));
+    results.failed(new BrokenResolvedConfiguration(e,configuration),wrapException(e,configuration));
+    return;
   }
   ResolvedConfiguration wrappedConfiguration=new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(),configuration);
   ResolutionResult wrappedResult=new ErrorHandlingResolutionResult(results.getResolutionResult(),configuration);
-  return new ResolverResults(wrappedConfiguration,wrappedResult);
+  results.resolved(wrappedConfiguration,wrappedResult);
 }
