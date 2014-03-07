@@ -1,23 +1,47 @@
 {
-  final List<Dependency> artifactDependencies=createArtifactDependencies();
-  Configuration configuration=configurationContainer.detachedConfiguration(artifactDependencies.toArray(new Dependency[artifactDependencies.size()]));
-  LenientConfiguration lenientConfiguration=configuration.getResolvedConfiguration().getLenientConfiguration();
-  Set<UnresolvedSoftwareComponent> unresolvedComponents=Sets.newHashSet();
-  Set<ModuleComponentIdentifier> unresolvedComponentIds=Sets.newHashSet();
-  for (  UnresolvedDependency dependency : lenientConfiguration.getUnresolvedModuleDependencies()) {
-    ModuleComponentIdentifier id=toComponentIdentifier(dependency.getSelector());
-    unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(id,dependency.getProblem()));
-    unresolvedComponentIds.add(id);
+  List<ResolutionAwareRepository> repositories=CollectionUtils.collect(repositoryHandler,Transformers.cast(ResolutionAwareRepository.class));
+  ConfigurationInternal configuration=configurationContainer.detachedConfiguration();
+  final DependencyToModuleVersionResolver resolver=ivyFactory.create(configuration,repositories,metadataProcessor);
+  return lockingManager.useCache("resolve artifacts",new Factory<ArtifactResolutionQueryResult>(){
+    public ArtifactResolutionQueryResult create(){
+      Set<JvmLibrary> jvmLibraries=Sets.newHashSet();
+      Set<UnresolvedSoftwareComponent> unresolvedComponents=Sets.newHashSet();
+      for (      ModuleComponentIdentifier componentId : componentIds) {
+        BuildableModuleVersionResolveResult moduleResolveResult=new DefaultBuildableModuleVersionResolveResult();
+        resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(componentId),true)),moduleResolveResult);
+        if (moduleResolveResult.getFailure() != null) {
+          unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(componentId,moduleResolveResult.getFailure()));
+        }
+ else {
+          moduleResolveResult.setArtifactResolver(new ErrorHandlingArtifactResolver(moduleResolveResult.getArtifactResolver()));
+          List<JvmLibraryArtifact> jvmLibraryArtifacts=Lists.newArrayList();
+          for (          Class<? extends SoftwareArtifact> artifactType : artifactTypes) {
+            if (artifactType == JvmLibraryJavadocArtifact.class) {
+              Artifact artifact=new DefaultArtifact(toModuleRevisionId(componentId),null,componentId.getModule(),"javadoc","jar",ImmutableMap.of("m:classifier","javadoc"));
+              DefaultBuildableArtifactResolveResult artifactResolveResult=new DefaultBuildableArtifactResolveResult();
+              moduleResolveResult.getArtifactResolver().resolve(new DefaultModuleVersionArtifactMetaData(moduleResolveResult.getId(),artifact),artifactResolveResult);
+              if (artifactResolveResult.getFailure() != null) {
+              }
+ else {
+                jvmLibraryArtifacts.add(new DefaultJvmLibraryJavadocArtifact(artifactResolveResult.getFile()));
+              }
+            }
+ else             if (artifactType == JvmLibrarySourcesArtifact.class) {
+              Artifact artifact=new DefaultArtifact(toModuleRevisionId(componentId),null,componentId.getModule(),"source","jar",ImmutableMap.of("m:classifier","sources"));
+              DefaultBuildableArtifactResolveResult artifactResolveResult=new DefaultBuildableArtifactResolveResult();
+              moduleResolveResult.getArtifactResolver().resolve(new DefaultModuleVersionArtifactMetaData(moduleResolveResult.getId(),artifact),artifactResolveResult);
+              if (artifactResolveResult.getFailure() != null) {
+              }
+ else {
+                jvmLibraryArtifacts.add(new DefaultJvmLibrarySourcesArtifact(artifactResolveResult.getFile()));
+              }
+            }
+          }
+          jvmLibraries.add(new DefaultJvmLibrary(componentId,jvmLibraryArtifacts));
+        }
+      }
+      return new DefaultArtifactResolutionQueryResult(jvmLibraries,unresolvedComponents);
+    }
   }
-  Multimap<ModuleComponentIdentifier,JvmLibraryArtifact> jvmLibraryArtifacts=ArrayListMultimap.create();
-  for (  ResolvedArtifact artifact : lenientConfiguration.getArtifacts(Specs.satisfyAll())) {
-    ModuleComponentIdentifier componentId=toComponentIdentifier(artifact.getModuleVersion().getId());
-    jvmLibraryArtifacts.put(componentId,toJvmLibraryArtifact(artifact));
-  }
-  Set<JvmLibrary> jvmLibraries=Sets.newHashSet();
-  Set<ModuleComponentIdentifier> resolvedComponentIds=Sets.difference(componentIds,unresolvedComponentIds);
-  for (  ModuleComponentIdentifier id : resolvedComponentIds) {
-    jvmLibraries.add(new DefaultJvmLibrary(id,ImmutableList.copyOf(jvmLibraryArtifacts.get(id))));
-  }
-  return new DefaultArtifactResolutionQueryResult(jvmLibraries,unresolvedComponents);
+);
 }
