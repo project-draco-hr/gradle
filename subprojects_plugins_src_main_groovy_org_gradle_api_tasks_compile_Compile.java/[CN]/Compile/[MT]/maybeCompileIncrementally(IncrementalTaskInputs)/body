@@ -13,15 +13,22 @@
   }
   SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
   SelectiveJavaCompiler compiler=new SelectiveJavaCompiler(javaCompiler);
-  SelectiveCompilation selectiveCompilation=new SelectiveCompilation(inputs,getSource(),getClasspath(),getDestinationDir(),getDependencyInfoSerializer(),getJarDeltaProvider(),compiler,sourceDirs);
+  SelectiveCompilation selectiveCompilation=new SelectiveCompilation(inputs,getSource(),getClasspath(),getDestinationDir(),getDependencyInfoSerializer(),getJarSnapshotCache(),compiler,sourceDirs);
   if (!selectiveCompilation.getCompilationNeeded()) {
     LOG.lifecycle("{} does not require recompilation. Skipping the compiler.",getPath());
     return true;
   }
   Clock clock=new Clock();
   FileCollection sourceToCompile=selectiveCompilation.getSource();
-  performCompilation(sourceToCompile,selectiveCompilation.getClasspath(),compiler);
-  LOG.lifecycle("{} - incremental compilation took {}",getPath(),clock.getTime());
-  selectiveCompilation.compilationComplete();
+  try {
+    performCompilation(sourceToCompile,selectiveCompilation.getClasspath(),compiler);
+    selectiveCompilation.compilationComplete(true);
+  }
+ catch (  Throwable t) {
+    selectiveCompilation.compilationComplete(false);
+  }
+ finally {
+    LOG.lifecycle("{} - incremental compilation took {}",getPath(),clock.getTime());
+  }
   return true;
 }
