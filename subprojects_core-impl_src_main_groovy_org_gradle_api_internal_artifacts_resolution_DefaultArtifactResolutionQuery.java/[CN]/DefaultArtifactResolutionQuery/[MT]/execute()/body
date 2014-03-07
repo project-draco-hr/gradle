@@ -6,18 +6,22 @@
     public ArtifactResolutionQueryResult create(){
       Set<JvmLibrary> jvmLibraries=Sets.newHashSet();
       Set<UnresolvedSoftwareComponent> unresolvedComponents=Sets.newHashSet();
-      for (      ModuleComponentIdentifier componentId : componentIds) {
+      for (      ComponentIdentifier componentId : componentIds) {
+        if (!(componentId instanceof ModuleComponentIdentifier)) {
+          throw new AssertionError(String.format("cannot handle component identifiers of type %s",componentId.getClass().getName()));
+        }
+        ModuleComponentIdentifier moduleComponentId=(ModuleComponentIdentifier)componentId;
         BuildableModuleVersionResolveResult moduleResolveResult=new DefaultBuildableModuleVersionResolveResult();
-        resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(componentId),true)),moduleResolveResult);
+        resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId),true)),moduleResolveResult);
         if (moduleResolveResult.getFailure() != null) {
-          unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(componentId,moduleResolveResult.getFailure()));
+          unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId,moduleResolveResult.getFailure()));
         }
  else {
           moduleResolveResult.setArtifactResolver(new ErrorHandlingArtifactResolver(moduleResolveResult.getArtifactResolver()));
           List<JvmLibraryArtifact> jvmLibraryArtifacts=Lists.newArrayList();
           for (          Class<? extends SoftwareArtifact> artifactType : artifactTypes) {
             if (artifactType == JvmLibraryJavadocArtifact.class) {
-              Artifact artifact=new DefaultArtifact(toModuleRevisionId(componentId),null,componentId.getModule(),"javadoc","jar",ImmutableMap.of("m:classifier","javadoc"));
+              Artifact artifact=new DefaultArtifact(toModuleRevisionId(moduleComponentId),null,moduleComponentId.getModule(),"javadoc","jar",ImmutableMap.of("m:classifier","javadoc"));
               DefaultBuildableArtifactResolveResult artifactResolveResult=new DefaultBuildableArtifactResolveResult();
               moduleResolveResult.getArtifactResolver().resolve(new DefaultModuleVersionArtifactMetaData(moduleResolveResult.getId(),artifact),artifactResolveResult);
               if (artifactResolveResult.getFailure() != null) {
@@ -28,7 +32,7 @@
               }
             }
  else             if (artifactType == JvmLibrarySourcesArtifact.class) {
-              Artifact artifact=new DefaultArtifact(toModuleRevisionId(componentId),null,componentId.getModule(),"source","jar",ImmutableMap.of("m:classifier","sources"));
+              Artifact artifact=new DefaultArtifact(toModuleRevisionId(moduleComponentId),null,moduleComponentId.getModule(),"source","jar",ImmutableMap.of("m:classifier","sources"));
               DefaultBuildableArtifactResolveResult artifactResolveResult=new DefaultBuildableArtifactResolveResult();
               moduleResolveResult.getArtifactResolver().resolve(new DefaultModuleVersionArtifactMetaData(moduleResolveResult.getId(),artifact),artifactResolveResult);
               if (artifactResolveResult.getFailure() != null) {
@@ -39,7 +43,7 @@
               }
             }
           }
-          jvmLibraries.add(new DefaultJvmLibrary(componentId,jvmLibraryArtifacts));
+          jvmLibraries.add(new DefaultJvmLibrary(moduleComponentId,jvmLibraryArtifacts));
         }
       }
       return new DefaultArtifactResolutionQueryResult(jvmLibraries,unresolvedComponents);
