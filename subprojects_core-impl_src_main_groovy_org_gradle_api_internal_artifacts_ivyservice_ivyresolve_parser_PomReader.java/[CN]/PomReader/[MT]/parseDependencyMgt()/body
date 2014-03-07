@@ -1,18 +1,12 @@
 {
   if (declaredDependencyMgts == null) {
-    List<PomDependencyMgt> depMgmtElements=new ArrayList<PomDependencyMgt>();
-    Element dependenciesElement=getFirstChildElement(projectElement,DEPENDENCY_MGT);
-    dependenciesElement=getFirstChildElement(dependenciesElement,DEPENDENCIES);
-    if (dependenciesElement != null) {
-      NodeList childs=dependenciesElement.getChildNodes();
-      for (int i=0; i < childs.getLength(); i++) {
-        Node node=childs.item(i);
-        if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-          depMgmtElements.add(new PomDependencyMgtElement((Element)node));
-        }
+    List<PomDependencyMgt> dependencyMgts=getDependencyMgt(projectElement);
+    for (    PomProfile pomProfile : parseActivePomProfiles()) {
+      for (      PomDependencyMgt dependencyMgt : pomProfile.getDependencyMgts()) {
+        dependencyMgts.add(dependencyMgt);
       }
     }
-    declaredDependencyMgts=depMgmtElements;
+    declaredDependencyMgts=dependencyMgts;
   }
   return declaredDependencyMgts;
 }
