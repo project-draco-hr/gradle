@@ -1,21 +1,12 @@
 {
   for (  ToolChainInternal toolChain : searchOrder) {
-    if (toolChain.canTargetPlatform(targetPlatform).isAvailable()) {
+    if (toolChain.target(targetPlatform).isAvailable()) {
       return toolChain;
     }
   }
-  TreeFormatter failureMessage=new TreeFormatter();
-  failureMessage.node(String.format("No tool chain is available to build for platform '%s'",targetPlatform.getName()));
-  failureMessage.startChildren();
+  Map<String,PlatformToolChain> candidates=new LinkedHashMap<String,PlatformToolChain>();
   for (  ToolChainInternal toolChain : searchOrder) {
-    failureMessage.node(toolChain.getDisplayName());
-    failureMessage.startChildren();
-    toolChain.canTargetPlatform(targetPlatform).explain(failureMessage);
-    failureMessage.endChildren();
+    candidates.put(toolChain.getDisplayName(),toolChain.target(targetPlatform));
   }
-  if (searchOrder.isEmpty()) {
-    failureMessage.node("No tool chain plugin applied.");
-  }
-  failureMessage.endChildren();
-  return new UnavailableToolChain(failureMessage.toString());
+  return new UnavailableToolChain(new UnavailableToolChainDescription(targetPlatform,candidates));
 }
