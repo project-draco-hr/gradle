@@ -1,5 +1,6 @@
 {
-  this.jarSnapshotFeeder=new JarSnapshotFeeder(jarSnapshotCache);
+  this.operations=operations;
+  this.jarSnapshotFeeder=new JarSnapshotFeeder(jarSnapshotCache,new JarSnapshotter(new DefaultHasher()));
   this.compiler=compiler;
   Clock clock=new Clock();
   final InputOutputMapper mapper=new InputOutputMapper(sourceDirs,compileDestination);
@@ -28,9 +29,9 @@
         }
       }
       if (name.endsWith(".jar")) {
-        FileTree jarContents=operations.zipTree(inputFileDetails.getFile());
+        JarArchive jarArchive=new JarArchive(inputFileDetails.getFile(),operations.zipTree(inputFileDetails.getFile()));
         JarChangeProcessor processor=new JarChangeProcessor(jarSnapshotFeeder);
-        RebuildInfo info=processor.processJarChange(inputFileDetails,jarContents);
+        RebuildInfo info=processor.processJarChange(inputFileDetails,jarArchive);
         if (info.isFullRebuildRequired()) {
           fullRebuildNeeded="change to " + inputFile + " requires full rebuild";
           return;
