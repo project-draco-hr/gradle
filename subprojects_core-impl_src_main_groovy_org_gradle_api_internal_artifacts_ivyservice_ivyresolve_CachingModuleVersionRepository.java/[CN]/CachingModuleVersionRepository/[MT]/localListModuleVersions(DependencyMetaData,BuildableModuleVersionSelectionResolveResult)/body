@@ -1,11 +1,16 @@
 {
   ModuleVersionSelector requested=dependency.getRequested();
-  ModuleIdentifier moduleId=moduleExtractor.transform(requested);
+  final ModuleIdentifier moduleId=moduleExtractor.transform(requested);
   ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList=moduleVersionsCache.getCachedModuleResolution(delegate,moduleId);
   if (cachedModuleVersionList != null) {
-    ModuleVersions versionList=cachedModuleVersionList.getModuleVersions();
-    ModuleVersionIdentifier requestedId=new DefaultModuleVersionIdentifier(requested.getGroup(),requested.getName(),requested.getVersion());
-    if (cachePolicy.mustRefreshDynamicVersion(requested,requestedId,cachedModuleVersionList.getAgeMillis())) {
+    ModuleVersionListing versionList=cachedModuleVersionList.getModuleVersions();
+    Set<ModuleVersionIdentifier> versions=CollectionUtils.collect(versionList.getVersions(),new Transformer<ModuleVersionIdentifier,Versioned>(){
+      public ModuleVersionIdentifier transform(      Versioned original){
+        return new DefaultModuleVersionIdentifier(moduleId,original.getVersion());
+      }
+    }
+);
+    if (cachePolicy.mustRefreshVersionList(moduleId,versions,cachedModuleVersionList.getAgeMillis())) {
       LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'",requested,delegate.getName());
     }
  else {
