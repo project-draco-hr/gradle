@@ -1,22 +1,25 @@
 {
-  classOutputProviders=new HashMap<Long,TestResultsProvider>();
-  idMappings=new HashMap<Long,Long>();
-  final Set<String> seenClasses=new HashSet<String>();
-  final long[] newIdCounter={1};
+  final Map<String,OverlayedIdProxyingTestClassResult> aggregatedTestResults=new LinkedHashMap<String,OverlayedIdProxyingTestClassResult>();
+  classOutputProviders=ArrayListMultimap.create();
+  final AtomicLong newIdCounter=new AtomicLong(0L);
   for (  final TestResultsProvider provider : providers) {
     provider.visitClasses(new Action<TestClassResult>(){
-      public void execute(      TestClassResult classResult){
-        if (!seenClasses.add(classResult.getClassName())) {
-          LOGGER.warn("Discarding duplicate results for test class {}.",classResult.getClassName());
-          return;
+      public void execute(      final TestClassResult classResult){
+        OverlayedIdProxyingTestClassResult newTestResult=aggregatedTestResults.get(classResult.getClassName());
+        if (newTestResult != null) {
+          newTestResult.addTestClassResult(classResult);
         }
-        long newId=newIdCounter[0]++;
-        classOutputProviders.put(newId,provider);
-        idMappings.put(newId,classResult.getId());
-        TestClassResult newIdResult=new OverlayedIdTestClassResult(newId,classResult);
-        visitor.execute(newIdResult);
+ else {
+          long newId=newIdCounter.incrementAndGet();
+          newTestResult=new OverlayedIdProxyingTestClassResult(newId,classResult);
+          aggregatedTestResults.put(classResult.getClassName(),newTestResult);
+        }
+        classOutputProviders.put(newTestResult.getId(),new DelegateProvider(classResult.getId(),provider));
       }
     }
 );
+  }
+  for (  OverlayedIdProxyingTestClassResult classResult : aggregatedTestResults.values()) {
+    visitor.execute(classResult);
   }
 }

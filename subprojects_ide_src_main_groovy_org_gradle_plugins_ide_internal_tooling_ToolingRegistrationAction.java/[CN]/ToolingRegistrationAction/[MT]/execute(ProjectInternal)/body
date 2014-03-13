@@ -1,8 +1,12 @@
 {
   ToolingModelBuilderRegistry modelBuilderRegistry=project.getServices().get(ToolingModelBuilderRegistry.class);
-  modelBuilderRegistry.register(new EclipseModelBuilder());
-  modelBuilderRegistry.register(new IdeaModelBuilder());
-  modelBuilderRegistry.register(new GradleProjectBuilder());
+  ProjectPublicationRegistry projectPublicationRegistry=project.getServices().get(ProjectPublicationRegistry.class);
+  GradleProjectBuilder gradleProjectBuilder=new GradleProjectBuilder(projectPublicationRegistry);
+  IdeaModelBuilder ideaModelBuilder=new IdeaModelBuilder(gradleProjectBuilder);
+  modelBuilderRegistry.register(new EclipseModelBuilder(gradleProjectBuilder));
+  modelBuilderRegistry.register(ideaModelBuilder);
+  modelBuilderRegistry.register(gradleProjectBuilder);
   modelBuilderRegistry.register(new GradleBuildBuilder());
-  modelBuilderRegistry.register(new BasicIdeaModelBuilder());
+  modelBuilderRegistry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
+  modelBuilderRegistry.register(new BuildInvocationsBuilder());
 }

@@ -11,13 +11,12 @@
   }
   localAddresses=new ArrayList<InetAddress>();
   remoteAddresses=new ArrayList<InetAddress>();
-  allAddresses=new HashSet<InetAddress>();
   Enumeration<NetworkInterface> interfaces=NetworkInterface.getNetworkInterfaces();
   while (interfaces.hasMoreElements()) {
     NetworkInterface networkInterface=interfaces.nextElement();
     LOGGER.debug("Adding IP addresses for network interface {}",networkInterface.getName());
     try {
-      Boolean isLoopbackInterface=null;
+      Boolean isLoopbackInterface;
       try {
         isLoopbackInterface=loopbackMethod == null ? null : (Boolean)loopbackMethod.invoke(networkInterface);
       }
@@ -31,7 +30,6 @@
       Enumeration<InetAddress> candidates=networkInterface.getInetAddresses();
       while (candidates.hasMoreElements()) {
         InetAddress candidate=candidates.nextElement();
-        allAddresses.add(candidate);
         if (isLoopbackInterface == null) {
           if (candidate.isLoopbackAddress()) {
             LOGGER.debug("Adding loopback address {}",candidate);

@@ -1,0 +1,11 @@
+{
+  if (type.getName().equals(BuildInvocations.class.getName()) && !versionDetails.maySupportModel(type)) {
+    if (!versionDetails.maySupportModel(GradleBuild.class)) {
+      throw Exceptions.unsupportedModel(type,versionDetails.getVersion());
+    }
+    GradleProject gradleProject=delegate.produceModel(GradleProject.class,operationParameters);
+    final DefaultBuildInvocations convert=new BuildInvocationsConverter().convert(gradleProject);
+    return adapter.adapt(type,convert);
+  }
+  return delegate.produceModel(type,operationParameters);
+}

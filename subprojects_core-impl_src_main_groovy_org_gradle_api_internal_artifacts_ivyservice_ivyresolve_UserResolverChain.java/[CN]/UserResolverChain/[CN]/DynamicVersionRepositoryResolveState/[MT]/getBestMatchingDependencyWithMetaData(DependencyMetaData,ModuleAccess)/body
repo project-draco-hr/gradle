@@ -1,0 +1,17 @@
+{
+  ModuleVersionSelector selector=dependency.getRequested();
+  for (  Versioned candidate : selectionResult.getVersions().sortLatestFirst(latestStrategy)) {
+    DependencyMetaData moduleVersionDependency=dependency.withRequestedVersion(candidate.getVersion());
+    moduleAccess.getDependency(moduleVersionDependency,resolveResult);
+    if (resolveResult.getState() != BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+      LOGGER.warn("Could not load metadata for '{}' of listed module '{}' - ignoring.",candidate,selector);
+      resolveResult.reset();
+      return true;
+    }
+    if (versionMatcher.accept(selector.getVersion(),resolveResult.getMetaData())) {
+      return true;
+    }
+    resolveResult.reset();
+  }
+  return false;
+}

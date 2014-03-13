@@ -1,11 +1,16 @@
 {
   for (  TestMethodResult methodResult : methodResults) {
-    String testCase=methodResult.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
-    writer.startElement(testCase).attribute("name",methodResult.getName()).attribute("classname",className).attribute("time",String.valueOf(methodResult.getDuration() / 1000.0));
-    for (    TestFailure failure : methodResult.getFailures()) {
-      writer.startElement("failure").attribute("message",failure.getMessage()).attribute("type",failure.getExceptionType());
-      writer.characters(failure.getStackTrace());
+    writer.startElement("testcase").attribute("name",methodResult.getName()).attribute("classname",className).attribute("time",String.valueOf(methodResult.getDuration() / 1000.0));
+    if (methodResult.getResultType() == TestResult.ResultType.SKIPPED) {
+      writer.startElement("skipped");
       writer.endElement();
+    }
+ else {
+      for (      TestFailure failure : methodResult.getFailures()) {
+        writer.startElement("failure").attribute("message",failure.getMessage()).attribute("type",failure.getExceptionType());
+        writer.characters(failure.getStackTrace());
+        writer.endElement();
+      }
     }
     if (outputAssociation.equals(TestOutputAssociation.WITH_TESTCASE)) {
       writer.startElement("system-out");

@@ -1,0 +1,17 @@
+{
+  ArtifactIdentifier artifactIdentifier=getMetaDataArtifactFor(dependency);
+  if (artifactIdentifier == null) {
+    return null;
+  }
+  ExternalResource metaDataResource=artifactResolver.resolveMetaDataArtifact(artifactIdentifier);
+  if (metaDataResource == null) {
+    return null;
+  }
+  MutableModuleVersionMetaData moduleVersionMetaData=getArtifactMetadata(artifactIdentifier,metaDataResource);
+  if (isCheckconsistency()) {
+    ModuleVersionSelector requested=dependency.getRequested();
+    ModuleVersionIdentifier requestedId=DefaultModuleVersionIdentifier.newId(requested.getGroup(),requested.getName(),requested.getVersion());
+    checkMetadataConsistency(requestedId,moduleVersionMetaData);
+  }
+  return moduleVersionMetaData;
+}

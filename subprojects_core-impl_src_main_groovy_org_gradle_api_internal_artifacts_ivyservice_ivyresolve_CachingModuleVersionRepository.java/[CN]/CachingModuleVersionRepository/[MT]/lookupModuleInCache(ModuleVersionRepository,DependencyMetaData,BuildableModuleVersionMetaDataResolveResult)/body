@@ -1,7 +1,7 @@
 {
   ModuleRevisionId resolvedModuleVersionId=dependency.getDescriptor().getDependencyRevisionId();
   ModuleVersionIdentifier moduleVersionIdentifier=newId(resolvedModuleVersionId);
-  ModuleMetaDataCache.CachedMetaData cachedMetaData=moduleMetaDataCache.getCachedModuleDescriptor(repository,moduleVersionIdentifier,resolver);
+  ModuleMetaDataCache.CachedMetaData cachedMetaData=moduleMetaDataCache.getCachedModuleDescriptor(repository,moduleVersionIdentifier);
   if (cachedMetaData == null) {
     return;
   }
@@ -19,7 +19,9 @@
     }
     return;
   }
-  if (cachedMetaData.getMetaData().isChanging() || dependency.isChanging()) {
+  MutableModuleVersionMetaData metaData=cachedMetaData.getMetaData();
+  metadataProcessor.process(metaData);
+  if (dependency.isChanging() || metaData.isChanging()) {
     if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier,cachedMetaData.getModuleVersion(),cachedMetaData.getAgeMillis())) {
       LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'",resolvedModuleVersionId,repository.getName());
       return;
@@ -33,5 +35,5 @@
     }
   }
   LOGGER.debug("Using cached module metadata for module '{}' in '{}'",resolvedModuleVersionId,repository.getName());
-  result.resolved(cachedMetaData.getMetaData(),new CachingModuleSource(cachedMetaData.getDescriptorHash(),cachedMetaData.getMetaData().isChanging(),cachedMetaData.getModuleSource()));
+  result.resolved(metaData,new CachingModuleSource(cachedMetaData.getDescriptorHash(),metaData.isChanging(),cachedMetaData.getModuleSource()));
 }

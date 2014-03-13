@@ -6,11 +6,18 @@
  catch (  Exception e) {
     throw new GradleException(String.format("Could not create ZIP '%s'.",zipFile),e);
   }
-  IoActions.withResource(zipOutStr,new Action<ZipOutputStream>(){
-    public void execute(    ZipOutputStream outputStream){
-      stream.process(new StreamAction(outputStream));
+  try {
+    IoActions.withResource(zipOutStr,new Action<ZipOutputStream>(){
+      public void execute(      ZipOutputStream outputStream){
+        stream.process(new StreamAction(outputStream));
+      }
+    }
+);
+  }
+ catch (  UncheckedIOException e) {
+    if (e.getCause() instanceof Zip64RequiredException) {
+      throw new org.gradle.api.tasks.bundling.internal.Zip64RequiredException(String.format("%s\n\nTo build this archive, please enable the zip64 extension.\nSee: %s",e.getCause().getMessage(),documentationRegistry.getDslRefForProperty(Zip.class,"zip64")));
     }
   }
-);
   return new SimpleWorkResult(true);
 }

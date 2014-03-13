@@ -1,0 +1,16 @@
+{
+  if (locked) {
+    throw new IllegalStateException("class loader scope is locked");
+  }
+  if (classpath.isEmpty()) {
+    return parent.getChildClassLoader();
+  }
+ else {
+    if (exportingClassLoader == null) {
+      exportingClassLoader=new MultiParentClassLoader();
+    }
+    ClassLoader classLoader=classLoaderCache.get(parent.getChildClassLoader(),classpath,null);
+    exportingClassLoader.addParent(classLoader);
+    return classLoader;
+  }
+}

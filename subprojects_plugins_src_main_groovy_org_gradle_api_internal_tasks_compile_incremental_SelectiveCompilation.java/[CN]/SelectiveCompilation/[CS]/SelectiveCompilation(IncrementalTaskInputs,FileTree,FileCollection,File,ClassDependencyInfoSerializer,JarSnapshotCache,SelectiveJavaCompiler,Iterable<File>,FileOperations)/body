@@ -1,0 +1,66 @@
+{
+  this.operations=operations;
+  this.jarSnapshotFeeder=new JarSnapshotFeeder(jarSnapshotCache,new JarSnapshotter(new DefaultHasher()));
+  this.compiler=compiler;
+  Clock clock=new Clock();
+  final InputOutputMapper mapper=new InputOutputMapper(sourceDirs,compileDestination);
+  final ClassDependencyInfo dependencyInfo=dependencyInfoSerializer.readInfo();
+  final PatternSet changedSourceOnly=new PatternSet();
+  inputs.outOfDate(new Action<InputFileDetails>(){
+    public void execute(    InputFileDetails inputFileDetails){
+      if (fullRebuildNeeded != null) {
+        return;
+      }
+      File inputFile=inputFileDetails.getFile();
+      String name=inputFile.getName();
+      if (name.endsWith(".java")) {
+        JavaSourceClass source=mapper.toJavaSourceClass(inputFile);
+        compiler.addStaleClass(source);
+        changedSourceOnly.include(source.getRelativePath());
+        Set<String> actualDependents=dependencyInfo.getActualDependents(source.getClassName());
+        if (actualDependents == null) {
+          fullRebuildNeeded="change to " + source.getClassName() + " requires full rebuild";
+          return;
+        }
+        for (        String d : actualDependents) {
+          JavaSourceClass dSource=mapper.toJavaSourceClass(d);
+          compiler.addStaleClass(dSource);
+          changedSourceOnly.include(dSource.getRelativePath());
+        }
+      }
+      if (name.endsWith(".jar")) {
+        JarArchive jarArchive=new JarArchive(inputFileDetails.getFile(),operations.zipTree(inputFileDetails.getFile()));
+        JarChangeProcessor processor=new JarChangeProcessor(jarSnapshotFeeder);
+        RebuildInfo info=processor.processJarChange(inputFileDetails,jarArchive);
+        if (info.isFullRebuildRequired()) {
+          fullRebuildNeeded="change to " + inputFile + " requires full rebuild";
+          return;
+        }
+        info.configureCompilation(changedSourceOnly,compiler,dependencyInfo);
+      }
+    }
+  }
+);
+  if (fullRebuildNeeded != null) {
+    LOG.lifecycle("Stale classes detection completed in {}. Rebuild needed: {}.",clock.getTime(),fullRebuildNeeded);
+    this.classpath=compileClasspath;
+    this.source=source;
+    return;
+  }
+  inputs.removed(new Action<InputFileDetails>(){
+    public void execute(    InputFileDetails inputFileDetails){
+      compiler.addStaleClass(mapper.toJavaSourceClass(inputFileDetails.getFile()));
+    }
+  }
+);
+  if (changedSourceOnly.getIncludes().isEmpty()) {
+    this.compilationNeeded=false;
+    this.classpath=compileClasspath;
+    this.source=source;
+  }
+ else {
+    this.classpath=compileClasspath.plus(new SimpleFileCollection(compileDestination));
+    this.source=source.matching(changedSourceOnly);
+  }
+  LOG.lifecycle("Stale classes detection completed in {}. Stale classes: {}, Compile include patterns: {}, Files to delete: {}",clock.getTime(),compiler.getStaleClasses().size(),changedSourceOnly.getIncludes(),compiler.getStaleClasses());
+}

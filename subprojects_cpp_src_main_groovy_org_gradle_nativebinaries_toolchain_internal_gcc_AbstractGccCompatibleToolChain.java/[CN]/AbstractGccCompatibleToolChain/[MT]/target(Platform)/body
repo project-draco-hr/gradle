@@ -1,8 +1,14 @@
 {
-  assertAvailable();
   TargetPlatformConfiguration platformConfiguration=getPlatformConfiguration(targetPlatform);
+  ToolChainAvailability result=new ToolChainAvailability();
   if (platformConfiguration == null) {
-    throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s",getName(),targetPlatform.getName()));
+    result.unavailable(String.format("Don't know how to build for platform '%s'.",targetPlatform.getName()));
+    return new UnavailablePlatformToolChain(result);
   }
-  return new GccPlatformToolChain(tools,execActionFactory,platformConfiguration,canUseCommandFile());
+  initTools(result);
+  if (!result.isAvailable()) {
+    return new UnavailablePlatformToolChain(result);
+  }
+  ToolRegistry platformTools=new PlatformToolRegistry(toolRegistry,platformConfiguration);
+  return new GccPlatformToolChain(toolSearchPath,platformTools,execActionFactory,canUseCommandFile());
 }

@@ -1,21 +1,15 @@
 {
-  String pluginId=request.getId();
-  Bintray bintrayClient=createBintrayClient();
-  List<Pkg> results=bintrayClient.subject(GRADLE_PLUGINS_ORG).repository(GRADLE_PLUGINS_REPO).searchForPackage().byAttributeName(PLUGIN_ID_ATTRIBUTE_NAME).equals(pluginId).search();
-  if (results.isEmpty()) {
-    throw new InvalidPluginRequestException("No plugins found for plugin id " + pluginId);
+  final String pluginId=request.getId();
+  String systemId=cacheSupplier.supplyTo(new Transformer<String,PersistentIndexedCache<PluginRequest,String>>(){
+    public String transform(    PersistentIndexedCache<PluginRequest,String> cache){
+      return doCacheAwareSearch(request,pluginId,cache);
+    }
   }
-  if (results.size() > 1) {
-    throw new InvalidPluginRequestException("Found more than one plugin for plugin id " + pluginId);
+);
+  if (systemId.equals(NOT_FOUND)) {
+    return null;
   }
-  Pkg pluginPackage=results.get(0);
-  List<String> systemIds=pluginPackage.systemIds();
-  if (systemIds.isEmpty()) {
-    throw new InvalidPluginRequestException("No artifacts in maven layout found for plugin id" + pluginId);
+ else {
+    return dependencyHandler.create(systemId + ":" + request.getVersion());
   }
-  String version=request.getVersion();
-  if (version == null) {
-    version=pluginPackage.latestVersion();
-  }
-  return dependencyHandler.create(systemIds.get(0) + ":" + version);
 }

@@ -1,12 +1,15 @@
 {
   ToolingModelBuilderRegistry modelBuilderRegistry;
   ProjectInternal project;
+  boolean isImplicitProject;
   if (target == null) {
     project=gradle.getDefaultProject();
+    isImplicitProject=true;
   }
  else   if (target instanceof GradleProjectIdentity) {
     GradleProjectIdentity gradleProject=(GradleProjectIdentity)target;
     project=gradle.getRootProject().project(gradleProject.getPath());
+    isImplicitProject=false;
   }
  else {
     throw new IllegalArgumentException("Don't know how to build models for " + target);
@@ -19,6 +22,12 @@
  catch (  UnknownModelException e) {
     throw (InternalUnsupportedModelException)(new InternalUnsupportedModelException()).initCause(e);
   }
-  Object model=builder.buildAll(modelIdentifier.getName(),project);
+  Object model;
+  if (builder instanceof ProjectSensitiveToolingModelBuilder) {
+    model=((ProjectSensitiveToolingModelBuilder)builder).buildAll(modelIdentifier.getName(),project,isImplicitProject);
+  }
+ else {
+    model=builder.buildAll(modelIdentifier.getName(),project);
+  }
   return new ProviderBuildResult<Object>(model);
 }

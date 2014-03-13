@@ -7,6 +7,8 @@
   ProjectInternal projectInternal=(ProjectInternal)getProject();
   CompilerDaemonManager compilerDaemonManager=getServices().get(CompilerDaemonManager.class);
   JavaCompilerFactory defaultCompilerFactory=new DefaultJavaCompilerFactory(projectInternal,antBuilderFactory,inProcessCompilerFactory,compilerDaemonManager);
-  Compiler<JavaCompileSpec> delegatingCompiler=new DelegatingJavaCompiler(defaultCompilerFactory);
-  javaCompiler=new IncrementalJavaCompiler(delegatingCompiler,antBuilderFactory,getOutputs());
+  javaCompiler=new DelegatingJavaCompiler(defaultCompilerFactory);
+  cleaningCompiler=new CleaningJavaCompiler(javaCompiler,antBuilderFactory,getOutputs());
+  JarSnapshotFeeder jarSnapshotFeeder=new JarSnapshotFeeder(getJarSnapshotCache(),new JarSnapshotter(new DefaultHasher()));
+  incrementalCompilation=new IncrementalCompilationSupport(jarSnapshotFeeder);
 }

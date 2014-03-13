@@ -1,0 +1,21 @@
+{
+  if (declaredActivePomProfiles == null) {
+    List<PomProfile> activePomProfiles=new ArrayList<PomProfile>();
+    Element profilesElement=getFirstChildElement(projectElement,PROFILES);
+    if (profilesElement != null) {
+      for (      Element profileElement : getAllChilds(profilesElement)) {
+        if (PROFILE.equals(profileElement.getNodeName())) {
+          Element activationElement=getFirstChildElement(profileElement,PROFILE_ACTIVATION);
+          if (activationElement != null) {
+            String activeByDefault=getFirstChildText(activationElement,PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT);
+            if (activeByDefault != null && "true".equals(activeByDefault)) {
+              activePomProfiles.add(new PomProfileElement(profileElement));
+            }
+          }
+        }
+      }
+    }
+    declaredActivePomProfiles=activePomProfiles;
+  }
+  return declaredActivePomProfiles;
+}
