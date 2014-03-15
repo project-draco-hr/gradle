@@ -1,7 +1,6 @@
 {
-  List<DefaultGradleTaskSelector> selectors=Lists.newArrayList();
   for (  GradleProject childProject : project.getChildren()) {
-    selectors.addAll(buildRecursively(childProject));
+    buildRecursively(childProject,selectors,tasks);
   }
   Multimap<String,String> aggregatedTasks=ArrayListMultimap.create();
   for (  DefaultGradleTaskSelector childSelector : selectors) {
@@ -9,9 +8,9 @@
   }
   for (  GradleTask task : project.getTasks()) {
     aggregatedTasks.put(task.getName(),task.getPath());
+    tasks.add(task);
   }
   for (  String selectorName : aggregatedTasks.keySet()) {
     selectors.add(new DefaultGradleTaskSelector().setName(selectorName).setTaskNames(Sets.newHashSet(aggregatedTasks.get(selectorName))).setDescription(project.getParent() != null ? String.format("%s:%s task selector",project.getPath(),selectorName) : String.format("%s task selector",selectorName)).setDisplayName(String.format("%s built in %s and subprojects.",selectorName,project.getName())));
   }
-  return selectors;
 }
