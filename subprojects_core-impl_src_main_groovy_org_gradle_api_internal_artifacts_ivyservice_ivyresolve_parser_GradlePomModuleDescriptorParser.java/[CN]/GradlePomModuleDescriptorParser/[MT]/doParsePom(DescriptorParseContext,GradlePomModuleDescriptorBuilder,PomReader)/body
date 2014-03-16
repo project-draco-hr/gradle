@@ -1,8 +1,8 @@
 {
   if (pomReader.hasParent()) {
-    ModuleRevisionId parentModRevID=IvyUtil.createModuleRevisionId(pomReader.getParentGroupId(),pomReader.getParentArtifactId(),pomReader.getParentVersion());
-    PomReader parentDescr=parseOtherPom(parserSettings,parentModRevID);
-    pomReader.setPomParent(parentDescr);
+    ModuleVersionIdentifier parentId=DefaultModuleVersionIdentifier.newId(pomReader.getParentGroupId(),pomReader.getParentArtifactId(),pomReader.getParentVersion());
+    PomReader parentPomReader=parseOtherPom(parserSettings,parentId);
+    pomReader.setPomParent(parentPomReader);
   }
   pomReader.resolveGAV();
   String groupId=pomReader.getGroupId();
@@ -18,7 +18,7 @@
       LOGGER.error("POM relocation to an other version number is not fully supported in Gradle : {} relocated to {}.",mdBuilder.getModuleDescriptor().getModuleRevisionId(),relocation);
       LOGGER.warn("Please update your dependency to directly use the correct version '{}'.",relocation);
       LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
-      PomReader relocatedModule=parseOtherPom(parserSettings,relocation);
+      PomReader relocatedModule=parseOtherPom(parserSettings,DefaultModuleVersionIdentifier.newId(relocation));
       Collection<PomDependencyData> pomDependencyDataList=relocatedModule.getDependencies().values();
       for (      PomDependencyData pomDependencyData : pomDependencyDataList) {
         mdBuilder.addDependency(pomDependencyData);
