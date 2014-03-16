@@ -9,6 +9,8 @@
   JavaCompilerFactory defaultCompilerFactory=new DefaultJavaCompilerFactory(projectInternal,antBuilderFactory,inProcessCompilerFactory,compilerDaemonManager);
   javaCompiler=new DelegatingJavaCompiler(defaultCompilerFactory);
   cleaningCompiler=new CleaningJavaCompiler(javaCompiler,antBuilderFactory,getOutputs());
-  JarSnapshotFeeder jarSnapshotFeeder=new JarSnapshotFeeder(getJarSnapshotCache(),new JarSnapshotter(new DefaultHasher()));
-  incrementalCompilation=new IncrementalCompilationSupport(jarSnapshotFeeder);
+  ClassDependenciesAnalyzer analyzer=new ClassDependenciesAnalyzer();
+  ClassDependencyInfoExtractor extractor=new ClassDependencyInfoExtractor(analyzer);
+  JarSnapshotFeeder jarSnapshotFeeder=new JarSnapshotFeeder(getJarSnapshotCache(),new JarSnapshotter(new ClassSnapshotter(new DefaultHasher(),analyzer)));
+  incrementalCompilation=new IncrementalCompilationSupport(jarSnapshotFeeder,getDependencyInfoSerializer(),(FileOperations)getProject(),extractor);
 }

@@ -1,0 +1,24 @@
+{
+  final List<String> allDependents=new LinkedList<String>();
+  for (  String thisCls : classSnapshots.keySet()) {
+    ClassSnapshot otherCls=other.classSnapshots.get(thisCls);
+    if (otherCls == null || !Arrays.equals(otherCls.hash,classSnapshots.get(thisCls).hash)) {
+      Collection<String> dependents=classSnapshots.get(thisCls).dependentClasses;
+      if (dependents == null) {
+        return new JarDependentsDelta(){
+          public Collection<String> getDependentClasses(){
+            return null;
+          }
+        }
+;
+      }
+      allDependents.addAll(dependents);
+    }
+  }
+  return new JarDependentsDelta(){
+    public Collection<String> getDependentClasses(){
+      return allDependents;
+    }
+  }
+;
+}
