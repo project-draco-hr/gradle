@@ -1,0 +1,20 @@
+{
+  return new Factory<File>(){
+    public File create(){
+      return lockingManager.useCache(String.format("resolve %s",artifact),new Factory<File>(){
+        public File create(){
+          return ivyContextManager.withIvy(new Transformer<File,Ivy>(){
+            public File transform(            Ivy original){
+              DefaultBuildableArtifactResolveResult result=new DefaultBuildableArtifactResolveResult();
+              resolver.resolve(module,artifact,result);
+              return result.getFile();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+;
+}

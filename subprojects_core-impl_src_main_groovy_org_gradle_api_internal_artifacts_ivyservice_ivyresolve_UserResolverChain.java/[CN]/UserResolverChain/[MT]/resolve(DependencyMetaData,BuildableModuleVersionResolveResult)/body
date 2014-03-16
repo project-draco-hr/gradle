@@ -4,12 +4,13 @@
   List<Throwable> errors=new ArrayList<Throwable>();
   final ModuleResolution latestResolved=findLatestModule(dependency,errors);
   if (latestResolved != null) {
-    final ModuleVersionMetaData downloadedModule=latestResolved.module;
-    LOGGER.debug("Using module '{}' from repository '{}'",downloadedModule.getId(),latestResolved.repository.getName());
+    LOGGER.debug("Using module '{}' from repository '{}'",latestResolved.module.getId(),latestResolved.repository.getName());
     for (    Throwable error : errors) {
       LOGGER.debug("Discarding resolve failure.",error);
     }
-    result.resolved(latestResolved.module,new ModuleVersionRepositoryArtifactResolverAdapter(latestResolved.repository,latestResolved.moduleSource));
+    MutableModuleVersionMetaData module=latestResolved.module;
+    module.setSource(new RepositoryChainModuleSource(latestResolved.repository.getId(),latestResolved.moduleSource));
+    result.resolved(module,artifactResolver);
     return;
   }
   if (!errors.isEmpty()) {
