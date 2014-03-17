@@ -2,14 +2,14 @@
   ResolutionRules resolutionRules=configuration.getResolutionStrategy().getResolutionRules();
   startParameterResolutionOverride.addResolutionRules(resolutionRules);
   UserResolverChain userResolverChain=new UserResolverChain(versionMatcher,latestStrategy);
-  DependencyToModuleVersionResolver parentLookupResolver=new ParentModuleLookupResolver(userResolverChain,cacheLockingManager);
+  RepositoryChain parentLookupResolver=new ParentModuleLookupResolver(userResolverChain,cacheLockingManager);
   for (  ResolutionAwareRepository repository : repositories) {
     ConfiguredModuleVersionRepository moduleVersionRepository=repository.createResolver();
     if (moduleVersionRepository instanceof IvyAwareModuleVersionRepository) {
       ivyContextualize((IvyAwareModuleVersionRepository)moduleVersionRepository,userResolverChain,configuration.getName());
     }
     if (moduleVersionRepository instanceof ExternalResourceResolver) {
-      ((ExternalResourceResolver)moduleVersionRepository).setResolver(parentLookupResolver);
+      ((ExternalResourceResolver)moduleVersionRepository).setRepositoryChain(parentLookupResolver);
     }
     LocalAwareModuleVersionRepository localAwareRepository;
     if (moduleVersionRepository.isLocal()) {

@@ -1,7 +1,7 @@
 {
   List<ResolutionAwareRepository> repositories=CollectionUtils.collect(repositoryHandler,Transformers.cast(ResolutionAwareRepository.class));
   ConfigurationInternal configuration=configurationContainer.detachedConfiguration();
-  final DependencyToModuleVersionResolver resolver=ivyFactory.create(configuration,repositories,metadataProcessor);
+  final RepositoryChain repositoryChain=ivyFactory.create(configuration,repositories,metadataProcessor);
   return lockingManager.useCache("resolve artifacts",new Factory<ArtifactResolutionQueryResult>(){
     public ArtifactResolutionQueryResult create(){
       Set<JvmLibrary> jvmLibraries=Sets.newHashSet();
@@ -12,16 +12,16 @@
         }
         ModuleComponentIdentifier moduleComponentId=(ModuleComponentIdentifier)componentId;
         BuildableModuleVersionResolveResult moduleResolveResult=new DefaultBuildableModuleVersionResolveResult();
-        resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId),true)),moduleResolveResult);
+        repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId),true)),moduleResolveResult);
+        ArtifactResolver artifactResolver=new ErrorHandlingArtifactResolver(repositoryChain.getArtifactResolver());
         if (moduleResolveResult.getFailure() != null) {
           unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId,moduleResolveResult.getFailure()));
         }
  else {
-          moduleResolveResult.setArtifactResolver(new ErrorHandlingArtifactResolver(moduleResolveResult.getArtifactResolver()));
           List<JvmLibraryArtifact> jvmLibraryArtifacts=Lists.newArrayList();
           for (          Class<? extends SoftwareArtifact> artifactType : artifactTypes) {
             DefaultBuildableMultipleArtifactResolveResult multiResolveResult=new DefaultBuildableMultipleArtifactResolveResult();
-            moduleResolveResult.getArtifactResolver().resolve(moduleResolveResult.getMetaData(),artifactType,multiResolveResult);
+            artifactResolver.resolve(moduleResolveResult.getMetaData(),artifactType,multiResolveResult);
             for (            ArtifactResolveResult resolveResult : multiResolveResult.getResults().values()) {
               if (artifactType == JvmLibraryJavadocArtifact.class) {
                 if (resolveResult.getFailure() != null) {

@@ -2,9 +2,10 @@
   LOGGER.debug("Resolving {}",configuration);
   ivyContextManager.withIvy(new Action<Ivy>(){
     public void execute(    Ivy ivy){
-      DependencyToModuleVersionResolver dependencyResolver=ivyFactory.create(configuration,repositories,metadataProcessor);
+      RepositoryChain repositoryChain=ivyFactory.create(configuration,repositories,metadataProcessor);
+      DependencyToModuleVersionResolver dependencyResolver=repositoryChain.getDependencyResolver();
       dependencyResolver=new ClientModuleResolver(dependencyResolver);
-      ProjectDependencyResolver projectDependencyResolver=new ProjectDependencyResolver(projectComponentRegistry,dependencyResolver,localComponentFactory);
+      ProjectDependencyResolver projectDependencyResolver=new ProjectDependencyResolver(projectComponentRegistry,localComponentFactory,dependencyResolver);
       dependencyResolver=projectDependencyResolver;
       DependencyToModuleVersionIdResolver idResolver=new LazyDependencyToModuleResolver(dependencyResolver,versionMatcher);
       idResolver=new VersionForcingDependencyToModuleResolver(idResolver,configuration.getResolutionStrategy().getDependencyResolveRule());
@@ -24,7 +25,10 @@
       BinaryStore oldModelStore=stores.nextBinaryStore();
       Store<TransientConfigurationResults> oldModelCache=stores.newModelStore();
       TransientConfigurationResultsBuilder oldTransientModelBuilder=new TransientConfigurationResultsBuilder(oldModelStore,oldModelCache);
-      DefaultResolvedConfigurationBuilder oldModelBuilder=new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory,oldTransientModelBuilder);
+      ArtifactResolver artifactResolver=repositoryChain.getArtifactResolver();
+      artifactResolver=new ProjectArtifactResolver(projectComponentRegistry,artifactResolver);
+      artifactResolver=new ErrorHandlingArtifactResolver(artifactResolver);
+      DefaultResolvedConfigurationBuilder oldModelBuilder=new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory,oldTransientModelBuilder,artifactResolver);
       builder.resolve(configuration,newModelBuilder,oldModelBuilder);
       DefaultLenientConfiguration result=new DefaultLenientConfiguration(configuration,oldModelBuilder,cacheLockingManager);
       results.resolved(new DefaultResolvedConfiguration(result),newModelBuilder.complete());
