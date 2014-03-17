@@ -18,11 +18,13 @@
           unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId,moduleResolveResult.getFailure()));
         }
  else {
+          ModuleVersionMetaData moduleMetaData=moduleResolveResult.getMetaData();
           List<JvmLibraryArtifact> jvmLibraryArtifacts=Lists.newArrayList();
           for (          Class<? extends SoftwareArtifact> artifactType : artifactTypes) {
-            DefaultBuildableMultipleArtifactResolveResult multiResolveResult=new DefaultBuildableMultipleArtifactResolveResult();
-            artifactResolver.resolve(moduleResolveResult.getMetaData(),artifactType,multiResolveResult);
-            for (            ArtifactResolveResult resolveResult : multiResolveResult.getResults().values()) {
+            BuildableArtifactSetResolveResult multiResolveResult=new DefaultBuildableArtifactSetResolveResult();
+            artifactResolver.resolveArtifactSet(moduleMetaData,artifactType,multiResolveResult);
+            for (            ModuleVersionArtifactMetaData artifactMetaData : multiResolveResult.getResults()) {
+              BuildableArtifactResolveResult resolveResult=new DefaultBuildableArtifactResolveResult();
               if (artifactType == JvmLibraryJavadocArtifact.class) {
                 if (resolveResult.getFailure() != null) {
                   jvmLibraryArtifacts.add(new DefaultJvmLibraryJavadocArtifact(resolveResult.getFailure()));
