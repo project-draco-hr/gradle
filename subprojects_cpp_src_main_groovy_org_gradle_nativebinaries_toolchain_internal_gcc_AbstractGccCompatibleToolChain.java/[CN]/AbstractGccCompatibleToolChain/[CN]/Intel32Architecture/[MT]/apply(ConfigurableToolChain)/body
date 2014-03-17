@@ -1,0 +1,31 @@
+{
+  Action<ConfigurableToolChain> action=new Action<ConfigurableToolChain>(){
+    public void execute(    ConfigurableToolChain configurableToolChain){
+      Action<List<String>> m32args=new Action<List<String>>(){
+        public void execute(        List<String> args){
+          args.add("-m32");
+        }
+      }
+;
+      configurableToolChain.getCppCompiler().withArguments(m32args);
+      configurableToolChain.getCCompiler().withArguments(m32args);
+      configurableToolChain.getObjcCompiler().withArguments(m32args);
+      configurableToolChain.getObjcppCompiler().withArguments(m32args);
+      configurableToolChain.getLinker().withArguments(m32args);
+      configurableToolChain.getAssembler().withArguments(new Action<List<String>>(){
+        public void execute(        List<String> args){
+          if (OperatingSystem.current().isMacOsX()) {
+            args.addAll(asList("-arch","i386"));
+          }
+ else {
+            args.add("--32");
+          }
+        }
+      }
+);
+    }
+  }
+;
+  action.execute(configurableToolChain);
+  return configurableToolChain;
+}

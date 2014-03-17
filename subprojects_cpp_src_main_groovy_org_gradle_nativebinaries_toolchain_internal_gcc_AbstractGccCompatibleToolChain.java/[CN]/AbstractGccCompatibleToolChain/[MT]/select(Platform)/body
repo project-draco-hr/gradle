@@ -1,0 +1,14 @@
+{
+  ApplyablePlatformConfiguration applyablePlatformConfiguration=getPlatformConfiguration(targetPlatform);
+  ToolChainAvailability result=new ToolChainAvailability();
+  if (applyablePlatformConfiguration == null) {
+    result.unavailable(String.format("Don't know how to build for platform '%s'.",targetPlatform.getName()));
+    return new UnavailablePlatformToolChain(result);
+  }
+  initTools(result);
+  if (!result.isAvailable()) {
+    return new UnavailablePlatformToolChain(result);
+  }
+  ToolRegistry platformTools=new PlatformToolRegistry(toolRegistry,applyablePlatformConfiguration);
+  return new GccPlatformToolChain(toolSearchPath,platformTools,execActionFactory,canUseCommandFile());
+}
