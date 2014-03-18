@@ -1,4 +1,12 @@
 {
-  Set<ModuleVersionArtifactMetaData> artifacts=moduleMetadata.getConfiguration(configurationName).getArtifacts();
-  result.resolved(artifacts);
+  try {
+    Set<ModuleVersionArtifactMetaData> artifacts=new LinkedHashSet<ModuleVersionArtifactMetaData>();
+    artifacts.addAll(moduleMetadata.getConfiguration(configurationName).getArtifacts());
+    ModuleVersionRepository sourceRepository=findSourceRepository(moduleMetadata);
+    artifacts.addAll(sourceRepository.getCandidateArtifacts(moduleMetadata,JvmLibraryMainArtifact.class));
+    result.resolved(artifacts);
+  }
+ catch (  Exception e) {
+    result.failed(new ArtifactResolveException(String.format("Could not determine artifacts for %s",moduleMetadata)));
+  }
 }

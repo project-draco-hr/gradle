@@ -1,9 +1,18 @@
 {
   if (artifactType == JvmLibraryJavadocArtifact.class) {
-    return createArtifactMetaData(module,"javadoc","javadoc");
+    return ImmutableSet.of(createArtifactMetaData(module,"javadoc","javadoc"));
   }
   if (artifactType == JvmLibrarySourcesArtifact.class) {
-    return createArtifactMetaData(module,"source","sources");
+    return ImmutableSet.of(createArtifactMetaData(module,"source","sources"));
+  }
+  if (artifactType == JvmLibraryMainArtifact.class) {
+    if (module.isMetaDataOnly()) {
+      ModuleVersionArtifactMetaData possibleJarArtifact=createArtifactMetaData(module,"jar",null);
+      if (artifactExists(possibleJarArtifact)) {
+        return ImmutableSet.of(possibleJarArtifact);
+      }
+    }
+    return Collections.emptySet();
   }
   if (artifactType == ComponentMetaDataArtifact.class) {
     Artifact pomArtifact=DefaultArtifact.newPomArtifact(IvyUtil.createModuleRevisionId(module.getId()),new Date());
