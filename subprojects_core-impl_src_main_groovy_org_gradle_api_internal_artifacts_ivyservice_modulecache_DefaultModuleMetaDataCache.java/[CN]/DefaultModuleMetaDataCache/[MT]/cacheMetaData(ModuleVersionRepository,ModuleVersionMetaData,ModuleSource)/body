@@ -1,3 +1,8 @@
 {
-  return cacheModuleDescriptor(repository,metaData.getId(),metaData.getDescriptor(),moduleSource,metaData.isChanging());
+  ModuleDescriptor moduleDescriptor=metaData.getDescriptor();
+  LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]",moduleDescriptor.getModuleRevisionId(),metaData.isChanging());
+  LocallyAvailableResource resource=moduleDescriptorStore.putModuleDescriptor(repository,moduleDescriptor);
+  ModuleDescriptorCacheEntry entry=createEntry(metaData.isChanging(),metaData.isMetaDataOnly(),resource.getSha1(),moduleSource);
+  getCache().put(createKey(repository,metaData.getId()),entry);
+  return new DefaultCachedMetaData(entry,null,timeProvider);
 }
