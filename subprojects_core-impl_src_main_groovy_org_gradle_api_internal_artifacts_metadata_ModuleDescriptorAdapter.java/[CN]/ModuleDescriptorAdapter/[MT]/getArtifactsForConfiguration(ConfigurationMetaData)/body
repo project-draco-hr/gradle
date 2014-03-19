@@ -1,13 +1,13 @@
 {
-  Map<Artifact,ModuleVersionArtifactMetaData> ivyArtifacts=new HashMap<Artifact,ModuleVersionArtifactMetaData>();
-  for (  ModuleVersionArtifactMetaData artifact : getArtifacts()) {
-    ivyArtifacts.put(artifact.getArtifact(),artifact);
-  }
-  Set<ModuleVersionArtifactMetaData> artifacts=new LinkedHashSet<ModuleVersionArtifactMetaData>();
+  Set<Artifact> artifacts=new HashSet<Artifact>();
+  Set<ModuleVersionArtifactMetaData> artifactMetaData=new LinkedHashSet<ModuleVersionArtifactMetaData>();
   for (  String ancestor : configurationMetaData.getHierarchy()) {
     for (    Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-      artifacts.add(ivyArtifacts.get(artifact));
+      if (artifacts.add(artifact)) {
+        DefaultModuleVersionArtifactIdentifier artifactId=new DefaultModuleVersionArtifactIdentifier(getId(),artifact.getName(),artifact.getType(),artifact.getExt(),artifact.getQualifiedExtraAttributes());
+        artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(artifactId));
+      }
     }
   }
-  return artifacts;
+  return artifactMetaData;
 }
