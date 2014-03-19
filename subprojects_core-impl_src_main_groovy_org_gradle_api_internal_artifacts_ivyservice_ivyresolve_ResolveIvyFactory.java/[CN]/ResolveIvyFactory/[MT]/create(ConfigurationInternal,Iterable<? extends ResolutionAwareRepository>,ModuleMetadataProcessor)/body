@@ -2,14 +2,14 @@
   ResolutionRules resolutionRules=configuration.getResolutionStrategy().getResolutionRules();
   startParameterResolutionOverride.addResolutionRules(resolutionRules);
   UserResolverChain userResolverChain=new UserResolverChain(versionMatcher,latestStrategy);
-  DependencyToModuleVersionResolver parentLookupResolver=new ParentModuleLookupResolver(userResolverChain,cacheLockingManager);
+  RepositoryChain parentLookupResolver=new ParentModuleLookupResolver(userResolverChain,cacheLockingManager);
   for (  ResolutionAwareRepository repository : repositories) {
     ConfiguredModuleVersionRepository moduleVersionRepository=repository.createResolver();
     if (moduleVersionRepository instanceof IvyAwareModuleVersionRepository) {
       ivyContextualize((IvyAwareModuleVersionRepository)moduleVersionRepository,userResolverChain,configuration.getName());
     }
     if (moduleVersionRepository instanceof ExternalResourceResolver) {
-      ((ExternalResourceResolver)moduleVersionRepository).setResolver(parentLookupResolver);
+      ((ExternalResourceResolver)moduleVersionRepository).setRepositoryChain(parentLookupResolver);
     }
     LocalAwareModuleVersionRepository localAwareRepository;
     if (moduleVersionRepository.isLocal()) {
@@ -18,7 +18,7 @@
  else {
       ModuleVersionRepository wrapperRepository=new CacheLockingModuleVersionRepository(moduleVersionRepository,cacheLockingManager);
       wrapperRepository=startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
-      localAwareRepository=new CachingModuleVersionRepository(wrapperRepository,moduleVersionsCache,moduleMetaDataCache,artifactAtRepositoryCachedResolutionIndex,configuration.getResolutionStrategy().getCachePolicy(),timeProvider,metadataProcessor,getModuleExtractor(moduleVersionRepository));
+      localAwareRepository=new CachingModuleVersionRepository(wrapperRepository,moduleVersionsCache,moduleMetaDataCache,moduleArtifactsCache,artifactAtRepositoryCachedResolutionIndex,configuration.getResolutionStrategy().getCachePolicy(),timeProvider,metadataProcessor,getModuleExtractor(moduleVersionRepository));
     }
     if (moduleVersionRepository.isDynamicResolveMode()) {
       localAwareRepository=new IvyDynamicResolveModuleVersionRepository(localAwareRepository);

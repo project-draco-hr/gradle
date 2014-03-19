@@ -1,8 +1,10 @@
 {
   if (artifacts == null) {
     artifacts=new LinkedHashSet<ResolvedArtifact>();
-    for (    ModuleVersionArtifactMetaData artifact : metaData.getArtifacts()) {
-      artifacts.add(resolveState.builder.newArtifact(id,artifact,moduleRevision.resolve().getArtifactResolver()));
+    BuildableArtifactSetResolveResult result=new DefaultBuildableArtifactSetResolveResult();
+    resolveState.artifactResolver.resolveModuleArtifacts(metaData.getModuleVersion(),new ConfigurationResolveContext(metaData.getName()),result);
+    for (    ModuleVersionArtifactMetaData artifact : result.getArtifacts()) {
+      artifacts.add(resolveState.builder.newArtifact(id,metaData.getModuleVersion(),artifact));
     }
   }
   return artifacts;
