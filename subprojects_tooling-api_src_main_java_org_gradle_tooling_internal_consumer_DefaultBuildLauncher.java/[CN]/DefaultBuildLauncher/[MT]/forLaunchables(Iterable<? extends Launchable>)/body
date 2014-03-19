@@ -1,16 +1,19 @@
 {
   Set<String> taskPaths=new LinkedHashSet<String>();
+  List<InternalLaunchable> launchablesParams=Lists.newArrayList();
   for (  Launchable launchable : launchables) {
     if (launchable instanceof Task) {
       taskPaths.add(((Task)launchable).getPath());
     }
- else     if (launchable instanceof TaskListingTaskSelector) {
-      taskPaths.addAll(((TaskListingTaskSelector)launchable).getTasks());
+ else     if (launchable instanceof TaskListingLaunchable) {
+      taskPaths.addAll(((TaskListingLaunchable)launchable).getTasks());
     }
  else     if (!(launchable instanceof TaskSelector)) {
       throw new GradleException("Only Task or TaskSelector instances are supported: " + (launchable != null ? launchable.getClass() : "null"));
     }
+    maybeAddLaunchableParameter(launchablesParams,launchable);
   }
   operationParamsBuilder.setTasks(new ArrayList<String>(taskPaths));
+  operationParamsBuilder.setLaunchables(launchablesParams);
   return this;
 }
