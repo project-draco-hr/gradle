@@ -1,51 +1,11 @@
 {
   Clock clock=new Clock();
-  final SourceToNameConverter sourceToNameConverter=new SourceToNameConverter(sourceDirs.getSourceDirs());
-  final ClassDependencyInfo dependencyInfo=dependencyInfoSerializer.readInfo();
-  final List<String> staleClasses=new LinkedList<String>();
-  inputs.outOfDate(new Action<InputFileDetails>(){
-    public void execute(    InputFileDetails inputFileDetails){
-      if (fullRebuildNeeded != null) {
-        return;
-      }
-      File inputFile=inputFileDetails.getFile();
-      String name=inputFile.getName();
-      if (name.endsWith(".java")) {
-        String className=sourceToNameConverter.getClassName(inputFile);
-        staleClasses.add(className);
-        Set<String> actualDependents=dependencyInfo.getActualDependents(className);
-        if (actualDependents == null) {
-          fullRebuildNeeded="change to " + className + " requires full rebuild";
-          return;
-        }
-        staleClasses.addAll(actualDependents);
-      }
-      if (name.endsWith(".jar")) {
-        JarArchive jarArchive=new JarArchive(inputFileDetails.getFile(),fileOperations.zipTree(inputFileDetails.getFile()));
-        JarChangeProcessor processor=new JarChangeProcessor(jarSnapshotFeeder,dependencyInfo);
-        RebuildInfo rebuildInfo=processor.processJarChange(inputFileDetails,jarArchive);
-        RebuildInfo.Info info=rebuildInfo.configureCompilation(staleClasses);
-        if (info == RebuildInfo.Info.FullRebuild) {
-          fullRebuildNeeded="change to " + inputFile + " requires full rebuild";
-          return;
-        }
-      }
-    }
-  }
-);
-  if (fullRebuildNeeded != null) {
-    LOG.lifecycle("Stale classes detection completed in {}. Rebuild needed: {}.",clock.getTime(),fullRebuildNeeded);
+  StaleClasses staleClasses=staleClassesDetecter.detectStaleClasses(inputs);
+  if (staleClasses.isFullRebuildNeeded()) {
+    LOG.lifecycle("Stale classes detection completed in {}. Full rebuild is needed due to: {}.",clock.getTime(),staleClasses.getFullRebuildReason());
     return cleaningCompiler.execute(spec);
   }
-  inputs.removed(new Action<InputFileDetails>(){
-    public void execute(    InputFileDetails inputFileDetails){
-      if (inputFileDetails.getFile().getName().endsWith(".java")) {
-        staleClasses.add(sourceToNameConverter.getClassName(inputFileDetails.getFile()));
-      }
-    }
-  }
-);
-  if (staleClasses.isEmpty()) {
+  if (staleClasses.getClassNames().isEmpty()) {
     return new WorkResult(){
       public boolean getDidWork(){
         return true;
@@ -55,7 +15,7 @@
   }
   PatternSet classesToDelete=new PatternSet();
   PatternSet sourceToCompile=new PatternSet();
-  for (  String staleClass : staleClasses) {
+  for (  String staleClass : staleClasses.getClassNames()) {
     String path=staleClass.replaceAll("\\.","/");
     classesToDelete.include(path.concat(".class"));
     sourceToCompile.include(path.concat(".java"));

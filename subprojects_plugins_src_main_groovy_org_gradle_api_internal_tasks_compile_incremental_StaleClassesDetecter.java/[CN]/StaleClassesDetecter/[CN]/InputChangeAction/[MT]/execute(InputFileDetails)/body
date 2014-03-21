@@ -1,0 +1,26 @@
+{
+  if (fullRebuildReason != null) {
+    return;
+  }
+  File inputFile=inputFileDetails.getFile();
+  String name=inputFile.getName();
+  if (name.endsWith(".java")) {
+    String className=sourceToNameConverter.getClassName(inputFile);
+    staleClasses.add(className);
+    Set<String> actualDependents=dependencyInfo.getActualDependents(className);
+    if (actualDependents == null) {
+      fullRebuildReason="change to " + className + " requires full rebuild";
+      return;
+    }
+    staleClasses.addAll(actualDependents);
+  }
+  if (name.endsWith(".jar")) {
+    JarArchive jarArchive=new JarArchive(inputFileDetails.getFile(),fileOperations.zipTree(inputFileDetails.getFile()));
+    JarChangeProcessor processor=new JarChangeProcessor(jarSnapshotFeeder,dependencyInfo);
+    RebuildInfo rebuildInfo=processor.processJarChange(inputFileDetails,jarArchive);
+    RebuildInfo.Info info=rebuildInfo.configureCompilation(staleClasses);
+    if (info == RebuildInfo.Info.FullRebuild) {
+      fullRebuildReason="change to " + inputFile + " requires full rebuild";
+    }
+  }
+}
