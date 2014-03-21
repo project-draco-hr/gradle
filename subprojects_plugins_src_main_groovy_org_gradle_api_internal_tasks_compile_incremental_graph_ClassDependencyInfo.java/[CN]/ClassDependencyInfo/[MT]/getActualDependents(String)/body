@@ -1,11 +1,16 @@
 {
   Set<String> out=new HashSet<String>();
-  Set<String> visited=new HashSet<String>();
-  MutableBoolean isDependentToAll=new MutableBoolean(false);
-  recurseDependents(visited,out,className,isDependentToAll);
-  if (isDependentToAll.isTrue()) {
+  ClassDependents deps=dependents.get(className);
+  if (deps == null) {
+    return Collections.emptySet();
+  }
+  if (deps.isDependentToAll()) {
     return null;
   }
-  out.remove(className);
+  for (  String c : deps.getDependentClasses()) {
+    if (!c.contains("$") && !c.equals(className)) {
+      out.add(c);
+    }
+  }
   return out;
 }
