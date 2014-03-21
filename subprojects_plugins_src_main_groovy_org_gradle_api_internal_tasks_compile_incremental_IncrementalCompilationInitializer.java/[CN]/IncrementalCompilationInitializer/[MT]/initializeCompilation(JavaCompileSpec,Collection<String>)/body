@@ -1,0 +1,15 @@
+{
+  PatternSet classesToDelete=new PatternSet();
+  PatternSet sourceToCompile=new PatternSet();
+  for (  String staleClass : staleClasses) {
+    String path=staleClass.replaceAll("\\.","/");
+    classesToDelete.include(path.concat(".class"));
+    sourceToCompile.include(path.concat(".java"));
+  }
+  spec.setSource(spec.getSource().getAsFileTree().matching(sourceToCompile));
+  spec.setClasspath(Iterables.concat(spec.getClasspath(),asList(spec.getDestinationDir())));
+  Set<File> staleClassFiles=fileOperations.fileTree(spec.getDestinationDir()).matching(classesToDelete).getFiles();
+  for (  File staleClassFile : staleClassFiles) {
+    staleClassFile.delete();
+  }
+}
