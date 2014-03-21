@@ -1,17 +1,15 @@
 {
-  Class<?> cl;
-  try {
-    cl=super.loadClass(name,false);
-  }
- catch (  NoClassDefFoundError e) {
-    if (classAllowed(name)) {
-      throw e;
+  for (  ClassLoader systemClassLoader : SYSTEM_CLASS_LOADERS) {
+    try {
+      return systemClassLoader.loadClass(name);
     }
+ catch (    ClassNotFoundException ignore) {
+    }
+  }
+  if (!classAllowed(name)) {
     throw new ClassNotFoundException(String.format("%s not found.",name));
   }
-  if (!allowed(cl)) {
-    throw new ClassNotFoundException(String.format("%s not found.",cl.getName()));
-  }
+  Class<?> cl=super.loadClass(name,false);
   if (resolve) {
     resolveClass(cl);
   }
