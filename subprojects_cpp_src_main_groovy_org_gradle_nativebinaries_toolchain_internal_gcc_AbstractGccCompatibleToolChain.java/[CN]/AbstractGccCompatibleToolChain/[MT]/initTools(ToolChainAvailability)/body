@@ -1,12 +1,17 @@
 {
-  for (  ToolType type : ToolType.values()) {
-    locate(type);
-  }
+  SortedMap allTools=getAsMap();
   boolean found=false;
-  for (  ToolType type : Arrays.asList(ToolType.C_COMPILER,ToolType.CPP_COMPILER,ToolType.OBJECTIVEC_COMPILER,ToolType.OBJECTIVECPP_COMPILER)) {
-    found|=locate(type).isAvailable();
+  for (  Object o : allTools.values()) {
+    GccToolInternal tool=(GccToolInternal)o;
+    found|=toolSearchPath.locate(tool.getToolType(),tool.getExecutable()).isAvailable();
   }
   if (!found) {
-    availability.mustBeAvailable(locate(ToolType.C_COMPILER));
+    GccToolInternal cCompiler=(GccToolInternal)findByName("cCompiler");
+    if (cCompiler == null) {
+      availability.unavailable("c compiler not found");
+    }
+ else {
+      availability.mustBeAvailable(locate(cCompiler));
+    }
   }
 }

@@ -1,28 +1,46 @@
 {
   Action<ConfigurableToolChain> action=new Action<ConfigurableToolChain>(){
     public void execute(    ConfigurableToolChain configurableToolChain){
-      Action<List<String>> m64ArgsAction=new Action<List<String>>(){
+      Action<List<String>> m64args=new Action<List<String>>(){
         public void execute(        List<String> args){
           args.add("-m64");
         }
       }
 ;
-      configurableToolChain.getCppCompiler().withArguments(m64ArgsAction);
-      configurableToolChain.getCCompiler().withArguments(m64ArgsAction);
-      configurableToolChain.getObjcCompiler().withArguments(m64ArgsAction);
-      configurableToolChain.getObjcppCompiler().withArguments(m64ArgsAction);
-      configurableToolChain.getLinker().withArguments(m64ArgsAction);
-      configurableToolChain.getAssembler().withArguments(new Action<List<String>>(){
-        public void execute(        List<String> args){
-          if (OperatingSystem.current().isMacOsX()) {
-            args.addAll(asList("-arch","x86_64"));
-          }
+      GccTool cppCompiler=(GccTool)configurableToolChain.findByName("cppCompiler");
+      if (cppCompiler != null) {
+        cppCompiler.withArguments(m64args);
+      }
+      GccTool cCompiler=(GccTool)configurableToolChain.findByName("cCompiler");
+      if (cCompiler != null) {
+        cCompiler.withArguments(m64args);
+      }
+      GccTool objcCompiler=(GccTool)configurableToolChain.findByName("objcCompiler");
+      if (objcCompiler != null) {
+        objcCompiler.withArguments(m64args);
+      }
+      GccTool objcppCompiler=(GccTool)configurableToolChain.findByName("objcppCompiler");
+      if (objcppCompiler != null) {
+        objcppCompiler.withArguments(m64args);
+      }
+      GccTool linker=(GccTool)configurableToolChain.findByName("linker");
+      if (linker != null) {
+        linker.withArguments(m64args);
+      }
+      GccTool assembler=(GccTool)configurableToolChain.findByName("assembler");
+      if (assembler != null) {
+        assembler.withArguments(new Action<List<String>>(){
+          public void execute(          List<String> args){
+            if (OperatingSystem.current().isMacOsX()) {
+              args.addAll(asList("-arch","x86_64"));
+            }
  else {
-            args.add("--64");
+              args.add("--64");
+            }
           }
         }
-      }
 );
+      }
     }
   }
 ;
