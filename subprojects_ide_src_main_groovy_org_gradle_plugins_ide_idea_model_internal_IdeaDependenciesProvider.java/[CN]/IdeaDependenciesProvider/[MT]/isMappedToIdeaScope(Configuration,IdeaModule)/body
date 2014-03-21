@@ -1,0 +1,19 @@
+{
+  Iterable<IdeaScopeMappingRule> rules=Iterables.concat(scopeMappings.values());
+  boolean matchesRule=Iterables.any(rules,new Predicate<IdeaScopeMappingRule>(){
+    public boolean apply(    IdeaScopeMappingRule ideaScopeMappingRule){
+      return ideaScopeMappingRule.configurationNames.contains(configuration.getName());
+    }
+  }
+);
+  if (matchesRule) {
+    return true;
+  }
+  for (  Map<String,Collection<Configuration>> scopeMap : ideaModule.getScopes().values()) {
+    Iterable<Configuration> configurations=Iterables.concat(scopeMap.values());
+    if (Iterables.any(configurations,Predicates.equalTo(configuration))) {
+      return true;
+    }
+  }
+  return false;
+}

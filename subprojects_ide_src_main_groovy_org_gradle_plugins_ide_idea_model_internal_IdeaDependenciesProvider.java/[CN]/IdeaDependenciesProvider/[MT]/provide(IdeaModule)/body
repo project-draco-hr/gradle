@@ -1,0 +1,21 @@
+{
+  getPath=new Function<File,FilePath>(){
+    @Nullable public FilePath apply(    File file){
+      return file != null ? ideaModule.getPathFactory().path(file) : null;
+    }
+  }
+;
+  Set<Dependency> result=new LinkedHashSet<Dependency>();
+  if (ideaModule.getSingleEntryLibraries() != null) {
+    for (    Map.Entry<String,FileCollection> singleEntryLibrary : ideaModule.getSingleEntryLibraries().entrySet()) {
+      String scope=singleEntryLibrary.getKey();
+      for (      File file : singleEntryLibrary.getValue()) {
+        if (file != null && file.isDirectory()) {
+          result.add(new SingleEntryModuleLibrary(getPath.apply(file),scope));
+        }
+      }
+    }
+  }
+  result.addAll(provideFromScopeRuleMappings(ideaModule));
+  return result;
+}
