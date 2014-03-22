@@ -1,14 +1,14 @@
 {
-  final ClassDependents allDependents=new ClassDependents();
+  final List<String> allDependents=new LinkedList<String>();
   for (  String thisCls : classSnapshots.keySet()) {
     ClassSnapshot otherCls=current.classSnapshots.get(thisCls);
-    if (otherCls == null || !Arrays.equals(otherCls.hash,classSnapshots.get(thisCls).hash)) {
-      Collection<String> dependents=classSnapshots.get(thisCls).dependentClasses;
-      if (dependents == null) {
-        return new ClassDependents().setDependentToAll();
+    if (otherCls == null || !Arrays.equals(otherCls.getHash(),classSnapshots.get(thisCls).getHash())) {
+      DependentsSet dependents=classSnapshots.get(thisCls).getDependents();
+      if (dependents.isDependencyToAll()) {
+        return dependents;
       }
-      allDependents.addAll(dependents);
+      allDependents.addAll(dependents.getDependentClasses());
     }
   }
-  return allDependents;
+  return ClassDependents.dependentsSet(allDependents);
 }
