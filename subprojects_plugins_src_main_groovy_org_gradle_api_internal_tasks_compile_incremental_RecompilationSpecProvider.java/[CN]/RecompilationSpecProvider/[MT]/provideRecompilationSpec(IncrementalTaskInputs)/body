@@ -1,10 +1,11 @@
 {
-  final ClassDependencyInfo dependencyInfo=dependencyInfoProvider.provideInfo();
-  InputChangeAction action=new InputChangeAction(dependencyInfo);
+  JavaChangeProcessor javaChangeProcessor=new JavaChangeProcessor(dependencyInfoProvider.provideInfo(),sourceToNameConverter);
+  JarChangeProcessor jarChangeProcessor=new JarChangeProcessor(fileOperations,jarSnapshotFeeder);
+  InputChangeAction action=new InputChangeAction(javaChangeProcessor,jarChangeProcessor);
   inputs.outOfDate(action);
-  if (action.fullRebuildReason != null) {
-    return action;
+  if (action.spec.fullRebuildCause != null) {
+    return action.spec;
   }
   inputs.removed(action);
-  return action;
+  return action.spec;
 }
