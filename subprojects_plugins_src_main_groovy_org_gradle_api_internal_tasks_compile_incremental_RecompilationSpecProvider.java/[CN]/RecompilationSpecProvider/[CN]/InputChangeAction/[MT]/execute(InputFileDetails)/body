@@ -5,13 +5,13 @@
   String name=input.getFile().getName();
   if (name.endsWith(".java")) {
     String className=sourceToNameConverter.getClassName(input.getFile());
-    staleClasses.add(className);
+    classesToCompile.add(className);
     DependentsSet actualDependents=dependencyInfo.getRelevantDependents(className);
     if (actualDependents.isDependencyToAll()) {
       fullRebuildReason="change to " + className + " requires full rebuild";
       return;
     }
-    staleClasses.addAll(actualDependents.getDependentClasses());
+    classesToCompile.addAll(actualDependents.getDependentClasses());
   }
   if (name.endsWith(".jar")) {
     JarArchive jarArchive=new JarArchive(input.getFile(),fileOperations.zipTree(input.getFile()));
@@ -21,6 +21,6 @@
       fullRebuildReason="change to " + input.getFile() + " requires full rebuild";
       return;
     }
-    staleClasses.addAll(actualDependents.getDependentClasses());
+    classesToCompile.addAll(actualDependents.getDependentClasses());
   }
 }
