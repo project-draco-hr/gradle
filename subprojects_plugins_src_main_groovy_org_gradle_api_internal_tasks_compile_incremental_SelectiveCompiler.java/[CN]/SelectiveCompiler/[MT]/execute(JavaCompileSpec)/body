@@ -5,7 +5,8 @@
     LOG.lifecycle("Stale classes detection completed in {}. Full rebuild is needed due to: {}.",clock.getTime(),staleClasses.getFullRebuildReason());
     return cleaningCompiler.execute(spec);
   }
-  if (staleClasses.getClassNames().isEmpty()) {
+  incrementalCompilationInitilizer.initializeCompilation(spec,staleClasses.getClassNames());
+  if (spec.getSource().isEmpty()) {
     return new WorkResult(){
       public boolean getDidWork(){
         return true;
@@ -13,7 +14,6 @@
     }
 ;
   }
-  incrementalCompilationInitilizer.initializeCompilation(spec,staleClasses.getClassNames());
   try {
     return cleaningCompiler.getCompiler().execute(spec);
   }
