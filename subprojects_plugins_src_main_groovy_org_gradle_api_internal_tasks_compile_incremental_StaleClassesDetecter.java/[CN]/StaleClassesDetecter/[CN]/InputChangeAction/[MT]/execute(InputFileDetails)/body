@@ -2,10 +2,9 @@
   if (fullRebuildReason != null) {
     return;
   }
-  File inputFile=inputFileDetails.getFile();
-  String name=inputFile.getName();
+  String name=input.getFile().getName();
   if (name.endsWith(".java")) {
-    String className=sourceToNameConverter.getClassName(inputFile);
+    String className=sourceToNameConverter.getClassName(input.getFile());
     staleClasses.add(className);
     Set<String> actualDependents=dependencyInfo.getActualDependents(className);
     if (actualDependents == null) {
@@ -15,12 +14,13 @@
     staleClasses.addAll(actualDependents);
   }
   if (name.endsWith(".jar")) {
-    JarArchive jarArchive=new JarArchive(inputFileDetails.getFile(),fileOperations.zipTree(inputFileDetails.getFile()));
-    JarChangeProcessor processor=new JarChangeProcessor(jarSnapshotFeeder);
-    RebuildInfo rebuildInfo=processor.processJarChange(inputFileDetails,jarArchive);
-    RebuildInfo.Info info=rebuildInfo.configureCompilation(staleClasses);
-    if (info == RebuildInfo.Info.FullRebuild) {
-      fullRebuildReason="change to " + inputFile + " requires full rebuild";
+    JarArchive jarArchive=new JarArchive(input.getFile(),fileOperations.zipTree(input.getFile()));
+    JarChangeDependentsFinder dependentsFinder=new JarChangeDependentsFinder(jarSnapshotFeeder);
+    DependentsSet actualDependents=dependentsFinder.getActualDependents(input,jarArchive);
+    if (actualDependents.isDependentToAll()) {
+      fullRebuildReason="change to " + input.getFile() + " requires full rebuild";
+      return;
     }
+    staleClasses.addAll(actualDependents.getDependentClasses());
   }
 }

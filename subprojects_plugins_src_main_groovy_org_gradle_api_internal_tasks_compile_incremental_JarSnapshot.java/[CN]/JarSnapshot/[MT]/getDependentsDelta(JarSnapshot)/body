@@ -1,24 +1,14 @@
 {
-  final List<String> allDependents=new LinkedList<String>();
+  final ClassDependents allDependents=new ClassDependents();
   for (  String thisCls : classSnapshots.keySet()) {
-    ClassSnapshot otherCls=other.classSnapshots.get(thisCls);
+    ClassSnapshot otherCls=current.classSnapshots.get(thisCls);
     if (otherCls == null || !Arrays.equals(otherCls.hash,classSnapshots.get(thisCls).hash)) {
       Collection<String> dependents=classSnapshots.get(thisCls).dependentClasses;
       if (dependents == null) {
-        return new JarDependentsDelta(){
-          public Collection<String> getDependentClasses(){
-            return null;
-          }
-        }
-;
+        return new ClassDependents().setDependentToAll();
       }
       allDependents.addAll(dependents);
     }
   }
-  return new JarDependentsDelta(){
-    public Collection<String> getDependentClasses(){
-      return allDependents;
-    }
-  }
-;
+  return allDependents;
 }
