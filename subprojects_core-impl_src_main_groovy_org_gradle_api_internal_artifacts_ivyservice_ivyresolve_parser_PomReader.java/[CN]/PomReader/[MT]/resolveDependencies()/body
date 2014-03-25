@@ -1,20 +1,16 @@
 {
   Map<MavenDependencyKey,PomDependencyData> dependencies=new LinkedHashMap<MavenDependencyKey,PomDependencyData>();
-  Element dependenciesElement=getFirstChildElement(projectElement,DEPENDENCIES);
-  if (dependenciesElement != null) {
-    NodeList childs=dependenciesElement.getChildNodes();
-    for (int i=0; i < childs.getLength(); i++) {
-      Node node=childs.item(i);
-      if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-        PomDependencyData pomDependencyData=new PomDependencyData((Element)node);
-        MavenDependencyKey key=pomDependencyData.getId();
-        dependencies.put(key,pomDependencyData);
-      }
-    }
+  for (  PomDependencyData dependency : getDependencyData(projectElement)) {
+    dependencies.put(dependency.getId(),dependency);
   }
   for (  Map.Entry<MavenDependencyKey,PomDependencyData> entry : pomParent.getDependencies().entrySet()) {
     if (!dependencies.containsKey(entry.getKey())) {
       dependencies.put(entry.getKey(),entry.getValue());
+    }
+  }
+  for (  PomProfile pomProfile : parseActivePomProfiles()) {
+    for (    PomDependencyData dependency : pomProfile.getDependencies()) {
+      dependencies.put(dependency.getId(),dependency);
     }
   }
   return dependencies;

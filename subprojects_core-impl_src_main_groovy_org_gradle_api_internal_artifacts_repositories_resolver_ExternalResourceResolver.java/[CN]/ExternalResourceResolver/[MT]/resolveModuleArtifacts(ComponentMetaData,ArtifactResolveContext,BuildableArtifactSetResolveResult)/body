@@ -1,0 +1,19 @@
+{
+  try {
+    ModuleVersionMetaData moduleVersion=(ModuleVersionMetaData)component;
+    Set<ComponentArtifactMetaData> artifacts=new LinkedHashSet<ComponentArtifactMetaData>();
+    if (context instanceof ConfigurationResolveContext) {
+      String configurationName=((ConfigurationResolveContext)context).getConfigurationName();
+      artifacts.addAll(component.getConfiguration(configurationName).getArtifacts());
+      artifacts.addAll(getOptionalMainArtifacts(moduleVersion));
+    }
+ else {
+      Class<? extends SoftwareArtifact> artifactType=((ArtifactTypeResolveContext)context).getArtifactType();
+      artifacts.addAll(getTypedArtifacts(moduleVersion,artifactType));
+    }
+    result.resolved(artifacts);
+  }
+ catch (  Exception e) {
+    result.failed(new ArtifactResolveException(component.getComponentId(),e));
+  }
+}
