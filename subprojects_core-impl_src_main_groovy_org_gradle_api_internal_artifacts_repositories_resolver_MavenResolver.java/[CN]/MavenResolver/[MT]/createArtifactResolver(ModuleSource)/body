@@ -1,0 +1,13 @@
+{
+  if (moduleSource instanceof TimestampedModuleSource) {
+    final String timestampedVersion=((TimestampedModuleSource)moduleSource).getTimestampedVersion();
+    Transformer<String,String> patternTransformer=new Transformer<String,String>(){
+      public String transform(      String original){
+        return original.replaceFirst("\\-\\[revision\\]","-" + timestampedVersion);
+      }
+    }
+;
+    return new ArtifactResolver(CollectionUtils.collect(getIvyPatterns(),patternTransformer),CollectionUtils.collect(getArtifactPatterns(),patternTransformer));
+  }
+  return super.createArtifactResolver(moduleSource);
+}
