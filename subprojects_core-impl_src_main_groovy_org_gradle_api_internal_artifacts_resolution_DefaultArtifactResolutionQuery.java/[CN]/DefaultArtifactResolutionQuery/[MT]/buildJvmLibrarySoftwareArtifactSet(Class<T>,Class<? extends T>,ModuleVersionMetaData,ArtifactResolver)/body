@@ -1,0 +1,25 @@
+{
+  ArtifactResolveContext context=new ArtifactTypeResolveContext(type);
+  BuildableArtifactSetResolveResult artifactSetResolveResult=new DefaultBuildableArtifactSetResolveResult();
+  artifactResolver.resolveModuleArtifacts(component,context,artifactSetResolveResult);
+  Instantiator instantiator=new DirectInstantiator();
+  SoftwareArtifactSet<T> javadocs;
+  if (artifactSetResolveResult.getFailure() != null) {
+    javadocs=new DefaultSoftwareArtifactSet<T>(artifactSetResolveResult.getFailure());
+  }
+ else {
+    Set<T> javadocArtifacts=Sets.newHashSet();
+    for (    ComponentArtifactMetaData artifactMetaData : artifactSetResolveResult.getArtifacts()) {
+      BuildableArtifactResolveResult resolveResult=new DefaultBuildableArtifactResolveResult();
+      artifactResolver.resolveArtifact(artifactMetaData,component.getSource(),resolveResult);
+      if (resolveResult.getFailure() != null) {
+        javadocArtifacts.add(instantiator.newInstance(implType,resolveResult.getFailure()));
+      }
+ else {
+        javadocArtifacts.add(instantiator.newInstance(implType,resolveResult.getFile()));
+      }
+    }
+    javadocs=new DefaultSoftwareArtifactSet<T>(javadocArtifacts);
+  }
+  return javadocs;
+}
