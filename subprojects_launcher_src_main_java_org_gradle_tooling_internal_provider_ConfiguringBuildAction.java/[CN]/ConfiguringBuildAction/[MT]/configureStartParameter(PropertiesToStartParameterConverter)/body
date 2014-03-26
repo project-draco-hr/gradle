@@ -11,20 +11,19 @@
       if (launchable instanceof LaunchableImplementation) {
         LaunchableImplementation launchableImpl=(LaunchableImplementation)launchable;
         allTasks.add(launchableImpl.getTaskName());
-        if (launchableImpl.getProjectDir() != null) {
+        if (launchableImpl.getProjectPath() != null) {
           if (projectPath != null && !projectPath.equals(launchableImpl.getProjectPath())) {
             throw new InternalUnsupportedBuildArgumentException("Problem with provided launchable arguments: " + launchables + ". "+ "\nOnly selector from the same Gradle project can be built.");
           }
           projectPath=launchableImpl.getProjectPath();
-          startParameter.setCurrentDir(launchableImpl.getProjectDir());
         }
       }
  else {
         throw new InternalUnsupportedBuildArgumentException("Problem with provided launchable arguments: " + launchables + ". "+ "\nOnly objects from this provider can be built.");
       }
     }
-    if (projectPath != null && !projectPath.equals(':')) {
-      startParameter.setSearchUpwards(true);
+    if (projectPath != null) {
+      startParameter.setProjectPath(projectPath);
     }
     startParameter.setTaskNames(allTasks);
   }
