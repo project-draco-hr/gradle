@@ -18,7 +18,18 @@
         }
         versions.close();
         uniqueVersions.close();
-        return new ArrayList<String>(allVersions);
+        ArrayList<String> result=new ArrayList<String>();
+        result.addAll(allVersions);
+        PreparedStatement uniqueBranches=connection.prepareStatement("select distinct vcsBranch from testExecution");
+        ResultSet branches=uniqueBranches.executeQuery();
+        Set<String> allBranches=new TreeSet<String>();
+        while (branches.next()) {
+          allBranches.add(branches.getString(1));
+        }
+        branches.close();
+        uniqueBranches.close();
+        result.addAll(allBranches);
+        return result;
       }
     }
 );
