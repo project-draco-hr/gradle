@@ -1,11 +1,11 @@
 {
   ResolutionResult result=getIncomingResolutionResult(configuration);
-  List<ResolvedDependencyResult> resolvedDependencies=findAllResolvedModuleDependencies(result.getAllDependencies());
-  Map<ModuleVersionIdentifier,ResolvedDependencyResult> mappedResolvedDependencies=mapResolvedDependencies(resolvedDependencies);
+  List<ResolvedComponentResult> resolvedDependencies=findAllResolvedDependencyResults(result.getAllDependencies(),ModuleComponentIdentifier.class);
+  Set<ModuleVersionIdentifier> mappedResolvedDependencies=mapResolvedDependencies(resolvedDependencies);
   Set<ResolvedArtifact> artifacts=getExternalArtifacts(configuration);
   List<IdeExtendedRepoFileDependency> externalDependencies=new ArrayList<IdeExtendedRepoFileDependency>();
   for (  ResolvedArtifact artifact : artifacts) {
-    if (mappedResolvedDependencies.containsKey(artifact.getModuleVersion().getId())) {
+    if (mappedResolvedDependencies.contains(artifact.getModuleVersion().getId())) {
       IdeExtendedRepoFileDependency ideRepoFileDependency=new IdeExtendedRepoFileDependency(configuration,artifact.getFile());
       ideRepoFileDependency.setId(artifact.getModuleVersion().getId());
       externalDependencies.add(ideRepoFileDependency);
