@@ -1,0 +1,21 @@
+{
+  URI uri=toUri(parent);
+  String path=uri.getPath();
+  SftpClient client=sftpClientFactory.createSftpClient(uri);
+  try {
+    if (client.lstat(path) != null) {
+      return CollectionUtils.collect(client.readDir(path),new Transformer<String,SftpClient.DirEntry>(){
+        public String transform(        SftpClient.DirEntry dirEntry){
+          return parent + dirEntry.filename;
+        }
+      }
+);
+    }
+ else {
+      return null;
+    }
+  }
+  finally {
+    client.close();
+  }
+}

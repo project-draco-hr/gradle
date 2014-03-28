@@ -1,0 +1,26 @@
+{
+  URI uri=toUri(destination);
+  SftpClient client=sftpClientFactory.createSftpClient(uri);
+  String path=uri.getPath();
+  OutputStream outputStream=null;
+  try {
+    ensureParentDirectoryExists(client,path);
+    outputStream=client.write(uri.getPath());
+    InputStream sourceStream=sourceFactory.create();
+    try {
+      if (IOUtils.copy(sourceStream,outputStream) == -1) {
+        throw new IOException(String.format("File upload failed from %s to %s",sourceFactory,destination));
+      }
+      outputStream.flush();
+    }
+  finally {
+      sourceStream.close();
+    }
+  }
+  finally {
+    if (outputStream != null) {
+      outputStream.close();
+    }
+    client.close();
+  }
+}
