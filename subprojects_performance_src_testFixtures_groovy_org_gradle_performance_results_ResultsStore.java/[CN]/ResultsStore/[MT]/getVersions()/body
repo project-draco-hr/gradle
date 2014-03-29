@@ -1,0 +1,40 @@
+{
+  try {
+    return withConnection(new ConnectionAction<List<String>>(){
+      public List<String> execute(      Connection connection) throws Exception {
+        Set<String> allVersions=new TreeSet<String>(new Comparator<String>(){
+          public int compare(          String o1,          String o2){
+            return GradleVersion.version(o1).compareTo(GradleVersion.version(o2));
+          }
+        }
+);
+        PreparedStatement uniqueVersions=connection.prepareStatement("select distinct version from testOperation");
+        ResultSet versions=uniqueVersions.executeQuery();
+        while (versions.next()) {
+          String version=versions.getString(1);
+          if (version != null) {
+            allVersions.add(version);
+          }
+        }
+        versions.close();
+        uniqueVersions.close();
+        ArrayList<String> result=new ArrayList<String>();
+        result.addAll(allVersions);
+        PreparedStatement uniqueBranches=connection.prepareStatement("select distinct vcsBranch from testExecution");
+        ResultSet branches=uniqueBranches.executeQuery();
+        Set<String> allBranches=new TreeSet<String>();
+        while (branches.next()) {
+          allBranches.add(branches.getString(1).trim());
+        }
+        branches.close();
+        uniqueBranches.close();
+        result.addAll(allBranches);
+        return result;
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(String.format("Could not load version list from datastore '%s'.",dbFile),e);
+  }
+}
