@@ -1,0 +1,21 @@
+{
+  DependencyMetaData forced=dependency.withChanging();
+  delegate.getDependency(forced,moduleComponentIdentifier,result);
+switch (result.getState()) {
+case Missing:
+    ModuleVersionIdentifier moduleVersionIdentifier=DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier);
+  moduleMetaDataCache.cacheMissing(delegate,moduleVersionIdentifier);
+break;
+case Resolved:
+MutableModuleVersionMetaData metaData=result.getMetaData();
+ModuleSource moduleSource=result.getModuleSource();
+ModuleMetaDataCache.CachedMetaData cachedMetaData=moduleMetaDataCache.cacheMetaData(delegate,metaData,moduleSource);
+metadataProcessor.process(metaData);
+result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(),dependency.isChanging() || metaData.isChanging(),moduleSource));
+break;
+case Failed:
+break;
+default :
+throw new IllegalStateException("Unexpected resolve state: " + result.getState());
+}
+}

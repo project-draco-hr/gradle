@@ -1,0 +1,19 @@
+{
+  IvyContext.getContext().setResolveData(resolveData);
+  try {
+    ResolvedModuleRevision revision=resolver.getDependency(dependency.getDescriptor(),resolveData);
+    if (revision == null) {
+      LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found",moduleComponent,getName());
+      result.missing();
+    }
+ else {
+      LOGGER.debug("Performed resolved of module '{}' in repository '{}': found",moduleComponent,getName());
+      ModuleDescriptorAdapter metaData=new ModuleDescriptorAdapter(revision.getDescriptor());
+      metaData.setChanging(isChanging(revision));
+      result.resolved(metaData,null);
+    }
+  }
+ catch (  ParseException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+}
