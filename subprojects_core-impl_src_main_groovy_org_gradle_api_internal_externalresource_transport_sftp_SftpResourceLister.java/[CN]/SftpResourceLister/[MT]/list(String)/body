@@ -3,13 +3,18 @@
   String path=uri.getPath();
   SftpClient client=sftpClientFactory.createSftpClient(uri,credentials);
   try {
-    if (client.lstat(path) != null) {
-      return CollectionUtils.collect(client.readDir(path),new Transformer<String,SftpClient.DirEntry>(){
-        public String transform(        SftpClient.DirEntry dirEntry){
-          return parent + dirEntry.filename;
+    SftpClient.Handle dirHandle=client.openDir(path);
+    if (dirHandle != null) {
+      List<String> list=new ArrayList<String>();
+      SftpClient.DirEntry[] entries=client.readDir(dirHandle);
+      while (entries != null) {
+        for (        SftpClient.DirEntry entry : entries) {
+          list.add(parent + entry.filename);
         }
+        entries=client.readDir(dirHandle);
       }
-);
+      client.close(dirHandle);
+      return list;
     }
  else {
       return null;
