@@ -14,12 +14,12 @@
         ModuleComponentIdentifier moduleComponentId=(ModuleComponentIdentifier)componentId;
         BuildableComponentResolveResult moduleResolveResult=new DefaultBuildableComponentResolveResult();
         repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId),true)),moduleResolveResult);
-        if (moduleResolveResult.getFailure() != null) {
-          unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId,moduleResolveResult.getFailure()));
-        }
- else {
+        try {
           DefaultJvmLibrary jvmLibrary=buildJvmLibrary(moduleResolveResult.getMetaData(),artifactResolver);
           jvmLibraries.add(jvmLibrary);
+        }
+ catch (        Throwable t) {
+          unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId,t));
         }
       }
       return new DefaultArtifactResolutionQueryResult(jvmLibraries,unresolvedComponents);
