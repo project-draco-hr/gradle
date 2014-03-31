@@ -1,22 +1,13 @@
 {
+  int originalBufferPosition=buffer.rpos();
   buffer.getInt();
   int type=buffer.getByte();
   buffer.getInt();
-  if (type == SSH_FXP_STATUS) {
-    int substatus=buffer.getInt();
-    String msg=buffer.getString();
-    buffer.getString();
-    if (substatus == DefaultSftpClient.SSH_FX_NO_SUCH_FILE) {
-      return null;
-    }
- else {
-      throw new SshException("SFTP error (" + substatus + "): "+ msg);
-    }
-  }
- else   if (type == SSH_FXP_ATTRS) {
-    return readAttributes(buffer);
+  if (type == SSH_FXP_STATUS && buffer.getInt() == DefaultSftpClient.SSH_FX_NO_SUCH_FILE) {
+    return null;
   }
  else {
-    throw new SshException("Unexpected SFTP packet received: " + type);
+    buffer.rpos(originalBufferPosition);
+    return super.checkAttributes(buffer);
   }
 }
