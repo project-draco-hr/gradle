@@ -1,0 +1,16 @@
+{
+  ArtifactResolveContext context=new ArtifactTypeResolveContext(type);
+  BuildableArtifactSetResolveResult artifactSetResolveResult=new DefaultBuildableArtifactSetResolveResult();
+  artifactResolver.resolveModuleArtifacts(component,context,artifactSetResolveResult);
+  Instantiator instantiator=new DirectInstantiator();
+  for (  ComponentArtifactMetaData artifactMetaData : artifactSetResolveResult.getArtifacts()) {
+    BuildableArtifactResolveResult resolveResult=new DefaultBuildableArtifactResolveResult();
+    artifactResolver.resolveArtifact(artifactMetaData,component.getSource(),resolveResult);
+    if (resolveResult.getFailure() != null) {
+      artifacts.add(instantiator.newInstance(implType,resolveResult.getFailure()));
+    }
+ else {
+      artifacts.add(instantiator.newInstance(implType,resolveResult.getFile()));
+    }
+  }
+}
