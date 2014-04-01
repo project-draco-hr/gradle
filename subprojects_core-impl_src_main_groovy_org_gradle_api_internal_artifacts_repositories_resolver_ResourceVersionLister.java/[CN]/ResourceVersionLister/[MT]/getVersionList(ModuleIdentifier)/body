@@ -1,20 +1,20 @@
 {
   return new DefaultVersionList(){
     final Set<String> directories=new HashSet<String>();
-    public void visit(    ResourcePattern resourcePattern,    ModuleVersionArtifactMetaData artifact) throws ResourceException {
-      String partiallyResolvedPattern=resourcePattern.toVersionListPattern(artifact);
+    public void visit(    ResourcePattern pattern,    IvyArtifactName artifact) throws ResourceException {
+      String partiallyResolvedPattern=pattern.toVersionListPattern(module,artifact);
       LOGGER.debug("Listing all in {}",partiallyResolvedPattern);
       try {
         List<String> versionStrings=listRevisionToken(partiallyResolvedPattern);
         for (        String versionString : versionStrings) {
-          add(new ListedVersion(versionString,resourcePattern));
+          add(new ListedVersion(versionString,pattern));
         }
       }
  catch (      ResourceException e) {
         throw e;
       }
 catch (      Exception e) {
-        throw new ResourceException(String.format("Could not list versions using %s.",resourcePattern),e);
+        throw new ResourceException(String.format("Could not list versions using %s.",pattern),e);
       }
     }
     private List<String> listRevisionToken(    String pattern) throws IOException {
