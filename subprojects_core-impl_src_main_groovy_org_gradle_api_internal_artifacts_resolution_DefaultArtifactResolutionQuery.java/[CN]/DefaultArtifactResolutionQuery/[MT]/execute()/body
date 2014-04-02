@@ -3,10 +3,9 @@
   ConfigurationInternal configuration=configurationContainer.detachedConfiguration();
   final RepositoryChain repositoryChain=ivyFactory.create(configuration,repositories,metadataProcessor);
   final ArtifactResolver artifactResolver=new ErrorHandlingArtifactResolver(repositoryChain.getArtifactResolver());
-  return lockingManager.useCache("resolve artifacts",new Factory<ArtifactResolutionQueryResult>(){
-    public ArtifactResolutionQueryResult create(){
-      Set<JvmLibrary> jvmLibraries=Sets.newHashSet();
-      Set<UnresolvedSoftwareComponent> unresolvedComponents=Sets.newHashSet();
+  return lockingManager.useCache("resolve artifacts",new Factory<ArtifactResolutionResult>(){
+    public ArtifactResolutionResult create(){
+      Set<ComponentResult> componentResults=Sets.newHashSet();
       for (      ComponentIdentifier componentId : componentIds) {
         if (!(componentId instanceof ModuleComponentIdentifier)) {
           throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.",componentId.getDisplayName(),componentId.getClass().getName()));
@@ -15,14 +14,13 @@
         BuildableComponentResolveResult moduleResolveResult=new DefaultBuildableComponentResolveResult();
         repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId),true)),moduleResolveResult);
         try {
-          DefaultJvmLibrary jvmLibrary=buildJvmLibrary(moduleResolveResult.getMetaData(),artifactResolver);
-          jvmLibraries.add(jvmLibrary);
+          componentResults.add(buildComponentResult(moduleResolveResult.getMetaData(),artifactResolver));
         }
  catch (        Throwable t) {
-          unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId,t));
+          componentResults.add(new DefaultUnresolvedComponentResult(moduleComponentId,t));
         }
       }
-      return new DefaultArtifactResolutionQueryResult(jvmLibraries,unresolvedComponents);
+      return new DefaultArtifactResolutionResult(componentResults);
     }
   }
 );
