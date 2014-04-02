@@ -12,7 +12,9 @@
   }
   List<BasicGradleTaskSelector> selectors=Lists.newArrayList();
   for (  String selectorName : aggregatedTasks.keySet()) {
-    selectors.add(new BasicGradleTaskSelector().setName(selectorName).setTaskNames(Sets.newHashSet(aggregatedTasks.get(selectorName))).setDescription(project.getParent() != null ? String.format("%s:%s task selector",project.getPath(),selectorName) : String.format("%s task selector",selectorName)).setDisplayName(String.format("%s in %s and subprojects.",selectorName,project.getName())));
+    SortedSet<String> selectorTasks=Sets.newTreeSet(new TaskNameComparator());
+    selectorTasks.addAll(aggregatedTasks.get(selectorName));
+    selectors.add(new BasicGradleTaskSelector().setName(selectorName).setTaskNames(selectorTasks).setDescription(project.getParent() != null ? String.format("%s:%s task selector",project.getPath(),selectorName) : String.format("%s task selector",selectorName)).setDisplayName(String.format("%s in %s and subprojects.",selectorName,project.getName())));
   }
   return selectors;
 }
