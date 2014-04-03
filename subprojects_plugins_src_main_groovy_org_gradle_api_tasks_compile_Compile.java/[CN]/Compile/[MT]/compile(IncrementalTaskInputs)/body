@@ -5,14 +5,13 @@
   }
   SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
   ClassDependenciesAnalyzer analyzer=new ClassDependenciesAnalyzer();
-  ClassDependencyInfoExtractor extractor=new ClassDependencyInfoExtractor(analyzer);
   JarSnapshotCache jarSnapshotCache=new JarSnapshotCache(new File(getProject().getRootProject().getProjectDir(),".gradle/jar-snapshot-cache.bin"));
   JarSnapshotFeeder jarSnapshotFeeder=new JarSnapshotFeeder(jarSnapshotCache,new JarSnapshotter(new ClassSnapshotter(new DefaultHasher(),analyzer)));
   ClassDependencyInfoSerializer dependencyInfoSerializer=new ClassDependencyInfoSerializer(new File(getProject().getBuildDir(),"class-info.bin"));
   CompilationSourceDirs sourceDirs=new CompilationSourceDirs(source);
   SourceToNameConverter sourceToNameConverter=new SourceToNameConverter(sourceDirs);
   RecompilationSpecProvider recompilationSpecProvider=new RecompilationSpecProvider(sourceToNameConverter,dependencyInfoSerializer,(FileOperations)getProject(),jarSnapshotFeeder);
-  IncrementalCompilationSupport incrementalSupport=new IncrementalCompilationSupport(jarSnapshotFeeder,dependencyInfoSerializer,(FileOperations)getProject(),extractor,cleaningCompiler,getPath(),recompilationSpecProvider);
+  IncrementalCompilationSupport incrementalSupport=new IncrementalCompilationSupport(jarSnapshotFeeder,dependencyInfoSerializer,(FileOperations)getProject(),analyzer,cleaningCompiler,getPath(),recompilationSpecProvider);
   Compiler<JavaCompileSpec> compiler=incrementalSupport.prepareCompiler(inputs,sourceDirs);
   performCompilation(compiler);
 }
