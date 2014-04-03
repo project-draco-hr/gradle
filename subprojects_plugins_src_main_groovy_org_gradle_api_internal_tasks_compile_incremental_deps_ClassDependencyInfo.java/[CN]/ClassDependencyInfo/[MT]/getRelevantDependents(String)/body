@@ -4,13 +4,10 @@
     return new DefaultDependentsSet();
   }
   if (deps.isDependencyToAll()) {
-    return deps;
+    return new DependencyToAll();
   }
-  Set<String> out=new HashSet<String>();
-  for (  String c : deps.getDependentClasses()) {
-    if (!c.contains("$") && !c.equals(className)) {
-      out.add(c);
-    }
-  }
-  return new DefaultDependentsSet(out);
+  Set<String> result=new HashSet<String>();
+  recurseDependents(result,deps.getDependentClasses());
+  result.remove(className);
+  return new DefaultDependentsSet(result);
 }
