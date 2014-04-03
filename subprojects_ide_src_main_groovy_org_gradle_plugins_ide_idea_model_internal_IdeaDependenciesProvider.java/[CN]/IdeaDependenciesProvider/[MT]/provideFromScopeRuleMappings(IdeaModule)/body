@@ -43,9 +43,14 @@
   for (  GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
     Map<String,Collection<Configuration>> plusMinusConfigurations=ideaModule.getScopes().get(scope.name());
     if (plusMinusConfigurations == null) {
-      continue;
+      if (shouldProcessScope(scope,ideaModule.getScopes())) {
+        plusMinusConfigurations=Collections.emptyMap();
+      }
+ else {
+        continue;
+      }
     }
-    Collection<Configuration> minusConfigurations=plusMinusConfigurations != null ? plusMinusConfigurations.get("minus") : null;
+    Collection<Configuration> minusConfigurations=plusMinusConfigurations.get("minus");
     Collection<String> minusConfigurationNames=minusConfigurations != null ? Lists.newArrayList(Iterables.transform(minusConfigurations,new Function<Configuration,String>(){
       public String apply(      Configuration configuration){
         return configuration.getName();
@@ -58,7 +63,7 @@
         dependencies.addAll(Lists.newArrayList(Iterables.transform(scope.scopes,scopeToDependency(dependencyKey))));
       }
     }
-    if (plusMinusConfigurations != null && plusMinusConfigurations.containsKey("plus")) {
+    if (plusMinusConfigurations.containsKey("plus")) {
       for (      Configuration plusConfiguration : plusMinusConfigurations.get("plus")) {
         Collection<IdeDependencyKey<?,Dependency>> matchingDependencies=extractDependencies(dependencyToConfigurations,Collections.singletonList(plusConfiguration.getName()),minusConfigurationNames);
         for (        IdeDependencyKey<?,Dependency> dependencyKey : matchingDependencies) {
