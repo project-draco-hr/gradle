@@ -7,17 +7,17 @@
     }
  else {
       Class<? extends Artifact> artifactType=((ArtifactTypeResolveContext)context).getArtifactType();
-      if (artifactType == ComponentMetaDataArtifact.class) {
-        resolveMetaDataArtifacts(component,result,localOnly);
-      }
- else       if (artifactType == JvmLibraryJavadocArtifact.class) {
+      if (artifactType == JvmLibraryJavadocArtifact.class) {
         resolveJavadocArtifacts(component,result,localOnly);
       }
  else       if (artifactType == JvmLibrarySourcesArtifact.class) {
         resolveSourceArtifacts(component,result,localOnly);
       }
- else {
-        throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s",artifactType.getName()));
+ else       if (isMetaDataArtifact(artifactType)) {
+        resolveMetaDataArtifacts(component,result);
+      }
+      if (!localOnly && !result.hasResult()) {
+        result.failed(new ArtifactResolveException(component.getComponentId(),String.format("Cannot locate artifacts of type %s for '%s' in repository '%s'",artifactType.getSimpleName(),component,name)));
       }
     }
   }
