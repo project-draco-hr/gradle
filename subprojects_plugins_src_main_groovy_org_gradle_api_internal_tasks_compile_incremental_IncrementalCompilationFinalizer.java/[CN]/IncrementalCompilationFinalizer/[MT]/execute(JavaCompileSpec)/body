@@ -1,13 +1,7 @@
 {
   WorkResult out=delegate.execute(spec);
+  ClassDependencyInfo info=updater.updateInfo(spec,out);
   Clock clock=new Clock();
-  FileTree tree=fileOperations.fileTree(spec.getDestinationDir());
-  ClassDependencyInfoExtractor extractor=new ClassDependencyInfoExtractor(analyzer);
-  tree.visit(extractor);
-  ClassDependencyInfo info=extractor.getDependencyInfo();
-  dependencyInfoWriter.writeInfo(info);
-  LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}",clock.getTime(),dependencyInfoWriter);
-  clock=new Clock();
   jarSnapshotFeeder.storeJarSnapshots(classpathJarFinder.findJarArchives(spec.getClasspath()),info);
   LOG.lifecycle("Created and wrote jar snapshots in {}.",clock.getTime());
   return out;

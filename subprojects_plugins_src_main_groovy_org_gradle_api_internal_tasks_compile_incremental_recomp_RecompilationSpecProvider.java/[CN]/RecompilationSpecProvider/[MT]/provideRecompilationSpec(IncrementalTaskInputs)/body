@@ -1,7 +1,9 @@
 {
-  JavaChangeProcessor javaChangeProcessor=new JavaChangeProcessor(dependencyInfoProvider.provideInfo(),sourceToNameConverter);
+  ClassDependencyInfo dependencyInfo=dependencyInfoProvider.provideInfo();
+  DefaultRecompilationSpec spec=new DefaultRecompilationSpec(dependencyInfo);
+  JavaChangeProcessor javaChangeProcessor=new JavaChangeProcessor(dependencyInfo,sourceToNameConverter);
   JarChangeProcessor jarChangeProcessor=new JarChangeProcessor(fileOperations,jarSnapshotFeeder);
-  InputChangeAction action=new InputChangeAction(javaChangeProcessor,jarChangeProcessor);
+  InputChangeAction action=new InputChangeAction(spec,javaChangeProcessor,jarChangeProcessor);
   inputs.outOfDate(action);
   if (action.spec.fullRebuildCause != null) {
     return action.spec;
