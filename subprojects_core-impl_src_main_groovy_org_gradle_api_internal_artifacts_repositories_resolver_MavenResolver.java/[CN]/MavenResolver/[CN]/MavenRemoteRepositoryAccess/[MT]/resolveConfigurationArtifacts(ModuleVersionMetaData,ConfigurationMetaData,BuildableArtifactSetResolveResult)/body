@@ -1,0 +1,19 @@
+{
+  MavenModuleVersionMetaData mavenModule=translateModule(module);
+  if (mavenModule.isPomPackaging()) {
+    Set<ComponentArtifactMetaData> artifacts=new LinkedHashSet<ComponentArtifactMetaData>();
+    artifacts.addAll(findOptionalArtifacts(module,"jar",null));
+    result.resolved(artifacts);
+  }
+ else {
+    ModuleVersionArtifactMetaData artifactMetaData=module.artifact(mavenModule.getPackaging(),mavenModule.getPackaging(),null);
+    if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData)) {
+      DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
+      result.resolved(ImmutableSet.of(artifactMetaData));
+    }
+ else {
+      ModuleVersionArtifactMetaData artifact=module.artifact("jar","jar",null);
+      result.resolved(ImmutableSet.of(artifact));
+    }
+  }
+}

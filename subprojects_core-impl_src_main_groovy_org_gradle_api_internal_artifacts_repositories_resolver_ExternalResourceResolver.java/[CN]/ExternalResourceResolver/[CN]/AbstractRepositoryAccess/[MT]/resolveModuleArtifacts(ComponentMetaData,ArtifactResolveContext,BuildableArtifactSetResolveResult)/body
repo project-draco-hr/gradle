@@ -1,0 +1,20 @@
+{
+  ModuleVersionMetaData moduleMetaData=(ModuleVersionMetaData)component;
+  if (context instanceof ConfigurationResolveContext) {
+    String configurationName=((ConfigurationResolveContext)context).getConfigurationName();
+    ConfigurationMetaData configuration=component.getConfiguration(configurationName);
+    resolveConfigurationArtifacts(moduleMetaData,configuration,result);
+  }
+ else {
+    Class<? extends Artifact> artifactType=((ArtifactTypeResolveContext)context).getArtifactType();
+    if (artifactType == JvmLibraryJavadocArtifact.class) {
+      resolveJavadocArtifacts(moduleMetaData,result);
+    }
+ else     if (artifactType == JvmLibrarySourcesArtifact.class) {
+      resolveSourceArtifacts(moduleMetaData,result);
+    }
+ else     if (isMetaDataArtifact(artifactType)) {
+      resolveMetaDataArtifacts(moduleMetaData,result);
+    }
+  }
+}
