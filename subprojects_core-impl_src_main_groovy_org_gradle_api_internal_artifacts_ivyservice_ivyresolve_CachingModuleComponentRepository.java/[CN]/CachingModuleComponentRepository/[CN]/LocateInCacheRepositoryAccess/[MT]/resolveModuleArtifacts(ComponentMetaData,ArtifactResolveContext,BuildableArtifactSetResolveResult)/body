@@ -1,5 +1,9 @@
 {
   final CachingModuleSource cachedModuleSource=(CachingModuleSource)component.getSource();
+  delegate.localResolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()),context,result);
+  if (result.hasResult()) {
+    return;
+  }
   ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts=moduleArtifactsCache.getCachedArtifacts(delegate,component.getId(),context.getId());
   BigInteger moduleDescriptorHash=cachedModuleSource.getDescriptorHash();
   if (cachedModuleArtifacts != null) {
@@ -9,10 +13,5 @@
       return;
     }
     LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'",context.getDescription(),component.getId(),delegate.getName());
-  }
-  delegate.resolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()),context,result);
-  if (result.getFailure() == null) {
-    Set<ModuleVersionArtifactIdentifier> artifactIdentifierSet=CollectionUtils.collect(result.getArtifacts(),new ArtifactMetaDataToId());
-    moduleArtifactsCache.cacheArtifacts(delegate,component.getId(),context.getId(),moduleDescriptorHash,artifactIdentifierSet);
   }
 }
