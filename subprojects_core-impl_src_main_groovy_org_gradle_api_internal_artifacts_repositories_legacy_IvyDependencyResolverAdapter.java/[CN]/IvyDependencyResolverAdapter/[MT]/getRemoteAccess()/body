@@ -35,8 +35,18 @@
         throw UncheckedException.throwAsUncheckedException(e);
       }
     }
-    public void resolveModuleArtifacts(    ComponentMetaData component,    ArtifactResolveContext context,    BuildableArtifactSetResolveResult result){
-      doResolveModuleArtifacts(component,context,result,true);
+    public void resolveModuleArtifacts(    ComponentMetaData component,    ArtifactType context,    BuildableArtifactSetResolveResult result){
+      Class<? extends Artifact> artifactType=context.getArtifactType();
+      try {
+        result.resolved(getCandidateArtifacts((ModuleVersionMetaData)component,artifactType));
+      }
+ catch (      Exception e) {
+        result.failed(new ArtifactResolveException(component.getComponentId(),e));
+      }
+    }
+    public void resolveModuleArtifacts(    ComponentMetaData component,    ComponentUsage context,    BuildableArtifactSetResolveResult result){
+      String configurationName=context.getConfigurationName();
+      result.resolved(component.getConfiguration(configurationName).getArtifacts());
     }
   }
 ;
