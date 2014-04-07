@@ -2,10 +2,8 @@
   String metadataLocation=toResourcePattern(getWholePattern()).toModuleVersionPath(module) + "/maven-metadata.xml";
   MavenMetadata mavenMetadata=parseMavenMetadata(metadataLocation);
   if (mavenMetadata.timestamp != null) {
-    String rev=module.getVersion();
-    rev=rev.substring(0,rev.length() - "SNAPSHOT".length());
-    rev=rev + mavenMetadata.timestamp + "-"+ mavenMetadata.buildNumber;
-    return new TimestampedModuleSource(rev);
+    String timestamp=String.format("%s-%s",mavenMetadata.timestamp,mavenMetadata.buildNumber);
+    return new MavenUniqueSnapshotModuleSource(timestamp);
   }
   return null;
 }
