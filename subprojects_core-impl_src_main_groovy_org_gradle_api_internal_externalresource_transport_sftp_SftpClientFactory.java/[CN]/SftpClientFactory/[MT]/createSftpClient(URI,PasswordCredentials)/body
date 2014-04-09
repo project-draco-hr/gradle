@@ -1,15 +1,8 @@
 {
-  ClientSession session=null;
-  try {
-    SshClient sshClient=sshClientManager.getSshClient();
-    session=connect(sshClient,uri,credentials);
-    authenticate(session,uri,credentials);
-    return new NonExistingFileHandlingSftpClient(session);
-  }
- catch (  IOException e) {
-    if (session != null) {
-      session.close(true);
-    }
-    throw e;
+synchronized (clients) {
+    SftpHost sftpHost=new SftpHost(uri,credentials);
+    LockableSftpClient sftpClient=acquireClient(sftpHost);
+    sftpClient.lock();
+    return sftpClient;
   }
 }
