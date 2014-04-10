@@ -4,7 +4,10 @@
   String objectFileExtension=OperatingSystem.current().isWindows() ? ".obj" : ".o";
   for (  File sourceFile : spec.getSourceFiles()) {
     String objectFileName=FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
-    WorkResult result=commandLineTool.inWorkDirectory(spec.getObjectFileDir()).withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileName,new ShortCircuitArgsTransformer(argsTransfomer),windowsPathLimitation,false)).execute(spec);
+    CommandLineToolInvocation invocation=new CommandLineToolInvocation();
+    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileName,new ShortCircuitArgsTransformer(argsTransfomer),windowsPathLimitation,false);
+    invocation.args=argTransformer.transform(spec);
+    WorkResult result=commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(invocation);
     didWork=didWork || result.getDidWork();
   }
   return new SimpleWorkResult(didWork);
