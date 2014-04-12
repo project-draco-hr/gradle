@@ -1,27 +1,25 @@
 {
-  final DefaultGradleLauncher gradleLauncher=(DefaultGradleLauncher)buildController.getLauncher();
-  final PayloadSerializer payloadSerializer=gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
+  GradleInternal gradle=buildController.getGradle();
+  PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
   final InternalBuildAction<?> action=(InternalBuildAction<?>)payloadSerializer.deserialize(this.action);
-  final AtomicReference<Object> result=new AtomicReference<Object>();
-  final AtomicReference<RuntimeException> failure=new AtomicReference<RuntimeException>();
-  gradleLauncher.addListener(new ModelConfigurationListener(){
+  gradle.addListener(new ModelConfigurationListener(){
     public void onConfigure(    final GradleInternal gradle){
       ensureAllProjectsEvaluated(gradle);
-      InternalBuildController internalBuildController=new DefaultBuildController(gradle);
-      Object model=null;
-      try {
-        model=action.execute(internalBuildController);
-      }
- catch (      RuntimeException e) {
-        failure.set(new InternalBuildActionFailureException(e));
-      }
-      result.set(model);
     }
   }
 );
   buildController.configure();
-  if (failure.get() != null) {
-    return new BuildActionResult(null,payloadSerializer.serialize(failure.get()));
+  InternalBuildController internalBuildController=new DefaultBuildController(gradle);
+  Object model=null;
+  Throwable failure=null;
+  try {
+    model=action.execute(internalBuildController);
   }
-  return new BuildActionResult(payloadSerializer.serialize(result.get()),null);
+ catch (  RuntimeException e) {
+    failure=new InternalBuildActionFailureException(e);
+  }
+  if (failure != null) {
+    return new BuildActionResult(null,payloadSerializer.serialize(failure));
+  }
+  return new BuildActionResult(payloadSerializer.serialize(model),null);
 }
