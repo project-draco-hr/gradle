@@ -16,9 +16,9 @@
   }
   Class<? extends T> subclass;
   try {
-    ClassBuilder<T> builder=start(type);
-    boolean isConventionAware=type.getAnnotation(NoConventionMapping.class) == null;
-    builder.startClass(isConventionAware);
+    ClassMetaData classMetaData=inspectType(type);
+    ClassBuilder<T> builder=start(type,classMetaData);
+    builder.startClass();
     if (!DynamicObjectAware.class.isAssignableFrom(type)) {
       if (ExtensionAware.class.isAssignableFrom(type)) {
         throw new UnsupportedOperationException("A type that implements ExtensionAware must currently also implement DynamicObjectAware.");
@@ -29,7 +29,7 @@
       builder.mixInGroovyObject();
     }
     builder.addDynamicMethods();
-    if (isConventionAware && !IConventionAware.class.isAssignableFrom(type)) {
+    if (classMetaData.conventionAware && !IConventionAware.class.isAssignableFrom(type)) {
       builder.mixInConventionAware();
     }
     Class noMappingClass=Object.class;
@@ -38,47 +38,46 @@
         noMappingClass=c;
       }
     }
-    Set<PropertyMetaData> settableProperties=new HashSet<PropertyMetaData>();
     Set<PropertyMetaData> conventionProperties=new HashSet<PropertyMetaData>();
-    ClassMetaData classMetaData=inspectType(type);
     for (    PropertyMetaData property : classMetaData.properties.values()) {
       if (SKIP_PROPERTIES.contains(property.name)) {
         continue;
       }
       boolean needsConventionMapping=false;
-      for (      Method getter : property.getters) {
-        if (!Modifier.isFinal(getter.getModifiers()) && !getter.getDeclaringClass().isAssignableFrom(noMappingClass)) {
-          needsConventionMapping=true;
-          break;
+      if (classMetaData.isExtensible()) {
+        for (        Method getter : property.getters) {
+          if (!Modifier.isFinal(getter.getModifiers()) && !getter.getDeclaringClass().isAssignableFrom(noMappingClass)) {
+            needsConventionMapping=true;
+            break;
+          }
         }
       }
       if (needsConventionMapping) {
         conventionProperties.add(property);
         builder.addConventionProperty(property);
         for (        Method getter : property.getters) {
-          builder.overrideGetter(property,getter);
+          builder.applyConventionMappingToGetter(property,getter);
         }
-      }
-      if (property.setters.isEmpty()) {
-        continue;
       }
       if (needsConventionMapping) {
         for (        Method setter : property.setters) {
           if (!Modifier.isFinal(setter.getModifiers())) {
-            builder.overrideSetter(property,setter);
+            builder.applyConventionMappingToSetter(property,setter);
           }
         }
       }
-      if (Iterable.class.isAssignableFrom(property.getType())) {
-        continue;
-      }
-      settableProperties.add(property);
     }
     Set<Method> actionMethods=classMetaData.missingOverloads;
     for (    Method method : actionMethods) {
       builder.addActionMethod(method);
     }
-    for (    PropertyMetaData property : settableProperties) {
+    for (    PropertyMetaData property : classMetaData.properties.values()) {
+      if (property.setters.isEmpty()) {
+        continue;
+      }
+      if (Iterable.class.isAssignableFrom(property.getType())) {
+        continue;
+      }
       if (property.setMethods.isEmpty()) {
         for (        Method setter : property.setters) {
           builder.addSetMethod(property,setter);
@@ -86,7 +85,7 @@
       }
  else       if (conventionProperties.contains(property)) {
         for (        Method setMethod : property.setMethods) {
-          builder.overrideSetMethod(property,setMethod);
+          builder.applyConventionMappingToSetMethod(property,setMethod);
         }
       }
     }
