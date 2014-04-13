@@ -1,0 +1,21 @@
+{
+  BeanWithNonPublicProperties bean=generator.newInstance(BeanWithNonPublicProperties.class);
+  assertThat(bean.getPackageProtected(),equalTo("package-protected"));
+  assertThat(bean.getProtected(),equalTo("protected"));
+  assertThat(bean.getPrivate(),equalTo("private"));
+  IConventionAware conventionAware=(IConventionAware)bean;
+  conventionAware.getConventionMapping().map("packageProtected",new Callable<String>(){
+    public String call(){
+      return "1";
+    }
+  }
+);
+  conventionAware.getConventionMapping().map("protected",new Callable<String>(){
+    public String call(){
+      return "2";
+    }
+  }
+);
+  assertThat(bean.getPackageProtected(),equalTo("1"));
+  assertThat(bean.getProtected(),equalTo("2"));
+}
