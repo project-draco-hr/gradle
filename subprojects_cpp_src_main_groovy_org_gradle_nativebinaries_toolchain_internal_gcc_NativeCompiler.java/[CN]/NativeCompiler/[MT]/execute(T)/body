@@ -2,12 +2,15 @@
   boolean didWork=false;
   boolean windowsPathLimitation=OperatingSystem.current().isWindows();
   String objectFileExtension=OperatingSystem.current().isWindows() ? ".obj" : ".o";
+  MutableCommandLineToolInvocation invocation=baseInvocation.copy();
+  invocation.setWorkDirectory(spec.getObjectFileDir());
+  if (useCommandFile) {
+    invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
+  }
   for (  File sourceFile : spec.getSourceFiles()) {
     String objectFileName=FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
-    CommandLineToolInvocation invocation=new CommandLineToolInvocation();
     SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileName,new ShortCircuitArgsTransformer(argsTransfomer),windowsPathLimitation,false);
-    invocation.args=argTransformer.transform(spec);
-    invocation.workDirectory=spec.getObjectFileDir();
+    invocation.setArgs(argTransformer.transform(spec));
     WorkResult result=commandLineTool.execute(invocation);
     didWork=didWork || result.getDidWork();
   }

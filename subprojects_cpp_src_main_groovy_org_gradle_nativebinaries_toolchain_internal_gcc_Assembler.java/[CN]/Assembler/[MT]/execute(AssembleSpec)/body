@@ -1,11 +1,10 @@
 {
   boolean didWork=false;
+  MutableCommandLineToolInvocation invocation=baseInvocation.copy();
+  invocation.setWorkDirectory(spec.getObjectFileDir());
   for (  File sourceFile : spec.getSourceFiles()) {
     ArgsTransformer<AssembleSpec> arguments=new AssembleSpecToArgsList(sourceFile,spec.getObjectFileDir(),outputFileSuffix);
-    arguments=new PostTransformActionArgsTransformer<AssembleSpec>(arguments,argsAction);
-    CommandLineToolInvocation invocation=new CommandLineToolInvocation();
-    invocation.args=arguments.transform(spec);
-    invocation.workDirectory=spec.getObjectFileDir();
+    invocation.setArgs(arguments.transform(spec));
     WorkResult result=commandLineTool.execute(invocation);
     didWork=didWork || result.getDidWork();
   }
