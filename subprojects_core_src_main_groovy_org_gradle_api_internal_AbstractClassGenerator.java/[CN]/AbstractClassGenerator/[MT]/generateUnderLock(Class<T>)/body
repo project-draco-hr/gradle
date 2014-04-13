@@ -45,32 +45,29 @@
       if (SKIP_PROPERTIES.contains(property.name)) {
         continue;
       }
-      boolean needsConventionMapping=true;
-      Method getter=property.getter;
-      if (getter == null) {
-        needsConventionMapping=false;
-      }
- else {
-        if (Modifier.isFinal(getter.getModifiers())) {
-          needsConventionMapping=false;
-        }
- else {
-          Class<?> declaringClass=getter.getDeclaringClass();
-          if (declaringClass.isAssignableFrom(noMappingClass)) {
-            needsConventionMapping=false;
-          }
+      boolean needsConventionMapping=false;
+      for (      Method getter : property.getters) {
+        if (!Modifier.isFinal(getter.getModifiers()) && !getter.getDeclaringClass().isAssignableFrom(noMappingClass)) {
+          needsConventionMapping=true;
+          break;
         }
       }
       if (needsConventionMapping) {
         conventionProperties.add(property);
-        builder.addGetter(property);
+        builder.addConventionProperty(property);
+        for (        Method getter : property.getters) {
+          builder.overrideGetter(property,getter);
+        }
       }
-      Method setter=property.setter;
-      if (setter == null) {
+      if (property.setters.isEmpty()) {
         continue;
       }
-      if (needsConventionMapping && !Modifier.isFinal(setter.getModifiers())) {
-        builder.addSetter(property);
+      if (needsConventionMapping) {
+        for (        Method setter : property.setters) {
+          if (!Modifier.isFinal(setter.getModifiers())) {
+            builder.overrideSetter(property,setter);
+          }
+        }
       }
       if (Iterable.class.isAssignableFrom(property.getType())) {
         continue;
@@ -83,7 +80,9 @@
     }
     for (    PropertyMetaData property : settableProperties) {
       if (property.setMethods.isEmpty()) {
-        builder.addSetMethod(property);
+        for (        Method setter : property.setters) {
+          builder.addSetMethod(property,setter);
+        }
       }
  else       if (conventionProperties.contains(property)) {
         for (        Method setMethod : property.setMethods) {
