@@ -2,7 +2,7 @@
   LogLevel currentLevel=getCurrentLogLevel();
   TestLogging levelLogging=testLogging.get(currentLevel);
   TestExceptionFormatter exceptionFormatter=getExceptionFormatter(levelLogging);
-  TestEventLogger eventLogger=new TestEventLogger(textOutputFactory,currentLevel,levelLogging,exceptionFormatter);
+  TestEventLogger eventLogger=new TestEventLogger(getTextOutputFactory(),currentLevel,levelLogging,exceptionFormatter);
   addTestListener(eventLogger);
   addTestOutputListener(eventLogger);
   if (!getFilter().getIncludePatterns().isEmpty()) {
@@ -17,13 +17,17 @@
   TestReportDataCollector testReportDataCollector=new TestReportDataCollector(results,outputWriter);
   addTestListener(testReportDataCollector);
   addTestOutputListener(testReportDataCollector);
-  TestCountLogger testCountLogger=new TestCountLogger(progressLoggerFactory);
+  TestCountLogger testCountLogger=new TestCountLogger(getProgressLoggerFactory());
   addTestListener(testCountLogger);
   TestResultProcessor resultProcessor=new TestListenerAdapter(getTestListenerBroadcaster().getSource(),testOutputListenerBroadcaster.getSource());
+  if (testExecuter == null) {
+    testExecuter=new DefaultTestExecuter(getProcessBuilderFactory(),getActorFactory());
+  }
   try {
     testExecuter.execute(this,resultProcessor);
   }
   finally {
+    testExecuter=null;
     testListenerBroadcaster.removeAll();
     testOutputListenerBroadcaster.removeAll();
     outputWriter.close();
@@ -31,6 +35,9 @@
   new TestResultSerializer(binaryResultsDir).write(results.values());
   TestResultsProvider testResultsProvider=new InMemoryTestResultsProvider(results.values(),testOutputStore.reader());
   try {
+    if (testReporter == null) {
+      testReporter=new DefaultTestReport();
+    }
     JUnitXmlReport junitXml=reports.getJunitXml();
     if (junitXml.isEnabled()) {
       TestOutputAssociation outputAssociation=junitXml.isOutputPerTestCase() ? TestOutputAssociation.WITH_TESTCASE : TestOutputAssociation.WITH_SUITE;
@@ -47,8 +54,9 @@
   }
   finally {
     CompositeStoppable.stoppable(testResultsProvider).stop();
+    testReporter=null;
+    testFramework=null;
   }
-  testFramework=null;
   if (testCountLogger.hadFailures()) {
     handleTestFailures();
   }
