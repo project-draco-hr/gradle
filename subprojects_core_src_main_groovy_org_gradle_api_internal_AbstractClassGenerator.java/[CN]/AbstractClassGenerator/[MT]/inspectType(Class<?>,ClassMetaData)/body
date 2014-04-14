@@ -1,5 +1,13 @@
 {
   for (  Method method : type.getDeclaredMethods()) {
+    if (method.getAnnotation(Inject.class) != null) {
+      if (!Modifier.isPublic(method.getModifiers()) && !Modifier.isProtected(method.getModifiers())) {
+        throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is not public or protected.",method.getDeclaringClass().getSimpleName(),method.getName()));
+      }
+      if (Modifier.isStatic(method.getModifiers())) {
+        throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is static.",method.getDeclaringClass().getSimpleName(),method.getName()));
+      }
+    }
     if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers()) || method.isBridge()) {
       continue;
     }
