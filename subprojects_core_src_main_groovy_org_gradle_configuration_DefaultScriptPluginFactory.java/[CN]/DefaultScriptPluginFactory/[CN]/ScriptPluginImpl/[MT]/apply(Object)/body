@@ -8,12 +8,12 @@
   services.add(ScriptHandler.class,scriptHandler);
   services.add(FileLookup.class,fileLookup);
   ScriptSource withImports=importsReader.withImports(scriptSource);
-  List<PluginRequest> pluginRequests=new LinkedList<PluginRequest>();
+  PluginDependenciesService pluginDependenciesService=new PluginDependenciesService();
   if (target instanceof PluginAware) {
-    services.add(PluginHandler.class,new DefaultPluginHandler(pluginRequests));
+    services.add(PluginDependenciesSpec.class,pluginDependenciesService.createSpec());
   }
  else {
-    services.add(PluginHandler.class,new NonPluggableTargetPluginHandler(target));
+    services.add(PluginDependenciesSpec.class,new UnsupportedPluginDependenciesSpec());
   }
   ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
   compiler.setClassloader(classLoaderScope.getBase().getChildClassLoader());
@@ -27,11 +27,8 @@
   Set<File> files=classpathConfiguration.getFiles();
   ClassPath classPath=new DefaultClassPath(files);
   ClassLoader exportedClassLoader=classLoaderScope.export(classPath);
+  List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
   if (!pluginRequests.isEmpty()) {
-    PluginResolver pluginResolver=pluginResolverFactory.createPluginResolver(exportedClassLoader);
-    @SuppressWarnings("ConstantConditions") PluginResolutionApplicator resolutionApplicator=new PluginResolutionApplicator((PluginAware)target,classLoaderScope);
-    PluginRequestApplicator requestApplicator=new PluginRequestApplicator(pluginResolver,resolutionApplicator);
-    requestApplicator.applyPlugin(pluginRequests);
   }
   classLoaderScope.lock();
   compiler.setClassloader(classLoaderScope.getScopeClassLoader());
