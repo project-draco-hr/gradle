@@ -1,0 +1,12 @@
+{
+  if (compiler == null) {
+    ProjectInternal projectInternal=(ProjectInternal)getProject();
+    IsolatedAntBuilder antBuilder=getServices().get(IsolatedAntBuilder.class);
+    Factory<AntBuilder> antBuilderFactory=getServices().getFactory(AntBuilder.class);
+    CompilerDaemonManager compilerDaemonManager=getServices().get(CompilerDaemonManager.class);
+    ScalaCompilerFactory scalaCompilerFactory=new ScalaCompilerFactory(projectInternal,antBuilder,antBuilderFactory,compilerDaemonManager);
+    Compiler<ScalaJavaJointCompileSpec> delegatingCompiler=new DelegatingScalaCompiler(scalaCompilerFactory);
+    compiler=new CleaningScalaCompiler(delegatingCompiler,getOutputs());
+  }
+  return compiler;
+}
