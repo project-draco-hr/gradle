@@ -17,7 +17,9 @@
   }
   ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
   compiler.setClassloader(classLoaderScope.getBase().getChildClassLoader());
-  PluginsAndBuildscriptTransformer scriptBlockTransformer=new PluginsAndBuildscriptTransformer(classpathClosureName);
+  boolean supportsPluginsBlock=ProjectScript.class.isAssignableFrom(scriptType);
+  String onPluginBlockError=supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
+  PluginsAndBuildscriptTransformer scriptBlockTransformer=new PluginsAndBuildscriptTransformer(classpathClosureName,onPluginBlockError);
   StatementExtractingScriptTransformer classpathScriptTransformer=new StatementExtractingScriptTransformer(classpathClosureName,scriptBlockTransformer);
   compiler.setTransformer(classpathScriptTransformer);
   ScriptRunner<? extends BasicScript> classPathScriptRunner=compiler.compile(scriptType);
@@ -28,8 +30,6 @@
   ClassPath classPath=new DefaultClassPath(files);
   ClassLoader exportedClassLoader=classLoaderScope.export(classPath);
   List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
-  if (!pluginRequests.isEmpty()) {
-  }
   classLoaderScope.lock();
   compiler.setClassloader(classLoaderScope.getScopeClassLoader());
   compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert()));
