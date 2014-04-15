@@ -1,14 +1,11 @@
 {
   ProjectInternal projectInternal=(ProjectInternal)getProject();
-  IsolatedAntBuilder antBuilder=getServices().get(IsolatedAntBuilder.class);
-  ClassPathRegistry classPathRegistry=getServices().get(ClassPathRegistry.class);
-  Factory<AntBuilder> antBuilderFactory=getServices().getFactory(AntBuilder.class);
   JavaCompilerFactory inProcessCompilerFactory=new InProcessJavaCompilerFactory();
   tempFileProvider=projectInternal.getServices().get(TemporaryFileProvider.class);
   CompilerDaemonManager compilerDaemonManager=getServices().get(CompilerDaemonManager.class);
   InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory=getServices().get(InProcessCompilerDaemonFactory.class);
-  DefaultJavaCompilerFactory javaCompilerFactory=new DefaultJavaCompilerFactory(projectInternal,antBuilderFactory,inProcessCompilerFactory,compilerDaemonManager);
-  GroovyCompilerFactory groovyCompilerFactory=new GroovyCompilerFactory(projectInternal,antBuilder,classPathRegistry,javaCompilerFactory,compilerDaemonManager,inProcessCompilerDaemonFactory);
+  DefaultJavaCompilerFactory javaCompilerFactory=new DefaultJavaCompilerFactory(projectInternal,inProcessCompilerFactory,compilerDaemonManager);
+  GroovyCompilerFactory groovyCompilerFactory=new GroovyCompilerFactory(projectInternal,javaCompilerFactory,compilerDaemonManager,inProcessCompilerDaemonFactory);
   Compiler<GroovyJavaJointCompileSpec> delegatingCompiler=new DelegatingGroovyCompiler(groovyCompilerFactory);
   compiler=new CleaningGroovyCompiler(delegatingCompiler,getOutputs());
 }
