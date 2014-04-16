@@ -1,5 +1,11 @@
 {
-  PluginResolution resolution=pluginResolver.resolve(request);
+  PluginResolution resolution;
+  try {
+    resolution=pluginResolver.resolve(request);
+  }
+ catch (  InvalidPluginRequestException e) {
+    throw new LocationAwareException(e,e.getPluginRequest().getScriptSource(),e.getPluginRequest().getLineNumber());
+  }
   if (resolution == null) {
     throw new UnknownPluginException("Cannot resolve plugin request " + request + " from "+ pluginResolver.getDescriptionForNotFoundMessage());
   }

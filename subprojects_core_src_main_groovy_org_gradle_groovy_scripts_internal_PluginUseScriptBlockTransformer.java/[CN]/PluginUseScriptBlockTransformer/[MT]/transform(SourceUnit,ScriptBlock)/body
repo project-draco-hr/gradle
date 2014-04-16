@@ -1,8 +1,8 @@
 {
   ClosureExpression closureArg=scriptBlock.getClosureExpression();
   PropertyExpression servicesProperty=new PropertyExpression(VariableExpression.THIS_EXPRESSION,servicesFieldName);
-  MethodCallExpression getServiceMethodCall=new MethodCallExpression(servicesProperty,"get",new ArgumentListExpression(new ClassExpression(new ClassNode(serviceClass))));
-  Expression hydrateMethodCall=new MethodCallExpression(closureArg,"rehydrate",new ArgumentListExpression(ConstantExpression.NULL,getServiceMethodCall,getServiceMethodCall));
+  final MethodCallExpression getServiceMethodCall=new MethodCallExpression(servicesProperty,"get",new ArgumentListExpression(new ClassExpression(new ClassNode(serviceClass))));
+  Expression hydrateMethodCall=new MethodCallExpression(closureArg,"rehydrate",new ArgumentListExpression(getServiceMethodCall,ConstantExpression.NULL,ConstantExpression.NULL));
   Expression closureCall=new MethodCallExpression(hydrateMethodCall,"call",ArgumentListExpression.EMPTY_ARGUMENTS);
   closureArg.getCode().visit(new RestrictiveCodeVisitor(sourceUnit,BASE_MESSAGE){
     @Override public void visitBlockStatement(    BlockStatement block){
@@ -26,7 +26,11 @@
           if (methodNameText.equals("id") || methodNameText.equals("version")) {
             hasSingleConstantStringArg(call);
             if (methodName.getText().equals("id")) {
-              if (!call.isImplicitThis()) {
+              if (call.isImplicitThis()) {
+                call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"),"createSpec",new ConstantExpression(call.getLineNumber(),true)));
+                call.setImplicitThis(false);
+              }
+ else {
                 restrict(call,BASE_MESSAGE);
               }
             }

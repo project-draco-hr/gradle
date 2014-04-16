@@ -8,13 +8,8 @@
   services.add(ScriptHandler.class,scriptHandler);
   services.add(FileLookup.class,fileLookup);
   ScriptSource withImports=importsReader.withImports(scriptSource);
-  PluginDependenciesService pluginDependenciesService=new PluginDependenciesService();
-  if (target instanceof PluginAware) {
-    services.add(PluginDependenciesSpec.class,pluginDependenciesService.createSpec());
-  }
- else {
-    services.add(PluginDependenciesSpec.class,new UnsupportedPluginDependenciesSpec());
-  }
+  PluginDependenciesService pluginDependenciesService=new PluginDependenciesService(getSource());
+  services.add(PluginDependenciesService.class,pluginDependenciesService);
   ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
   compiler.setClassloader(classLoaderScope.getBase().getChildClassLoader());
   boolean supportsPluginsBlock=ProjectScript.class.isAssignableFrom(scriptType);
