@@ -30,6 +30,12 @@
   ClassPath classPath=new DefaultClassPath(files);
   ClassLoader exportedClassLoader=classLoaderScope.export(classPath);
   List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
+  if (!pluginRequests.isEmpty()) {
+    PluginResolver pluginResolver=pluginResolverFactory.createPluginResolver(exportedClassLoader);
+    @SuppressWarnings("ConstantConditions") PluginResolutionApplicator resolutionApplicator=new PluginResolutionApplicator((PluginAware)target,classLoaderScope);
+    PluginRequestApplicator requestApplicator=new PluginRequestApplicator(pluginResolver,resolutionApplicator);
+    requestApplicator.applyPlugin(pluginRequests);
+  }
   classLoaderScope.lock();
   compiler.setClassloader(classLoaderScope.getScopeClassLoader());
   compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert()));
