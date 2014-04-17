@@ -26,6 +26,22 @@
   ClassLoader exportedClassLoader=classLoaderScope.export(classPath);
   List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
   if (!pluginRequests.isEmpty()) {
+    Map<String,List<PluginRequest>> groupedById=CollectionUtils.groupBy(pluginRequests,new Transformer<String,PluginRequest>(){
+      public String transform(      PluginRequest pluginRequest){
+        return pluginRequest.getId();
+      }
+    }
+);
+    groupedById.remove(NoopPluginResolver.PLUGIN_ID);
+    for (    Map.Entry<String,List<PluginRequest>> entry : groupedById.entrySet()) {
+      List<PluginRequest> pluginRequestsForId=entry.getValue();
+      if (pluginRequestsForId.size() > 1) {
+        PluginRequest first=pluginRequests.get(0);
+        PluginRequest second=pluginRequests.get(1);
+        InvalidPluginRequestException exception=new InvalidPluginRequestException(second,"Plugin with id '" + entry.getKey() + "' was already requested at line "+ first.getLineNumber());
+        throw new LocationAwareException(exception,second.getScriptSource(),second.getLineNumber());
+      }
+    }
     PluginResolver pluginResolver=pluginResolverFactory.createPluginResolver(exportedClassLoader);
     @SuppressWarnings("ConstantConditions") PluginResolutionApplicator resolutionApplicator=new PluginResolutionApplicator((PluginAware)target,classLoaderScope);
     PluginRequestApplicator requestApplicator=new PluginRequestApplicator(pluginResolver,resolutionApplicator);
