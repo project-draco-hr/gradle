@@ -35,14 +35,19 @@
             }
             if (methodName.getText().equals("id")) {
               if (call.isImplicitThis()) {
-                int invalidCharIndex=PluginIds.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(argStringValue);
-                if (invalidCharIndex < 0) {
-                  call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"),"createSpec",new ConstantExpression(call.getLineNumber(),true)));
-                  call.setImplicitThis(false);
+                if (argStringValue.startsWith(PluginIds.SEPARATOR) || argStringValue.endsWith(PluginIds.SEPARATOR)) {
+                  restrict(argumentExpression,ID_SEPARATOR_ON_START_OR_END);
                 }
  else {
-                  char invalidChar=argStringValue.charAt(invalidCharIndex);
-                  restrict(argumentExpression,invalidPluginIdCharMessage(invalidChar));
+                  int invalidCharIndex=PluginIds.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(argStringValue);
+                  if (invalidCharIndex < 0) {
+                    call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"),"createSpec",new ConstantExpression(call.getLineNumber(),true)));
+                    call.setImplicitThis(false);
+                  }
+ else {
+                    char invalidChar=argStringValue.charAt(invalidCharIndex);
+                    restrict(argumentExpression,invalidPluginIdCharMessage(invalidChar));
+                  }
                 }
               }
  else {
