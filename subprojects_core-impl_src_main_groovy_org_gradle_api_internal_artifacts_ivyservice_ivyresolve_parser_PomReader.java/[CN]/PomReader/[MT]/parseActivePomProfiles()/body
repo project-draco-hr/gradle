@@ -9,13 +9,21 @@
           if (activationElement != null) {
             String activeByDefault=getFirstChildText(activationElement,PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT);
             if (activeByDefault != null && "true".equals(activeByDefault)) {
-              activePomProfiles.add(new PomProfileElement(profileElement));
+              activePomProfiles.add(new PomProfileElement(profileElement,true));
+            }
+ else {
+              Element propertyElement=getFirstChildElement(activationElement,PROFILE_ACTIVATION_PROPERTY);
+              if (propertyElement != null) {
+                if (isActivationPropertyActivated(propertyElement)) {
+                  activePomProfiles.add(new PomProfileElement(profileElement,false));
+                }
+              }
             }
           }
         }
       }
     }
-    declaredActivePomProfiles=activePomProfiles;
+    declaredActivePomProfiles=removeActiveByDefaultProfilesIfOtherActivationMethodsPresent(activePomProfiles);
   }
   return declaredActivePomProfiles;
 }
