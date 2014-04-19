@@ -12,27 +12,22 @@
  catch (  NativeIntegrationUnavailableException ex) {
     LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
   }
-  LibC libC=loadLibC();
-  Symlink symlink=symlink(libC);
-  POSIX posix=PosixUtil.current();
-  if ((libC != null && (operatingSystem.isLinux())) && posix instanceof BaseNativePOSIX) {
-    FilePathEncoder filePathEncoder=new DefaultFilePathEncoder(libC);
-    FileModeMutator chmod=new LibcChmod(libC,filePathEncoder);
-    FileModeAccessor stat=new LibCStat(libC,operatingSystem,(BaseNativePOSIX)posix,filePathEncoder);
-    return new GenericFileSystem(chmod,stat,symlink);
-  }
+  LOGGER.debug("Using UnsupportedSymlink implementation.");
+  Symlink symlink=new UnsupportedSymlink();
   if (JavaVersion.current().isJava7()) {
     String jdkFilePermissionclass="org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
+    Class<?> handlerClass=null;
     try {
-      Object handler=FileSystemServices.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
-      return new GenericFileSystem((FileModeMutator)handler,(FileModeAccessor)handler,symlink);
+      handlerClass=FileSystemServices.class.getClassLoader().loadClass(jdkFilePermissionclass);
     }
  catch (    ClassNotFoundException e) {
       LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.",jdkFilePermissionclass));
     }
-catch (    Exception e) {
-      throw UncheckedException.throwAsUncheckedException(e);
+    if (handlerClass != null) {
+      LOGGER.debug("Using JDK 7 file services.");
+      Object handler=handlerClass.newInstance();
+      return new GenericFileSystem((FileModeMutator)handler,(FileModeAccessor)handler,symlink);
     }
   }
-  return new GenericFileSystem(chmod(libC),stat(),symlink);
+  return new GenericFileSystem(new UnsupportedChmod(),new UnsupportedStat(),symlink);
 }
