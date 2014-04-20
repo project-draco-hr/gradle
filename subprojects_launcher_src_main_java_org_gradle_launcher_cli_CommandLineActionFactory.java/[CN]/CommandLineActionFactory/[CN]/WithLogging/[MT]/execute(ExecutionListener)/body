@@ -1,18 +1,23 @@
 {
-  CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter=(CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
+  CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter=new LoggingCommandLineConverter();
+  CommandLineConverter<BuildLayoutParameters> buildLayoutConverter=new LayoutCommandLineConverter();
+  BuildLayoutParameters buildLayout=new BuildLayoutParameters();
   CommandLineParser parser=new CommandLineParser();
   loggingConfigurationConverter.configure(parser);
+  buildLayoutConverter.configure(parser);
   parser.allowUnknownOptions();
   parser.allowMixedSubcommandsAndOptions();
   try {
     ParsedCommandLine parsedCommandLine=parser.parse(args);
     loggingConfigurationConverter.convert(parsedCommandLine,loggingConfiguration);
+    buildLayoutConverter.convert(parsedCommandLine,buildLayout);
   }
  catch (  CommandLineArgumentException e) {
   }
   LoggingManagerInternal loggingManager=loggingServices.getFactory(LoggingManagerInternal.class).create();
   loggingManager.setLevel(loggingConfiguration.getLogLevel());
   loggingManager.start();
+  NativeServices.initialize(buildLayout.getGradleUserHomeDir());
   loggingManager.attachConsole(loggingConfiguration.isColorOutput());
   action.execute(executionListener);
 }
