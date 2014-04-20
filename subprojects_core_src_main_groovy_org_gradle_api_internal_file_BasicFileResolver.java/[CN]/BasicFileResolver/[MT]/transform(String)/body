@@ -1,0 +1,18 @@
+{
+  if (original.startsWith("file:")) {
+    try {
+      return GFileUtils.canonicalise(new File(new URI(original)));
+    }
+ catch (    URISyntaxException e) {
+      throw UncheckedException.throwAsUncheckedException(e);
+    }
+  }
+  if (URI_SCHEME.matcher(original).matches()) {
+    throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.",original));
+  }
+  File file=new File(original);
+  if (!file.isAbsolute()) {
+    file=new File(baseDir,original);
+  }
+  return GFileUtils.canonicalise(file);
+}
