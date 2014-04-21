@@ -1,6 +1,7 @@
 {
   if (declaredActivePomProfiles == null) {
-    List<PomProfile> activePomProfiles=new ArrayList<PomProfile>();
+    List<PomProfile> activeByDefaultPomProfiles=new ArrayList<PomProfile>();
+    List<PomProfile> activeByAbsenceOfPropertyPomProfiles=new ArrayList<PomProfile>();
     Element profilesElement=getFirstChildElement(projectElement,PROFILES);
     if (profilesElement != null) {
       for (      Element profileElement : getAllChilds(profilesElement)) {
@@ -9,13 +10,13 @@
           if (activationElement != null) {
             String activeByDefault=getFirstChildText(activationElement,PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT);
             if (activeByDefault != null && "true".equals(activeByDefault)) {
-              activePomProfiles.add(new PomProfileElement(profileElement,true));
+              activeByDefaultPomProfiles.add(new PomProfileElement(profileElement));
             }
  else {
               Element propertyElement=getFirstChildElement(activationElement,PROFILE_ACTIVATION_PROPERTY);
               if (propertyElement != null) {
                 if (isActivationPropertyActivated(propertyElement)) {
-                  activePomProfiles.add(new PomProfileElement(profileElement,false));
+                  activeByAbsenceOfPropertyPomProfiles.add(new PomProfileElement(profileElement));
                 }
               }
             }
@@ -23,7 +24,7 @@
         }
       }
     }
-    declaredActivePomProfiles=removeActiveByDefaultProfilesIfOtherActivationMethodsPresent(activePomProfiles);
+    declaredActivePomProfiles=determineActiveProfiles(activeByDefaultPomProfiles,activeByAbsenceOfPropertyPomProfiles);
   }
   return declaredActivePomProfiles;
 }
