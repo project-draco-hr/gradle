@@ -1,18 +1,10 @@
 {
-synchronized (clients) {
-    for (    List<LockableSftpClient> allSftpClients : clients.values()) {
-      for (      LockableSftpClient client : allSftpClients) {
-        try {
-          client.close();
-        }
- catch (        NullPointerException e) {
-          logger.warn("Failed to close SFTP client " + client);
-        }
-catch (        IOException e) {
-          throw UncheckedException.throwAsUncheckedException(e);
-        }
-      }
+synchronized (lock) {
+    CompositeStoppable stoppable=new CompositeStoppable();
+    for (    LockableSftpClient client : clients.values()) {
+      stoppable.add(client);
     }
+    stoppable.add(sshClient);
+    stoppable.stop();
   }
-  sshClientManager.stopSshClient();
 }
