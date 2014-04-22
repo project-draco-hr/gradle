@@ -1,0 +1,17 @@
+{
+  if (metaData.isPomPackaging()) {
+    return false;
+  }
+  if (!metaData.isKnownJarPackaging()) {
+    ModuleVersionArtifactMetaData customArtifactMetaData=metaData.artifact(metaData.getPackaging(),metaData.getPackaging(),null);
+    if (artifactResolver.artifactExists(customArtifactMetaData)) {
+      return false;
+    }
+  }
+  ModuleVersionArtifactMetaData artifact=metaData.artifact("jar","jar",null);
+  if (artifactResolver.artifactExists(artifact)) {
+    return false;
+  }
+  LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.",metaData.getId(),getName());
+  return true;
+}

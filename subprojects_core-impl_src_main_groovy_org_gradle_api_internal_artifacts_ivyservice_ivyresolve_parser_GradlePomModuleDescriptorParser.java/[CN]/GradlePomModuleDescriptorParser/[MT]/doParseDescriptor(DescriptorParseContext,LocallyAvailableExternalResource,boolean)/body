@@ -3,8 +3,8 @@
   GradlePomModuleDescriptorBuilder mdBuilder=new GradlePomModuleDescriptorBuilder(resource,parserSettings,pomReader);
   doParsePom(parserSettings,mdBuilder,pomReader);
   DefaultModuleDescriptor moduleDescriptor=mdBuilder.getModuleDescriptor();
-  ModuleDescriptorAdapter adapter=new ModuleDescriptorAdapter(moduleDescriptor);
-  MavenModuleVersionMetaData mavenMetaData=createMavenMetaData(pomReader);
-  adapter.setMavenMetaData(mavenMetaData);
-  return adapter;
+  if (pomReader.getRelocation() != null) {
+    return new DefaultMavenModuleVersionMetaData(moduleDescriptor,"pom",true);
+  }
+  return new DefaultMavenModuleVersionMetaData(moduleDescriptor,pomReader.getPackaging(),false);
 }
