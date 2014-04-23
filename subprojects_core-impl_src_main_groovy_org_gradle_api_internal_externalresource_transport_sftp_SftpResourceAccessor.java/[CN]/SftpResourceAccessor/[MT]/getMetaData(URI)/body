@@ -1,10 +1,16 @@
 {
-  SftpClient sftpClient=sftpClientFactory.createSftpClient(uri,credentials);
+  LockableSftpClient sftpClient=sftpClientFactory.createSftpClient(uri,credentials);
   try {
-    Attributes attributes=sftpClient.lstat(uri.getPath());
+    SftpATTRS attributes=sftpClient.getSftpClient().lstat(uri.getPath());
     return attributes != null ? toMetaData(uri.toString(),attributes) : null;
   }
-  finally {
+ catch (  com.jcraft.jsch.SftpException e) {
+    if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+      return null;
+    }
+    throw new SftpException(String.format("Could not get resource '%s'.",uri),e);
+  }
+ finally {
     sftpClientFactory.releaseSftpClient(sftpClient);
   }
 }

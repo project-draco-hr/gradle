@@ -1,25 +1,22 @@
 {
   URI uri=toUri(destination);
-  SftpClient client=sftpClientFactory.createSftpClient(uri,credentials);
+  LockableSftpClient client=sftpClientFactory.createSftpClient(uri,credentials);
   try {
     String path=uri.getPath();
-    ensureParentDirectoryExists(client,path);
-    OutputStream outputStream=client.write(uri.getPath());
+    ChannelSftp channel=client.getSftpClient();
+    ensureParentDirectoryExists(channel,path,uri);
+    InputStream sourceStream=sourceFactory.create();
     try {
-      InputStream sourceStream=sourceFactory.create();
-      try {
-        IOUtils.copyLarge(sourceStream,outputStream);
-        outputStream.flush();
-      }
-  finally {
-        sourceStream.close();
-      }
+      channel.put(sourceStream,uri.getPath());
     }
   finally {
-      outputStream.close();
+      sourceStream.close();
     }
   }
-  finally {
+ catch (  com.jcraft.jsch.SftpException e) {
+    throw new SftpException(String.format("Could not write to resource '%s'.",uri),e);
+  }
+ finally {
     sftpClientFactory.releaseSftpClient(client);
   }
 }
