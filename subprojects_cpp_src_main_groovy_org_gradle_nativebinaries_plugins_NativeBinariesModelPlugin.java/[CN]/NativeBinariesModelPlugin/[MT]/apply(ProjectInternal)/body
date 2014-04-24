@@ -12,7 +12,9 @@
   modelRules.rule(new AddDefaultToolChainsIfRequired());
   modelRules.rule(new CreateNativeBinaries(instantiator,project,resolver));
   modelRules.rule(new CloseBinariesForTasks());
+  DefaultLibraryContainer libraries=(DefaultLibraryContainer)project.getExtensions().getByType(LibraryContainer.class);
+  libraries.registerFactory(NativeLibrary.class,new NativeLibraryFactory(instantiator,project));
+  libraries.registerDefaultFactory(new NativeLibraryFactory(instantiator,project));
   project.getExtensions().create("executables",DefaultExecutableContainer.class,instantiator,project);
-  project.getExtensions().create("libraries",DefaultLibraryContainer.class,instantiator,project);
   configurationActions.add(Actions.composite(new ConfigureGeneratedSourceSets(),new ApplySourceSetConventions()));
 }
