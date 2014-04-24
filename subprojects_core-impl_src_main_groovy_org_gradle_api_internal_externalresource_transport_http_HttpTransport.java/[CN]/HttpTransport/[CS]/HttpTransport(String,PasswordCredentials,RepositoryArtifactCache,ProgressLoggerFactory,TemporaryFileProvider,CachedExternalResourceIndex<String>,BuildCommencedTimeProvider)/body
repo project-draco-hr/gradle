@@ -1,4 +1,9 @@
 {
   super(name,repositoryCacheManager);
-  repository=createRepository(credentials,progressLoggerFactory,temporaryFileProvider,cachedExternalResourceIndex,timeProvider);
+  HttpClientHelper http=new HttpClientHelper(new DefaultHttpSettings(credentials));
+  HttpResourceAccessor accessor=new HttpResourceAccessor(http);
+  HttpResourceUploader uploader=new HttpResourceUploader(http);
+  ProgressLoggingExternalResourceAccessor loggingAccessor=new ProgressLoggingExternalResourceAccessor(accessor,progressLoggerFactory);
+  resourceAccessor=new DefaultCacheAwareExternalResourceAccessor(loggingAccessor,cachedExternalResourceIndex,timeProvider);
+  repository=new DefaultExternalResourceRepository(name,accessor,new ProgressLoggingExternalResourceUploader(uploader,progressLoggerFactory),new HttpResourceLister(accessor),temporaryFileProvider);
 }

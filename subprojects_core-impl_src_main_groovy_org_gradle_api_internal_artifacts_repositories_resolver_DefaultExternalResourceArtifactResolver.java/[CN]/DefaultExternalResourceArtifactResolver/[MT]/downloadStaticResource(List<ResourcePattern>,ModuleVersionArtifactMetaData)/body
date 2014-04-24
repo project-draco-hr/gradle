@@ -4,13 +4,16 @@
     LOGGER.debug("Loading {}",resourcePath);
     LocallyAvailableResourceCandidates localCandidates=locallyAvailableResourceFinder.findCandidates(artifact);
     try {
-      ExternalResource resource=repository.getResource(resourcePath,localCandidates);
+      ExternalResource resource=resourceAccessor.getResource(new URI(resourcePath),localCandidates);
       if (resource != null) {
         return downloadAndCacheResource(artifact,resource);
       }
     }
  catch (    IOException e) {
       throw new ResourceException(String.format("Could not get resource '%s'.",resourcePath),e);
+    }
+catch (    URISyntaxException e) {
+      throw UncheckedException.throwAsUncheckedException(e);
     }
   }
   return null;
