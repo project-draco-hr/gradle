@@ -1,15 +1,24 @@
 {
-  final File tmpFile=temporaryFileProvider.createTemporaryFile("gradle_download","bin");
+  final File destination=temporaryFileProvider.createTemporaryFile("gradle_download","bin");
   try {
     try {
-      resourceDownloader.download(resource,tmpFile);
+      try {
+        LOGGER.debug("Downloading {} to {}",resource.getName(),destination);
+        if (destination.getParentFile() != null) {
+          GFileUtils.mkdirs(destination.getParentFile());
+        }
+        resource.writeTo(destination);
+      }
+  finally {
+        resource.close();
+      }
     }
  catch (    IOException e) {
       throw new ResourceException(String.format("Failed to download resource '%s'.",resource.getName()),e);
     }
     return cacheLockingManager.useCache(String.format("Store %s",artifact),new Factory<LocallyAvailableExternalResource>(){
       public LocallyAvailableExternalResource create(){
-        LocallyAvailableResource cachedResource=fileStore.move(artifact,tmpFile);
+        LocallyAvailableResource cachedResource=fileStore.move(artifact,destination);
         File fileInFileStore=cachedResource.getFile();
         ExternalResourceMetaData metaData=resource.getMetaData();
         artifactUrlCachedResolutionIndex.store(metaData.getLocation(),fileInFileStore,metaData);
@@ -19,6 +28,6 @@
 );
   }
   finally {
-    tmpFile.delete();
+    destination.delete();
   }
 }
