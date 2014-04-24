@@ -1,7 +1,14 @@
 {
-  if (resource == null) {
-    return null;
+  try {
+    RepositoryArtifactCache.ExternalResourceDownloader resourceDownloader=new VerifyingExternalResourceDownloader(checksumAlgorithms,repository);
+    return repositoryArtifactCache.downloadAndCacheArtifactFile(artifact,resourceDownloader,resource);
   }
-  final RepositoryArtifactCache.ExternalResourceDownloader resourceDownloader=new VerifyingExternalResourceDownloader(checksumAlgorithms,repository);
-  return repositoryArtifactCache.downloadAndCacheArtifactFile(artifact,resourceDownloader,resource);
+  finally {
+    try {
+      resource.close();
+    }
+ catch (    IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 }

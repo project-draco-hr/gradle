@@ -1,0 +1,18 @@
+{
+  for (  String pattern : patternList) {
+    ResourcePattern resourcePattern=toResourcePattern(pattern);
+    String resourcePath=resourcePattern.toPath(artifact);
+    LOGGER.debug("Loading {}",resourcePath);
+    LocallyAvailableResourceCandidates localCandidates=locallyAvailableResourceFinder.findCandidates(artifact);
+    try {
+      ExternalResource resource=repository.getResource(resourcePath,localCandidates);
+      if (resource != null) {
+        return downloadAndCacheResource(artifact,resource);
+      }
+    }
+ catch (    IOException e) {
+      throw new ResourceException(String.format("Could not get resource '%s'.",resourcePath),e);
+    }
+  }
+  return null;
+}
