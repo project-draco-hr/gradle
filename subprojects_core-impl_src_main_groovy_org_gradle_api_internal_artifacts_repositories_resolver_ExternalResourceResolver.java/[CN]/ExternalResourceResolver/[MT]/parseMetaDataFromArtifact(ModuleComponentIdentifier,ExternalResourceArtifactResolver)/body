@@ -3,13 +3,15 @@
   if (artifact == null) {
     return null;
   }
-  ExternalResource metaDataResource=artifactResolver.resolveMetaDataArtifact(artifact);
+  LocallyAvailableExternalResource metaDataResource=artifactResolver.resolveMetaDataArtifact(artifact);
   if (metaDataResource == null) {
     return null;
   }
-  MutableModuleVersionMetaData moduleVersionMetaData=downloadAndParseMetaDataArtifact(artifact,metaDataResource);
+  ExternalResourceResolverDescriptorParseContext context=new ExternalResourceResolverDescriptorParseContext(repositoryChain);
+  MutableModuleVersionMetaData metaData=parseMetaDataFromResource(metaDataResource,context);
+  metaData=processMetaData(metaData);
   if (isCheckconsistency()) {
-    checkMetadataConsistency(moduleVersionIdentifier,moduleVersionMetaData);
+    checkMetadataConsistency(moduleVersionIdentifier,metaData);
   }
-  return moduleVersionMetaData;
+  return metaData;
 }
