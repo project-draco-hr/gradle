@@ -1,0 +1,23 @@
+{
+  String parentPath=FilenameUtils.getFullPathNoEndSeparator(uri.getPath());
+  if (parentPath.equals("")) {
+    return;
+  }
+  URI parent=uri.resolve(parentPath);
+  try {
+    channel.lstat(parentPath);
+    return;
+  }
+ catch (  com.jcraft.jsch.SftpException e) {
+    if (e.id != ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+      throw new SftpException(String.format("Could not get resource '%s'.",parent),e);
+    }
+  }
+  ensureParentDirectoryExists(channel,parent);
+  try {
+    channel.mkdir(parentPath);
+  }
+ catch (  com.jcraft.jsch.SftpException e) {
+    throw new SftpException(String.format("Could not create resource '%s'.",parent),e);
+  }
+}
