@@ -4,9 +4,14 @@
     LOGGER.debug("Loading {}",resourcePath);
     LocallyAvailableResourceCandidates localCandidates=locallyAvailableResourceFinder.findCandidates(artifact);
     try {
-      ExternalResource resource=resourceAccessor.getResource(new URI(resourcePath),localCandidates);
+      LocallyAvailableExternalResource resource=resourceAccessor.getResource(new URI(resourcePath),new CacheAwareExternalResourceAccessor.ResourceFileStore(){
+        public LocallyAvailableResource moveIntoCache(        File downloadedResource){
+          return fileStore.move(artifact,downloadedResource);
+        }
+      }
+,localCandidates);
       if (resource != null) {
-        return downloadAndCacheResource(artifact,resource);
+        return resource;
       }
     }
  catch (    IOException e) {
