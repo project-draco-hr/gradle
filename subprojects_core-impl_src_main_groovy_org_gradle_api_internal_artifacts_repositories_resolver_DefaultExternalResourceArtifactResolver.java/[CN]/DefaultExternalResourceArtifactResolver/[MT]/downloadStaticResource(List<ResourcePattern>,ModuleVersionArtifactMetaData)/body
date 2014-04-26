@@ -1,10 +1,10 @@
 {
   for (  ResourcePattern resourcePattern : patternList) {
-    String resourcePath=resourcePattern.toPath(artifact);
-    LOGGER.debug("Loading {}",resourcePath);
+    URI location=resourcePattern.getLocation(artifact);
+    LOGGER.debug("Loading {}",location);
     LocallyAvailableResourceCandidates localCandidates=locallyAvailableResourceFinder.findCandidates(artifact);
     try {
-      LocallyAvailableExternalResource resource=resourceAccessor.getResource(new URI(resourcePath),new CacheAwareExternalResourceAccessor.ResourceFileStore(){
+      LocallyAvailableExternalResource resource=resourceAccessor.getResource(location,new CacheAwareExternalResourceAccessor.ResourceFileStore(){
         public LocallyAvailableResource moveIntoCache(        File downloadedResource){
           return fileStore.move(artifact,downloadedResource);
         }
@@ -15,10 +15,7 @@
       }
     }
  catch (    IOException e) {
-      throw new ResourceException(String.format("Could not get resource '%s'.",resourcePath),e);
-    }
-catch (    URISyntaxException e) {
-      throw UncheckedException.throwAsUncheckedException(e);
+      throw new ResourceException(String.format("Could not get resource '%s'.",location),e);
     }
   }
   return null;
