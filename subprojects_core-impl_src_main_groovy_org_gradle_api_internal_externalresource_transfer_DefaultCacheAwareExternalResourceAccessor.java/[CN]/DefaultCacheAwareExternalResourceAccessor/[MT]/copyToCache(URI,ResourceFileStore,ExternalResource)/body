@@ -1,0 +1,36 @@
+{
+  if (resource == null) {
+    return null;
+  }
+  final File destination=temporaryFileProvider.createTemporaryFile("gradle_download","bin");
+  try {
+    try {
+      try {
+        LOGGER.debug("Downloading {} to {}",resource.getName(),destination);
+        if (destination.getParentFile() != null) {
+          GFileUtils.mkdirs(destination.getParentFile());
+        }
+        resource.writeTo(destination);
+      }
+  finally {
+        resource.close();
+      }
+    }
+ catch (    IOException e) {
+      throw new ResourceException(String.format("Failed to download resource '%s'.",resource.getName()),e);
+    }
+    return cacheLockingManager.useCache(String.format("Store %s",resource.getName()),new Factory<LocallyAvailableExternalResource>(){
+      public LocallyAvailableExternalResource create(){
+        LocallyAvailableResource cachedResource=fileStore.moveIntoCache(destination);
+        File fileInFileStore=cachedResource.getFile();
+        ExternalResourceMetaData metaData=resource.getMetaData();
+        cachedExternalResourceIndex.store(source.toString(),fileInFileStore,metaData);
+        return new DefaultLocallyAvailableExternalResource(source,cachedResource,metaData);
+      }
+    }
+);
+  }
+  finally {
+    destination.delete();
+  }
+}
