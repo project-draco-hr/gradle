@@ -1,24 +1,20 @@
 {
-  try {
-    if (parent.getPath() == null) {
-      throw new IllegalArgumentException(String.format("Cannot create resource name from non-hierarchical URI '%s'.",parent.toString()));
-    }
-    String newPath;
-    if (path.startsWith("/")) {
-      path=path.substring(1);
-    }
-    if (path.isEmpty()) {
-      newPath=parent.getPath();
-    }
- else     if (parent.getPath().endsWith("/")) {
-      newPath=parent.getPath() + path;
-    }
+  if (parent.getPath() == null) {
+    throw new IllegalArgumentException(String.format("Cannot create resource name from non-hierarchical URI '%s'.",parent.toString()));
+  }
+  String newPath;
+  if (path.startsWith("/")) {
+    path=path.substring(1);
+  }
+  if (path.isEmpty()) {
+    newPath=parent.getPath();
+  }
+ else   if (parent.getPath().endsWith("/")) {
+    newPath=parent.getPath() + path;
+  }
  else {
-      newPath=parent.getPath() + "/" + path;
-    }
-    uri=new URI(parent.getScheme(),null,parent.getHost(),parent.getPort(),newPath,null,null);
+    newPath=parent.getPath() + "/" + path;
   }
- catch (  URISyntaxException e) {
-    throw UncheckedException.throwAsUncheckedException(e);
-  }
+  this.encodedRoot=encodeRoot(parent);
+  this.path=newPath;
 }
