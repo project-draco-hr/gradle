@@ -1,5 +1,4 @@
 {
-  boolean didWork=false;
   MutableCommandLineToolInvocation invocation=baseInvocation.copy();
   invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
   for (  File sourceFile : spec.getSourceFiles()) {
@@ -7,8 +6,7 @@
     SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileName,new ShortCircuitArgsTransformer<T>(argsTransFormer),true,true);
     invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
     invocation.setWorkDirectory(spec.getObjectFileDir());
-    WorkResult result=commandLineTool.execute(invocation);
-    didWork=didWork || result.getDidWork();
+    commandLineTool.execute(invocation);
   }
-  return new SimpleWorkResult(didWork);
+  return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
 }
