@@ -1,9 +1,15 @@
 {
   MutableCommandLineToolInvocation invocation=baseInvocation.copy();
   invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
+  Transformer<List<String>,File> outputFileArgTransformer=new Transformer<List<String>,File>(){
+    public List<String> transform(    File outputFile){
+      return Arrays.asList("-o",outputFile.getAbsolutePath());
+    }
+  }
+;
   for (  File sourceFile : spec.getSourceFiles()) {
     String objectFileNameSuffix=".obj";
-    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileNameSuffix,new ShortCircuitArgsTransformer<T>(argsTransFormer),true,true);
+    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileNameSuffix,new ShortCircuitArgsTransformer<T>(argsTransFormer),true,outputFileArgTransformer);
     invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
     invocation.setWorkDirectory(spec.getObjectFileDir());
     commandLineTool.execute(invocation);

@@ -6,8 +6,14 @@
   if (useCommandFile) {
     invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
   }
+  Transformer<List<String>,File> outputFileArgTransformer=new Transformer<List<String>,File>(){
+    public List<String> transform(    File outputFile){
+      return Arrays.asList("-o",outputFile.getAbsolutePath());
+    }
+  }
+;
   for (  File sourceFile : spec.getSourceFiles()) {
-    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileExtension,new ShortCircuitArgsTransformer<T>(argsTransfomer),windowsPathLimitation,false);
+    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileExtension,new ShortCircuitArgsTransformer<T>(argsTransfomer),windowsPathLimitation,outputFileArgTransformer);
     invocation.setArgs(argTransformer.transform(spec));
     commandLineTool.execute(invocation);
   }
