@@ -1,0 +1,13 @@
+{
+  if (!metadata.implementationType.equals("M2_JAR")) {
+    throw new RuntimeException("Cannot resolve plugins with implementation type " + metadata.implementationType);
+  }
+  ResolverResults results=new ResolverResults();
+  MavenArtifactRepository repository=repositoryFactory.createMavenRepository();
+  repository.setUrl(metadata.implementation.get("repo"));
+  Dependency dependency=dependencyHandler.create(metadata.implementation.get("gav"));
+  ConfigurationInternal configuration=(ConfigurationInternal)configurationContainer.detachedConfiguration(dependency);
+  resolver.resolve(configuration,Collections.singletonList((ResolutionAwareRepository)repository),new NoopMetadataProcessor(),results);
+  Set<File> files=results.getResolvedConfiguration().getFiles(Specs.satisfyAll());
+  return new DefaultClassPath(files);
+}

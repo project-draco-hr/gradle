@@ -1,0 +1,36 @@
+{
+  ExternalResource resource=null;
+  try {
+    resource=transport.getRepository().getResource(requestUri);
+    HttpResponseResource response=(HttpResponseResource)resource;
+    if (response.getStatusCode() != 200) {
+      throw new UncheckedIOException(String.format("Failed to resolve plugin %s:%s from portal %s. HTTP status code: %d",pluginRequest.getId(),pluginRequest.getVersion(),portalUrl,response.getStatusCode()));
+    }
+    return resource.withContent(new Transformer<PluginUseMetaData,InputStream>(){
+      public PluginUseMetaData transform(      InputStream inputStream){
+        Reader reader;
+        try {
+          reader=new InputStreamReader(inputStream,"utf-8");
+        }
+ catch (        UnsupportedEncodingException e) {
+          throw new AssertionError(e);
+        }
+        return new Gson().fromJson(reader,PluginUseMetaData.class);
+      }
+    }
+);
+  }
+ catch (  IOException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+ finally {
+    try {
+      if (resource != null) {
+        resource.close();
+      }
+    }
+ catch (    IOException e) {
+      LOGGER.warn("Error closing HTTP resource",e);
+    }
+  }
+}
