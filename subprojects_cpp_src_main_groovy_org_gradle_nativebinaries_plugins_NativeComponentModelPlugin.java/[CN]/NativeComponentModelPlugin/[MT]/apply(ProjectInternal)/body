@@ -12,10 +12,10 @@
   modelRules.rule(new AddDefaultToolChainsIfRequired());
   modelRules.rule(new CreateNativeBinaries(instantiator,project,resolver));
   modelRules.rule(new AttachBinariesToLifecycle());
-  DefaultLibraryContainer libraries=(DefaultLibraryContainer)project.getExtensions().getByType(LibraryContainer.class);
-  libraries.registerFactory(NativeLibrary.class,new NativeLibraryFactory(instantiator,project));
-  NamedDomainObjectContainer<NativeLibrary> nativeLibraries=libraries.containerWithType(NativeLibrary.class);
-  project.getExtensions().add("nativeLibraries",nativeLibraries);
-  project.getExtensions().create("nativeExecutables",DefaultExecutableContainer.class,instantiator,project);
+  SoftwareComponentContainer components=project.getExtensions().getByType(SoftwareComponentContainer.class);
+  components.registerFactory(NativeLibrary.class,new NativeLibraryFactory(instantiator,project));
+  project.getExtensions().add("nativeLibraries",components.containerWithType(NativeLibrary.class));
+  components.registerFactory(NativeExecutable.class,new NativeExecutableFactory(instantiator,project));
+  project.getExtensions().add("nativeExecutables",components.containerWithType(NativeExecutable.class));
   configurationActions.add(Actions.composite(new ConfigureGeneratedSourceSets(),new ApplySourceSetConventions()));
 }
