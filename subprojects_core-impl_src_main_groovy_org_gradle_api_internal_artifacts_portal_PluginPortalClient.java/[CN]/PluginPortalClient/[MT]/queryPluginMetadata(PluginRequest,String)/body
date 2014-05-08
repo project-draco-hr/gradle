@@ -1,8 +1,8 @@
 {
-  URI portalUri=toUri(portalUrl,"plugin portal",pluginRequest);
+  URI portalUri=toUri(portalUrl,"plugin portal");
   RepositoryTransport transport=transportFactory.createTransport(portalUri.getScheme(),"Plugin Portal",new DefaultPasswordCredentials());
   String requestUrl=String.format(portalUrl + REQUEST_URL,GradleVersion.current().getVersion(),pluginRequest.getId(),pluginRequest.getVersion());
-  URI requestUri=toUri(requestUrl,"plugin request",pluginRequest);
+  URI requestUri=toUri(requestUrl,"plugin request");
   ExternalResource resource=null;
   try {
     resource=transport.getRepository().getResource(requestUri);
@@ -11,7 +11,7 @@
       return null;
     }
     if (response.getStatusCode() != 200) {
-      throw new FailedPluginRequestException(pluginRequest,"Received HTTP status code: " + response.getStatusCode());
+      throw new GradleException("Plugin portal returned HTTP status code: " + response.getStatusCode());
     }
     return resource.withContent(new Transformer<PluginUseMetaData,InputStream>(){
       public PluginUseMetaData transform(      InputStream inputStream){
@@ -23,23 +23,22 @@
           throw new AssertionError(e);
         }
         try {
-          return new Gson().fromJson(reader,PluginUseMetaData.class);
+          PluginUseMetaData metadata=new Gson().fromJson(reader,PluginUseMetaData.class);
+          metadata.verify();
+          return metadata;
         }
  catch (        JsonSyntaxException e) {
-          throw new FailedPluginRequestException(pluginRequest,"Failed to parse plugin portal JSON response.",e);
+          throw new GradleException("Failed to parse plugin portal JSON response.",e);
         }
 catch (        JsonIOException e) {
-          throw new FailedPluginRequestException(pluginRequest,"Failed to read plugin portal JSON response.",e);
+          throw new GradleException("Failed to read plugin portal JSON response.",e);
         }
       }
     }
 );
   }
  catch (  IOException e) {
-    throw new FailedPluginRequestException(pluginRequest,"IO error.",e);
-  }
-catch (  Exception e) {
-    throw new FailedPluginRequestException(pluginRequest,"Unexpected error.",e);
+    throw new UncheckedIOException(e);
   }
  finally {
     try {
