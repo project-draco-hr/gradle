@@ -11,7 +11,7 @@
       return null;
     }
     if (response.getStatusCode() != 200) {
-      throw new UncheckedIOException(String.format("Failed to resolve plugin %s:%s from portal %s. HTTP status code: %d",pluginRequest.getId(),pluginRequest.getVersion(),portalUrl,response.getStatusCode()));
+      throw new FailedPluginRequestException(pluginRequest,"Received HTTP status code: " + response.getStatusCode());
     }
     return resource.withContent(new Transformer<PluginUseMetaData,InputStream>(){
       public PluginUseMetaData transform(      InputStream inputStream){
@@ -22,13 +22,24 @@
  catch (        UnsupportedEncodingException e) {
           throw new AssertionError(e);
         }
-        return new Gson().fromJson(reader,PluginUseMetaData.class);
+        try {
+          return new Gson().fromJson(reader,PluginUseMetaData.class);
+        }
+ catch (        JsonSyntaxException e) {
+          throw new FailedPluginRequestException(pluginRequest,"Failed to parse plugin portal JSON response.",e);
+        }
+catch (        JsonIOException e) {
+          throw new FailedPluginRequestException(pluginRequest,"Failed to read plugin portal JSON response.",e);
+        }
       }
     }
 );
   }
  catch (  IOException e) {
-    throw new UncheckedIOException(e);
+    throw new FailedPluginRequestException(pluginRequest,"IO error.",e);
+  }
+catch (  Exception e) {
+    throw new FailedPluginRequestException(pluginRequest,"Unexpected error.",e);
   }
  finally {
     try {
