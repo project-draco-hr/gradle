@@ -1,12 +1,13 @@
 {
   ClassDependenciesAnalyzer analyzer=new ClassDependenciesAnalyzer();
   JarSnapshotter jarSnapshotter=new JarSnapshotter(new DefaultHasher(),analyzer);
-  LocalJarSnapshotCache jarSnapshotCache=new LocalJarSnapshotCache(new File(project.getBuildDir(),"jar-snapshot-cache.bin"));
-  ClassDependencyInfoSerializer dependencyInfoSerializer=new ClassDependencyInfoSerializer(new File(project.getBuildDir(),"class-info.bin"));
+  String cacheFileBaseName=compileTaskPath.replaceAll(":","_");
+  LocalJarSnapshotCache jarSnapshotCache=new LocalJarSnapshotCache(new File(project.getBuildDir(),cacheFileBaseName + "-jar-snapshot-cache.bin"));
+  ClassDependencyInfoSerializer dependencyInfoSerializer=new ClassDependencyInfoSerializer(new File(project.getBuildDir(),cacheFileBaseName + "-class-info.bin"));
   JarSnapshotsMaker jarSnapshotsMaker=new JarSnapshotsMaker(jarSnapshotCache,jarSnapshotter,new ClasspathJarFinder((FileOperations)project));
   CompilationSourceDirs sourceDirs=new CompilationSourceDirs(source);
   SourceToNameConverter sourceToNameConverter=new SourceToNameConverter(sourceDirs);
   RecompilationSpecProvider recompilationSpecProvider=new RecompilationSpecProvider(sourceToNameConverter,dependencyInfoSerializer,(FileOperations)project,jarSnapshotter,jarSnapshotCache);
   ClassDependencyInfoUpdater classDependencyInfoUpdater=new ClassDependencyInfoUpdater(dependencyInfoSerializer,(FileOperations)project,analyzer);
-  incrementalSupport=new IncrementalCompilationSupport(jarSnapshotsMaker,dependencyInfoSerializer,(FileOperations)project,cleaningJavaCompiler,displayName,recompilationSpecProvider,classDependencyInfoUpdater,sourceDirs);
+  incrementalSupport=new IncrementalCompilationSupport(jarSnapshotsMaker,dependencyInfoSerializer,(FileOperations)project,cleaningJavaCompiler,compileTaskPath,recompilationSpecProvider,classDependencyInfoUpdater,sourceDirs);
 }
