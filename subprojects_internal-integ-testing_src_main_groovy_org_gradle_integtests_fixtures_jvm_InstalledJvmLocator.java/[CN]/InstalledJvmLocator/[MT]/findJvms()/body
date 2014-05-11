@@ -1,0 +1,32 @@
+{
+  Map<File,JvmInstallation> installs=new HashMap<File,JvmInstallation>();
+  Collection<JvmInstallation> jvms;
+  if (operatingSystem.isMacOsX()) {
+    jvms=new OsXInstalledJvmLocator().findJvms();
+  }
+ else   if (OperatingSystem.current().isWindows()) {
+    jvms=new WindowsOracleJvmLocator(windowsRegistry,systemInfo).findJvms();
+  }
+ else   if (OperatingSystem.current().isLinux()) {
+    jvms=new UbuntuJvmLocator().findJvms();
+  }
+ else {
+    jvms=Collections.emptySet();
+  }
+  for (  JvmInstallation jvm : jvms) {
+    if (!installs.containsKey(jvm.getJavaHome())) {
+      installs.put(jvm.getJavaHome(),jvm);
+    }
+  }
+  if (!installs.containsKey(currentJvm.getJavaHome())) {
+    installs.put(currentJvm.getJavaHome(),new JvmInstallation(currentJvm.getJavaVersion(),VersionNumber.parse(System.getProperty("java.version")),currentJvm.getJavaHome(),false,JvmInstallation.Arch.Unknown));
+  }
+  List<JvmInstallation> result=new ArrayList<JvmInstallation>(installs.values());
+  Collections.sort(result,new Comparator<JvmInstallation>(){
+    public int compare(    JvmInstallation o1,    JvmInstallation o2){
+      return o2.getVersion().compareTo(o1.getVersion());
+    }
+  }
+);
+  return result;
+}

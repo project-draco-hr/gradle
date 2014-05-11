@@ -1,5 +1,11 @@
 {
   Jvm jvm=Jvm.current();
+  List<JvmInstallation> jvms=new InstalledJvmLocator().findJvms();
+  for (  JvmInstallation candidate : jvms) {
+    if (!candidate.getJavaHome().equals(jvm.getJavaHome())) {
+      return candidate.getJavaHome();
+    }
+  }
   File javaHome=null;
   if (jvm.getJavaVersion().isJava6Compatible()) {
     javaHome=firstAvailable("15","17");
@@ -9,51 +15,6 @@
   }
   if (javaHome != null) {
     return javaHome;
-  }
-  if (OperatingSystem.current().isMacOsX()) {
-    List<File> installDirs=Arrays.asList(new File("/System/Library/Java/JavaVirtualMachines"),new File("/Library/Java/JavaVirtualMachines"));
-    for (    File installDir : installDirs) {
-      if (installDir.isDirectory()) {
-        for (        File candidate : installDir.listFiles()) {
-          javaHome=GFileUtils.canonicalise(new File(candidate,"Contents/Home"));
-          if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome,"bin/java").isFile()) {
-            return javaHome;
-          }
-        }
-      }
-    }
-  }
- else   if (OperatingSystem.current().isLinux()) {
-    File installedJvms=new File("/usr/lib/jvm");
-    if (installedJvms.isDirectory()) {
-      for (      File candidate : installedJvms.listFiles()) {
-        javaHome=GFileUtils.canonicalise(candidate);
-        if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome,"bin/java").isFile()) {
-          return javaHome;
-        }
-      }
-    }
-  }
- else   if (OperatingSystem.current().isWindows()) {
-    List<File> installDirs=new ArrayList<File>();
-    File candidate=new File("c:/Program Files/Java");
-    if (candidate.isDirectory()) {
-      installDirs.add(candidate);
-    }
-    candidate=new File("c:/Program Files (x86)/Java");
-    if (candidate.isDirectory()) {
-      installDirs.add(candidate);
-    }
-    for (    File installDir : installDirs) {
-      for (      File file : installDir.listFiles()) {
-        if (file.getName().startsWith("jdk")) {
-          javaHome=GFileUtils.canonicalise(file);
-          if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome,"bin/java.exe").isFile()) {
-            return javaHome;
-          }
-        }
-      }
-    }
   }
   return null;
 }
