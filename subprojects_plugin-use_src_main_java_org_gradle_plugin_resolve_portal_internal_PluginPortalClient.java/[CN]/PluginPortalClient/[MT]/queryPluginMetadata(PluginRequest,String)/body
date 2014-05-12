@@ -1,0 +1,50 @@
+{
+  String requestUrl=String.format(portalUrl + REQUEST_URL,GradleVersion.current().getVersion(),pluginRequest.getId(),pluginRequest.getVersion());
+  URI requestUri=toUri(requestUrl,"plugin request");
+  HttpResponseResource response=null;
+  try {
+    response=resourceAccessor.getResource(requestUri);
+    if (response == null) {
+      return null;
+    }
+    if (response.getStatusCode() != 200) {
+      throw new GradleException("Plugin portal returned HTTP status code: " + response.getStatusCode());
+    }
+    return response.withContent(new Transformer<PluginUseMetaData,InputStream>(){
+      public PluginUseMetaData transform(      InputStream inputStream){
+        Reader reader;
+        try {
+          reader=new InputStreamReader(inputStream,"utf-8");
+        }
+ catch (        UnsupportedEncodingException e) {
+          throw new AssertionError(e);
+        }
+        try {
+          PluginUseMetaData metadata=new Gson().fromJson(reader,PluginUseMetaData.class);
+          metadata.verify();
+          return metadata;
+        }
+ catch (        JsonSyntaxException e) {
+          throw new GradleException("Failed to parse plugin portal JSON response.",e);
+        }
+catch (        JsonIOException e) {
+          throw new GradleException("Failed to read plugin portal JSON response.",e);
+        }
+      }
+    }
+);
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+ finally {
+    try {
+      if (response != null) {
+        response.close();
+      }
+    }
+ catch (    IOException e) {
+      LOGGER.warn("Error closing HTTP resource",e);
+    }
+  }
+}
