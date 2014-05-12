@@ -1,20 +1,13 @@
 {
   Jvm jvm=Jvm.current();
-  List<JvmInstallation> jvms=new InstalledJvmLocator().findJvms();
-  for (  JvmInstallation candidate : jvms) {
-    if (!candidate.getJavaHome().equals(jvm.getJavaHome())) {
-      return candidate.getJavaHome();
+  for (  JvmInstallation candidate : getJvms()) {
+    if (candidate.getJavaHome().equals(jvm.getJavaHome())) {
+      continue;
     }
-  }
-  File javaHome=null;
-  if (jvm.getJavaVersion().isJava6Compatible()) {
-    javaHome=firstAvailable("15","17");
-  }
- else   if (jvm.getJavaVersion().isJava5Compatible()) {
-    javaHome=firstAvailable("16","17");
-  }
-  if (javaHome != null) {
-    return javaHome;
+    if (!candidate.isJdk()) {
+      continue;
+    }
+    return candidate.getJavaHome();
   }
   return null;
 }
