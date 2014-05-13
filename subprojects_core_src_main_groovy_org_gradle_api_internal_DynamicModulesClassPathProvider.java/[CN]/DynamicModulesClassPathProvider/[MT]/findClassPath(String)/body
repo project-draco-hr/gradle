@@ -7,9 +7,16 @@
     return classpath;
   }
   if (name.equals("GRADLE_CORE_IMPL")) {
-    ClassPath coreImpl=moduleRegistry.getModule("gradle-core-impl").getClasspath();
-    ClassPath pluginUse=moduleRegistry.getModule("gradle-plugin-use").getClasspath();
-    return coreImpl.plus(pluginUse);
+    Set<Module> coreModules=moduleRegistry.getModule("gradle-core").getAllRequiredModules();
+    ClassPath classpath=new DefaultClassPath();
+    for (    String moduleName : Arrays.asList("gradle-core-impl","gradle-plugin-use")) {
+      for (      Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
+        if (!coreModules.contains(module)) {
+          classpath=classpath.plus(module.getClasspath());
+        }
+      }
+    }
+    return classpath;
   }
   return null;
 }
