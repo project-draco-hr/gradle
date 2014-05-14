@@ -2,15 +2,12 @@
   File canonicalDir=GFileUtils.canonicalise(cacheDir);
   DirCacheReference dirCacheReference=dirCaches.get(canonicalDir);
   if (dirCacheReference == null) {
-    ReferencablePersistentCache cache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,usage,validator,properties,lockOptions,action,lockManager);
+    ReferencablePersistentCache cache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,validator,properties,lockOptions,action,lockManager);
     cache.open();
-    dirCacheReference=new DirCacheReference(cache,properties,lockOptions,usage == CacheUsage.REBUILD);
+    dirCacheReference=new DirCacheReference(cache,properties,lockOptions);
     dirCaches.put(canonicalDir,dirCacheReference);
   }
  else {
-    if (usage == CacheUsage.REBUILD && !dirCacheReference.rebuild) {
-      throw new IllegalStateException(String.format("Cannot rebuild cache '%s' as it is already open.",cacheDir));
-    }
     if (!lockOptions.equals(dirCacheReference.lockOptions)) {
       throw new IllegalStateException(String.format("Cache '%s' is already open with different options.",cacheDir));
     }
