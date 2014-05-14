@@ -2,7 +2,7 @@
   DefaultServiceRegistry services=new DefaultServiceRegistry();
   services.add(ScriptPluginFactory.class,DefaultScriptPluginFactory.this);
   services.add(ScriptHandlerFactory.class,scriptHandlerFactory);
-  services.add(ClassLoaderScope.class,classLoaderScope);
+  services.add(ClassLoaderScope.class,targetScope);
   services.add(LoggingManagerInternal.class,loggingManagerFactory.create());
   services.add(Instantiator.class,instantiator);
   services.add(ScriptHandler.class,scriptHandler);
@@ -11,7 +11,7 @@
   PluginDependenciesService pluginDependenciesService=new PluginDependenciesService(getSource());
   services.add(PluginDependenciesService.class,pluginDependenciesService);
   ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
-  compiler.setClassloader(classLoaderScope.getBase().getChildClassLoader());
+  compiler.setClassloader(baseScope.getExportClassLoader());
   boolean supportsPluginsBlock=ProjectScript.class.isAssignableFrom(scriptType);
   String onPluginBlockError=supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
   PluginsAndBuildscriptTransformer scriptBlockTransformer=new PluginsAndBuildscriptTransformer(classpathClosureName,onPluginBlockError);
@@ -23,7 +23,8 @@
   Configuration classpathConfiguration=scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
   Set<File> files=classpathConfiguration.getFiles();
   ClassPath classPath=new DefaultClassPath(files);
-  ClassLoader exportedClassLoader=classLoaderScope.export(classPath);
+  Factory<? extends ClassLoader> loader=targetScope.getParent().loader(classPath);
+  targetScope.export(loader);
   List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
   if (!pluginRequests.isEmpty()) {
     ListMultimap<PluginId,PluginRequest> groupedById=CollectionUtils.groupBy(pluginRequests,new Transformer<PluginId,PluginRequest>(){
@@ -49,8 +50,8 @@
       requestApplicator.applyPlugin(pluginRequest);
     }
   }
-  classLoaderScope.lock();
-  compiler.setClassloader(classLoaderScope.getScopeClassLoader());
+  targetScope.lock();
+  compiler.setClassloader(targetScope.getLocalClassLoader());
   compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert()));
   ScriptRunner<? extends BasicScript> runner=compiler.compile(scriptType);
   BasicScript script=runner.getScript();
