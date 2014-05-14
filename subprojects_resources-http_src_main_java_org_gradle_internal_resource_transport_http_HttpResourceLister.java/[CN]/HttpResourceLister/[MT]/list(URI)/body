@@ -1,0 +1,24 @@
+{
+  final HttpResponseResource resource=accessor.getResource(parent);
+  if (resource == null) {
+    return null;
+  }
+  try {
+    return resource.withContent(new Transformer<List<String>,InputStream>(){
+      public List<String> transform(      InputStream inputStream){
+        String contentType=resource.getContentType();
+        ApacheDirectoryListingParser directoryListingParser=new ApacheDirectoryListingParser();
+        try {
+          return directoryListingParser.parse(parent,inputStream,contentType);
+        }
+ catch (        Exception e) {
+          throw new ResourceException("Unable to parse HTTP directory listing.",e);
+        }
+      }
+    }
+);
+  }
+  finally {
+    resource.close();
+  }
+}

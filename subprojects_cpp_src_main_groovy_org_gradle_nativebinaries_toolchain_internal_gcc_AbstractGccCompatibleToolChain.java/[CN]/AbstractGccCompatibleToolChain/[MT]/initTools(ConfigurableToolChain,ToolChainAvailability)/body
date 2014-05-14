@@ -1,0 +1,17 @@
+{
+  SortedMap allTools=configurableToolChain.getAsMap();
+  boolean found=false;
+  for (  Object o : allTools.values()) {
+    GccCommandLineToolConfigurationInternal tool=(GccCommandLineToolConfigurationInternal)o;
+    found|=toolSearchPath.locate(tool.getToolType(),tool.getExecutable()).isAvailable();
+  }
+  if (!found) {
+    GccCommandLineToolConfigurationInternal cCompiler=(GccCommandLineToolConfigurationInternal)findByName("cCompiler");
+    if (cCompiler == null) {
+      availability.unavailable("c compiler not found");
+    }
+ else {
+      availability.mustBeAvailable(locate(cCompiler));
+    }
+  }
+}

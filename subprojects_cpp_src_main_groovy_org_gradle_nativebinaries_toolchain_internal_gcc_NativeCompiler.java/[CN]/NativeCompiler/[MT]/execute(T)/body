@@ -1,11 +1,20 @@
 {
-  boolean didWork=false;
   boolean windowsPathLimitation=OperatingSystem.current().isWindows();
-  String objectFileExtension=OperatingSystem.current().isWindows() ? ".obj" : ".o";
-  for (  File sourceFile : spec.getSourceFiles()) {
-    String objectFileName=FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
-    WorkResult result=commandLineTool.inWorkDirectory(spec.getObjectFileDir()).withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileName,new ShortCircuitArgsTransformer(argsTransfomer),windowsPathLimitation,false)).execute(spec);
-    didWork=didWork || result.getDidWork();
+  MutableCommandLineToolInvocation invocation=baseInvocation.copy();
+  invocation.setWorkDirectory(spec.getObjectFileDir());
+  if (useCommandFile) {
+    invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
   }
-  return new SimpleWorkResult(didWork);
+  Transformer<List<String>,File> outputFileArgTransformer=new Transformer<List<String>,File>(){
+    public List<String> transform(    File outputFile){
+      return Arrays.asList("-o",outputFile.getAbsolutePath());
+    }
+  }
+;
+  for (  File sourceFile : spec.getSourceFiles()) {
+    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileSuffix,new ShortCircuitArgsTransformer<T>(argsTransfomer),windowsPathLimitation,outputFileArgTransformer);
+    invocation.setArgs(argTransformer.transform(spec));
+    commandLineTool.execute(invocation);
+  }
+  return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
 }

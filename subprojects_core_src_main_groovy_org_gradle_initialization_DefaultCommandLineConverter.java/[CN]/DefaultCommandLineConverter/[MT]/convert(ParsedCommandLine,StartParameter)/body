@@ -1,9 +1,9 @@
 {
   loggingConfigurationCommandLineConverter.convert(options,startParameter);
-  FileResolver resolver=fileLookup.getFileResolver(startParameter.getCurrentDir());
-  Map<String,String> systemProperties=systemPropertiesCommandLineConverter.convert(options);
+  Transformer<File,String> resolver=new BasicFileResolver(startParameter.getCurrentDir());
+  Map<String,String> systemProperties=systemPropertiesCommandLineConverter.convert(options,new HashMap<String,String>());
   convertCommandLineSystemProperties(systemProperties,startParameter,resolver);
-  Map<String,String> projectProperties=projectPropertiesCommandLineConverter.convert(options);
+  Map<String,String> projectProperties=projectPropertiesCommandLineConverter.convert(options,new HashMap<String,String>());
   startParameter.getProjectProperties().putAll(projectProperties);
   BuildLayoutParameters layout=new BuildLayoutParameters().setGradleUserHomeDir(startParameter.getGradleUserHomeDir()).setProjectDir(startParameter.getCurrentDir());
   layoutCommandLineConverter.convert(options,layout);
@@ -11,13 +11,13 @@
   startParameter.setProjectDir(layout.getProjectDir());
   startParameter.setSearchUpwards(layout.getSearchUpwards());
   if (options.hasOption(BUILD_FILE)) {
-    startParameter.setBuildFile(resolver.resolve(options.option(BUILD_FILE).getValue()));
+    startParameter.setBuildFile(resolver.transform(options.option(BUILD_FILE).getValue()));
   }
   if (options.hasOption(SETTINGS_FILE)) {
-    startParameter.setSettingsFile(resolver.resolve(options.option(SETTINGS_FILE).getValue()));
+    startParameter.setSettingsFile(resolver.transform(options.option(SETTINGS_FILE).getValue()));
   }
   for (  String script : options.option(INIT_SCRIPT).getValues()) {
-    startParameter.addInitScript(resolver.resolve(script));
+    startParameter.addInitScript(resolver.transform(script));
   }
   if (options.hasOption(CACHE)) {
     try {
@@ -28,7 +28,7 @@
     }
   }
   if (options.hasOption(PROJECT_CACHE_DIR)) {
-    startParameter.setProjectCacheDir(resolver.resolve(options.option(PROJECT_CACHE_DIR).getValue()));
+    startParameter.setProjectCacheDir(resolver.transform(options.option(PROJECT_CACHE_DIR).getValue()));
   }
   if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
     startParameter.setBuildProjectDependencies(false);

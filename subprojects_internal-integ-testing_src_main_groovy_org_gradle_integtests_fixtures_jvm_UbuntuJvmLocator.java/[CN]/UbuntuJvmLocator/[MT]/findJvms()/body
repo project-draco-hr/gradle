@@ -1,0 +1,19 @@
+{
+  List<JvmInstallation> jvms=new ArrayList<JvmInstallation>();
+  if (libDir.isDirectory()) {
+    for (    File javaHome : libDir.listFiles()) {
+      Matcher matcher=JAVA_HOME_DIR_PATTERN.matcher(javaHome.getName());
+      if (!matcher.matches()) {
+        continue;
+      }
+      if (!new File(javaHome,"jre/bin/java").isFile()) {
+        continue;
+      }
+      String version=matcher.group(1);
+      String arch=matcher.group(2);
+      boolean jdk=new File(javaHome,"bin/javac").isFile();
+      jvms.add(new JvmInstallation(JavaVersion.toVersion(version),version,javaHome,jdk,toArch(arch)));
+    }
+  }
+  return jvms;
+}

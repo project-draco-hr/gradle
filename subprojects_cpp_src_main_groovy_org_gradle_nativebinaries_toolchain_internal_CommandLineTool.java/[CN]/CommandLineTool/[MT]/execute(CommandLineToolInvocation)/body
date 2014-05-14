@@ -1,0 +1,22 @@
+{
+  ExecAction compiler=execActionFactory.newExecAction();
+  compiler.executable(executable);
+  if (invocation.getWorkDirectory() != null) {
+    GFileUtils.mkdirs(invocation.getWorkDirectory());
+    compiler.workingDir(invocation.getWorkDirectory());
+  }
+  compiler.args(invocation.getArgs());
+  if (!invocation.getPath().isEmpty()) {
+    String pathVar=OperatingSystem.current().getPathVar();
+    String compilerPath=Joiner.on(File.pathSeparator).join(invocation.getPath());
+    compilerPath=compilerPath + File.pathSeparator + System.getenv(pathVar);
+    compiler.environment(pathVar,compilerPath);
+  }
+  compiler.environment(invocation.getEnvironment());
+  try {
+    compiler.execute();
+  }
+ catch (  ExecException e) {
+    throw new GradleException(String.format("%s failed; see the error output for details.",action),e);
+  }
+}

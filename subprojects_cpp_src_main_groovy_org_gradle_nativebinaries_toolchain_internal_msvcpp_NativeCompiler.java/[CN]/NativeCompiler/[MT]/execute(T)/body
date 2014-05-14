@@ -1,9 +1,18 @@
 {
-  boolean didWork=false;
-  for (  File sourceFile : spec.getSourceFiles()) {
-    String objectFileName=FilenameUtils.removeExtension(sourceFile.getName()) + ".obj";
-    WorkResult result=commandLineTool.inWorkDirectory(spec.getObjectFileDir()).withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileName,new ShortCircuitArgsTransformer<T>(argsTransFormer),true,true)).execute(spec);
-    didWork=didWork || result.getDidWork();
+  MutableCommandLineToolInvocation invocation=baseInvocation.copy();
+  invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
+  Transformer<List<String>,File> outputFileArgTransformer=new Transformer<List<String>,File>(){
+    public List<String> transform(    File outputFile){
+      return Arrays.asList("/Fo" + outputFile.getAbsolutePath());
+    }
   }
-  return new SimpleWorkResult(didWork);
+;
+  for (  File sourceFile : spec.getSourceFiles()) {
+    String objectFileNameSuffix=".obj";
+    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileNameSuffix,new ShortCircuitArgsTransformer<T>(argsTransFormer),true,outputFileArgTransformer);
+    invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
+    invocation.setWorkDirectory(spec.getObjectFileDir());
+    commandLineTool.execute(invocation);
+  }
+  return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
 }

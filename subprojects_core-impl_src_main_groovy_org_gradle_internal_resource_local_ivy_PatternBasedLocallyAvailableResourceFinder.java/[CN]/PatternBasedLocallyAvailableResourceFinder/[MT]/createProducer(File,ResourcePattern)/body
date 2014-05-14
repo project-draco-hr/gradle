@@ -1,0 +1,26 @@
+{
+  return new Transformer<Factory<List<File>>,ModuleVersionArtifactMetaData>(){
+    public Factory<List<File>> transform(    final ModuleVersionArtifactMetaData artifact){
+      return new Factory<List<File>>(){
+        public List<File> create(){
+          final List<File> files=new LinkedList<File>();
+          if (artifact != null) {
+            getMatchingFiles(artifact).visit(new EmptyFileVisitor(){
+              public void visitFile(              FileVisitDetails fileDetails){
+                files.add(fileDetails.getFile());
+              }
+            }
+);
+          }
+          return files;
+        }
+      }
+;
+    }
+    private MinimalFileTree getMatchingFiles(    ModuleVersionArtifactMetaData artifact){
+      String patternString=pattern.getLocation(artifact).getPath();
+      return new SingleIncludePatternFileTree(baseDir,patternString);
+    }
+  }
+;
+}

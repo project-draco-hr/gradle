@@ -1,12 +1,13 @@
 {
   DefaultProject project=TestUtil.createRootProject();
+  final Class<? extends T> decorated=project.getServices().get(ClassGenerator.class).generate(type);
   T task=AbstractTask.injectIntoNewInstance(project,"task",new Callable<T>(){
     public T call() throws Exception {
       if (params.length > 0) {
-        return type.cast(type.getConstructors()[0].newInstance(params));
+        return type.cast(decorated.getConstructors()[0].newInstance(params));
       }
  else {
-        return type.newInstance();
+        return decorated.newInstance();
       }
     }
   }

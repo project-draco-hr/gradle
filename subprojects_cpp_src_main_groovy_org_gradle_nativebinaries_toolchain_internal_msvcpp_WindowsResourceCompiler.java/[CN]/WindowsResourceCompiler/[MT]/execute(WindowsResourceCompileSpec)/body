@@ -1,10 +1,12 @@
 {
-  boolean didWork=false;
   boolean windowsPathLimitation=OperatingSystem.current().isWindows();
-  CommandLineTool<WindowsResourceCompileSpec> commandLineAssembler=commandLineTool.inWorkDirectory(spec.getObjectFileDir());
+  MutableCommandLineToolInvocation invocation=baseInvocation.copy();
+  spec=specTransformer.transform(spec);
   for (  File sourceFile : spec.getSourceFiles()) {
-    WorkResult result=commandLineAssembler.withArguments(new RcCompilerArgsTransformer(sourceFile,windowsPathLimitation)).execute(spec);
-    didWork|=result.getDidWork();
+    RcCompilerArgsTransformer argsTransformer=new RcCompilerArgsTransformer(sourceFile,windowsPathLimitation);
+    invocation.setArgs(argsTransformer.transform(spec));
+    invocation.setWorkDirectory(spec.getObjectFileDir());
+    commandLineTool.execute(invocation);
   }
-  return new SimpleWorkResult(didWork);
+  return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
 }

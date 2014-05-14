@@ -18,24 +18,24 @@
   DefaultCommandLineConverter converter=new DefaultCommandLineConverter();
   converter.configure(parser);
   ParsedCommandLine parsedCommandLine=parser.parse(getAllArgs());
-  BuildLayoutParameters layout=converter.getLayoutConverter().convert(parsedCommandLine);
+  BuildLayoutParameters layout=converter.getLayoutConverter().convert(parsedCommandLine,new BuildLayoutParameters());
   Map<String,String> properties=new HashMap<String,String>();
   new LayoutToPropertiesConverter().convert(layout,properties);
   converter.getSystemPropertiesConverter().convert(parsedCommandLine,properties);
   new PropertiesToStartParameterConverter().convert(properties,parameter);
   converter.convert(parsedCommandLine,parameter);
-  DefaultGradleLauncherFactory factory=DeprecationLogger.whileDisabled(new Factory<DefaultGradleLauncherFactory>(){
-    public DefaultGradleLauncherFactory create(){
-      return (DefaultGradleLauncherFactory)GradleLauncher.getFactory();
-    }
-  }
-);
+  DefaultGradleLauncherFactory factory=GLOBAL_SERVICES.get(DefaultGradleLauncherFactory.class);
   factory.addListener(listener);
-  GradleLauncher gradleLauncher=factory.newInstance(parameter);
-  gradleLauncher.addStandardOutputListener(outputListener);
-  gradleLauncher.addStandardErrorListener(errorListener);
   try {
-    return gradleLauncher.run();
+    GradleLauncher gradleLauncher=factory.newInstance(parameter);
+    try {
+      gradleLauncher.addStandardOutputListener(outputListener);
+      gradleLauncher.addStandardErrorListener(errorListener);
+      return gradleLauncher.run();
+    }
+  finally {
+      gradleLauncher.stop();
+    }
   }
   finally {
     System.setProperties(originalSysProperties);

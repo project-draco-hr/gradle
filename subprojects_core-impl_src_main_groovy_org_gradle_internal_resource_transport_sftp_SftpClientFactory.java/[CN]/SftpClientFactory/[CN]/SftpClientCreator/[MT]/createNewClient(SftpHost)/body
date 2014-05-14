@@ -1,0 +1,16 @@
+{
+  try {
+    Session session=createJsch().getSession(sftpHost.getUsername(),sftpHost.getHostname(),sftpHost.getPort());
+    session.setPassword(sftpHost.getPassword());
+    session.connect();
+    Channel channel=session.openChannel("sftp");
+    channel.connect();
+    return new DefaultLockableSftpClient(sftpHost,(ChannelSftp)channel,session);
+  }
+ catch (  JSchException e) {
+    if (e.getMessage().equals("Auth fail")) {
+      throw new SftpException(String.format("Invalid credentials for SFTP server at sftp://%s:%d",sftpHost.getHostname(),sftpHost.getPort()),e);
+    }
+    throw new SftpException(String.format("Could not connect to SFTP server at sftp://%s:%d",sftpHost.getHostname(),sftpHost.getPort()),e);
+  }
+}

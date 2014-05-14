@@ -14,10 +14,6 @@
     testNg.setSourcePath(CollectionUtils.join(File.pathSeparator,options.getTestResources()));
   }
   testNg.setUseDefaultListeners(options.getUseDefaultListeners());
-  testNg.addListener((Object)adaptListener(testResultProcessor));
-  if (!options.getIncludedTests().isEmpty()) {
-    testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
-  }
   testNg.setVerbose(0);
   testNg.setGroups(CollectionUtils.join(",",options.getIncludeGroups()));
   testNg.setExcludedGroups(CollectionUtils.join(",",options.getExcludeGroups()));
@@ -28,6 +24,10 @@
  catch (    Throwable e) {
       throw new GradleException(String.format("Could not add a test listener with class '%s'.",listenerClass),e);
     }
+  }
+  testNg.addListener((Object)adaptListener(testResultProcessor));
+  if (!options.getIncludedTests().isEmpty()) {
+    testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
   }
   if (!suiteFiles.isEmpty()) {
     testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));

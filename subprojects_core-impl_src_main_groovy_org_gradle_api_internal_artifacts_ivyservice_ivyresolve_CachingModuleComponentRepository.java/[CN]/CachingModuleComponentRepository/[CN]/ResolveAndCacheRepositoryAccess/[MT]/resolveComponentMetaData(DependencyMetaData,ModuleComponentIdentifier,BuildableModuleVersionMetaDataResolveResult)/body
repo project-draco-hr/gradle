@@ -1,0 +1,20 @@
+{
+  DependencyMetaData forced=dependency.withChanging();
+  delegate.getRemoteAccess().resolveComponentMetaData(forced,moduleComponentIdentifier,result);
+switch (result.getState()) {
+case Missing:
+    moduleMetaDataCache.cacheMissing(delegate,moduleComponentIdentifier);
+  break;
+case Resolved:
+MutableModuleVersionMetaData metaData=result.getMetaData();
+ModuleSource moduleSource=result.getModuleSource();
+ModuleMetaDataCache.CachedMetaData cachedMetaData=moduleMetaDataCache.cacheMetaData(delegate,metaData,moduleSource);
+metadataProcessor.process(metaData);
+result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(),dependency.isChanging() || metaData.isChanging(),moduleSource));
+break;
+case Failed:
+break;
+default :
+throw new IllegalStateException("Unexpected resolve state: " + result.getState());
+}
+}

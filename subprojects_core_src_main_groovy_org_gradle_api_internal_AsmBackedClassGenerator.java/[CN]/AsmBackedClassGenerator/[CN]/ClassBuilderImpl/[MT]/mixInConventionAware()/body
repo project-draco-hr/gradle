@@ -3,8 +3,8 @@
     return;
   }
   final String mappingFieldSignature=Type.getDescriptor(ConventionMapping.class);
-  final String getConventionDesc=Type.getMethodDescriptor(conventionType,new Type[0]);
-  visitor.visitField(Opcodes.ACC_PRIVATE,"mapping",mappingFieldSignature,null,null);
+  final String getConventionDesc=Type.getMethodDescriptor(conventionType);
+  visitor.visitField(Opcodes.ACC_PRIVATE,MAPPING_FIELD,mappingFieldSignature,null,null);
   initConventionAwareHelper=new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
       Type helperType=Type.getType(ConventionAwareHelper.class);
@@ -14,23 +14,23 @@
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getConvention",getConventionDesc);
-      String constructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{conventionAwareType,conventionType});
+      String constructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,conventionAwareType,conventionType);
       visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,helperType.getInternalName(),"<init>",constructorDesc);
-      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),"mapping",mappingFieldSignature);
+      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),MAPPING_FIELD,mappingFieldSignature);
     }
   }
 ;
   addGetter(IConventionAware.class.getDeclaredMethod("getConventionMapping"),new MethodCodeBody(){
     public void add(    MethodVisitor visitor){
       visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"mapping",mappingFieldSignature);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),MAPPING_FIELD,mappingFieldSignature);
       visitor.visitInsn(Opcodes.DUP);
       Label nullBranch=new Label();
       visitor.visitJumpInsn(Opcodes.IFNULL,nullBranch);
       visitor.visitInsn(Opcodes.ARETURN);
       visitor.visitLabel(nullBranch);
       Type conventionAwareHelperType=Type.getType(ConventionAwareHelper.class);
-      String constructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(IConventionAware.class)});
+      String constructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,Type.getType(IConventionAware.class));
       visitor.visitTypeInsn(Opcodes.NEW,conventionAwareHelperType.getInternalName());
       visitor.visitInsn(Opcodes.DUP);
       visitor.visitVarInsn(Opcodes.ALOAD,0);

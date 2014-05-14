@@ -1,0 +1,13 @@
+{
+  if (staleClasses.isEmpty()) {
+    spec.setSource(new SimpleFileCollection());
+    return;
+  }
+  PatternSet classesToDelete=new PatternSet();
+  PatternSet sourceToCompile=new PatternSet();
+  preparePatterns(staleClasses,classesToDelete,sourceToCompile);
+  spec.setSource(spec.getSource().getAsFileTree().matching(sourceToCompile));
+  spec.setClasspath(Iterables.concat(spec.getClasspath(),asList(spec.getDestinationDir())));
+  FileTree deleteMe=fileOperations.fileTree(spec.getDestinationDir()).matching(classesToDelete);
+  fileOperations.delete(deleteMe);
+}

@@ -1,0 +1,42 @@
+{
+  for (  Method method : type.getDeclaredMethods()) {
+    if (method.getAnnotation(Inject.class) != null) {
+      if (!Modifier.isPublic(method.getModifiers()) && !Modifier.isProtected(method.getModifiers())) {
+        throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is not public or protected.",method.getDeclaringClass().getSimpleName(),method.getName()));
+      }
+      if (Modifier.isStatic(method.getModifiers())) {
+        throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is static.",method.getDeclaringClass().getSimpleName(),method.getName()));
+      }
+    }
+    if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers()) || method.isBridge()) {
+      continue;
+    }
+    Class<?>[] parameterTypes=method.getParameterTypes();
+    if (method.getName().startsWith("get") && method.getName().length() > 3 && !method.getReturnType().equals(Void.TYPE) && parameterTypes.length == 0) {
+      String propertyName=method.getName().substring(3);
+      propertyName=Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+      classMetaData.property(propertyName).addGetter(method);
+    }
+ else     if (method.getName().startsWith("is") && method.getName().length() > 2 && (method.getReturnType().equals(Boolean.class) || method.getReturnType().equals(Boolean.TYPE)) && parameterTypes.length == 0) {
+      String propertyName=method.getName().substring(2);
+      propertyName=Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+      classMetaData.property(propertyName).addGetter(method);
+    }
+ else     if (method.getName().startsWith("set") && method.getName().length() > 3 && parameterTypes.length == 1) {
+      String propertyName=method.getName().substring(3);
+      propertyName=Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+      classMetaData.property(propertyName).addSetter(method);
+    }
+ else {
+      if (parameterTypes.length == 1) {
+        classMetaData.addCandidateSetMethod(method);
+      }
+      if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length - 1].equals(Action.class)) {
+        classMetaData.addActionMethod(method);
+      }
+ else       if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length - 1].equals(Closure.class)) {
+        classMetaData.addClosureMethod(method);
+      }
+    }
+  }
+}

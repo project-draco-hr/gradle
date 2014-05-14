@@ -1,11 +1,11 @@
 {
-  Class<?> extensibleObjectFieldType=extensible ? MixInExtensibleDynamicObject.class : BeanDynamicObject.class;
-  final String fieldSignature=Type.getDescriptor(extensibleObjectFieldType);
-  visitor.visitField(Opcodes.ACC_PRIVATE,"dynamicObjectHelper",fieldSignature,null,null);
+  Type extensibleObjectFieldType=extensible ? extensibleDynamicObjectHelperType : nonExtensibleDynamicObjectHelperType;
+  final String fieldSignature=extensibleObjectFieldType.getDescriptor();
+  visitor.visitField(Opcodes.ACC_PRIVATE,DYNAMIC_OBJECT_HELPER_FIELD,fieldSignature,null,null);
   initDynamicObjectHelper=new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
       generateCreateDynamicObject(visitor);
-      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
+      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),DYNAMIC_OBJECT_HELPER_FIELD,fieldSignature);
     }
   }
 ;
@@ -13,7 +13,7 @@
     addGetter(HasConvention.class.getDeclaredMethod("getConvention"),new MethodCodeBody(){
       public void add(      MethodVisitor visitor) throws Exception {
         visitor.visitVarInsn(Opcodes.ALOAD,0);
-        visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
+        visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),DYNAMIC_OBJECT_HELPER_FIELD,fieldSignature);
         String getterDescriptor=Type.getMethodDescriptor(ExtensibleDynamicObject.class.getDeclaredMethod("getConvention"));
         visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,extensibleDynamicObjectHelperType.getInternalName(),"getConvention",getterDescriptor);
       }
@@ -31,7 +31,7 @@
   addGetter(DynamicObjectAware.class.getDeclaredMethod("getAsDynamicObject"),new MethodCodeBody(){
     public void add(    MethodVisitor visitor){
       visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),"dynamicObjectHelper",fieldSignature);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),DYNAMIC_OBJECT_HELPER_FIELD,fieldSignature);
     }
   }
 );

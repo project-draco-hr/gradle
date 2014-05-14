@@ -6,7 +6,7 @@
  catch (    UnknownPluginException e) {
     }
   }
-  Class<? extends Plugin> implClass=idMappings.get(pluginId);
+  Class<? extends Plugin<?>> implClass=idMappings.get(pluginId);
   if (implClass != null) {
     return implClass;
   }
@@ -25,7 +25,8 @@
     if (!Plugin.class.isAssignableFrom(rawClass)) {
       throw new PluginInstantiationException(String.format("Implementation class '%s' specified for plugin '%s' does not implement the Plugin interface. Specified in %s.",implClassName,pluginId,pluginDescriptor));
     }
-    implClass=rawClass.asSubclass(Plugin.class);
+    @SuppressWarnings("unchecked") Class<Plugin<?>> cast=(Class<Plugin<?>>)rawClass.asSubclass(Plugin.class);
+    implClass=cast;
   }
  catch (  ClassNotFoundException e) {
     throw new PluginInstantiationException(String.format("Could not find implementation class '%s' for plugin '%s' specified in %s.",implClassName,pluginId,pluginDescriptor),e);

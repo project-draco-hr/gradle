@@ -1,0 +1,15 @@
+{
+  Map<Artifact,ModuleVersionArtifactMetaData> artifactToMetaData=Maps.newLinkedHashMap();
+  for (  Artifact descriptorArtifact : getDescriptor().getAllArtifacts()) {
+    ModuleVersionArtifactMetaData artifact=artifact(descriptorArtifact);
+    artifactToMetaData.put(descriptorArtifact,artifact);
+  }
+  artifacts=Sets.newLinkedHashSet(artifactToMetaData.values());
+  this.artifactsByConfig=LinkedHashMultimap.create();
+  for (  String configuration : getDescriptor().getConfigurationsNames()) {
+    Artifact[] configArtifacts=getDescriptor().getArtifacts(configuration);
+    for (    Artifact configArtifact : configArtifacts) {
+      artifactsByConfig.put(configuration,artifactToMetaData.get(configArtifact));
+    }
+  }
+}

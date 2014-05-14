@@ -1,0 +1,18 @@
+{
+  List<Object> args=Lists.newArrayList();
+  for (  Class<?> argType : closure.getParameterTypes()) {
+    if (argType == ComponentMetadataDetails.class || argType == Object.class) {
+      args.add(details);
+    }
+ else     if (argType == IvyModuleDescriptor.class) {
+      if (!(metadata instanceof IvyModuleVersionMetaData)) {
+        return;
+      }
+      args.add(new DefaultIvyModuleDescriptor(((IvyModuleVersionMetaData)metadata).getExtraInfo()));
+    }
+ else {
+      throw new GradleException(String.format("Unsupported parameter type for component metadata rule: %s",argType.getName()));
+    }
+  }
+  closure.call(args.toArray());
+}

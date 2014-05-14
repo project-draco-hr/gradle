@@ -1,0 +1,23 @@
+{
+  ArrayList<JvmInstallation> result=new ArrayList<JvmInstallation>();
+  BufferedReader reader=new BufferedReader(output);
+  for (String line=reader.readLine(); line != null; line=reader.readLine()) {
+    Matcher matcher=NEW_FORMAT_PATTERN.matcher(line);
+    if (matcher.matches()) {
+      String version=matcher.group(1);
+      String arch=matcher.group(2);
+      String javaHome=matcher.group(3);
+      result.add(new JvmInstallation(JavaVersion.toVersion(version),version,new File(javaHome),true,toArch(arch)));
+    }
+ else {
+      matcher=OLD_FORMAT_PATTERN.matcher(line);
+      if (matcher.matches()) {
+        String version=matcher.group(1);
+        String arch=matcher.group(2);
+        String javaHome=matcher.group(3);
+        result.add(new JvmInstallation(JavaVersion.toVersion(version),version,new File(javaHome),true,toArch(arch)));
+      }
+    }
+  }
+  return result;
+}

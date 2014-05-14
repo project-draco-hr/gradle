@@ -16,9 +16,9 @@
   }
   Class<? extends T> subclass;
   try {
-    ClassBuilder<T> builder=start(type);
-    boolean isConventionAware=type.getAnnotation(NoConventionMapping.class) == null;
-    builder.startClass(isConventionAware);
+    ClassMetaData classMetaData=inspectType(type);
+    ClassBuilder<T> builder=start(type,classMetaData);
+    builder.startClass();
     if (!DynamicObjectAware.class.isAssignableFrom(type)) {
       if (ExtensionAware.class.isAssignableFrom(type)) {
         throw new UnsupportedOperationException("A type that implements ExtensionAware must currently also implement DynamicObjectAware.");
@@ -29,7 +29,7 @@
       builder.mixInGroovyObject();
     }
     builder.addDynamicMethods();
-    if (isConventionAware && !IConventionAware.class.isAssignableFrom(type)) {
+    if (classMetaData.conventionAware && !IConventionAware.class.isAssignableFrom(type)) {
       builder.mixInConventionAware();
     }
     Class noMappingClass=Object.class;
@@ -38,95 +38,62 @@
         noMappingClass=c;
       }
     }
-    Collection<String> skipProperties=Arrays.asList("metaClass","conventionMapping","convention","asDynamicObject","extensions");
-    Set<MetaBeanProperty> settableProperties=new HashSet<MetaBeanProperty>();
-    Set<MetaBeanProperty> conventionProperties=new HashSet<MetaBeanProperty>();
-    MetaClass metaClass=GroovySystem.getMetaClassRegistry().getMetaClass(type);
-    for (    MetaProperty property : metaClass.getProperties()) {
-      if (skipProperties.contains(property.getName())) {
+    Set<PropertyMetaData> conventionProperties=new HashSet<PropertyMetaData>();
+    for (    PropertyMetaData property : classMetaData.properties.values()) {
+      if (SKIP_PROPERTIES.contains(property.name)) {
         continue;
       }
-      if (property instanceof MetaBeanProperty) {
-        MetaBeanProperty metaBeanProperty=(MetaBeanProperty)property;
-        boolean needsConventionMapping=true;
-        MetaMethod getter=metaBeanProperty.getGetter();
-        if (getter == null) {
-          needsConventionMapping=false;
+      if (property.injector) {
+        builder.addInjectorProperty(property);
+        for (        Method getter : property.getters) {
+          builder.applyServiceInjectionToGetter(property,getter);
         }
- else {
-          if (Modifier.isFinal(getter.getModifiers()) || Modifier.isPrivate(getter.getModifiers())) {
-            needsConventionMapping=false;
-          }
- else {
-            Class declaringClass=getter.getDeclaringClass().getTheClass();
-            if (declaringClass.isAssignableFrom(noMappingClass)) {
-              needsConventionMapping=false;
-            }
-          }
-        }
-        if (needsConventionMapping) {
-          conventionProperties.add(metaBeanProperty);
-          builder.addGetter(metaBeanProperty);
-        }
-        MetaMethod setter=metaBeanProperty.getSetter();
-        if (setter == null || Modifier.isPrivate(setter.getModifiers())) {
-          continue;
-        }
-        if (needsConventionMapping && !Modifier.isFinal(setter.getModifiers())) {
-          builder.addSetter(metaBeanProperty);
-        }
-        if (Iterable.class.isAssignableFrom(property.getType())) {
-          continue;
-        }
-        settableProperties.add(metaBeanProperty);
-      }
-    }
-    Multimap<String,MetaMethod> methods=HashMultimap.create();
-    Set<MetaMethod> actionMethods=new HashSet<MetaMethod>();
-    for (    MetaMethod method : metaClass.getMethods()) {
-      if (method.isPrivate()) {
         continue;
       }
-      CachedClass[] parameterTypes=method.getParameterTypes();
-      if (parameterTypes.length == 0) {
+      boolean needsConventionMapping=false;
+      if (classMetaData.isExtensible()) {
+        for (        Method getter : property.getters) {
+          if (!Modifier.isFinal(getter.getModifiers()) && !getter.getDeclaringClass().isAssignableFrom(noMappingClass)) {
+            needsConventionMapping=true;
+            break;
+          }
+        }
+      }
+      if (needsConventionMapping) {
+        conventionProperties.add(property);
+        builder.addConventionProperty(property);
+        for (        Method getter : property.getters) {
+          builder.applyConventionMappingToGetter(property,getter);
+        }
+      }
+      if (needsConventionMapping) {
+        for (        Method setter : property.setters) {
+          if (!Modifier.isFinal(setter.getModifiers())) {
+            builder.applyConventionMappingToSetter(property,setter);
+          }
+        }
+      }
+    }
+    Set<Method> actionMethods=classMetaData.missingOverloads;
+    for (    Method method : actionMethods) {
+      builder.addActionMethod(method);
+    }
+    for (    PropertyMetaData property : classMetaData.properties.values()) {
+      if (property.setters.isEmpty()) {
         continue;
       }
-      methods.put(method.getName(),method);
-      CachedClass lastParameter=parameterTypes[parameterTypes.length - 1];
-      if (lastParameter.getTheClass().equals(Action.class)) {
-        actionMethods.add(method);
+      if (Iterable.class.isAssignableFrom(property.getType())) {
+        continue;
       }
-    }
-    for (    MetaMethod method : actionMethods) {
-      boolean hasClosure=false;
-      Class[] actionMethodParameterTypes=method.getNativeParameterTypes();
-      int numParams=actionMethodParameterTypes.length;
-      Class[] closureMethodParameterTypes=new Class[actionMethodParameterTypes.length];
-      System.arraycopy(actionMethodParameterTypes,0,closureMethodParameterTypes,0,actionMethodParameterTypes.length);
-      closureMethodParameterTypes[numParams - 1]=Closure.class;
-      for (      MetaMethod otherMethod : methods.get(method.getName())) {
-        if (Arrays.equals(otherMethod.getNativeParameterTypes(),closureMethodParameterTypes)) {
-          hasClosure=true;
-          break;
+      if (property.setMethods.isEmpty()) {
+        for (        Method setter : property.setters) {
+          builder.addSetMethod(property,setter);
         }
       }
-      if (!hasClosure) {
-        builder.addActionMethod(method);
-      }
-    }
-    for (    MetaBeanProperty property : settableProperties) {
-      Collection<MetaMethod> methodsForProperty=methods.get(property.getName());
-      boolean hasSetMethod=false;
-      for (      MetaMethod method : methodsForProperty) {
-        if (method.getParameterTypes().length == 1) {
-          if (conventionProperties.contains(property)) {
-            builder.overrideSetMethod(property,method);
-          }
-          hasSetMethod=true;
+ else       if (conventionProperties.contains(property)) {
+        for (        Method setMethod : property.setMethods) {
+          builder.applyConventionMappingToSetMethod(property,setMethod);
         }
-      }
-      if (!hasSetMethod) {
-        builder.addSetMethod(property);
       }
     }
     for (    Constructor<?> constructor : type.getConstructors()) {

@@ -1,0 +1,18 @@
+{
+  ModuleIdentifier module=new DefaultModuleIdentifier(dependency.getRequested().getGroup(),dependency.getRequested().getName());
+  VersionList versionList=versionLister.getVersionList(module);
+  IvyArtifactName metaDataArtifact=getMetaDataArtifactName(dependency.getRequested().getName());
+  if (metaDataArtifact != null) {
+    listVersionsForAllPatterns(ivyPatterns,metaDataArtifact,versionList);
+  }
+  if (isAllownomd()) {
+    for (    IvyArtifactName otherArtifact : getDependencyArtifactNames(dependency)) {
+      listVersionsForAllPatterns(artifactPatterns,otherArtifact,versionList);
+    }
+  }
+  DefaultModuleVersionListing moduleVersions=new DefaultModuleVersionListing();
+  for (  VersionList.ListedVersion listedVersion : versionList.getVersions()) {
+    moduleVersions.add(listedVersion.getVersion());
+  }
+  result.listed(moduleVersions);
+}

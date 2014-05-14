@@ -1,0 +1,17 @@
+{
+  DependencyResolutionServices resolution=dependencyResolutionServicesFactory.create();
+  RepositoryHandler repositories=resolution.getResolveRepositoryHandler();
+  repositories.maven(new Action<MavenArtifactRepository>(){
+    public void execute(    MavenArtifactRepository mavenArtifactRepository){
+      mavenArtifactRepository.setUrl(metadata.implementation.get("repo"));
+    }
+  }
+);
+  Dependency dependency=resolution.getDependencyHandler().create(metadata.implementation.get("gav"));
+  ConfigurationContainerInternal configurations=resolution.getConfigurationContainer();
+  ConfigurationInternal configuration=configurations.detachedConfiguration(dependency);
+  StartParameterResolutionOverride resolutionOverride=new StartParameterResolutionOverride(startParameter);
+  resolutionOverride.addResolutionRules(configuration.getResolutionStrategy().getResolutionRules());
+  Set<File> files=configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());
+  return new DefaultClassPath(files);
+}

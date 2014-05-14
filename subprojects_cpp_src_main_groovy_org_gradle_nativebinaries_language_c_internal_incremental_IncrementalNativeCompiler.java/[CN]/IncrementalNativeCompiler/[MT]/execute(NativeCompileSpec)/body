@@ -1,0 +1,15 @@
+{
+  IncrementalCompilation compilation=cacheAccess.useCache("process source files",new Factory<IncrementalCompilation>(){
+    public IncrementalCompilation create(){
+      boolean importsAreIncludes=ObjectiveCCompileSpec.class.isAssignableFrom(spec.getClass()) || ObjectiveCppCompileSpec.class.isAssignableFrom(spec.getClass());
+      DefaultSourceIncludesParser sourceIncludesParser=new DefaultSourceIncludesParser(sourceParser,importsAreIncludes);
+      IncrementalCompileProcessor processor=createProcessor(sourceIncludesParser,spec.getIncludeRoots());
+      return processor.processSourceFiles(spec.getSourceFiles());
+    }
+  }
+);
+  if (spec.isIncrementalCompile()) {
+    return doIncrementalCompile(compilation,spec);
+  }
+  return doCleanIncrementalCompile(spec);
+}

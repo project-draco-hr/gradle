@@ -1,13 +1,7 @@
 {
-  if (moduleSource instanceof TimestampedModuleSource) {
-    final String timestampedVersion=((TimestampedModuleSource)moduleSource).getTimestampedVersion();
-    Transformer<String,String> patternTransformer=new Transformer<String,String>(){
-      public String transform(      String original){
-        return original.replaceFirst("\\-\\[revision\\]","-" + timestampedVersion);
-      }
-    }
-;
-    return new ArtifactResolver(CollectionUtils.collect(getIvyPatterns(),patternTransformer),CollectionUtils.collect(getArtifactPatterns(),patternTransformer));
+  if (moduleSource instanceof MavenUniqueSnapshotModuleSource) {
+    final String timestamp=((MavenUniqueSnapshotModuleSource)moduleSource).getTimestamp();
+    return new MavenUniqueSnapshotExternalResourceArtifactResolver(super.createArtifactResolver(moduleSource),timestamp);
   }
   return super.createArtifactResolver(moduleSource);
 }

@@ -2,22 +2,19 @@
   DefaultServiceRegistry services=new DefaultServiceRegistry();
   services.add(ScriptPluginFactory.class,DefaultScriptPluginFactory.this);
   services.add(ScriptHandlerFactory.class,scriptHandlerFactory);
-  services.add(ClassLoaderScope.class,classLoaderScope);
+  services.add(ClassLoaderScope.class,targetScope);
   services.add(LoggingManagerInternal.class,loggingManagerFactory.create());
   services.add(Instantiator.class,instantiator);
   services.add(ScriptHandler.class,scriptHandler);
   services.add(FileLookup.class,fileLookup);
   ScriptSource withImports=importsReader.withImports(scriptSource);
-  List<PluginRequest> pluginRequests=new LinkedList<PluginRequest>();
-  if (target instanceof PluginAware) {
-    services.add(PluginHandler.class,new DefaultPluginHandler(pluginRequests));
-  }
- else {
-    services.add(PluginHandler.class,new NonPluggableTargetPluginHandler(target));
-  }
+  PluginDependenciesService pluginDependenciesService=new PluginDependenciesService(getSource());
+  services.add(PluginDependenciesService.class,pluginDependenciesService);
   ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
-  compiler.setClassloader(classLoaderScope.getBase().getChildClassLoader());
-  PluginsAndBuildscriptTransformer scriptBlockTransformer=new PluginsAndBuildscriptTransformer(classpathClosureName);
+  compiler.setClassloader(baseScope.getExportClassLoader());
+  boolean supportsPluginsBlock=ProjectScript.class.isAssignableFrom(scriptType);
+  String onPluginBlockError=supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
+  PluginsAndBuildscriptTransformer scriptBlockTransformer=new PluginsAndBuildscriptTransformer(classpathClosureName,onPluginBlockError);
   StatementExtractingScriptTransformer classpathScriptTransformer=new StatementExtractingScriptTransformer(classpathClosureName,scriptBlockTransformer);
   compiler.setTransformer(classpathScriptTransformer);
   ScriptRunner<? extends BasicScript> classPathScriptRunner=compiler.compile(scriptType);
@@ -25,21 +22,43 @@
   classPathScriptRunner.run();
   Configuration classpathConfiguration=scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
   Set<File> files=classpathConfiguration.getFiles();
-  ClassPath classPath=new DefaultClassPath(files);
-  ClassLoader exportedClassLoader=classLoaderScope.export(classPath);
-  if (!pluginRequests.isEmpty()) {
-    PluginResolver pluginResolver=pluginResolverFactory.createPluginResolver(exportedClassLoader);
-    @SuppressWarnings("ConstantConditions") PluginResolutionApplicator resolutionApplicator=new PluginResolutionApplicator((PluginAware)target,classLoaderScope);
-    PluginRequestApplicator requestApplicator=new PluginRequestApplicator(pluginResolver,resolutionApplicator);
-    requestApplicator.applyPlugin(pluginRequests);
+  if (!files.isEmpty()) {
+    ClassPath classPath=new DefaultClassPath(files);
+    Factory<? extends ClassLoader> loader=targetScope.getParent().loader(classPath);
+    targetScope.export(loader);
   }
-  classLoaderScope.lock();
-  compiler.setClassloader(classLoaderScope.getScopeClassLoader());
+  List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
+  if (!pluginRequests.isEmpty()) {
+    ListMultimap<PluginId,PluginRequest> groupedById=CollectionUtils.groupBy(pluginRequests,new Transformer<PluginId,PluginRequest>(){
+      public PluginId transform(      PluginRequest pluginRequest){
+        return pluginRequest.getId();
+      }
+    }
+);
+    for (    PluginId key : groupedById.keySet()) {
+      if (key.equals(NOOP_PLUGIN_ID)) {
+        continue;
+      }
+      List<PluginRequest> pluginRequestsForId=groupedById.get(key);
+      if (pluginRequestsForId.size() > 1) {
+        PluginRequest first=pluginRequests.get(0);
+        PluginRequest second=pluginRequests.get(1);
+        InvalidPluginRequestException exception=new InvalidPluginRequestException(second,"Plugin with id '" + key + "' was already requested at line "+ first.getLineNumber());
+        throw new LocationAwareException(exception,second.getScriptSource(),second.getLineNumber());
+      }
+    }
+    PluginRequestApplicator requestApplicator=pluginRequestApplicatorFactory.createRequestApplicator((PluginAware)target);
+    for (    PluginRequest pluginRequest : pluginRequests) {
+      requestApplicator.applyPlugin(pluginRequest);
+    }
+  }
+  targetScope.lock();
+  compiler.setClassloader(targetScope.getLocalClassLoader());
   compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert()));
   ScriptRunner<? extends BasicScript> runner=compiler.compile(scriptType);
   BasicScript script=runner.getScript();
   script.init(target,services);
-  if (target instanceof ScriptAware) {
+  if (ownerScript && target instanceof ScriptAware) {
     ((ScriptAware)target).setScript(script);
   }
   runner.run();

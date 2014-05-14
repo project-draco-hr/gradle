@@ -1,0 +1,34 @@
+{
+  if (versionString == null || versionString.length() == 0) {
+    return UNKNOWN;
+  }
+  Scanner scanner=new Scanner(versionString);
+  int major=0;
+  int minor=0;
+  int micro=0;
+  int patch=0;
+  if (!scanner.hasDigit()) {
+    return UNKNOWN;
+  }
+  major=scanner.scanDigit();
+  if (scanner.isSeparatorAndDigit('.')) {
+    scanner.skipSeparator();
+    minor=scanner.scanDigit();
+    if (scanner.isSeparatorAndDigit('.')) {
+      scanner.skipSeparator();
+      micro=scanner.scanDigit();
+      if (depth > 3 && scanner.isSeparatorAndDigit('.','_')) {
+        scanner.skipSeparator();
+        patch=scanner.scanDigit();
+      }
+    }
+  }
+  if (scanner.isEnd()) {
+    return new VersionNumber(major,minor,micro,patch,null,this);
+  }
+  if (scanner.isQualifier()) {
+    scanner.skipSeparator();
+    return new VersionNumber(major,minor,micro,patch,scanner.remainder(),this);
+  }
+  return UNKNOWN;
+}

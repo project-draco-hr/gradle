@@ -1,0 +1,24 @@
+{
+  project.getPlugins().apply(BasePlugin.class);
+  project.getPlugins().apply(LanguageBasePlugin.class);
+  modelRules.register("toolChains",ToolChainRegistryInternal.class,factory(DefaultToolChainRegistry.class));
+  modelRules.register("platforms",PlatformContainer.class,factory(DefaultPlatformContainer.class));
+  modelRules.register("buildTypes",BuildTypeContainer.class,factory(DefaultBuildTypeContainer.class));
+  modelRules.register("flavors",FlavorContainer.class,factory(DefaultFlavorContainer.class));
+  project.getModelRegistry().create("repositories",Arrays.asList("flavors","platforms","buildTypes"),new RepositoriesFactory(instantiator,fileResolver));
+  modelRules.rule(new CreateDefaultPlatform());
+  modelRules.rule(new CreateDefaultBuildTypes());
+  modelRules.rule(new CreateDefaultFlavors());
+  modelRules.rule(new AddDefaultToolChainsIfRequired());
+  modelRules.rule(new CreateNativeBinaries(instantiator,project,resolver));
+  ProjectComponentContainer components=project.getExtensions().getByType(ProjectComponentContainer.class);
+  components.registerFactory(NativeExecutable.class,new NativeExecutableFactory(instantiator,project));
+  NamedDomainObjectContainer<NativeExecutable> nativeExecutables=components.containerWithType(NativeExecutable.class);
+  components.registerFactory(NativeLibrary.class,new NativeLibraryFactory(instantiator,project));
+  NamedDomainObjectContainer<NativeLibrary> nativeLibraries=components.containerWithType(NativeLibrary.class);
+  project.getExtensions().create("nativeCode",DefaultNativeComponentExtension.class,nativeExecutables,nativeLibraries);
+  project.getExtensions().add("nativeComponents",components.withType(ProjectNativeComponent.class));
+  project.getExtensions().add("executables",nativeExecutables);
+  project.getExtensions().add("libraries",nativeLibraries);
+  configurationActions.add(Actions.composite(new ConfigureGeneratedSourceSets(),new ApplySourceSetConventions()));
+}

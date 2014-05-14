@@ -1,0 +1,33 @@
+{
+  if (effectiveLocalClassLoader == null) {
+    if (locked) {
+      if (local.isEmpty() && export.isEmpty()) {
+        effectiveLocalClassLoader=parent.getExportClassLoader();
+        effectiveExportClassLoader=parent.getExportClassLoader();
+      }
+ else       if (export.isEmpty()) {
+        effectiveLocalClassLoader=buildCachingLoader(parent.getExportClassLoader(),local);
+        effectiveExportClassLoader=parent.getExportClassLoader();
+      }
+ else       if (local.isEmpty()) {
+        effectiveLocalClassLoader=buildCachingLoader(parent.getExportClassLoader(),export);
+        effectiveExportClassLoader=effectiveLocalClassLoader;
+      }
+ else {
+        effectiveExportClassLoader=buildCachingLoader(parent.getExportClassLoader(),export);
+        effectiveLocalClassLoader=buildCachingLoader(effectiveExportClassLoader,local);
+      }
+    }
+ else {
+      if (Boolean.getBoolean(STRICT_MODE_PROPERTY)) {
+        throw new IllegalStateException("Attempt to define scope class loader before scope is locked");
+      }
+      exportingClassLoader=buildLoader(parent.getExportClassLoader(),export);
+      effectiveExportClassLoader=new CachingClassLoader(exportingClassLoader);
+      localClassLoader=buildLoader(effectiveExportClassLoader,local);
+      effectiveLocalClassLoader=new CachingClassLoader(localClassLoader);
+    }
+    export=null;
+    local=null;
+  }
+}

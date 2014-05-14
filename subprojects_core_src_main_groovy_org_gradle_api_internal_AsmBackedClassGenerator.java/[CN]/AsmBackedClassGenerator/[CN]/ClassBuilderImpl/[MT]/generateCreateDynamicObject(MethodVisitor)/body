@@ -1,14 +1,13 @@
 {
   if (extensible) {
-    String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(Object.class),dynamicObjectType});
+    String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,Type.getType(Object.class),dynamicObjectType);
     visitor.visitVarInsn(Opcodes.ALOAD,0);
     visitor.visitTypeInsn(Opcodes.NEW,extensibleDynamicObjectHelperType.getInternalName());
     visitor.visitInsn(Opcodes.DUP);
     visitor.visitVarInsn(Opcodes.ALOAD,0);
-    boolean useInheritedDynamicObject=GroovySystem.getMetaClassRegistry().getMetaClass(type).pickMethod("getAsDynamicObject",new Class[0]) != null;
-    if (useInheritedDynamicObject) {
+    if (providesOwnDynamicObject) {
       visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,Type.getType(type).getInternalName(),"getAsDynamicObject",Type.getMethodDescriptor(dynamicObjectType,new Type[0]));
+      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,Type.getType(type).getInternalName(),"getAsDynamicObject",Type.getMethodDescriptor(dynamicObjectType));
     }
  else {
       visitor.visitInsn(Opcodes.ACONST_NULL);
@@ -16,7 +15,7 @@
     visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,extensibleDynamicObjectHelperType.getInternalName(),"<init>",helperTypeConstructorDesc);
   }
  else {
-    String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,new Type[]{Type.getType(Object.class)});
+    String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,Type.getType(Object.class));
     visitor.visitVarInsn(Opcodes.ALOAD,0);
     visitor.visitTypeInsn(Opcodes.NEW,nonExtensibleDynamicObjectHelperType.getInternalName());
     visitor.visitInsn(Opcodes.DUP);

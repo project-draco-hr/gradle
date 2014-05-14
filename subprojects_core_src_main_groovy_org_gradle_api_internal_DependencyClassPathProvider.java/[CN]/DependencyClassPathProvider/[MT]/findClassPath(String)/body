@@ -1,15 +1,10 @@
 {
   if (name.equals(GRADLE_API.name())) {
     ClassPath classpath=new DefaultClassPath();
-    Module core=moduleRegistry.getModule("gradle-core");
-    for (    Module module : core.getAllRequiredModules()) {
-      classpath=classpath.plus(module.getClasspath());
-    }
-    classpath=classpath.plus(moduleRegistry.getModule("gradle-core-impl").getClasspath());
-    try {
-      classpath=classpath.plus(moduleRegistry.getModule("gradle-tooling-api").getImplementationClasspath());
-    }
- catch (    UnknownModuleException e) {
+    for (    String moduleName : Arrays.asList("gradle-core","gradle-core-impl","gradle-plugin-use","gradle-tooling-api")) {
+      for (      Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
+        classpath=classpath.plus(module.getClasspath());
+      }
     }
     for (    Module pluginModule : pluginModuleRegistry.getPluginModules()) {
       classpath=classpath.plus(pluginModule.getClasspath());

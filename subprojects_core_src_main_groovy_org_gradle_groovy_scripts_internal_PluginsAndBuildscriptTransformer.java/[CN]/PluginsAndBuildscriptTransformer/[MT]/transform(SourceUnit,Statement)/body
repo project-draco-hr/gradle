@@ -6,15 +6,24 @@
   }
  else {
     if (scriptBlock.getName().equals(PLUGINS)) {
-      seenPluginsBlock=true;
-      if (seenNonClasspathStatement) {
-        String message=String.format("only %s {} and and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",classpathBlockName,PLUGINS,PLUGINS);
-        sourceUnit.getErrorCollector().addError(new SyntaxException(message,statement.getLineNumber(),statement.getColumnNumber()),sourceUnit);
-        return statement;
+      String failMessage=null;
+      Statement returnStatement=statement;
+      if (pluginsBlockMessage != null) {
+        failMessage=pluginsBlockMessage;
       }
  else {
-        return PLUGIN_BLOCK_TRANSFORMER.transform(scriptBlock);
+        seenPluginsBlock=true;
+        if (seenNonClasspathStatement) {
+          failMessage=String.format("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",classpathBlockName,PLUGINS,PLUGINS);
+        }
+ else {
+          returnStatement=PLUGIN_BLOCK_TRANSFORMER.transform(sourceUnit,scriptBlock);
+        }
       }
+      if (failMessage != null) {
+        sourceUnit.getErrorCollector().addError(new SyntaxException(failMessage,statement.getLineNumber(),statement.getColumnNumber()),sourceUnit);
+      }
+      return returnStatement;
     }
  else {
       if (seenPluginsBlock) {

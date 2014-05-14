@@ -18,7 +18,7 @@
   expectedStartParams.setCurrentDir(expectedCurrentDir);
   expectedStartParams.setSearchUpwards(expectedSearchUpwards);
   expectedStartParams.setGradleUserHomeDir(tmpDir.createDir("gradleUserHome"));
-  gradleLauncher=new DefaultGradleLauncher(gradleMock,initscriptHandlerMock,settingsHandlerMock,buildLoaderMock,buildConfigurerMock,buildBroadcaster,exceptionAnalyserMock,loggingManagerMock,modelListenerMock,tasksCompletionListener,buildExecuter);
+  gradleLauncher=new DefaultGradleLauncher(gradleMock,initscriptHandlerMock,settingsHandlerMock,buildLoaderMock,buildConfigurerMock,buildBroadcaster,exceptionAnalyserMock,loggingManagerMock,modelListenerMock,tasksCompletionListener,buildExecuter,buildCompletionListener,buildServices);
   context.checking(new Expectations(){
 {
       allowing(settingsMock).getRootProject();
@@ -26,7 +26,9 @@
       allowing(settingsMock).getClassLoaderScope();
       will(returnValue(settingsClassLoaderScope));
       allowing(settingsClassLoaderScope).createSibling();
-      will(returnValue(rootProjectClassLoaderScope));
+      will(returnValue(baseClassLoaderScope));
+      allowing(baseClassLoaderScope).lock();
+      will(returnValue(baseClassLoaderScope));
       allowing(gradleMock).getRootProject();
       will(returnValue(expectedRootProject));
       allowing(gradleMock).getDefaultProject();

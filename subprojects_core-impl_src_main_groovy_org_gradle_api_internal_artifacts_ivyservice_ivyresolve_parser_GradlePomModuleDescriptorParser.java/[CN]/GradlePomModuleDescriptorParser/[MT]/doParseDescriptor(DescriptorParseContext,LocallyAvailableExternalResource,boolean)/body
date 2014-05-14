@@ -1,15 +1,10 @@
 {
   PomReader pomReader=new PomReader(resource);
-  GradlePomModuleDescriptorBuilder mdBuilder=new GradlePomModuleDescriptorBuilder(resource,parserSettings,pomReader);
+  GradlePomModuleDescriptorBuilder mdBuilder=new GradlePomModuleDescriptorBuilder(pomReader);
   doParsePom(parserSettings,mdBuilder,pomReader);
-  String artifactId=pomReader.getArtifactId();
-  if (pomReader.getRelocation() == null) {
-    mdBuilder.addMainArtifact(artifactId,pomReader.getPackaging());
-  }
   DefaultModuleDescriptor moduleDescriptor=mdBuilder.getModuleDescriptor();
-  ModuleDescriptorAdapter adapter=new ModuleDescriptorAdapter(moduleDescriptor);
-  if ("pom".equals(pomReader.getPackaging())) {
-    adapter.setMetaDataOnly(true);
+  if (pomReader.getRelocation() != null) {
+    return new DefaultMavenModuleVersionMetaData(moduleDescriptor,"pom",true);
   }
-  return adapter;
+  return new DefaultMavenModuleVersionMetaData(moduleDescriptor,pomReader.getPackaging(),false);
 }

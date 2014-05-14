@@ -1,0 +1,16 @@
+{
+  List<String> versions;
+  try {
+    versions=windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,sdkSubkey);
+  }
+ catch (  MissingRegistryEntryException e) {
+    return;
+  }
+  for (  String version : versions) {
+    if (version.matches("\\d+\\.\\d+")) {
+      continue;
+    }
+    String javaHome=windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE,sdkSubkey + '\\' + version,"JavaHome");
+    jvms.add(new JvmInstallation(JavaVersion.toVersion(version),version,new File(javaHome),jdk,arch));
+  }
+}

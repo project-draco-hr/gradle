@@ -1,23 +1,6 @@
 {
-  VersionDetails versionDetails=getVersionDetails();
-  if (operationParameters.getJavaHome() != null) {
-    throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJavaHome() and buildLauncher.setJavaHome()",versionDetails.getVersion());
+  if (type.equals(BuildEnvironment.class)) {
+    return adapter.adapt(type,doGetBuildEnvironment());
   }
-  if (operationParameters.getJvmArguments() != null) {
-    throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJvmArguments() and buildLauncher.setJvmArguments()",versionDetails.getVersion());
-  }
-  if (operationParameters.getStandardInput() != null) {
-    throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()",versionDetails.getVersion());
-  }
-  OutputStream out=operationParameters.getStandardOutput();
-  if (out != null) {
-    try {
-      String deprecationMessage=String.format("Connecting to Gradle version %s from the Gradle tooling API has been deprecated and is scheduled to be removed in version 2.0 of the Gradle tooling API%n",versionDetails.getVersion());
-      out.write(deprecationMessage.getBytes());
-    }
- catch (    IOException e) {
-      throw new RuntimeException("Cannot write to stream",e);
-    }
-  }
-  return super.run(type,operationParameters);
+  throw fail();
 }

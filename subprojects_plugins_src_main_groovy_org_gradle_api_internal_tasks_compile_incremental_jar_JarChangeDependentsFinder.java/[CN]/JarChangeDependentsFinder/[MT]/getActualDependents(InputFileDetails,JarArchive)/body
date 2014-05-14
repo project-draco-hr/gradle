@@ -1,0 +1,25 @@
+{
+  JarSnapshot existing=previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
+  if (jarChangeDetails.isAdded()) {
+    return new DefaultDependentsSet();
+  }
+  if (existing == null) {
+    return new DefaultDependentsSet(true);
+  }
+  if (jarChangeDetails.isRemoved()) {
+    DependentsSet allClasses=existing.getAllClasses();
+    if (allClasses.isDependencyToAll()) {
+      return allClasses;
+    }
+    return previousCompilation.getDependents(allClasses.getDependentClasses());
+  }
+  if (jarChangeDetails.isModified()) {
+    JarSnapshot newSnapshot=jarSnapshotter.createSnapshot(jarArchive);
+    DependentsSet affectedClasses=newSnapshot.getAffectedClassesSince(existing);
+    if (affectedClasses.isDependencyToAll()) {
+      return affectedClasses;
+    }
+    return previousCompilation.getDependents(affectedClasses.getDependentClasses());
+  }
+  throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);
+}
