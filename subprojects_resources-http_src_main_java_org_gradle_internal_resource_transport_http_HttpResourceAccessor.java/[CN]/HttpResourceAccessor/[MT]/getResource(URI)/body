@@ -4,16 +4,8 @@
   LOGGER.debug("Constructing external resource: {}",location);
   HttpResponse response=http.performGet(location);
   if (response != null) {
-    HttpResponseResource resource=new HttpResponseResource("GET",uri,response){
-      @Override public void close() throws IOException {
-        super.close();
-        HttpResourceAccessor.this.openResources.remove(this);
-      }
-    }
-;
+    HttpResponseResource resource=wrapResponse(uri,response);
     return recordOpenGetResource(resource);
   }
- else {
-    return null;
-  }
+  return null;
 }
