@@ -2,20 +2,9 @@
   ClassLoader runtimeClassLoader=getClass().getClassLoader();
   ClassPath coreImplClassPath=classPathRegistry.getClassPath("GRADLE_CORE_IMPL");
   coreImplClassLoader=new MutableURLClassLoader(runtimeClassLoader,coreImplClassPath);
+  apiOnlyClassLoader=restrictToGradleApi(classLoaderFactory,coreImplClassLoader);
   ClassPath pluginsClassPath=classPathRegistry.getClassPath("GRADLE_PLUGINS");
   ClassLoader pluginsImports=new CachingClassLoader(new MultiParentClassLoader(runtimeClassLoader,coreImplClassLoader));
   pluginsClassLoader=new MutableURLClassLoader(pluginsImports,pluginsClassPath);
-  FilteringClassLoader rootClassLoader=classLoaderFactory.createFilteringClassLoader(pluginsClassLoader);
-  rootClassLoader.allowPackage("org.gradle");
-  rootClassLoader.allowResources("META-INF/gradle-plugins");
-  rootClassLoader.allowPackage("org.apache.tools.ant");
-  rootClassLoader.allowPackage("groovy");
-  rootClassLoader.allowPackage("org.codehaus.groovy");
-  rootClassLoader.allowPackage("groovyjarjarantlr");
-  rootClassLoader.allowPackage("org.apache.ivy");
-  rootClassLoader.allowPackage("org.slf4j");
-  rootClassLoader.allowPackage("org.apache.commons.logging");
-  rootClassLoader.allowPackage("org.apache.log4j");
-  rootClassLoader.allowPackage("javax.inject");
-  this.rootClassLoader=new CachingClassLoader(rootClassLoader);
+  this.apiAndPluginsClassLoader=restrictToGradleApi(classLoaderFactory,pluginsClassLoader);
 }

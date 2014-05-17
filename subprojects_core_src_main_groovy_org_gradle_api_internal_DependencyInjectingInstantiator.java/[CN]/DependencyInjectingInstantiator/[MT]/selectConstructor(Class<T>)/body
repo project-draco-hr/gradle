@@ -1,0 +1,22 @@
+{
+  Constructor<?>[] constructors=type.getDeclaredConstructors();
+  if (constructors.length == 1) {
+    Constructor<?> constructor=constructors[0];
+    if (constructor.getParameterTypes().length == 0 && Modifier.isPublic(constructor.getModifiers())) {
+      return constructor;
+    }
+  }
+  List<Constructor<?>> injectConstructors=new ArrayList<Constructor<?>>();
+  for (  Constructor<?> constructor : constructors) {
+    if (constructor.getAnnotation(Inject.class) != null) {
+      injectConstructors.add(constructor);
+    }
+  }
+  if (injectConstructors.isEmpty()) {
+    throw new IllegalArgumentException(String.format("Class %s has no constructor that is annotated with @Inject.",type.getName()));
+  }
+  if (injectConstructors.size() > 1) {
+    throw new IllegalArgumentException(String.format("Class %s has multiple constructors that are annotated with @Inject.",type.getName()));
+  }
+  return injectConstructors.get(0);
+}
