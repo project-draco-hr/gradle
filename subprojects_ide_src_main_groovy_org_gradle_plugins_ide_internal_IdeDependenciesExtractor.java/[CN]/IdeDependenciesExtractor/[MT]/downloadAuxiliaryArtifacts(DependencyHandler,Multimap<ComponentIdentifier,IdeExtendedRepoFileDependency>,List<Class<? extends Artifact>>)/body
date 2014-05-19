@@ -1,0 +1,25 @@
+{
+  if (artifactTypes.isEmpty()) {
+    return;
+  }
+  ArtifactResolutionQuery query=dependencyHandler.createArtifactResolutionQuery();
+  query.forComponents(dependencies.keySet());
+  Class<?>[] artifactTypesArray=new Class<?>[artifactTypes.size()];
+  @SuppressWarnings("unchecked") Class<? extends Artifact>[] artifactTypesCast=(Class<? extends Artifact>[])artifactTypesArray;
+  query.withArtifacts(JvmLibrary.class,artifactTypesCast);
+  Set<ComponentArtifactsResult> componentResults=query.execute().getResolvedComponents();
+  for (  ComponentArtifactsResult componentResult : componentResults) {
+    for (    IdeExtendedRepoFileDependency dependency : dependencies.get(componentResult.getId())) {
+      for (      ArtifactResult sourcesResult : componentResult.getArtifacts(SourcesArtifact.class)) {
+        if (sourcesResult instanceof ResolvedArtifactResult) {
+          dependency.setSourceFile(((ResolvedArtifactResult)sourcesResult).getFile());
+        }
+      }
+      for (      ArtifactResult javadocResult : componentResult.getArtifacts(JavadocArtifact.class)) {
+        if (javadocResult instanceof ResolvedArtifactResult) {
+          dependency.setJavadocFile(((ResolvedArtifactResult)javadocResult).getFile());
+        }
+      }
+    }
+  }
+}
