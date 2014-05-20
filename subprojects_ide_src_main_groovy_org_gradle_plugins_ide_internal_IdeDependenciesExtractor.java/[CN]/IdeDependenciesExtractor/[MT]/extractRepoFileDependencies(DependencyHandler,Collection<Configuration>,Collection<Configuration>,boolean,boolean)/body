@@ -1,0 +1,20 @@
+{
+  Multimap<ComponentIdentifier,IdeExtendedRepoFileDependency> resolvedDependenciesComponentMap=LinkedHashMultimap.create();
+  for (  IdeExtendedRepoFileDependency dep : resolvedExternalDependencies(plusConfigurations,minusConfigurations)) {
+    resolvedDependenciesComponentMap.put(toComponentIdentifier(dep.getId()),dep);
+  }
+  List<Class<? extends Artifact>> artifactTypes=new ArrayList<Class<? extends Artifact>>(2);
+  if (downloadSources) {
+    artifactTypes.add(SourcesArtifact.class);
+  }
+  if (downloadJavadoc) {
+    artifactTypes.add(JavadocArtifact.class);
+  }
+  downloadAuxiliaryArtifacts(dependencyHandler,resolvedDependenciesComponentMap,artifactTypes);
+  Collection<UnresolvedIdeRepoFileDependency> unresolvedDependencies=unresolvedExternalDependencies(plusConfigurations,minusConfigurations);
+  Collection<IdeExtendedRepoFileDependency> resolvedDependencies=resolvedDependenciesComponentMap.values();
+  Collection<IdeExtendedRepoFileDependency> resolvedAndUnresolved=new ArrayList<IdeExtendedRepoFileDependency>(unresolvedDependencies.size() + resolvedDependencies.size());
+  resolvedAndUnresolved.addAll(resolvedDependencies);
+  resolvedAndUnresolved.addAll(unresolvedDependencies);
+  return resolvedAndUnresolved;
+}

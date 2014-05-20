@@ -43,8 +43,21 @@
         queue.add(0,callableResult);
       }
     }
+ else     if (resolver != null && dependency instanceof CharSequence) {
+      context.add(resolver.resolveTask(dependency.toString()));
+    }
  else {
-      context.add(resolver.resolveTask(dependency));
+      List<String> formats=new ArrayList<String>();
+      if (resolver != null) {
+        formats.add("A String or CharSequence task name or path");
+      }
+      formats.add("A Task instance");
+      formats.add("A Buildable instance");
+      formats.add("A TaskDependency instance");
+      formats.add("A Closure instance that returns any of the above types");
+      formats.add("A Callable instance that returns any of the above types");
+      formats.add("An Iterable, Collection, Map or array instance that contains any of the above types");
+      throw new UnsupportedNotationException(dependency,String.format("Cannot convert %s to a task.",dependency),null,formats);
     }
   }
 }
