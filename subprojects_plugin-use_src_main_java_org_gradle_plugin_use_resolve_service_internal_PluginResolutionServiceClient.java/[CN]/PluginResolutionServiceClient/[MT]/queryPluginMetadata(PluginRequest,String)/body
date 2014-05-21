@@ -23,8 +23,8 @@
       }
       throw new GradleException(message);
     }
-    return response.withContent(new Transformer<PluginUseMetaData,InputStream>(){
-      public PluginUseMetaData transform(      InputStream inputStream){
+    return response.withContent(new Transformer<Response<PluginUseMetaData>,InputStream>(){
+      public Response<PluginUseMetaData> transform(      InputStream inputStream){
         Reader reader;
         try {
           reader=new InputStreamReader(inputStream,"utf-8");
@@ -33,18 +33,15 @@
           throw new AssertionError(e);
         }
         try {
-          if (statusCode != 200) {
-            ErrorResponse errorResponse=new Gson().fromJson(reader,ErrorResponse.class);
-            if (statusCode == 404) {
-              return null;
-            }
- else {
-              throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.",statusCode,errorResponse.message));
-            }
+          if (statusCode == 200) {
+            PluginUseMetaData metadata=new Gson().fromJson(reader,PluginUseMetaData.class);
+            metadata.verify();
+            return new SuccessResponse<PluginUseMetaData>(metadata,statusCode);
           }
-          PluginUseMetaData metadata=new Gson().fromJson(reader,PluginUseMetaData.class);
-          metadata.verify();
-          return metadata;
+ else {
+            ErrorResponse errorResponse=new Gson().fromJson(reader,ErrorResponse.class);
+            return new ErrorResponseResponse<PluginUseMetaData>(errorResponse,statusCode);
+          }
         }
  catch (        JsonSyntaxException e) {
           throw new GradleException("Failed to parse plugin resolution service JSON response.",e);
