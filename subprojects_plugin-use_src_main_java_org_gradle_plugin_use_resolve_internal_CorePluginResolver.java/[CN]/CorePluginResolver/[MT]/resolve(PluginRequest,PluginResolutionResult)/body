@@ -1,0 +1,18 @@
+{
+  PluginId id=pluginRequest.getId();
+  if (!id.isQualified() || id.inNamespace(CORE_PLUGIN_NAMESPACE)) {
+    try {
+      Class<? extends Plugin> typeForId=pluginRegistry.getTypeForId(id.getName());
+      if (pluginRequest.getVersion() != null) {
+        throw new InvalidPluginRequestException(pluginRequest,"Plugin '" + id + "' is a core Gradle plugin, which cannot be specified with a version number. "+ "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration.");
+      }
+      result.found(getDescription(),new SimplePluginResolution(typeForId));
+    }
+ catch (    UnknownPluginException e) {
+      result.notFound(getDescription(),String.format("not a core plugin, please see %s for available core plugins",documentationRegistry.getDocumentationFor("standard_plugins")));
+    }
+  }
+ else {
+    result.notFound(getDescription(),String.format("plugin is not in '%s' namespace",CORE_PLUGIN_NAMESPACE));
+  }
+}

@@ -1,13 +1,17 @@
 {
-  PluginResolution resolution;
+  DefaultPluginResolutionResult result=new DefaultPluginResolutionResult();
   try {
-    resolution=pluginResolver.resolve(request);
+    pluginResolver.resolve(request,result);
   }
  catch (  Exception e) {
     throw new LocationAwareException(new GradleException(String.format("Error resolving plugin %s.",request.getDisplayName()),e),request.getScriptSource(),request.getLineNumber());
   }
-  if (resolution == null) {
-    throw new LocationAwareException(new UnknownPluginException(String.format("Plugin %s not found in %s",request.getDisplayName(),pluginResolver.getDescriptionForNotFoundMessage())),request.getScriptSource(),request.getLineNumber());
+  if (result.isFound()) {
+    pluginResolutionHandler.execute(result.found.resolution);
   }
-  pluginResolutionHandler.execute(resolution);
+ else {
+    String message=buildNotFoundMessage(request,result);
+    Exception exception=new UnknownPluginException(message);
+    throw new LocationAwareException(exception,request.getScriptSource(),request.getLineNumber());
+  }
 }
