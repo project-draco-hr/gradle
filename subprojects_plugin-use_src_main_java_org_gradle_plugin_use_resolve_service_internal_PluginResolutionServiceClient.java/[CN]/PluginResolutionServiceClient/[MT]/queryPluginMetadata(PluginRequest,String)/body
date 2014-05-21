@@ -1,5 +1,5 @@
 {
-  String requestUrl=String.format(portalUrl + REQUEST_URL,GradleVersion.current().getVersion(),pluginRequest.getId(),pluginRequest.getVersion());
+  final String requestUrl=String.format(portalUrl + REQUEST_URL,GradleVersion.current().getVersion(),pluginRequest.getId(),pluginRequest.getVersion());
   final URI requestUri=toUri(requestUrl,"plugin request");
   HttpResponseResource response=null;
   try {
@@ -38,9 +38,12 @@
             metadata.verify();
             return new SuccessResponse<PluginUseMetaData>(metadata,statusCode);
           }
- else {
+ else           if (statusCode >= 400 && statusCode < 600) {
             ErrorResponse errorResponse=new Gson().fromJson(reader,ErrorResponse.class);
             return new ErrorResponseResponse<PluginUseMetaData>(errorResponse,statusCode);
+          }
+ else {
+            throw new GradleException("Received unexpected HTTP response status " + statusCode + " from "+ requestUrl);
           }
         }
  catch (        JsonSyntaxException e) {
