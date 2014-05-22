@@ -20,13 +20,6 @@
   ScriptRunner<? extends BasicScript> classPathScriptRunner=compiler.compile(scriptType);
   classPathScriptRunner.getScript().init(target,services);
   classPathScriptRunner.run();
-  Configuration classpathConfiguration=scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
-  Set<File> files=classpathConfiguration.getFiles();
-  if (!files.isEmpty()) {
-    ClassPath classPath=new DefaultClassPath(files);
-    Factory<? extends ClassLoader> loader=targetScope.getParent().loader(classPath);
-    targetScope.export(loader);
-  }
   List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
   if (!pluginRequests.isEmpty()) {
     ListMultimap<PluginId,PluginRequest> groupedById=CollectionUtils.groupBy(pluginRequests,new Transformer<PluginId,PluginRequest>(){
@@ -47,12 +40,19 @@
         throw new LocationAwareException(exception,second.getScriptSource(),second.getLineNumber());
       }
     }
-    PluginRequestApplicator requestApplicator=pluginRequestApplicatorFactory.createRequestApplicator((PluginAware)target);
-    for (    PluginRequest pluginRequest : pluginRequests) {
-      requestApplicator.applyPlugin(pluginRequest);
-    }
+    PluginAware pluginAware=(PluginAware)target;
+    pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,pluginAware,targetScope);
   }
-  targetScope.lock();
+ else {
+    Configuration classpathConfiguration=scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
+    Set<File> files=classpathConfiguration.getFiles();
+    if (!files.isEmpty()) {
+      ClassPath classPath=new DefaultClassPath(files);
+      Factory<? extends ClassLoader> loader=targetScope.getParent().loader(classPath);
+      targetScope.export(loader);
+    }
+    targetScope.lock();
+  }
   compiler.setClassloader(targetScope.getLocalClassLoader());
   compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert()));
   ScriptRunner<? extends BasicScript> runner=compiler.compile(scriptType);
