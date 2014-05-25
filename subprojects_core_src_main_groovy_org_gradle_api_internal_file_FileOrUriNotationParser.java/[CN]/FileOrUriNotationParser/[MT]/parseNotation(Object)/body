@@ -1,6 +1,6 @@
 {
   if (notation instanceof File) {
-    return (T)notation;
+    return notation;
   }
   if (notation instanceof URL) {
     try {
@@ -13,16 +13,16 @@
   if (notation instanceof URI) {
     URI uri=(URI)notation;
     if (uri.getScheme().equals("file")) {
-      return (T)new File(uri.getPath());
+      return new File(uri.getPath());
     }
  else {
-      return (T)uri;
+      return uri;
     }
   }
-  if (notation instanceof CharSequence) {
+ else   if (notation instanceof CharSequence) {
     String notationString=notation.toString();
     if (notationString.startsWith("file:")) {
-      return (T)new File(uriDecode(notationString.substring(5)));
+      return new File(uriDecode(notationString.substring(5)));
     }
     for (    File file : File.listRoots()) {
       String rootPath=file.getAbsolutePath();
@@ -32,20 +32,20 @@
         normalisedStr=normalisedStr.toLowerCase();
       }
       if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar,'/'))) {
-        return (T)new File(notationString);
+        return new File(notationString);
       }
     }
     if (URI_SCHEME.matcher(notationString).matches()) {
       try {
-        return (T)new URI(notationString);
+        return new URI(notationString);
       }
  catch (      URISyntaxException e) {
         throw new UncheckedIOException(e);
       }
     }
+    return new File(notationString);
   }
- else {
-    DeprecationLogger.nagUserOfDeprecated(String.format("Converting class %s to File using toString() method",notation.getClass().getName()),"Please use java.io.File, java.lang.String, java.net.URL, or java.net.URI instead");
-  }
-  return (T)new File(notation.toString());
+  List<String> candidates=new ArrayList<String>();
+  describe(candidates);
+  throw new UnsupportedNotationException(notation,String.format("Cannot convert the provided value %s to a File or URI.",notation),null,candidates);
 }
