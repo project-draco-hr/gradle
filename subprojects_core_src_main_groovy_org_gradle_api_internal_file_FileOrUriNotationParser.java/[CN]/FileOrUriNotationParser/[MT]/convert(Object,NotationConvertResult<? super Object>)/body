@@ -1,6 +1,7 @@
 {
   if (notation instanceof File) {
-    return notation;
+    result.converted(notation);
+    return;
   }
   if (notation instanceof URL) {
     try {
@@ -13,16 +14,18 @@
   if (notation instanceof URI) {
     URI uri=(URI)notation;
     if (uri.getScheme().equals("file")) {
-      return new File(uri.getPath());
+      result.converted(new File(uri.getPath()));
     }
  else {
-      return uri;
+      result.converted(uri);
     }
+    return;
   }
- else   if (notation instanceof CharSequence) {
+  if (notation instanceof CharSequence) {
     String notationString=notation.toString();
     if (notationString.startsWith("file:")) {
-      return new File(uriDecode(notationString.substring(5)));
+      result.converted(new File(uriDecode(notationString.substring(5))));
+      return;
     }
     for (    File file : File.listRoots()) {
       String rootPath=file.getAbsolutePath();
@@ -32,20 +35,19 @@
         normalisedStr=normalisedStr.toLowerCase();
       }
       if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar,'/'))) {
-        return new File(notationString);
+        result.converted(new File(notationString));
+        return;
       }
     }
     if (URI_SCHEME.matcher(notationString).matches()) {
       try {
-        return new URI(notationString);
+        result.converted(new URI(notationString));
+        return;
       }
  catch (      URISyntaxException e) {
         throw new UncheckedIOException(e);
       }
     }
-    return new File(notationString);
+    result.converted(new File(notationString));
   }
-  List<String> candidates=new ArrayList<String>();
-  describe(candidates);
-  throw new UnsupportedNotationException(notation,String.format("Cannot convert the provided value %s to a File or URI.",notation),null,candidates);
 }
