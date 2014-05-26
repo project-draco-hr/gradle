@@ -2,7 +2,12 @@
   ModuleVersionSelector requested=dependency.getRequested();
   LOGGER.debug("Attempting to resolve module '{}' using repositories {}",requested,repositoryNames);
   List<Throwable> errors=new ArrayList<Throwable>();
-  final RepositoryChainModuleResolution latestResolved=findLatestModule(dependency,errors);
+  boolean dynamicSelector=componentChooser.canSelectMultipleComponents(dependency.getRequested());
+  List<RepositoryResolveState> resolveStates=new ArrayList<RepositoryResolveState>();
+  for (  ModuleComponentRepository repository : repositories) {
+    resolveStates.add(createRepositoryResolveState(repository,dynamicSelector));
+  }
+  final RepositoryChainModuleResolution latestResolved=findLatestModule(dependency,resolveStates,dynamicSelector,errors);
   if (latestResolved != null) {
     LOGGER.debug("Using module '{}' from repository '{}'",latestResolved.module.getId(),latestResolved.repository.getName());
     for (    Throwable error : errors) {
@@ -15,6 +20,14 @@
     result.failed(new ModuleVersionResolveException(requested,errors));
   }
  else {
-    result.notFound(requested);
+    for (    RepositoryResolveState resolveState : resolveStates) {
+      resolveState.applyTo(result);
+    }
+    if (dynamicSelector) {
+      result.notFound(requested);
+    }
+ else {
+      result.notFound(DefaultModuleVersionIdentifier.newId(requested.getGroup(),requested.getName(),requested.getVersion()));
+    }
   }
 }

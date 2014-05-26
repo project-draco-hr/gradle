@@ -1,0 +1,53 @@
+{
+  if (notation instanceof File) {
+    result.converted(notation);
+    return;
+  }
+  if (notation instanceof URL) {
+    try {
+      notation=((URL)notation).toURI();
+    }
+ catch (    URISyntaxException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+  if (notation instanceof URI) {
+    URI uri=(URI)notation;
+    if (uri.getScheme().equals("file")) {
+      result.converted(new File(uri.getPath()));
+    }
+ else {
+      result.converted(uri);
+    }
+    return;
+  }
+  if (notation instanceof CharSequence) {
+    String notationString=notation.toString();
+    if (notationString.startsWith("file:")) {
+      result.converted(new File(uriDecode(notationString.substring(5))));
+      return;
+    }
+    for (    File file : File.listRoots()) {
+      String rootPath=file.getAbsolutePath();
+      String normalisedStr=notationString;
+      if (!fileSystem.isCaseSensitive()) {
+        rootPath=rootPath.toLowerCase();
+        normalisedStr=normalisedStr.toLowerCase();
+      }
+      if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar,'/'))) {
+        result.converted(new File(notationString));
+        return;
+      }
+    }
+    if (URI_SCHEME.matcher(notationString).matches()) {
+      try {
+        result.converted(new URI(notationString));
+        return;
+      }
+ catch (      URISyntaxException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+    result.converted(new File(notationString));
+  }
+}
