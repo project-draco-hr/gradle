@@ -1,41 +1,41 @@
 {
-  Action<PlatformToolChain> action=new Action<PlatformToolChain>(){
-    public void execute(    PlatformToolChain configurableToolChain){
-      Action<List<String>> m32args=new Action<List<String>>(){
+  Action<TargetedPlatformToolChain> action=new Action<TargetedPlatformToolChain>(){
+    public void execute(    TargetedPlatformToolChain configurableToolChain){
+      Action<List<String>> m64args=new Action<List<String>>(){
         public void execute(        List<String> args){
-          args.add("-m32");
+          args.add("-m64");
         }
       }
 ;
       CommandLineToolConfiguration cppCompiler=(CommandLineToolConfiguration)configurableToolChain.findByName("cppCompiler");
       if (cppCompiler != null) {
-        cppCompiler.withArguments(m32args);
+        cppCompiler.withArguments(m64args);
       }
       CommandLineToolConfiguration cCompiler=(CommandLineToolConfiguration)configurableToolChain.findByName("cCompiler");
       if (cCompiler != null) {
-        cCompiler.withArguments(m32args);
+        cCompiler.withArguments(m64args);
       }
       CommandLineToolConfiguration objcCompiler=(CommandLineToolConfiguration)configurableToolChain.findByName("objcCompiler");
       if (objcCompiler != null) {
-        objcCompiler.withArguments(m32args);
+        objcCompiler.withArguments(m64args);
       }
       CommandLineToolConfiguration objcppCompiler=(CommandLineToolConfiguration)configurableToolChain.findByName("objcppCompiler");
       if (objcppCompiler != null) {
-        objcppCompiler.withArguments(m32args);
+        objcppCompiler.withArguments(m64args);
       }
       CommandLineToolConfiguration linker=(CommandLineToolConfiguration)configurableToolChain.findByName("linker");
       if (linker != null) {
-        linker.withArguments(m32args);
+        linker.withArguments(m64args);
       }
       CommandLineToolConfiguration assembler=(CommandLineToolConfiguration)configurableToolChain.findByName("assembler");
       if (assembler != null) {
         assembler.withArguments(new Action<List<String>>(){
           public void execute(          List<String> args){
             if (OperatingSystem.current().isMacOsX()) {
-              args.addAll(asList("-arch","i386"));
+              args.addAll(asList("-arch","x86_64"));
             }
  else {
-              args.add("--32");
+              args.add("--64");
             }
           }
         }
@@ -44,6 +44,6 @@
     }
   }
 ;
-  action.execute(platformToolChain);
-  return platformToolChain;
+  action.execute(targetedPlatformToolChain);
+  return targetedPlatformToolChain;
 }
