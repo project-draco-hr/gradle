@@ -1,0 +1,30 @@
+{
+  return new LazilyInitializedFileCollection(){
+    @Override public FileCollection createDelegate(){
+      if (project.getRepositories().isEmpty()) {
+        throw new GradleException(String.format("Cannot infer Scala class path because no repository is declared in %s",project));
+      }
+      File scalaLibraryJar=findScalaJar(classpath,"library");
+      if (scalaLibraryJar == null) {
+        throw new GradleException(String.format("Cannot infer Scala class path because no Scala library Jar was found. " + "Does %s declare dependency to scala-library? Searched classpath: %s.",project,classpath));
+      }
+      String scalaVersion=getScalaVersion(scalaLibraryJar);
+      if (scalaVersion == null) {
+        throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s",scalaLibraryJar,project));
+      }
+      return project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang","scala-compiler",scalaVersion));
+    }
+    @Override public TaskDependency getBuildDependencies(){
+      if (classpath instanceof Buildable) {
+        return ((Buildable)classpath).getBuildDependencies();
+      }
+      return new TaskDependency(){
+        public Set<? extends Task> getDependencies(        Task task){
+          return Collections.emptySet();
+        }
+      }
+;
+    }
+  }
+;
+}
