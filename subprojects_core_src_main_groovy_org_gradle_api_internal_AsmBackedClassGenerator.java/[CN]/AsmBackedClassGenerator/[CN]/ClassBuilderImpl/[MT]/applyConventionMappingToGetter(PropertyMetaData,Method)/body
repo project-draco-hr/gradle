@@ -6,24 +6,24 @@
   MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,getterName,methodDescriptor,null,new String[0]);
   methodVisitor.visitCode();
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionAwareType.getInternalName(),"getConventionMapping",Type.getMethodDescriptor(conventionMappingType));
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionAwareType.getInternalName(),"getConventionMapping",Type.getMethodDescriptor(conventionMappingType),false);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),getterName,methodDescriptor);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),getterName,methodDescriptor,false);
   Type boxedType=null;
   if (getter.getReturnType().isPrimitive()) {
     boxedType=Type.getType(JavaReflectionUtil.getWrapperTypeForPrimitiveType(getter.getReturnType()));
     String valueOfMethodDescriptor=Type.getMethodDescriptor(boxedType,returnType);
-    methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC,boxedType.getInternalName(),"valueOf",valueOfMethodDescriptor);
+    methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC,boxedType.getInternalName(),"valueOf",valueOfMethodDescriptor,false);
   }
   methodVisitor.visitLdcInsn(property.getName());
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
   methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),flagName,Type.BOOLEAN_TYPE.getDescriptor());
   String getConventionValueDesc=Type.getMethodDescriptor(ConventionMapping.class.getMethod("getConventionValue",Object.class,String.class,Boolean.TYPE));
-  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionMappingType.getInternalName(),"getConventionValue",getConventionValueDesc);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionMappingType.getInternalName(),"getConventionValue",getConventionValueDesc,false);
   if (getter.getReturnType().isPrimitive()) {
     methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,boxedType.getInternalName());
     String valueMethodDescriptor=Type.getMethodDescriptor(returnType);
-    methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,boxedType.getInternalName(),getter.getReturnType().getName() + "Value",valueMethodDescriptor);
+    methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,boxedType.getInternalName(),getter.getReturnType().getName() + "Value",valueMethodDescriptor,false);
   }
  else {
     methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,getter.getReturnType().isArray() ? "[" + returnType.getElementType().getDescriptor() : returnType.getInternalName());
