@@ -12,10 +12,13 @@
   Map<String,String> mergedProperties=propertiesLoader.mergeProperties(new HashMap(projectProperties));
   ExtraPropertiesExtension extraProperties=new DslObject(project).getExtensions().getExtraProperties();
   for (  Map.Entry<String,String> entry : mergedProperties.entrySet()) {
-    if (project.hasProperty(entry.getKey())) {
+    try {
       project.setProperty(entry.getKey(),entry.getValue());
     }
- else {
+ catch (    MissingPropertyException e) {
+      if (!entry.getKey().equals(e.getProperty())) {
+        throw e;
+      }
       extraProperties.set(entry.getKey(),entry.getValue());
     }
   }

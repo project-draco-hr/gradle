@@ -1,18 +1,14 @@
 {
-  final List<Statement> logStats=Lists.newArrayList();
   AstUtils.visitScriptCode(source,new ClassCodeVisitorSupport(){
     @Override protected SourceUnit getSourceUnit(){
       return source;
     }
     @Override protected void visitStatement(    Statement statement){
       if (statement.getStatementLabel() != null) {
-        String label=statement.getStatementLabel();
-        String sample=source.getSample(statement.getLineNumber(),statement.getColumnNumber(),null);
-        Expression logExpr=new StaticMethodCallExpression(ClassHelper.makeWithoutCaching(StatementLabelsDeprecationLogger.class),"log",new ArgumentListExpression(new ConstantExpression(label),new ConstantExpression(sample)));
-        logStats.add(new ExpressionStatement(logExpr));
+        String message=String.format("Statement labels may not be used in build scripts.%nIn case you tried to configure a property named '%s', replace ':' with '=' or ' ', otherwise it will not have the desired effect.",statement.getStatementLabel());
+        addError(message,statement);
       }
     }
   }
 );
-  source.getAST().getStatementBlock().addStatements(logStats);
 }
