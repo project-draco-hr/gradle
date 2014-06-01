@@ -1,0 +1,14 @@
+{
+  LoggingManagerInternal loggingManager=loggingRegistry.newInstance(LoggingManagerInternal.class);
+  loggingManager.start();
+  DaemonServices daemonServices=new DaemonServices(configuration,loggingRegistry,loggingManager);
+  Daemon daemon=daemonServices.get(Daemon.class);
+  daemon.start();
+  try {
+    daemonServices.get(DaemonRegistry.class).markIdle(daemon.getAddress());
+    daemon.requestStopOnIdleTimeout(configuration.getIdleTimeout(),TimeUnit.MILLISECONDS);
+  }
+  finally {
+    daemon.stop();
+  }
+}

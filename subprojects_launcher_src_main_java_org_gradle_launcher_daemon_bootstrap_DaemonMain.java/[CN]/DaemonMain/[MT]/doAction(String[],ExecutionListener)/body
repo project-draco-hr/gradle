@@ -17,6 +17,20 @@
   }
   LOGGER.debug("Assuming the daemon was started with following jvm opts: {}",startupOpts);
   DaemonServerConfiguration parameters=new DefaultDaemonServerConfiguration(daemonUid,daemonBaseDir,idleTimeoutMs,startupOpts);
-  DaemonMain daemonMain=new DaemonMain(parameters);
-  daemonMain.run();
+  LoggingServiceRegistry loggingRegistry=LoggingServiceRegistry.newProcessLogging();
+  LoggingManagerInternal loggingManager=loggingRegistry.newInstance(LoggingManagerInternal.class);
+  DaemonServices daemonServices=new DaemonServices(parameters,loggingRegistry,loggingManager);
+  File daemonLog=daemonServices.getDaemonLogFile();
+  initialiseLogging(loggingManager,daemonLog);
+  Daemon daemon=daemonServices.get(Daemon.class);
+  daemon.start();
+  try {
+    DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
+    Long pid=daemonContext.getPid();
+    daemonStarted(pid,daemonLog);
+    daemon.requestStopOnIdleTimeout(parameters.getIdleTimeout(),TimeUnit.MILLISECONDS);
+  }
+  finally {
+    daemon.stop();
+  }
 }
