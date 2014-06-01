@@ -1,11 +1,13 @@
 {
-  final TaskInternal task=createTask(name);
+  final TaskInternal task=context.mock(TaskInternal.class);
+  final TaskStateInternal state=context.mock(TaskStateInternal.class);
+  setExpectations(name,task,state);
   dependsOn(task,dependsOn);
   context.checking(new Expectations(){
 {
       atMost(1).of(task).executeWithoutThrowingTaskFailure();
       will(new ExecuteTaskAction(task));
-      allowing(task.getState()).getFailure();
+      allowing(state).getFailure();
       will(returnValue(null));
     }
   }
