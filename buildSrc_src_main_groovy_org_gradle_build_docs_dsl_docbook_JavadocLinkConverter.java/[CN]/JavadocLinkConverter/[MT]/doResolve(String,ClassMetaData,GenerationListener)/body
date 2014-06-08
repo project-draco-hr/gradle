@@ -1,5 +1,5 @@
 {
-  Matcher matcher=linkPattern.matcher(link);
+  Matcher matcher=LINK_PATTERN.matcher(link);
   if (!matcher.matches()) {
     return null;
   }
@@ -29,10 +29,10 @@
     signature.append(methodSignature);
     signature.append("(");
     if (matcher.group(5).length() > 0) {
-      String[] types=matcher.group(5).split(",\\s*");
+      String[] types=PARAM_DELIMITER.split(matcher.group(5));
       for (int i=0; i < types.length; i++) {
         String type=types[i];
-        Matcher typeMatcher=Pattern.compile("(\\w+)(.*)").matcher(type);
+        Matcher typeMatcher=TYPE_PATTERN.matcher(type);
         if (!typeMatcher.matches()) {
           return null;
         }
@@ -40,7 +40,11 @@
           signature.append(", ");
         }
         signature.append(typeNameResolver.resolve(typeMatcher.group(1),classMetaData));
-        signature.append(typeMatcher.group(2));
+        String suffix=typeMatcher.group(2);
+        if (suffix.equals("...")) {
+          suffix="[]";
+        }
+        signature.append(suffix);
       }
     }
     signature.append(")");
