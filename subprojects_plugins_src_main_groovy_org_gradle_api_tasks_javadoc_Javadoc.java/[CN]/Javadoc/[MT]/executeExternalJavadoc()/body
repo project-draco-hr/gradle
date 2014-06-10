@@ -1,14 +1,10 @@
 {
-  javadocExecHandleBuilder.setExecutable(executable);
-  javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(getOptionsFile());
-  ExecAction execAction=javadocExecHandleBuilder.getExecHandle();
-  if (!failOnError) {
-    execAction.setIgnoreExitValue(true);
-  }
-  try {
-    execAction.execute();
-  }
- catch (  ExecException e) {
-    throw new GradleException("Javadoc generation failed.",e);
-  }
+  JavadocSpec spec=new JavadocSpec();
+  spec.setExecutable(executable);
+  spec.setOptions(options);
+  spec.setIgnoreFailures(!failOnError);
+  spec.setWorkingDir(getProject().getProjectDir());
+  spec.setOptionsFile(getOptionsFile());
+  Compiler<JavadocSpec> generator=((JavaToolChainInternal)getToolChain()).newCompiler(JavadocSpec.class);
+  generator.execute(spec);
 }
