@@ -1,22 +1,6 @@
 {
   checkGroovyClasspathIsNonEmpty();
-  DefaultGroovyJavaJointCompileSpec spec=new DefaultGroovyJavaJointCompileSpec();
-  spec.setSource(getSource());
-  spec.setDestinationDir(getDestinationDir());
-  spec.setWorkingDir(getProject().getProjectDir());
-  spec.setTempDir(getTemporaryDir());
-  spec.setClasspath(getClasspath());
-  spec.setSourceCompatibility(getSourceCompatibility());
-  spec.setTargetCompatibility(getTargetCompatibility());
-  spec.setGroovyClasspath(getGroovyClasspath());
-  spec.setCompileOptions(compileOptions);
-  spec.setGroovyCompileOptions(groovyCompileOptions);
-  if (spec.getGroovyCompileOptions().getStubDir() == null) {
-    TemporaryFileProvider tempFileProvider=getServices().get(TemporaryFileProvider.class);
-    File dir=tempFileProvider.newTemporaryFile("groovy-java-stubs");
-    GFileUtils.mkdirs(dir);
-    spec.getGroovyCompileOptions().setStubDir(dir);
-  }
-  WorkResult result=getCompiler().execute(spec);
+  DefaultGroovyJavaJointCompileSpec spec=createSpec();
+  WorkResult result=getCompiler(spec).execute(spec);
   setDidWork(result.getDidWork());
 }
