@@ -1,10 +1,9 @@
 {
   byte[] hash=hasher.hash(jarArchive.file);
-  JarSnapshot cached=cache.loadSnapshot(hash);
-  if (cached != null) {
-    return cached;
+  return cache.get(hash,new Factory<JarSnapshot>(){
+    public JarSnapshot create(){
+      return snapshotter.createSnapshot(jarArchive);
+    }
   }
-  JarSnapshot snapshot=snapshotter.createSnapshot(jarArchive);
-  cache.storeSnapshot(hash,snapshot);
-  return snapshot;
+);
 }
