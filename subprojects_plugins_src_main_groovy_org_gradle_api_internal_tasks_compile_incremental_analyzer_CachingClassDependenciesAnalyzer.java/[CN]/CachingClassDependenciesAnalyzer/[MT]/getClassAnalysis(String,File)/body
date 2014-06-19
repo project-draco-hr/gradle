@@ -1,3 +1,14 @@
 {
-  return analyzer.getClassAnalysis(className,classFile);
+  byte[] hash=hasher.hash(classFile);
+  return cache.get(hash,new Factory<ClassAnalysis>(){
+    public ClassAnalysis create(){
+      try {
+        return analyzer.getClassAnalysis(className,classFile);
+      }
+ catch (      IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+);
 }
