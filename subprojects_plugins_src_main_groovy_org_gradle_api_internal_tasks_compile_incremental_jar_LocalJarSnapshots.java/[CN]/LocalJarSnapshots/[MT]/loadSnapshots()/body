@@ -1,16 +1,5 @@
 {
-  PersistentCache cacheAccess=cacheRepository.store(task,"localJarHashes").withDisplayName("local jar hashes").withLockOptions(mode(FileLockManager.LockMode.Exclusive)).open();
-  try {
-    final PersistentIndexedCache<Long,Map> cache=cacheAccess.createCache(new PersistentIndexedCacheParameters<Long,Map>("localJarHashes",Long.class,Map.class));
-    Map<File,byte[]> jarHashes=cacheAccess.useCache("loading local jar hashes",new Factory<Map>(){
-      public Map create(){
-        return cache.get(0L);
-      }
-    }
-);
-    snapshots=jarSnapshotCache.getJarSnapshots(jarHashes);
-  }
-  finally {
-    cacheAccess.close();
-  }
+  SingleOperationPersistentStore<Map> store=new SingleOperationPersistentStore(cacheRepository,task,"local jar hashes",Map.class);
+  Map<File,byte[]> jarHashes=store.getAndClose();
+  snapshots=jarSnapshotCache.getJarSnapshots(jarHashes);
 }
