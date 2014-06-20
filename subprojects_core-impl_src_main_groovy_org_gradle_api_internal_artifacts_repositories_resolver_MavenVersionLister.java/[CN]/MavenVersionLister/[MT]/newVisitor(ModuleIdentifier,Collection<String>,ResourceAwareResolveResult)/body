@@ -1,13 +1,13 @@
 {
   return new VersionPatternVisitor(){
-    final Set<URI> searched=new HashSet<URI>();
+    final Set<ExternalResourceName> searched=new HashSet<ExternalResourceName>();
     public void visit(    ResourcePattern pattern,    IvyArtifactName artifact) throws ResourceException {
-      URI metadataLocation=pattern.toModulePath(module).resolve("maven-metadata.xml").getUri();
+      ExternalResourceName metadataLocation=pattern.toModulePath(module).resolve("maven-metadata.xml");
       if (!searched.add(metadataLocation)) {
         return;
       }
-      result.attempted(metadataLocation.toString());
-      MavenMetadata mavenMetaData=mavenMetadataLoader.load(metadataLocation);
+      result.attempted(metadataLocation);
+      MavenMetadata mavenMetaData=mavenMetadataLoader.load(metadataLocation.getUri());
       for (      String version : mavenMetaData.versions) {
         dest.add(version);
       }

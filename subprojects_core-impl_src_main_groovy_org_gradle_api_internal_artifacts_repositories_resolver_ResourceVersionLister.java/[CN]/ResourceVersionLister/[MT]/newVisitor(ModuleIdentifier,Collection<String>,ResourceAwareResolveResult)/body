@@ -1,6 +1,6 @@
 {
   return new VersionPatternVisitor(){
-    final Set<URI> directories=new HashSet<URI>();
+    final Set<ExternalResourceName> directories=new HashSet<ExternalResourceName>();
     public void visit(    ResourcePattern pattern,    IvyArtifactName artifact) throws ResourceException {
       ExternalResourceName versionListPattern=pattern.toVersionListPattern(module,artifact);
       LOGGER.debug("Listing all in {}",versionListPattern);
@@ -26,17 +26,17 @@ catch (      Exception e) {
       String prefix=pattern.substring(0,pattern.indexOf(REVISION_TOKEN));
       if (revisionMatchesDirectoryName(pattern)) {
         ExternalResourceName parent=versionListPattern.getRoot().resolve(prefix);
-        return listAll(parent.getUri());
+        return listAll(parent);
       }
  else {
         int parentFolderSlashIndex=prefix.lastIndexOf(fileSeparator);
         String revisionParentFolder=parentFolderSlashIndex == -1 ? "" : prefix.substring(0,parentFolderSlashIndex + 1);
         ExternalResourceName parent=versionListPattern.getRoot().resolve(revisionParentFolder);
         LOGGER.debug("using {} to list all in {} ",repository,revisionParentFolder);
-        if (!directories.add(parent.getUri())) {
+        if (!directories.add(parent)) {
           return Collections.emptyList();
         }
-        result.attempted(parent.getUri().toString());
+        result.attempted(parent);
         List<String> all=repository.list(parent.getUri());
         if (all == null) {
           return Collections.emptyList();
@@ -83,13 +83,13 @@ catch (      Exception e) {
       }
       return true;
     }
-    private List<String> listAll(    URI parent) throws IOException {
+    private List<String> listAll(    ExternalResourceName parent) throws IOException {
       if (!directories.add(parent)) {
         return Collections.emptyList();
       }
       LOGGER.debug("using {} to list all in {}",repository,parent);
       result.attempted(parent.toString());
-      List<String> paths=repository.list(parent);
+      List<String> paths=repository.list(parent.getUri());
       if (paths == null) {
         return Collections.emptyList();
       }
