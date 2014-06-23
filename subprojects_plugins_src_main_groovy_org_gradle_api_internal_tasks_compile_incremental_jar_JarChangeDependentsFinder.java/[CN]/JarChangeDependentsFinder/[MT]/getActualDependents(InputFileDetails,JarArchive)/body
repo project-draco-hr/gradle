@@ -15,11 +15,11 @@
   }
   if (jarChangeDetails.isModified()) {
     JarSnapshot newSnapshot=jarSnapshotter.createSnapshot(jarArchive);
-    DependentsSet affectedClasses=newSnapshot.getAffectedClassesSince(existing);
-    if (affectedClasses.isDependencyToAll()) {
-      return affectedClasses;
+    AffectedClasses affected=newSnapshot.getAffectedClassesSince(existing);
+    if (affected.getAltered().isDependencyToAll()) {
+      return affected.getAltered();
     }
-    return previousCompilation.getDependents(affectedClasses.getDependentClasses());
+    return previousCompilation.getDependents(affected.getAltered().getDependentClasses());
   }
   throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);
 }
