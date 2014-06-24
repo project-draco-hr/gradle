@@ -1,17 +1,5 @@
 {
-  final Set<String> affected=new HashSet<String>();
-  for (  Map.Entry<String,byte[]> otherClass : other.hashes.entrySet()) {
-    String otherClassName=otherClass.getKey();
-    byte[] otherClassBytes=otherClass.getValue();
-    byte[] thisClsBytes=hashes.get(otherClassName);
-    if (thisClsBytes == null || !Arrays.equals(thisClsBytes,otherClassBytes)) {
-      affected.add(otherClassName);
-      DependentsSet dependents=other.info.getRelevantDependents(otherClassName);
-      if (dependents.isDependencyToAll()) {
-        return new AffectedClasses(dependents);
-      }
-      affected.addAll(dependents.getDependentClasses());
-    }
-  }
-  return new AffectedClasses(new DefaultDependentsSet(affected));
+  DependentsSet affectedClasses=affectedSince(other);
+  Set<String> addedClasses=addedSince(other);
+  return new AffectedClasses(affectedClasses,addedClasses);
 }
