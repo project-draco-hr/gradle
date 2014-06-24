@@ -2,22 +2,25 @@
   if (jarChangeDetails.isAdded()) {
     return new DefaultDependentsSet(true);
   }
-  JarSnapshot existing=previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
-  if (existing == null) {
+  JarSnapshot previous=previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
+  if (previous == null) {
     return new DefaultDependentsSet(true);
   }
   if (jarChangeDetails.isRemoved()) {
-    DependentsSet allClasses=existing.getAllClasses();
+    DependentsSet allClasses=previous.getAllClasses();
     if (allClasses.isDependencyToAll()) {
       return allClasses;
     }
     return previousCompilation.getDependents(allClasses.getDependentClasses());
   }
   if (jarChangeDetails.isModified()) {
-    JarSnapshot newSnapshot=jarSnapshotter.createSnapshot(jarArchive);
-    AffectedClasses affected=newSnapshot.getAffectedClassesSince(existing);
+    JarSnapshot currentSnapshot=jarClasspathSnapshot.getSnapshot(jarArchive);
+    AffectedClasses affected=currentSnapshot.getAffectedClassesSince(previous);
     if (affected.getAltered().isDependencyToAll()) {
       return affected.getAltered();
+    }
+    if (jarClasspathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
+      return new DependencyToAll();
     }
     return previousCompilation.getDependents(affected.getAltered().getDependentClasses());
   }

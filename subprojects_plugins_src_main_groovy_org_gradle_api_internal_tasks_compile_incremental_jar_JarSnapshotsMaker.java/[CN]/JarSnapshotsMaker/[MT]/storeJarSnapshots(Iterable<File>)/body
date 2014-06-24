@@ -1,12 +1,10 @@
 {
+  initSnapshots(classpath);
   Clock clock=new Clock();
-  Iterable<JarArchive> jarArchives=classpathJarFinder.findJarArchives(classpath);
   Map<File,byte[]> jarHashes=new HashMap<File,byte[]>();
-  for (  JarArchive jar : jarArchives) {
-    JarSnapshot snapshot=jarSnapshotter.createSnapshot(jar);
-    jarHashes.put(jar.file,snapshot.getHash());
+  for (  Map.Entry<File,JarSnapshot> e : jarSnapshots.entrySet()) {
+    jarHashes.put(e.getKey(),e.getValue().getHash());
   }
-  String creationTime=clock.getTime();
   localJarSnapshots.putHashes(jarHashes);
-  LOG.info("Created and written jar snapshots for incremental compilation in {} (creation took {}).",clock.getTime(),creationTime);
+  LOG.info("Written jar snapshots for incremental compilation in {}.",clock.getTime());
 }
