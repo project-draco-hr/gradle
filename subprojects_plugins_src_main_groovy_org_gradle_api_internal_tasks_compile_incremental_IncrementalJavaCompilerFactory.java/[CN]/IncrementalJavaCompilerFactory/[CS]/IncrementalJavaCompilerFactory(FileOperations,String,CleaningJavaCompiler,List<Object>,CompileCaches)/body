@@ -2,11 +2,10 @@
   Hasher hasher=new DefaultHasher();
   ClassDependenciesAnalyzer analyzer=new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(),hasher,compileCaches.getClassAnalysisCache());
   JarSnapshotter jarSnapshotter=new CachingJarSnapshotter(hasher,analyzer,compileCaches.getJarSnapshotCache());
-  LocalJarClasspathSnapshot localJarClasspathSnapshot=new LocalJarClasspathSnapshot(compileCaches.getLocalJarClasspathSnapshotStore(),compileCaches.getJarSnapshotCache());
-  JarSnapshotsMaker jarSnapshotsMaker=new JarSnapshotsMaker(localJarClasspathSnapshot,new JarClasspathSnapshotFactory(jarSnapshotter),new ClasspathJarFinder(fileOperations));
+  JarSnapshotsMaker jarSnapshotsMaker=new JarSnapshotsMaker(compileCaches.getLocalJarClasspathSnapshotStore(),new JarClasspathSnapshotFactory(jarSnapshotter),new ClasspathJarFinder(fileOperations));
   CompilationSourceDirs sourceDirs=new CompilationSourceDirs(source);
   SourceToNameConverter sourceToNameConverter=new SourceToNameConverter(sourceDirs);
-  RecompilationSpecProvider recompilationSpecProvider=new RecompilationSpecProvider(sourceToNameConverter,fileOperations,localJarClasspathSnapshot);
+  RecompilationSpecProvider recompilationSpecProvider=new RecompilationSpecProvider(sourceToNameConverter,fileOperations);
   ClassDependencyInfoUpdater classDependencyInfoUpdater=new ClassDependencyInfoUpdater(compileCaches.getLocalClassDependencyInfoStore(),fileOperations,analyzer);
-  incrementalSupport=new IncrementalCompilationSupport(jarSnapshotsMaker,compileCaches.getLocalClassDependencyInfoStore(),fileOperations,cleaningJavaCompiler,compileDisplayName,recompilationSpecProvider,classDependencyInfoUpdater,sourceDirs);
+  incrementalSupport=new IncrementalCompilationSupport(jarSnapshotsMaker,compileCaches,fileOperations,cleaningJavaCompiler,compileDisplayName,recompilationSpecProvider,classDependencyInfoUpdater,sourceDirs);
 }
