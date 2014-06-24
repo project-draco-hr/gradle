@@ -1,7 +1,7 @@
 {
   if (jarChangeDetails.isAdded()) {
     if (jarClasspathSnapshot.isAnyClassDuplicated(jarArchive)) {
-      return new DependencyToAll();
+      return new DependencyToAll("at least one of the classes of '" + jarArchive.file.getName() + "' is already present in classpath");
     }
  else {
       return new DefaultDependentsSet();
@@ -9,12 +9,12 @@
   }
   JarSnapshot previous=previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
   if (previous == null) {
-    return new DependencyToAll();
+    return new DependencyToAll("missing jar snapshot of '" + jarArchive.file.getName() + "' from previous build");
   }
   if (jarChangeDetails.isRemoved()) {
     DependentsSet allClasses=previous.getAllClasses();
     if (allClasses.isDependencyToAll()) {
-      return allClasses;
+      return new DependencyToAll("at least one of the classes of removed jar '" + jarArchive.file.getName() + "' requires it");
     }
     return previousCompilation.getDependents(allClasses.getDependentClasses());
   }
@@ -25,7 +25,7 @@
       return affected.getAltered();
     }
     if (jarClasspathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
-      return new DependencyToAll();
+      return new DependencyToAll("at least one of the classes of modified jar '" + jarArchive.file.getName() + "' is already present in the classpath");
     }
     return previousCompilation.getDependents(affected.getAltered().getDependentClasses());
   }
