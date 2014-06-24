@@ -1,9 +1,4 @@
 {
-  if (jarClasspathSnapshot != null) {
-    return;
-  }
-  Clock clock=new Clock();
-  Iterable<JarArchive> jarArchives=classpathJarFinder.findJarArchives(classpath);
   Map<File,JarSnapshot> jarSnapshots=new HashMap<File,JarSnapshot>();
   Map<File,byte[]> jarHashes=new HashMap<File,byte[]>();
   Set<String> allClasses=new HashSet<String>();
@@ -15,8 +10,6 @@
     duplicateClasses.addAll(CollectionUtils.intersection(allClasses,snapshot.hashes.keySet()));
     allClasses.addAll(snapshot.hashes.keySet());
   }
-  String creationTime=clock.getTime();
   JarClasspathSnapshotData jarClasspathSnapshotData=new JarClasspathSnapshotData(jarHashes,duplicateClasses);
-  jarClasspathSnapshot=new JarClasspathSnapshot(jarSnapshots,jarClasspathSnapshotData);
-  LOG.info("Created jar snapshots for incremental compilation in {}.",clock.getTime(),creationTime);
+  return new JarClasspathSnapshot(jarSnapshots,jarClasspathSnapshotData);
 }
