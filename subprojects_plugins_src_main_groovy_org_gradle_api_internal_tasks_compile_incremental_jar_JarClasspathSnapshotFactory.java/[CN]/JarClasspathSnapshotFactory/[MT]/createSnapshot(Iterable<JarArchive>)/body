@@ -7,8 +7,11 @@
     JarSnapshot snapshot=jarSnapshotter.createSnapshot(jar);
     jarSnapshots.put(jar.file,snapshot);
     jarHashes.put(jar.file,snapshot.getHash());
-    duplicateClasses.addAll(CollectionUtils.intersection(allClasses,snapshot.getClasses()));
-    allClasses.addAll(snapshot.getClasses());
+    for (    String c : snapshot.getClasses()) {
+      if (!allClasses.add(c)) {
+        duplicateClasses.add(c);
+      }
+    }
   }
   JarClasspathSnapshotData jarClasspathSnapshotData=new JarClasspathSnapshotData(jarHashes,duplicateClasses);
   return new JarClasspathSnapshot(jarSnapshots,jarClasspathSnapshotData);
