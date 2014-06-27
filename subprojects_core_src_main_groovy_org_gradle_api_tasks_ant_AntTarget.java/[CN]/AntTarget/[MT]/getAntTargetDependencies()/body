@@ -1,11 +1,11 @@
 {
   Set<Task> tasks=new LinkedHashSet<Task>();
-  Enumeration dependencies=target.getDependencies();
+  Enumeration<String> dependencies=target.getDependencies();
   while (dependencies.hasMoreElements()) {
-    String name=(String)dependencies.nextElement();
-    Task dependency=getProject().getTasks().findByName(name);
+    String targetName=taskDelegateTransformer.transform(dependencies.nextElement());
+    Task dependency=getProject().getTasks().findByName(targetName);
     if (dependency == null) {
-      throw new UnknownTaskException(String.format("Imported Ant target '%s' depends on target or task '%s' which does not exist",getName(),name));
+      throw new UnknownTaskException(String.format("Imported Ant target '%s' depends on target or task '%s' which does not exist",getName(),targetName));
     }
     tasks.add(dependency);
   }
