@@ -7,7 +7,18 @@
   ProjectComponentContainer components=project.getExtensions().findByType(ProjectComponentContainer.class);
   if (components != null) {
     for (    ProjectComponent component : components) {
-      renderer.renderComponent(component);
+      renderer.startComponent(component);
+      for (      LanguageSourceSet sourceSet : component.getSource()) {
+        renderer.renderSourceSet(sourceSet);
+      }
+      renderer.completeSourceSets();
+      if (component instanceof ProjectNativeComponent) {
+        ProjectNativeComponent nativeComponent=(ProjectNativeComponent)component;
+        for (        NativeBinary binary : nativeComponent.getBinaries()) {
+          renderer.renderBinary(binary);
+        }
+      }
+      renderer.completeBinaries();
     }
   }
   renderer.completeProject(project);
