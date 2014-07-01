@@ -1,0 +1,22 @@
+{
+  VersionNumber version=parseGroovyVersion();
+  if (version.getMajor() < 2 || (version.getMajor() >= 2 && version.getMinor() < 1)) {
+    throw new GradleException("Groovy configuration script '" + configScript + "' requires Groovy 2.1+ but found Groovy "+ version+ "");
+  }
+  Binding binding=new Binding();
+  binding.setVariable("configuration",configuration);
+  CompilerConfiguration configuratorConfig=new CompilerConfiguration();
+  ImportCustomizer customizer=new ImportCustomizer();
+  customizer.addStaticStars("org.codehaus.groovy.control.customizers.builder.CompilerCustomizationBuilder");
+  configuratorConfig.addCompilationCustomizers(customizer);
+  GroovyShell shell=new GroovyShell(binding,configuratorConfig);
+  try {
+    shell.evaluate(configScript);
+  }
+ catch (  IOException e) {
+    throw new GradleException("Unable to parse Groovy compiler configuration script: " + configScript.getAbsolutePath(),e);
+  }
+catch (  Exception e) {
+    throw new GradleException("Error while executing Groovy compiler configuration script: " + configScript.getAbsolutePath(),e);
+  }
+}
