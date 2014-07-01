@@ -1,12 +1,15 @@
 {
   Project project=getProject();
-  System.out.println("This is the component report for " + project);
+  StyledTextOutput textOutput=getTextOutputFactory().create(ComponentReport.class);
+  ComponentReportRenderer renderer=new ComponentReportRenderer();
+  renderer.setOutput(textOutput);
+  renderer.startProject(project);
   ProjectComponentContainer components=project.getExtensions().findByType(ProjectComponentContainer.class);
-  if (components == null || components.isEmpty()) {
-    System.out.println("No components.");
-    return;
+  if (components != null) {
+    for (    ProjectComponent component : components) {
+      renderer.renderComponent(component);
+    }
   }
-  for (  ProjectComponent component : components) {
-    System.out.println(component);
-  }
+  renderer.completeProject(project);
+  renderer.complete();
 }
