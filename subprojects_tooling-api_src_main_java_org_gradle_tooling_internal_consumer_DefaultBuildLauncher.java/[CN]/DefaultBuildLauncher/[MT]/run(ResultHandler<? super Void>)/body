@@ -1,11 +1,15 @@
 {
   final ConsumerOperationParameters operationParameters=operationParamsBuilder.setParameters(connectionParameters).build();
+  final CancellationToken operationCancellationToken=cancellationToken;
   connection.run(new ConsumerAction<Void>(){
+    public CancellationToken getCancellationToken(){
+      return operationCancellationToken;
+    }
     public ConsumerOperationParameters getParameters(){
       return operationParameters;
     }
     public Void run(    ConsumerConnection connection){
-      return connection.run(Void.class,operationParameters);
+      return connection.run(Void.class,operationCancellationToken,operationParameters);
     }
   }
 ,new ResultHandlerAdapter(handler));

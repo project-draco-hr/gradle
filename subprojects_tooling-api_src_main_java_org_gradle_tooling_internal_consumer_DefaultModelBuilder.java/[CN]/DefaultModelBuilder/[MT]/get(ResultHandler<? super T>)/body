@@ -1,11 +1,15 @@
 {
   final ConsumerOperationParameters operationParameters=getConsumerOperationParameters();
+  final CancellationToken operationCancellationToken=cancellationToken;
   connection.run(new ConsumerAction<T>(){
+    public CancellationToken getCancellationToken(){
+      return operationCancellationToken;
+    }
     public ConsumerOperationParameters getParameters(){
       return operationParameters;
     }
     public T run(    ConsumerConnection connection){
-      return connection.run(modelType,operationParameters);
+      return connection.run(modelType,operationCancellationToken,operationParameters);
     }
   }
 ,new ResultHandlerAdapter<T>(handler));
