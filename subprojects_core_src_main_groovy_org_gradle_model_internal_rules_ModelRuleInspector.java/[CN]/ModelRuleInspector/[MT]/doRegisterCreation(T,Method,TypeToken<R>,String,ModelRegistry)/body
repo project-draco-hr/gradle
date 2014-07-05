@@ -1,0 +1,14 @@
+{
+  @SuppressWarnings("unchecked") final Class<T> clazz=(Class<T>)source.getClass();
+  @SuppressWarnings("unchecked") Class<R> returnTypeClass=(Class<R>)returnType.getRawType();
+  final JavaMethod<T,R> methodWrapper=JavaReflectionUtil.method(clazz,returnTypeClass,method);
+  modelRegistry.create(modelName,Collections.<String>emptyList(),new ModelCreator<R>(){
+    public ModelReference<R> getReference(){
+      return new ModelReference<R>(new ModelPath(modelName),new ModelType<R>(returnType));
+    }
+    public R create(    Inputs inputs){
+      return methodWrapper.invoke(source);
+    }
+  }
+);
+}

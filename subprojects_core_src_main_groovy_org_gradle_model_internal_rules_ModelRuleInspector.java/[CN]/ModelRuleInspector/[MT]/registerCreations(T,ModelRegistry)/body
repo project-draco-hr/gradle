@@ -1,0 +1,15 @@
+{
+  Class<?> clazz=source.getClass();
+  Method[] methods=clazz.getDeclaredMethods();
+  for (  Method method : methods) {
+    Model modelAnnotation=method.getAnnotation(Model.class);
+    if (modelAnnotation != null) {
+      if (method.getParameterTypes().length > 0) {
+        throw new IllegalArgumentException("@Model rules cannot take arguments");
+      }
+      String modelName=determineModelName(modelAnnotation,method);
+      TypeToken<?> returnType=TypeToken.of(method.getGenericReturnType());
+      doRegisterCreation(source,method,returnType,modelName,modelRegistry);
+    }
+  }
+}
