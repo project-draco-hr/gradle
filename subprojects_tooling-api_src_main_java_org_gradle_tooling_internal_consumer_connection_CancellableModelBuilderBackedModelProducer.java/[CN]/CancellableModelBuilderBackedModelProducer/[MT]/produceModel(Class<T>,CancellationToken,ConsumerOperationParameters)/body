@@ -1,0 +1,14 @@
+{
+  if (!versionDetails.maySupportModel(type)) {
+    throw Exceptions.unsupportedModel(type,versionDetails.getVersion());
+  }
+  final ModelIdentifier modelIdentifier=modelMapping.getModelIdentifierFromModelType(type);
+  BuildResult<?> result;
+  try {
+    result=builder.getModel(modelIdentifier,(InternalCancellationToken)cancellationToken,operationParameters);
+  }
+ catch (  InternalUnsupportedModelException e) {
+    throw Exceptions.unknownModel(type,e);
+  }
+  return adapter.adapt(type,result.getModel(),mapper);
+}
