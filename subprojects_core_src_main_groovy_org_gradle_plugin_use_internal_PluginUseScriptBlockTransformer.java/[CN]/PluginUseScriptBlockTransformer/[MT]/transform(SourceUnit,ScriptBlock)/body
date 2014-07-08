@@ -4,7 +4,7 @@
   final MethodCallExpression getServiceMethodCall=new MethodCallExpression(servicesProperty,"get",new ArgumentListExpression(new ClassExpression(new ClassNode(serviceClass))));
   Expression hydrateMethodCall=new MethodCallExpression(closureArg,"rehydrate",new ArgumentListExpression(getServiceMethodCall,ConstantExpression.NULL,ConstantExpression.NULL));
   Expression closureCall=new MethodCallExpression(hydrateMethodCall,"call",ArgumentListExpression.EMPTY_ARGUMENTS);
-  closureArg.getCode().visit(new RestrictiveCodeVisitor(sourceUnit,BASE_MESSAGE){
+  closureArg.getCode().visit(new RestrictiveCodeVisitor(sourceUnit,formatMessage(BASE_MESSAGE)){
     @Override public void visitBlockStatement(    BlockStatement block){
       for (      Statement statement : block.getStatements()) {
         statement.visit(this);
@@ -14,7 +14,7 @@
       if (!call.isImplicitThis()) {
         Expression target=call.getObjectExpression();
         if (!(target instanceof MethodCallExpression)) {
-          restrict(target,BASE_MESSAGE);
+          restrict(target,formatMessage(BASE_MESSAGE));
           return;
         }
         visitMethodCallExpression((MethodCallExpression)target);
@@ -30,7 +30,7 @@
             }
             String argStringValue=argumentExpression.getValue().toString();
             if (argStringValue.length() == 0) {
-              restrict(argumentExpression,INVALID_ARGUMENT_LIST);
+              restrict(argumentExpression,formatMessage(INVALID_ARGUMENT_LIST));
               return;
             }
             if (methodName.getText().equals("id")) {
@@ -41,31 +41,31 @@
                   call.setImplicitThis(false);
                 }
  catch (                InvalidPluginIdException e) {
-                  restrict(argumentExpression,e.getReason());
+                  restrict(argumentExpression,formatMessage(e.getReason()));
                 }
               }
  else {
-                restrict(call,BASE_MESSAGE);
+                restrict(call,formatMessage(BASE_MESSAGE));
               }
             }
             if (methodName.getText().equals("version")) {
               Expression objectExpression=call.getObjectExpression();
               if (!(objectExpression instanceof MethodCallExpression)) {
-                restrict(call,BASE_MESSAGE);
+                restrict(call,formatMessage(BASE_MESSAGE));
               }
             }
           }
  else {
             if (!call.isImplicitThis()) {
-              restrict(methodName,VERSION_MESSAGE);
+              restrict(methodName,formatMessage(VERSION_MESSAGE));
             }
  else {
-              restrict(methodName,BASE_MESSAGE);
+              restrict(methodName,formatMessage(BASE_MESSAGE));
             }
           }
         }
  else {
-          restrict(methodName,NOT_LITERAL_ID_METHOD_NAME);
+          restrict(methodName,formatMessage(NOT_LITERAL_ID_METHOD_NAME));
         }
       }
  else {
@@ -82,15 +82,15 @@
             return constantArgumentExpression;
           }
  else {
-            restrict(constantArgumentExpression,INVALID_ARGUMENT_LIST);
+            restrict(constantArgumentExpression,formatMessage(INVALID_ARGUMENT_LIST));
           }
         }
  else {
-          restrict(argumentExpression,INVALID_ARGUMENT_LIST);
+          restrict(argumentExpression,formatMessage(INVALID_ARGUMENT_LIST));
         }
       }
  else {
-        restrict(argumentList,INVALID_ARGUMENT_LIST);
+        restrict(argumentList,formatMessage(INVALID_ARGUMENT_LIST));
       }
       return null;
     }
