@@ -13,6 +13,9 @@
       }
       failure=e;
     }
+    if (!isAlreadyConfiguring && _isConfigureMethod(name,params)) {
+      return _configure(name,params);
+    }
     try {
       return _owner.invokeMethod(name,params);
     }
@@ -21,10 +24,7 @@
         throw e;
       }
     }
-    if (isAlreadyConfiguring || !_isConfigureMethod(name,params)) {
-      throw failure;
-    }
-    return _configure(name,params);
+    throw failure;
   }
   finally {
     _configuring.set(isAlreadyConfiguring);
