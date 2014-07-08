@@ -1,10 +1,12 @@
 {
   return new TextReportRenderer<T>(){
-    @Override protected void writeTo(    T model,    Writer out) throws Exception {
-      renderer.writeTo(model,out);
-    }
-    @Override public void writeTo(    T model,    File file){
-      super.writeTo(model,file);
+    public void render(    final T model,    File file){
+      IoActions.writeTextFile(file,"utf-8",new ErroringAction<Writer>(){
+        @Override protected void doExecute(        Writer writer) throws Exception {
+          renderer.render(model,writer);
+        }
+      }
+);
       for (      URL resource : resources) {
         String name=StringUtils.substringAfterLast(resource.getPath(),"/");
         String type=StringUtils.substringAfterLast(resource.getPath(),".");
