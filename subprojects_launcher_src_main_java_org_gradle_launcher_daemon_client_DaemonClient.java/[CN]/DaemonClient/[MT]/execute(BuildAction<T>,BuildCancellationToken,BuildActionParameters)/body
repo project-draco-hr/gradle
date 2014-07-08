@@ -3,21 +3,15 @@
   int saneNumberOfAttempts=100;
   for (int i=1; i < saneNumberOfAttempts; i++) {
     final DaemonClientConnection connection=connector.connect(compatibilitySpec);
+    final CancelCallback cancelCallback=new CancelCallback(connection);
     if (cancellationToken.canBeCancelled()) {
-      Runnable cancelHook=new Runnable(){
-        public void run(){
-          LOGGER.info("Request daemon stop to handle build cancellation...");
-          connection.stop();
-        }
-      }
-;
-      boolean cancelled=cancellationToken.addCallback(cancelHook);
+      boolean cancelled=cancellationToken.addCallback(cancelCallback);
       if (cancelled) {
         throw new DaemonClientInterruptedException("Build interrupted");
       }
     }
     try {
-      return (T)executeBuild(build,connection);
+      return (T)executeBuild(build,connection,cancelCallback);
     }
  catch (    DaemonInitialConnectException e) {
       LOGGER.info(e.getMessage() + " Trying a different daemon...");

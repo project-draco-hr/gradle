@@ -1,5 +1,9 @@
 {
   LOGGER.error("The message received from the daemon indicates that the daemon has disappeared." + "\nBuild request sent: " + build + "\nAttempting to read last messages from the daemon log...");
   LOGGER.error(diagnostics.describe());
+  if (cancelCallback != null && cancelCallback.wasCancelled) {
+    LOGGER.error("Daemon was stopped to handle build cancel request.");
+    throw new BuildCancelledException("Build interrupted");
+  }
   throw new DaemonDisappearedException();
 }
