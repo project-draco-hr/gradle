@@ -2,7 +2,13 @@
   ModelCreator<T> creator=creation.getCreator();
   ModelPath path=creator.getReference().getPath();
   Inputs inputs=toInputs(creation.getInputPaths());
-  T created=creator.create(inputs);
+  T created;
+  try {
+    created=creator.create(inputs);
+  }
+ catch (  Exception e) {
+    throw new ModelRuleExecutionException(creator.getSourceDescriptor(),e);
+  }
   ModelElement<T> element=toElement(path,created,creator.getSourceDescriptor());
   store.put(path,element);
   return element;

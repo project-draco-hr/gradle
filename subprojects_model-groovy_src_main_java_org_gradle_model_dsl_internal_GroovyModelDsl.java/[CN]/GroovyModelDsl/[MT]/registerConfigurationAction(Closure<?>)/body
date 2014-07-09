@@ -1,3 +1,14 @@
 {
-  modelRules.config(modelPath.toString(),new ClosureBackedAction<Object>(action));
+  modelRegistry.mutate(modelPath.toString(),Collections.<String>emptyList(),new ModelMutator<Object>(){
+    public ModelReference<Object> getReference(){
+      return new ModelReference<Object>(modelPath,new ModelType<Object>(Object.class));
+    }
+    public void mutate(    Object object,    Inputs inputs){
+      new ClosureBackedAction<Object>(action).execute(object);
+    }
+    public ModelRuleSourceDescriptor getSourceDescriptor(){
+      return new SimpleModelRuleSourceDescriptor("model." + modelPath);
+    }
+  }
+);
 }
