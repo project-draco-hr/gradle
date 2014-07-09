@@ -1,0 +1,14 @@
+{
+  Class<? extends Plugin> pluginClass=pluginApplication.getPlugin().getClass();
+  Set<Class<?>> sources=inspector.getDeclaredSources(pluginClass);
+  if (!sources.isEmpty()) {
+    PluginAware target=pluginApplication.getTarget();
+    if (!(target instanceof ModelRegistryScope)) {
+      throw new UnsupportedOperationException(String.format("Cannot apply model rules of plugin '%s' as the target '%s' is not model rule aware",pluginClass.getName(),target));
+    }
+    ModelRegistry modelRegistry=((ModelRegistryScope)target).getModelRegistry();
+    for (    Class<?> source : sources) {
+      inspector.inspect(source,modelRegistry);
+    }
+  }
+}

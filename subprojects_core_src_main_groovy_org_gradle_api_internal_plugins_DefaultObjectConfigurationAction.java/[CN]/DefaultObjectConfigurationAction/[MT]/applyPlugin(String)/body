@@ -2,7 +2,13 @@
   for (  Object target : targets) {
     if (target instanceof PluginAware) {
       PluginAware pluginAware=(PluginAware)target;
-      pluginAware.getPlugins().apply(pluginId);
+      try {
+        Plugin plugin=pluginAware.getPlugins().apply(pluginId);
+        postApplyAction.execute(new PluginApplication(plugin,pluginAware));
+      }
+ catch (      Exception e) {
+        throw new PluginApplicationException("id '" + pluginId + "'",e);
+      }
     }
  else {
       throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware",pluginId,target.toString(),target.getClass().getName()));
