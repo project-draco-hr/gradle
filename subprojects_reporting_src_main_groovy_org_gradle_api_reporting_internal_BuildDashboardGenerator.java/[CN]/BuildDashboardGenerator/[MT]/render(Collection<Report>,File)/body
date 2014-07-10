@@ -7,18 +7,11 @@
 );
   this.reports.addAll(reports);
   this.outputFile=outputFile;
-  try {
-    GFileUtils.parentMkdirs(outputFile);
-    Writer writer=new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile),"UTF-8"));
-    try {
-      generate(writer);
+  HtmlReportRenderer renderer=new HtmlReportRenderer();
+  renderer.renderRawSinglePage(reports,new ReportRenderer<Collection<Report>,HtmlPageBuilder<Writer>>(){
+    @Override public void render(    Collection<Report> model,    HtmlPageBuilder<Writer> builder) throws IOException {
+      generate(builder);
     }
-  finally {
-      writer.close();
-    }
-    copyCss();
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
-  }
+,outputFile);
 }
