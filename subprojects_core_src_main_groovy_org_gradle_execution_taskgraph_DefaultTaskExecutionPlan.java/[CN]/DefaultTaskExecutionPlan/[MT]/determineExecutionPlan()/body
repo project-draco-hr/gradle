@@ -1,7 +1,7 @@
 {
   List<TaskInfo> nodeQueue=new ArrayList<TaskInfo>(entryTasks);
   Set<TaskInfo> visitingNodes=new HashSet<TaskInfo>();
-  Stack<TaskDependencyGraphEdge> walkedShouldRunAfterEdges=new Stack<TaskDependencyGraphEdge>();
+  Stack<GraphEdge> walkedShouldRunAfterEdges=new Stack<GraphEdge>();
   Stack<TaskInfo> path=new Stack<TaskInfo>();
   HashMap<TaskInfo,Integer> planBeforeVisiting=new HashMap<TaskInfo,Integer>();
   while (!nodeQueue.isEmpty()) {
@@ -19,8 +19,8 @@
       for (      TaskInfo successor : successors) {
         if (visitingNodes.contains(successor)) {
           if (!walkedShouldRunAfterEdges.empty()) {
-            TaskDependencyGraphEdge toBeRemoved=walkedShouldRunAfterEdges.pop();
-            toBeRemoved.getFrom().removeShouldRunAfterSuccessor(toBeRemoved.getTo());
+            GraphEdge toBeRemoved=walkedShouldRunAfterEdges.pop();
+            toBeRemoved.from.removeShouldRunAfterSuccessor(toBeRemoved.to);
             restorePath(path,toBeRemoved);
             restoreQueue(nodeQueue,visitingNodes,toBeRemoved);
             restoreExecutionPlan(planBeforeVisiting,toBeRemoved);
