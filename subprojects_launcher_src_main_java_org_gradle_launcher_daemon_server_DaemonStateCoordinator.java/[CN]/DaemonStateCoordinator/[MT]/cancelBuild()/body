@@ -1,0 +1,33 @@
+{
+  lock.lock();
+  try {
+    long waitUntil=System.currentTimeMillis() + cancelTimeoutMs;
+    LOGGER.debug("Cancel requested: waiting for daemon to become idle");
+    cancellationToken.doCancel();
+    while (System.currentTimeMillis() < waitUntil) {
+      try {
+switch (state) {
+case Running:
+          if (isIdle()) {
+            return;
+          }
+case Broken:
+case StopRequested:
+        LOGGER.debug("Daemon is busy, sleeping until state changes.");
+      condition.await(500,TimeUnit.MILLISECONDS);
+    break;
+case Stopped:
+  LOGGER.debug("Daemon has stopped.");
+return;
+}
+}
+ catch (InterruptedException e) {
+throw UncheckedException.throwAsUncheckedException(e);
+}
+}
+requestForcefulStop();
+}
+  finally {
+lock.unlock();
+}
+}
