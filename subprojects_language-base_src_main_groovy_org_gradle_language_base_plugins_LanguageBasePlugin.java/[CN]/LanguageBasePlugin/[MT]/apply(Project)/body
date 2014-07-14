@@ -1,15 +1,9 @@
 {
   target.getPlugins().apply(LifecycleBasePlugin.class);
-  LanguageRegistry languageRegistry=target.getExtensions().create("languages",DefaultLanguageRegistry.class);
-  ProjectComponentContainer components=target.getExtensions().create("projectComponents",DefaultProjectComponentContainer.class,instantiator);
   ProjectSourceSet sources=target.getExtensions().create("sources",DefaultProjectSourceSet.class,instantiator);
+  modelRules.register("sources",sources);
   final BinaryContainer binaries=target.getExtensions().create("binaries",DefaultBinaryContainer.class,instantiator);
-  modelRules.register("binaries",BinaryContainer.class,new Factory<BinaryContainer>(){
-    public BinaryContainer create(){
-      return binaries;
-    }
-  }
-);
+  modelRules.register("binaries",binaries);
   binaries.withType(ProjectBinaryInternal.class).all(new Action<ProjectBinaryInternal>(){
     public void execute(    ProjectBinaryInternal binary){
       Task binaryLifecycleTask=target.task(binary.getNamingScheme().getLifecycleTaskName());
@@ -19,6 +13,4 @@
     }
   }
 );
-  createProjectSourceSetForEachComponent(sources,components);
-  createLanguageSourceSets(target,languageRegistry,sources);
 }
