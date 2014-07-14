@@ -1,4 +1,15 @@
 {
+  WindowsResources language=new WindowsResources();
   project.getPlugins().apply(ComponentModelBasePlugin.class);
-  project.getExtensions().getByType(LanguageRegistry.class).add(new WindowsResources());
+  project.getExtensions().getByType(LanguageRegistry.class).add(language);
+  final CreateSourceTransformTask createRule=new CreateSourceTransformTask(language);
+  BinaryContainer binaries=project.getExtensions().getByType(BinaryContainer.class);
+  binaries.withType(ProjectNativeBinaryInternal.class).all(new Action<ProjectNativeBinaryInternal>(){
+    public void execute(    ProjectNativeBinaryInternal binary){
+      if (shouldProcessResources(binary)) {
+        createRule.createCompileTasks(project.getTasks(),binary);
+      }
+    }
+  }
+);
 }
