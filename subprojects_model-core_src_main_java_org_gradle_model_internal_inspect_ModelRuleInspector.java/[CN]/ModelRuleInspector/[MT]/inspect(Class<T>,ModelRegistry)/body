@@ -2,17 +2,17 @@
   validate(source);
   Method[] methods=source.getDeclaredMethods();
   for (  Method method : methods) {
-    Model modelAnnotation=method.getAnnotation(Model.class);
-    if (modelAnnotation != null) {
-      if (method.getParameterTypes().length > 0) {
-        throw new IllegalArgumentException("@Model rules cannot take arguments");
+    Annotation annotation=getTypeAnnotation(method);
+    if (annotation != null) {
+      if (annotation instanceof Model) {
+        creationMethod(modelRegistry,method,(Model)annotation);
       }
-      String modelName=determineModelName(modelAnnotation,method);
-      if (method.getTypeParameters().length > 0) {
-        invalid("model creation rule",method,"cannot have type variables (i.e. cannot be a generic method)");
+ else       if (annotation instanceof Mutate) {
+        mutationMethod(modelRegistry,method);
       }
-      TypeToken<?> returnType=TypeToken.of(method.getGenericReturnType());
-      doRegisterCreation(source,method,returnType,modelName,modelRegistry);
+ else {
+        throw new IllegalStateException("Unhandled rule type annotation: " + annotation);
+      }
     }
   }
 }

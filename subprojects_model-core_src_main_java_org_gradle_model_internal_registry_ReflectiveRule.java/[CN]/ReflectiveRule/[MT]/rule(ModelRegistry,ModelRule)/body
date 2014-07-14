@@ -1,43 +1,9 @@
 {
   final Method bindingMethod=findBindingMethod(modelRule);
-  final List<BindableParameter<?>> initialBindings=bindings(bindingMethod);
-  boolean unsatisfied=CollectionUtils.any(initialBindings,new Spec<BindableParameter<?>>(){
-    public boolean isSatisfiedBy(    BindableParameter<?> element){
-      return element.getPath() == null;
+  bind(modelRegistry,bindingMethod,new Action<List<BindableParameter<?>>>(){
+    public void execute(    List<BindableParameter<?>> bindableParameters){
+      registerMutator(modelRegistry,bindingMethod,bindableParameters,modelRule instanceof ModelFinalizer,Factories.constant(modelRule));
     }
   }
 );
-  if (unsatisfied) {
-    modelRegistry.registerListener(new ModelCreationListener(){
-      private List<BindableParameter<?>> bindings=initialBindings;
-      public boolean onCreate(      ModelReference<?> reference){
-        ImmutableList.Builder<BindableParameter<?>> bindingsBuilder=ImmutableList.builder();
-        boolean unsatisfied=false;
-        for (        BindableParameter<?> binding : bindings) {
-          if (binding.getPath() == null) {
-            if (binding.getType().isAssignableFrom(reference.getType().getRawClass())) {
-              bindingsBuilder.add(copyBindingWithPath(reference.getPath(),binding));
-              continue;
-            }
- else {
-              unsatisfied=true;
-            }
-          }
-          bindingsBuilder.add(binding);
-        }
-        bindings=bindingsBuilder.build();
-        if (unsatisfied) {
-          return false;
-        }
- else {
-          registerMutator(modelRegistry,modelRule,bindingMethod,bindings);
-          return true;
-        }
-      }
-    }
-);
-  }
- else {
-    registerMutator(modelRegistry,modelRule,bindingMethod,initialBindings);
-  }
 }
