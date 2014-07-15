@@ -1,0 +1,40 @@
+{
+  lock.lock();
+  try {
+    ScopedBuildCancellationToken currentToken=cancellationToken;
+    if (!Objects.equal(currentToken.cancellationId,cancellationTokenId) && !Objects.equal(currentToken.cancellationId.toString(),cancellationTokenId)) {
+      LOGGER.info("Cancel request does not match current build ({}). Ignoring",currentToken.cancellationId);
+      return;
+    }
+    long waitUntil=System.currentTimeMillis() + cancelTimeoutMs;
+    LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
+    currentToken.token.doCancel();
+    while (System.currentTimeMillis() < waitUntil) {
+      try {
+switch (state) {
+case Running:
+          if (isIdle()) {
+            LOGGER.info("Cancel processed: daemon is idle now.");
+            return;
+          }
+case Broken:
+case StopRequested:
+        LOGGER.debug("Cancel processing: daemon is busy, sleeping until state changes.");
+      condition.await(500,TimeUnit.MILLISECONDS);
+    break;
+case Stopped:
+  LOGGER.info("Cancel processing: daemon has stopped.");
+return;
+}
+}
+ catch (InterruptedException e) {
+throw UncheckedException.throwAsUncheckedException(e);
+}
+}
+LOGGER.info("Cancel request not processed: will force stop.");
+requestForcefulStop();
+}
+  finally {
+lock.unlock();
+}
+}
