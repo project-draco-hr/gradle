@@ -1,3 +1,26 @@
 {
-  return null;
+  return new SourceTransformTaskConfig(){
+    public String getTaskPrefix(){
+      return "compile";
+    }
+    public Class<? extends DefaultTask> getTaskType(){
+      return JavaCompile.class;
+    }
+    public void configureTask(    Task task,    ProjectBinary projectBinary,    LanguageSourceSet sourceSet){
+      JavaCompile compile=(JavaCompile)task;
+      JavaSourceSet javaSourceSet=(JavaSourceSet)sourceSet;
+      ProjectJvmLibraryBinary binary=(ProjectJvmLibraryBinary)projectBinary;
+      compile.setDescription(String.format("Compiles %s.",javaSourceSet));
+      compile.setDestinationDir(binary.getClassesDir());
+      compile.setToolChain(binary.getToolChain());
+      compile.setSource(javaSourceSet.getSource());
+      compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
+      compile.setSourceCompatibility(JavaVersion.current().toString());
+      compile.setTargetCompatibility(JavaVersion.current().toString());
+      compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(),"jvm-dep-cache"));
+      compile.dependsOn(javaSourceSet);
+      binary.getTasks().getJar().dependsOn(compile);
+    }
+  }
+;
 }

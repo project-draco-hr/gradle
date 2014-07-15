@@ -1,3 +1,19 @@
 {
-  return null;
+  return new SourceTransformTaskConfig(){
+    public String getTaskPrefix(){
+      return "process";
+    }
+    public Class<? extends DefaultTask> getTaskType(){
+      return ProcessResources.class;
+    }
+    public void configureTask(    Task task,    ProjectBinary binary,    LanguageSourceSet sourceSet){
+      ProcessResources resourcesTask=(ProcessResources)task;
+      ResourceSet resourceSet=(ResourceSet)sourceSet;
+      ProjectJvmLibraryBinary jvmBinary=(ProjectJvmLibraryBinary)binary;
+      resourcesTask.from(resourceSet.getSource());
+      resourcesTask.setDestinationDir(jvmBinary.getResourcesDir());
+      jvmBinary.getTasks().getJar().dependsOn(resourcesTask);
+    }
+  }
+;
 }
