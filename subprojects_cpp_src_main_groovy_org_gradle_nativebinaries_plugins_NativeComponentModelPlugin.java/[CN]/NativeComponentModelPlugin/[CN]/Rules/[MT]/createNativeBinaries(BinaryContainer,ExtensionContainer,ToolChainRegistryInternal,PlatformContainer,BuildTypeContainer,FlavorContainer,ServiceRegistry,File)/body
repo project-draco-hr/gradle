@@ -1,14 +1,13 @@
 {
-  project.getExtensions().add("platforms",platforms);
-  project.getExtensions().add("buildTypes",buildTypes);
-  project.getExtensions().add("flavors",flavors);
-  Action<ProjectNativeBinary> configureBinaryAction=new ProjectNativeBinaryInitializer(project);
-  Action<ProjectNativeBinary> setToolsAction=new ToolSettingNativeBinaryInitializer(project.getExtensions().getByType(LanguageRegistry.class));
+  Instantiator instantiator=serviceRegistry.get(Instantiator.class);
+  NativeDependencyResolver resolver=serviceRegistry.get(NativeDependencyResolver.class);
+  Action<ProjectNativeBinary> configureBinaryAction=new ProjectNativeBinaryInitializer(buildDir);
+  Action<ProjectNativeBinary> setToolsAction=new ToolSettingNativeBinaryInitializer(extensions.getByType(LanguageRegistry.class));
   Action<ProjectNativeBinary> initAction=Actions.composite(configureBinaryAction,setToolsAction);
   NativeBinariesFactory factory=new DefaultNativeBinariesFactory(instantiator,initAction,resolver);
   BinaryNamingSchemeBuilder namingSchemeBuilder=new DefaultBinaryNamingSchemeBuilder();
   Action<ProjectNativeComponent> createBinariesAction=new ProjectNativeComponentInitializer(factory,namingSchemeBuilder,toolChains,platforms,buildTypes,flavors);
-  ProjectComponentContainer projectComponents=project.getExtensions().getByType(ProjectComponentContainer.class);
+  ProjectComponentContainer projectComponents=extensions.getByType(ProjectComponentContainer.class);
   for (  ProjectNativeComponent component : projectComponents.withType(ProjectNativeComponent.class)) {
     createBinariesAction.execute(component);
     binaries.addAll(component.getBinaries());
