@@ -20,6 +20,15 @@
   }
 );
   binaryContainer.withType(ProjectClassDirectoryBinaryInternal.class).all(new Action<ProjectClassDirectoryBinaryInternal>(){
+    public void execute(    ProjectClassDirectoryBinaryInternal binary){
+      Task binaryLifecycleTask=target.task(binary.getNamingScheme().getLifecycleTaskName());
+      binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+      binaryLifecycleTask.setDescription(String.format("Assembles %s.",binary));
+      binary.setBuildTask(binaryLifecycleTask);
+    }
+  }
+);
+  binaryContainer.withType(ProjectClassDirectoryBinaryInternal.class).all(new Action<ProjectClassDirectoryBinaryInternal>(){
     public void execute(    final ProjectClassDirectoryBinaryInternal binary){
       final BinaryNamingScheme namingScheme=binary.getNamingScheme();
       ConventionMapping conventionMapping=new DslObject(binary).getConventionMapping();
