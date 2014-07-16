@@ -9,13 +9,13 @@
   if (unsatisfied) {
     modelRegistry.registerListener(new ModelCreationListener(){
       private List<BindableParameter<?>> bindings=initialBindings;
-      public boolean onCreate(      ModelReference<?> reference){
+      public boolean onCreate(      ModelPath path,      ModelPromise promise){
         ImmutableList.Builder<BindableParameter<?>> bindingsBuilder=ImmutableList.builder();
         boolean unsatisfied=false;
         for (        BindableParameter<?> binding : bindings) {
           if (binding.getPath() == null) {
-            if (binding.getType().isAssignableFrom(reference.getType())) {
-              bindingsBuilder.add(copyBindingWithPath(reference.getPath(),binding));
+            if (promise.asReadOnly(binding.getType())) {
+              bindingsBuilder.add(copyBindingWithPath(path,binding));
               continue;
             }
  else {
