@@ -1,10 +1,15 @@
 {
-  Transformer<Iterable<ModelPath>,ModelMutation<?>> extractInputPaths=new Transformer<Iterable<ModelPath>,ModelMutation<?>>(){
-    public Iterable<ModelPath> transform(    ModelMutation<?> original){
-      return original.getInputPaths();
+  Transformer<Iterable<ModelPath>,ModelMutator<?>> extractInputPaths=new Transformer<Iterable<ModelPath>,ModelMutator<?>>(){
+    public Iterable<ModelPath> transform(    ModelMutator<?> original){
+      return Iterables.transform(original.getInputBindings(),new Function<ModelReference<?>,ModelPath>(){
+        @Nullable public ModelPath apply(        ModelReference<?> input){
+          return input.getPath();
+        }
+      }
+);
     }
   }
 ;
-  Transformer<ImmutableList<ModelPath>,ImmutableList<ModelPath>> passThrough=Transformers.noOpTransformer();
+  Transformer<List<ModelPath>,List<ModelPath>> passThrough=Transformers.noOpTransformer();
   return hasModelPath(candidate,mutators.values(),extractInputPaths) || hasModelPath(candidate,usedMutators.values(),passThrough) || hasModelPath(candidate,finalizers.values(),extractInputPaths)|| hasModelPath(candidate,usedFinalizers.values(),passThrough);
 }
