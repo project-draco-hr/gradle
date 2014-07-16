@@ -1,0 +1,16 @@
+{
+  binaries.withType(ProjectNativeTestSuiteBinary.class).all(new Action<ProjectNativeTestSuiteBinary>(){
+    public void execute(    ProjectNativeTestSuiteBinary testBinary){
+      ProjectNativeBinaryInternal binary=(ProjectNativeBinaryInternal)testBinary;
+      final BinaryNamingScheme namingScheme=binary.getNamingScheme();
+      RunTestExecutable runTask=tasks.create(namingScheme.getTaskName("run"),RunTestExecutable.class);
+      final Project project=runTask.getProject();
+      runTask.setDescription(String.format("Runs the %s",binary.getNamingScheme().getDescription()));
+      final InstallExecutable installTask=binary.getTasks().withType(InstallExecutable.class).iterator().next();
+      runTask.getInputs().files(installTask.getOutputs().getFiles());
+      runTask.setTestExecutable(installTask.getRunScript());
+      runTask.setOutputDir(new File(project.getBuildDir(),"/test-results/" + namingScheme.getOutputDirectoryBase()));
+    }
+  }
+);
+}
