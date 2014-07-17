@@ -1,0 +1,43 @@
+{
+  final List<BindableParameter<?>> initialBindings=bindings(bindingMethod);
+  boolean unsatisfied=CollectionUtils.any(initialBindings,new Spec<BindableParameter<?>>(){
+    public boolean isSatisfiedBy(    BindableParameter<?> element){
+      return element.getPath() == null;
+    }
+  }
+);
+  if (unsatisfied) {
+    modelRegistry.registerListener(new ModelCreationListener(){
+      private List<BindableParameter<?>> bindings=initialBindings;
+      public boolean onCreate(      ModelPath path,      ModelPromise promise){
+        ImmutableList.Builder<BindableParameter<?>> bindingsBuilder=ImmutableList.builder();
+        boolean unsatisfied=false;
+        int i=0;
+        for (        BindableParameter<?> binding : bindings) {
+          if (binding.getPath() == null) {
+            if (i++ == 0 && firstIsWritable ? promise.asWritable(binding.getType()) : promise.asReadOnly(binding.getType())) {
+              bindingsBuilder.add(copyBindingWithPath(path,binding));
+              continue;
+            }
+ else {
+              unsatisfied=true;
+            }
+          }
+          bindingsBuilder.add(binding);
+        }
+        bindings=bindingsBuilder.build();
+        if (unsatisfied) {
+          return false;
+        }
+ else {
+          onBound.execute(bindings);
+          return true;
+        }
+      }
+    }
+);
+  }
+ else {
+    onBound.execute(initialBindings);
+  }
+}
