@@ -1,0 +1,25 @@
+{
+  FileIdentityChecker checker=null;
+  if (Jvm.current().getJavaVersion().isJava7Compatible()) {
+    String jdkFilePermissionclass="org.gradle.util.jdk7.Jdk7FileIdentityChecker";
+    Class<?> jdk7FileChecker=null;
+    try {
+      jdk7FileChecker=FileIdentityUtil.class.getClassLoader().loadClass(jdkFilePermissionclass);
+    }
+ catch (    ClassNotFoundException e) {
+      LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.",jdkFilePermissionclass));
+    }
+    if (jdk7FileChecker != null) {
+      try {
+        checker=(FileIdentityChecker)jdk7FileChecker.newInstance();
+      }
+ catch (      Exception e) {
+        LOGGER.warn(String.format("Unable to instantiate %s",jdk7FileChecker));
+      }
+    }
+  }
+  if (checker == null) {
+    checker=new SimpleFileIdentiyChecker();
+  }
+  return checker.isSameFile(file1,file2);
+}
