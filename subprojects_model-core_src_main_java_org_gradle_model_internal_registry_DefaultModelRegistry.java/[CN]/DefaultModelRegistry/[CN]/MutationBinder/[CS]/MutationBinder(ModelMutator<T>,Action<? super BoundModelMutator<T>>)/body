@@ -1,0 +1,44 @@
+{
+  this.mutator=mutator;
+  this.onBound=onBound;
+  this.inputBindings=new ArrayList<ModelBinding<?>>(mutator.getInputBindings());
+  this.binding=mutator.getBinding();
+  if (binding.isBound() && allFullyBound(inputBindings)) {
+    fire();
+  }
+ else {
+    registerListener(new ModelCreationListener(){
+      public boolean onCreate(      ModelPath path,      ModelPromise promise){
+        boolean unsatisfied=false;
+        if (!binding.isBound()) {
+          if (promise.asWritable(binding.getType())) {
+            binding=binding.bind(path);
+          }
+ else {
+            unsatisfied=true;
+          }
+        }
+        ListIterator<ModelBinding<?>> iterator=inputBindings.listIterator();
+        while (iterator.hasNext()) {
+          ModelBinding<?> inputBinding=iterator.next();
+          if (!inputBinding.isBound()) {
+            if (promise.asReadOnly(inputBinding.getType())) {
+              iterator.set(inputBinding.bind(path));
+            }
+ else {
+              unsatisfied=true;
+            }
+          }
+        }
+        if (unsatisfied) {
+          return false;
+        }
+ else {
+          fire();
+          return true;
+        }
+      }
+    }
+);
+  }
+}

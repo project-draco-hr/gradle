@@ -1,13 +1,13 @@
 {
   ModelPath path=creator.getPath();
-  ModelCreator existingCreation=creations.get(path);
+  BoundModelCreator existingCreation=creations.get(path);
   if (existingCreation != null) {
-    throw new DuplicateModelException(String.format("Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered to create a model element at this path",toString(creator.getSourceDescriptor()),path,toString(existingCreation.getSourceDescriptor())));
+    throw new DuplicateModelException(String.format("Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered to create a model element at this path",toString(creator.getDescriptor()),path,toString(existingCreation.getCreator().getDescriptor())));
   }
   ModelElement existing=store.get(path);
   if (existing != null) {
-    throw new DuplicateModelException(String.format("Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered (and the model element has been created)",toString(creator.getSourceDescriptor()),path,toString(existing.getCreatorDescriptor())));
+    throw new DuplicateModelException(String.format("Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered (and the model element has been created)",toString(creator.getDescriptor()),path,toString(existing.getCreatorDescriptor())));
   }
   notifyCreationListeners(creator);
-  creations.put(path,creator);
+  bind(creator);
 }
