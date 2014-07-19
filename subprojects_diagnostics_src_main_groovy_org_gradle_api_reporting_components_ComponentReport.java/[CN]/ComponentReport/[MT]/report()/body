@@ -4,13 +4,18 @@
   ComponentReportRenderer renderer=new ComponentReportRenderer(getFileResolver());
   renderer.setOutput(textOutput);
   renderer.startProject(project);
-  ProjectComponentContainer components=project.getExtensions().findByType(ProjectComponentContainer.class);
-  if (components != null) {
-    renderer.renderComponents(components);
+  Collection<ProjectComponent> components=new ArrayList<ProjectComponent>();
+  ProjectComponentContainer projectComponents=project.getExtensions().findByType(ProjectComponentContainer.class);
+  if (projectComponents != null) {
+    components.addAll(projectComponents);
   }
- else {
-    renderer.renderComponents(Collections.<ProjectComponent>emptyList());
+  try {
+    TestSuiteContainer testSuites=getModelRegistry().get(ModelReference.of("testSuites",TestSuiteContainer.class));
+    components.addAll(testSuites);
   }
+ catch (  IllegalStateException e) {
+  }
+  renderer.renderComponents(components);
   ProjectSourceSet sourceSets=project.getExtensions().findByType(ProjectSourceSet.class);
   if (sourceSets != null) {
     renderer.renderSourceSets(sourceSets);
