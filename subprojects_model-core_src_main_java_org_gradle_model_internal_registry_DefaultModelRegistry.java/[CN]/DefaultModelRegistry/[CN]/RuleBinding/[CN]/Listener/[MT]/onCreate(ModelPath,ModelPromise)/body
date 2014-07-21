@@ -1,0 +1,32 @@
+{
+  boolean satisfied=true;
+  if (write != null && !write.isBound()) {
+    if (promise.asWritable(write.getType())) {
+      write=write.bind(path);
+    }
+ else {
+      satisfied=false;
+    }
+  }
+  if (!read.isEmpty()) {
+    ListIterator<ModelBinding<?>> iterator=read.listIterator();
+    while (iterator.hasNext()) {
+      ModelBinding<?> inputBinding=iterator.next();
+      if (!inputBinding.isBound()) {
+        if (promise.asReadOnly(inputBinding.getType())) {
+          iterator.set(inputBinding.bind(path));
+        }
+ else {
+          satisfied=false;
+        }
+      }
+    }
+  }
+  if (satisfied) {
+    fire();
+    return true;
+  }
+ else {
+    return false;
+  }
+}

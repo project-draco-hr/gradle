@@ -1,7 +1,11 @@
 {
-  new MutationBinder<T>(mutator,new Action<BoundModelMutator<T>>(){
-    public void execute(    BoundModelMutator<T> boundMutator){
-      add(mutators,boundMutator);
+  new RuleBinding<T>(mutator.getBinding(),mutator.getInputBindings(),new Action<RuleBinding<T>>(){
+    public void execute(    RuleBinding<T> ruleBinding){
+      List<ModelReference<?>> inputReferences=toReferencesUnsafe(ruleBinding.read);
+      BoundModelMutator<T> boundMutator=new BoundModelMutator<T>(mutator,ruleBinding.write.getReference(),inputReferences);
+      ModelPath path=boundMutator.getReference().getPath();
+      assertNotFinalized(path);
+      mutators.put(path,boundMutator);
     }
   }
 );
