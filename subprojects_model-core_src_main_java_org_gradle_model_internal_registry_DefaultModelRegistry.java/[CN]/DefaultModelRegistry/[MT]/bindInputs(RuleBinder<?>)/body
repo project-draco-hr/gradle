@@ -1,0 +1,29 @@
+{
+  List<ModelReference<?>> inputReferences=binder.getInputReferences();
+  for (int i=0; i < inputReferences.size(); i++) {
+    final ModelReference<?> inputReference=inputReferences.get(i);
+    final int finalI=i;
+    registerListener(new ModelCreationListener(){
+      public boolean onCreate(      ModelPath path,      ModelPromise promise){
+        if (inputReference.getPath() == null) {
+          if (promise.asReadOnly(inputReference.getType())) {
+            binder.bindInput(finalI,path);
+            return true;
+          }
+        }
+ else         if (path == inputReference.getPath()) {
+          boolean typeCompatible=promise.asReadOnly(inputReference.getType());
+          if (typeCompatible) {
+            binder.bindInput(finalI,path);
+            return true;
+          }
+ else {
+            throw new IllegalStateException("incompatible type");
+          }
+        }
+        return false;
+      }
+    }
+);
+  }
+}

@@ -1,12 +1,36 @@
 {
-  new RuleBinding<T>(mutator.getBinding(),mutator.getInputBindings(),new Action<RuleBinding<T>>(){
-    public void execute(    RuleBinding<T> ruleBinding){
-      List<ModelReference<?>> inputReferences=toReferencesUnsafe(ruleBinding.read);
-      BoundModelMutator<T> boundMutator=new BoundModelMutator<T>(mutator,ruleBinding.write.getReference(),inputReferences);
-      ModelPath path=boundMutator.getReference().getPath();
+  final RuleBinder<T> binder=bind(mutator.getSubject(),mutator.getInputs(),mutator.getDescriptor(),new Action<RuleBinder<T>>(){
+    public void execute(    RuleBinder<T> ruleBinder){
+      BoundModelMutator<T> boundMutator=new BoundModelMutator<T>(mutator,ruleBinder.getSubjectBinding(),ruleBinder.getInputBindings());
+      ModelPath path=boundMutator.getSubject().getPath();
       assertNotFinalized(path);
       mutators.put(path,boundMutator);
     }
   }
 );
+  final ModelReference<T> subjectReference=binder.getSubjectReference();
+  registerListener(new ModelCreationListener(){
+    public boolean onCreate(    ModelPath path,    ModelPromise promise){
+      if (subjectReference.getPath() == null) {
+        boolean typeCompatible=promise.asWritable(subjectReference.getType());
+        if (typeCompatible && subjectReference.getPath() == null) {
+          binder.bindSubject(path);
+          return true;
+        }
+      }
+ else       if (path.equals(subjectReference.getPath())) {
+        boolean typeCompatible=promise.asWritable(subjectReference.getType());
+        if (typeCompatible) {
+          binder.bindSubject(path);
+          return true;
+        }
+ else {
+          throw new IllegalStateException("incompatible type");
+        }
+      }
+      return false;
+    }
+  }
+);
+  bindInputs(binder);
 }
