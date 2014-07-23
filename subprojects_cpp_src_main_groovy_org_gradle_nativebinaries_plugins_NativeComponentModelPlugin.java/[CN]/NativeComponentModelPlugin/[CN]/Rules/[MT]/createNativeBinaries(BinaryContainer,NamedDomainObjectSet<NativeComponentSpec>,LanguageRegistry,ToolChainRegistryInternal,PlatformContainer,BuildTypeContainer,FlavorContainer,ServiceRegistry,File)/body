@@ -1,0 +1,14 @@
+{
+  Instantiator instantiator=serviceRegistry.get(Instantiator.class);
+  NativeDependencyResolver resolver=serviceRegistry.get(NativeDependencyResolver.class);
+  Action<ProjectNativeBinary> configureBinaryAction=new ProjectNativeBinaryInitializer(buildDir);
+  Action<ProjectNativeBinary> setToolsAction=new ToolSettingNativeBinaryInitializer(languages);
+  Action<ProjectNativeBinary> initAction=Actions.composite(configureBinaryAction,setToolsAction,new MarkBinariesBuildable());
+  NativeBinariesFactory factory=new DefaultNativeBinariesFactory(instantiator,initAction,resolver);
+  BinaryNamingSchemeBuilder namingSchemeBuilder=new DefaultBinaryNamingSchemeBuilder();
+  Action<NativeComponentSpec> createBinariesAction=new ProjectNativeComponentInitializer(factory,namingSchemeBuilder,toolChains,platforms,buildTypes,flavors);
+  for (  NativeComponentSpec component : nativeComponents) {
+    createBinariesAction.execute(component);
+    binaries.addAll(component.getBinaries());
+  }
+}
