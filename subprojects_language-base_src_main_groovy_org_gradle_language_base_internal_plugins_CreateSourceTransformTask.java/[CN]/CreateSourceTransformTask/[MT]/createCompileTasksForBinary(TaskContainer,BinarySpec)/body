@@ -1,0 +1,20 @@
+{
+  final BinarySpecInternal binary=(BinarySpecInternal)binarySpec;
+  if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
+    return;
+  }
+  final SourceTransformTaskConfig taskConfig=language.getTransformTask();
+  binary.getSource().withType(language.getSourceSetType(),new Action<LanguageSourceSet>(){
+    public void execute(    LanguageSourceSet languageSourceSet){
+      LanguageSourceSetInternal sourceSet=(LanguageSourceSetInternal)languageSourceSet;
+      if (sourceSet.getMayHaveSources()) {
+        String taskName=binary.getNamingScheme().getTaskName(taskConfig.getTaskPrefix(),sourceSet.getFullName());
+        Task task=tasks.create(taskName,taskConfig.getTaskType());
+        taskConfig.configureTask(task,binary,sourceSet);
+        task.dependsOn(sourceSet);
+        binary.getTasks().add(task);
+      }
+    }
+  }
+);
+}
