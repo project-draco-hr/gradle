@@ -1,7 +1,26 @@
 {
   project.getPlugins().apply(LanguageBasePlugin.class);
   LanguageRegistry languageRegistry=project.getExtensions().create("languages",DefaultLanguageRegistry.class);
-  project.getExtensions().create("projectComponents",DefaultComponentSpecContainer.class,instantiator);
   ProjectSourceSet sources=project.getExtensions().getByType(ProjectSourceSet.class);
+  DefaultComponentSpecContainer components=project.getExtensions().create("projectComponents",DefaultComponentSpecContainer.class,instantiator);
+  final PolymorphicDomainObjectContainerModelAdapter<ComponentSpec,ComponentSpecContainer> componentSpecContainerAdapter=new PolymorphicDomainObjectContainerModelAdapter<ComponentSpec,ComponentSpecContainer>(components,ModelType.of(ComponentSpecContainer.class),ModelType.of(ComponentSpec.class));
+  modelRegistry.create(new ModelCreator(){
+    public ModelPath getPath(){
+      return ModelPath.path("projectComponents");
+    }
+    public ModelPromise getPromise(){
+      return componentSpecContainerAdapter.asPromise();
+    }
+    public ModelAdapter create(    Inputs inputs){
+      return componentSpecContainerAdapter;
+    }
+    public List<ModelReference<?>> getInputs(){
+      return Collections.emptyList();
+    }
+    public ModelRuleDescriptor getDescriptor(){
+      return new SimpleModelRuleDescriptor("Project.<init>.projectComponents()");
+    }
+  }
+);
   createLanguageSourceSets(sources,languageRegistry,project.getFileResolver());
 }
