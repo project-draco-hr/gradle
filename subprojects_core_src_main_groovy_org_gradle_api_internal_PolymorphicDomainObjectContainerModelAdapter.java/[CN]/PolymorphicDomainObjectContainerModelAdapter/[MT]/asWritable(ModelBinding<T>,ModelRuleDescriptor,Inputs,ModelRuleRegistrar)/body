@@ -1,13 +1,21 @@
 {
-  if (binding.getReference().getType().isAssignableFrom(containerType)) {
+  ModelType<T> bindingType=binding.getReference().getType();
+  if (bindingType.isAssignableFrom(containerType)) {
     @SuppressWarnings("unchecked") ModelView<? extends T> cast=(ModelView<? extends T>)InstanceModelView.of(containerType,container);
     return cast;
   }
- else   if (binding.getReference().getType().isAssignableFrom(collectionBuilderModelType)) {
-    NamedItemCollectionBuilder<I> builder=new DefaultNamedItemCollectionBuilder<I>(binding.getPath(),new Instantiator(),sourceDescriptor,inputs,modelRuleRegistrar);
-    NamedItemCollectionBuilderModelView<I> view=new NamedItemCollectionBuilderModelView<I>(collectionBuilderModelType,builder,binding.getPath(),sourceDescriptor);
-    @SuppressWarnings("unchecked") ModelView<T> cast=(ModelView<T>)view;
-    return cast;
+ else   if (bindingType.getRawClass().equals(NamedItemCollectionBuilder.class)) {
+    ModelType<?> bindingItemType=bindingType.getTypeVariables().get(0);
+    if (bindingItemType.getRawClass().isAssignableFrom(itemType)) {
+      return toView(binding,sourceDescriptor,inputs,modelRuleRegistrar,itemType);
+    }
+ else     if (itemType.isAssignableFrom(bindingItemType.getRawClass())) {
+      Class<? extends I> subType=bindingItemType.getRawClass().asSubclass(itemType);
+      return toSubModelView(binding,sourceDescriptor,inputs,modelRuleRegistrar,subType);
+    }
+ else {
+      return null;
+    }
   }
  else {
     return null;

@@ -1,7 +1,16 @@
 {
   return new ModelPromise(){
     public <T>boolean asWritable(    ModelType<T> type){
-      return type.isAssignableFrom(containerType) || type.isAssignableFrom(collectionBuilderModelType);
+      return type.isAssignableFrom(containerType) || isContainerView(type);
+    }
+    private <T>boolean isContainerView(    ModelType<T> type){
+      if (type.getRawClass().equals(NamedItemCollectionBuilder.class)) {
+        ModelType<?> targetItemType=type.getTypeVariables().get(0);
+        return targetItemType.getRawClass().isAssignableFrom(itemType) || itemType.isAssignableFrom(targetItemType.getRawClass());
+      }
+ else {
+        return false;
+      }
     }
     public <T>boolean asReadOnly(    ModelType<T> type){
       return type.isAssignableFrom(containerType);
