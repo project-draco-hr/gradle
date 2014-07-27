@@ -3,10 +3,10 @@
   TaskGraphExecuter executer=gradle.getTaskGraph();
   List<TaskExecutionRequest> taskParameters=gradle.getStartParameter().getTaskRequests();
   for (  TaskExecutionRequest taskParameter : taskParameters) {
-    Multimap<String,Task> selectedTasks=commandLineTaskParser.parseTasks(taskParameter);
-    for (    String name : selectedTasks.keySet()) {
-      LOGGER.info("Selected primary task '{}' from project {}",name,taskParameter.getProjectPath());
-      executer.addTasks(selectedTasks.get(name));
+    List<TaskSelector.TaskSelection> taskSelections=commandLineTaskParser.parseTasks(taskParameter);
+    for (    TaskSelector.TaskSelection taskSelection : taskSelections) {
+      LOGGER.info("Selected primary task '{}' from project {}",taskSelection.getTaskName(),taskSelection.getProjectPath());
+      executer.addTasks(taskSelection.getTasks());
     }
   }
   context.proceed();
