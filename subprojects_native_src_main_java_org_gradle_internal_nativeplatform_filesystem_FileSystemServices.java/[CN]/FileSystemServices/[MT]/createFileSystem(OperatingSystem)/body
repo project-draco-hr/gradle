@@ -14,21 +14,6 @@
   }
   LOGGER.debug("Using UnsupportedSymlink implementation.");
   Symlink symlink=new UnsupportedSymlink();
-  if (JavaVersion.current().isJava7()) {
-    String jdkFilePermissionclass="org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
-    Class<?> handlerClass=null;
-    try {
-      handlerClass=FileSystemServices.class.getClassLoader().loadClass(jdkFilePermissionclass);
-    }
- catch (    ClassNotFoundException e) {
-      LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.",jdkFilePermissionclass));
-    }
-    if (handlerClass != null) {
-      LOGGER.debug("Using JDK 7 file services.");
-      Object handler=handlerClass.newInstance();
-      return new GenericFileSystem((FileModeMutator)handler,(FileModeAccessor)handler,symlink);
-    }
-  }
-  UnsupportedFilePermissions filePermissionsHandler=new UnsupportedFilePermissions();
-  return new GenericFileSystem(filePermissionsHandler,filePermissionsHandler,symlink);
+  Object handler=newInstance("org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler",UnsupportedFilePermissions.class);
+  return new GenericFileSystem((FileModeMutator)handler,(FileModeAccessor)handler,symlink);
 }

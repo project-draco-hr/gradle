@@ -1,0 +1,21 @@
+{
+  Class<?> handlerClass=null;
+  if (JavaVersion.current().isJava7()) {
+    try {
+      handlerClass=FileSystemServices.class.getClassLoader().loadClass(jdk7Type);
+      LOGGER.debug("Using JDK 7 file service {}",jdk7Type);
+    }
+ catch (    ClassNotFoundException e) {
+    }
+  }
+  if (handlerClass == null) {
+    LOGGER.warn("Unable to load {}. Continuing with fallback {}.",jdk7Type,fallbackType.getName());
+    handlerClass=fallbackType;
+  }
+  try {
+    return handlerClass.newInstance();
+  }
+ catch (  Exception e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+}
