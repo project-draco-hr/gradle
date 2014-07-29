@@ -1,5 +1,50 @@
 {
-  target.getPlugins().apply(JvmLanguagePlugin.class);
+  target.getPlugins().apply(LanguageBasePlugin.class);
+  BinaryContainer binaryContainer=target.getExtensions().getByType(BinaryContainer.class);
+  binaryContainer.registerFactory(ClassDirectoryBinarySpec.class,new NamedDomainObjectFactory<ClassDirectoryBinarySpec>(){
+    public ClassDirectoryBinarySpec create(    String name){
+      return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class,name,toolChain);
+    }
+  }
+);
+  binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>(){
+    public void execute(    ClassDirectoryBinarySpecInternal binary){
+      Task binaryLifecycleTask=target.task(binary.getNamingScheme().getLifecycleTaskName());
+      binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+      binaryLifecycleTask.setDescription(String.format("Assembles %s.",binary));
+      binary.setBuildTask(binaryLifecycleTask);
+    }
+  }
+);
+  binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>(){
+    public void execute(    final ClassDirectoryBinarySpecInternal binary){
+      final BinaryNamingScheme namingScheme=binary.getNamingScheme();
+      ConventionMapping conventionMapping=new DslObject(binary).getConventionMapping();
+      conventionMapping.map("classesDir",new Callable<File>(){
+        public File call() throws Exception {
+          return new File(new File(target.getBuildDir(),"classes"),namingScheme.getOutputDirectoryBase());
+        }
+      }
+);
+      binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>(){
+        public void execute(        ResourceSet resourceSet){
+          Copy resourcesTask=target.getTasks().create(namingScheme.getTaskName("process","resources"),ProcessResources.class);
+          resourcesTask.setDescription(String.format("Processes %s.",resourceSet));
+          new DslObject(resourcesTask).getConventionMapping().map("destinationDir",new Callable<File>(){
+            public File call() throws Exception {
+              return binary.getResourcesDir();
+            }
+          }
+);
+          binary.getTasks().add(resourcesTask);
+          binary.builtBy(resourcesTask);
+          resourcesTask.from(resourceSet.getSource());
+        }
+      }
+);
+    }
+  }
+);
   BinaryContainer jvmBinaryContainer=target.getExtensions().getByType(BinaryContainer.class);
   jvmBinaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>(){
     public void execute(    final ClassDirectoryBinarySpecInternal binary){
