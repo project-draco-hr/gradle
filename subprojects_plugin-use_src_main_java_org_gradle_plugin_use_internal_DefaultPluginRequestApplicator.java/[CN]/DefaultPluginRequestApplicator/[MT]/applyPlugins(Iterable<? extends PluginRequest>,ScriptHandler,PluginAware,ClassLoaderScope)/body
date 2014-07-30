@@ -1,5 +1,5 @@
 {
-  PluginResolutionApplicator resolutionApplicator=new PluginResolutionApplicator(target);
+  final PluginResolutionApplicator resolutionApplicator=new PluginResolutionApplicator(target);
   List<Result> results=collect(requests,new Transformer<Result,PluginRequest>(){
     public Result transform(    PluginRequest request){
       return resolveToFoundResult(request);
@@ -12,35 +12,34 @@
     }
   }
 );
-  List<Result> legacy=categorizedResults.get(true);
+  final List<Result> legacy=categorizedResults.get(true);
   List<Result> nonLegacy=categorizedResults.get(false);
-  final List<String> legacyActualPluginIds=new LinkedList<String>();
+  final Map<Result,String> legacyActualPluginIds=Maps.newLinkedHashMap();
   if (!legacy.isEmpty()) {
     final RepositoryHandler repositories=scriptHandler.getRepositories();
     final List<MavenArtifactRepository> mavenRepos=repositories.withType(MavenArtifactRepository.class);
-    LegacyPluginResolveContext legacyPluginResolveContext=new LegacyPluginResolveContext(){
-      public Dependency add(      String pluginId,      final String m2RepoUrl,      Object dependencyNotation){
-        legacyActualPluginIds.add(pluginId);
-        boolean repoExists=any(mavenRepos,new Spec<MavenArtifactRepository>(){
-          public boolean isSatisfiedBy(          MavenArtifactRepository element){
-            return element.getUrl().toString().equals(m2RepoUrl);
-          }
-        }
-);
-        if (!repoExists) {
-          repositories.maven(new Action<MavenArtifactRepository>(){
-            public void execute(            MavenArtifactRepository mavenArtifactRepository){
-              mavenArtifactRepository.setUrl(m2RepoUrl);
+    for (    final Result result : legacy) {
+      result.legacyFound.action.execute(new LegacyPluginResolveContext(){
+        public Dependency add(        String pluginId,        final String m2RepoUrl,        Object dependencyNotation){
+          legacyActualPluginIds.put(result,pluginId);
+          boolean repoExists=any(mavenRepos,new Spec<MavenArtifactRepository>(){
+            public boolean isSatisfiedBy(            MavenArtifactRepository element){
+              return element.getUrl().toString().equals(m2RepoUrl);
             }
           }
 );
+          if (!repoExists) {
+            repositories.maven(new Action<MavenArtifactRepository>(){
+              public void execute(              MavenArtifactRepository mavenArtifactRepository){
+                mavenArtifactRepository.setUrl(m2RepoUrl);
+              }
+            }
+);
+          }
+          return scriptHandler.getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION,dependencyNotation);
         }
-        return scriptHandler.getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION,dependencyNotation);
       }
-    }
-;
-    for (    Result result : legacy) {
-      result.legacyFound.action.execute(legacyPluginResolveContext);
+);
     }
   }
   Configuration classpathConfiguration=scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
@@ -51,10 +50,32 @@
     classLoaderScope.export(loader);
   }
   classLoaderScope.lock();
-  for (  String pluginId : legacyActualPluginIds) {
-    target.getPlugins().apply(pluginId);
+  for (  final Map.Entry<Result,String> entry : legacyActualPluginIds.entrySet()) {
+    final PluginRequest request=entry.getKey().request;
+    final String id=entry.getValue();
+    applyPlugin(request,new Runnable(){
+      public void run(){
+        wrapUnknownPlugin(request,id,new Runnable(){
+          public void run(){
+            target.getPlugins().apply(id);
+          }
+        }
+);
+      }
+    }
+);
   }
-  for (  Result result : nonLegacy) {
-    resolutionApplicator.execute(result.found.resolution);
+  for (  final Result result : nonLegacy) {
+    applyPlugin(result.request,new Runnable(){
+      public void run(){
+        wrapUnknownPlugin(result.request,result.found.resolution.getPluginId().toString(),new Runnable(){
+          public void run(){
+            resolutionApplicator.execute(result.found.resolution);
+          }
+        }
+);
+      }
+    }
+);
   }
 }
