@@ -1,0 +1,26 @@
+{
+  final BinaryNamingScheme namingScheme=binary.getNamingScheme();
+  ConventionMapping conventionMapping=new DslObject(binary).getConventionMapping();
+  conventionMapping.map("classesDir",new Callable<File>(){
+    public File call() throws Exception {
+      return new File(new File(target.getBuildDir(),"classes"),namingScheme.getOutputDirectoryBase());
+    }
+  }
+);
+  binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>(){
+    public void execute(    ResourceSet resourceSet){
+      Copy resourcesTask=target.getTasks().create(namingScheme.getTaskName("process","resources"),ProcessResources.class);
+      resourcesTask.setDescription(String.format("Processes %s.",resourceSet));
+      new DslObject(resourcesTask).getConventionMapping().map("destinationDir",new Callable<File>(){
+        public File call() throws Exception {
+          return binary.getResourcesDir();
+        }
+      }
+);
+      binary.getTasks().add(resourcesTask);
+      binary.builtBy(resourcesTask);
+      resourcesTask.from(resourceSet.getSource());
+    }
+  }
+);
+}
