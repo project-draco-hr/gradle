@@ -9,23 +9,9 @@
   try {
     response=resourceAccessor.getRawResource(requestUri);
     final int statusCode=response.getStatusCode();
-    if (!response.getContentType().equalsIgnoreCase("application/json")) {
-      final String message=String.format("Response from '%s' was not a valid plugin resolution service response (returned content type '%s', not 'application/json')",requestUri,response.getContentType());
-      if (LOGGER.isInfoEnabled()) {
-        response.withContent(new Action<InputStream>(){
-          public void execute(          InputStream inputStream){
-            try {
-              String content=IOUtils.toString(inputStream,"utf8");
-              LOGGER.info("{}, content:\n{}",message,content);
-            }
- catch (            IOException e) {
-              LOGGER.info(String.format("exception raised while trying to log response from %s",requestUri),e);
-            }
-          }
-        }
-);
-      }
-      throw new GradleException(message);
+    if (!response.getContentType().equalsIgnoreCase(JSON)) {
+      final String message=String.format("content type is '%s', expected '%s'",response.getContentType(),JSON);
+      throw new OutOfProtocolException(requestUrl,message);
     }
     return response.withContent(new Transformer<Response<PluginUseMetaData>,InputStream>(){
       public Response<PluginUseMetaData> transform(      InputStream inputStream){
@@ -38,22 +24,22 @@
         }
         try {
           if (statusCode == 200) {
-            PluginUseMetaData metadata=validate(new Gson().fromJson(reader,PluginUseMetaData.class));
-            return new SuccessResponse<PluginUseMetaData>(metadata,statusCode);
+            PluginUseMetaData metadata=validate(requestUrl,new Gson().fromJson(reader,PluginUseMetaData.class));
+            return new SuccessResponse<PluginUseMetaData>(metadata,statusCode,requestUrl);
           }
  else           if (statusCode >= 400 && statusCode < 600) {
-            ErrorResponse errorResponse=validate(new Gson().fromJson(reader,ErrorResponse.class));
-            return new ErrorResponseResponse<PluginUseMetaData>(errorResponse,statusCode);
+            ErrorResponse errorResponse=validate(requestUrl,new Gson().fromJson(reader,ErrorResponse.class));
+            return new ErrorResponseResponse<PluginUseMetaData>(errorResponse,statusCode,requestUrl);
           }
  else {
-            throw new GradleException("Received unexpected HTTP response status " + statusCode + " from "+ requestUrl);
+            throw new OutOfProtocolException(requestUrl,"unexpected HTTP response status " + statusCode);
           }
         }
  catch (        JsonSyntaxException e) {
-          throw new GradleException("Failed to parse plugin resolution service JSON response.",e);
+          throw new OutOfProtocolException(requestUrl,"could not parse response JSON",e);
         }
 catch (        JsonIOException e) {
-          throw new GradleException("Failed to read plugin resolution service JSON response.",e);
+          throw new OutOfProtocolException(requestUrl,"could not parse response JSON",e);
         }
       }
     }
