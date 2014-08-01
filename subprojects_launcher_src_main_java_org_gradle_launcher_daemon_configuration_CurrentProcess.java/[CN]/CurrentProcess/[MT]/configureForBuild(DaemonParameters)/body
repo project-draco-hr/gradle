@@ -1,7 +1,9 @@
 {
   boolean javaHomeMatch=getJavaHome().equals(requiredBuildParameters.getEffectiveJavaHome());
-  JvmOptions optionsWithNoArgsSet=new JvmOptions(new IdentityFileResolver());
-  boolean noImmutableJvmArgsRequired=requiredBuildParameters.isUsingDefaultJvmArgs() || requiredBuildParameters.getEffectiveJvmArgs().equals(optionsWithNoArgsSet.getAllImmutableJvmArgs());
+  List<String> currentImmutable=new JvmOptions(new IdentityFileResolver()).getAllImmutableJvmArgs();
+  List<String> requiredImmutable=requiredBuildParameters.getEffectiveJvmArgs();
+  List<String> requiredImmutableMinusDefaults=removeDefaults(requiredImmutable);
+  boolean noImmutableJvmArgsRequired=requiredImmutableMinusDefaults.equals(currentImmutable);
   if (javaHomeMatch && noImmutableJvmArgsRequired) {
     Properties properties=new Properties();
     properties.putAll(requiredBuildParameters.getEffectiveSystemProperties());
