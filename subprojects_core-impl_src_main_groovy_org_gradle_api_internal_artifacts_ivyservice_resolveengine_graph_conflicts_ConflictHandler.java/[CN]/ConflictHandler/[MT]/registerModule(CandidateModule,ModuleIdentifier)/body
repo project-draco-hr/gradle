@@ -1,0 +1,28 @@
+{
+  modules.put(newModule.getId(),newModule);
+  if (replacedBy != null) {
+    targetToSource.put(replacedBy,newModule);
+    CandidateModule replacement=modules.get(replacedBy);
+    if (replacement != null) {
+      DefaultModuleConflict result=createOrGetConflict(newModule);
+      DefaultModuleConflict replacementConflict=conflicts.remove(replacement.getId());
+      if (replacementConflict != null) {
+        result.replacedBy(replacementConflict.getVersions());
+      }
+ else {
+        result.replacedBy(replacement.getVersions());
+      }
+      return result;
+    }
+  }
+  CandidateModule replacementSource=targetToSource.get(newModule.getId());
+  if (replacementSource != null) {
+    DefaultModuleConflict result=createOrGetConflict(replacementSource);
+    result.replacedBy(newModule.getVersions());
+    return result;
+  }
+  if (newModule.getVersions().size() > 1) {
+    return createOrGetConflict(newModule);
+  }
+  return null;
+}
