@@ -4,12 +4,14 @@
   }
   target.getPlugins().apply(ComponentModelBasePlugin.class);
   final Project project=(Project)target;
+  final ProjectSourceSet projectSourceSet=project.getExtensions().getByType(ProjectSourceSet.class);
   ComponentSpecContainer componentSpecs=project.getExtensions().getByType(ComponentSpecContainer.class);
   try {
     componentSpecs.registerFactory(componentModel.type(),new NamedDomainObjectFactory(){
       public Object create(      String name){
+        FunctionalSourceSet componentSourceSet=projectSourceSet.maybeCreate(name);
         ComponentSpecIdentifier id=new DefaultComponentSpecIdentifier(project.getPath(),name);
-        return DefaultLibrarySpec.create((Class<DefaultLibrarySpec>)componentModel.implementation(),id,instantiator);
+        return DefaultLibrarySpec.create((Class<DefaultLibrarySpec>)componentModel.implementation(),id,componentSourceSet,instantiator);
       }
     }
 );
