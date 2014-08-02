@@ -1,0 +1,19 @@
+{
+  if (schema == null) {
+    return newNonValidatingSAXParser();
+  }
+  try {
+    SAXParserFactory parserFactory=SAXParserFactory.newInstance();
+    parserFactory.setNamespaceAware(true);
+    parserFactory.setValidating(true);
+    SAXParser parser=parserFactory.newSAXParser();
+    parser.setProperty(JAXP_SCHEMA_LANGUAGE,W3C_XML_SCHEMA);
+    parser.setProperty(JAXP_SCHEMA_SOURCE,schemaStream);
+    parser.getXMLReader().setFeature(XML_NAMESPACE_PREFIXES,true);
+    return parser;
+  }
+ catch (  SAXNotRecognizedException ex) {
+    System.err.println("WARNING: problem while setting JAXP validating property on SAXParser... " + "XML validation will not be done: " + ex.getMessage());
+    return newNonValidatingSAXParser();
+  }
+}
