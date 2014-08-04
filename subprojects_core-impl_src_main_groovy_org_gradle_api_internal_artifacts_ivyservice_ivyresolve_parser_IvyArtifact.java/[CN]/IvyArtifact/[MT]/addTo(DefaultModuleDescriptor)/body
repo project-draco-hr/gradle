@@ -1,0 +1,17 @@
+{
+  if (configurations.isEmpty()) {
+    throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
+  }
+  MDArtifact newArtifact=new MDArtifact(md,artName,type,ext,url,extraAttributes);
+  Artifact[] allArtifacts=target.getAllArtifacts();
+  for (  Artifact existing : allArtifacts) {
+    if (artifactsEqual(existing,newArtifact)) {
+      if (!(existing instanceof MDArtifact)) {
+        throw new IllegalArgumentException("Cannot add artifact that is not instance of MDArtifact to " + target);
+      }
+      addArtifact((MDArtifact)existing,this.configurations,target);
+      return;
+    }
+  }
+  addArtifact(newArtifact,this.configurations,target);
+}
