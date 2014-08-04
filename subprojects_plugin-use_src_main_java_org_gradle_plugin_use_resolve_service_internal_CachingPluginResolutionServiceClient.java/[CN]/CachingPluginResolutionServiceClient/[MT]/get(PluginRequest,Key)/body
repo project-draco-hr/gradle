@@ -1,0 +1,21 @@
+{
+  return cacheAccess.useCache("fetch plugin data",new Factory<Response<PluginUseMetaData>>(){
+    public Response<PluginUseMetaData> create(){
+      Response<PluginUseMetaData> response=null;
+      if (invalidateCache) {
+        cache.remove(key);
+      }
+ else {
+        response=cache.get(key);
+      }
+      if (response == null) {
+        response=delegate.queryPluginMetadata(pluginRequest,key.url);
+        if (!response.isError()) {
+          cache.put(key,response);
+        }
+      }
+      return response;
+    }
+  }
+);
+}
