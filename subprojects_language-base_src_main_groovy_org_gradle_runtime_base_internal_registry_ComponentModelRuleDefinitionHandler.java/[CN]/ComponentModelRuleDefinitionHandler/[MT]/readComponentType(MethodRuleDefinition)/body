@@ -1,0 +1,20 @@
+{
+  if (ruleDefinition.getReferences().size() != 1) {
+    throw new InvalidComponentModelException(String.format("ComponentType method must have a single parameter of type %s.",ComponentTypeBuilder.class.getSimpleName()));
+  }
+  ModelType<?> componentBuilderType=ruleDefinition.getReferences().get(0).getType();
+  if (!ComponentTypeBuilder.class.isAssignableFrom(componentBuilderType.getRawClass())) {
+    throw new InvalidComponentModelException(String.format("ComponentType method must have a single parameter of type %s.",ComponentTypeBuilder.class.getSimpleName()));
+  }
+  if (componentBuilderType.getTypeVariables().size() != 1) {
+    throw new InvalidComponentModelException("ComponentTypeBuilder parameter must declare a type parameter (must be generified).");
+  }
+  Class<?> componentType=componentBuilderType.getTypeVariables().get(0).getRawClass();
+  if (!LibrarySpec.class.isAssignableFrom(componentType)) {
+    throw new InvalidComponentModelException(String.format("Component type '%s' must extend '%s'.",componentType.getSimpleName(),LibrarySpec.class.getSimpleName()));
+  }
+  if (componentType.equals(LibrarySpec.class)) {
+    throw new InvalidComponentModelException(String.format("Component type must be a subtype of '%s'.",LibrarySpec.class.getSimpleName()));
+  }
+  return (Class<? extends LibrarySpec>)componentType;
+}

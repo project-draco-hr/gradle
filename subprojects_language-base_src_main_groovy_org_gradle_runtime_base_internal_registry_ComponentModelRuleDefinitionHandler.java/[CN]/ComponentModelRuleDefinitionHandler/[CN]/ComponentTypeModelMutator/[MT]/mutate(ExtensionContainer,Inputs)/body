@@ -1,0 +1,13 @@
+{
+  final ProjectSourceSet projectSourceSet=extensions.getByType(ProjectSourceSet.class);
+  ComponentSpecContainer componentSpecs=extensions.getByType(ComponentSpecContainer.class);
+  final ProjectIdentifier projectIdentifier=inputs.get(0,ModelType.of(ProjectIdentifier.class)).getInstance();
+  componentSpecs.registerFactory(type,new NamedDomainObjectFactory(){
+    public Object create(    String name){
+      FunctionalSourceSet componentSourceSet=projectSourceSet.maybeCreate(name);
+      ComponentSpecIdentifier id=new DefaultComponentSpecIdentifier(projectIdentifier.getPath(),name);
+      return DefaultLibrarySpec.create(implementation,id,componentSourceSet,instantiator);
+    }
+  }
+);
+}
