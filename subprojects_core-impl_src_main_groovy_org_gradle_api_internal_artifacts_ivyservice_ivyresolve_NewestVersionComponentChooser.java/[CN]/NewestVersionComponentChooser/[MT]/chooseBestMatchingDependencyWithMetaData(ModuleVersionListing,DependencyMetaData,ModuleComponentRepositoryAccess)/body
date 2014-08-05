@@ -1,6 +1,10 @@
 {
   for (  Versioned candidate : sortLatestFirst(versions)) {
     MutableModuleVersionMetaData metaData=resolveComponentMetaData(dependency,candidate,moduleAccess);
+    ModuleComponentIdentifier candidateIdentifier=metaData.getComponentId();
+    ModuleComponentSelector requestedComponentSelector=DefaultModuleComponentSelector.newSelector(dependency.getRequested().getGroup(),dependency.getRequested().getName(),dependency.getRequested().getVersion());
+    VersionSelection selection=new DefaultVersionSelection(requestedComponentSelector,candidateIdentifier);
+    versionSelectionRules.apply(selection);
     if (versionMatcher.accept(dependency.getRequested().getVersion(),metaData)) {
       return metaData.getComponentId();
     }

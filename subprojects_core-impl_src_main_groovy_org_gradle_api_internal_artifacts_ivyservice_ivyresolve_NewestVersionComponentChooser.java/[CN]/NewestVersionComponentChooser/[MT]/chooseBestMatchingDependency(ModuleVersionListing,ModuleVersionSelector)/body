@@ -1,7 +1,11 @@
 {
   for (  Versioned candidate : sortLatestFirst(versions)) {
+    ModuleComponentIdentifier candidateIdentifier=DefaultModuleComponentIdentifier.newId(requested.getGroup(),requested.getName(),candidate.getVersion());
+    ModuleComponentSelector requestedComponentSelector=DefaultModuleComponentSelector.newSelector(requested.getGroup(),requested.getName(),requested.getVersion());
+    VersionSelection selection=new DefaultVersionSelection(requestedComponentSelector,candidateIdentifier);
+    versionSelectionRules.apply(selection);
     if (versionMatcher.accept(requested.getVersion(),candidate.getVersion())) {
-      return DefaultModuleComponentIdentifier.newId(requested.getGroup(),requested.getName(),candidate.getVersion());
+      return candidateIdentifier;
     }
   }
   return null;
