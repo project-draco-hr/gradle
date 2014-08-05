@@ -2,20 +2,19 @@
   MyComponentTypeBuilder builder=new MyComponentTypeBuilder();
   ruleDefinition.getRuleInvoker().invoke(builder);
   Class<? extends LibrarySpec> implementation=builder.implementation;
-  if (implementation == null) {
-    throw new InvalidComponentModelException("ComponentType method must set default implementation.");
-  }
-  if (!DefaultLibrarySpec.class.isAssignableFrom(implementation)) {
-    throw new InvalidComponentModelException(String.format("Component implementation '%s' must extend '%s'.",implementation.getSimpleName(),DefaultLibrarySpec.class.getSimpleName()));
-  }
-  if (!type.isAssignableFrom(implementation)) {
-    throw new InvalidComponentModelException(String.format("Component implementation '%s' must implement '%s'.",implementation.getSimpleName(),type.getSimpleName()));
-  }
-  try {
-    implementation.getConstructor();
-  }
- catch (  NoSuchMethodException nsmException) {
-    throw new InvalidComponentModelException(String.format("Component implementation '%s' must have public default constructor.",implementation.getSimpleName()));
+  if (implementation != null) {
+    if (!DefaultLibrarySpec.class.isAssignableFrom(implementation)) {
+      throw new InvalidComponentModelException(String.format("Component implementation '%s' must extend '%s'.",implementation.getSimpleName(),DefaultLibrarySpec.class.getSimpleName()));
+    }
+    if (!type.isAssignableFrom(implementation)) {
+      throw new InvalidComponentModelException(String.format("Component implementation '%s' must implement '%s'.",implementation.getSimpleName(),type.getSimpleName()));
+    }
+    try {
+      implementation.getConstructor();
+    }
+ catch (    NoSuchMethodException nsmException) {
+      throw new InvalidComponentModelException(String.format("Component implementation '%s' must have public default constructor.",implementation.getSimpleName()));
+    }
   }
   return (Class<? extends DefaultLibrarySpec>)implementation;
 }
