@@ -1,0 +1,7 @@
+{
+  TestFile settingsFile=testFile("settings.gradle");
+  settingsFile.writelns("rootProject.projectDir = new File(settingsDir, 'root')","include 'sub'","project(':sub').projectDir = new File(settingsDir, 'root/sub')");
+  getTestDirectory().createDir("root").file("build.gradle").writelns("allprojects { task thing }");
+  inTestDirectory().withTasks(":thing").run().assertTasksExecuted(":thing");
+  inTestDirectory().withTasks(":sub:thing").run().assertTasksExecuted(":sub:thing");
+}
