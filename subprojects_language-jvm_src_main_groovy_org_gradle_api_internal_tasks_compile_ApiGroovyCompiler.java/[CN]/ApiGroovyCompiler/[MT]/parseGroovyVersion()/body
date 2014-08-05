@@ -1,18 +1,16 @@
 {
-  String version=null;
+  String version;
   try {
     version=GroovySystem.getVersion();
   }
- catch (  Throwable e) {
-    if (NoSuchMethodError.class == e.getClass()) {
-      try {
-        Class<?> ih=Class.forName("org.codehaus.groovy.runtime.InvokerHelper");
-        Method getVersion=ih.getDeclaredMethod("getVersion");
-        version=(String)getVersion.invoke(ih);
-      }
- catch (      Exception e1) {
-        throw new GradleException("Unable to determine Groovy version number");
-      }
+ catch (  NoSuchMethodError e) {
+    try {
+      Class<?> ih=Class.forName("org.codehaus.groovy.runtime.InvokerHelper");
+      Method getVersion=ih.getDeclaredMethod("getVersion");
+      version=(String)getVersion.invoke(ih);
+    }
+ catch (    Exception e1) {
+      throw new GradleException("Unable to determine Groovy version.",e1);
     }
   }
   return VersionNumber.parse(version);
