@@ -1,3 +1,17 @@
 {
-  artifact.addTo(moduleDescriptor);
+  if (artifact.getConfigurations().isEmpty()) {
+    throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
+  }
+  MDArtifact newArtifact=artifact.toIvyArtifact(module);
+  Artifact[] allArtifacts=module.getAllArtifacts();
+  for (  Artifact existing : allArtifacts) {
+    if (artifactsEqual(existing,newArtifact)) {
+      if (!(existing instanceof MDArtifact)) {
+        throw new IllegalArgumentException("Cannot update an existing artifact (" + existing + ") in provided module descriptor ("+ module+ ")"+ " because the artifact is not an instance of MDArtifact."+ module);
+      }
+      addArtifact((MDArtifact)existing,artifact.getConfigurations(),module);
+      return;
+    }
+  }
+  addArtifact(newArtifact,artifact.getConfigurations(),module);
 }
