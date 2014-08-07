@@ -1,9 +1,13 @@
 {
-  if (cancelled) {
+  boolean returnValue;
+synchronized (lock) {
+    returnValue=cancelled;
+    if (!cancelled) {
+      callbacks.add(cancellationHandler);
+    }
+  }
+  if (returnValue) {
     cancellationHandler.run();
   }
- else {
-    callbacks.add(cancellationHandler);
-  }
-  return cancelled;
+  return returnValue;
 }

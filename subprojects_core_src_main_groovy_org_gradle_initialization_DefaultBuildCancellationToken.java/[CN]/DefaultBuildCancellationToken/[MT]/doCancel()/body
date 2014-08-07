@@ -1,13 +1,20 @@
 {
-  if (cancelled) {
-    return;
+  List<Runnable> toCall=new ArrayList<Runnable>();
+synchronized (lock) {
+    if (cancelled) {
+      return;
+    }
+    cancelled=true;
+    Runnable runnable=callbacks.poll();
+    while (runnable != null) {
+      toCall.add(runnable);
+      runnable=callbacks.poll();
+    }
   }
-  cancelled=true;
   Exception failure=null;
-  Runnable runnable=callbacks.poll();
-  while (runnable != null) {
+  for (  Runnable callback : toCall) {
     try {
-      runnable.run();
+      callback.run();
     }
  catch (    Exception ex) {
       if (failure != null) {
@@ -19,7 +26,6 @@
       }
       failure=ex;
     }
-    runnable=callbacks.poll();
   }
   if (failure != null) {
     throw new RuntimeException(failure);
