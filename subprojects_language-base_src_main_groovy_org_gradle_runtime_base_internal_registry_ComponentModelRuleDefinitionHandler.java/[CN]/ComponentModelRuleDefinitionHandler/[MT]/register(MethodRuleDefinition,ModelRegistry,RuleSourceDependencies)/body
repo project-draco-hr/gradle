@@ -1,8 +1,13 @@
 {
-  Class<? extends ComponentSpec> type=readComponentType(ruleDefinition);
-  Class<? extends DefaultComponentSpec> implementation=determineImplementationType(ruleDefinition,type);
-  dependencies.add(ComponentModelBasePlugin.class);
-  if (implementation != null) {
-    modelRegistry.mutate(new RegisterComponentTypeRule(ruleDefinition.getDescriptor(),type,implementation));
+  try {
+    Class<? extends ComponentSpec> type=readComponentType(ruleDefinition);
+    Class<? extends DefaultComponentSpec> implementation=determineImplementationType(ruleDefinition,type);
+    dependencies.add(ComponentModelBasePlugin.class);
+    if (implementation != null) {
+      modelRegistry.mutate(new RegisterComponentTypeRule(ruleDefinition.getDescriptor(),type,implementation));
+    }
+  }
+ catch (  InvalidComponentModelException e) {
+    invalidComponentModelRule(ruleDefinition,e);
   }
 }
