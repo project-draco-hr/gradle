@@ -1,9 +1,25 @@
 {
   if (path.isEmpty()) {
-    throw new InvalidNameException("Cannot use an empty string as a model path");
+    throw new InvalidPathException("Cannot use an empty string as a model path",null);
   }
-  Iterable<String> names=PATH_SPLITTER.split(path);
-  for (  String name : names) {
-    validateName(name);
+  if (path.startsWith(SEPARATOR)) {
+    throw new InvalidPathException(String.format("Model path '%s' cannot start with name separator '%s'",path,SEPARATOR),null);
+  }
+  if (path.endsWith(SEPARATOR)) {
+    throw new InvalidPathException(String.format("Model path '%s' cannot end with name separator '%s'",path,SEPARATOR),null);
+  }
+  List<String> names=PATH_SPLITTER.splitToList(path);
+  if (names.size() == 1) {
+    validateName(names.get(0));
+  }
+ else {
+    for (    String name : names) {
+      try {
+        validateName(name);
+      }
+ catch (      InvalidNameException e) {
+        throw new InvalidPathException(String.format("Model path '%s' is invalid due to invalid name component",path),e);
+      }
+    }
   }
 }
