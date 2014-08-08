@@ -3,11 +3,19 @@
     MutableModuleVersionMetaData metaData=resolveComponentMetaData(dependency,candidate,moduleAccess);
     ModuleComponentIdentifier candidateIdentifier=metaData.getComponentId();
     ModuleComponentSelector requestedComponentSelector=DefaultModuleComponentSelector.newSelector(dependency.getRequested().getGroup(),dependency.getRequested().getName(),dependency.getRequested().getVersion());
-    VersionSelection selection=new DefaultVersionSelection(requestedComponentSelector,candidateIdentifier);
+    VersionSelectionInternal selection=new DefaultVersionSelection(requestedComponentSelector,candidateIdentifier);
     versionSelectionRules.apply(selection);
-    if (versionMatcher.accept(dependency.getRequested().getVersion(),metaData)) {
-      return metaData.getComponentId();
-    }
-  }
-  return null;
+switch (selection.getState()) {
+case ACCEPTED:
+      return candidateIdentifier;
+case REJECTED:
+    continue;
+default :
+  break;
+}
+if (versionMatcher.accept(dependency.getRequested().getVersion(),metaData)) {
+return candidateIdentifier;
+}
+}
+return null;
 }
