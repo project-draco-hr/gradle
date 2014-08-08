@@ -1,0 +1,22 @@
+{
+  task.setDescription(String.format("Compiles resources of the %s of %s",sourceSet,binary));
+  task.setToolChain(binary.getToolChain());
+  task.setTargetPlatform(binary.getTargetPlatform());
+  task.includes(new Callable<Set<File>>(){
+    public Set<File> call(){
+      return sourceSet.getExportedHeaders().getSrcDirs();
+    }
+  }
+);
+  task.source(sourceSet.getSource());
+  final Project project=task.getProject();
+  task.setOutputDir(project.file(String.valueOf(project.getBuildDir()) + "/objectFiles/" + binary.getNamingScheme().getOutputDirectoryBase()+ "/"+ ((LanguageSourceSetInternal)sourceSet).getFullName()));
+  PreprocessingTool rcCompiler=(PreprocessingTool)((ExtensionAware)binary).getExtensions().getByName("rcCompiler");
+  task.setMacros(rcCompiler.getMacros());
+  task.setCompilerArgs(rcCompiler.getArgs());
+  FileTree resourceOutputs=task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.res"));
+  binary.getTasks().getCreateOrLink().source(resourceOutputs);
+  if (binary instanceof StaticLibraryBinarySpecInternal) {
+    ((StaticLibraryBinarySpecInternal)binary).additionalLinkFiles(resourceOutputs);
+  }
+}

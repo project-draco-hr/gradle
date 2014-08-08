@@ -1,0 +1,35 @@
+{
+  task.setDescription(String.format("Compiles the %s of %s",sourceSet,binary));
+  task.setToolChain(binary.getToolChain());
+  task.setTargetPlatform(binary.getTargetPlatform());
+  task.setPositionIndependentCode(binary instanceof SharedLibraryBinarySpec);
+  task.includes(new Callable<Set<File>>(){
+    public Set<File> call() throws Exception {
+      return ((HeaderExportingSourceSet)sourceSet).getExportedHeaders().getSrcDirs();
+    }
+  }
+);
+  task.includes(new Callable<List<FileCollection>>(){
+    public List<FileCollection> call(){
+      Collection<NativeDependencySet> libs=binary.getLibs((DependentSourceSet)sourceSet);
+      return CollectionUtils.collect(libs,new Transformer<FileCollection,NativeDependencySet>(){
+        public FileCollection transform(        NativeDependencySet original){
+          return original.getIncludeRoots();
+        }
+      }
+);
+    }
+  }
+);
+  task.source(sourceSet.getSource());
+  final Project project=task.getProject();
+  task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objectFiles/" + binary.getNamingScheme().getOutputDirectoryBase()+ "/"+ sourceSet.getFullName()));
+  for (  String toolName : language.getBinaryTools().keySet()) {
+    Tool tool=(Tool)((ExtensionAware)binary).getExtensions().getByName(toolName);
+    if (tool instanceof PreprocessingTool) {
+      task.setMacros(((PreprocessingTool)tool).getMacros());
+    }
+    task.setCompilerArgs(tool.getArgs());
+  }
+  binary.getTasks().getCreateOrLink().source(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj","**/*.o")));
+}
