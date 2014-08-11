@@ -1,5 +1,24 @@
 {
   target.getPlugins().apply(LifecycleBasePlugin.class);
   target.getExtensions().create("sources",DefaultProjectSourceSet.class,instantiator);
-  target.getExtensions().create("binaries",DefaultBinaryContainer.class,instantiator);
+  BinaryContainer binaries=target.getExtensions().create("binaries",DefaultBinaryContainer.class,instantiator);
+  final PolymorphicDomainObjectContainerModelAdapter<BinarySpec,BinaryContainer> binarySpecContainerAdapter=new PolymorphicDomainObjectContainerModelAdapter<BinarySpec,BinaryContainer>(binaries,ModelType.of(BinaryContainer.class),BinarySpec.class);
+  modelRegistry.create(new ModelCreator(){
+    public ModelPath getPath(){
+      return ModelPath.path("binaries");
+    }
+    public ModelPromise getPromise(){
+      return binarySpecContainerAdapter.asPromise();
+    }
+    public ModelAdapter create(    Inputs inputs){
+      return binarySpecContainerAdapter;
+    }
+    public List<ModelReference<?>> getInputs(){
+      return Collections.emptyList();
+    }
+    public ModelRuleDescriptor getDescriptor(){
+      return new SimpleModelRuleDescriptor("Project.<init>.binaries()");
+    }
+  }
+);
 }
