@@ -1,0 +1,23 @@
+{
+  if (ruleDefinition.getReferences().size() != 1) {
+    throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type %s.",annotationClass.getSimpleName(),builderInterface.getSimpleName()));
+  }
+  if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
+    throw new InvalidComponentModelException(String.format("%s method must not have a return value.",annotationClass.getSimpleName()));
+  }
+  ModelType<?> builder=ruleDefinition.getReferences().get(0).getType();
+  if (!builderInterface.isAssignableFrom(builder.getRawClass())) {
+    throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type %s.",annotationClass.getSimpleName(),builderInterface.getSimpleName()));
+  }
+  if (builder.getTypeVariables().size() != 1) {
+    throw new InvalidComponentModelException(String.format("%s parameter must declare a type parameter (must be generified).",builderInterface.getSimpleName()));
+  }
+  Class<?> spec=builder.getTypeVariables().get(0).getRawClass();
+  if (!baseInterface.isAssignableFrom(spec)) {
+    throw new InvalidComponentModelException(String.format("%s type '%s' must extend '%s'.",StringUtils.capitalize(modelName),spec.getSimpleName(),baseInterface.getSimpleName()));
+  }
+  if (spec.equals(baseInterface)) {
+    throw new InvalidComponentModelException(String.format("%s type must be a subtype of '%s'.",StringUtils.capitalize(modelName),baseInterface.getSimpleName()));
+  }
+  return (Class<? extends T>)spec;
+}
