@@ -8,29 +8,11 @@
     }
   }
 );
-  final ModelReference<T> subjectReference=binder.getSubjectReference();
-  registerListener(new ModelCreationListener(){
-    public boolean onCreate(    ModelPath path,    ModelPromise promise){
-      if (subjectReference.getPath() == null) {
-        boolean typeCompatible=promise.asWritable(subjectReference.getType());
-        if (typeCompatible && subjectReference.getPath() == null) {
-          binder.bindSubject(path);
-          return true;
-        }
-      }
- else       if (path.equals(subjectReference.getPath())) {
-        boolean typeCompatible=promise.asWritable(subjectReference.getType());
-        if (typeCompatible) {
-          binder.bindSubject(path);
-          return true;
-        }
- else {
-          throw new IllegalStateException("incompatible type");
-        }
-      }
-      return false;
+  registerListener(new BinderCreationListener(binder.getDescriptor(),binder.getSubjectReference(),true,new Action<ModelPath>(){
+    public void execute(    ModelPath modelPath){
+      binder.bindSubject(modelPath);
     }
   }
-);
+));
   bindInputs(binder);
 }
