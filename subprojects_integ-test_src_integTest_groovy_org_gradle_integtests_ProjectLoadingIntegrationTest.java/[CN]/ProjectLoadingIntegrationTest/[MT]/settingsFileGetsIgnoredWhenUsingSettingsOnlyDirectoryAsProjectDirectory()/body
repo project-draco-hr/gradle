@@ -1,0 +1,7 @@
+{
+  TestFile settingsDir=testFile("gradle");
+  TestFile settingsFile=settingsDir.file("settings.gradle");
+  settingsFile.writelns("rootProject.projectDir = new File(settingsDir, '../root')");
+  getTestDirectory().createDir("root").file("build.gradle").writelns("task thing");
+  inTestDirectory().withArguments("-p",settingsDir.getAbsolutePath()).withTasks("thing").runWithFailure().assertHasDescription("Task 'thing' not found in root project 'gradle'.");
+}

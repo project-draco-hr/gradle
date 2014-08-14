@@ -1,2 +1,27 @@
 {
+  StartParameter startParameter=gradle.getStartParameter();
+  SettingsInternal settings=findSettingsAndLoadIfAppropriate(gradle,startParameter);
+  ProjectSpec spec=ProjectSpecs.forStartParameter(startParameter);
+  if (!spec.containsProject(settings.getProjectRegistry())) {
+    if (startParameter.getProjectDir() == null && spec.isCorresponding(settings.getSettingsDir())) {
+      settings.setDefaultProject(settings.getRootProject());
+    }
+ else {
+      StartParameter noSearchParameter=startParameter.newInstance();
+      noSearchParameter.useEmptySettings();
+      settings=findSettingsAndLoadIfAppropriate(gradle,noSearchParameter);
+      if (settings == null) {
+        throw new InternalError("Empty settings file does not contain expected project.");
+      }
+      if (noSearchParameter.getBuildFile() != null) {
+        ProjectDescriptor rootProject=settings.getRootProject();
+        rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
+      }
+      setDefaultProject(spec,settings);
+    }
+  }
+ else {
+    setDefaultProject(spec,settings);
+  }
+  return settings;
 }
