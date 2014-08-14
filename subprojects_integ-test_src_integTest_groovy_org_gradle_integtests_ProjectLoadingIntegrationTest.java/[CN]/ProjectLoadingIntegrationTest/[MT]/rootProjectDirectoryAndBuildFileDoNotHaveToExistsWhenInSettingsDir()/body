@@ -1,0 +1,7 @@
+{
+  TestFile settingsDir=testFile("gradle");
+  TestFile settingsFile=settingsDir.file("settings.gradle");
+  settingsFile.writelns("rootProject.projectDir = new File(settingsDir, '../root')","include 'sub'","project(':sub').projectDir = new File(settingsDir, '../sub')");
+  getTestDirectory().createDir("sub").file("build.gradle").writelns("task thing");
+  inDirectory(settingsDir).withTasks("thing").run().assertTasksExecuted(":sub:thing");
+}
