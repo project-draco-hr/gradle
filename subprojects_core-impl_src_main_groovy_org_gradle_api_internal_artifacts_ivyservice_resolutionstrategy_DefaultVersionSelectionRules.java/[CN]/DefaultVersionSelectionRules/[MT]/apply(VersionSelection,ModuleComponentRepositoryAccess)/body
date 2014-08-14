@@ -1,5 +1,45 @@
 {
   for (  Action<? super VersionSelection> action : versionSelectionActions) {
-    action.execute(selection);
+    new UserCodeAction<VersionSelection>(USER_CODE_ERROR,action).execute(selection);
+  }
+  for (  MetadataRule<? super VersionSelection> rule : versionSelectionRules) {
+    if (rule.getInputTypes() == null || rule.getInputTypes().size() == 0) {
+      try {
+        rule.execute(selection,null);
+      }
+ catch (      Exception e) {
+        throw new InvalidUserCodeException(USER_CODE_ERROR,e);
+      }
+    }
+ else {
+      List<Object> inputs=Lists.newArrayList();
+      for (      Class<?> inputType : rule.getInputTypes()) {
+        BuildableModuleVersionMetaDataResolveResult descriptorResult=new DefaultBuildableModuleVersionMetaDataResolveResult();
+        moduleAccess.resolveComponentMetaData(((VersionSelectionInternal)selection).getDependencyMetaData(),selection.getCandidate(),descriptorResult);
+        if (inputType == ComponentMetadata.class) {
+          ComponentMetadataDetails details=new ComponentMetadataDetailsAdapter(descriptorResult.getMetaData());
+          ComponentMetadata componentMetadata=new ComponentMetadataAdapter(details);
+          inputs.add(componentMetadata);
+          continue;
+        }
+        if (inputType == IvyModuleDescriptor.class) {
+          if (descriptorResult.getMetaData() instanceof IvyModuleVersionMetaData) {
+            IvyModuleVersionMetaData ivyMetadata=(IvyModuleVersionMetaData)descriptorResult.getMetaData();
+            inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(),ivyMetadata.getBranch(),ivyMetadata.getStatus()));
+            continue;
+          }
+ else {
+            return;
+          }
+        }
+        throw new InvalidUserCodeException(String.format("Unsupported parameter type for version selection rule: %s",inputType.getName()));
+      }
+      try {
+        rule.execute(selection,inputs);
+      }
+ catch (      Exception e) {
+        throw new InvalidUserCodeException(USER_CODE_ERROR,e);
+      }
+    }
   }
 }
