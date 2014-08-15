@@ -1,22 +1,22 @@
 {
   Class<?>[] parameterTypes=closure.getParameterTypes();
   if (parameterTypes.length == 0) {
-    throw new InvalidUserCodeException(String.format("First parameter of a version selection rule needs to be of type '%s'.",VersionSelection.class.getSimpleName()));
+    throw new InvalidUserCodeException(String.format(FIRST_PARAMETER_ERROR,VersionSelection.class.getSimpleName()));
   }
  else {
     List<Class<?>> inputTypes=Lists.newArrayList();
     if (parameterTypes[0] != VersionSelection.class) {
-      throw new InvalidUserCodeException(String.format("First parameter of a version selection rule needs to be of type '%s'.",VersionSelection.class.getSimpleName()));
+      throw new InvalidUserCodeException(String.format(FIRST_PARAMETER_ERROR,VersionSelection.class.getSimpleName()));
     }
     for (    Class<?> parameterType : Arrays.asList(parameterTypes).subList(1,parameterTypes.length)) {
       if (VALID_INPUT_TYPES.contains(parameterType)) {
         inputTypes.add(parameterType);
       }
  else {
-        throw new InvalidUserCodeException(String.format("Unsupported parameter type for version selection rule: %s",parameterType.getName()));
+        throw new InvalidUserCodeException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR,parameterType.getName()));
       }
     }
-    versionSelectionRules.add(new VersionSelectionRule(closure,inputTypes));
+    versionSelectionRules.add(new VersionSelectionClosureRule(closure,inputTypes));
   }
   return this;
 }
