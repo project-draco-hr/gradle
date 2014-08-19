@@ -1,0 +1,20 @@
+{
+  ClientStatusKey key=new ClientStatusKey(portalUrl);
+  Factory<Response<ClientStatus>> factory=new Factory<Response<ClientStatus>>(){
+    public Response<ClientStatus> create(){
+      return delegate.queryClientStatus(portalUrl,shouldValidate,checksum);
+    }
+  }
+;
+  if (shouldValidate) {
+    return fetch(CLIENT_STATUS_OP_NAME,clientStatusCache,key,factory);
+  }
+ else {
+    return maybeFetch(CLIENT_STATUS_OP_NAME,clientStatusCache,key,factory,new Spec<Response<ClientStatus>>(){
+      public boolean isSatisfiedBy(      Response<ClientStatus> element){
+        return !element.getClientStatusChecksum().equals(checksum);
+      }
+    }
+);
+  }
+}
