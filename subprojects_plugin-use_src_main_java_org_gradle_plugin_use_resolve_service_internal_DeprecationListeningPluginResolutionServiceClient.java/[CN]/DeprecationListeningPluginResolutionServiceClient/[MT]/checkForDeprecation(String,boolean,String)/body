@@ -1,0 +1,21 @@
+{
+  Response<ClientStatus> response;
+  try {
+    response=delegate.queryClientStatus(portalUrl,shouldValidate,statusChecksum);
+  }
+ catch (  Exception e) {
+    LOGGER.warn("Exception thrown fetching client status",e);
+    return;
+  }
+  if (response.isError()) {
+    LOGGER.warn("Received error response fetching client status from {}: {}",response.getUrl(),response.getErrorResponse());
+  }
+ else {
+    ClientStatus status=response.getResponse();
+    String deprecationMessage=status.getDeprecationMessage();
+    if (deprecationMessage != null) {
+      String message=toMessage(deprecationMessage,response.getUrl());
+      action.execute(message);
+    }
+  }
+}
