@@ -1,0 +1,23 @@
+{
+  ModelType<? extends T> type=ModelType.of(typeClass);
+  TypeBuilder builder=createBuilder();
+  ruleDefinition.getRuleInvoker().invoke(builder);
+  Class<?> implementation=builder.getImplementation();
+  if (implementation == null) {
+    return null;
+  }
+  ModelType<?> implementationType=ModelType.of(implementation);
+  if (!baseImplementation.isAssignableFrom(implementationType)) {
+    throw new InvalidComponentModelException(String.format("%s implementation '%s' must extend '%s'.",StringUtils.capitalize(modelName),implementationType.toString(),baseImplementation.toString()));
+  }
+  if (!type.isAssignableFrom(implementationType)) {
+    throw new InvalidComponentModelException(String.format("%s implementation '%s' must implement '%s'.",StringUtils.capitalize(modelName),implementationType.toString(),type.toString()));
+  }
+  try {
+    implementation.getConstructor();
+  }
+ catch (  NoSuchMethodException nsmException) {
+    throw new InvalidComponentModelException(String.format("%s implementation '%s' must have public default constructor.",StringUtils.capitalize(modelName),implementationType.toString()));
+  }
+  return (Class<? extends U>)implementationType.getRawClass();
+}

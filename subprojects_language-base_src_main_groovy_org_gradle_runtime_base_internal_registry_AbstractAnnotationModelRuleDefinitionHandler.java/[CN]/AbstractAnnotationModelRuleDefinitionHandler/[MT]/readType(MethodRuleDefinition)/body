@@ -1,21 +1,20 @@
 {
-  if (ruleDefinition.getReferences().size() != 1) {
-    throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type %s.",annotationClass.getSimpleName(),builderInterface.getSimpleName()));
-  }
   if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
     throw new InvalidComponentModelException(String.format("%s method must not have a return value.",annotationClass.getSimpleName()));
   }
+  if (ruleDefinition.getReferences().size() != 1) {
+    throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type '%s'.",annotationClass.getSimpleName(),builderInterface.toString()));
+  }
   ModelType<?> builder=ruleDefinition.getReferences().get(0).getType();
-  if (!builderInterface.isAssignableFrom(builder.getRawClass())) {
-    throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type %s.",annotationClass.getSimpleName(),builderInterface.getSimpleName()));
+  if (!builderInterface.isAssignableFrom(builder)) {
+    throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type '%s'.",annotationClass.getSimpleName(),builderInterface.toString()));
   }
   if (builder.getTypeVariables().size() != 1) {
-    throw new InvalidComponentModelException(String.format("%s parameter must declare a type parameter.",builderInterface.getSimpleName()));
+    throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter.",builderInterface.toString()));
   }
-  ModelType<?> modelType=builder.getTypeVariables().get(0);
-  Class<?> spec=modelType.getRawClass();
-  if (!baseInterface.isAssignableFrom(spec) || spec.equals(baseInterface)) {
-    throw new InvalidComponentModelException(String.format("%s type '%s' is not a concrete subtype of '%s'.",StringUtils.capitalize(modelName),modelType.toString(),baseInterface.getSimpleName()));
+  ModelType<?> subType=builder.getTypeVariables().get(0);
+  if (!baseInterface.isAssignableFrom(subType) || subType.isAssignableFrom(baseInterface)) {
+    throw new InvalidComponentModelException(String.format("%s type '%s' is not a concrete subtype of '%s'.",StringUtils.capitalize(modelName),subType.toString(),baseInterface.toString()));
   }
-  return (Class<? extends T>)spec;
+  return (Class<? extends T>)subType.getRawClass();
 }
