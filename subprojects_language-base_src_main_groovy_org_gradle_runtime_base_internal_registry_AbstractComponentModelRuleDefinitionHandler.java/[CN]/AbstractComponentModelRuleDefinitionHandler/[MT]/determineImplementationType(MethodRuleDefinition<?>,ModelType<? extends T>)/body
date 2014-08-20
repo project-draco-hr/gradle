@@ -1,5 +1,4 @@
 {
-  ModelType<? extends T> type=ModelType.of(typeClass);
   TypeBuilderInternal builder=createBuilder();
   ruleDefinition.getRuleInvoker().invoke(builder);
   Class<?> implementation=builder.getDefaultImplementation();
@@ -14,10 +13,10 @@
     throw new InvalidComponentModelException(String.format("%s implementation '%s' must implement '%s'.",StringUtils.capitalize(modelName),implementationType.toString(),type.toString()));
   }
   try {
-    implementation.getConstructor();
+    implementationType.getRawClass().getConstructor();
   }
  catch (  NoSuchMethodException nsmException) {
     throw new InvalidComponentModelException(String.format("%s implementation '%s' must have public default constructor.",StringUtils.capitalize(modelName),implementationType.toString()));
   }
-  return (Class<? extends U>)implementationType.getRawClass();
+  return (ModelType<? extends U>)implementationType;
 }
