@@ -22,24 +22,6 @@
   classPathScriptRunner.run();
   List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
   if (!pluginRequests.isEmpty()) {
-    ListMultimap<PluginId,PluginRequest> groupedById=CollectionUtils.groupBy(pluginRequests,new Transformer<PluginId,PluginRequest>(){
-      public PluginId transform(      PluginRequest pluginRequest){
-        return pluginRequest.getId();
-      }
-    }
-);
-    for (    PluginId key : groupedById.keySet()) {
-      if (key.equals(NOOP_PLUGIN_ID)) {
-        continue;
-      }
-      List<PluginRequest> pluginRequestsForId=groupedById.get(key);
-      if (pluginRequestsForId.size() > 1) {
-        PluginRequest first=pluginRequests.get(0);
-        PluginRequest second=pluginRequests.get(1);
-        InvalidPluginRequestException exception=new InvalidPluginRequestException(second,"Plugin with id '" + key + "' was already requested at line "+ first.getLineNumber());
-        throw new LocationAwareException(exception,second.getScriptSource(),second.getLineNumber());
-      }
-    }
     PluginAware pluginAware=(PluginAware)target;
     pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,pluginAware,targetScope);
   }
