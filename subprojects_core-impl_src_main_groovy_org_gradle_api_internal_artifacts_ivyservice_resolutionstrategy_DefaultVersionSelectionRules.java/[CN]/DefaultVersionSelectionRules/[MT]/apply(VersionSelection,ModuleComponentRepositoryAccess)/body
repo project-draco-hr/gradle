@@ -2,16 +2,16 @@
   for (  RuleAction<? super VersionSelection> rule : versionSelectionRules) {
     List<Object> inputs=Lists.newArrayList();
     for (    Class<?> inputType : rule.getInputTypes()) {
-      BuildableModuleVersionMetaDataResolveResult descriptorResult=new DefaultBuildableModuleVersionMetaDataResolveResult();
-      moduleAccess.resolveComponentMetaData(((VersionSelectionInternal)selection).getDependencyMetaData(),selection.getCandidate(),descriptorResult);
       if (inputType == ComponentMetadata.class) {
-        ComponentMetadataDetails componentMetadata=new ComponentMetadataDetailsAdapter(descriptorResult.getMetaData());
+        MutableModuleVersionMetaData metaData=getMetaData(selection,moduleAccess);
+        ComponentMetadataDetails componentMetadata=new ComponentMetadataDetailsAdapter(metaData);
         inputs.add(componentMetadata);
         continue;
       }
       if (inputType == IvyModuleDescriptor.class) {
-        if (descriptorResult.getMetaData() instanceof IvyModuleVersionMetaData) {
-          IvyModuleVersionMetaData ivyMetadata=(IvyModuleVersionMetaData)descriptorResult.getMetaData();
+        MutableModuleVersionMetaData metaData=getMetaData(selection,moduleAccess);
+        if (metaData instanceof IvyModuleVersionMetaData) {
+          IvyModuleVersionMetaData ivyMetadata=(IvyModuleVersionMetaData)metaData;
           inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(),ivyMetadata.getBranch(),ivyMetadata.getStatus()));
           continue;
         }
