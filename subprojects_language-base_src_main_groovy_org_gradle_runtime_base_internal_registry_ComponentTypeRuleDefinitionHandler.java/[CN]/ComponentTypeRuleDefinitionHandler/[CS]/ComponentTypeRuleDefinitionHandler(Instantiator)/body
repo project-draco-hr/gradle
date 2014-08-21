@@ -1,22 +1,3 @@
 {
-  super("component",ComponentType.class,ComponentSpec.class,BaseComponentSpec.class,ComponentTypeBuilder.class,new Action<RegistrationContext<ComponentSpec,BaseComponentSpec>>(){
-    public void execute(    final RegistrationContext<ComponentSpec,BaseComponentSpec> context){
-      ExtensionContainer extensions=context.getExtensions();
-      ProjectSourceSet projectSourceSet=extensions.getByType(ProjectSourceSet.class);
-      ComponentSpecContainer componentSpecs=extensions.getByType(ComponentSpecContainer.class);
-      doRegister(context.getType(),context.getImplementation(),projectSourceSet,componentSpecs,context.getProjectIdentifier());
-    }
-    private <T extends ComponentSpec,I extends BaseComponentSpec>void doRegister(    final ModelType<T> type,    final ModelType<I> implementation,    final ProjectSourceSet projectSourceSet,    ComponentSpecContainer componentSpecs,    final ProjectIdentifier projectIdentifier){
-      componentSpecs.registerFactory(type.getConcreteClass(),new NamedDomainObjectFactory<T>(){
-        public T create(        String name){
-          FunctionalSourceSet componentSourceSet=projectSourceSet.maybeCreate(name);
-          ComponentSpecIdentifier id=new DefaultComponentSpecIdentifier(projectIdentifier.getPath(),name);
-          @SuppressWarnings("unchecked") T created=(T)BaseComponentSpec.create(implementation.getConcreteClass(),id,componentSourceSet,instantiator);
-          return created;
-        }
-      }
-);
-    }
-  }
-);
+  super("component",ComponentType.class,ComponentSpec.class,BaseComponentSpec.class,ComponentTypeBuilder.class,JavaReflectionUtil.factory(new DirectInstantiator(),DefaultComponentTypeBuilder.class),new RegistrationAction(instantiator));
 }
