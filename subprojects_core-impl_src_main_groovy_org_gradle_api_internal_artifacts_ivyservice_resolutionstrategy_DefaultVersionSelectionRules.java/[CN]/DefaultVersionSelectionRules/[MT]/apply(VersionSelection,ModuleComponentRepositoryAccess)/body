@@ -1,25 +1,23 @@
 {
+  MetadataProvider metadataProvider=new MetadataProvider(selection,moduleAccess);
   for (  RuleAction<? super VersionSelection> rule : versionSelectionRules) {
     List<Object> inputs=Lists.newArrayList();
     for (    Class<?> inputType : rule.getInputTypes()) {
       if (inputType == ComponentMetadata.class) {
-        MutableModuleVersionMetaData metaData=getMetaData(selection,moduleAccess);
-        ComponentMetadataDetails componentMetadata=new ComponentMetadataDetailsAdapter(metaData);
-        inputs.add(componentMetadata);
+        inputs.add(metadataProvider.getComponentMetadata());
         continue;
       }
       if (inputType == IvyModuleDescriptor.class) {
-        MutableModuleVersionMetaData metaData=getMetaData(selection,moduleAccess);
-        if (metaData instanceof IvyModuleVersionMetaData) {
-          IvyModuleVersionMetaData ivyMetadata=(IvyModuleVersionMetaData)metaData;
-          inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(),ivyMetadata.getBranch(),ivyMetadata.getStatus()));
+        IvyModuleDescriptor ivyModuleDescriptor=metadataProvider.getIvyModuleDescriptor();
+        if (ivyModuleDescriptor != null) {
+          inputs.add(ivyModuleDescriptor);
           continue;
         }
  else {
           return;
         }
       }
-      throw new InvalidUserCodeException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR,inputType.getName()));
+      throw new IllegalStateException();
     }
     try {
       rule.execute(selection,inputs);
