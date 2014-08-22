@@ -21,20 +21,8 @@
   classPathScriptRunner.getScript().init(target,services);
   classPathScriptRunner.run();
   List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
-  if (!pluginRequests.isEmpty()) {
-    PluginAware pluginAware=(PluginAware)target;
-    pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,pluginAware,targetScope);
-  }
- else {
-    Configuration classpathConfiguration=scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
-    Set<File> files=classpathConfiguration.getFiles();
-    if (!files.isEmpty()) {
-      ClassPath classPath=new DefaultClassPath(files);
-      Factory<? extends ClassLoader> loader=targetScope.getParent().loader(classPath);
-      targetScope.export(loader);
-    }
-    targetScope.lock();
-  }
+  PluginAware pluginAware=target instanceof PluginAware ? (PluginAware)target : null;
+  pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,pluginAware,targetScope);
   compiler.setClassloader(targetScope.getLocalClassLoader());
   compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert()));
   ScriptRunner<? extends BasicScript> runner=compiler.compile(scriptType);

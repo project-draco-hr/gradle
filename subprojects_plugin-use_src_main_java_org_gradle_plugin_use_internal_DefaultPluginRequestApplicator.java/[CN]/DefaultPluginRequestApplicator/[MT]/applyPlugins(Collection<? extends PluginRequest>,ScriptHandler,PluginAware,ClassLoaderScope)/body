@@ -1,4 +1,11 @@
 {
+  if (requests.isEmpty()) {
+    defineScriptHandlerClassScope(scriptHandler,classLoaderScope);
+    return;
+  }
+  if (target == null) {
+    throw new IllegalStateException("Plugin target is 'null' and there are plugin requests");
+  }
   final PluginResolutionApplicator resolutionApplicator=new PluginResolutionApplicator(target);
   final PluginResolver effectivePluginResolver=wrapInNotInClasspathCheck(classLoaderScope);
   List<Result> results=collect(requests,new Transformer<Result,PluginRequest>(){
@@ -43,14 +50,7 @@
 );
     }
   }
-  Configuration classpathConfiguration=scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
-  Set<File> files=classpathConfiguration.getFiles();
-  if (!files.isEmpty()) {
-    ClassPath classPath=new DefaultClassPath(files);
-    Factory<? extends ClassLoader> loader=classLoaderScope.getParent().loader(classPath);
-    classLoaderScope.export(loader);
-  }
-  classLoaderScope.lock();
+  defineScriptHandlerClassScope(scriptHandler,classLoaderScope);
   for (  final Map.Entry<Result,String> entry : legacyActualPluginIds.entrySet()) {
     final PluginRequest request=entry.getKey().request;
     final String id=entry.getValue();
