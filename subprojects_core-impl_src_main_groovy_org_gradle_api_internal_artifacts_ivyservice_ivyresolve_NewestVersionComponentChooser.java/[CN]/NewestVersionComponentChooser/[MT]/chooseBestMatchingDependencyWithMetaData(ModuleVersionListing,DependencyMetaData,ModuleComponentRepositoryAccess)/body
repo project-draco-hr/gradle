@@ -1,20 +1,17 @@
 {
+  ModuleVersionSelector requested=dependency.getRequested();
   for (  Versioned candidate : sortLatestFirst(versions)) {
     MutableModuleVersionMetaData metaData=resolveComponentMetaData(dependency,candidate,moduleAccess);
     ModuleComponentIdentifier candidateIdentifier=metaData.getComponentId();
+    if (!versionMatcher.accept(requested.getVersion(),metaData)) {
+      continue;
+    }
     ComponentSelectionInternal selection=new DefaultComponentSelection(dependency,candidateIdentifier);
     versionSelectionRules.apply(selection,moduleAccess);
-switch (selection.getState()) {
-case ACCEPTED:
-      return candidateIdentifier;
-case REJECTED:
-    continue;
-default :
-  break;
-}
-if (versionMatcher.accept(dependency.getRequested().getVersion(),metaData)) {
-return candidateIdentifier;
-}
-}
-return null;
+    if (selection.isRejected()) {
+      continue;
+    }
+    return candidateIdentifier;
+  }
+  return null;
 }

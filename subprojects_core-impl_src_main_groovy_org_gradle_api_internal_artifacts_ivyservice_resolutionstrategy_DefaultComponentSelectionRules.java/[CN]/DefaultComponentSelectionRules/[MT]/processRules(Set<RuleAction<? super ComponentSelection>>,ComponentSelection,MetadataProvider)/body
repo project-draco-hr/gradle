@@ -1,0 +1,31 @@
+{
+  for (  RuleAction<? super ComponentSelection> rule : inputRules1) {
+    if (((ComponentSelectionInternal)selection).isRejected()) {
+      break;
+    }
+    List<Object> inputs=Lists.newArrayList();
+    for (    Class<?> inputType : rule.getInputTypes()) {
+      if (inputType == ComponentMetadata.class) {
+        inputs.add(metadataProvider.getComponentMetadata());
+        continue;
+      }
+      if (inputType == IvyModuleDescriptor.class) {
+        IvyModuleDescriptor ivyModuleDescriptor=metadataProvider.getIvyModuleDescriptor();
+        if (ivyModuleDescriptor != null) {
+          inputs.add(ivyModuleDescriptor);
+          continue;
+        }
+ else {
+          return;
+        }
+      }
+      throw new IllegalStateException();
+    }
+    try {
+      rule.execute(selection,inputs);
+    }
+ catch (    Exception e) {
+      throw new InvalidUserCodeException(USER_CODE_ERROR,e);
+    }
+  }
+}
