@@ -1,0 +1,24 @@
+{
+  List<Object> inputs=Lists.newArrayList();
+  for (  Class<?> inputType : rule.getInputTypes()) {
+    if (inputType == ComponentMetadata.class) {
+      inputs.add(metadataProvider.getComponentMetadata());
+      continue;
+    }
+    if (inputType == IvyModuleDescriptor.class) {
+      IvyModuleDescriptor ivyModuleDescriptor=metadataProvider.getIvyModuleDescriptor();
+      if (ivyModuleDescriptor == null) {
+        return;
+      }
+      inputs.add(ivyModuleDescriptor);
+      continue;
+    }
+    throw new IllegalStateException();
+  }
+  try {
+    rule.execute(selection,inputs);
+  }
+ catch (  Exception e) {
+    throw new InvalidUserCodeException(USER_CODE_ERROR,e);
+  }
+}
