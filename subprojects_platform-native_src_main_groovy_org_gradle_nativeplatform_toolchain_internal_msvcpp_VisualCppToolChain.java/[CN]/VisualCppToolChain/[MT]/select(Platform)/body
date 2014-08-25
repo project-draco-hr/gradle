@@ -7,5 +7,9 @@
   if (!result.isAvailable()) {
     return new UnavailablePlatformToolChain(result);
   }
-  return new VisualCppPlatformToolChain(getAsMap(),visualCpp,windowsSdk,targetPlatform);
+  Map<String,CommandLineToolConfigurationInternal> toolConfigurations=(Map)getAsMap();
+  VisualCppTargetedPlatformToolChain configurableToolChain=new VisualCppTargetedPlatformToolChain(targetPlatform,toolConfigurations,getInstantiator());
+  configureActions.execute(configurableToolChain);
+  toolConfigurations=(Map)configurableToolChain.getAsMap();
+  return new VisualCppPlatformToolChain(toolConfigurations,visualCpp,windowsSdk,targetPlatform);
 }
