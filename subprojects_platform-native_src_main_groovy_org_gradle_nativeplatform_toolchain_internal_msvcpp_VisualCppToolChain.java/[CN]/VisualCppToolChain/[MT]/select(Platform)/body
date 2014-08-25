@@ -7,9 +7,11 @@
   if (!result.isAvailable()) {
     return new UnavailablePlatformToolChain(result);
   }
-  Map<String,CommandLineToolConfigurationInternal> toolConfigurations=(Map)getAsMap();
-  VisualCppTargetedPlatformToolChain configurableToolChain=new VisualCppTargetedPlatformToolChain(targetPlatform,toolConfigurations,getInstantiator());
+  VisualCppTargetedPlatformToolChain configurableToolChain=instantiator.newInstance(VisualCppTargetedPlatformToolChain.class,targetPlatform,instantiator);
   configureActions.execute(configurableToolChain);
-  toolConfigurations=(Map)configurableToolChain.getAsMap();
+  Map<String,CommandLineToolConfigurationInternal> toolConfigurations=new HashMap<String,CommandLineToolConfigurationInternal>();
+  for (  CommandLineToolConfigurationInternal tool : toolConfigurations.values()) {
+    toolConfigurations.put(tool.getName(),tool);
+  }
   return new VisualCppPlatformToolChain(toolConfigurations,visualCpp,windowsSdk,targetPlatform);
 }
