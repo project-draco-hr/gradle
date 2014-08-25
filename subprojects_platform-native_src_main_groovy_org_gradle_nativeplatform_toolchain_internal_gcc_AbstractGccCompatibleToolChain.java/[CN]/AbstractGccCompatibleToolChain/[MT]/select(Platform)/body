@@ -3,7 +3,7 @@
   ToolChainAvailability result=new ToolChainAvailability();
   if (targetPlatformConfigurationConfiguration == null) {
     result.unavailable(String.format("Don't know how to build for platform '%s'.",targetPlatform.getName()));
-    return new UnavailablePlatformToolChain(result);
+    return new UnavailablePlatformToolProvider(result);
   }
   DefaultGccPlatformToolChain configurableToolChain=instantiator.newInstance(DefaultGccPlatformToolChain.class,targetPlatform,instantiator,getName(),getDisplayName());
   addDefaultTools(configurableToolChain);
@@ -11,9 +11,9 @@
   configureActions.execute(configurableToolChain);
   initTools(configurableToolChain,result);
   if (!result.isAvailable()) {
-    return new UnavailablePlatformToolChain(result);
+    return new UnavailablePlatformToolProvider(result);
   }
   ToolRegistry platformTools=new ConfiguredToolRegistry(configurableToolChain);
   String objectFileSuffix=targetPlatform.getOperatingSystem().isWindows() ? ".obj" : ".o";
-  return new GccPlatformToolChain(toolSearchPath,platformTools,execActionFactory,objectFileSuffix,canUseCommandFile());
+  return new GccPlatformToolProvider(toolSearchPath,platformTools,execActionFactory,objectFileSuffix,canUseCommandFile());
 }
