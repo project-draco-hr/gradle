@@ -1,18 +1,19 @@
 {
   Action<PlatformToolChain> action=new Action<PlatformToolChain>(){
     public void execute(    PlatformToolChain configurableToolChain){
+      DefaultGccPlatformToolChain gccToolChain=(DefaultGccPlatformToolChain)configurableToolChain;
       Action<List<String>> m64args=new Action<List<String>>(){
         public void execute(        List<String> args){
           args.add("-m64");
         }
       }
 ;
-      configureTool(configurableToolChain,"cppCompiler",m64args);
-      configureTool(configurableToolChain,"cCompiler",m64args);
-      configureTool(configurableToolChain,"objcCompiler",m64args);
-      configureTool(configurableToolChain,"objcppCompiler",m64args);
-      configureTool(configurableToolChain,"linker",m64args);
-      configureTool(configurableToolChain,"assembler",new Action<List<String>>(){
+      gccToolChain.getCppCompiler().withArguments(m64args);
+      gccToolChain.getcCompiler().withArguments(m64args);
+      gccToolChain.getObjcCompiler().withArguments(m64args);
+      gccToolChain.getObjcppCompiler().withArguments(m64args);
+      gccToolChain.getLinker().withArguments(m64args);
+      gccToolChain.getAssembler().withArguments(new Action<List<String>>(){
         public void execute(        List<String> args){
           if (OperatingSystem.current().isMacOsX()) {
             args.addAll(asList("-arch","x86_64"));
