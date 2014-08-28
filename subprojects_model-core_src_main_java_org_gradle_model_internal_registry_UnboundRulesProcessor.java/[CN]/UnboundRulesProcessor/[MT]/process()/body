@@ -1,0 +1,18 @@
+{
+  List<UnboundRule> unboundRules=new ArrayList<UnboundRule>();
+  for (  RuleBinder<?> binder : binders) {
+    UnboundRule.Builder builder=UnboundRule.builder().descriptor(binder.getDescriptor());
+    if (binder.getSubjectReference() != null) {
+      ModelBinding<?> binding=binder.getSubjectBinding();
+      ModelReference<?> reference=binder.getSubjectReference();
+      builder.mutableInput(toInputBuilder(binding,reference));
+    }
+    for (int i=0; i < binder.getInputReferences().size(); ++i) {
+      ModelBinding<?> binding=binder.getInputBindings().get(i);
+      ModelReference<?> reference=binder.getInputReferences().get(i);
+      builder.immutableInput(toInputBuilder(binding,reference));
+    }
+    unboundRules.add(builder.build());
+  }
+  return unboundRules;
+}
