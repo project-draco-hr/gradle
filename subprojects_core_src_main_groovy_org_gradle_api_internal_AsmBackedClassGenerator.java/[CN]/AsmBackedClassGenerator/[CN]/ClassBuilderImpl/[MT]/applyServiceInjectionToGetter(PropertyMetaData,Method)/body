@@ -7,10 +7,11 @@
   Type returnType=Type.getType(getter.getReturnType());
   String methodDescriptor=Type.getMethodDescriptor(returnType);
   Type serviceType=Type.getType(property.getType());
+  String propFieldName=propFieldName(property);
   MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,getterName,methodDescriptor,signature(getter),new String[0]);
   methodVisitor.visitCode();
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),propFieldName(property),serviceType.getDescriptor());
+  methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),propFieldName,serviceType.getDescriptor());
   Label alreadyLoaded=new Label();
   methodVisitor.visitJumpInsn(Opcodes.IFNONNULL,alreadyLoaded);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
@@ -25,10 +26,10 @@
   methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,methodType.getInternalName(),"getGenericReturnType",Type.getMethodDescriptor(typeType));
   methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,serviceRegistryType.getInternalName(),"get",Type.getMethodDescriptor(Type.getType(Object.class),typeType));
   methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,serviceType.getInternalName());
-  methodVisitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),propFieldName(property),serviceType.getDescriptor());
+  methodVisitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),propFieldName,serviceType.getDescriptor());
   methodVisitor.visitLabel(alreadyLoaded);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),propFieldName(property),serviceType.getDescriptor());
+  methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),propFieldName,serviceType.getDescriptor());
   methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
   methodVisitor.visitMaxs(0,0);
   methodVisitor.visitEnd();
