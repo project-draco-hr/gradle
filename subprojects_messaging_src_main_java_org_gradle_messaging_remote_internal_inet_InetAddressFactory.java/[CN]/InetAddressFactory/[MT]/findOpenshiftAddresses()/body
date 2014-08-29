@@ -1,12 +1,13 @@
 {
   for (  String key : System.getenv().keySet()) {
     if (key.startsWith("OPENSHIFT_") && key.endsWith("_IP")) {
-      LOGGER.info("OPENSHIFT IP environment variable detected.");
+      String ipAddress=System.getenv(key);
+      LOGGER.debug("OPENSHIFT IP environment variable {} detected. Using IP address {}.",key,ipAddress);
       try {
-        return InetAddress.getByName(System.getenv(key));
+        return InetAddress.getByName(ipAddress);
       }
  catch (      Exception e) {
-        LOGGER.debug("Unable to use OPENSHIFT IP - invalid IP");
+        throw new RuntimeException(String.format("Unable to use OPENSHIFT IP - invalid IP address '%s' specified in environment variable %s.",ipAddress,key),e);
       }
     }
   }
