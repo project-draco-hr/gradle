@@ -1,15 +1,19 @@
 {
-  if (!pathEntries.isEmpty()) {
-    String exeName=operatingSystem.getExecutableName(name);
-    for (    File pathEntry : pathEntries) {
-      File candidate=new File(pathEntry,exeName);
-      if (candidate.isFile()) {
-        return candidate;
+  List<File> path=pathEntries.isEmpty() ? operatingSystem.getPath() : pathEntries;
+  String exeName=operatingSystem.getExecutableName(name);
+  try {
+    if (name.contains(File.separator)) {
+      return maybeResolveFile(operatingSystem,new File(name),new File(exeName));
+    }
+    for (    File pathEntry : path) {
+      File resolved=maybeResolveFile(operatingSystem,new File(pathEntry,name),new File(pathEntry,exeName));
+      if (resolved != null) {
+        return resolved;
       }
     }
-    return null;
   }
- else {
-    return operatingSystem.findInPath(name);
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
   }
+  return null;
 }

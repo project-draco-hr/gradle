@@ -1,0 +1,28 @@
+{
+  if (!symlink.isFile()) {
+    return null;
+  }
+  if (symlink.length() <= 11) {
+    return null;
+  }
+  String pathStr;
+  DataInputStream instr=new DataInputStream(new BufferedInputStream(new FileInputStream(symlink)));
+  try {
+    byte[] header=new byte[10];
+    instr.readFully(header);
+    if (!new String(header,"utf-8").equals("!<symlink>")) {
+      return null;
+    }
+    byte[] pathContent=new byte[(int)symlink.length() - 11];
+    instr.readFully(pathContent);
+    pathStr=new String(pathContent,"utf-8");
+  }
+  finally {
+    instr.close();
+  }
+  symlink=new File(symlink.getParentFile(),pathStr);
+  if (symlink.isFile()) {
+    return symlink.getCanonicalFile();
+  }
+  return null;
+}
