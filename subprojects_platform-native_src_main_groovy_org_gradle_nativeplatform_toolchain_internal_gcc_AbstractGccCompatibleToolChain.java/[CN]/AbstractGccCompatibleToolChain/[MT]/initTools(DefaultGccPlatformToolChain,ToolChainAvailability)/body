@@ -1,11 +1,24 @@
 {
-  Map<ToolType,GccCommandLineToolConfigurationInternal> allTools=platformToolChain.getTools();
   boolean found=false;
-  for (  GccCommandLineToolConfigurationInternal tool : allTools.values()) {
+  for (  GccCommandLineToolConfigurationInternal tool : platformToolChain.getCompilers()) {
+    CommandLineToolSearchResult compiler=locate(tool);
+    if (compiler.isAvailable()) {
+      GccVersionResult versionResult=getMetaDataProvider().getGccMetaData(compiler.getTool());
+      availability.mustBeAvailable(versionResult);
+      if (!versionResult.isAvailable()) {
+        return;
+      }
+      LOGGER.debug("Found {} with version {}",ToolType.C_COMPILER.getToolName(),versionResult);
+      found=true;
+      initForImplementation(platformToolChain,versionResult);
+      break;
+    }
+  }
+  for (  GccCommandLineToolConfigurationInternal tool : platformToolChain.getTools()) {
     found|=toolSearchPath.locate(tool.getToolType(),tool.getExecutable()).isAvailable();
   }
   if (!found) {
-    GccCommandLineToolConfigurationInternal cCompiler=allTools.get(ToolType.C_COMPILER);
+    GccCommandLineToolConfigurationInternal cCompiler=platformToolChain.getcCompiler();
     availability.mustBeAvailable(locate(cCompiler));
   }
 }
