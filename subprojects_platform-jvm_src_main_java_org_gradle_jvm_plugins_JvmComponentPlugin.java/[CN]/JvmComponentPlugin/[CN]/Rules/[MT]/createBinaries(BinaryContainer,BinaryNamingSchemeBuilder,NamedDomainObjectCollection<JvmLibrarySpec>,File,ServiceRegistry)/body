@@ -4,6 +4,10 @@
     for (    JavaVersion target : jvmLibrary.getTargets()) {
       BinaryNamingScheme namingScheme=namingSchemeBuilder.withComponentName(jvmLibrary.getName()).withTypeString("jar").withVariantDimension("jdk" + target).build();
       JvmPlatform platform=new DefaultJvmPlatform(target);
+      List<String> errors=platform.getErrors(toolChain);
+      if (!errors.isEmpty()) {
+        throw new PlatformSetupException(errors);
+      }
       JarBinarySpecInternal jarBinary=new DefaultJarBinarySpec(jvmLibrary,namingScheme,toolChain,platform);
       jarBinary.source(jvmLibrary.getSource());
       configureBinaryOutputLocations(jarBinary,buildDir);
