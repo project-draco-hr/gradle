@@ -1,25 +1,11 @@
 {
   JavaToolChain toolChain=serviceRegistry.get(JavaToolChain.class);
   for (  JvmLibrarySpec jvmLibrary : libraries) {
-    for (    JavaVersion target : jvmLibrary.getTargets()) {
-      BinaryNamingSchemeBuilder componentBuilder=namingSchemeBuilder.withComponentName(jvmLibrary.getName()).withTypeString("jar");
-      final BinaryNamingScheme namingScheme;
-      if (jvmLibrary.getTargets().size() <= 1) {
-        namingScheme=componentBuilder.build();
-      }
- else {
-        namingScheme=componentBuilder.withVariantDimension("jdk" + target).build();
-      }
-      JvmPlatform platform=new DefaultJvmPlatform(target);
-      List<String> errors=platform.getErrors(toolChain);
-      if (!errors.isEmpty()) {
-        throw new PlatformSetupException(errors);
-      }
-      JarBinarySpecInternal jarBinary=new DefaultJarBinarySpec(jvmLibrary,namingScheme,toolChain,platform);
-      jarBinary.source(jvmLibrary.getSource());
-      configureBinaryOutputLocations(jarBinary,buildDir);
-      jvmLibrary.getBinaries().add(jarBinary);
-      binaries.add(jarBinary);
-    }
+    BinaryNamingScheme namingScheme=namingSchemeBuilder.withComponentName(jvmLibrary.getName()).withTypeString("jar").build();
+    JarBinarySpecInternal jarBinary=new DefaultJarBinarySpec(jvmLibrary,namingScheme,toolChain);
+    jarBinary.source(jvmLibrary.getSource());
+    configureBinaryOutputLocations(jarBinary,buildDir);
+    jvmLibrary.getBinaries().add(jarBinary);
+    binaries.add(jarBinary);
   }
 }
