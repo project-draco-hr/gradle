@@ -1,17 +1,11 @@
 {
-  modelRegistry.mutate(new ModelMutator<Object>(){
-    public ModelReference<Object> getSubject(){
-      return ModelReference.untyped(modelPath);
-    }
-    public void mutate(    Object object,    Inputs inputs){
-      new ClosureBackedAction<Object>(action).execute(object);
-    }
-    public ModelRuleDescriptor getDescriptor(){
-      return new SimpleModelRuleDescriptor("model." + modelPath);
-    }
-    public List<ModelReference<?>> getInputs(){
-      return Collections.emptyList();
+  ExtractedInputs extractedInputs=action.getClass().getAnnotation(ExtractedInputs.class);
+  final List<ModelReference<?>> inputReferences=extractedInputs == null || extractedInputs.value().length == 0 ? Collections.<ModelReference<?>>emptyList() : CollectionUtils.collect(extractedInputs.value(),new Transformer<ModelReference<?>,String>(){
+    public ModelReference<?> transform(    String s){
+      ModelPath path=ModelPath.path(s);
+      return ModelReference.untyped(path);
     }
   }
 );
+  modelRegistry.mutate(new ClosureBackedModelMutator(action,inputReferences,modelPath));
 }

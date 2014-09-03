@@ -1,0 +1,23 @@
+{
+  if (inputs == null) {
+    inputs=ImmutableSet.builder();
+    try {
+      accessVariable=new VariableExpression(ACCESS_HOLDER_FIELD,ACCESS_TYPE);
+      super.visitClosureExpression(expression);
+      BlockStatement code=(BlockStatement)expression.getCode();
+      code.setNodeMetaData(AST_NODE_METADATA_KEY,inputs.build());
+      accessVariable.setClosureSharedVariable(true);
+      StaticMethodCallExpression getAccessCall=new StaticMethodCallExpression(CONTEXTUAL_INPUT_TYPE,GET_ACCESS,ArgumentListExpression.EMPTY_ARGUMENTS);
+      DeclarationExpression variableDeclaration=new DeclarationExpression(accessVariable,new Token(Types.ASSIGN,"=",-1,-1),getAccessCall);
+      code.getStatements().add(0,new ExpressionStatement(variableDeclaration));
+      code.getVariableScope().putDeclaredVariable(accessVariable);
+    }
+  finally {
+      inputs=null;
+    }
+  }
+ else {
+    expression.getVariableScope().putReferencedLocalVariable(accessVariable);
+    super.visitClosureExpression(expression);
+  }
+}

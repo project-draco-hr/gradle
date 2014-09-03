@@ -1,0 +1,19 @@
+{
+  ConstantExpression argExpression=AstUtils.hasSingleConstantStringArg(call);
+  if (argExpression == null) {
+    error(call,INVALID_ARGUMENT_LIST);
+  }
+ else {
+    String modelPath=argExpression.getText();
+    try {
+      ModelPath.validatePath(modelPath);
+    }
+ catch (    Exception e) {
+      error(argExpression,e.getMessage());
+      return;
+    }
+    inputs.add(modelPath);
+    call.setObjectExpression(new VariableExpression(accessVariable));
+    call.setMethod(new ConstantExpression(INPUT_PRIVATE_METHOD_NAME));
+  }
+}
