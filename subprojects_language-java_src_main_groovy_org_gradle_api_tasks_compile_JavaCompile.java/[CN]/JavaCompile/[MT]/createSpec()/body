@@ -6,8 +6,17 @@
   spec.setTempDir(getTemporaryDir());
   spec.setClasspath(getClasspath());
   spec.setDependencyCacheDir(getDependencyCacheDir());
-  spec.setTargetCompatibility(getTargetPlatform().getTargetCompatibility().toString());
-  spec.setSourceCompatibility(getTargetPlatform().getTargetCompatibility().toString());
+  if (platform == null) {
+    spec.setTargetCompatibility(getTargetCompatibility());
+    spec.setSourceCompatibility(getSourceCompatibility());
+  }
+ else   if (getTargetCompatibility() == null && getSourceCompatibility() == null) {
+    spec.setTargetCompatibility(platform.getTargetCompatibility().toString());
+    spec.setSourceCompatibility(platform.getTargetCompatibility().toString());
+  }
+ else {
+    throw new RuntimeException("Cannot create Java Compile spec because either platform or source and target compatibility have not been set");
+  }
   spec.setCompileOptions(compileOptions);
   return spec;
 }
