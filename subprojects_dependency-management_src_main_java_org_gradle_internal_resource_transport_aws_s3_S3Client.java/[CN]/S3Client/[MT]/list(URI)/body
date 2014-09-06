@@ -1,0 +1,13 @@
+{
+  List<String> results=new ArrayList<String>();
+  String bucketName=getBucketName(parent);
+  String s3Key=getS3BucketKey(parent);
+  ListObjectsRequest listObjectsRequest=new ListObjectsRequest().withBucketName(bucketName).withPrefix(s3Key).withDelimiter("/");
+  ObjectListing objectListing=amazonS3Client.listObjects(listObjectsRequest);
+  results.addAll(resolveResourceNames(objectListing));
+  while (objectListing.isTruncated()) {
+    objectListing=amazonS3Client.listNextBatchOfObjects(objectListing);
+    results.addAll(resolveResourceNames(objectListing));
+  }
+  return results;
+}
