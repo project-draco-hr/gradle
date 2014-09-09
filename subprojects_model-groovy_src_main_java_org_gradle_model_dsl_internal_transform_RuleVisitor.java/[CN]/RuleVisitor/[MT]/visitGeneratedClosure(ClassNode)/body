@@ -1,15 +1,13 @@
 {
-  List<MethodNode> doCallMethods=node.getDeclaredMethods("doCall");
-  for (  MethodNode method : doCallMethods) {
-    Set<String> inputs=method.getCode().getNodeMetaData(AST_NODE_METADATA_KEY);
-    if (inputs != null) {
-      AnnotationNode inputsAnnotation=new AnnotationNode(ANNOTATION_CLASS_NODE);
-      List<Expression> values=inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
-      for (      String input : inputs) {
-        values.add(new ConstantExpression(input));
-      }
-      inputsAnnotation.addMember("value",new ListExpression(values));
-      node.addAnnotation(inputsAnnotation);
+  MethodNode method=AstUtils.getGeneratedClosureImplMethod(node);
+  Set<String> inputs=method.getCode().getNodeMetaData(AST_NODE_METADATA_KEY);
+  if (inputs != null) {
+    AnnotationNode inputsAnnotation=new AnnotationNode(ANNOTATION_CLASS_NODE);
+    List<Expression> values=inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
+    for (    String input : inputs) {
+      values.add(new ConstantExpression(input));
     }
+    inputsAnnotation.addMember("value",new ListExpression(values));
+    node.addAnnotation(inputsAnnotation);
   }
 }
