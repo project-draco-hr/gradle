@@ -6,15 +6,15 @@
         effectiveExportClassLoader=parent.getExportClassLoader();
       }
  else       if (export.isEmpty()) {
-        effectiveLocalClassLoader=buildLockedLoader(parent.getExportClassLoader(),local);
+        effectiveLocalClassLoader=buildLockedLoader(local);
         effectiveExportClassLoader=parent.getExportClassLoader();
       }
  else       if (local.isEmpty()) {
-        effectiveLocalClassLoader=buildLockedLoader(parent.getExportClassLoader(),export);
+        effectiveLocalClassLoader=buildLockedLoader(export);
         effectiveExportClassLoader=effectiveLocalClassLoader;
       }
  else {
-        effectiveExportClassLoader=buildLockedLoader(parent.getExportClassLoader(),export);
+        effectiveExportClassLoader=buildLockedLoader(export);
         effectiveLocalClassLoader=buildLockedLoader(effectiveExportClassLoader,local);
       }
     }
@@ -22,9 +22,9 @@
       if (Boolean.getBoolean(STRICT_MODE_PROPERTY)) {
         throw new IllegalStateException("Attempt to define scope class loader before scope is locked");
       }
-      exportingClassLoader=buildOpenLoader(parent.getExportClassLoader(),newLinkedList(unpack(export)));
+      exportingClassLoader=buildOpenLoader(parent.getExportClassLoader(),export);
       effectiveExportClassLoader=new CachingClassLoader(exportingClassLoader);
-      localClassLoader=buildOpenLoader(effectiveExportClassLoader,newLinkedList(unpack(local)));
+      localClassLoader=buildOpenLoader(effectiveExportClassLoader,local);
       effectiveLocalClassLoader=new CachingClassLoader(localClassLoader);
     }
     export=null;
