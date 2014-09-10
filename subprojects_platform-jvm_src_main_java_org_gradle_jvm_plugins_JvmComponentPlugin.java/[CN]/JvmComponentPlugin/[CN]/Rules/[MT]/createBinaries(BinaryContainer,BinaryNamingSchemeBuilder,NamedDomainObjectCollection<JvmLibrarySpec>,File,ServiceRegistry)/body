@@ -3,13 +3,10 @@
   for (  JvmLibrarySpec jvmLibrary : libraries) {
     for (    JavaVersion target : jvmLibrary.getTargets()) {
       BinaryNamingSchemeBuilder componentBuilder=namingSchemeBuilder.withComponentName(jvmLibrary.getName()).withTypeString("jar");
-      final BinaryNamingScheme namingScheme;
-      if (jvmLibrary.getTargets().size() <= 1) {
-        namingScheme=componentBuilder.build();
+      if (jvmLibrary.getTargets().size() > 1) {
+        componentBuilder=componentBuilder.withVariantDimension("jdk" + target);
       }
- else {
-        namingScheme=componentBuilder.withVariantDimension("jdk" + target).build();
-      }
+      BinaryNamingScheme namingScheme=componentBuilder.build();
       JvmPlatform platform=new DefaultJvmPlatform(target);
       List<String> errors=platform.getErrors(toolChain);
       if (!errors.isEmpty()) {
