@@ -1,0 +1,19 @@
+{
+  if (componentType == null) {
+    throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found no parameter extending %s.",ComponentBinaries.class.getSimpleName(),ComponentSpec.class.getSimpleName(),ComponentSpec.class.getSimpleName()));
+  }
+  boolean validGivenBinaryType=false;
+  for (  Type type : componentType.getGenericInterfaces()) {
+    if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType=(ParameterizedType)type;
+      if (parameterizedType.getRawType().equals(ComponentSpec.class)) {
+        for (        Type givenBinaryType : parameterizedType.getActualTypeArguments()) {
+          validGivenBinaryType=expectedBinaryType.isAssignableFrom((Class)givenBinaryType);
+        }
+      }
+    }
+  }
+  if (!validGivenBinaryType) {
+    throw new InvalidComponentModelException(String.format("%s method parameter of type %s does not support binaries of type %s.",ComponentBinaries.class.getSimpleName(),componentType.getSimpleName(),expectedBinaryType.getSimpleName()));
+  }
+}

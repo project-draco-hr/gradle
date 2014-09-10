@@ -1,0 +1,13 @@
+{
+  ModelType<?> builder=ruleDefinition.getReferences().get(0).getType();
+  if (!ModelType.of(CollectionBuilder.class).isAssignableFrom(builder)) {
+    throw new InvalidComponentModelException(String.format("%s method must have first parameter of type '%s'.",ComponentBinaries.class.getSimpleName(),CollectionBuilder.class.getSimpleName()));
+  }
+  if (builder.getTypeVariables().size() != 1) {
+    throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter extending '%s'.",ComponentBinaries.class.getSimpleName(),BinarySpec.class.getSimpleName()));
+  }
+  ModelType<?> subType=builder.getTypeVariables().get(0);
+  if (subType.isWildcard()) {
+    throw new InvalidComponentModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).",BinarySpec.class.getName(),subType.toString()));
+  }
+}
