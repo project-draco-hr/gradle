@@ -8,6 +8,12 @@
  else   if (failure instanceof GradleConnectionException) {
     handler.onFailure((GradleConnectionException)failure);
   }
+ else   if (failure.getCause() instanceof InternalBuildCancelledException) {
+    handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure),failure.getCause().getCause()));
+  }
+ else   if (isR21CancellingException(failure)) {
+    handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure),failure.getCause()));
+  }
  else   if (failure instanceof BuildExceptionVersion1) {
     handler.onFailure(new BuildException(connectionFailureMessage(failure),failure.getCause()));
   }
