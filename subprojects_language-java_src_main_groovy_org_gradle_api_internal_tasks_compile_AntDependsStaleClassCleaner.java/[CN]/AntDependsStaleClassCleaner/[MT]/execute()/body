@@ -1,0 +1,16 @@
+{
+  ImmutableMap.Builder<String,Object> options=ImmutableMap.builder();
+  options.put("destDir",getDestinationDir());
+  options.putAll(compileOptions.getDependOptions().optionMap());
+  if (compileOptions.getDependOptions().isUseCache()) {
+    options.put("cache",dependencyCacheDir);
+  }
+  final AntBuilder ant=antBuilderFactory.create();
+  ant.getProject().addTaskDefinition("gradleDepend",AntDepend.class);
+  ant.invokeMethod("gradleDepend",new Object[]{options.build(),new Closure<Object>(this,this){
+    @SuppressWarnings("UnusedDeclaration") public void doCall(    Object ignore){
+      getSource().addToAntBuilder(ant,"src",FileCollection.AntType.MatchingTask);
+    }
+  }
+});
+}
