@@ -7,10 +7,12 @@ case Missing:
   break;
 case Resolved:
 MutableModuleComponentResolveMetaData metaData=result.getMetaData();
-ModuleSource moduleSource=result.getModuleSource();
-ModuleMetaDataCache.CachedMetaData cachedMetaData=moduleMetaDataCache.cacheMetaData(delegate,metaData,moduleSource);
+ModuleSource moduleSource=metaData.getSource();
+ModuleMetaDataCache.CachedMetaData cachedMetaData=moduleMetaDataCache.cacheMetaData(delegate,metaData);
 metadataProcessor.processMetadata(metaData);
-result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(),dependency.isChanging() || metaData.isChanging(),moduleSource));
+moduleSource=new CachingModuleSource(cachedMetaData.getDescriptorHash(),dependency.isChanging() || metaData.isChanging(),moduleSource);
+metaData.setSource(moduleSource);
+result.resolved(metaData);
 break;
 case Failed:
 break;
