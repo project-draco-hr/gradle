@@ -1,15 +1,21 @@
 {
-  if (resolveResult != null) {
-    return resolveResult;
+  if (metaData != null || failure != null) {
+    return;
   }
-  if (failure != null) {
-    return null;
+  ComponentIdResolveResult idResolveResult=firstReference.idResolveResult;
+  if (idResolveResult.getFailure() != null) {
+    failure=idResolveResult.getFailure();
+    return;
   }
-  resolveResult=idResolveResult.resolve();
-  if (resolveResult.getFailure() != null) {
-    failure=resolveResult.getFailure();
-    return null;
+  if (idResolveResult.getMetaData() != null) {
+    metaData=idResolveResult.getMetaData();
+    return;
   }
-  setResolveResult(resolveResult);
-  return resolveResult;
+  DefaultBuildableComponentResolveResult result=new DefaultBuildableComponentResolveResult();
+  resolver.resolve(firstReference.dependencyMetaData,idResolveResult.getId(),result);
+  if (result.getFailure() != null) {
+    failure=result.getFailure();
+    return;
+  }
+  metaData=result.getMetaData();
 }
