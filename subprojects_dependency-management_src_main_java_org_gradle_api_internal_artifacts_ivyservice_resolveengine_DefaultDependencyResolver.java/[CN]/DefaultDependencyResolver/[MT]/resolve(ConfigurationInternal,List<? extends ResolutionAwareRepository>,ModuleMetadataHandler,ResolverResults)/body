@@ -4,9 +4,10 @@
     public void execute(    Ivy ivy){
       RepositoryChain repositoryChain=ivyFactory.create(configuration,repositories,metadataHandler);
       DependencyToComponentResolver dependencyResolver=repositoryChain.getDependencyResolver();
-      dependencyResolver=new ClientModuleResolver(dependencyResolver,dependencyDescriptorFactory);
-      ProjectDependencyResolver projectDependencyResolver=new ProjectDependencyResolver(projectComponentRegistry,localComponentFactory,dependencyResolver);
-      dependencyResolver=projectDependencyResolver;
+      RepositoryChainAdapter adapter=new RepositoryChainAdapter(dependencyResolver,versionMatcher);
+      ClientModuleResolver clientModuleResolver=new ClientModuleResolver(adapter,dependencyDescriptorFactory);
+      ProjectDependencyResolver projectDependencyResolver=new ProjectDependencyResolver(projectComponentRegistry,localComponentFactory,adapter);
+      dependencyResolver=new ComponentResolverAdapter(projectDependencyResolver,clientModuleResolver);
       ResolutionStrategyInternal resolutionStrategy=(ResolutionStrategyInternal)configuration.getResolutionStrategy();
       DependencyToModuleVersionIdResolver idResolver=new LazyDependencyToModuleResolver(dependencyResolver,versionMatcher);
       idResolver=new VersionForcingDependencyToModuleResolver(idResolver,resolutionStrategy.getDependencyResolveRule());
