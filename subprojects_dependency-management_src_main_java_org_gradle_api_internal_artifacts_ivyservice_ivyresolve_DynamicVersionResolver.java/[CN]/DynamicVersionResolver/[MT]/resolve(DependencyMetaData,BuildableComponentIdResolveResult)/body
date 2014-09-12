@@ -1,14 +1,12 @@
 {
   ModuleVersionSelector requested=dependency.getRequested();
   LOGGER.debug("Attempting to resolve module '{}' using repositories {}",requested,repositoryNames);
-  ModuleComponentIdentifier moduleComponentIdentifier=new DefaultModuleComponentIdentifier(requested.getGroup(),requested.getName(),requested.getVersion());
-  ModuleVersionIdentifier moduleVersionIdentifier=new DefaultModuleVersionIdentifier(requested.getGroup(),requested.getName(),requested.getVersion());
   List<Throwable> errors=new ArrayList<Throwable>();
   List<RepositoryResolveState> resolveStates=new ArrayList<RepositoryResolveState>();
   for (  ModuleComponentRepository repository : repositories) {
     resolveStates.add(new RepositoryResolveState(repository));
   }
-  final RepositoryChainModuleResolution latestResolved=findLatestModule(dependency,moduleComponentIdentifier,resolveStates,errors);
+  final RepositoryChainModuleResolution latestResolved=findLatestModule(dependency,resolveStates,errors);
   if (latestResolved != null) {
     LOGGER.debug("Using module '{}' from repository '{}'",latestResolved.module.getId(),latestResolved.repository.getName());
     for (    Throwable error : errors) {
@@ -18,12 +16,12 @@
     return;
   }
   if (!errors.isEmpty()) {
-    result.failed(new ModuleVersionResolveException(moduleComponentIdentifier,errors));
+    result.failed(new ModuleVersionResolveException(requested,errors));
   }
  else {
     for (    RepositoryResolveState resolveState : resolveStates) {
       resolveState.applyTo(result);
     }
-    result.notFound(moduleVersionIdentifier);
+    result.notFound(requested);
   }
 }
