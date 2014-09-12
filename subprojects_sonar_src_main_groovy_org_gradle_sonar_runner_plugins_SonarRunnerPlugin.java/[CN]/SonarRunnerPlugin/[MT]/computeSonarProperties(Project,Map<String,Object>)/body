@@ -1,0 +1,36 @@
+{
+  SonarRunnerExtension extension=project.getExtensions().getByType(SonarRunnerExtension.class);
+  if (extension.isSkipProject()) {
+    return;
+  }
+  Map<String,Object> rawProperties=Maps.newLinkedHashMap();
+  addGradleDefaults(project,rawProperties);
+  extension.evaluateSonarPropertiesBlocks(rawProperties);
+  if (project.equals(targetProject)) {
+    addSystemProperties(rawProperties);
+  }
+  String projectPrefix=project.getPath().substring(targetProject.getPath().length()).replace(":",".");
+  if (projectPrefix.startsWith(".")) {
+    projectPrefix=projectPrefix.substring(1);
+  }
+  convertProperties(rawProperties,projectPrefix,properties);
+  List<Project> enabledChildProjects=Lists.newLinkedList(Iterables.filter(project.getChildProjects().values(),new Predicate<Project>(){
+    public boolean apply(    Project input){
+      return !input.getExtensions().getByType(SonarRunnerExtension.class).isSkipProject();
+    }
+  }
+));
+  if (enabledChildProjects.isEmpty()) {
+    return;
+  }
+  String modules=COMMA_JOINER.join(Iterables.transform(enabledChildProjects,new Function<Project,String>(){
+    public String apply(    Project input){
+      return input.getName();
+    }
+  }
+));
+  properties.put(convertKey("sonar.modules",projectPrefix),modules);
+  for (  Project childProject : enabledChildProjects) {
+    computeSonarProperties(childProject,properties);
+  }
+}
