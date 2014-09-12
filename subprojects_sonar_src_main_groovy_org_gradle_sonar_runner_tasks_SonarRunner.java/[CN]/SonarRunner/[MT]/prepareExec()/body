@@ -1,0 +1,10 @@
+{
+  Map<String,Object> properties=getSonarProperties();
+  if (LOGGER.isInfoEnabled()) {
+    LOGGER.info("Executing Sonar Runner with properties:\n[{}]",Joiner.on(", ").withKeyValueSeparator(": ").join(properties));
+  }
+  JavaExecHandleBuilder javaExec=new JavaExecHandleBuilder(getFileResolver());
+  getForkOptions().copyTo(javaExec);
+  FileCollection sonarRunnerConfiguration=getProject().getConfigurations().getAt(SonarRunnerExtension.SONAR_RUNNER_CONFIGURATION_NAME);
+  return javaExec.setClasspath(sonarRunnerConfiguration).setMain(MAIN_CLASS_NAME).systemProperties(properties);
+}
