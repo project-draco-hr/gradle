@@ -3,7 +3,7 @@
   while (!queue.isEmpty()) {
     RepositoryResolveState request=queue.removeFirst();
     try {
-      request.resolve(dependency,componentIdentifier);
+      request.resolve();
     }
  catch (    Throwable t) {
       failures.add(t);
@@ -11,19 +11,14 @@
     }
 switch (request.resolveResult.getState()) {
 case Missing:
-      if (!request.resolveResult.isAuthoritative() && request.canMakeFurtherAttempts()) {
+      if (request.canMakeFurtherAttempts()) {
         missing.add(request);
       }
     break;
-case Unknown:
-  if (request.canMakeFurtherAttempts()) {
-    queue.addFirst(request);
-  }
-break;
 case Resolved:
-RepositoryChainModuleResolution moduleResolution=new RepositoryChainModuleResolution(request.repository,request.resolveResult.getMetaData());
+  RepositoryChainModuleResolution moduleResolution=new RepositoryChainModuleResolution(request.repository,request.resolveResult.getMetaData());
 if (!moduleResolution.isGeneratedModuleDescriptor()) {
-return moduleResolution;
+  return moduleResolution;
 }
 best=chooseBest(best,moduleResolution);
 break;

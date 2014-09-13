@@ -2,12 +2,15 @@
   if (!searchedLocally) {
     searchedLocally=true;
     process(dependency,componentIdentifier,repository.getLocalAccess(),resolveResult);
+    if (resolveResult.getState() != BuildableModuleComponentMetaDataResolveResult.State.Unknown) {
+      if (resolveResult.isAuthoritative()) {
+        searchedRemotely=true;
+      }
+      return;
+    }
   }
- else {
+  if (!searchedRemotely) {
     searchedRemotely=true;
     process(dependency,componentIdentifier,repository.getRemoteAccess(),resolveResult);
-  }
-  if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Failed) {
-    throw resolveResult.getFailure();
   }
 }
