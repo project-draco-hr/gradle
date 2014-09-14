@@ -1,0 +1,18 @@
+{
+  if (source.equals(target)) {
+    throw new InvalidUserDataException(String.format("Cannot declare module replacement that replaces self: %s->%s",source,target));
+  }
+  ModuleIdentifier m=replacements.get(target);
+  if (m == null) {
+    return;
+  }
+  Set<ModuleIdentifier> visited=new LinkedHashSet<ModuleIdentifier>();
+  visited.add(source);
+  visited.add(target);
+  while (m != null) {
+    if (!visited.add(m)) {
+      throw new InvalidUserDataException(format("Cannot declare module replacement %s->%s because it introduces a cycle: %s",source,target,Joiner.on("->").join(visited) + "->" + source));
+    }
+    m=replacements.get(m);
+  }
+}
