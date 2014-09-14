@@ -2,10 +2,9 @@
   LOGGER.debug("Resolving {}",configuration);
   ivyContextManager.withIvy(new Action<Ivy>(){
     public void execute(    Ivy ivy){
-      UserResolverChain repositoryChain=ivyFactory.create(configuration,repositories,metadataHandler);
-      RepositoryChainAdapter adapter=new RepositoryChainAdapter(repositoryChain.getDynamicVersionResolver(),repositoryChain.getDependencyResolver(),versionMatcher);
-      ComponentMetaDataResolver metaDataResolver=new ClientModuleResolver(adapter,dependencyDescriptorFactory);
-      ProjectDependencyResolver projectDependencyResolver=new ProjectDependencyResolver(projectComponentRegistry,localComponentFactory,adapter);
+      RepositoryChain repositoryChain=ivyFactory.create(configuration,repositories,metadataHandler);
+      ComponentMetaDataResolver metaDataResolver=new ClientModuleResolver(repositoryChain.getComponentMetaDataResolver(),dependencyDescriptorFactory);
+      ProjectDependencyResolver projectDependencyResolver=new ProjectDependencyResolver(projectComponentRegistry,localComponentFactory,repositoryChain.getComponentIdResolver());
       ResolutionStrategyInternal resolutionStrategy=(ResolutionStrategyInternal)configuration.getResolutionStrategy();
       DependencyToComponentIdResolver idResolver=new VersionForcingDependencyToModuleResolver(projectDependencyResolver,resolutionStrategy.getDependencyResolveRule());
       ArtifactResolver artifactResolver=createArtifactResolver(repositoryChain);
