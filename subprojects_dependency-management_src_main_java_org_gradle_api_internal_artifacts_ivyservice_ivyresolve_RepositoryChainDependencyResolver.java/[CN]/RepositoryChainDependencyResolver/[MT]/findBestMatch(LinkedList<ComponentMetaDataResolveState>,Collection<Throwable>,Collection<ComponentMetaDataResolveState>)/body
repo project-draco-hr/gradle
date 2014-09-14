@@ -1,0 +1,31 @@
+{
+  RepositoryChainModuleResolution best=null;
+  while (!queue.isEmpty()) {
+    ComponentMetaDataResolveState request=queue.removeFirst();
+    BuildableModuleComponentMetaDataResolveResult metaDataResolveResult;
+    try {
+      metaDataResolveResult=request.resolve();
+    }
+ catch (    Throwable t) {
+      failures.add(t);
+      continue;
+    }
+switch (metaDataResolveResult.getState()) {
+case Missing:
+      if (request.canMakeFurtherAttempts()) {
+        missing.add(request);
+      }
+    break;
+case Resolved:
+  RepositoryChainModuleResolution moduleResolution=new RepositoryChainModuleResolution(request.repository,metaDataResolveResult.getMetaData());
+if (!metaDataResolveResult.getMetaData().isGenerated()) {
+  return moduleResolution;
+}
+best=best != null ? best : moduleResolution;
+break;
+default :
+throw new IllegalStateException("Unexpected state for resolution: " + metaDataResolveResult.getState());
+}
+}
+return best;
+}
