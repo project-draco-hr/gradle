@@ -5,29 +5,19 @@ synchronized (lock) {
       return;
     }
     cancelled=true;
-    Runnable runnable=callbacks.poll();
-    while (runnable != null) {
-      toCall.add(runnable);
-      runnable=callbacks.poll();
-    }
+    toCall.addAll(callbacks);
+    callbacks.clear();
   }
-  Exception failure=null;
+  List<Throwable> failures=new ArrayList<Throwable>();
   for (  Runnable callback : toCall) {
     try {
       callback.run();
     }
- catch (    Exception ex) {
-      if (failure != null) {
-        Throwable lastEx=ex;
-        while (lastEx.getCause() != null) {
-          lastEx=lastEx.getCause();
-        }
-        lastEx.initCause(failure);
-      }
-      failure=ex;
+ catch (    Throwable ex) {
+      failures.add(ex);
     }
   }
-  if (failure != null) {
-    throw new RuntimeException(failure);
+  if (!failures.isEmpty()) {
+    throw new DefaultMultiCauseException("Failed to run cancellation actions.",failures);
   }
 }
