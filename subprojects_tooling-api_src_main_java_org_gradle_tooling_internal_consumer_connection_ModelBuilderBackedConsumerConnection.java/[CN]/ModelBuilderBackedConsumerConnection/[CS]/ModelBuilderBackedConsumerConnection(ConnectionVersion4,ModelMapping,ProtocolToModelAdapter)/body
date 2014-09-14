@@ -1,6 +1,11 @@
 {
   super(delegate,getVersionDetails(delegate.getMetaData().getVersion()));
-  ModelProducer consumerConnectionBackedModelProducer=realModelProducer(delegate,modelMapping,adapter);
-  ModelProducer producerWithGradleBuild=new GradleBuildAdapterProducer(adapter,getVersionDetails(),modelMapping,consumerConnectionBackedModelProducer);
-  modelProducer=new BuildInvocationsAdapterProducer(adapter,getVersionDetails(),modelMapping,producerWithGradleBuild);
+  ModelProducer modelProducer=realModelProducer(delegate,modelMapping,adapter);
+  if (!getVersionDetails().maySupportModel(GradleBuild.class)) {
+    modelProducer=new GradleBuildAdapterProducer(adapter,modelProducer);
+  }
+  if (!getVersionDetails().maySupportModel(BuildInvocations.class)) {
+    modelProducer=new BuildInvocationsAdapterProducer(adapter,getVersionDetails(),modelProducer);
+  }
+  this.modelProducer=modelProducer;
 }
