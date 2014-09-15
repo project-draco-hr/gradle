@@ -1,4 +1,9 @@
 {
-  super(delegate,modelMapping,adapter,getVersionDetails(delegate.getMetaData().getVersion()));
+  super(delegate,getVersionDetails(delegate.getMetaData().getVersion()));
+  ModelProducer modelProducer=new ModelBuilderBackedModelProducer(adapter,getVersionDetails(),modelMapping,(ModelBuilder)delegate);
+  if (!getVersionDetails().maySupportModel(BuildInvocations.class)) {
+    modelProducer=new BuildInvocationsAdapterProducer(adapter,getVersionDetails(),modelProducer);
+  }
+  this.modelProducer=modelProducer;
   this.actionRunner=new InternalBuildActionExecutorBackedActionRunner((InternalBuildActionExecutor)delegate,adapter);
 }
