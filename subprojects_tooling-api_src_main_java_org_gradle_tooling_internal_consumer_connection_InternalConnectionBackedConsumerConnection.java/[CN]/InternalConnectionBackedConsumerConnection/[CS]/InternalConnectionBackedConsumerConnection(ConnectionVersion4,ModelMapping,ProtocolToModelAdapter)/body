@@ -1,6 +1,8 @@
 {
   super(delegate,new R10M8VersionDetails(delegate.getMetaData().getVersion()));
-  ModelProducer consumerConnectionBackedModelProducer=new InternalConnectionBackedModelProducer(adapter,getVersionDetails(),modelMapping,(InternalConnection)delegate);
-  ModelProducer producerWithGradleBuild=new GradleBuildAdapterProducer(adapter,consumerConnectionBackedModelProducer);
-  modelProducer=new BuildInvocationsAdapterProducer(adapter,getVersionDetails(),producerWithGradleBuild);
+  ModelProducer modelProducer=new InternalConnectionBackedModelProducer(adapter,getVersionDetails(),modelMapping,(InternalConnection)delegate);
+  modelProducer=new GradleBuildAdapterProducer(adapter,modelProducer);
+  modelProducer=new BuildInvocationsAdapterProducer(adapter,getVersionDetails(),modelProducer);
+  this.modelProducer=new BuildExecutingModelProducer(modelProducer);
+  this.actionRunner=new UnsupportedActionRunner(getVersionDetails());
 }
