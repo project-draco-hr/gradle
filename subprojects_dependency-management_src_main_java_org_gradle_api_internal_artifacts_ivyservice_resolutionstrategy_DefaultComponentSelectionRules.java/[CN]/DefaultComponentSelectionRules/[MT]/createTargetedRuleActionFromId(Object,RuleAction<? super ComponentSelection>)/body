@@ -1,0 +1,11 @@
+{
+  final NotationParser<Object,ModuleIdentifier> parser=NotationParserBuilder.toType(ModuleIdentifier.class).parser(new ModuleIdentiferNotationParser()).toComposite();
+  final ModuleIdentifier moduleIdentifier=parser.parseNotation(id);
+  for (  char c : INVALID_SPEC_CHARS) {
+    if (moduleIdentifier.getGroup().indexOf(c) != -1 || moduleIdentifier.getName().indexOf(c) != -1) {
+      throw new InvalidUserDataException(String.format(ILLEGAL_CHAR_SPEC_ERROR,c));
+    }
+  }
+  Spec<ComponentSelection> spec=new ComponentSelectionMatchingSpec(moduleIdentifier.getGroup(),moduleIdentifier.getName());
+  return new DelegatingTargetedRuleAction<ComponentSelection>(spec,ruleAction);
+}
