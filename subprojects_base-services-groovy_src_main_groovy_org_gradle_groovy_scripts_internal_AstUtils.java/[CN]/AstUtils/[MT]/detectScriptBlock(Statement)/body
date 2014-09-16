@@ -1,19 +1,12 @@
 {
-  if (!(statement instanceof ExpressionStatement)) {
+  MethodCallExpression methodCall=extractBareMethodCall(statement);
+  if (methodCall == null) {
     return null;
   }
-  ExpressionStatement expressionStatement=(ExpressionStatement)statement;
-  if (!(expressionStatement.getExpression() instanceof MethodCallExpression)) {
+  String methodName=extractConstantMethodName(methodCall);
+  if (methodName == null) {
     return null;
   }
-  MethodCallExpression methodCall=(MethodCallExpression)expressionStatement.getExpression();
-  if (!targetIsThis(methodCall)) {
-    return null;
-  }
-  if (!(methodCall.getMethod() instanceof ConstantExpression)) {
-    return null;
-  }
-  String methodName=methodCall.getMethod().getText();
   ClosureExpression closureExpression=getSingleClosureArg(methodCall);
   return closureExpression == null ? null : new ScriptBlock(methodName,closureExpression);
 }

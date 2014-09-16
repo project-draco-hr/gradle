@@ -2,7 +2,20 @@
   List<Statement> statements=source.getAST().getStatementBlock().getStatements();
   for (  Statement statement : statements) {
     ScriptBlock scriptBlock=AstUtils.detectScriptBlock(statement,SCRIPT_BLOCK_NAMES);
-    if (scriptBlock != null) {
+    if (scriptBlock == null) {
+      MethodCallExpression methodCall=AstUtils.extractBareMethodCall(statement);
+      if (methodCall == null) {
+        continue;
+      }
+      String methodName=AstUtils.extractConstantMethodName(methodCall);
+      if (methodName == null) {
+        continue;
+      }
+      if (methodName.equals(MODEL)) {
+        source.getErrorCollector().addError(new SyntaxException(NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE,statement.getLineNumber(),statement.getColumnNumber()),source);
+      }
+    }
+ else {
       RuleVisitor ruleVisitor=new RuleVisitor(source);
       RulesVisitor rulesVisitor=new RulesVisitor(source,ruleVisitor);
       scriptBlock.getClosureExpression().getCode().visit(rulesVisitor);
