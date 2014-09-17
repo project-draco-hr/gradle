@@ -1,11 +1,12 @@
 {
   final NotationParser<Object,ModuleIdentifier> parser=NotationParserBuilder.toType(ModuleIdentifier.class).parser(new ModuleIdentiferNotationParser()).toComposite();
-  final ModuleIdentifier moduleIdentifier=parser.parseNotation(id);
-  for (  char c : INVALID_SPEC_CHARS) {
-    if (moduleIdentifier.getGroup().indexOf(c) != -1 || moduleIdentifier.getName().indexOf(c) != -1) {
-      throw new InvalidUserDataException(String.format(ILLEGAL_CHAR_SPEC_ERROR,c));
-    }
+  final ModuleIdentifier moduleIdentifier;
+  try {
+    moduleIdentifier=parser.parseNotation(id);
   }
-  Spec<ComponentSelection> spec=new ComponentSelectionMatchingSpec(moduleIdentifier.getGroup(),moduleIdentifier.getName());
+ catch (  UnsupportedNotationException e) {
+    throw new InvalidUserCodeException(String.format(INVALID_SPEC_ERROR,id == null ? "null" : id.toString()),e);
+  }
+  Spec<ComponentSelection> spec=new ComponentSelectionMatchingSpec(moduleIdentifier);
   return new DelegatingTargetedRuleAction<ComponentSelection>(spec,ruleAction);
 }
