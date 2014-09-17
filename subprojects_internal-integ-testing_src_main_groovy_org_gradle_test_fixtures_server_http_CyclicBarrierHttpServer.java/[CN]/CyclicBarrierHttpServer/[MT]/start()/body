@@ -1,0 +1,69 @@
+{
+  try {
+    serverSocket=ServerSocketChannel.open();
+    serverSocket.socket().bind(new InetSocketAddress(0));
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+  executor=Executors.newCachedThreadPool();
+  executor.execute(new Runnable(){
+    public void run(){
+      while (true) {
+        try {
+          SocketChannel connection;
+          try {
+            connection=serverSocket.accept();
+          }
+ catch (          AsynchronousCloseException e) {
+            return;
+          }
+          try {
+            OutputStream outputStream=Channels.newOutputStream(connection);
+            handleConnection(outputStream);
+            outputStream.flush();
+          }
+  finally {
+            connection.close();
+          }
+        }
+ catch (        IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    private void handleConnection(    OutputStream outputStream) throws IOException {
+      System.out.println("Handling HTTP request");
+synchronized (lock) {
+        if (connected) {
+          System.out.println("Received unexpected connection.");
+          outputStream.write("HTTP/1.1 500 Received an unexpected connection.\r\nConnection: close\r\nContent-length: 0\r\n\r\n".getBytes());
+          return;
+        }
+        System.out.println("Connection received");
+        connected=true;
+        lock.notifyAll();
+        long expiry=System.currentTimeMillis() + 15000;
+        while (!released && !stopped) {
+          long delay=expiry - System.currentTimeMillis();
+          if (delay <= 0) {
+            System.out.println("Timeout waiting for client to be released.");
+            outputStream.write("HTTP/1.1 500 Timeout waiting for client to be released.\r\nConnection: close\r\nContent-length: 0\r\n\r\n".getBytes());
+            return;
+          }
+          try {
+            lock.wait(delay);
+          }
+ catch (          InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+        }
+        connected=false;
+        released=false;
+      }
+      System.out.println("Sending response to client");
+      outputStream.write("HTTP/1.1 200 Ok.\r\nConnection: close\r\nContent-length: 0\r\n\r\n".getBytes());
+    }
+  }
+);
+}
