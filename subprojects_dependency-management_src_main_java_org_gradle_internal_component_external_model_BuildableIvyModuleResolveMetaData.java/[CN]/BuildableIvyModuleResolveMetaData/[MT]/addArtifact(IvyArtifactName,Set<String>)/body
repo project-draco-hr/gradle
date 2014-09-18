@@ -1,17 +1,17 @@
 {
-  if (newArtifact.getConfigurations().isEmpty()) {
+  if (configurations.isEmpty()) {
     throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
   }
-  MDArtifact unattached=newArtifact.unattachedArtifact(module);
+  MDArtifact unattached=new MDArtifact(module,newArtifact.getName(),newArtifact.getType(),newArtifact.getExtension(),null,newArtifact.getAttributes());
   Artifact[] allArtifacts=module.getAllArtifacts();
   for (  Artifact existing : allArtifacts) {
     if (artifactsEqual(unattached,existing)) {
       if (!(existing instanceof MDArtifact)) {
         throw new IllegalArgumentException("Cannot update an existing artifact (" + existing + ") in provided module descriptor ("+ module+ ")"+ " because the artifact is not an instance of MDArtifact."+ module);
       }
-      attachArtifact((MDArtifact)existing,newArtifact.getConfigurations(),module);
+      attachArtifact((MDArtifact)existing,configurations,module);
       return;
     }
   }
-  attachArtifact(unattached,newArtifact.getConfigurations(),module);
+  attachArtifact(unattached,configurations,module);
 }
