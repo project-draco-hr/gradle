@@ -1,0 +1,23 @@
+{
+  DaemonClientInputForwarder inputForwarder=new DaemonClientInputForwarder(buildStandardInput,connection,cancellationToken,executorFactory,idGenerator);
+  try {
+    inputForwarder.start();
+    int objectsReceived=0;
+    while (true) {
+      Object object=connection.receive();
+      LOGGER.trace("Received object #{}, type: {}",objectsReceived++,object == null ? null : object.getClass().getName());
+      if (object == null) {
+        return handleDaemonDisappearance(build,diagnostics,cancellationToken);
+      }
+ else       if (object instanceof OutputEvent) {
+        outputEventListener.onOutput((OutputEvent)object);
+      }
+ else {
+        return object;
+      }
+    }
+  }
+  finally {
+    inputForwarder.stop();
+  }
+}

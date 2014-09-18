@@ -1,0 +1,41 @@
+{
+  lock.lock();
+  try {
+    if (executor != null) {
+      throw new UnsupportedOperationException("More instances of " + name + " not supported.");
+    }
+    executor=executorFactory.create(name);
+    executor.execute(new Runnable(){
+      public void run(){
+        while (true) {
+          C command;
+          lock.lock();
+          try {
+            while (!removed && queue.isEmpty()) {
+              try {
+                condition.await();
+              }
+ catch (              InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+              }
+            }
+            if (removed) {
+              return;
+            }
+            command=queue.removeFirst();
+          }
+  finally {
+            lock.unlock();
+          }
+          if (doHandleCommand(handler,command)) {
+            return;
+          }
+        }
+      }
+    }
+);
+  }
+  finally {
+    lock.unlock();
+  }
+}

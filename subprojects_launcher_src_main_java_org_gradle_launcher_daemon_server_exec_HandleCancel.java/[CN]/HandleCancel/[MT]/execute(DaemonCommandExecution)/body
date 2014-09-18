@@ -1,11 +1,20 @@
 {
-  if (execution.getCommand() instanceof Cancel) {
-    LOGGER.info("HandleCancel processing {}",execution.getCommand());
-    Object toCancel=((Cancel)execution.getCommand()).getToCancelIdentifier();
-    execution.getDaemonStateControl().cancelBuild(toCancel);
-    execution.getConnection().completed(new Success(null));
+  execution.getConnection().onCancel(new Runnable(){
+    public void run(){
+      LOGGER.info("HandleCancel processing {}",execution.getCommand());
+      execution.getDaemonStateControl().cancelBuild();
+    }
   }
- else {
-    execution.proceed();
+);
+  try {
+    try {
+      execution.proceed();
+    }
+  finally {
+      execution.getConnection().onCancel(null);
+    }
+  }
+ catch (  Exception e) {
+    throw UncheckedException.throwAsUncheckedException(e);
   }
 }

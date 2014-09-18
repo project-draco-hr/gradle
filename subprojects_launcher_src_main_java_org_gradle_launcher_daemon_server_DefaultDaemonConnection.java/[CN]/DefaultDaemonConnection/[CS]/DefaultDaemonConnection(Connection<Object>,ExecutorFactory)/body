@@ -2,6 +2,7 @@
   this.connection=connection;
   stdinQueue=new StdinQueue(executorFactory);
   disconnectQueue=new DisconnectQueue();
+  cancelQueue=new CancelQueue(executorFactory);
   receiveQueue=new ReceiveQueue();
   executor=executorFactory.create("Handler for " + connection.toString());
   executor.execute(new Runnable(){
@@ -22,18 +23,23 @@
             LOGGER.debug("Received end-of-input from client.");
             return;
           }
-          if (!(message instanceof IoCommand)) {
-            LOGGER.debug("Received non-IO message from client: {}",message);
-            receiveQueue.add(message);
-          }
- else {
+          if (message instanceof IoCommand) {
             LOGGER.debug("Received IO message from client: {}",message);
             stdinQueue.add((IoCommand)message);
+          }
+ else           if (message instanceof Cancel) {
+            LOGGER.debug("Received cancel message from client: {}",message);
+            cancelQueue.add((Cancel)message);
+          }
+ else {
+            LOGGER.debug("Received non-IO message from client: {}",message);
+            receiveQueue.add(message);
           }
         }
       }
   finally {
         stdinQueue.disconnect();
+        cancelQueue.disconnect();
         disconnectQueue.disconnect();
         receiveQueue.disconnect(failure);
       }
