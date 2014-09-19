@@ -1,13 +1,21 @@
 {
   MethodNode method=AstUtils.getGeneratedClosureImplMethod(node);
-  Set<String> inputs=method.getCode().getNodeMetaData(AST_NODE_METADATA_KEY);
-  if (inputs != null) {
-    AnnotationNode inputsAnnotation=new AnnotationNode(ANNOTATION_CLASS_NODE);
-    List<Expression> values=inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
-    for (    String input : inputs) {
-      values.add(new ConstantExpression(input));
+  Statement closureCode=method.getCode();
+  ClosureBackedRuleLocation ruleLocation=closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
+  if (ruleLocation != null) {
+    ListMultimap<String,Integer> inputs=closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
+    AnnotationNode metadataAnnotation=new AnnotationNode(ANNOTATION_CLASS_NODE);
+    List<Expression> pathValues=inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
+    List<Expression> lineNumberValues=inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
+    for (    Map.Entry<String,List<Integer>> input : Multimaps.asMap(inputs).entrySet()) {
+      pathValues.add(new ConstantExpression(input.getKey()));
+      lineNumberValues.add(new ConstantExpression(input.getValue().get(0)));
     }
-    inputsAnnotation.addMember("value",new ListExpression(values));
-    node.addAnnotation(inputsAnnotation);
+    metadataAnnotation.addMember("inputPaths",new ListExpression(pathValues));
+    metadataAnnotation.addMember("inputLineNumbers",new ListExpression(lineNumberValues));
+    metadataAnnotation.addMember("scriptSourceDescription",new ConstantExpression(ruleLocation.getScriptSourceDescription()));
+    metadataAnnotation.addMember("lineNumber",new ConstantExpression(ruleLocation.getLineNumber()));
+    metadataAnnotation.addMember("columnNumber",new ConstantExpression(ruleLocation.getColumnNumber()));
+    node.addAnnotation(metadataAnnotation);
   }
 }
