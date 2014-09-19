@@ -6,5 +6,9 @@
   JavaExecHandleBuilder javaExec=new JavaExecHandleBuilder(getFileResolver());
   getForkOptions().copyTo(javaExec);
   FileCollection sonarRunnerConfiguration=getProject().getConfigurations().getAt(SonarRunnerExtension.SONAR_RUNNER_CONFIGURATION_NAME);
-  return javaExec.setClasspath(sonarRunnerConfiguration).setMain(MAIN_CLASS_NAME).systemProperties(properties);
+  Properties propertiesObject=new Properties();
+  propertiesObject.putAll(properties);
+  File propertyFile=new File(getTemporaryDir(),"sonar-project.properties");
+  GUtil.saveProperties(propertiesObject,propertyFile);
+  return javaExec.systemProperty("project.settings",propertyFile.getAbsolutePath()).setClasspath(sonarRunnerConfiguration).setMain(MAIN_CLASS_NAME);
 }
