@@ -1,0 +1,24 @@
+{
+  List<Method> mutateMethods=JavaReflectionUtil.findAllMethods(ruleSource,new Spec<Method>(){
+    public boolean isSatisfiedBy(    Method element){
+      return element.isAnnotationPresent(Mutate.class);
+    }
+  }
+);
+  if (mutateMethods.size() != 1) {
+    throw invalid(ruleSource,"must have at exactly one method annotated with @Mutate");
+  }
+  Method ruleMethod=mutateMethods.get(0);
+  if (ruleMethod.getReturnType() != Void.TYPE) {
+    throw invalid(ruleSource,"rule method must return void");
+  }
+  MethodRuleDefinition<Void> ruleDefinition=DefaultMethodRuleDefinition.create(ruleSource,ruleMethod);
+  List<ModelReference<?>> references=ruleDefinition.getReferences();
+  if (references.size() == 0) {
+    throw invalid(ruleSource,"rule method must have at least one parameter");
+  }
+  if (!references.get(0).getType().equals(subjectType)) {
+    throw invalid(ruleSource,String.format("first parameter of rule method must be of type %s",subjectType));
+  }
+  return new RuleSourceBackedRuleAction<T>(ruleDefinition);
+}
