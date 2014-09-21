@@ -1,25 +1,14 @@
 {
-  XRef xref=new MetadataExtracter().extractMetadata(getSource());
-  List<GenerationPlan> generationPlans=new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
-  for (  GenerationPlan generationPlan : generationPlans) {
-    if (!generationPlan.isOutOfDate()) {
-      LOGGER.info("grammar [" + generationPlan.getId() + "] was up-to-date; skipping");
-      continue;
+  AntlrWorkerManager manager=new AntlrWorkerManager();
+  List<String> args=new ArrayList<String>();
+  args.add("-o");
+  args.add(outputDirectory.getAbsolutePath());
+  for (  File file : sourceDirectory.listFiles()) {
+    if (file.getName().endsWith(".g") || file.getName().endsWith(".g4")) {
+      args.add(file.getAbsolutePath());
     }
-    LOGGER.info("performing grammar generation [" + generationPlan.getId() + "]");
-    GFileUtils.mkdirs(generationPlan.getGenerationDirectory());
-    ANTLR antlr=new ANTLR();
-    antlr.setProject(getAnt().getAntProject());
-    Path antlrTaskClasspath=antlr.createClasspath();
-    for (    File dep : getAntlrClasspath()) {
-      antlrTaskClasspath.createPathElement().setLocation(dep);
-    }
-    antlr.setTrace(trace);
-    antlr.setTraceLexer(traceLexer);
-    antlr.setTraceParser(traceParser);
-    antlr.setTraceTreeWalker(traceTreeWalker);
-    antlr.setOutputdirectory(generationPlan.getGenerationDirectory());
-    antlr.setTarget(generationPlan.getSource());
-    antlr.execute();
   }
+  AntlrSpec spec=new AntlrSpec(args);
+  AntlrResult result=manager.runWorker(getProject().getProjectDir(),getWorkerProcessBuilderFactory(),antlrClasspath,spec);
+  evaluateAntlrResult(result);
 }
