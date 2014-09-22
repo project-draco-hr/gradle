@@ -1,8 +1,10 @@
 {
   final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
-  platforms.registerFactory(DefaultNativePlatform.class,new NamedDomainObjectFactory<DefaultNativePlatform>(){
-    public DefaultNativePlatform create(    String name){
-      return instantiator.newInstance(DefaultNativePlatform.class,name);
+  final NotationParser<Object,ArchitectureInternal> archParser=ArchitectureNotationParser.parser();
+  final NotationParser<Object,OperatingSystemInternal> osParser=OperatingSystemNotationParser.parser();
+  platforms.registerPlatform(new DefaultNativePlatform.Parser(archParser,osParser),new NamedDomainObjectFactory<Platform>(){
+    public Platform create(    String name){
+      return new DefaultNativePlatform(name,archParser,osParser);
     }
   }
 );
