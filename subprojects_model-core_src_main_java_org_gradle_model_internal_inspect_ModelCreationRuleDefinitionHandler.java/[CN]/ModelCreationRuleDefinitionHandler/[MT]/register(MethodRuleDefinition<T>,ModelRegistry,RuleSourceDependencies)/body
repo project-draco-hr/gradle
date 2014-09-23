@@ -9,5 +9,7 @@
   ModelType<T> returnType=ruleDefinition.getReturnType();
   ModelPath path=ModelPath.path(modelName);
   List<ModelReference<?>> references=ruleDefinition.getReferences();
-  modelRegistry.create(new MethodModelCreator<T>(returnType,path,references,ruleDefinition.getRuleInvoker(),ruleDefinition.getDescriptor()));
+  ModelRuleDescriptor descriptor=ruleDefinition.getDescriptor();
+  Transformer<T,Inputs> transformer=new ModelRuleInvokerBackedTransformer<T>(ruleDefinition.getRuleInvoker(),descriptor,references);
+  modelRegistry.create(DefaultModelCreator.forTransformer(ModelReference.of(path,returnType),descriptor,references,transformer));
 }
