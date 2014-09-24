@@ -1,37 +1,15 @@
 {
+  Instantiator instantiator=serviceRegistry.get(Instantiator.class);
   JavaToolChain toolChain=serviceRegistry.get(JavaToolChain.class);
+  Action<JarBinarySpec> configureBinaryAction=new JarBinarySpecInitializer(buildDir);
+  @SuppressWarnings("unchecked") Action<JarBinarySpec> initAction=Actions.composite(configureBinaryAction,new MarkBinariesBuildable());
+  JarBinariesFactory factory=new DefaultJarBinariesFactory(instantiator,initAction);
+  Action<JvmLibrarySpec> createBinariesAction=new JvmLibrarySpecInitializer(factory,namingSchemeBuilder,toolChain,platforms);
   for (  JvmLibrarySpec jvmLibrary : libraries) {
-    List<JvmPlatform> selectedPlatforms=platforms.select(JvmPlatform.class,jvmLibrary.getTargetPlatforms());
-    if (selectedPlatforms.size() != jvmLibrary.getTargetPlatforms().size()) {
-      List<String> notFound=new ArrayList<String>();
-      for (      String target : jvmLibrary.getTargetPlatforms()) {
-        Platform found=platforms.findByName(target);
-        if (found == null || !(found instanceof JvmPlatform)) {
-          notFound.add(target);
-        }
-      }
-      if (notFound.size() == 1) {
-        throw new InvalidUserDataException("Could not find JvmPlatform with name: '" + notFound.get(0) + "'");
-      }
- else       if (notFound.size() > 1) {
-        throw new InvalidUserDataException("Could not find JvmPlatforms with names: " + notFound);
-      }
- else {
-        throw new InvalidUserDataException("Could not determine JvmPlatforms: " + jvmLibrary.getTargetPlatforms());
-      }
+    createBinariesAction.execute(jvmLibrary);
+    for (    JvmBinarySpec jarBinarySpec : jvmLibrary.getBinaries()) {
+      toolChain.assertValidPlatform(jarBinarySpec.getTargetPlatform(),platforms);
     }
-    for (    JvmPlatform platform : selectedPlatforms) {
-      BinaryNamingSchemeBuilder componentBuilder=namingSchemeBuilder.withComponentName(jvmLibrary.getName()).withTypeString("jar");
-      if (selectedPlatforms.size() > 1) {
-        componentBuilder=componentBuilder.withVariantDimension(platform.getName());
-      }
-      BinaryNamingScheme namingScheme=componentBuilder.build();
-      toolChain.assertValidPlatform(platform,platforms);
-      JarBinarySpecInternal jarBinary=new DefaultJarBinarySpec(jvmLibrary,namingScheme,toolChain,platform);
-      jarBinary.source(jvmLibrary.getSource());
-      configureBinaryOutputLocations(jarBinary,buildDir);
-      jvmLibrary.getBinaries().add(jarBinary);
-      binaries.add(jarBinary);
-    }
+    binaries.addAll(jvmLibrary.getBinaries());
   }
 }
