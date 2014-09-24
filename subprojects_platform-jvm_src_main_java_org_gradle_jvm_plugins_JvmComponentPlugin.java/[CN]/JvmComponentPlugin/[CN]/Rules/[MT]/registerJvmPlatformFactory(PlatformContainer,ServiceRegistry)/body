@@ -1,13 +1,15 @@
 {
   final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
-  DefaultPlatformContainer defaultPlatforms=(DefaultPlatformContainer)platforms;
-  defaultPlatforms.registerFactory(JvmPlatform.class,new NamedDomainObjectFactory<JvmPlatform>(){
+  platforms.registerFactory(JvmPlatform.class,new NamedDomainObjectFactory<JvmPlatform>(){
     public JvmPlatform create(    String name){
       return new DefaultJvmPlatform(name);
     }
   }
 );
   for (  JavaVersion javaVersion : JavaVersion.values()) {
-    platforms.create(javaVersion.toString(),JvmPlatform.class);
+    String name=DefaultJvmPlatform.generateName(javaVersion);
+    platforms.create(name,JvmPlatform.class);
+    JvmPlatform platform=(JvmPlatform)platforms.findByName(name);
+    platform.setTargetCompatibility(javaVersion);
   }
 }

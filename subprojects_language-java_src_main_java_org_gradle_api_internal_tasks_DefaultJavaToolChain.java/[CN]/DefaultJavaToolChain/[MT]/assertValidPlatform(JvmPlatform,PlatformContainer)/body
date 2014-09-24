@@ -1,0 +1,19 @@
+{
+  List<JvmPlatform> alternatives=platforms.select(JvmPlatform.class);
+  alternatives.sort(new Comparator<JvmPlatform>(){
+    public int compare(    JvmPlatform p1,    JvmPlatform p2){
+      return -p1.getTargetCompatibility().compareTo(p2.getTargetCompatibility());
+    }
+  }
+);
+  if (!isCompatible(platform,getJavaVersion())) {
+    List<String> compatibleVersions=new ArrayList<String>();
+    for (    JvmPlatform alternative : alternatives) {
+      if (isCompatible(alternative,getJavaVersion())) {
+        compatibleVersions.add(alternative.getName());
+      }
+    }
+    String compatibleVersionsString=compatibleVersions.isEmpty() ? "(None)" : compatibleVersions.toString();
+    throw new IllegalArgumentException(String.format("Cannot use target JVM platform: '" + platform.getName() + "' with target compatibility '"+ platform.getTargetCompatibility()+ "' because it is too high compared to Java toolchain version '"+ getJavaVersion()+ "'. Compatible target platforms are: "+ compatibleVersionsString+ "."));
+  }
+}

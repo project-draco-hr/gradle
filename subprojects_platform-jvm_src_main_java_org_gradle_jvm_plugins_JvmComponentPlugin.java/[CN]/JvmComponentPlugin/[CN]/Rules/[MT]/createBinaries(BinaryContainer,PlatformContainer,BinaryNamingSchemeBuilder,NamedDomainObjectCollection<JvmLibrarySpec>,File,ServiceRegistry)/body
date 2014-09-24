@@ -1,0 +1,37 @@
+{
+  JavaToolChain toolChain=serviceRegistry.get(JavaToolChain.class);
+  for (  JvmLibrarySpec jvmLibrary : libraries) {
+    List<JvmPlatform> selectedPlatforms=platforms.select(JvmPlatform.class,jvmLibrary.getTargetPlatforms());
+    if (selectedPlatforms.size() != jvmLibrary.getTargetPlatforms().size()) {
+      List<String> notFound=new ArrayList<String>();
+      for (      String target : jvmLibrary.getTargetPlatforms()) {
+        Platform found=platforms.findByName(target);
+        if (found == null || !(found instanceof JvmPlatform)) {
+          notFound.add(target);
+        }
+      }
+      if (notFound.size() == 1) {
+        throw new InvalidUserDataException("Could not find JvmPlatform with name: '" + notFound.get(0) + "'");
+      }
+ else       if (notFound.size() > 1) {
+        throw new InvalidUserDataException("Could not find JvmPlatforms with names: " + notFound);
+      }
+ else {
+        throw new InvalidUserDataException("Could not determine JvmPlatforms: " + jvmLibrary.getTargetPlatforms());
+      }
+    }
+    for (    JvmPlatform platform : selectedPlatforms) {
+      BinaryNamingSchemeBuilder componentBuilder=namingSchemeBuilder.withComponentName(jvmLibrary.getName()).withTypeString("jar");
+      if (selectedPlatforms.size() > 1) {
+        componentBuilder=componentBuilder.withVariantDimension(platform.getName());
+      }
+      BinaryNamingScheme namingScheme=componentBuilder.build();
+      toolChain.assertValidPlatform(platform,platforms);
+      JarBinarySpecInternal jarBinary=new DefaultJarBinarySpec(jvmLibrary,namingScheme,toolChain,platform);
+      jarBinary.source(jvmLibrary.getSource());
+      configureBinaryOutputLocations(jarBinary,buildDir);
+      jvmLibrary.getBinaries().add(jarBinary);
+      binaries.add(jarBinary);
+    }
+  }
+}
