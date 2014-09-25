@@ -1,8 +1,19 @@
 {
-  return select(new Predicate<Platform>(){
-    public boolean apply(    Platform platform){
-      return type.isInstance(platform) && targets.contains(platform.getName());
+  if (targets.isEmpty()) {
+    List<T> typed=Lists.newArrayList(withType(type));
+    if (typed.size() == 1) {
+      return typed;
+    }
+ else     if (typed.size() > 1) {
+      return typed.subList(0,1);
+    }
+    throw new RuntimeException("No platforms is registered for type: " + type);
+  }
+  List<T> selected=new ArrayList<T>();
+  for (  Platform platform : withType(type)) {
+    if (targets.contains(platform.getName())) {
+      selected.add((T)platform);
     }
   }
-);
+  return selected;
 }
