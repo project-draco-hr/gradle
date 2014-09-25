@@ -1,8 +1,8 @@
 {
   ComponentSpecContainer componentSpecs=inputs.get(0,ModelType.of(ComponentSpecContainer.class)).getInstance();
   final List<String> binariesAddedByRule=new ArrayList<String>();
-  for (  ComponentSpec<T> componentSpec : componentSpecs.withType(componentType)) {
-    CollectionBuilder<? extends T> collectionBuilder=new ActionAwareCollectionBuilder(binaries,new Action<String>(){
+  for (  ComponentSpec<S> componentSpec : componentSpecs.withType(componentType)) {
+    CollectionBuilder<? extends S> collectionBuilder=new ActionAwareCollectionBuilder<S>(binaries,new Action<String>(){
       public void execute(      String binaryName){
         binariesAddedByRule.add(binaryName);
       }
@@ -10,7 +10,7 @@
 );
     ruleDefinition.getRuleInvoker().invoke(collectionBuilder,componentSpec);
     for (    String binaryAddedByRule : binariesAddedByRule) {
-      T binarySpec=modelRegistry.get(ModelPath.path(String.format("binaries.%s",binaryAddedByRule)),ModelType.of(binaryType));
+      S binarySpec=modelRegistry.get(ModelPath.path(String.format("binaries.%s",binaryAddedByRule)),ModelType.of(binaryType));
       componentSpec.getBinaries().add(binarySpec);
     }
   }
