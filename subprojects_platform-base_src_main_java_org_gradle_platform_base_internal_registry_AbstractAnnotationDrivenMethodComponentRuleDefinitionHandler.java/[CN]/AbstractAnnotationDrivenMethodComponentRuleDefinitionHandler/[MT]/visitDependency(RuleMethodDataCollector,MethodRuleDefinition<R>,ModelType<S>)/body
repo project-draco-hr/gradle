@@ -1,0 +1,15 @@
+{
+  List<ModelReference<?>> references=ruleDefinition.getReferences();
+  ModelType<? extends S> dependency=null;
+  for (  ModelReference<?> reference : references) {
+    ModelType<? extends S> newDependency=expectedDependency.asSubclass(reference.getType());
+    if (dependency != null) {
+      throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.",annotationType.getSimpleName(),expectedDependency.getConcreteClass().getSimpleName(),expectedDependency.getConcreteClass().getSimpleName()));
+    }
+    dependency=newDependency;
+  }
+  if (dependency == null) {
+    throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found no parameter extending %s.",annotationType.getSimpleName(),expectedDependency.getConcreteClass().getSimpleName(),expectedDependency.getConcreteClass().getSimpleName()));
+  }
+  dataCollector.parameterTypes.put(expectedDependency.getConcreteClass(),dependency.getConcreteClass());
+}
