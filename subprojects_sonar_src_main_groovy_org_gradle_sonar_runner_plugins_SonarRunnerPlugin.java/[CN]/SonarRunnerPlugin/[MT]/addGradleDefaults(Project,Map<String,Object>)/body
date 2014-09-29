@@ -24,17 +24,14 @@
       SourceSet main=javaPluginConvention.getSourceSets().getAt("main");
       properties.put("sonar.sources",nonEmptyOrNull(Iterables.filter(main.getAllSource().getSrcDirs(),FILE_EXISTS)));
       SourceSet test=javaPluginConvention.getSourceSets().getAt("test");
-      List<File> testDirectories=nonEmptyOrNull(Iterables.filter(test.getAllSource().getSrcDirs(),FILE_EXISTS));
-      properties.put("sonar.tests",testDirectories);
+      properties.put("sonar.tests",nonEmptyOrNull(Iterables.filter(test.getAllSource().getSrcDirs(),FILE_EXISTS)));
       properties.put("sonar.binaries",nonEmptyOrNull(Iterables.filter(main.getRuntimeClasspath(),IS_DIRECTORY)));
       properties.put("sonar.libraries",getLibraries(main));
       final Test testTask=(Test)project.getTasks().getByName(JavaPlugin.TEST_TASK_NAME);
-      if (testDirectories != null) {
-        File testResultsDir=testTask.getReports().getJunitXml().getDestination();
-        testResultsDir.mkdirs();
-        properties.put("sonar.surefire.reportsPath",testResultsDir);
-        properties.put("sonar.junit.reportsPath",testResultsDir);
-      }
+      File testResultsDir=testTask.getReports().getJunitXml().getDestination();
+      testResultsDir.mkdirs();
+      properties.put("sonar.surefire.reportsPath",testResultsDir);
+      properties.put("sonar.junit.reportsPath",testResultsDir);
       project.getPlugins().withType(JacocoPlugin.class,new Action<JacocoPlugin>(){
         public void execute(        JacocoPlugin jacocoPlugin){
           JacocoTaskExtension jacocoTaskExtension=testTask.getExtensions().getByType(JacocoTaskExtension.class);
