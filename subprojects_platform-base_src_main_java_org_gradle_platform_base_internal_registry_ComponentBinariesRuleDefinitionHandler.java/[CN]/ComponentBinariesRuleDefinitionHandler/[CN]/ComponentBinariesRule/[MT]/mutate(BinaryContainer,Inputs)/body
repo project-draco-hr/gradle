@@ -1,0 +1,23 @@
+{
+  ComponentSpecContainer componentSpecs=inputs.get(0,ModelType.of(ComponentSpecContainer.class)).getInstance();
+  for (  final ComponentSpec<S> componentSpec : componentSpecs.withType(componentType)) {
+    NamedEntityInstantiator<S> namedEntityInstantiator=new NamedEntityInstantiator<S>(){
+      public ModelType<S> getType(){
+        return ModelType.of(binaryType);
+      }
+      public S create(      String name){
+        S binary=binaries.create(name,binaryType);
+        componentSpec.getBinaries().add(binary);
+        return binary;
+      }
+      public <U extends S>U create(      String name,      Class<U> type){
+        U binary=binaries.create(name,type);
+        componentSpec.getBinaries().add(binary);
+        return binary;
+      }
+    }
+;
+    DefaultCollectionBuilder<S> collectionBuilder=new DefaultCollectionBuilder<S>(subject.getPath(),namedEntityInstantiator,new SimpleModelRuleDescriptor("Project.<init>.binaries()"),inputs,modelRegistry);
+    ruleDefinition.getRuleInvoker().invoke(collectionBuilder,componentSpec);
+  }
+}
