@@ -7,12 +7,19 @@
  else     if (typed.size() > 1) {
       return typed.subList(0,1);
     }
-    throw new RuntimeException("No platforms is registered for type: " + type);
+    throw new InvalidUserDataException(String.format("No platforms is registered for type: '%s'",type));
   }
   List<T> selected=new ArrayList<T>();
-  for (  Platform platform : withType(type)) {
-    if (targets.contains(platform.getName())) {
-      selected.add((T)platform);
+  for (  String target : targets) {
+    boolean targetFound=false;
+    for (    Platform platform : withType(type)) {
+      if (target.equals(platform.getName())) {
+        selected.add((T)platform);
+        targetFound=true;
+      }
+    }
+    if (!targetFound) {
+      throw new InvalidUserDataException(String.format("Invalid Platform: '%s'",target));
     }
   }
   return selected;
