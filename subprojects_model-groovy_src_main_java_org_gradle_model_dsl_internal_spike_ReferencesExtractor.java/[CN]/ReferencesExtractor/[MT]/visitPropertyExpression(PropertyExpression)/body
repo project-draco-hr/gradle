@@ -1,0 +1,14 @@
+{
+  boolean topLevel=referenceStack.isEmpty();
+  referenceStack.push(expression.getPropertyAsString());
+  expression.getObjectExpression().visit(this);
+  if (topLevel) {
+    if (referenceEncountered) {
+      String path=CollectionUtils.join(".",referenceStack);
+      referencedPaths.add(path);
+      expression.setNodeMetaData(AST_NODE_REWRITE_KEY,rewriteReferenceStatement(path));
+      referenceStack.clear();
+    }
+    referenceEncountered=false;
+  }
+}

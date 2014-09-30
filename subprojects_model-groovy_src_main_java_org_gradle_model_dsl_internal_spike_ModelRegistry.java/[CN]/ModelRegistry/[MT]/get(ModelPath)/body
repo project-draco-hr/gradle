@@ -1,5 +1,12 @@
 {
-  Object result=creators.get(path).create();
+  ModelCreator modelCreator=creators.get(path);
+  Map<String,Object> inputs=Maps.toMap(modelCreator.getInputPaths(),new Function<String,Object>(){
+    public Object apply(    String inputPath){
+      return get(ModelPath.path(inputPath));
+    }
+  }
+);
+  Object result=modelCreator.create(inputs);
   Set<ModelPath> promisedPaths=getPromisedPaths();
   for (  ModelPath modelPath : promisedPaths) {
     if (path.isDirectChild(modelPath)) {
