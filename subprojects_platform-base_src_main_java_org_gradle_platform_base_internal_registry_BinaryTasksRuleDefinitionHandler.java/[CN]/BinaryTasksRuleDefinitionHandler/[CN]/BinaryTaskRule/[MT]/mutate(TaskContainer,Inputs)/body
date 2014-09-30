@@ -3,6 +3,12 @@
   for (  BinarySpec binary : binaries.withType(binaryType)) {
     NamedEntityInstantiator<Task> instantiator=new Instantiator<Task>(binary,container);
     DefaultCollectionBuilder<Task> collectionBuilder=new DefaultCollectionBuilder<Task>(subject.getPath(),instantiator,new SimpleModelRuleDescriptor("Project.<init>.binaries()"),inputs,modelRegistry);
-    ruleDefinition.getRuleInvoker().invoke(collectionBuilder,binary);
+    Object[] args=new Object[2 + inputs.size() - 1];
+    args[0]=collectionBuilder;
+    args[1]=binary;
+    for (int i=2; i < args.length; i++) {
+      args[i]=inputs.getRuleInputs().get(i - 1).getView().getInstance();
+    }
+    ruleDefinition.getRuleInvoker().invoke(args);
   }
 }
