@@ -1,0 +1,27 @@
+{
+  NamedDomainObjectSet<T> allWithType=ts.withType(type);
+  if (names.isEmpty()) {
+    if (allWithType.size() == 1) {
+      return Lists.newArrayList(allWithType);
+    }
+ else     if (allWithType.size() > 1) {
+      return Collections.singletonList(allWithType.iterator().next());
+    }
+    throw new GradleException(String.format("No element is registered for type: '%s'",type));
+  }
+  List<T> matching=Lists.newArrayList();
+  final List<String> notFound=Lists.newArrayList(names);
+  CollectionUtils.filter(allWithType,matching,new Spec<T>(){
+    public boolean isSatisfiedBy(    T element){
+      return notFound.remove(element.getName());
+    }
+  }
+);
+  if (notFound.size() == 1) {
+    throw new InvalidUserDataException(String.format("Invalid %s: %s",type.getSimpleName(),notFound.get(0)));
+  }
+  if (notFound.size() > 1) {
+    throw new InvalidUserDataException(String.format("Invalid %ss: %s",type.getSimpleName(),notFound));
+  }
+  return matching;
+}
