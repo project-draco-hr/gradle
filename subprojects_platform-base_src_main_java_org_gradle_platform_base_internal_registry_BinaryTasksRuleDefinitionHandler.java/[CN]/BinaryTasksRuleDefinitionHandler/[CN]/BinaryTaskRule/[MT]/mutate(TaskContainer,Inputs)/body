@@ -1,23 +1,8 @@
 {
   BinaryContainer binaries=inputs.get(0,ModelType.of(BinaryContainer.class)).getInstance();
-  for (  BinarySpec binary : binaries.withType(binaryType)) {
+  for (  T binary : binaries.withType(binaryType)) {
     NamedEntityInstantiator<Task> instantiator=new Instantiator<Task>(binary,container);
-    DefaultCollectionBuilder<Task> collectionBuilder=new DefaultCollectionBuilder<Task>(subject.getPath(),instantiator,new SimpleModelRuleDescriptor("Project.<init>.binaries()"),inputs,modelRegistry);
-    Object[] args=new Object[inputs.size() + 1];
-    args[0]=collectionBuilder;
-    args[binaryParameterIndex]=binary;
-    for (    ModelRuleInput<?> modelRuleInput : inputs.getRuleInputs()) {
-      Object instance=modelRuleInput.getView().getInstance();
-      if (instance == binaries) {
-        continue;
-      }
-      for (int i=0; i < args.length; i++) {
-        if (args[i] == null) {
-          args[i]=instance;
-          break;
-        }
-      }
-    }
-    ruleDefinition.getRuleInvoker().invoke(args);
+    DefaultCollectionBuilder<Task> collectionBuilder=new DefaultCollectionBuilder<Task>(getSubject().getPath(),instantiator,new SimpleModelRuleDescriptor("Project.<init>.tasks()"),inputs,modelRegistry);
+    invoke(inputs,collectionBuilder,binary,binaries);
   }
 }
