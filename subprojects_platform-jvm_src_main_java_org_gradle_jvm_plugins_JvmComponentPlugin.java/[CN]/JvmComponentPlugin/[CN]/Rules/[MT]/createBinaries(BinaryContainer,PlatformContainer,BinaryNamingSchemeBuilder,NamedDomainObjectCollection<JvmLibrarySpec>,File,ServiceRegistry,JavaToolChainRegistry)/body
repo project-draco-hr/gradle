@@ -1,15 +1,10 @@
 {
   Instantiator instantiator=serviceRegistry.get(Instantiator.class);
-  Action<JarBinarySpec> configureBinaryAction=new JarBinarySpecInitializer(buildDir);
-  @SuppressWarnings("unchecked") Action<JarBinarySpec> initAction=Actions.composite(configureBinaryAction,new MarkBinariesBuildable());
+  Action<JarBinarySpec> initAction=Actions.composite(new JarBinarySpecInitializer(buildDir),new MarkBinariesBuildable());
   JarBinariesFactory factory=new DefaultJarBinariesFactory(instantiator,initAction);
   Action<JvmLibrarySpec> createBinariesAction=new JvmLibrarySpecInitializer(factory,namingSchemeBuilder,toolChains,platforms);
   for (  JvmLibrarySpec jvmLibrary : libraries) {
     createBinariesAction.execute(jvmLibrary);
-    for (    JvmBinarySpec jarBinarySpec : jvmLibrary.getBinaries()) {
-      JavaToolChain toolChain=jarBinarySpec.getToolChain();
-      toolChain.assertValidPlatform(jarBinarySpec.getTargetPlatform(),platforms);
-    }
     binaries.addAll(jvmLibrary.getBinaries());
   }
 }
