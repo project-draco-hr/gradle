@@ -7,8 +7,13 @@
   dependsOnTasks.addAll(finalizer.getMustSuccessors());
   dependsOnTasks.addAll(finalizer.getShouldSuccessors());
   List<Integer> dependsOnTaskIndexes=CollectionUtils.collect(dependsOnTasks,new Transformer<Integer,TaskInfo>(){
-    public Integer transform(    TaskInfo dependsOnTask){
-      return nodeQueue.indexOf(dependsOnTask);
+    public Integer transform(    final TaskInfo dependsOnTask){
+      return Iterables.indexOf(nodeQueue,new Predicate<TaskInfoInVisitingSegment>(){
+        public boolean apply(        TaskInfoInVisitingSegment taskInfoInVisitingSegment){
+          return taskInfoInVisitingSegment.taskInfo.equals(dependsOnTask);
+        }
+      }
+);
     }
   }
 );
