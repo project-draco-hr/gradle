@@ -1,15 +1,10 @@
 {
   maybeInformAboutIncubatingMode(gradle.getStartParameter());
   if (gradle.getStartParameter().isConfigureOnDemand()) {
-    gradle.getRootProject().evaluate();
+    projectConfigurer.configure(gradle.getRootProject());
   }
  else {
-    for (    Project project : gradle.getRootProject().getAllprojects()) {
-      if (cancellationToken.isCancellationRequested()) {
-        throw new BuildCancelledException();
-      }
-      ((ProjectInternal)project).evaluate();
-    }
+    projectConfigurer.configureHierarchy(gradle.getRootProject());
   }
   if (cancellationToken.isCancellationRequested()) {
     throw new BuildCancelledException();
