@@ -1,0 +1,17 @@
+{
+  this.charset=charset;
+  archiveTree=new LazilyInitializedFileTree(){
+    @Override public FileTree createDelegate(){
+      File archiveFile=fileCollection.getSingleFile();
+      String fileExtension=Files.getFileExtension(archiveFile.getName());
+      FileTree archiveContents=fileExtension.equals("jar") || fileExtension.equals("zip") ? fileOperations.zipTree(archiveFile) : fileOperations.tarTree(archiveFile);
+      PatternSet patternSet=new PatternSet();
+      patternSet.include(path);
+      return archiveContents.matching(patternSet);
+    }
+    public TaskDependency getBuildDependencies(){
+      return fileCollection.getBuildDependencies();
+    }
+  }
+;
+}
