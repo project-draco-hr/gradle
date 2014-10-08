@@ -1,35 +1,9 @@
 {
-  if (parent != null) {
-    try {
-      return parent.getTypeForId(pluginId);
+  return getTypeForId(pluginId,new Spec<Class<?>>(){
+    public boolean isSatisfiedBy(    Class<?> rawClass){
+      ModelRuleSourceDetector detector=new ModelRuleSourceDetector();
+      return Plugin.class.isAssignableFrom(rawClass) || detector.getDeclaredSources(rawClass).size() > 0;
     }
- catch (    UnknownPluginException e) {
-    }
   }
-  Class<? extends Plugin<?>> implClass=idMappings.get(pluginId);
-  if (implClass != null) {
-    return implClass;
-  }
-  ClassLoader classLoader=this.classLoaderFactory.create();
-  PluginDescriptor pluginDescriptor=findPluginDescriptor(pluginId,classLoader);
-  if (pluginDescriptor == null) {
-    throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
-  }
-  String implClassName=pluginDescriptor.getImplementationClassName();
-  if (!GUtil.isTrue(implClassName)) {
-    throw new PluginInstantiationException(String.format("No implementation class specified for plugin '%s' in %s.",pluginId,pluginDescriptor));
-  }
-  try {
-    Class<?> rawClass=classLoader.loadClass(implClassName);
-    if (!Plugin.class.isAssignableFrom(rawClass)) {
-      throw new PluginInstantiationException(String.format("Implementation class '%s' specified for plugin '%s' does not implement the Plugin interface. Specified in %s.",implClassName,pluginId,pluginDescriptor));
-    }
-    @SuppressWarnings("unchecked") Class<Plugin<?>> cast=(Class<Plugin<?>>)rawClass.asSubclass(Plugin.class);
-    implClass=cast;
-  }
- catch (  ClassNotFoundException e) {
-    throw new PluginInstantiationException(String.format("Could not find implementation class '%s' for plugin '%s' specified in %s.",implClassName,pluginId,pluginDescriptor),e);
-  }
-  idMappings.put(pluginId,implClass);
-  return implClass;
+,"Implementation class '%s' specified for plugin '%s' does not implement the Plugin interface and does not define any rule sources.");
 }
