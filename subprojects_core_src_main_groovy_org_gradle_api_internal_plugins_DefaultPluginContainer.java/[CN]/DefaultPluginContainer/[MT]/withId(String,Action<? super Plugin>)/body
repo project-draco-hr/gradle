@@ -1,4 +1,13 @@
 {
+  try {
+    Class<?> typeForId=pluginRegistry.getTypeForId(pluginId);
+    if (!Plugin.class.isAssignableFrom(typeForId) && !new ModelRuleSourceDetector().getDeclaredSources(typeForId).isEmpty()) {
+      String message=String.format("The type for id '%s' (class: '%s') is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied.",pluginId,typeForId.getName());
+      throw new IllegalArgumentException(message);
+    }
+  }
+ catch (  UnknownPluginException e) {
+  }
   matching(new Spec<Plugin>(){
     public boolean isSatisfiedBy(    Plugin element){
       try {
