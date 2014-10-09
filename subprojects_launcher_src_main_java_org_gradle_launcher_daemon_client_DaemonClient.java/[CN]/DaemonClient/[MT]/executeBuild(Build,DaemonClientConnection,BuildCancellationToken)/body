@@ -18,7 +18,12 @@
   }
   connection.dispatch(new Finished());
   if (result instanceof Failure) {
-    throw UncheckedException.throwAsUncheckedException(((Failure)result).getValue());
+    Throwable failure=((Failure)result).getValue();
+    if (failure instanceof DaemonStoppedException && cancellationToken.isCancellationRequested()) {
+      LOGGER.error("Daemon was stopped to handle build cancel request.");
+      throw new BuildCancelledException();
+    }
+    throw UncheckedException.throwAsUncheckedException(failure);
   }
  else   if (result instanceof DaemonUnavailable) {
     throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable)result).getReason());

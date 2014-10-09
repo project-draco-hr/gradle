@@ -1,0 +1,23 @@
+{
+  lock.lock();
+  try {
+    while ((state == State.Running || state == State.StopRequested) && result == null) {
+      try {
+        condition.await();
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+    if (result instanceof Throwable) {
+      throw UncheckedException.throwAsUncheckedException((Throwable)result);
+    }
+    if (result != null) {
+      return;
+    }
+    throw new DaemonStoppedException();
+  }
+  finally {
+    lock.unlock();
+  }
+}

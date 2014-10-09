@@ -1,10 +1,19 @@
 {
   ModuleVersionSelector requested=dependency.getRequested();
-  List<SpecRuleAction<? super ComponentSelection>> rules=buildRulesForSelector(requested);
+  Collection<SpecRuleAction<? super ComponentSelection>> rules=componentSelectionRules.getRules();
   for (  Versioned candidate : sortLatestFirst(versions)) {
     ModuleComponentIdentifier candidateIdentifier=DefaultModuleComponentIdentifier.newId(requested.getGroup(),requested.getName(),candidate.getVersion());
-    if (isRejectedByRules(candidateIdentifier,rules,new MetaDataSupplier(dependency,candidateIdentifier,moduleAccess))) {
+    MetaDataSupplier metaDataSupplier=new MetaDataSupplier(dependency,candidateIdentifier,moduleAccess);
+    if (!versionMatches(requested,candidateIdentifier,metaDataSupplier)) {
       continue;
+    }
+    if (isRejectedByRules(candidateIdentifier,rules,metaDataSupplier)) {
+      if (versionMatcher.matchesUniqueVersion(requested.getVersion())) {
+        break;
+      }
+ else {
+        continue;
+      }
     }
     return candidateIdentifier;
   }

@@ -1,14 +1,9 @@
 {
   GradleInternal gradle=buildController.getGradle();
   PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
-  final InternalBuildAction<?> action=(InternalBuildAction<?>)payloadSerializer.deserialize(this.action);
-  gradle.addListener(new ModelConfigurationListener(){
-    public void onConfigure(    final GradleInternal gradle){
-      ensureAllProjectsEvaluated(gradle);
-    }
-  }
-);
+  InternalBuildAction<?> action=(InternalBuildAction<?>)payloadSerializer.deserialize(this.action);
   buildController.configure();
+  gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
   InternalBuildController internalBuildController=new DefaultBuildController(gradle);
   Object model=null;
   Throwable failure=null;

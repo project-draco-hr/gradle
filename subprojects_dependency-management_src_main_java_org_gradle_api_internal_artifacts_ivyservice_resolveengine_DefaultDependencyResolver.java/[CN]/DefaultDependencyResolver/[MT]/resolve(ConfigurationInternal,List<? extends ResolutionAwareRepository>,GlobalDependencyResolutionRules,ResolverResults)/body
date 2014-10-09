@@ -1,0 +1,35 @@
+{
+  LOGGER.debug("Resolving {}",configuration);
+  ivyContextManager.withIvy(new Action<Ivy>(){
+    public void execute(    Ivy ivy){
+      RepositoryChain repositoryChain=ivyFactory.create(configuration,repositories,metadataHandler.getComponentMetadataProcessor());
+      ComponentMetaDataResolver metaDataResolver=new ClientModuleResolver(repositoryChain.getComponentMetaDataResolver(),dependencyDescriptorFactory);
+      ProjectDependencyResolver projectDependencyResolver=new ProjectDependencyResolver(projectComponentRegistry,localComponentFactory,repositoryChain.getComponentIdResolver());
+      ResolutionStrategyInternal resolutionStrategy=configuration.getResolutionStrategy();
+      DependencyToComponentIdResolver idResolver=new VersionForcingDependencyToModuleResolver(projectDependencyResolver,resolutionStrategy.getDependencyResolveRule());
+      ArtifactResolver artifactResolver=createArtifactResolver(repositoryChain);
+      ModuleConflictResolver conflictResolver;
+      if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
+        conflictResolver=new StrictConflictResolver();
+      }
+ else {
+        conflictResolver=new LatestModuleConflictResolver(latestStrategy);
+      }
+      conflictResolver=new VersionSelectionReasonResolver(conflictResolver);
+      ConflictHandler conflictHandler=new DefaultConflictHandler(conflictResolver,metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
+      DependencyGraphBuilder builder=new DependencyGraphBuilder(idResolver,metaDataResolver,projectDependencyResolver,artifactResolver,conflictHandler,new DefaultDependencyToConfigurationResolver());
+      StoreSet stores=storeFactory.createStoreSet();
+      BinaryStore newModelStore=stores.nextBinaryStore();
+      Store<ResolvedComponentResult> newModelCache=stores.oldModelStore();
+      ResolutionResultBuilder newModelBuilder=new StreamingResolutionResultBuilder(newModelStore,newModelCache);
+      BinaryStore oldModelStore=stores.nextBinaryStore();
+      Store<TransientConfigurationResults> oldModelCache=stores.newModelStore();
+      TransientConfigurationResultsBuilder oldTransientModelBuilder=new TransientConfigurationResultsBuilder(oldModelStore,oldModelCache);
+      DefaultResolvedConfigurationBuilder oldModelBuilder=new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
+      builder.resolve(configuration,newModelBuilder,oldModelBuilder);
+      DefaultLenientConfiguration result=new DefaultLenientConfiguration(configuration,oldModelBuilder,cacheLockingManager);
+      results.resolved(new DefaultResolvedConfiguration(result),newModelBuilder.complete());
+    }
+  }
+);
+}

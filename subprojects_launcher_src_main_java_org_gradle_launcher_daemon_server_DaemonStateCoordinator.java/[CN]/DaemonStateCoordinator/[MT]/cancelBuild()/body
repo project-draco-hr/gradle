@@ -1,5 +1,6 @@
 {
   long waitUntil=System.currentTimeMillis() + cancelTimeoutMs;
+  Date expiry=new Date(waitUntil);
   LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
   try {
     cancellationToken.doCancel();
@@ -17,13 +18,14 @@ case Running:
             LOGGER.info("Cancel processed: daemon is idle now.");
             return;
           }
-case Broken:
 case StopRequested:
         LOGGER.debug("Cancel processing: daemon is busy, sleeping until state changes.");
-      condition.await(500,TimeUnit.MILLISECONDS);
+      condition.awaitUntil(expiry);
     break;
+case Broken:
+  throw new IllegalStateException("This daemon is in a broken state.");
 case Stopped:
-  LOGGER.info("Cancel processing: daemon has stopped.");
+LOGGER.info("Cancel processing: daemon has stopped.");
 return;
 }
 }
