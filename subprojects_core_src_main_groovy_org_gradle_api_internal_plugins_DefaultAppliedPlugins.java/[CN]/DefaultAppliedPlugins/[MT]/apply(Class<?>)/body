@@ -1,6 +1,7 @@
 {
-  ModelRuleSourceDetector detector=new ModelRuleSourceDetector();
-  if (detector.getDeclaredSources(pluginClass).size() > 0) {
-    throw new UnsupportedOperationException(String.format("Cannot apply model rules of plugin '%s' as the target '%s' is not model rule aware",pluginClass.getName(),target));
+  if (!Plugin.class.isAssignableFrom(pluginClass)) {
+    throw new UnsupportedOperationException(String.format("'%s' does not implement the Plugin interface and only classes that implement it can be applied to '%s'",pluginClass.getName(),target));
   }
+  @SuppressWarnings("unchecked") Class<? extends Plugin<?>> pluginImplementingClass=(Class<? extends Plugin<?>>)pluginClass;
+  target.getPlugins().apply(pluginImplementingClass);
 }
