@@ -1,6 +1,8 @@
 {
-  DaemonClientInputForwarder inputForwarder=new DaemonClientInputForwarder(buildStandardInput,connection,cancellationToken,executorFactory,idGenerator);
+  DaemonClientInputForwarder inputForwarder=new DaemonClientInputForwarder(buildStandardInput,connection,executorFactory,idGenerator);
+  DaemonCancelForwarder cancelForwarder=new DaemonCancelForwarder(connection,cancellationToken,idGenerator);
   try {
+    cancelForwarder.start();
     inputForwarder.start();
     int objectsReceived=0;
     while (true) {
@@ -18,6 +20,6 @@
     }
   }
   finally {
-    inputForwarder.stop();
+    CompositeStoppable.stoppable(cancelForwarder,inputForwarder).stop();
   }
 }
