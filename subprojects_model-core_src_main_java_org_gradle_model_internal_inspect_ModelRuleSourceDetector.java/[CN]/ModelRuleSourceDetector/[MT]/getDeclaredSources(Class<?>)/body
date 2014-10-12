@@ -1,18 +1,8 @@
 {
-  if (container.isAnnotationPresent(RuleSource.class)) {
-    return ImmutableSet.<Class<?>>of(container);
+  try {
+    return declaredSourcesCache.get(container);
   }
-  Class<?>[] declaredClasses=container.getDeclaredClasses();
-  if (declaredClasses.length == 0) {
-    return Collections.emptySet();
-  }
- else {
-    ImmutableSet.Builder<Class<?>> found=ImmutableSet.builder();
-    for (    Class<?> declaredClass : declaredClasses) {
-      if (declaredClass.isAnnotationPresent(RuleSource.class)) {
-        found.add(declaredClass);
-      }
-    }
-    return found.build();
+ catch (  ExecutionException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
   }
 }
