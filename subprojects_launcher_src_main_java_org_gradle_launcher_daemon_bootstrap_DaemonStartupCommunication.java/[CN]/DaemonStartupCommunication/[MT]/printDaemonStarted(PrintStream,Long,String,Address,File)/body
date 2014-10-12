@@ -1,14 +1,25 @@
 {
   target.print(daemonGreeting());
-  target.print(DELIM);
-  target.print(pid);
-  target.print(DELIM);
-  target.print(uid);
-  target.print(DELIM);
-  MultiChoiceAddress multiChoiceAddress=(MultiChoiceAddress)address;
-  target.print(multiChoiceAddress.getPort());
-  target.print(DELIM);
-  target.print(daemonLog.getPath());
+  try {
+    OutputStream outputStream=new EncodedStream.EncodedOutput(target);
+    FlushableEncoder encoder=new OutputStreamBackedEncoder(outputStream);
+    encoder.writeNullableString(pid == null ? null : pid.toString());
+    encoder.writeString(uid);
+    MultiChoiceAddress multiChoiceAddress=(MultiChoiceAddress)address;
+    UUID canonicalAddress=(UUID)multiChoiceAddress.getCanonicalAddress();
+    encoder.writeLong(canonicalAddress.getMostSignificantBits());
+    encoder.writeLong(canonicalAddress.getLeastSignificantBits());
+    encoder.writeInt(multiChoiceAddress.getPort());
+    encoder.writeSmallInt(multiChoiceAddress.getCandidates().size());
+    for (    InetAddress inetAddress : multiChoiceAddress.getCandidates()) {
+      encoder.writeBinary(inetAddress.getAddress());
+    }
+    encoder.writeString(daemonLog.getPath());
+    encoder.flush();
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
   target.println();
   LOGGER.debug("Completed writing the daemon greeting. Closing streams...");
 }
