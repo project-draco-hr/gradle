@@ -1,19 +1,27 @@
 {
-  ConsoleDetector consoleDetector=NativeServices.getInstance().get(ConsoleDetector.class);
-  ConsoleMetaData consoleMetaData=consoleDetector.getConsole();
+  ConsoleMetaData consoleMetaData=null;
+  if (useAnsiOutput) {
+    consoleMetaData=new FallbackConsoleMetaData();
+  }
+ else {
+    ConsoleDetector consoleDetector=NativeServices.getInstance().get(ConsoleDetector.class);
+    consoleMetaData=consoleDetector.getConsole();
+  }
   if (consoleMetaData == null) {
     return;
   }
   boolean stdOutIsTerminal=consoleMetaData.isStdOut();
   boolean stdErrIsTerminal=consoleMetaData.isStdErr();
   if (stdOutIsTerminal) {
-    PrintStream outStr=new PrintStream(org.fusesource.jansi.AnsiConsole.wrapOutputStream(renderer.getOriginalStdOut()));
-    Console console=new AnsiConsole(outStr,outStr,renderer.getColourMap());
+    OutputStream originalStdOut=renderer.getOriginalStdOut();
+    PrintStream outStr=new PrintStream(useAnsiOutput ? originalStdOut : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdOut));
+    Console console=new AnsiConsole(outStr,outStr,renderer.getColourMap(),useAnsiOutput);
     renderer.addConsole(console,true,stdErrIsTerminal,consoleMetaData);
   }
  else   if (stdErrIsTerminal) {
-    PrintStream errStr=new PrintStream(org.fusesource.jansi.AnsiConsole.wrapOutputStream(renderer.getOriginalStdErr()));
-    Console console=new AnsiConsole(errStr,errStr,renderer.getColourMap());
+    OutputStream originalStdErr=renderer.getOriginalStdErr();
+    PrintStream errStr=new PrintStream(useAnsiOutput ? originalStdErr : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdErr));
+    Console console=new AnsiConsole(errStr,errStr,renderer.getColourMap(),useAnsiOutput);
     renderer.addConsole(console,false,true,consoleMetaData);
   }
 }
