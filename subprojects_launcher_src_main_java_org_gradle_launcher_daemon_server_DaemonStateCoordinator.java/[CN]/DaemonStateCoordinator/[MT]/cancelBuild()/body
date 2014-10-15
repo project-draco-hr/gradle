@@ -15,17 +15,17 @@
 switch (state) {
 case Running:
           if (isIdle()) {
-            LOGGER.info("Cancel processed: daemon is idle now.");
+            LOGGER.debug("Cancel: daemon is idle now.");
             return;
           }
 case StopRequested:
-        LOGGER.debug("Cancel processing: daemon is busy, sleeping until state changes.");
+        LOGGER.debug("Cancel: daemon is busy, sleeping until state changes.");
       condition.awaitUntil(expiry);
     break;
 case Broken:
   throw new IllegalStateException("This daemon is in a broken state.");
 case Stopped:
-LOGGER.info("Cancel processing: daemon has stopped.");
+LOGGER.debug("Cancel: daemon has stopped.");
 return;
 }
 }
@@ -33,8 +33,8 @@ return;
 throw UncheckedException.throwAsUncheckedException(e);
 }
 }
-LOGGER.info("Cancel request not processed: will force stop.");
-requestForcefulStop();
+LOGGER.debug("Cancel: daemon is still busy after grace period. Will force stop.");
+stopNow("cancel requested");
 }
   finally {
 lock.unlock();
