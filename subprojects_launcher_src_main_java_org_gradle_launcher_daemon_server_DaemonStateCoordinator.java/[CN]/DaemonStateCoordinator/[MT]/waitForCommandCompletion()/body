@@ -9,15 +9,23 @@
         throw UncheckedException.throwAsUncheckedException(e);
       }
     }
+    LOGGER.debug("Command execution: finished waiting for {}. Result {} with state {}",currentCommandExecution,result,state);
     if (result instanceof Throwable) {
       throw UncheckedException.throwAsUncheckedException((Throwable)result);
     }
     if (result != null) {
       return;
     }
-    throw new DaemonStoppedException();
-  }
+switch (state) {
+case Stopped:
+      throw new DaemonStoppedException();
+case Broken:
+    throw new DaemonUnavailableException("This daemon is broken and will stop.");
+default :
+  throw new IllegalStateException("Daemon is in unexpected state: " + state);
+}
+}
   finally {
-    lock.unlock();
-  }
+lock.unlock();
+}
 }

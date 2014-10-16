@@ -1,6 +1,12 @@
 {
   ResolvedTaskPath taskPath=taskPathResolver.resolvePath(path,project);
-  configurer.configureForPath(taskPath);
+  ProjectInternal targetProject=taskPath.getProject();
+  if (taskPath.isQualified()) {
+    configurer.configure(targetProject);
+  }
+ else {
+    configurer.configureHierarchy(targetProject);
+  }
   TaskSelectionResult tasks=taskNameResolver.selectWithName(taskPath.getTaskName(),taskPath.getProject(),!taskPath.isQualified());
   if (tasks != null) {
     return new TaskSelection(taskPath.getProject().getPath(),path,tasks);

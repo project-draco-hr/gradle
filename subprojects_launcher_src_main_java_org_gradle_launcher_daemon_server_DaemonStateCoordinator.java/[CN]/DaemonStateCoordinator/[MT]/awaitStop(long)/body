@@ -1,7 +1,7 @@
 {
   lock.lock();
   try {
-    LOGGER.debug("waiting for daemon to stop or be idle for {}ms",timeoutMs);
+    LOGGER.debug("Idle timeout: waiting for daemon to stop or be idle for {}ms",timeoutMs);
     while (true) {
       try {
 switch (state) {
@@ -11,8 +11,8 @@ case Running:
             condition.await();
           }
  else           if (hasBeenIdleFor(timeoutMs)) {
-            LOGGER.debug("Daemon has been idle for requested period.");
-            stop();
+            LOGGER.debug("Idle timeout: daemon has been idle for requested period. Stopping now.");
+            stopNow("idle timeout");
             return false;
           }
  else {
@@ -24,11 +24,11 @@ case Running:
 case Broken:
       throw new IllegalStateException("This daemon is in a broken state.");
 case StopRequested:
-    LOGGER.debug("Daemon is stopping, sleeping until state changes.");
+    LOGGER.debug("Idle timeout: daemon stop has been requested. Sleeping until state changes.");
   condition.await();
 break;
 case Stopped:
-LOGGER.debug("Daemon has stopped.");
+LOGGER.debug("Idle timeout: daemon has stopped.");
 return true;
 }
 }

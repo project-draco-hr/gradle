@@ -1,7 +1,27 @@
 {
-  String[] split=message.split(DELIM);
-  String pidString=split[1];
-  Long pid=pidString.equals("null") ? null : Long.valueOf(pidString);
-  File daemonLog=new File(split[2]);
-  return new DaemonDiagnostics(daemonLog,pid);
+  if (!message.startsWith(daemonGreeting())) {
+    throw new IllegalArgumentException(String.format("Unexpected daemon startup message: %s",message));
+  }
+  try {
+    String encoded=message.substring(daemonGreeting().length()).trim();
+    InputStream inputStream=new EncodedStream.EncodedInput(new ByteArrayInputStream(encoded.getBytes()));
+    Decoder decoder=new InputStreamBackedDecoder(inputStream);
+    String pidString=decoder.readNullableString();
+    String uid=decoder.readString();
+    Long pid=pidString == null ? null : Long.valueOf(pidString);
+    UUID canonicalAddress=new UUID(decoder.readLong(),decoder.readLong());
+    int port=decoder.readInt();
+    int addressCount=decoder.readSmallInt();
+    List<InetAddress> addresses=new ArrayList<InetAddress>(addressCount);
+    for (int i=0; i < addressCount; i++) {
+      InetAddress address=InetAddress.getByAddress(decoder.readBinary());
+      addresses.add(address);
+    }
+    Address address=new MultiChoiceAddress(canonicalAddress,port,addresses);
+    File daemonLog=new File(decoder.readString());
+    return new DaemonStartupInfo(uid,address,new DaemonDiagnostics(daemonLog,pid));
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
 }

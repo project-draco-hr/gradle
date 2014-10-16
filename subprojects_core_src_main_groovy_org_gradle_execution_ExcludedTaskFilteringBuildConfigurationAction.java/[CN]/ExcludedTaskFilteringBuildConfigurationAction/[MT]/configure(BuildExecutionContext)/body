@@ -2,16 +2,11 @@
   GradleInternal gradle=context.getGradle();
   Set<String> excludedTaskNames=gradle.getStartParameter().getExcludedTaskNames();
   if (!excludedTaskNames.isEmpty()) {
-    final Set<Task> excludedTasks=new HashSet<Task>();
+    final Set<Spec<Task>> filters=new HashSet<Spec<Task>>();
     for (    String taskName : excludedTaskNames) {
-      excludedTasks.addAll(taskSelector.getSelection(taskName).getTasks());
+      filters.add(taskSelector.getFilter(taskName));
     }
-    gradle.getTaskGraph().useFilter(new Spec<Task>(){
-      public boolean isSatisfiedBy(      Task task){
-        return !excludedTasks.contains(task);
-      }
-    }
-);
+    gradle.getTaskGraph().useFilter(Specs.and(filters));
   }
   context.proceed();
 }
