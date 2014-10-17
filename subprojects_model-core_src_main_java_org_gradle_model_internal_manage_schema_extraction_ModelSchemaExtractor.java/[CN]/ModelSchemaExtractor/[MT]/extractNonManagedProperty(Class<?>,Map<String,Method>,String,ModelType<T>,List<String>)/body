@@ -1,0 +1,22 @@
+{
+  String propertyNameCapitalized=getterName.substring(3);
+  String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
+  String setterName="set" + propertyNameCapitalized;
+  if (!methods.containsKey(setterName)) {
+    throw invalidMethod(type,getterName,"no corresponding setter for getter");
+  }
+  Method setter=methods.get(setterName);
+  handled.add(setterName);
+  if (!setter.getReturnType().equals(void.class)) {
+    throw invalidMethod(type,setterName,"setter method must have void return type");
+  }
+  Type[] setterParameterTypes=setter.getGenericParameterTypes();
+  if (setterParameterTypes.length != 1) {
+    throw invalidMethod(type,setterName,"setter method must have exactly one parameter");
+  }
+  ModelType<?> setterType=ModelType.of(setterParameterTypes[0]);
+  if (!setterType.equals(propertyType)) {
+    throw invalidMethod(type,setterName,"setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: "+ setterType+ ")");
+  }
+  return new ModelProperty<T>(propertyName,propertyType);
+}

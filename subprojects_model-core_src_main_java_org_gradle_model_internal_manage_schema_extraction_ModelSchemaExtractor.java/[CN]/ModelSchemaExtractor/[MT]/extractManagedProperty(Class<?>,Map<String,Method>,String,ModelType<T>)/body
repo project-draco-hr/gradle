@@ -1,0 +1,20 @@
+{
+  String propertyNameCapitalized=getterName.substring(3);
+  String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
+  String setterName="set" + propertyNameCapitalized;
+  if (methods.containsKey(setterName)) {
+    throw invalidMethod(type,setterName,"only getters are allowed for managed properties");
+  }
+  try {
+    final ModelSchema<T> modelSchema=store.getSchema(propertyType.getConcreteClass());
+    return new ModelProperty<T>(propertyName,propertyType,new Factory<T>(){
+      public T create(){
+        return new ManagedModelElement<T>(modelSchema).getInstance();
+      }
+    }
+);
+  }
+ catch (  InvalidManagedModelElementTypeException e) {
+    throw new InvalidManagedModelElementTypeException(type,propertyName,e);
+  }
+}
