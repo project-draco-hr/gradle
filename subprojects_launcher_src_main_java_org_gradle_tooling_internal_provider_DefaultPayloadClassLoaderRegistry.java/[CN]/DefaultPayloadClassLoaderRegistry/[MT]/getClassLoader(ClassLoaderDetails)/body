@@ -1,24 +1,3 @@
 {
-  lock.lock();
-  try {
-    ClassLoader classLoader=classLoaderIds.get(details.uuid);
-    if (classLoader != null) {
-      return classLoader;
-    }
-    List<ClassLoader> parents=new ArrayList<ClassLoader>();
-    for (    ClassLoaderDetails parentDetails : details.parents) {
-      parents.add(getClassLoader(parentDetails));
-    }
-    if (parents.isEmpty()) {
-      parents.add(classLoaderFactory.getClassLoaderFor(ClassLoaderSpec.SYSTEM_CLASS_LOADER,null));
-    }
-    LOGGER.info("Creating ClassLoader {} from {} and {}.",details.uuid,details.spec,parents);
-    classLoader=classLoaderFactory.getClassLoaderFor(details.spec,parents);
-    classLoaderIds.put(details.uuid,classLoader);
-    classLoaderDetails.put(classLoader,details);
-    return classLoader;
-  }
-  finally {
-    lock.unlock();
-  }
+  return cache.getClassLoader(details,detailsToClassLoader);
 }

@@ -1,0 +1,18 @@
+{
+  ClassLoaderSpecVisitor visitor=new ClassLoaderSpecVisitor(classLoader);
+  visitor.visit(classLoader);
+  if (visitor.spec == null) {
+    if (visitor.classPath == null) {
+      visitor.spec=ClassLoaderSpec.SYSTEM_CLASS_LOADER;
+    }
+ else {
+      visitor.spec=new MutableURLClassLoader.Spec(CollectionUtils.toList(visitor.classPath));
+    }
+  }
+  UUID uuid=UUID.randomUUID();
+  ClassLoaderDetails details=new ClassLoaderDetails(uuid,visitor.spec);
+  for (  ClassLoader parent : visitor.parents) {
+    details.parents.add(getDetails(parent));
+  }
+  return details;
+}
