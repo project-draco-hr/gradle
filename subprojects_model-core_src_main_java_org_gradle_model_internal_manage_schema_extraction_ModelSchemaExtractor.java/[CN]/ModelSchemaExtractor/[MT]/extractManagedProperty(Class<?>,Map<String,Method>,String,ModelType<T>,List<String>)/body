@@ -3,18 +3,18 @@
   String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
   String setterName="set" + propertyNameCapitalized;
   if (methods.containsKey(setterName)) {
-    throw invalidMethod(type,setterName,"only getters are allowed for managed properties");
+    validateSetter(type,propertyType,methods.get(setterName));
+    handled.add(setterName);
+    getModelSchema(type,propertyType.getConcreteClass(),propertyName);
+    return new ModelProperty<T>(propertyName,propertyType);
   }
-  try {
-    final ModelSchema<T> modelSchema=store.getSchema(propertyType.getConcreteClass());
+ else {
+    final ModelSchema<T> modelSchema=getModelSchema(type,propertyType.getConcreteClass(),propertyName);
     return new ModelProperty<T>(propertyName,propertyType,new Factory<T>(){
       public T create(){
         return new ManagedModelElement<T>(modelSchema).getInstance();
       }
     }
 );
-  }
- catch (  InvalidManagedModelElementTypeException e) {
-    throw new InvalidManagedModelElementTypeException(type,propertyName,e);
   }
 }
