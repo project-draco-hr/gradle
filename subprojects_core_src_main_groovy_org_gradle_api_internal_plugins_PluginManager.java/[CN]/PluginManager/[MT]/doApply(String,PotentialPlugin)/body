@@ -1,0 +1,20 @@
+{
+  if (potentialPlugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
+    throw new IllegalArgumentException("'" + potentialPlugin.asClass().getName() + "' is neither a plugin or a rule source and cannot be applied.");
+  }
+ else   if (!isApplied(potentialPlugin.asClass())) {
+    Class<? extends Plugin<?>> asImperativeClass=potentialPlugin.asImperativeClass();
+    if (asImperativeClass == null) {
+      applicator.applyRules(pluginId,potentialPlugin.asClass());
+      plugins.add(new AppliedPluginImpl(pluginId,potentialPlugin.asClass()));
+    }
+ else {
+      if (pluginId == null) {
+        pluginContainer.apply(asImperativeClass);
+      }
+ else {
+        pluginContainer.apply(pluginId);
+      }
+    }
+  }
+}

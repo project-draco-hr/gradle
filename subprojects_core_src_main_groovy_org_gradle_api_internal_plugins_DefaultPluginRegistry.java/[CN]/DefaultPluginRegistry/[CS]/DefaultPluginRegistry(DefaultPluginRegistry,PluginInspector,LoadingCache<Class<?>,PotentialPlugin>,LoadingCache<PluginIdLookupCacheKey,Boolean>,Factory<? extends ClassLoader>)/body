@@ -1,0 +1,34 @@
+{
+  this.parent=parent;
+  this.pluginInspector=pluginInspector;
+  this.classMappings=classMappings;
+  this.pluginClassIdCache=pluginClassIdCache;
+  this.idMappings=CacheBuilder.newBuilder().build(new CacheLoader<String,Optional<PotentialPlugin>>(){
+    @Override public Optional<PotentialPlugin> load(    @SuppressWarnings("NullableProblems") String pluginId) throws Exception {
+      ClassLoader classLoader=classLoaderFactory.create();
+      PluginDescriptor pluginDescriptor=findPluginDescriptor(pluginId,classLoader);
+      if (pluginDescriptor == null) {
+        return Optional.absent();
+      }
+      String implClassName=pluginDescriptor.getImplementationClassName();
+      if (!GUtil.isTrue(implClassName)) {
+        throw new PluginInstantiationException(String.format("No implementation class specified for plugin '%s' in %s.",pluginId,pluginDescriptor));
+      }
+      Class<?> implClass;
+      try {
+        implClass=classLoader.loadClass(implClassName);
+      }
+ catch (      ClassNotFoundException e) {
+        throw new InvalidPluginException(String.format("Could not find implementation class '%s' for plugin '%s' specified in %s.",implClassName,pluginId,pluginDescriptor),e);
+      }
+      PotentialPlugin potentialPlugin=inspect(implClass);
+      if (potentialPlugin == null) {
+        throw new InvalidPluginException("Implementation class " + implClassName + " for plugin with id '"+ pluginId+ "' is not a valid plugin implementation.");
+      }
+ else {
+        return Optional.of(potentialPlugin);
+      }
+    }
+  }
+);
+}

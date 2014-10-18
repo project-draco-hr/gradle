@@ -1,0 +1,18 @@
+{
+  this.applicator=applicator;
+  this.pluginRegistry=pluginRegistry;
+  this.pluginContainer=new DefaultPluginContainer(pluginRegistry,instantiator,new PluginApplicator(){
+    public void applyImperative(    @Nullable String pluginId,    Plugin<?> plugin){
+      applicator.applyImperative(pluginId,plugin);
+      plugins.add(new AppliedPluginImpl(pluginId,plugin.getClass()));
+    }
+    public void applyRules(    @Nullable String pluginId,    Class<?> clazz){
+      throw new UnsupportedOperationException();
+    }
+    public void applyImperativeRulesHybrid(    @Nullable String pluginId,    Plugin<?> plugin){
+      applyImperative(pluginId,plugin);
+      applicator.applyRules(pluginId,plugin.getClass());
+    }
+  }
+);
+}
