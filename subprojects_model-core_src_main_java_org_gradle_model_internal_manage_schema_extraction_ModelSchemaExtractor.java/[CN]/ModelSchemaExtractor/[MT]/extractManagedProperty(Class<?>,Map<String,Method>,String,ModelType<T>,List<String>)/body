@@ -6,13 +6,14 @@
     validateSetter(type,propertyType,methods.get(setterName));
     handled.add(setterName);
     getModelSchema(type,propertyType.getConcreteClass(),propertyName);
-    return new ModelProperty<T>(propertyName,propertyType);
+    return new ModelProperty<T>(propertyName,propertyType,true);
   }
  else {
     final ModelSchema<T> modelSchema=getModelSchema(type,propertyType.getConcreteClass(),propertyName);
-    return new ModelProperty<T>(propertyName,propertyType,new Factory<T>(){
+    return new ModelProperty<T>(propertyName,propertyType,true,new Factory<T>(){
       public T create(){
-        return new ManagedModelElement<T>(modelSchema).getInstance();
+        ManagedModelElement<T> managedModelElement=new ManagedModelElement<T>(modelSchema);
+        return managedElementFactory.create(managedModelElement);
       }
     }
 );
