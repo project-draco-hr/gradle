@@ -4,7 +4,27 @@
     if (parents.size() != 1) {
       throw new IllegalStateException("Expected exactly one parent ClassLoader");
     }
-    return new MutableURLClassLoader(parents.get(0),urlSpec);
+    List<URL> cachedClassPath=new ArrayList<URL>(urlSpec.getClasspath().size());
+    for (    URL url : urlSpec.getClasspath()) {
+      if (url.getProtocol().equals("file")) {
+        try {
+          File file=new File(url.toURI());
+          if (file.isFile()) {
+            file=jarCache.getCachedJar(file,Factories.constant(cache.getBaseDir()));
+            cachedClassPath.add(file.toURI().toURL());
+            continue;
+          }
+        }
+ catch (        MalformedURLException e) {
+          throw UncheckedException.throwAsUncheckedException(e);
+        }
+catch (        URISyntaxException e) {
+          throw UncheckedException.throwAsUncheckedException(e);
+        }
+      }
+      cachedClassPath.add(url);
+    }
+    return new MutableURLClassLoader(parents.get(0),cachedClassPath);
   }
   return delegate.getClassLoaderFor(spec,parents);
 }
