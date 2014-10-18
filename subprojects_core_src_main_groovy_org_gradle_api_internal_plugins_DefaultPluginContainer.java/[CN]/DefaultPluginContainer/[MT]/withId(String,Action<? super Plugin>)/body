@@ -1,8 +1,9 @@
 {
   try {
-    Class<?> typeForId=pluginRegistry.getTypeForId(pluginId);
-    if (!Plugin.class.isAssignableFrom(typeForId) && modelRuleSourceDetector.hasModelSources(typeForId)) {
-      String message=String.format("The type for id '%s' (class: '%s') is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied.",pluginId,typeForId.getName());
+    PotentialPlugin potentialPlugin=pluginRegistry.lookup(pluginId);
+    Class<? extends Plugin<?>> pluginClass=potentialPlugin.asImperativeClass();
+    if (pluginClass == null) {
+      String message=String.format("The type for id '%s' (class: '%s') is not a plugin implementing the Plugin interface. Please use AppliedPlugins.withPlugin() instead to detect it.",pluginId,potentialPlugin.asClass().getName());
       throw new IllegalArgumentException(message);
     }
   }
@@ -10,12 +11,7 @@
   }
   matching(new Spec<Plugin>(){
     public boolean isSatisfiedBy(    Plugin element){
-      try {
-        return idLookupCache.get(new PluginIdLookupCacheKey(element.getClass(),pluginId));
-      }
- catch (      ExecutionException e) {
-        throw UncheckedException.throwAsUncheckedException(e);
-      }
+      return pluginRegistry.hasId(element.getClass(),pluginId);
     }
   }
 ).all(action);
