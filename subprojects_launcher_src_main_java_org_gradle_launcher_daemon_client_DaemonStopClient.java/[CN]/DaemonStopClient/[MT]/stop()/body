@@ -10,8 +10,9 @@
   LOGGER.lifecycle("Stopping daemon(s).");
   while (connection != null && System.currentTimeMillis() < expiry) {
     try {
-      if (stopped.add(connection.getUid())) {
-        new StopDispatcher(idGenerator).dispatch(connection);
+      if (stopped.add(connection.getDaemon().getUid())) {
+        LOGGER.debug("Requesting daemon {} stop now",connection.getDaemon());
+        stopDispatcher.dispatch(connection,new Stop(idGenerator.generateId()));
         LOGGER.lifecycle("Gradle daemon stopped.");
       }
     }
