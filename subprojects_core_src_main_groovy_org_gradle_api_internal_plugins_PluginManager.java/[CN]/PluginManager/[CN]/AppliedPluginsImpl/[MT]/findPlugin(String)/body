@@ -1,8 +1,17 @@
 {
-  for (  AppliedPluginImpl plugin : plugins) {
-    if (plugin.getId() != null && plugin.getId().equals(id)) {
-      return plugin;
+  for (  PluginWithId plugin : pluginsWithIds) {
+    if (plugin.id.equals(id)) {
+      return plugin.asAppliedPlugin();
     }
   }
+  for (  Class<?> noIdPlugin : noIdPlugins) {
+    if (pluginRegistry.hasId(noIdPlugin,id)) {
+      PluginWithId pluginWithId=new PluginWithId(id,noIdPlugin);
+      pluginsWithIds.add(pluginWithId);
+      noIdPlugins.remove(noIdPlugin);
+      return pluginWithId.asAppliedPlugin();
+    }
+  }
+  unclaimedIds.add(id);
   return null;
 }
