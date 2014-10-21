@@ -1,0 +1,22 @@
+{
+  List<Action<? super JarBinarySpec>> actions=Lists.newArrayList();
+  actions.add(new JarBinarySpecInitializer(buildDir));
+  actions.add(new MarkBinariesBuildable());
+  final Action<JarBinarySpec> initAction=Actions.composite(actions);
+  List<String> targetPlatforms=jvmLibrary.getTargetPlatforms();
+  List<JavaPlatform> selectedPlatforms=platforms.chooseFromTargets(JavaPlatform.class,targetPlatforms,new DefaultJavaPlatform(JavaVersion.current()),DEFAULT_PLATFORMS);
+  for (  final JavaPlatform platform : selectedPlatforms) {
+    final JavaToolChain toolChain=toolChains.getForPlatform(platform);
+    String binaryName=createBinaryName(jvmLibrary,namingSchemeBuilder,selectedPlatforms,platform);
+    binaries.create(binaryName,new Action<JarBinarySpec>(){
+      public void execute(      JarBinarySpec jarBinary){
+        ((JarBinarySpecInternal)jarBinary).setBaseName(jvmLibrary.getName());
+        jarBinary.source(jvmLibrary.getSource());
+        jarBinary.setToolChain(toolChain);
+        jarBinary.setTargetPlatform(platform);
+        initAction.execute(jarBinary);
+      }
+    }
+);
+  }
+}
