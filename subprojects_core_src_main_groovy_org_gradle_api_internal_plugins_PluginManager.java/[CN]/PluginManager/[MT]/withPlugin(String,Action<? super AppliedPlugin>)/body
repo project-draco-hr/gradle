@@ -2,7 +2,11 @@
   findPlugin(id);
   pluginsWithIds.matching(new Spec<PluginWithId>(){
     public boolean isSatisfiedBy(    PluginWithId element){
-      return element.id.equals(id);
+      PotentialPluginWithId lookup=pluginRegistry.lookup(id);
+      if (lookup == null || !lookup.asClass().equals(element.clazz)) {
+        lookup=pluginRegistry.lookup(id,element.clazz.getClassLoader());
+      }
+      return lookup != null && lookup.asClass().equals(element.clazz);
     }
   }
 ).all(new Action<PluginWithId>(){

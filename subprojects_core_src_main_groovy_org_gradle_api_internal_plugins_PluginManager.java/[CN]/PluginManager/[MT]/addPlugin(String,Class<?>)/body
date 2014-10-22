@@ -2,13 +2,18 @@
   allPlugins.add(pluginClass);
   if (pluginId == null) {
     for (    String unclaimedId : unclaimedIds) {
-      if (pluginRegistry.hasId(pluginClass,unclaimedId)) {
+      PotentialPluginWithId potentialPluginWithId=pluginRegistry.lookup(unclaimedId);
+      if (potentialPluginWithId == null || !potentialPluginWithId.asClass().equals(pluginClass)) {
+        potentialPluginWithId=pluginRegistry.lookup(unclaimedId,pluginClass.getClassLoader());
+      }
+      if (potentialPluginWithId != null && potentialPluginWithId.asClass().equals(pluginClass)) {
         addPlugin(unclaimedId,pluginClass);
         return;
       }
     }
     for (    PluginWithId pluginWithId : pluginsWithIds) {
-      if (pluginRegistry.hasId(pluginClass,pluginWithId.id)) {
+      PotentialPluginWithId lookup=pluginRegistry.lookup(pluginWithId.id,pluginClass.getClassLoader());
+      if (lookup != null && lookup.asClass().equals(pluginClass)) {
         addPlugin(pluginWithId.id,pluginClass);
         return;
       }

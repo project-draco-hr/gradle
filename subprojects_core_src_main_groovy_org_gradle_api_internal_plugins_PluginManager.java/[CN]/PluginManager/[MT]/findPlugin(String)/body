@@ -1,12 +1,20 @@
 {
   for (  PluginWithId plugin : pluginsWithIds) {
-    if (plugin.id.equals(id)) {
+    PotentialPluginWithId potentialPluginWithId=pluginRegistry.lookup(id);
+    if (potentialPluginWithId == null) {
+      potentialPluginWithId=pluginRegistry.lookup(id,plugin.clazz.getClassLoader());
+    }
+    if (potentialPluginWithId != null && potentialPluginWithId.asClass().equals(plugin.clazz)) {
       return plugin.asAppliedPlugin();
     }
   }
   for (  Class<?> noIdPlugin : noIdPlugins) {
-    if (pluginRegistry.hasId(noIdPlugin,id)) {
-      PluginWithId pluginWithId=new PluginWithId(id,noIdPlugin);
+    PotentialPluginWithId potentialPluginWithId=pluginRegistry.lookup(id);
+    if (potentialPluginWithId == null) {
+      potentialPluginWithId=pluginRegistry.lookup(id,noIdPlugin.getClassLoader());
+    }
+    if (potentialPluginWithId != null && potentialPluginWithId.asClass().equals(noIdPlugin)) {
+      PluginWithId pluginWithId=new PluginWithId(potentialPluginWithId.getPluginId().toString(),noIdPlugin);
       pluginsWithIds.add(pluginWithId);
       noIdPlugins.remove(noIdPlugin);
       return pluginWithId.asAppliedPlugin();

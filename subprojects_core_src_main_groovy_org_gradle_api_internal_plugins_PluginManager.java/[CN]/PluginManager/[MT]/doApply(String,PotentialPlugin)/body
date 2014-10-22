@@ -4,18 +4,23 @@
     throw new IllegalArgumentException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
   }
  else   if (!isApplied(pluginClass)) {
-    Class<? extends Plugin<?>> asImperativeClass=potentialPlugin.asImperativeClass();
+    final Class<? extends Plugin<?>> asImperativeClass=potentialPlugin.asImperativeClass();
     if (asImperativeClass == null) {
       applicator.applyRules(pluginId,pluginClass);
       addPlugin(pluginId,pluginClass);
     }
  else {
-      if (pluginId == null) {
-        pluginContainer.doApply(asImperativeClass);
-      }
+      SingleMessageLogger.whileDisabled(new Runnable(){
+        public void run(){
+          if (pluginId == null) {
+            pluginContainer.apply(asImperativeClass);
+          }
  else {
-        pluginContainer.doApply(pluginId);
+            pluginContainer.apply(pluginId);
+          }
+        }
       }
+);
     }
   }
 }

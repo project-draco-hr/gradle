@@ -1,9 +1,16 @@
 {
-  Optional<PotentialPlugin> potentialPlugin=find(pluginId);
-  if (potentialPlugin.isPresent()) {
-    return potentialPlugin.get();
+  PotentialPluginWithId lookup;
+  if (parent != null) {
+    lookup=parent.lookup(idOrName);
+    if (lookup == null) {
+      String qualified=maybeQualify(idOrName);
+      if (qualified != null) {
+        lookup=lookup(qualified);
+      }
+    }
+    if (lookup != null) {
+      return lookup;
+    }
   }
- else {
-    throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
-  }
+  return lookup(idOrName,classLoaderFactory.create());
 }
