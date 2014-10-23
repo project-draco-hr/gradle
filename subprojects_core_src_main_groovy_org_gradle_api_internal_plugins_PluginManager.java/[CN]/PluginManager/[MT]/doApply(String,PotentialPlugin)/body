@@ -1,26 +1,35 @@
 {
   Class<?> pluginClass=potentialPlugin.asClass();
-  if (potentialPlugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
-    throw new IllegalArgumentException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
-  }
- else   if (!isApplied(pluginClass)) {
-    final Class<? extends Plugin<?>> asImperativeClass=potentialPlugin.asImperativeClass();
-    if (asImperativeClass == null) {
-      applicator.applyRules(pluginId,pluginClass);
-      addPlugin(pluginId,pluginClass);
+  try {
+    if (potentialPlugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
+      throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
     }
  else {
-      SingleMessageLogger.whileDisabled(new Runnable(){
-        public void run(){
-          if (pluginId == null) {
-            pluginContainer.apply(asImperativeClass);
-          }
- else {
-            pluginContainer.apply(pluginId);
-          }
+      final Class<? extends Plugin<?>> asImperativeClass=potentialPlugin.asImperativeClass();
+      if (asImperativeClass == null) {
+        if (addPluginDirect(pluginClass)) {
+          applicator.applyRules(pluginId,pluginClass);
         }
       }
+ else {
+        SingleMessageLogger.whileDisabled(new Runnable(){
+          public void run(){
+            if (pluginId == null) {
+              pluginContainer.apply(asImperativeClass);
+            }
+ else {
+              pluginContainer.apply(pluginId);
+            }
+          }
+        }
 );
+      }
     }
+  }
+ catch (  PluginApplicationException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new PluginApplicationException(pluginId == null ? "class '" + pluginClass.getName() + "'" : "id '" + pluginId + "'",e);
   }
 }

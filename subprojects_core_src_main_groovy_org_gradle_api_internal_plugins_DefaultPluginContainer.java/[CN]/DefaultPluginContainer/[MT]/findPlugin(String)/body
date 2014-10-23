@@ -1,13 +1,14 @@
 {
-  PotentialPluginWithId potentialPlugin=pluginRegistry.lookup(id);
-  if (potentialPlugin == null) {
-    return null;
+  String qualified=PluginManager.maybeQualify(id);
+  if (qualified != null) {
+    Plugin plugin=doFindPlugin(qualified);
+    if (plugin != null) {
+      return plugin;
+    }
   }
-  Class<? extends Plugin<?>> pluginClass=potentialPlugin.asImperativeClass();
-  if (pluginClass == null) {
-    throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
+  Plugin plugin=doFindPlugin(id);
+  if (plugin != null) {
+    return plugin;
   }
- else {
-    return findPlugin(potentialPlugin.asImperativeClass());
-  }
+  return null;
 }

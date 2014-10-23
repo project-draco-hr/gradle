@@ -1,17 +1,19 @@
 {
   this.applicator=applicator;
   this.pluginRegistry=pluginRegistry;
-  this.pluginContainer=new DefaultPluginContainer(pluginRegistry,instantiator,new PluginApplicator(){
+  this.pluginContainer=new DefaultPluginContainer(pluginRegistry,this,instantiator,new PluginApplicator(){
     public void applyImperative(    @Nullable String pluginId,    Plugin<?> plugin){
-      applicator.applyImperative(pluginId,plugin);
-      addPlugin(pluginId,plugin.getClass());
+      if (addPluginDirect(plugin.getClass())) {
+        applicator.applyImperative(pluginId,plugin);
+      }
     }
     public void applyRules(    @Nullable String pluginId,    Class<?> clazz){
       throw new UnsupportedOperationException();
     }
     public void applyImperativeRulesHybrid(    @Nullable String pluginId,    Plugin<?> plugin){
-      addPlugin(pluginId,plugin.getClass());
-      applicator.applyImperativeRulesHybrid(pluginId,plugin);
+      if (addPluginDirect(plugin.getClass())) {
+        applicator.applyImperativeRulesHybrid(pluginId,plugin);
+      }
     }
   }
 );

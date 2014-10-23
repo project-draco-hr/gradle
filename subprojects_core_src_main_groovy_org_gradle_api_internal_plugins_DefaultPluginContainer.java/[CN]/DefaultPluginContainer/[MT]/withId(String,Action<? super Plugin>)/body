@@ -1,20 +1,18 @@
 {
-  PotentialPluginWithId potentialPlugin=pluginRegistry.lookup(pluginId);
-  if (potentialPlugin != null) {
-    Class<? extends Plugin<?>> pluginClass=potentialPlugin.asImperativeClass();
-    if (pluginClass == null) {
-      String message=String.format("The type for id '%s' (class: '%s') is not a plugin implementing the Plugin interface. Please use PluginAware.withPlugin() instead to detect it.",pluginId,potentialPlugin.asClass().getName());
-      throw new IllegalArgumentException(message);
-    }
-  }
-  matching(new Spec<Plugin>(){
-    public boolean isSatisfiedBy(    Plugin element){
-      PotentialPluginWithId lookup=pluginRegistry.lookup(pluginId);
-      if (lookup == null || !lookup.asClass().equals(element.getClass())) {
-        lookup=pluginRegistry.lookup(pluginId,element.getClass().getClassLoader());
+  Action<PluginManager.PluginWithId> wrappedAction=new Action<PluginManager.PluginWithId>(){
+    public void execute(    final PluginManager.PluginWithId pluginWithId){
+      matching(new Spec<Plugin>(){
+        public boolean isSatisfiedBy(        Plugin element){
+          return pluginWithId.clazz.equals(element.getClass());
+        }
       }
-      return lookup != null && lookup.asClass().equals(element.getClass());
+).all(action);
     }
   }
-).all(action);
+;
+  String qualified=PluginManager.maybeQualify(pluginId);
+  if (qualified != null) {
+    pluginManager.pluginsForId(qualified).all(wrappedAction);
+  }
+  pluginManager.pluginsForId(pluginId).all(wrappedAction);
 }

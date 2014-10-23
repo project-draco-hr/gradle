@@ -1,25 +1,14 @@
 {
-  for (  PluginWithId plugin : pluginsWithIds) {
-    PotentialPluginWithId potentialPluginWithId=pluginRegistry.lookup(id);
-    if (potentialPluginWithId == null) {
-      potentialPluginWithId=pluginRegistry.lookup(id,plugin.clazz.getClassLoader());
-    }
-    if (potentialPluginWithId != null && potentialPluginWithId.asClass().equals(plugin.clazz)) {
-      return plugin.asAppliedPlugin();
+  String qualified=maybeQualify(id);
+  if (qualified != null) {
+    DomainObjectSet<PluginWithId> pluginWithIds=pluginsForId(qualified);
+    if (!pluginWithIds.isEmpty()) {
+      return pluginWithIds.iterator().next().asAppliedPlugin();
     }
   }
-  for (  Class<?> noIdPlugin : noIdPlugins) {
-    PotentialPluginWithId potentialPluginWithId=pluginRegistry.lookup(id);
-    if (potentialPluginWithId == null) {
-      potentialPluginWithId=pluginRegistry.lookup(id,noIdPlugin.getClassLoader());
-    }
-    if (potentialPluginWithId != null && potentialPluginWithId.asClass().equals(noIdPlugin)) {
-      PluginWithId pluginWithId=new PluginWithId(potentialPluginWithId.getPluginId().toString(),noIdPlugin);
-      pluginsWithIds.add(pluginWithId);
-      noIdPlugins.remove(noIdPlugin);
-      return pluginWithId.asAppliedPlugin();
-    }
+  DomainObjectSet<PluginWithId> pluginWithIds=pluginsForId(id);
+  if (!pluginWithIds.isEmpty()) {
+    return pluginWithIds.iterator().next().asAppliedPlugin();
   }
-  unclaimedIds.add(id);
   return null;
 }

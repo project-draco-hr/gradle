@@ -1,18 +1,13 @@
 {
-  findPlugin(id);
-  pluginsWithIds.matching(new Spec<PluginWithId>(){
-    public boolean isSatisfiedBy(    PluginWithId element){
-      PotentialPluginWithId lookup=pluginRegistry.lookup(id);
-      if (lookup == null || !lookup.asClass().equals(element.clazz)) {
-        lookup=pluginRegistry.lookup(id,element.clazz.getClassLoader());
-      }
-      return lookup != null && lookup.asClass().equals(element.clazz);
-    }
-  }
-).all(new Action<PluginWithId>(){
+  Action<PluginWithId> wrappedAction=new Action<PluginWithId>(){
     public void execute(    PluginWithId pluginWithId){
       action.execute(pluginWithId.asAppliedPlugin());
     }
   }
-);
+;
+  String qualified=maybeQualify(id);
+  if (qualified != null) {
+    pluginsForId(qualified).all(wrappedAction);
+  }
+  pluginsForId(id).all(wrappedAction);
 }

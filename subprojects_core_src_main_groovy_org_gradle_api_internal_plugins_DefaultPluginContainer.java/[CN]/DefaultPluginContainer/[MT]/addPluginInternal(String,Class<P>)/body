@@ -1,10 +1,26 @@
 {
-  P existing=findPlugin(type);
-  if (existing == null) {
-    P plugin=providePlugin(type);
-    return addPluginInternal(pluginId,plugin);
-  }
+  try {
+    P existing=findPlugin(type);
+    if (existing == null) {
+      P plugin=providePlugin(type);
+      PotentialPlugin potentialPlugin=pluginRegistry.inspect(plugin.getClass());
+      if (potentialPlugin.hasRules()) {
+        applicator.applyImperativeRulesHybrid(pluginId,plugin);
+      }
  else {
-    return existing;
+        applicator.applyImperative(pluginId,plugin);
+      }
+      add(plugin);
+      return plugin;
+    }
+ else {
+      return existing;
+    }
+  }
+ catch (  PluginApplicationException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new PluginApplicationException(pluginId == null ? "class '" + type.getName() + "'" : "id '" + pluginId + "'",e);
   }
 }

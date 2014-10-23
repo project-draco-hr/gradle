@@ -1,0 +1,13 @@
+{
+  project.apply(Collections.singletonMap("plugin",PublishingPlugin.class));
+  final TaskContainer tasks=project.getTasks();
+  final Task publishLocalLifecycleTask=tasks.create(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
+  publishLocalLifecycleTask.setDescription("Publishes all Maven publications produced by this project to the local Maven cache.");
+  publishLocalLifecycleTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+  project.getExtensions().configure(PublishingExtension.class,new Action<PublishingExtension>(){
+    public void execute(    PublishingExtension extension){
+      extension.getPublications().registerFactory(MavenPublication.class,new MavenPublicationFactory(dependencyMetaDataProvider,instantiator,fileResolver));
+    }
+  }
+);
+}

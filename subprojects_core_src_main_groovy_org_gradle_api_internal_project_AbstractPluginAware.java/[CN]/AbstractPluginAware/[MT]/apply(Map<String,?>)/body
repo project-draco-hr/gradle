@@ -1,5 +1,19 @@
 {
-  DefaultObjectConfigurationAction action=createObjectConfigurationAction();
-  ConfigureUtil.configureByMap(options,action);
-  action.execute();
+  if (options.size() == 1 && options.containsKey("plugin")) {
+    Object pluginValue=options.get("plugin");
+    if (pluginValue instanceof String) {
+      getPluginManager().apply((String)pluginValue);
+    }
+ else     if (pluginValue instanceof Class<?>) {
+      getPluginManager().apply((Class<?>)pluginValue);
+    }
+ else {
+      throw new IllegalArgumentException("'plugin' value must be either a String or Class");
+    }
+  }
+ else {
+    DefaultObjectConfigurationAction action=createObjectConfigurationAction();
+    ConfigureUtil.configureByMap(options,action);
+    action.execute();
+  }
 }
