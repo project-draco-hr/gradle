@@ -4,7 +4,7 @@
     ArchitectureInternal architectureInternal=getPropertyBasedArchitecture();
     DefaultNativePlatform propertyBasedDefault=null;
     if (architectureInternal != null) {
-      propertyBasedDefault=findDefaultPlatform(os,architectureInternal.getRegisterSize(),architectureInternal.getInstructionSet());
+      propertyBasedDefault=findDefaultPlatform(os,architectureInternal);
     }
     if (propertyBasedDefault != null) {
       defaultNativePlatform=propertyBasedDefault;
@@ -18,13 +18,13 @@
           archReader.readLine();
           String archLine=archReader.readLine().toLowerCase();
           if (archLine.contains("x64")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,64,ArchitectureInternal.InstructionSet.X86),"Could not find a default platform for what is believed to be 64-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
+            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,new DefaultArchitecture("x86_64")),"Could not find a default platform for what is believed to be 64-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
           }
  else           if (archLine.contains("x86")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,32,ArchitectureInternal.InstructionSet.X86),"Could not find a default platform for what is believed to be 32-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
+            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,new DefaultArchitecture("x86")),"Could not find a default platform for what is believed to be 32-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
           }
  else           if (archLine.contains("strongarm")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,32,ArchitectureInternal.InstructionSet.ARM),"Could not find a default platform for what is believed to be Windows on ARM. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
+            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,new DefaultArchitecture("armv7")),"Could not find a default platform for what is believed to be Windows on ARM. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
           }
         }
  else {
@@ -34,29 +34,25 @@
           Process machineProcess=Runtime.getRuntime().exec(new String[]{"uname","-m"});
           BufferedReader matchineReader=new BufferedReader(new InputStreamReader(machineProcess.getInputStream()));
           String machineLine=matchineReader.readLine();
-          NotationParser<Object,ArchitectureInternal> archParser=ArchitectureNotationParser.parser();
-          ArchitectureInternal arch=archParser.parseNotation(machineLine);
-          if (arch == null) {
-            throw new NativeIntegrationUnavailableException("Tried to guess a default architecture of Nix-based OS, but could not. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
-          }
+          ArchitectureInternal arch=new DefaultArchitecture(machineLine);
           String errorMsg=String.format("Could not find a default platform for %s architecture: %s. %s",systemLine,arch.getName(),UNKNOWN_DEFAULT_PLATFORM_MSG);
           if (systemLine.contains("linux")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.LINUX,arch.getRegisterSize(),arch.getInstructionSet()),errorMsg);
+            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.LINUX,arch),errorMsg);
           }
  else           if (systemLine.contains("cygwin")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,arch.getRegisterSize(),arch.getInstructionSet()),errorMsg);
+            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,arch),errorMsg);
           }
  else           if (systemLine.contains("freebsd")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.FREE_BSD,arch.getRegisterSize(),arch.getInstructionSet()),errorMsg);
+            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.FREE_BSD,arch),errorMsg);
           }
  else           if (systemLine.contains("sunos")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.SOLARIS,arch.getRegisterSize(),arch.getInstructionSet()),errorMsg);
+            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.SOLARIS,arch),errorMsg);
           }
  else           if (systemLine.contains("darwin")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.MAC_OS,arch.getRegisterSize(),arch.getInstructionSet()),errorMsg);
+            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.MAC_OS,arch),errorMsg);
           }
  else           if (!systemLine.isEmpty()) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.UNIX,arch.getRegisterSize(),arch.getInstructionSet()),errorMsg);
+            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.UNIX,arch),errorMsg);
           }
         }
       }
