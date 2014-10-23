@@ -5,7 +5,7 @@
   final String mappingFieldSignature=Type.getDescriptor(ConventionMapping.class);
   final String getConventionDesc=Type.getMethodDescriptor(conventionType);
   visitor.visitField(Opcodes.ACC_PRIVATE,MAPPING_FIELD,mappingFieldSignature,null,null);
-  initConventionAwareHelper=new MethodCodeBody(){
+  final MethodCodeBody initConventionAwareHelper=new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
       Type helperType=Type.getType(ConventionAwareHelper.class);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
@@ -21,21 +21,17 @@
   }
 ;
   addGetter(IConventionAware.class.getDeclaredMethod("getConventionMapping"),new MethodCodeBody(){
-    public void add(    MethodVisitor visitor){
+    public void add(    MethodVisitor visitor) throws Exception {
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),MAPPING_FIELD,mappingFieldSignature);
       visitor.visitInsn(Opcodes.DUP);
-      Label nullBranch=new Label();
-      visitor.visitJumpInsn(Opcodes.IFNULL,nullBranch);
-      visitor.visitInsn(Opcodes.ARETURN);
-      visitor.visitLabel(nullBranch);
-      Type conventionAwareHelperType=Type.getType(ConventionAwareHelper.class);
-      String constructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,Type.getType(IConventionAware.class));
-      visitor.visitTypeInsn(Opcodes.NEW,conventionAwareHelperType.getInternalName());
-      visitor.visitInsn(Opcodes.DUP);
+      Label returnValue=new Label();
+      visitor.visitJumpInsn(Opcodes.IFNONNULL,returnValue);
+      visitor.visitInsn(Opcodes.POP);
+      initConventionAwareHelper.add(visitor);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,conventionAwareHelperType.getInternalName(),"<init>",constructorDesc);
-      visitor.visitInsn(Opcodes.ARETURN);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),MAPPING_FIELD,mappingFieldSignature);
+      visitor.visitLabel(returnValue);
     }
   }
 );

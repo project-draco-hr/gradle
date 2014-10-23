@@ -1,7 +1,7 @@
 {
   final String metaClassFieldSignature=Type.getDescriptor(MetaClass.class);
   visitor.visitField(Opcodes.ACC_PRIVATE,META_CLASS_FIELD,metaClassFieldSignature,null,null);
-  initMetaClass=new MethodCodeBody(){
+  final MethodCodeBody initMetaClass=new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       String getMetaClassRegistryDesc=Type.getMethodDescriptor(GroovySystem.class.getDeclaredMethod("getMetaClassRegistry"));
@@ -19,6 +19,14 @@
     public void add(    MethodVisitor visitor) throws Exception {
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),META_CLASS_FIELD,metaClassFieldSignature);
+      visitor.visitInsn(Opcodes.DUP);
+      Label returnValue=new Label();
+      visitor.visitJumpInsn(Opcodes.IFNONNULL,returnValue);
+      visitor.visitInsn(Opcodes.POP);
+      initMetaClass.add(visitor);
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),META_CLASS_FIELD,metaClassFieldSignature);
+      visitor.visitLabel(returnValue);
     }
   }
 );
