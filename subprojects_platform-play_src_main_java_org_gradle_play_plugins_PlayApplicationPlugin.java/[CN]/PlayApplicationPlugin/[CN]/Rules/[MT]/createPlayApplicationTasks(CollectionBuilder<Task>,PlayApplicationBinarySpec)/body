@@ -1,0 +1,24 @@
+{
+  final String twirlCompileTaskName=String.format("twirlCompile%s",StringUtils.capitalize(binary.getName()));
+  tasks.create(twirlCompileTaskName,TwirlCompile.class,new Action<TwirlCompile>(){
+    public void execute(    TwirlCompile twirlCompile){
+      binary.builtBy(twirlCompile);
+    }
+  }
+);
+  final String routesCompileTaskName=String.format("routesCompile%s",StringUtils.capitalize(binary.getName()));
+  tasks.create(routesCompileTaskName,RoutesCompile.class,new Action<RoutesCompile>(){
+    public void execute(    RoutesCompile routesCompile){
+      binary.builtBy(routesCompile);
+    }
+  }
+);
+  tasks.create(String.format("create%sJar",StringUtils.capitalize(binary.getName())),Jar.class,new Action<Jar>(){
+    public void execute(    Jar jar){
+      jar.setDestinationDir(binary.getJarFile().getParentFile());
+      jar.setArchiveName(binary.getJarFile().getName());
+      jar.dependsOn(routesCompileTaskName,twirlCompileTaskName);
+    }
+  }
+);
+}
