@@ -1,0 +1,25 @@
+{
+  final Configuration twirlConfiguration=project.getConfigurations().create(TWIRL_CONFIGURATION_NAME);
+  twirlConfiguration.setVisible(false);
+  twirlConfiguration.setDescription("The dependencies to be used twirl template compilation.");
+  twirlConfiguration.getIncoming().beforeResolve(new Action<ResolvableDependencies>(){
+    public void execute(    ResolvableDependencies resolvableDependencies){
+      DependencySet dependencies=twirlConfiguration.getDependencies();
+      if (dependencies.isEmpty()) {
+        dependencies.add(project.getDependencies().create(DEFAULT_TWIRL_DEPENDENCY));
+      }
+    }
+  }
+);
+  project.getTasks().withType(TwirlCompile.class).all(new Action<TwirlCompile>(){
+    public void execute(    TwirlCompile twirlCompile){
+      twirlCompile.getConventionMapping().map("compilerClasspath",new Callable<FileCollection>(){
+        public FileCollection call() throws Exception {
+          return project.getConfigurations().getByName(TWIRL_CONFIGURATION_NAME);
+        }
+      }
+);
+    }
+  }
+);
+}
