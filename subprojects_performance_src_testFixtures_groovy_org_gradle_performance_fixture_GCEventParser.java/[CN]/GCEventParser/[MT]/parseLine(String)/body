@@ -1,7 +1,12 @@
 {
   Matcher matcher=pattern.matcher(line);
   if (!matcher.lookingAt()) {
-    throw new IllegalArgumentException("Unrecognized garbage collection event found in garbage collection log: " + line);
+    if (ignorePattern.matcher(line).matches()) {
+      return GCEvent.IGNORED;
+    }
+ else {
+      throw new IllegalArgumentException("Unrecognized garbage collection event found in garbage collection log: " + line);
+    }
   }
   long start=Long.parseLong(matcher.group(2));
   long end=Long.parseLong(matcher.group(3));
