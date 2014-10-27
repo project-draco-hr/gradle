@@ -15,9 +15,12 @@
     Function<Object[],Object> compile=scalaObjectFunction(cl,"play.twirl.compiler.TwirlCompiler","compile",new Class<?>[]{File.class,sourceDirectory.getClass(),generatedDirectory.getClass(),formatterType.getClass(),additionalImports.getClass(),codecClass,boolean.class,boolean.class});
     Iterable<File> sources=spec.getSources();
     for (    File sourceFile : sources) {
-      Object result=compile.apply(new Object[]{sourceFile,sourceDirectory.getCanonicalFile(),generatedDirectory,formatterType,additionalImports,scalaCodec,inclusiveDots,useOldParser});
+      Object result=compile.apply(new Object[]{sourceFile.getCanonicalFile(),sourceDirectory,generatedDirectory,formatterType,additionalImports,scalaCodec,inclusiveDots,useOldParser});
       Method resultIsDefined=result.getClass().getMethod("isDefined");
-      didWork=didWork || (Boolean)resultIsDefined.invoke(result);
+      if ((Boolean)resultIsDefined.invoke(result)) {
+        File createdFile=(File)result.getClass().getMethod("get").invoke(result);
+        didWork=true;
+      }
     }
   }
  catch (  Exception e) {
