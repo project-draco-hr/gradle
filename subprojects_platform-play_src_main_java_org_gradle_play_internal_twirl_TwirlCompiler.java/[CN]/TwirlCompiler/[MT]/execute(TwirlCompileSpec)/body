@@ -1,6 +1,35 @@
 {
   try {
     Class<?> twirlCompiler=getClass().getClassLoader().loadClass("play.twirl.compiler.TwirlCompiler$");
+    File sourceDirectory=(new File("app")).getCanonicalFile();
+    File generatedDirectory=spec.getDestinationDir();
+    String formatterType=spec.getFormatterType();
+    String additionalImports=spec.getAdditionalImports();
+    boolean inclusiveDots=spec.isInclusiveDots();
+    boolean useOldParser=spec.isUseOldParser();
+    Class<?> codecClass=getClass().getClassLoader().loadClass("scala.io.Codec");
+    Class<?> codecObject=getClass().getClassLoader().loadClass("scala.io.Codec$");
+    String codec=spec.getCodec();
+    try {
+      Field codeModule=codecObject.getDeclaredField("MODULE$");
+      Object scalaCodec=codecApply.invoke(null,"utf-8");
+      Method twirlCompile=twirlCompiler.getMethod("compile",File.class,sourceDirectory.getClass(),generatedDirectory.getClass(),formatterType.getClass(),additionalImports.getClass(),codecClass,boolean.class,boolean.class);
+      for (      File inputFile : spec.getSources()) {
+        twirlCompile.invoke(null,inputFile,sourceDirectory,generatedDirectory,formatterType,scalaCodec,inclusiveDots,useOldParser);
+      }
+    }
+ catch (    NoSuchMethodException e) {
+      e.printStackTrace();
+    }
+catch (    InvocationTargetException e) {
+      e.printStackTrace();
+    }
+catch (    IllegalAccessException e) {
+      e.printStackTrace();
+    }
+catch (    NoSuchFieldException e) {
+      e.printStackTrace();
+    }
     Iterable<File> sources=spec.getSources();
     for (    File sourceFile : sources) {
       FileUtils.writeStringToFile(new File(spec.getDestinationDir(),sourceFile.getName()),"compiled " + sourceFile.getName());
