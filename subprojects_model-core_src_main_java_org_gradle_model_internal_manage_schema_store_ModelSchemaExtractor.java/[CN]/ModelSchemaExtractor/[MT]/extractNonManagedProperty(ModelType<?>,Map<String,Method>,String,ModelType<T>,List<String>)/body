@@ -1,11 +1,16 @@
 {
   String propertyNameCapitalized=getterName.substring(3);
-  String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
+  final String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
   String setterName="set" + propertyNameCapitalized;
   if (!methods.containsKey(setterName)) {
     throw invalidMethod(type,getterName,"no corresponding setter for getter");
   }
   validateSetter(type,propertyType,methods.get(setterName));
   handled.add(setterName);
-  return new ModelProperty<T>(propertyName,propertyType);
+  return new ModelPropertyFactory<T>(){
+    public ModelProperty<T> create(    ModelSchemaStore store){
+      return new ModelProperty<T>(propertyName,propertyType);
+    }
+  }
+;
 }
