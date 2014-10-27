@@ -1,12 +1,27 @@
 {
+  boolean didWork=false;
   try {
+    File sourceDirectory=spec.getSourceDirectory().getCanonicalFile();
+    File generatedDirectory=spec.getDestinationDir();
+    String formatterType=spec.getFormatterType();
+    String additionalImports=spec.getAdditionalImports();
+    boolean inclusiveDots=spec.isInclusiveDots();
+    boolean useOldParser=spec.isUseOldParser();
+    String codec=spec.getCodec();
+    ClassLoader cl=getClass().getClassLoader();
+    Class<?> codecClass=cl.loadClass("scala.io.Codec");
+    Function<Object[],Object> ioCodec=scalaObjectFunction(cl,"scala.io.Codec","apply",new Class<?>[]{String.class});
+    Object scalaCodec=ioCodec.apply(new Object[]{codec});
+    Function<Object[],Object> compile=scalaObjectFunction(cl,"play.twirl.compiler.TwirlCompiler","compile",new Class<?>[]{File.class,sourceDirectory.getClass(),generatedDirectory.getClass(),formatterType.getClass(),additionalImports.getClass(),codecClass,boolean.class,boolean.class});
     Iterable<File> sources=spec.getSources();
     for (    File sourceFile : sources) {
-      FileUtils.writeStringToFile(new File(spec.getDestinationDir(),sourceFile.getName()),"compiled " + sourceFile.getName());
+      Object result=compile.apply(new Object[]{sourceFile,sourceDirectory.getCanonicalFile(),generatedDirectory,formatterType,additionalImports,scalaCodec,inclusiveDots,useOldParser});
+      Method resultIsDefined=result.getClass().getMethod("isDefined");
+      didWork=didWork || (Boolean)resultIsDefined.invoke(result);
     }
   }
- catch (  IOException e) {
-    e.printStackTrace();
+ catch (  Exception e) {
+    throw new RuntimeException(e.getCause());
   }
-  return new SimpleWorkResult(false);
+  return new SimpleWorkResult(didWork);
 }
