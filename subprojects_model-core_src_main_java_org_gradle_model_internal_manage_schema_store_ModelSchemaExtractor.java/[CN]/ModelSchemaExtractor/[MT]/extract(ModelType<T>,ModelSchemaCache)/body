@@ -1,0 +1,25 @@
+{
+  ModelSchema<T> schema=extractSchema(type,cache);
+  Extraction extraction=new Extraction(type);
+  pushDependencies(schema,extraction,cache);
+  ModelProperty<?> next=extraction.next();
+  while (next != null) {
+    ModelSchema<?> nextSchema;
+    try {
+      nextSchema=extractSchema(next.getType(),cache);
+    }
+ catch (    InvalidManagedModelElementTypeException e) {
+      InvalidManagedModelElementTypeException cause=e;
+      List<ModelProperty<?>> currentStack=extraction.getCurrentStack();
+      while (!currentStack.isEmpty()) {
+        ModelProperty<?> previous=currentStack.remove(0);
+        ModelType<?> owner=currentStack.isEmpty() ? type : currentStack.get(0).getType();
+        cause=new InvalidManagedModelElementTypeException(owner,previous.getName(),cause);
+      }
+      throw cause;
+    }
+    pushDependencies(nextSchema,extraction,cache);
+    next=extraction.next();
+  }
+  return schema;
+}
