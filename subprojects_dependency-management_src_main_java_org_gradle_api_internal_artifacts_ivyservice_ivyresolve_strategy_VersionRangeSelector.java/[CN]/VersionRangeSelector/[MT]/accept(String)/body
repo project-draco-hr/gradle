@@ -1,21 +1,9 @@
 {
-  String selector=getSelector();
-  Matcher matcher;
-  matcher=FINITE_RANGE.matcher(selector);
-  if (matcher.matches()) {
-    String lower=matcher.group(1);
-    String upper=matcher.group(2);
-    return isHigher(candidate,lower,selector.startsWith(OPEN_INC)) && isLower(candidate,upper,selector.endsWith(CLOSE_INC));
+  if (lowerBound != null && !isHigher(candidate,lowerBound,lowerInclusive)) {
+    return false;
   }
-  matcher=LOWER_INFINITE_RANGE.matcher(selector);
-  if (matcher.matches()) {
-    String upper=matcher.group(1);
-    return isLower(candidate,upper,selector.endsWith(CLOSE_INC));
+  if (upperBound != null && !isLower(candidate,upperBound,upperInclusive)) {
+    return false;
   }
-  matcher=UPPER_INFINITE_RANGE.matcher(selector);
-  if (matcher.matches()) {
-    String lower=matcher.group(1);
-    return isHigher(candidate,lower,selector.startsWith(OPEN_INC));
-  }
-  throw new IllegalArgumentException("Not a version range selector: " + selector);
+  return true;
 }
