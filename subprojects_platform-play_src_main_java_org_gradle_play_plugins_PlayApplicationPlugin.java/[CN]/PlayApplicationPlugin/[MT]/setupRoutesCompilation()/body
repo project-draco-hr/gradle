@@ -1,16 +1,7 @@
 {
-  final Configuration routesConfiguration=project.getConfigurations().create(PLAY_ROUTES_CONFIGURATION_NAME);
+  Configuration routesConfiguration=createConfigurationWithDefaultDependency(PLAY_ROUTES_CONFIGURATION_NAME,DEFAULT_PLAY_ROUTES_DEPENDENCY);
   routesConfiguration.setVisible(false);
   routesConfiguration.setDescription("The dependencies to be used Play Routes compilation.");
-  routesConfiguration.getIncoming().beforeResolve(new Action<ResolvableDependencies>(){
-    public void execute(    ResolvableDependencies resolvableDependencies){
-      DependencySet dependencies=routesConfiguration.getDependencies();
-      if (dependencies.isEmpty()) {
-        dependencies.add(project.getDependencies().create(DEFAULT_PLAY_ROUTES_DEPENDENCY));
-      }
-    }
-  }
-);
   project.getTasks().withType(RoutesCompile.class).all(new Action<RoutesCompile>(){
     public void execute(    RoutesCompile routesCompile){
       routesCompile.getConventionMapping().map("compilerClasspath",new Callable<FileCollection>(){
