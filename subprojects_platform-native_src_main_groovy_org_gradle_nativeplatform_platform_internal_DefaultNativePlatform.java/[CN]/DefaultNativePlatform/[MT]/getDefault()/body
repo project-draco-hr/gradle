@@ -1,65 +1,14 @@
 {
-  if (defaultNativePlatform == null) {
-    OperatingSystem os=getPropertyBasedOperatingSystem();
-    ArchitectureInternal architectureInternal=getPropertyBasedArchitecture();
-    DefaultNativePlatform propertyBasedDefault=null;
-    if (architectureInternal != null) {
-      propertyBasedDefault=findDefaultPlatform(os,architectureInternal);
-    }
-    if (propertyBasedDefault != null) {
-      defaultNativePlatform=propertyBasedDefault;
-    }
- else {
-      try {
-        if ((os != null && os.isWindows()) || File.separatorChar == '\\') {
-          Process archProcess=Runtime.getRuntime().exec(new String[]{"wmic","computersystem","get","systemtype"});
-          BufferedReader archReader=new BufferedReader(new InputStreamReader(archProcess.getInputStream()));
-          archReader.readLine();
-          archReader.readLine();
-          String archLine=archReader.readLine().toLowerCase();
-          if (archLine.contains("x64")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,Architectures.forInput("x86_64")),"Could not find a default platform for what is believed to be 64-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
-          }
- else           if (archLine.contains("x86")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,Architectures.forInput("x86")),"Could not find a default platform for what is believed to be 32-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
-          }
- else           if (archLine.contains("strongarm")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,Architectures.forInput("armv7")),"Could not find a default platform for what is believed to be Windows on ARM. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
-          }
-        }
- else {
-          Process systemProcess=Runtime.getRuntime().exec(new String[]{"uname","-s"});
-          BufferedReader systemReader=new BufferedReader(new InputStreamReader(systemProcess.getInputStream()));
-          String systemLine=systemReader.readLine().toLowerCase();
-          Process machineProcess=Runtime.getRuntime().exec(new String[]{"uname","-m"});
-          BufferedReader matchineReader=new BufferedReader(new InputStreamReader(machineProcess.getInputStream()));
-          String machineLine=matchineReader.readLine();
-          ArchitectureInternal arch=Architectures.forInput(machineLine);
-          String errorMsg=String.format("Could not find a default platform for %s architecture: %s. %s",systemLine,arch.getName(),UNKNOWN_DEFAULT_PLATFORM_MSG);
-          if (systemLine.contains("linux")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.LINUX,arch),errorMsg);
-          }
- else           if (systemLine.contains("cygwin")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.WINDOWS,arch),errorMsg);
-          }
- else           if (systemLine.contains("freebsd")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.FREE_BSD,arch),errorMsg);
-          }
- else           if (systemLine.contains("sunos")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.SOLARIS,arch),errorMsg);
-          }
- else           if (systemLine.contains("darwin")) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.MAC_OS,arch),errorMsg);
-          }
- else           if (!systemLine.isEmpty()) {
-            defaultNativePlatform=assertNonNullPlatform(findDefaultPlatform(OperatingSystem.UNIX,arch),errorMsg);
-          }
-        }
-      }
- catch (      IOException e) {
-        throw new NativeIntegrationUnavailableException("Could not guess a default native platform. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
-      }
-    }
+  OperatingSystemInternal os=new DefaultOperatingSystem(System.getProperty("os.name"),OperatingSystem.current());
+  ArchitectureInternal architecture=Architectures.forInput(Native.get(SystemInfo.class).getArchitecture().toString());
+  if (os.isWindows()) {
+    return findWithName("windows_x86");
   }
-  return defaultNativePlatform;
+  if (os.isLinux()) {
+    return findWithName("linux_" + architecture.getName());
+  }
+  if (os.isMacOsX()) {
+    return findWithName("osx_" + architecture.getName());
+  }
+  return findWithName("unix_x86");
 }
