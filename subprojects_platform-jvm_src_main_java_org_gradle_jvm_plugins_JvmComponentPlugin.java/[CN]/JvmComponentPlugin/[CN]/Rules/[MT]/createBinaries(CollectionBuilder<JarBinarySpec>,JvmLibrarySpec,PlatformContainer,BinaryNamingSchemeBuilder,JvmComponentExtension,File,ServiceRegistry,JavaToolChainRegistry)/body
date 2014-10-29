@@ -4,7 +4,10 @@
   actions.add(new MarkBinariesBuildable());
   final Action<JarBinarySpec> initAction=Actions.composite(actions);
   List<String> targetPlatforms=jvmLibrary.getTargetPlatforms();
-  List<JavaPlatform> selectedPlatforms=platforms.chooseFromTargets(JavaPlatform.class,targetPlatforms,new DefaultJavaPlatform(JavaVersion.current()),DEFAULT_PLATFORMS);
+  if (targetPlatforms.isEmpty()) {
+    targetPlatforms=Collections.singletonList(new DefaultJavaPlatform(JavaVersion.current()).getName());
+  }
+  List<JavaPlatform> selectedPlatforms=platforms.chooseFromTargets(JavaPlatform.class,targetPlatforms);
   for (  final JavaPlatform platform : selectedPlatforms) {
     final JavaToolChain toolChain=toolChains.getForPlatform(platform);
     String binaryName=createBinaryName(jvmLibrary,namingSchemeBuilder,selectedPlatforms,platform);
