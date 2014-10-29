@@ -1,0 +1,17 @@
+{
+  final Configuration playAppCompileClasspath=createConfigurationWithDefaultDependency(PLAYAPP_COMPILE_CONFIGURATION_NAME,DEFAULT_PLAY_DEPENDENCY);
+  playAppCompileClasspath.setDescription("The dependencies to be used for Scala compilation of a Play application.");
+  project.getTasks().withType(ScalaCompile.class).all(new Action<ScalaCompile>(){
+    public void execute(    ScalaCompile scalaCompile){
+      scalaCompile.getConventionMapping().map("classpath",new Callable<FileCollection>(){
+        public FileCollection call() throws Exception {
+          return project.getConfigurations().getByName(PLAYAPP_COMPILE_CONFIGURATION_NAME);
+        }
+      }
+);
+    }
+  }
+);
+  final Configuration playAppRuntimeClasspath=project.getConfigurations().create(PLAYAPP_RUNTIME_CONFIGURATION_NAME);
+  playAppRuntimeClasspath.extendsFrom(playAppCompileClasspath);
+}
