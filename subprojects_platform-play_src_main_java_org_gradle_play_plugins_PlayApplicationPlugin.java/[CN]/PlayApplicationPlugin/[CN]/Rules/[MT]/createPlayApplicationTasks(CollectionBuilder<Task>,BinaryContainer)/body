@@ -1,0 +1,15 @@
+{
+  for (  final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+    String runTaskName=String.format("run%s",StringUtils.capitalize(binary.getName()));
+    tasks.create(runTaskName,JavaExec.class,new Action<JavaExec>(){
+      public void execute(      JavaExec javaExec){
+        javaExec.dependsOn(binary.getBuildTask());
+        javaExec.setMain(PLAY_MAIN_CLASS);
+        Project project=javaExec.getProject();
+        FileCollection classpath=project.files(binary.getJarFile()).plus(project.getConfigurations().getByName(PLAYAPP_COMPILE_CONFIGURATION_NAME));
+        javaExec.setClasspath(classpath);
+      }
+    }
+);
+  }
+}
