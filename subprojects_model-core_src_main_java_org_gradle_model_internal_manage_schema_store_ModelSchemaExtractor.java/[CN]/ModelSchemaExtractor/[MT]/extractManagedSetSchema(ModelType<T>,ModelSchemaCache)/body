@@ -1,0 +1,19 @@
+{
+  List<ModelType<?>> typeVariables=type.getTypeVariables();
+  if (typeVariables.isEmpty()) {
+    throw invalid(type,String.format("type parameter of %s has to be specified",ManagedSet.class.getName()));
+  }
+  if (type.isHasWildcardTypeVariables()) {
+    throw invalid(type,String.format("type parameter of %s cannot be a wildcard",ManagedSet.class.getName()));
+  }
+  ModelType<?> typeParameter=typeVariables.get(0);
+  if (!isManaged(typeParameter.getRawClass())) {
+    throw invalid(type,String.format("type parameter of %s has to be a managed type",ManagedSet.class.getName()));
+  }
+  try {
+    return new ModelSchema<T>(type,Collections.<ModelProperty<?>>emptyList(),ImmutableList.<ModelSchema<?>>of(extract(typeParameter,cache)));
+  }
+ catch (  InvalidManagedModelElementTypeException e) {
+    throw invalid(type,String.format("type parameter of %s has to be a valid managed type",ManagedSet.class.getName()),e);
+  }
+}

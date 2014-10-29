@@ -1,6 +1,9 @@
 {
-  Class<T> concreteType=type.getConcreteClass();
-  Object instance=Proxy.newProxyInstance(concreteType.getClassLoader(),new Class<?>[]{concreteType,ManagedInstance.class},new ManagedModelElementInvocationHandler());
-  @SuppressWarnings("unchecked") T typedInstance=(T)instance;
-  return typedInstance;
+  Class<T> concreteType=schema.getType().getConcreteClass();
+  if (concreteType.equals(ManagedSet.class)) {
+    return Cast.uncheckedCast(createManagedSetInstance(schema.getTypeParameterSchemas().get(0)));
+  }
+ else {
+    return Cast.uncheckedCast(Proxy.newProxyInstance(concreteType.getClassLoader(),new Class<?>[]{concreteType,ManagedInstance.class},new ManagedModelElementInvocationHandler()));
+  }
 }
