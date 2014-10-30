@@ -4,9 +4,16 @@
   routesConfiguration.setDescription("The dependencies to be used Play Routes compilation.");
   project.getTasks().withType(RoutesCompile.class).all(new Action<RoutesCompile>(){
     public void execute(    RoutesCompile routesCompile){
+      final Configuration routesConfiguration=project.getConfigurations().getByName(PLAY_ROUTES_CONFIGURATION_NAME);
+      routesCompile.getConventionMapping().map("routesCompilerVersion",new Callable<String>(){
+        public String call() throws Exception {
+          return detectRoutesCompilerVersion(routesConfiguration);
+        }
+      }
+);
       routesCompile.getConventionMapping().map("compilerClasspath",new Callable<FileCollection>(){
         public FileCollection call() throws Exception {
-          return project.getConfigurations().getByName(PLAY_ROUTES_CONFIGURATION_NAME);
+          return routesConfiguration;
         }
       }
 );

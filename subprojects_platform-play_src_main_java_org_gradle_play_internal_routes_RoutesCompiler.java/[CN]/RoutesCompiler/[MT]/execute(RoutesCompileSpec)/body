@@ -1,32 +1,21 @@
 {
   boolean didWork=false;
-  File generatedDirectory=spec.getDestinationDir();
-  List<String> additionalImports=new ArrayList<String>();
-  additionalImports.addAll(spec.getAdditionalImports());
-  Boolean generateReverseRoute=spec.getGenerateReverseRoute();
-  boolean generateRefReverseRouter=spec.isGenerateRefReverseRouter();
-  boolean namespaceReverseRouter=spec.isNamespaceReverseRouter();
   try {
     ClassLoader cl=getClass().getClassLoader();
-    Class<?> bufferClass=cl.loadClass("scala.collection.mutable.ListBuffer");
-    Object buffer=bufferClass.newInstance();
-    Method bufferPlusEq=bufferClass.getMethod("$plus$eq",Object.class);
-    if (additionalImports != null) {
-      for (      String additionalImport : additionalImports) {
-        bufferPlusEq.invoke(buffer,additionalImport);
-      }
-    }
-    Method bufferToSeq=bufferClass.getMethod("toSeq");
-    Object bufferSeq=bufferToSeq.invoke(buffer);
-    Class<?> seqClass=cl.loadClass("scala.collection.Seq");
     Iterable<File> sources=spec.getSources();
-    Function<Object[],Object> compile=ScalaUtil.scalaObjectFunction(cl,"play.router.RoutesCompiler","compile",new Class<?>[]{File.class,generatedDirectory.getClass(),seqClass,boolean.class,boolean.class,boolean.class});
+    Function<Object[],Object> compile=createCompileFunction(cl,routesCompilerVersion);
     for (    File sourceFile : sources) {
-      compile.apply(new Object[]{sourceFile,generatedDirectory,bufferSeq,generateReverseRoute,generateRefReverseRouter,namespaceReverseRouter});
+      Object ret=compile.apply(createCompileParameters(sourceFile,routesCompilerVersion,spec,cl));
+      if (ret != null && ret instanceof Boolean) {
+        didWork=(Boolean)ret || didWork;
+      }
+ else {
+        didWork=true;
+      }
     }
   }
  catch (  Exception e) {
-    throw new RuntimeException(e.getCause());
+    throw new RuntimeException("Failed to compile Play routes.",e);
   }
   return new SimpleWorkResult(didWork);
 }
