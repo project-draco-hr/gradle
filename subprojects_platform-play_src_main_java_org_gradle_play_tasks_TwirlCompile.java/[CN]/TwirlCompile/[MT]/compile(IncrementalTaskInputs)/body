@@ -1,16 +1,10 @@
 {
-  boolean templateCompiler=CollectionUtils.any(getCompilerClasspath(),new Spec<File>(){
-    public boolean isSatisfiedBy(    File classpathFile){
-      return classpathFile.getName().matches("templates-compiler_\\d\\.\\d+-(2\\.2\\.\\d).jar");
-    }
-  }
-);
-  String compilerClassName=templateCompiler ? "play.templates.ScalaTemplateCompiler" : "play.twirl.compiler.TwirlCompiler";
+  String compilerVersion=detectCompilerVersion();
   if (!inputs.isIncremental()) {
     if (compiler == null) {
       compiler=new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(),getOutputs());
     }
-    TwirlCompileSpec spec=generateSpec(getSource().getFiles(),compilerClassName);
+    TwirlCompileSpec spec=generateSpec(getSource().getFiles(),compilerVersion);
     compiler.execute(spec);
   }
  else {
@@ -32,7 +26,7 @@
       cleaner=new TwirlStaleOutputCleaner(getOutputDirectory());
     }
     cleaner.execute(staleOutputFiles);
-    TwirlCompileSpec spec=generateSpec(sourcesToCompile,compilerClassName);
+    TwirlCompileSpec spec=generateSpec(sourcesToCompile,compilerVersion);
     getCompiler().execute(spec);
   }
 }

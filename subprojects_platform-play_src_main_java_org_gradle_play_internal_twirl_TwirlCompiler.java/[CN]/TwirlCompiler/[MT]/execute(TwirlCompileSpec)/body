@@ -1,13 +1,12 @@
 {
   ArrayList<File> outputFiles=Lists.newArrayList();
   try {
-    VersionedTwirlCompileSpec versionedTwirlCompileSpec=createVersionedSpec(spec);
-    Function<Object[],Object> compile=ScalaUtil.scalaObjectFunction(getClass().getClassLoader(),spec.getCompilerClassName(),"compile",versionedTwirlCompileSpec.getParameterTypes());
+    VersionedInvocationSpec invocationSpec=invocationSpecBuilder.build(spec);
+    Function<Object[],Object> compile=ScalaUtil.scalaObjectFunction(getClass().getClassLoader(),invocationSpec.getVersion().getCompilerClassname(),"compile",invocationSpec.getParameterTypes());
     Iterable<File> sources=spec.getSources();
-    Object[] prefilledCompileParameters=versionedTwirlCompileSpec.getParameters();
     for (    File sourceFile : sources) {
-      prefilledCompileParameters[0]=sourceFile.getCanonicalFile();
-      Object result=compile.apply(prefilledCompileParameters);
+      Object[] parameters=invocationSpec.getParameters(sourceFile.getCanonicalFile());
+      Object result=compile.apply(parameters);
       Method resultIsDefined=result.getClass().getMethod("isDefined");
       if ((Boolean)resultIsDefined.invoke(result)) {
         File createdFile=(File)result.getClass().getMethod("get").invoke(result);
