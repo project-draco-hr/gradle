@@ -1,23 +1,34 @@
 {
-  Class<?> baseClass=classLoader.loadClass(objectName + "$");
-  final Field scalaObject=baseClass.getField("MODULE$");
-  final Method scalaObjectMethod=scalaObject.getType().getMethod(methodName,typeParameters);
-  Function<Object[],Object> function=new Function<Object[],Object>(){
-    public Object apply(    Object[] args){
-      try {
-        return scalaObjectMethod.invoke(scalaObject.get(null),args);
+  try {
+    Class<?> baseClass=classLoader.loadClass(objectName + "$");
+    final Field scalaObject=baseClass.getField("MODULE$");
+    final Method scalaObjectMethod=scalaObject.getType().getMethod(methodName,typeParameters);
+    Function<Object[],Object> function=new Function<Object[],Object>(){
+      public Object apply(      Object[] args){
+        try {
+          return scalaObjectMethod.invoke(scalaObject.get(null),args);
+        }
+ catch (        Exception e) {
+          throw new RuntimeException("Cannot invoke scala method",e);
+        }
       }
- catch (      Exception e) {
-        throw new RuntimeException("Cannot invoke scala method",e);
+      public boolean equals(      Object object){
+        return false;
+      }
+      public int hashCode(){
+        return scalaObjectMethod.hashCode() + scalaObject.hashCode();
       }
     }
-    public boolean equals(    Object object){
-      return false;
-    }
-    public int hashCode(){
-      return scalaObjectMethod.hashCode() + scalaObject.hashCode();
-    }
-  }
 ;
-  return function;
+    return function;
+  }
+ catch (  ClassNotFoundException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+catch (  NoSuchMethodException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+catch (  NoSuchFieldException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
 }
