@@ -5,6 +5,7 @@
   CommandLineParser parser=new CommandLineParser();
   parser.allowUnknownOptions();
   parser.option(GRADLE_USER_HOME_OPTION,GRADLE_USER_HOME_DETAILED_OPTION).hasArgument();
+  parser.option(GRADLE_QUIET_OPTION,GRADLE_QUIET_DETAILED_OPTION);
   SystemPropertiesCommandLineConverter converter=new SystemPropertiesCommandLineConverter();
   converter.configure(parser);
   ParsedCommandLine options=parser.parse(args);
@@ -12,6 +13,7 @@
   systemProperties.putAll(converter.convert(options,new HashMap<String,String>()));
   File gradleUserHome=gradleUserHome(options);
   addSystemProperties(gradleUserHome,rootDir);
-  WrapperExecutor wrapperExecutor=WrapperExecutor.forWrapperPropertiesFile(propertiesFile,System.out);
-  wrapperExecutor.execute(args,new Install(new Download("gradlew",wrapperVersion()),new PathAssembler(gradleUserHome)),new BootstrapMainStarter());
+  Logger logger=logger(options);
+  WrapperExecutor wrapperExecutor=WrapperExecutor.forWrapperPropertiesFile(propertiesFile,logger);
+  wrapperExecutor.execute(args,new Install(logger,new Download(logger,"gradlew",wrapperVersion()),new PathAssembler(gradleUserHome)),new BootstrapMainStarter());
 }
