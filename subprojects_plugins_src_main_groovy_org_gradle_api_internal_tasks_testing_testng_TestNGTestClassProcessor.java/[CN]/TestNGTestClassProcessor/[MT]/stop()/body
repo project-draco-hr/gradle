@@ -25,15 +25,27 @@
       throw new GradleException(String.format("Could not add a test listener with class '%s'.",listenerClass),e);
     }
   }
-  testNg.addListener((Object)adaptListener(testResultProcessor));
   if (!options.getIncludedTests().isEmpty()) {
     testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
   }
+  TestResultProcessor processor=new CaptureTestOutputTestResultProcessor(resultProcessor,outputRedirector);
   if (!suiteFiles.isEmpty()) {
     testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
+    Object rootId=idGenerator.generateId();
+    TestDescriptorInternal rootSuite=new DefaultTestSuiteDescriptor(rootId,options.getDefaultTestName());
+    TestResultProcessor decorator=new AttachParentTestResultProcessor(processor);
+    decorator.started(rootSuite,new TestStartEvent(System.currentTimeMillis()));
+    testNg.addListener((Object)adaptListener(new TestNGTestResultProcessorAdapter(decorator,idGenerator)));
+    try {
+      testNg.run();
+    }
+  finally {
+      decorator.completed(rootId,new TestCompleteEvent(System.currentTimeMillis()));
+    }
   }
  else {
     testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
+    testNg.addListener((Object)adaptListener(new TestNGTestResultProcessorAdapter(processor,idGenerator)));
+    testNg.run();
   }
-  testNg.run();
 }
