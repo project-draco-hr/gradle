@@ -1,0 +1,12 @@
+{
+  if (spec.getCompilerClassName().equals("play.templates.ScalaTemplateCompiler")) {
+    return new VersionedTwirlCompileSpec(new Class<?>[]{File.class,spec.getSourceDirectory().getClass(),spec.getDestinationDir().getClass(),spec.getFormatterType().getClass(),spec.getAdditionalImports().getClass()},new Object[]{null,spec.getSourceDirectory(),spec.getDestinationDir(),spec.getFormatterType(),spec.getAdditionalImports()});
+  }
+ else {
+    ClassLoader cl=getClass().getClassLoader();
+    Class<?> codecClass=cl.loadClass("scala.io.Codec");
+    Function<Object[],Object> ioCodec=ScalaUtil.scalaObjectFunction(cl,"scala.io.Codec","apply",new Class<?>[]{String.class});
+    Object scalaCodec=ioCodec.apply(new Object[]{spec.getCodec()});
+    return new VersionedTwirlCompileSpec(new Class<?>[]{File.class,spec.getSourceDirectory().getClass(),spec.getDestinationDir().getClass(),spec.getFormatterType().getClass(),spec.getAdditionalImports().getClass(),codecClass,boolean.class,boolean.class},new Object[]{null,spec.getSourceDirectory(),spec.getDestinationDir(),spec.getFormatterType(),spec.getAdditionalImports(),scalaCodec,spec.isInclusiveDots(),spec.isUseOldParser()});
+  }
+}
