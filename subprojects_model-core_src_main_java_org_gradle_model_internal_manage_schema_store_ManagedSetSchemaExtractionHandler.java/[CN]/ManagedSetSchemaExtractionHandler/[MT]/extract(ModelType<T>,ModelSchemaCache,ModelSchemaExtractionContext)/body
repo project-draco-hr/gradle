@@ -1,0 +1,14 @@
+{
+  List<ModelType<?>> typeVariables=type.getTypeVariables();
+  if (typeVariables.isEmpty()) {
+    throw invalid(type,String.format("type parameter of %s has to be specified",ManagedSet.class.getName()));
+  }
+  if (type.isHasWildcardTypeVariables()) {
+    throw invalid(type,String.format("type parameter of %s cannot be a wildcard",ManagedSet.class.getName()));
+  }
+  ManagedSetInstantiator<T> elementInstantiator=new ManagedSetInstantiator<T>(cache);
+  ModelSchema<T> schema=new ModelSchema<T>(type,elementInstantiator);
+  elementInstantiator.setSchema(schema);
+  ModelType<? extends ManagedSet<?>> managedSetSchema=Cast.uncheckedCast(type);
+  return new ModelSchemaExtractionResult<T>(schema,ImmutableList.of(new ManagedSetElementTypeExtractionContext(managedSetSchema,context)));
+}

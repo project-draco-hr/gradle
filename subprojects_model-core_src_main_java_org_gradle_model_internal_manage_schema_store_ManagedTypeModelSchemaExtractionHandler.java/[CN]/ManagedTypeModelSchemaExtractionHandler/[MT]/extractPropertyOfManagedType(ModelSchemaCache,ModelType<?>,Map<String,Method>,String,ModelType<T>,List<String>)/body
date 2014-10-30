@@ -1,0 +1,19 @@
+{
+  String propertyNameCapitalized=getterName.substring(3);
+  String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
+  String setterName="set" + propertyNameCapitalized;
+  if (methods.containsKey(setterName)) {
+    validateSetter(type,propertyType,methods.get(setterName));
+    handled.add(setterName);
+    return new ModelProperty<T>(propertyName,propertyType,true);
+  }
+ else {
+    return new ModelProperty<T>(propertyName,propertyType,true,new Factory<T>(){
+      public T create(){
+        ModelSchema<T> modelSchema=schemaCache.get(propertyType);
+        return modelSchema.createInstance();
+      }
+    }
+);
+  }
+}

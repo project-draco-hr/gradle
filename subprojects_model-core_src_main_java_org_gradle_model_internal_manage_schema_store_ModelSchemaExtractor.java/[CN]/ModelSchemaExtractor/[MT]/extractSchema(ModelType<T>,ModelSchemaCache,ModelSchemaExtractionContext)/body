@@ -1,0 +1,15 @@
+{
+  ModelSchema<T> cached=cache.get(type);
+  if (cached != null) {
+    return new ModelSchemaExtractionResult<T>(cached);
+  }
+  ModelSchemaExtractionHandler handler=Iterables.find(EXTRACTION_HANDLERS,new Predicate<ModelSchemaExtractionHandler>(){
+    public boolean apply(    ModelSchemaExtractionHandler candidate){
+      return candidate.getSupportedSuperType().isAssignableFrom(type) && candidate.getSpec().isSatisfiedBy(type);
+    }
+  }
+);
+  ModelSchemaExtractionResult<T> schemaExtraction=handler.extract(type,cache,context);
+  cache.set(type,schemaExtraction.getSchema());
+  return schemaExtraction;
+}
