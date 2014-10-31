@@ -1,17 +1,18 @@
 {
   ModelSchemaExtractionResult<T> schemaExtraction=extractSchema(type,cache,null);
-  Extraction extraction=new Extraction();
-  pushDependencies(schemaExtraction.getDependencies(),extraction,cache);
-  while (extraction.hasNext()) {
-    ModelSchemaExtractionContext next=extraction.next();
+  Queue<ModelSchemaExtractionContext> unsatisfiedDependencies=Lists.newLinkedList();
+  pushUnsatisfiedDependencies(schemaExtraction.getDependencies(),unsatisfiedDependencies,cache);
+  ModelSchemaExtractionContext dependency=unsatisfiedDependencies.poll();
+  while (dependency != null) {
     ModelSchemaExtractionResult<?> nextSchema;
     try {
-      nextSchema=extractSchema(next.getType(),cache,next);
+      nextSchema=extractSchema(dependency.getType(),cache,dependency);
     }
  catch (    InvalidManagedModelElementTypeException e) {
-      throw next.wrap(e);
+      throw dependency.wrap(e);
     }
-    pushDependencies(nextSchema.getDependencies(),extraction,cache);
+    pushUnsatisfiedDependencies(nextSchema.getDependencies(),unsatisfiedDependencies,cache);
+    dependency=unsatisfiedDependencies.poll();
   }
   return schemaExtraction.getSchema();
 }
