@@ -10,11 +10,12 @@
   List<JavaPlatform> selectedPlatforms=platforms.chooseFromTargets(JavaPlatform.class,targetPlatforms);
   for (  final JavaPlatform platform : selectedPlatforms) {
     final JavaToolChain toolChain=toolChains.getForPlatform(platform);
-    String binaryName=createBinaryName(jvmLibrary,namingSchemeBuilder,selectedPlatforms,platform);
+    final String binaryName=createBinaryName(jvmLibrary,namingSchemeBuilder,selectedPlatforms,platform);
     binaries.create(binaryName,new Action<JarBinarySpec>(){
       public void execute(      JarBinarySpec jarBinary){
         ((JarBinarySpecInternal)jarBinary).setBaseName(jvmLibrary.getName());
-        jarBinary.source(jvmLibrary.getSource());
+        FunctionalSourceSet binarySourceSet=((ComponentSpecInternal)jvmLibrary).getSources().copy(binaryName);
+        ((JarBinarySpecInternal)jarBinary).setBinarySources(binarySourceSet);
         jarBinary.setToolChain(toolChain);
         jarBinary.setTargetPlatform(platform);
         initAction.execute(jarBinary);
