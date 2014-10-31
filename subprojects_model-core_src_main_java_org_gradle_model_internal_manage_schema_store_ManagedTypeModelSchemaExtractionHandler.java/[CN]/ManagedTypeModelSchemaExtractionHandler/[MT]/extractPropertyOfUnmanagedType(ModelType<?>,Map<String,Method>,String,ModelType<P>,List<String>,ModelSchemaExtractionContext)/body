@@ -1,0 +1,20 @@
+{
+  Class<?> boxedType=BOXED_REPLACEMENTS.get(propertyType);
+  if (boxedType != null) {
+    throw invalidMethod(type,getterName,String.format("%s is not a supported property type, use %s instead",propertyType,boxedType.getName()),context);
+  }
+  if (!isSupportedUnmanagedType(propertyType)) {
+    String supportedTypes=Joiner.on(", ").join(SUPPORTED_UNMANAGED_TYPES);
+    String message=String.format("%s is not a supported property type, only managed and the following unmanaged types are supported: %s",propertyType,supportedTypes);
+    throw invalidMethod(type,getterName,message,context);
+  }
+  String propertyNameCapitalized=getterName.substring(3);
+  final String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
+  String setterName="set" + propertyNameCapitalized;
+  if (!methods.containsKey(setterName)) {
+    throw invalidMethod(type,getterName,"no corresponding setter for getter",context);
+  }
+  validateSetter(type,propertyType,methods.get(setterName),context);
+  handled.add(setterName);
+  return new ModelProperty<P>(propertyName,propertyType);
+}
