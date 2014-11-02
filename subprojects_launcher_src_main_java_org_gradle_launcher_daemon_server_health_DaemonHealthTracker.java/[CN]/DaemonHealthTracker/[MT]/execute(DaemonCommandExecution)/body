@@ -3,11 +3,14 @@
     execution.proceed();
     return;
   }
-  LOG.info(daemonStats.buildStarted());
+  LOG.lifecycle(daemonStats.buildStarted());
   try {
     execution.proceed();
   }
   finally {
     daemonStats.buildFinished();
+  }
+  if (daemonStats.getCurrentPerformance() < daemonTiredThreshold) {
+    execution.getDaemonStateControl().requestStop();
   }
 }
