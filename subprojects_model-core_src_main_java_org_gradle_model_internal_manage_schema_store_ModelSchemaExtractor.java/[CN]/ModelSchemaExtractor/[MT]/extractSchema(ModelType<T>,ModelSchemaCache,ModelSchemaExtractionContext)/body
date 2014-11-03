@@ -3,10 +3,10 @@
   if (cached != null) {
     return new ModelSchemaExtractionResult<T>(cached);
   }
-  ModelSchemaExtractionHandler<?> handler=Iterables.find(EXTRACTION_HANDLERS,new Predicate<ModelSchemaExtractionHandler<?>>(){
-    public boolean apply(    ModelSchemaExtractionHandler<?> candidate){
+  ModelSchemaExtractionStrategy<?> strategy=Iterables.find(EXTRACTION_STRATEGIES,new Predicate<ModelSchemaExtractionStrategy<?>>(){
+    public boolean apply(    ModelSchemaExtractionStrategy<?> candidate){
       if (candidate.getType().isAssignableFrom(type)) {
-        ModelSchemaExtractionHandler<? super T> castCandidate=Cast.uncheckedCast(candidate);
+        ModelSchemaExtractionStrategy<? super T> castCandidate=Cast.uncheckedCast(candidate);
         return castCandidate.getSpec().isSatisfiedBy(type);
       }
  else {
@@ -15,8 +15,8 @@
     }
   }
 );
-  ModelSchemaExtractionHandler<? super T> castHandler=Cast.uncheckedCast(handler);
-  ModelSchemaExtractionResult<T> schemaExtraction=castHandler.extract(type,cache,context);
+  ModelSchemaExtractionStrategy<? super T> castStrategy=Cast.uncheckedCast(strategy);
+  ModelSchemaExtractionResult<T> schemaExtraction=castStrategy.extract(type,cache,context);
   cache.set(type,schemaExtraction.getSchema());
   return schemaExtraction;
 }
