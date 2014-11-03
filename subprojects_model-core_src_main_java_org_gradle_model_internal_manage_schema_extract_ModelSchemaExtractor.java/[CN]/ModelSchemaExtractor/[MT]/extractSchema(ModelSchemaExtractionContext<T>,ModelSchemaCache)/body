@@ -1,0 +1,23 @@
+{
+  final ModelType<T> type=extractionContext.getType();
+  ModelSchema<T> cached=cache.get(type);
+  if (cached != null) {
+    return new ModelSchemaExtractionResult<T>(cached);
+  }
+  ModelSchemaExtractionStrategy<?> strategy=Iterables.find(EXTRACTION_STRATEGIES,new Predicate<ModelSchemaExtractionStrategy<?>>(){
+    public boolean apply(    ModelSchemaExtractionStrategy<?> candidate){
+      if (candidate.getType().isAssignableFrom(type)) {
+        ModelSchemaExtractionStrategy<? super T> castCandidate=Cast.uncheckedCast(candidate);
+        return castCandidate.getSpec().isSatisfiedBy(type);
+      }
+ else {
+        return false;
+      }
+    }
+  }
+);
+  ModelSchemaExtractionStrategy<? super T> castStrategy=Cast.uncheckedCast(strategy);
+  ModelSchemaExtractionResult<T> schemaExtraction=castStrategy.extract(extractionContext,cache);
+  cache.set(type,schemaExtraction.getSchema());
+  return schemaExtraction;
+}

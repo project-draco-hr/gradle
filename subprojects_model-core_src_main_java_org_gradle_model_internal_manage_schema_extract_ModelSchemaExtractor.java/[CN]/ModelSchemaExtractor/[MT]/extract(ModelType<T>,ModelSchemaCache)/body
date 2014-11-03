@@ -1,13 +1,10 @@
 {
-  ModelSchemaExtractionResult<T> schemaExtraction=extractSchema(type,cache,null);
-  Queue<ModelSchemaExtractionContext> unsatisfiedDependencies=Lists.newLinkedList();
-  pushUnsatisfiedDependencies(schemaExtraction.getDependencies(),unsatisfiedDependencies,cache);
-  ModelSchemaExtractionContext dependency=unsatisfiedDependencies.poll();
-  while (dependency != null) {
-    ModelSchemaExtractionResult<?> nextSchema;
-    nextSchema=extractSchema(dependency.getType(),cache,dependency);
+  Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies=Lists.newLinkedList();
+  ModelSchemaExtractionContext<?> extractionContext=ModelSchemaExtractionContext.root(type);
+  while (extractionContext != null) {
+    ModelSchemaExtractionResult<?> nextSchema=extractSchema(extractionContext,cache);
     pushUnsatisfiedDependencies(nextSchema.getDependencies(),unsatisfiedDependencies,cache);
-    dependency=unsatisfiedDependencies.poll();
+    extractionContext=unsatisfiedDependencies.poll();
   }
-  return schemaExtraction.getSchema();
+  return cache.get(type);
 }
