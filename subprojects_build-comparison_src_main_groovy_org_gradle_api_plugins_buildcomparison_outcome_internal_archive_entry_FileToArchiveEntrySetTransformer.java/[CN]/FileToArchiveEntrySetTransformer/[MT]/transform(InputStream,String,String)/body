@@ -1,0 +1,52 @@
+{
+  Set<ArchiveEntry> entries=new HashSet<ArchiveEntry>();
+  ZipInputStream zipStream=new ZipInputStream(archiveInputStream);
+  try {
+    ZipEntry entry=zipStream.getNextEntry();
+    while (entry != null) {
+      ArchiveEntry archiveEntry=entryTransformer.transform(entry);
+      if (sortPathPrefix == null) {
+        archiveEntry.setSortPath(archiveEntry.getPath());
+      }
+ else {
+        archiveEntry.setSortPath(sortPathPrefix + archiveEntry.getPath());
+      }
+      if (pathPrefix != null) {
+        archiveEntry.setPath(pathPrefix + archiveEntry.getPath());
+      }
+      if (!archiveEntry.isDirectory() && (zipStream.available() == 1)) {
+        boolean zipEntry;
+        final BufferedInputStream bis=new BufferedInputStream(zipStream){
+          @Override public void close() throws IOException {
+          }
+        }
+;
+        try {
+          bis.mark(Integer.MAX_VALUE);
+          zipEntry=new ZipInputStream(bis).getNextEntry() != null;
+        }
+ catch (        IOException e) {
+          zipEntry=false;
+        }
+ finally {
+          bis.reset();
+        }
+        if (zipEntry) {
+          Set<ArchiveEntry> subEntries=transform(bis,archiveEntry.getSortPath() + "::","jar:" + archiveEntry.getPath() + "!/");
+          archiveEntry.setSubEntries(subEntries);
+        }
+      }
+      entries.add(archiveEntry);
+      entries.addAll(archiveEntry.getSubEntries());
+      zipStream.closeEntry();
+      entry=zipStream.getNextEntry();
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+ finally {
+    IOUtils.closeQuietly(zipStream);
+  }
+  return entries;
+}
