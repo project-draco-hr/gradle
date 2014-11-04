@@ -1,10 +1,17 @@
 {
+  List<ModelSchemaExtractionContext<?>> validations=Lists.newLinkedList();
   Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies=Lists.newLinkedList();
   ModelSchemaExtractionContext<?> extractionContext=ModelSchemaExtractionContext.root(type);
+  validations.add(extractionContext);
   while (extractionContext != null) {
     ModelSchemaExtractionResult<?> nextSchema=extractSchema(extractionContext,cache);
-    pushUnsatisfiedDependencies(nextSchema.getDependencies(),unsatisfiedDependencies,cache);
+    Iterable<? extends ModelSchemaExtractionContext<?>> dependencies=nextSchema.getDependencies();
+    Iterables.addAll(validations,dependencies);
+    pushUnsatisfiedDependencies(dependencies,unsatisfiedDependencies,cache);
     extractionContext=unsatisfiedDependencies.poll();
+  }
+  for (  ModelSchemaExtractionContext<?> validationContext : validations) {
+    validationContext.validate();
   }
   return cache.get(type);
 }

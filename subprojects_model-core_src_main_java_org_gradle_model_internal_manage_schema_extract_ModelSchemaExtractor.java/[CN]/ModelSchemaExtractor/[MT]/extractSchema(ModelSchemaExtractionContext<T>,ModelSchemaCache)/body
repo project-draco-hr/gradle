@@ -4,20 +4,12 @@
   if (cached != null) {
     return new ModelSchemaExtractionResult<T>(cached);
   }
-  ModelSchemaExtractionStrategy<?> strategy=Iterables.find(EXTRACTION_STRATEGIES,new Predicate<ModelSchemaExtractionStrategy<?>>(){
-    public boolean apply(    ModelSchemaExtractionStrategy<?> candidate){
-      if (candidate.getType().isAssignableFrom(type)) {
-        ModelSchemaExtractionStrategy<? super T> castCandidate=Cast.uncheckedCast(candidate);
-        return castCandidate.getSpec().isSatisfiedBy(type);
-      }
- else {
-        return false;
-      }
+  for (  ModelSchemaExtractionStrategy strategy : EXTRACTION_STRATEGIES) {
+    ModelSchemaExtractionResult<T> result=strategy.extract(extractionContext,cache);
+    if (result != null) {
+      cache.set(type,result.getSchema());
+      return result;
     }
   }
-);
-  ModelSchemaExtractionStrategy<? super T> castStrategy=Cast.uncheckedCast(strategy);
-  ModelSchemaExtractionResult<T> schemaExtraction=castStrategy.extract(extractionContext,cache);
-  cache.set(type,schemaExtraction.getSchema());
-  return schemaExtraction;
+  throw new UnmanagedModelElementTypeException(extractionContext,"type is unsupported." + getLineSeparator() + "The following types are supported:"+ getLineSeparator()+ getSupportedTypesString());
 }
