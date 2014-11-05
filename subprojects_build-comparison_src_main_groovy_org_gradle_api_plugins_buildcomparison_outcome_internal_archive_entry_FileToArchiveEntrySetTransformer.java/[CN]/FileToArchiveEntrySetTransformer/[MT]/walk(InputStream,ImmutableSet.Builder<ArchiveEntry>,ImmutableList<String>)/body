@@ -5,19 +5,11 @@
     ZipEntry entry=zipStream.getNextEntry();
     while (entry != null) {
       ArchiveEntry.Builder builder=new ArchiveEntry.Builder();
+      builder.setParentPaths(parentPaths);
       builder.setPath(entry.getName());
       builder.setCrc(entry.getCrc());
       builder.setDirectory(entry.isDirectory());
       builder.setSize(entry.getSize());
-      if (sortPathPrefix == null) {
-        builder.setSortPath(builder.getPath());
-      }
- else {
-        builder.setSortPath(sortPathPrefix + builder.getPath());
-      }
-      if (pathPrefix != null) {
-        builder.setPath(pathPrefix + builder.getPath());
-      }
       if (!builder.isDirectory() && (zipStream.available() == 1)) {
         boolean zipEntry;
         final BufferedInputStream bis=new BufferedInputStream(zipStream){
@@ -36,13 +28,14 @@
           bis.reset();
         }
         if (zipEntry) {
-          ImmutableSet<ArchiveEntry> subEntries=transform(bis,builder.getSortPath() + "::","jar:" + builder.getPath() + "!/");
+          ImmutableList<String> nextParentPaths=ImmutableList.<String>builder().addAll(parentPaths).add(entry.getName()).build();
+          ImmutableSet<ArchiveEntry> subEntries=walk(bis,allEntries,nextParentPaths);
           builder.setSubEntries(subEntries);
         }
       }
       ArchiveEntry archiveEntry=builder.build();
       entries.add(archiveEntry);
-      entries.addAll(archiveEntry.getSubEntries());
+      allEntries.add(archiveEntry);
       zipStream.closeEntry();
       entry=zipStream.getNextEntry();
     }
