@@ -1,0 +1,24 @@
+{
+  if (!(other instanceof ExcludeRuleBackedSpec)) {
+    return super.doUnion(other);
+  }
+  ExcludeRuleBackedSpec excludeRuleBackedSpec=(ExcludeRuleBackedSpec)other;
+  if (excludeSpecs.equals(excludeRuleBackedSpec.excludeSpecs)) {
+    return this;
+  }
+  for (  ArtifactIdSpec excludeSpec : excludeSpecs) {
+    if (excludeSpec instanceof ExcludeRuleSpec) {
+      return super.doUnion(other);
+    }
+  }
+  for (  ArtifactIdSpec excludeSpec : excludeRuleBackedSpec.excludeSpecs) {
+    if (excludeSpec instanceof ExcludeRuleSpec) {
+      return super.doUnion(other);
+    }
+  }
+  List<ArtifactIdSpec> merged=new ArrayList<ArtifactIdSpec>();
+  if (merged.isEmpty()) {
+    return ALL_SPEC;
+  }
+  return new ExcludeRuleBackedSpec(merged);
+}
