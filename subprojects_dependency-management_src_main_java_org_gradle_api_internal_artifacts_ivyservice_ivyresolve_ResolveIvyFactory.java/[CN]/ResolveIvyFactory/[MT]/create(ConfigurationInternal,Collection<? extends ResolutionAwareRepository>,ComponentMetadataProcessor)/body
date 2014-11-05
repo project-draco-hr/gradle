@@ -7,7 +7,7 @@
   CachePolicy cachePolicy=resolutionStrategy.getCachePolicy();
   startParameterResolutionOverride.addResolutionRules(resolutionRules);
   UserResolverChain userResolverChain=new UserResolverChain(versionSelectorScheme,versionComparator,resolutionStrategy.getComponentSelection());
-  RepositoryChain parentLookupResolver=new ParentModuleLookupResolver(userResolverChain,cacheLockingManager);
+  ParentModuleLookupResolver parentLookupResolver=new ParentModuleLookupResolver(versionSelectorScheme,versionComparator,cacheLockingManager);
   for (  ResolutionAwareRepository repository : repositories) {
     ConfiguredModuleComponentRepository baseRepository=repository.createResolver();
     if (baseRepository instanceof ExternalResourceResolver) {
@@ -27,6 +27,7 @@
     }
     moduleComponentRepository=inMemoryCache.cached(moduleComponentRepository);
     userResolverChain.add(moduleComponentRepository);
+    parentLookupResolver.getRepositoryChain().add(moduleComponentRepository);
   }
   return userResolverChain;
 }
