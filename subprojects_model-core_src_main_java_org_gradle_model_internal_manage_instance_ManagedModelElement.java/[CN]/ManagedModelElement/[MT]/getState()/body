@@ -1,0 +1,22 @@
+{
+  return new ModelElementState(){
+    public <P>P get(    ModelType<P> type,    String name){
+      ModelPropertyInstance<P> propertyInstance=ManagedModelElement.this.get(type,name);
+      P value=propertyInstance.get();
+      if (value == null && !propertyInstance.getMeta().isWritable()) {
+        value=instantiator.newInstance(schemaStore.getSchema(type));
+        propertyInstance.set(value);
+      }
+      return value;
+    }
+    public <P>void set(    ModelType<P> propertyType,    String name,    P value){
+      ModelPropertyInstance<P> modelPropertyInstance=ManagedModelElement.this.get(propertyType,name);
+      ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
+      if (propertySchema.getKind().equals(ModelSchema.Kind.STRUCT) && !ManagedInstance.class.isInstance(value)) {
+        throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'",name,getType()));
+      }
+      modelPropertyInstance.set(Cast.cast(propertyType.getConcreteClass(),value));
+    }
+  }
+;
+}

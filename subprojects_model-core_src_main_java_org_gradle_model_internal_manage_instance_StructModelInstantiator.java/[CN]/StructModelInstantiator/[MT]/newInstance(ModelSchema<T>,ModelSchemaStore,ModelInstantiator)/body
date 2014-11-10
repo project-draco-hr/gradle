@@ -1,9 +1,8 @@
 {
   if (schema.getKind().equals(ModelSchema.Kind.STRUCT)) {
     Class<T> concreteType=schema.getType().getConcreteClass();
-    ManagedModelElement<T> element=new ManagedModelElement<T>(schema);
-    ManagedModelElementInvocationHandler invocationHandler=new ManagedModelElementInvocationHandler(element,schemaStore,instantiator);
-    return Cast.uncheckedCast(Proxy.newProxyInstance(concreteType.getClassLoader(),new Class<?>[]{concreteType,ManagedInstance.class},invocationHandler));
+    ManagedModelElement<T> element=new ManagedModelElement<T>(schema,schemaStore,instantiator);
+    return proxyFactory.createProxy(element.getState(),concreteType.getClassLoader(),concreteType,ManagedInstance.class);
   }
  else {
     return null;
