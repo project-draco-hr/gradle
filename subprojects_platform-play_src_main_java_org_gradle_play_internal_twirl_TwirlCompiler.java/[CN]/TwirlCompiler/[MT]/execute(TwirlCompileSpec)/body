@@ -1,16 +1,14 @@
 {
   ArrayList<File> outputFiles=Lists.newArrayList();
   try {
-    VersionedInvocationSpec invocationSpec=invocationSpecBuilder.build(spec);
-    Function<Object[],Object> compile=ScalaUtil.scalaObjectFunction(getClass().getClassLoader(),invocationSpec.getVersion().getCompilerClassname(),"compile",invocationSpec.getParameterTypes());
+    ClassLoader cl=getClass().getClassLoader();
+    Function<Object[],Object> compile=spec.getCompileMethod(cl);
     Iterable<File> sources=spec.getSources();
     for (    File sourceFile : sources) {
-      Object[] parameters=invocationSpec.getParameter(sourceFile.getCanonicalFile());
-      Object result=compile.apply(parameters);
-      Method resultIsDefined=result.getClass().getMethod("isDefined");
-      if ((Boolean)resultIsDefined.invoke(result)) {
-        File createdFile=(File)result.getClass().getMethod("get").invoke(result);
-        outputFiles.add(createdFile);
+      Object result=compile.apply(spec.createCompileParameters(cl,sourceFile));
+      ScalaOptionInvocationWrapper<File> maybeFile=new ScalaOptionInvocationWrapper<File>(result);
+      if (maybeFile.isDefined()) {
+        outputFiles.add(maybeFile.get());
       }
     }
   }
