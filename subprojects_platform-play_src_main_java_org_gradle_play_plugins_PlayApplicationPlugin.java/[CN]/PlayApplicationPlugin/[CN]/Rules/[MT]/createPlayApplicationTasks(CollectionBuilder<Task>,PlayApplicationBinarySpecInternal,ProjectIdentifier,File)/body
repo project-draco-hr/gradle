@@ -1,0 +1,56 @@
+{
+  final String twirlCompileTaskName=String.format("twirlCompile%s",StringUtils.capitalize(binary.getName()));
+  final File twirlCompilerOutputDirectory=new File(buildDir,String.format("%s/twirl",binary.getName()));
+  final File routesCompilerOutputDirectory=new File(buildDir,String.format("%s/src_managed",binary.getName()));
+  tasks.create(twirlCompileTaskName,TwirlCompile.class,new Action<TwirlCompile>(){
+    public void execute(    TwirlCompile twirlCompile){
+      twirlCompile.setPlatform(binary.getTargetPlatform());
+      twirlCompile.setOutputDirectory(new File(twirlCompilerOutputDirectory,"views"));
+      twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(),"app"));
+      twirlCompile.setSource(twirlCompile.getSourceDirectory());
+      twirlCompile.include("**/*.html");
+      binary.builtBy(twirlCompile);
+    }
+  }
+);
+  final String routesCompileTaskName=String.format("routesCompile%s",StringUtils.capitalize(binary.getName()));
+  tasks.create(routesCompileTaskName,RoutesCompile.class,new Action<RoutesCompile>(){
+    public void execute(    RoutesCompile routesCompile){
+      routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
+      routesCompile.setAdditionalImports(new ArrayList<String>());
+      routesCompile.setSource(new File(projectIdentifier.getProjectDir(),"conf"));
+      routesCompile.include("*.routes");
+      routesCompile.include("routes");
+      binary.builtBy(routesCompile);
+    }
+  }
+);
+  final String scalaCompileTaskName=String.format("scalaCompile%s",StringUtils.capitalize(binary.getName()));
+  final File compileOutputDirectory=new File(buildDir,String.format("classes/%s/app",binary.getName()));
+  tasks.create(scalaCompileTaskName,ScalaCompile.class,new Action<ScalaCompile>(){
+    public void execute(    ScalaCompile scalaCompile){
+      scalaCompile.setDestinationDir(compileOutputDirectory);
+      scalaCompile.setSource("app");
+      IncrementalCompileOptions incrementalOptions=scalaCompile.getScalaCompileOptions().getIncrementalOptions();
+      incrementalOptions.setAnalysisFile(new File(buildDir,String.format("tmp/scala/compilerAnalysis/%s.analysis",scalaCompileTaskName)));
+      scalaCompile.exclude("**/*.html");
+      scalaCompile.dependsOn(twirlCompileTaskName);
+      scalaCompile.dependsOn(routesCompileTaskName);
+      scalaCompile.source(twirlCompilerOutputDirectory);
+      scalaCompile.source(routesCompilerOutputDirectory);
+    }
+  }
+);
+  String jarTaskName=String.format("create%sJar",StringUtils.capitalize(binary.getName()));
+  tasks.create(jarTaskName,Jar.class,new Action<Jar>(){
+    public void execute(    Jar jar){
+      jar.setDestinationDir(binary.getJarFile().getParentFile());
+      jar.setArchiveName(binary.getJarFile().getName());
+      jar.from(compileOutputDirectory);
+      jar.from("public");
+      jar.from("conf");
+      jar.dependsOn(scalaCompileTaskName);
+    }
+  }
+);
+}

@@ -1,0 +1,18 @@
+{
+  List<String> targetPlatforms=componentSpec.getTargetPlatforms();
+  if (targetPlatforms.isEmpty()) {
+    targetPlatforms.add(new DefaultPlayPlatform("2.3.5","2.11","1.0.2",JavaVersion.current()).getName());
+  }
+  List<PlayPlatform> selectedPlatforms=platforms.chooseFromTargets(PlayPlatform.class,targetPlatforms);
+  for (  final PlayPlatform selectedPlatform : selectedPlatforms) {
+    binaries.create(String.format("%sBinary",componentSpec.getName(),selectedPlatform.getName()),new Action<PlayApplicationBinarySpec>(){
+      public void execute(      PlayApplicationBinarySpec playBinary){
+        PlayApplicationBinarySpecInternal playBinaryInternal=(PlayApplicationBinarySpecInternal)playBinary;
+        playBinaryInternal.setTargetPlatform(selectedPlatform);
+        playBinaryInternal.setToolChain(playToolChainInternal);
+        playBinaryInternal.setJarFile(new File(buildDir,String.format("jars/%s/%s.jar",componentSpec.getName(),playBinaryInternal.getName())));
+      }
+    }
+);
+  }
+}
