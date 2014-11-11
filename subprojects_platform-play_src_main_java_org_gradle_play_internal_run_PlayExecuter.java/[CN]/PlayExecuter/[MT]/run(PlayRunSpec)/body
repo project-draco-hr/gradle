@@ -1,4 +1,23 @@
 {
-  System.out.println("Running _PLAY_ APP");
+  ClassLoader cl=getClass().getClassLoader();
+  try {
+    Class<?> mainClass=cl.loadClass("play.core.server.NettyServer");
+    Class<?> buildLinkClass=cl.loadClass("play.core.SBTLink");
+    Class<?> buildDocHandlerClass=cl.loadClass("play.core.SBTDocHandler");
+    ClassLoader docsClassLoader=cl;
+    Class<?> docHandlerFactoryClass=docsClassLoader.loadClass("play.docs.BuildDocHandlerFactory");
+    Method factoryMethod=docHandlerFactoryClass.getMethod("empty");
+    Object buildDocHandler=factoryMethod.invoke(null);
+    Method runMethod=mainClass.getMethod("mainDevHttpMode",buildLinkClass,buildDocHandlerClass,Integer.class);
+    Object buildLink=Proxy.newProxyInstance(cl,new java.lang.Class[]{buildLinkClass},new InvocationHandler(){
+      public Object invoke(      Object proxy,      Method method,      Object[] args) throws Throwable {
+        return null;
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e);
+  }
   return new PlayRunResult();
 }
