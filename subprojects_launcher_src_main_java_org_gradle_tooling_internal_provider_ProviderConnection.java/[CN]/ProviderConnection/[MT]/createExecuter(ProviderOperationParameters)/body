@@ -7,16 +7,7 @@
     executer=embeddedExecutor;
   }
  else {
-    if (Boolean.TRUE.equals(operationParameters.isColorOutput(null)) && operationParameters.getStandardOutput() != null) {
-      PrintStream outStr=new PrintStream(operationParameters.getStandardOutput());
-      DefaultColorMap colourMap=new DefaultColorMap();
-      colourMap.setUseColor(true);
-      Console console=new AnsiConsole(outStr,outStr,colourMap,true);
-      loggingServices=this.loggingServices.newColoredLogging(console);
-    }
- else {
-      loggingServices=this.loggingServices.newToolingApiLogging();
-    }
+    loggingServices=LoggingServiceRegistry.newToolingApiLogging();
     loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
     ServiceRegistry clientServices=daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class),params.daemonParams,operationParameters.getStandardInput(SafeStreams.emptyInput()));
     executer=clientServices.get(DaemonClient.class);
