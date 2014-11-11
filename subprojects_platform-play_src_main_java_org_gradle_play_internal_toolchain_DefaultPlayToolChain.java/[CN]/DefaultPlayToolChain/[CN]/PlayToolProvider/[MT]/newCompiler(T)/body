@@ -8,5 +8,14 @@
     @SuppressWarnings("unchecked") Compiler<T> twirlCompileSpecCompiler=(Compiler<T>)new MappingSpecCompiler<TwirlCompileSpec,VersionedTwirlCompileSpec>(compiler,WrapUtil.toMap(twirlCompileSpec,versionedSpec));
     return twirlCompileSpecCompiler;
   }
+  if (spec instanceof RoutesCompileSpec) {
+    RoutesCompileSpec routesCompileSpec=(RoutesCompileSpec)spec;
+    VersionedRoutesCompileSpec versionedSpec=RoutesCompileSpecFactory.create(routesCompileSpec,false,targetPlatform);
+    Dependency compilerDependency=dependencyHandler.create(versionedSpec.getDependencyNotation());
+    Configuration routesCompilerClasspath=configurationContainer.detachedConfiguration(compilerDependency);
+    DaemonRoutesCompiler compiler=new DaemonRoutesCompiler(fileResolver.resolve("."),new RoutesCompiler(),compilerDaemonManager,routesCompilerClasspath.getFiles());
+    @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler=(Compiler<T>)new MappingSpecCompiler<RoutesCompileSpec,VersionedRoutesCompileSpec>(compiler,WrapUtil.toMap(routesCompileSpec,versionedSpec));
+    return routesSpecCompiler;
+  }
   return null;
 }
