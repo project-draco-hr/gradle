@@ -2,18 +2,14 @@
   if (spec instanceof TwirlCompileSpec) {
     TwirlCompileSpec twirlCompileSpec=(TwirlCompileSpec)spec;
     VersionedTwirlCompileSpec versionedSpec=TwirlCompileSpecFactory.create(twirlCompileSpec,targetPlatform);
-    Dependency compilerDependency=dependencyHandler.create(versionedSpec.getDependencyNotation());
-    Configuration templateCompilerClasspath=configurationContainer.detachedConfiguration(compilerDependency);
-    DaemonTwirlCompiler compiler=new DaemonTwirlCompiler(fileResolver.resolve("."),templateCompilerClasspath.getFiles(),new TwirlCompiler(),compilerDaemonManager,new BaseForkOptions());
+    DaemonTwirlCompiler compiler=new DaemonTwirlCompiler(fileResolver.resolve("."),resolveClasspath(versionedSpec),new TwirlCompiler(),compilerDaemonManager,new BaseForkOptions());
     @SuppressWarnings("unchecked") Compiler<T> twirlCompileSpecCompiler=(Compiler<T>)new MappingSpecCompiler<TwirlCompileSpec,VersionedTwirlCompileSpec>(compiler,WrapUtil.toMap(twirlCompileSpec,versionedSpec));
     return twirlCompileSpecCompiler;
   }
   if (spec instanceof RoutesCompileSpec) {
     RoutesCompileSpec routesCompileSpec=(RoutesCompileSpec)spec;
     VersionedRoutesCompileSpec versionedSpec=RoutesCompileSpecFactory.create(routesCompileSpec,targetPlatform);
-    Dependency compilerDependency=dependencyHandler.create(versionedSpec.getDependencyNotation());
-    Configuration routesCompilerClasspath=configurationContainer.detachedConfiguration(compilerDependency);
-    DaemonRoutesCompiler compiler=new DaemonRoutesCompiler(fileResolver.resolve("."),new RoutesCompiler(),compilerDaemonManager,routesCompilerClasspath.getFiles());
+    DaemonRoutesCompiler compiler=new DaemonRoutesCompiler(fileResolver.resolve("."),new RoutesCompiler(),compilerDaemonManager,resolveClasspath(versionedSpec));
     @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler=(Compiler<T>)new MappingSpecCompiler<RoutesCompileSpec,VersionedRoutesCompileSpec>(compiler,WrapUtil.toMap(routesCompileSpec,versionedSpec));
     return routesSpecCompiler;
   }
