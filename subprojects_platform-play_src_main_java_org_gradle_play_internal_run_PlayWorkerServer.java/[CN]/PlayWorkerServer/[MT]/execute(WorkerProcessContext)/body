@@ -1,6 +1,14 @@
 {
+  stop=new CountDownLatch(1);
   final PlayRunWorkerClientProtocol clientProtocol=context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
+  context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class,this);
   context.getServerConnection().connect();
   final PlayRunResult result=execute(clientProtocol);
   clientProtocol.executed(result);
+  try {
+    stop.await();
+  }
+ catch (  InterruptedException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
 }

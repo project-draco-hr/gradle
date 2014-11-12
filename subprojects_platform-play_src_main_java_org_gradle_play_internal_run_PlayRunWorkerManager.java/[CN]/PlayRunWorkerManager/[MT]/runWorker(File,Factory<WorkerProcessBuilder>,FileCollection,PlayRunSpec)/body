@@ -3,8 +3,13 @@
   process.start();
   PlayWorkerClient clientCallBack=new PlayWorkerClient();
   process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class,clientCallBack);
+  PlayRunWorkerServerProtocol playRunWorkerServerProtocol=process.getConnection().addOutgoing(PlayRunWorkerServerProtocol.class);
   process.getConnection().connect();
   PlayRunResult result=clientCallBack.getResult();
-  process.waitForStop();
-  return result;
+  if (result.isSuccessful()) {
+    return new PlayApplicationRunnerToken(process,playRunWorkerServerProtocol);
+  }
+ else {
+    throw new GradleException("Unable to start Play application.",result.getException());
+  }
 }
