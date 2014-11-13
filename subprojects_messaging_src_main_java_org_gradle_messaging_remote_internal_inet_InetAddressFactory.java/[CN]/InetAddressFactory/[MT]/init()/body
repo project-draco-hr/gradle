@@ -72,9 +72,15 @@
     localAddresses.add(fallback);
   }
   if (remoteAddresses.isEmpty()) {
-    InetAddress fallback=InetAddress.getLocalHost();
-    LOGGER.debug("No remote addresses, using fallback {}",fallback);
-    remoteAddresses.add(fallback);
+    try {
+      InetAddress fallback=InetAddress.getLocalHost();
+      LOGGER.debug("No remote addresses, using fallback {}",fallback);
+      remoteAddresses.add(fallback);
+    }
+ catch (    UnknownHostException e) {
+      LOGGER.debug("Could not map local host name to remote address, using local addresses instead.");
+      remoteAddresses.addAll(localAddresses);
+    }
   }
   if (multicastInterfaces.isEmpty()) {
     LOGGER.debug("No multicast interfaces, using fallbacks");
