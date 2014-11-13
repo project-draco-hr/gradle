@@ -1,5 +1,14 @@
 {
+  ProgressLoggerFactory progressLoggerFactory=getServices().get(ProgressLoggerFactory.class);
+  ProgressLogger progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start("Start Play server","Starting Play");
   PlayRunSpec spec=generateSpec();
   PlayRunWorkerManager manager=new PlayRunWorkerManager();
-  runnerToken=manager.runWorker(getProject().getProjectDir(),getWorkerProcessBuilderFactory(),getClasspath(),spec);
+  try {
+    runnerToken=manager.start(getProject().getProjectDir(),getWorkerProcessBuilderFactory(),getClasspath(),spec);
+    progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start(String.format("Run Play App at http://localhost:%d/",getHttpPort()),String.format("Running at http://localhost:%d/",getHttpPort()));
+    runnerToken.waitForStop();
+  }
+  finally {
+    progressLogger.completed();
+  }
 }
