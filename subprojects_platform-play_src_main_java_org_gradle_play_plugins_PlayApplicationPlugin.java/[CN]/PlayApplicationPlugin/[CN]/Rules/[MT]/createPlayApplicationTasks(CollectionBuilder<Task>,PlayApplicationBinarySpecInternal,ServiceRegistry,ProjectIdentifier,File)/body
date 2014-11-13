@@ -26,17 +26,30 @@
     }
   }
 );
+  final FileResolver fileResolver=serviceRegistry.get(FileResolver.class);
+  ConfigurationContainer configurationContainer=serviceRegistry.get(ConfigurationContainer.class);
+  DependencyHandler dependencyHandler=serviceRegistry.get(DependencyHandler.class);
+  PlayToolChain playToolChain=serviceRegistry.get(PlayToolChain.class);
+  final Dependency playDependency=dependencyHandler.create(playToolChain.getPlayDependencyNotationForPlatform(binary.getTargetPlatform()));
+  final Configuration appCompileClasspath=configurationContainer.detachedConfiguration(playDependency);
+  Dependency zincDependency=dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s",ScalaBasePlugin.DEFAULT_ZINC_VERSION));
+  final Configuration zincClasspath=configurationContainer.detachedConfiguration(zincDependency);
   final String scalaCompileTaskName=String.format("scalaCompile%s",StringUtils.capitalize(binary.getName()));
   final File compileOutputDirectory=new File(buildDir,String.format("classes/%s/app",binary.getName()));
   tasks.create(scalaCompileTaskName,ScalaCompile.class,new Action<ScalaCompile>(){
     public void execute(    ScalaCompile scalaCompile){
       scalaCompile.setDestinationDir(compileOutputDirectory);
+      scalaCompile.setClasspath(appCompileClasspath);
+      scalaCompile.setScalaClasspath(new ScalaRuntime(scalaCompile.getProject()).inferScalaClasspath(appCompileClasspath));
+      scalaCompile.setZincClasspath(zincClasspath);
       scalaCompile.setSource("app");
+      scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
+      scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
       IncrementalCompileOptions incrementalOptions=scalaCompile.getScalaCompileOptions().getIncrementalOptions();
       incrementalOptions.setAnalysisFile(new File(buildDir,String.format("tmp/scala/compilerAnalysis/%s.analysis",scalaCompileTaskName)));
       scalaCompile.exclude("**/*.html");
       scalaCompile.getScalaCompileOptions().setFork(true);
-      scalaCompile.getScalaCompileOptions().setUseAnt(true);
+      scalaCompile.getScalaCompileOptions().setUseAnt(false);
       scalaCompile.dependsOn(twirlCompileTaskName);
       scalaCompile.dependsOn(routesCompileTaskName);
       scalaCompile.source(twirlCompilerOutputDirectory);
