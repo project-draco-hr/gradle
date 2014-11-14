@@ -1,9 +1,16 @@
 {
   WorkerProcessBuilder builder=workerFactory.create();
   builder.setBaseName("Gradle Play Worker");
-  builder.applicationClasspath(spec.getClasspath());
+  List<File> combinedClasspath=new ArrayList<File>();
+  for (  File file : docsClasspath) {
+    combinedClasspath.add(file);
+  }
+  for (  File file : spec.getClasspath()) {
+    combinedClasspath.add(file);
+  }
+  builder.applicationClasspath(combinedClasspath);
   builder.setLogLevel(LogLevel.DEBUG);
-  builder.sharedPackages(Arrays.asList("org.gradle.play.internal.run","play.core","play.core.server","play.docs","scala"));
+  builder.sharedPackages(spec.getSharedPackages());
   JavaExecHandleBuilder javaCommand=builder.getJavaCommand();
   javaCommand.setWorkingDir(workingDir);
   javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
