@@ -1,11 +1,11 @@
 {
   ModelType<R> type=extractionContext.getType();
-  if (type.getRawClass().isAnnotationPresent(Managed.class)) {
+  if (handlesType(type)) {
     validateType(type,extractionContext);
     Iterable<ModelProperty<?>> superTypeProperties=extractSuperTypeProperties(extractionContext,cache);
     List<Method> methodList=Arrays.asList(type.getRawClass().getDeclaredMethods());
     if (methodList.isEmpty()) {
-      return new ModelSchemaExtractionResult<R>(ModelSchema.struct(type,superTypeProperties));
+      return new ModelSchemaExtractionResult<R>(createModelSchema(type,superTypeProperties));
     }
     List<ModelProperty<?>> properties=Lists.newLinkedList();
     Map<String,Method> methods=Maps.newHashMap();
@@ -45,7 +45,8 @@
     if (!methodNames.isEmpty()) {
       throw new InvalidManagedModelElementTypeException(extractionContext,"only paired getter/setter methods are supported (invalid methods: [" + Joiner.on(", ").join(methodNames) + "]).");
     }
-    ModelSchema<R> schema=ModelSchema.struct(type,Iterables.concat(properties,superTypeProperties));
+    Iterable<ModelProperty<?>> allProperties=Iterables.concat(properties,superTypeProperties);
+    ModelSchema<R> schema=createModelSchema(type,allProperties);
     Iterable<ModelSchemaExtractionContext<?>> propertyDependencies=Iterables.transform(properties,new Function<ModelProperty<?>,ModelSchemaExtractionContext<?>>(){
       public ModelSchemaExtractionContext<?> apply(      final ModelProperty<?> property){
         return toPropertyExtractionContext(extractionContext,property,cache);
