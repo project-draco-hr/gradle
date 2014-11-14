@@ -2,14 +2,20 @@
   ModelCreator creator=boundCreator.getCreator();
   ModelPath path=creator.getPath();
   Inputs inputs=toInputs(boundCreator.getInputs());
-  ModelAdapter adapter;
+  ModelCreationContext creationContext;
   try {
-    adapter=creator.create(inputs);
+    creationContext=creator.create(inputs);
   }
  catch (  Exception e) {
     throw new ModelRuleExecutionException(creator.getDescriptor(),e);
   }
-  ModelElement element=toElement(adapter,creator);
-  store.put(path,element);
-  return element;
+  ModelAdapter adapter=creationContext.getAdapter();
+  ModelNodeImpl node=modelGraph.addEntryPoint(path.getName(),creator.getDescriptor(),creator.getPromise(),adapter);
+  try {
+    creationContext.getInitiatiser().execute(node);
+  }
+ catch (  Exception e) {
+    throw new ModelRuleExecutionException(creator.getDescriptor(),e);
+  }
+  return node;
 }

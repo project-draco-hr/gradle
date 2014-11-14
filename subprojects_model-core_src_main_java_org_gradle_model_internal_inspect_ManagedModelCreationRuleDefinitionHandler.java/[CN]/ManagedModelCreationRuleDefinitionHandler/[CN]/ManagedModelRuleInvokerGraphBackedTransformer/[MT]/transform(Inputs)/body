@@ -1,0 +1,34 @@
+{
+  return new Action<ModelNode>(){
+    public void execute(    ModelNode modelNode){
+      ModelView<? extends T> modelView=modelNode.getAdapter().asWritable(modelSchema.getType(),descriptor,inputs,modelNode);
+      if (modelView == null) {
+        throw new IllegalStateException("Couldn't produce managed node as schema type");
+      }
+      for (      ModelProperty<?> property : modelSchema.getProperties().values()) {
+        addPropertyLink(modelNode,property);
+      }
+      T instance=modelView.getInstance();
+      Object[] args=new Object[inputs.size() + 1];
+      args[0]=instance;
+      for (int i=0; i < inputs.size(); i++) {
+        args[i + 1]=inputs.get(i,inputReferences.get(i).getType()).getInstance();
+      }
+      ruleInvoker.invoke(args);
+      modelView.close();
+    }
+    private <P>void addPropertyLink(    ModelNode modelNode,    ModelProperty<P> property){
+      ModelType<P> propertyType=property.getType();
+      Set<ModelProjection> projections=Collections.<ModelProjection>singleton(new UnmanagedModelProjection<P>(propertyType,true,true));
+      ModelPromise promise=new ProjectionBackedModelPromise(projections);
+      ModelAdapter adapter=new ProjectionBackedModelAdapter(projections);
+      ModelNode childNode=modelNode.addLink(property.getName(),descriptor,promise,adapter);
+      ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
+      if (propertySchema.getKind() == ModelSchema.Kind.STRUCT && !property.isWritable()) {
+        P instance=modelInstantiator.newInstance(propertySchema);
+        childNode.setPrivateData(propertyType,instance);
+      }
+    }
+  }
+;
+}
