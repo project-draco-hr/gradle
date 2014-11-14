@@ -1,14 +1,9 @@
 {
-  String targetPlayVersion=componentSpec.getPlayVersion();
-  if (targetPlayVersion == null) {
-    targetPlayVersion=DEFAULT_PLAY_VERSION;
-  }
-  List<PlayPlatform> selectedPlatforms=platforms.chooseFromTargets(PlayPlatform.class,WrapUtil.toList(String.format("PlayPlatform%s",targetPlayVersion)));
-  for (  final PlayPlatform selectedPlatform : selectedPlatforms) {
+  for (  final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec,platforms)) {
     binaries.create(String.format("%sBinary",componentSpec.getName()),new Action<PlayApplicationBinarySpec>(){
       public void execute(      PlayApplicationBinarySpec playBinary){
         PlayApplicationBinarySpecInternal playBinaryInternal=(PlayApplicationBinarySpecInternal)playBinary;
-        playBinaryInternal.setTargetPlatform(selectedPlatform);
+        playBinaryInternal.setTargetPlatform(chosenPlatform);
         playBinaryInternal.setToolChain(playToolChainInternal);
         playBinaryInternal.setJarFile(new File(buildDir,String.format("jars/%s/%s.jar",componentSpec.getName(),playBinaryInternal.getName())));
       }
