@@ -1,0 +1,16 @@
+{
+  final String twirlCompileTaskName=String.format("twirlCompile%s",StringUtils.capitalize(binary.getName()));
+  tasks.create(twirlCompileTaskName,TwirlCompile.class,new Action<TwirlCompile>(){
+    public void execute(    TwirlCompile twirlCompile){
+      File twirlCompilerOutputDirectory=new File(buildDir,String.format("%s/twirl",binary.getName()));
+      twirlCompile.setPlatform(binary.getTargetPlatform());
+      twirlCompile.setOutputDirectory(new File(twirlCompilerOutputDirectory,"views"));
+      twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(),"app"));
+      twirlCompile.setSource(twirlCompile.getSourceDirectory());
+      twirlCompile.include("**/*.html");
+      binary.getGeneratedScala().getSource().srcDir(twirlCompilerOutputDirectory);
+      binary.getGeneratedScala().builtBy(twirlCompile);
+    }
+  }
+);
+}
