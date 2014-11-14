@@ -9,7 +9,7 @@
       twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(),"app"));
       twirlCompile.setSource(twirlCompile.getSourceDirectory());
       twirlCompile.include("**/*.html");
-      binary.builtBy(twirlCompile);
+      binary.getClasses().builtBy(twirlCompile);
     }
   }
 );
@@ -22,7 +22,7 @@
       routesCompile.setSource(new File(projectIdentifier.getProjectDir(),"conf"));
       routesCompile.include("*.routes");
       routesCompile.include("routes");
-      binary.builtBy(routesCompile);
+      binary.getClasses().builtBy(routesCompile);
     }
   }
 );
@@ -35,37 +35,25 @@
   Dependency zincDependency=dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s",ScalaBasePlugin.DEFAULT_ZINC_VERSION));
   final Configuration zincClasspath=configurationContainer.detachedConfiguration(zincDependency);
   final String scalaCompileTaskName=String.format("scalaCompile%s",StringUtils.capitalize(binary.getName()));
-  final File compileOutputDirectory=new File(buildDir,String.format("classes/%s",binary.getName()));
   tasks.create(scalaCompileTaskName,ScalaCompile.class,new Action<ScalaCompile>(){
     public void execute(    ScalaCompile scalaCompile){
-      scalaCompile.setDestinationDir(compileOutputDirectory);
+      scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
       scalaCompile.setClasspath(appCompileClasspath);
       scalaCompile.setScalaClasspath(new ScalaRuntime(scalaCompile.getProject()).inferScalaClasspath(appCompileClasspath));
       scalaCompile.setZincClasspath(zincClasspath);
-      scalaCompile.setSource("app");
       scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
       scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
       IncrementalCompileOptions incrementalOptions=scalaCompile.getScalaCompileOptions().getIncrementalOptions();
       incrementalOptions.setAnalysisFile(new File(buildDir,String.format("tmp/scala/compilerAnalysis/%s.analysis",scalaCompileTaskName)));
-      scalaCompile.exclude("**/*.html");
       scalaCompile.getScalaCompileOptions().setFork(true);
       scalaCompile.getScalaCompileOptions().setUseAnt(false);
+      scalaCompile.source("app");
+      scalaCompile.exclude("**/*.html");
       scalaCompile.dependsOn(twirlCompileTaskName);
-      scalaCompile.dependsOn(routesCompileTaskName);
       scalaCompile.source(twirlCompilerOutputDirectory);
+      scalaCompile.dependsOn(routesCompileTaskName);
       scalaCompile.source(routesCompilerOutputDirectory);
-    }
-  }
-);
-  String jarTaskName=String.format("create%sJar",StringUtils.capitalize(binary.getName()));
-  tasks.create(jarTaskName,Jar.class,new Action<Jar>(){
-    public void execute(    Jar jar){
-      jar.setDestinationDir(binary.getJarFile().getParentFile());
-      jar.setArchiveName(binary.getJarFile().getName());
-      jar.from(compileOutputDirectory);
-      jar.from("public");
-      jar.from("conf");
-      jar.dependsOn(scalaCompileTaskName);
+      binary.getClasses().builtBy(scalaCompile);
     }
   }
 );
