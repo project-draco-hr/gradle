@@ -1,0 +1,20 @@
+{
+  final FileResolver fileResolver=serviceRegistry.get(FileResolver.class);
+  final ConfigurationContainer configurationContainer=serviceRegistry.get(ConfigurationContainer.class);
+  final DependencyHandler dependencyHandler=serviceRegistry.get(DependencyHandler.class);
+  for (  final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+    String runTaskName=String.format("run%s",StringUtils.capitalize(binary.getName()));
+    tasks.create(runTaskName,PlayRun.class,new Action<PlayRun>(){
+      public void execute(      PlayRun playRun){
+        playRun.setHttpPort(DEFAULT_HTTP_PORT);
+        playRun.setTargetPlatform(binary.getTargetPlatform());
+        Project project=playRun.getProject();
+        Dependency playDependency=dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s",binary.getTargetPlatform().getScalaVersion(),binary.getTargetPlatform().getPlayVersion()));
+        final Configuration playCompileConfiguration=configurationContainer.detachedConfiguration(playDependency);
+        playRun.setClasspath(playCompileConfiguration);
+        playRun.dependsOn(binary.getBuildTask());
+      }
+    }
+);
+  }
+}
