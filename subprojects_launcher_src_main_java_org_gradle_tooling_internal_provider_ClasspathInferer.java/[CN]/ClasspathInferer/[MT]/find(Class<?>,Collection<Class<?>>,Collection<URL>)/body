@@ -13,7 +13,19 @@
       LOGGER.warn("Could not determine classpath for {}",target);
       return;
     }
-    File classPathRoot=ClasspathUtil.getClasspathForResource(resource,resourceName);
+    File classPathRoot=null;
+    try {
+      classPathRoot=ClasspathUtil.getClasspathForResource(resource,resourceName);
+    }
+ catch (    GradleException ex) {
+      try {
+        classPathRoot=getClasspathForCodeSource(target.getProtectionDomain().getCodeSource().getLocation(),resourceName);
+      }
+ catch (      GradleException ex2) {
+        ex2.printStackTrace();
+        throw new DefaultMultiCauseException("Cannot determine classpath for resource '" + resourceName + "'",ex,ex2);
+      }
+    }
     dest.add(classPathRoot.toURI().toURL());
     ClassReader reader;
     InputStream inputStream=resource.openStream();
