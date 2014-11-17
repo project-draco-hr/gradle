@@ -1,0 +1,32 @@
+{
+  for (  File file : libDir.listFiles()) {
+    if (file.getName().startsWith("gradle-core") && file.getName().endsWith(".jar")) {
+      try {
+        JarFile jar=new JarFile(file);
+        JarEntry entry=jar.getJarEntry("org/gradle/build-receipt.properties");
+        if (entry == null) {
+          continue;
+        }
+        Properties properties=new Properties();
+        properties.load(jar.getInputStream(entry));
+        String version=properties.getProperty("versionBase");
+        if (version == null) {
+          continue;
+        }
+        if (GradleVersion.version(version).compareTo(GradleVersion.version("1.8")) >= 0 && GradleVersion.version(version).compareTo(GradleVersion.version("2.2")) <= 0) {
+          File tmpDir=Files.createTempDir();
+          File patchClass=new File(tmpDir,"org" + File.separator + "gradle"+ File.separator+ "tooling"+ File.separator+ "internal"+ "provider"+ File.separator+ "ClasspathInferer.class");
+          Files.createParentDirs(patchClass);
+          patchSource.copyTo(Files.asByteSink(patchClass));
+          files.add(tmpDir);
+          for (File patch=patchClass; !patch.equals(tmpDir); patch=patch.getParentFile()) {
+            patch.deleteOnExit();
+          }
+          tmpDir.deleteOnExit();
+        }
+      }
+ catch (      IOException ioe) {
+      }
+    }
+  }
+}
