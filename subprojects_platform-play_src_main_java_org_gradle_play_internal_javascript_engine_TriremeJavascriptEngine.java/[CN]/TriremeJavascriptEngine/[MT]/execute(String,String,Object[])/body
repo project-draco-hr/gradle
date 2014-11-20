@@ -1,0 +1,25 @@
+{
+  ScriptResult result;
+  try {
+    ClassLoader cl=getClass().getClassLoader();
+    Class nodeEnvironmentClass=cl.loadClass("org.apigee.trireme.core.NodeEnvironment");
+    @SuppressWarnings("unchecked") Constructor nodeEnvironmentConstructor=nodeEnvironmentClass.getConstructor();
+    Object nodeEnvironment=nodeEnvironmentConstructor.newInstance();
+    Object nodeScript=callMethod(nodeEnvironment,"createScript",new Object[]{scriptName,script,args});
+    Object scriptFuture=callMethod(nodeScript,"execute",null);
+    Object scriptStatus=callMethod(scriptFuture,"get",null);
+    Integer exitCode=(Integer)callMethod(scriptStatus,"getExitCode",null);
+    Boolean isOk=(Boolean)callMethod(scriptStatus,"isOk",null);
+    if (isOk) {
+      result=new ScriptResult(exitCode);
+    }
+ else {
+      Throwable cause=(Throwable)callMethod(scriptStatus,"getCause",null);
+      result=new ScriptResult(cause);
+    }
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Error invoking Trireme javascript engine.",e);
+  }
+  return result;
+}
