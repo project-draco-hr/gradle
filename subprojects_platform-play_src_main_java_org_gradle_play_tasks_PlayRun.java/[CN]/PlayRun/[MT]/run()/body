@@ -2,8 +2,9 @@
   ProgressLoggerFactory progressLoggerFactory=getServices().get(ProgressLoggerFactory.class);
   ProgressLogger progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start("Start Play server","Starting Play");
   int httpPort=getHttpPort();
-  PlayRunSpec spec=new DefaultPlayRunSpec(getClasspath().getFiles(),getProject().getProjectDir(),getForkOptions(),httpPort);
-  PlayApplicationRunner manager=((PlayToolChainInternal)getToolChain()).select(getTargetPlatform()).newApplicationRunner(getWorkerProcessBuilderFactory(),spec);
+  PlayRunSpec spec=new DefaultPlayRunSpec(getProject().files(applicationJar),getProject().getProjectDir(),getForkOptions(),httpPort);
+  PlayToolProvider toolProvider=((PlayToolChainInternal)getToolChain()).select(getTargetPlatform());
+  PlayApplicationRunner manager=toolProvider.newApplicationRunner(getWorkerProcessBuilderFactory(),spec);
   try {
     runnerToken=manager.start();
     progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start(String.format("Run Play App at http://localhost:%d/",httpPort),String.format("Running at http://localhost:%d/",httpPort));

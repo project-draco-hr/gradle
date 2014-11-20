@@ -1,5 +1,10 @@
 {
-  VersionedPlayRunSpec versionedSpec=PlayRunSpecFactory.create(spec,targetPlatform);
-  Iterable<File> docsClasspath=resolveClasspath(versionedSpec.getDocsDependencyNotation());
-  return new PlayApplicationRunner(fileResolver.resolve("."),workerProcessBuilderFactory,versionedSpec,docsClasspath);
+  PlayRunVersion version=PlayRunVersion.parse(targetPlatform.getPlayVersion());
+  List<File> playRunClasspath=new ArrayList<File>();
+  Set<File> applicationFiles=fileResolver.resolveFiles(spec.getClasspath()).getFiles();
+  Configuration playDependencyFiles=resolveClasspath(getPlayDependencyNotation(),getDocsDependencyNotation());
+  playRunClasspath.addAll(applicationFiles);
+  playRunClasspath.addAll(playDependencyFiles.getFiles());
+  VersionedPlayRunSpec versionedSpec=create(version,spec,playRunClasspath);
+  return new PlayApplicationRunner(fileResolver.resolve("."),workerProcessBuilderFactory,versionedSpec);
 }
