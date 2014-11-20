@@ -1,0 +1,20 @@
+{
+  List<String> fileNames=CollectionUtils.collect(spec.getSources(),new Transformer<String,File>(){
+    public String transform(    File file){
+      return file.getPath();
+    }
+  }
+);
+  if (fileNames.size() == 0) {
+    return new SimpleWorkResult(false);
+  }
+  for (  String fileName : fileNames) {
+    String relativePath=fileName.substring(spec.getSourceDirectory().getPath().length());
+    String targetPath=new File(spec.getDestinationDir(),relativePath).getPath();
+    ScriptResult result=engine.execute(WRAPPER_SCRIPT_NAME,wrapperScript,new Object[]{fileName,targetPath});
+    if (result.getStatus() != ScriptResult.SUCCESS) {
+      throw new CoffeeScriptCompileException(String.format("Failed to compile CoffeeScript sources due to: %s",engine.getErrorMessage(result.getStatus())),result.getException());
+    }
+  }
+  return new SimpleWorkResult(true);
+}
