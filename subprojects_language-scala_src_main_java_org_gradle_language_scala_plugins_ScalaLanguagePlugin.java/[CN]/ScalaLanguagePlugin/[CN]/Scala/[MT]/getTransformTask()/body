@@ -1,0 +1,25 @@
+{
+  return new SourceTransformTaskConfig(){
+    public String getTaskPrefix(){
+      return "compile";
+    }
+    public Class<? extends DefaultTask> getTaskType(){
+      return PlatformScalaCompile.class;
+    }
+    public void configureTask(    Task task,    BinarySpec binarySpec,    LanguageSourceSet sourceSet){
+      PlatformScalaCompile compile=(PlatformScalaCompile)task;
+      ScalaSourceSet scalaSourceSet=(ScalaSourceSet)sourceSet;
+      JvmBinarySpec binary=(JvmBinarySpec)binarySpec;
+      compile.setDescription(String.format("Compiles %s.",scalaSourceSet));
+      compile.setDestinationDir(binary.getClassesDir());
+      compile.setPlatform(binary.getTargetPlatform());
+      compile.setSource(scalaSourceSet.getSource());
+      compile.setClasspath(scalaSourceSet.getCompileClasspath().getFiles());
+      compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
+      compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
+      compile.dependsOn(scalaSourceSet);
+      binary.getTasks().getJar().dependsOn(compile);
+    }
+  }
+;
+}
