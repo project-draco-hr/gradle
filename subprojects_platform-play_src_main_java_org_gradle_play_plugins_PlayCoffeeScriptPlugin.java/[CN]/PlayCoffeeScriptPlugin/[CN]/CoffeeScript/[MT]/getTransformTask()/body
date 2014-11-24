@@ -4,16 +4,17 @@
       return "compile";
     }
     public Class<? extends DefaultTask> getTaskType(){
-      return CoffeeScriptCompile.class;
+      return PlayCoffeeScriptCompile.class;
     }
     public void configureTask(    Task task,    BinarySpec binary,    LanguageSourceSet sourceSet){
-      CoffeeScriptCompile coffeeScriptCompile=(CoffeeScriptCompile)task;
+      PlayCoffeeScriptCompile coffeeScriptCompile=(PlayCoffeeScriptCompile)task;
       PlayApplicationBinarySpec playBinarySpec=(PlayApplicationBinarySpec)binary;
       coffeeScriptCompile.setDescription(String.format("Compiles the %s of %s",sourceSet,binary));
       File coffeeScriptCompileOutputDirectory=new File(task.getProject().getBuildDir(),String.format("%s/coffeescript",binary.getName()));
-      coffeeScriptCompile.setOutputDirectory(coffeeScriptCompileOutputDirectory);
-      coffeeScriptCompile.setPlatform(playBinarySpec.getTargetPlatform());
+      coffeeScriptCompile.setDestinationDir(new File(coffeeScriptCompileOutputDirectory,"public"));
       coffeeScriptCompile.setSource(sourceSet.getSource());
+      coffeeScriptCompile.setCoffeeScriptDependency(getCoffeeScriptDependencyNotation());
+      coffeeScriptCompile.setRhinoDependency(getRhinoDependencyNotation());
       LanguageSourceSet outputSourceSet=((CoffeeScriptSourceSetInternal)sourceSet).getOutputSourceSet();
       outputSourceSet.getSource().srcDir(coffeeScriptCompileOutputDirectory);
       outputSourceSet.builtBy(coffeeScriptCompile);
