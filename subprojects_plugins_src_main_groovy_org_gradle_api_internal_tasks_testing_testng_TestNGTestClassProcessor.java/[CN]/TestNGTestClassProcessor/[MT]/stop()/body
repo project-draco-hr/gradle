@@ -5,10 +5,14 @@
   testNg.setDefaultTestName(options.getDefaultTestName());
   testNg.setParallel(options.getParallel());
   testNg.setThreadCount(options.getThreadCount());
+  String configFailurePolicy=options.getConfigFailurePolicy();
   try {
-    JavaReflectionUtil.method(TestNG.class,Object.class,"setConfigFailurePolicy",String.class).invoke(testNg,options.getConfigFailurePolicy());
+    JavaReflectionUtil.method(TestNG.class,Object.class,"setConfigFailurePolicy",String.class).invoke(testNg,configFailurePolicy);
   }
  catch (  NoSuchMethodException e) {
+    if (!configFailurePolicy.equals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY)) {
+      throw new InvalidUserDataException(String.format("The version of TestNG used does not support setting config failure policy to '%s'.",configFailurePolicy));
+    }
   }
   try {
     JavaReflectionUtil.method(TestNG.class,Object.class,"setAnnotations").invoke(testNg,options.getAnnotations());
