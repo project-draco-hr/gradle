@@ -1,0 +1,21 @@
+{
+  return new SourceTransformTaskConfig(){
+    public String getTaskPrefix(){
+      return "process";
+    }
+    public Class<? extends DefaultTask> getTaskType(){
+      return Copy.class;
+    }
+    public void configureTask(    Task task,    BinarySpec binary,    LanguageSourceSet sourceSet){
+      JavaScriptSourceSet javaScriptSourceSet=(JavaScriptSourceSet)sourceSet;
+      PlayApplicationBinarySpec spec=(PlayApplicationBinarySpec)binary;
+      Copy copyTask=(Copy)task;
+      copyTask.from(javaScriptSourceSet.getSource());
+      File javascriptOutputDir=new File(task.getProject().getBuildDir(),String.format("%s/javascript",binary.getName()));
+      copyTask.into(javascriptOutputDir);
+      spec.getClasses().addResourceDir(javascriptOutputDir);
+      spec.getClasses().builtBy(copyTask);
+    }
+  }
+;
+}
