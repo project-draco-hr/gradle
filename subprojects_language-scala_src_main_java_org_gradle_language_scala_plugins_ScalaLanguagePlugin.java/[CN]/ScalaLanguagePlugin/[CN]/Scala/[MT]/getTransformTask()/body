@@ -10,9 +10,14 @@
       PlatformScalaCompile compile=(PlatformScalaCompile)task;
       ScalaLanguageSourceSet scalaSourceSet=(ScalaLanguageSourceSet)sourceSet;
       JvmBinarySpec binary=(JvmBinarySpec)binarySpec;
+      compile.setScalaClasspath(toolChain.getScalaClasspath());
+      compile.setZincClasspath(toolChain.getZincClasspath());
+      compile.getScalaCompileOptions().setUseAnt(false);
+      compile.getScalaCompileOptions().setFork(true);
+      File analysisFile=new File(task.getTemporaryDir(),String.format("compilerAnalysis/%s.analysis",task.getName()));
+      compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
       compile.setDescription(String.format("Compiles %s.",scalaSourceSet));
       compile.setDestinationDir(binary.getClassesDir());
-      compile.setPlatform(binary.getTargetPlatform());
       compile.setSource(scalaSourceSet.getSource());
       compile.setClasspath(scalaSourceSet.getCompileClasspath().getFiles());
       compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
