@@ -3,17 +3,11 @@
   MutableCommandLineToolInvocation invocation=baseInvocation.copy();
   invocation.setWorkDirectory(spec.getObjectFileDir());
   if (useCommandFile) {
-    invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
+    invocation.addPostArgsAction(getPostArgsAction(spec));
   }
-  Transformer<List<String>,File> outputFileArgTransformer=new Transformer<List<String>,File>(){
-    public List<String> transform(    File outputFile){
-      return Arrays.asList("-o",outputFile.getAbsolutePath());
-    }
-  }
-;
   for (  File sourceFile : spec.getSourceFiles()) {
-    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileSuffix,new ShortCircuitArgsTransformer<T>(argsTransfomer),windowsPathLimitation,outputFileArgTransformer);
-    invocation.setArgs(argTransformer.transform(spec));
+    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileSuffix,new ShortCircuitArgsTransformer<T>(argsTransformer),windowsPathLimitation,outputFileArgTransformer);
+    invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
     commandLineTool.execute(invocation);
   }
   return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());

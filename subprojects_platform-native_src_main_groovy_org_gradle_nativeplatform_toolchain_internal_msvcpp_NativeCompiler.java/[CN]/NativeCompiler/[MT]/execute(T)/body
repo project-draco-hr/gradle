@@ -1,17 +1,13 @@
 {
+  boolean windowsPathLimitation=OperatingSystem.current().isWindows();
   MutableCommandLineToolInvocation invocation=baseInvocation.copy();
-  invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
-  Transformer<List<String>,File> outputFileArgTransformer=new Transformer<List<String>,File>(){
-    public List<String> transform(    File outputFile){
-      return Arrays.asList("/Fo" + outputFile.getAbsolutePath());
-    }
+  invocation.setWorkDirectory(spec.getObjectFileDir());
+  if (useCommandFile) {
+    invocation.addPostArgsAction(getPostArgsAction(spec));
   }
-;
   for (  File sourceFile : spec.getSourceFiles()) {
-    String objectFileNameSuffix=".obj";
-    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileNameSuffix,new ShortCircuitArgsTransformer<T>(argsTransFormer),true,outputFileArgTransformer);
+    SingleSourceCompileArgTransformer<T> argTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileSuffix,new ShortCircuitArgsTransformer<T>(argsTransFormer),windowsPathLimitation,outputFileArgTransformer);
     invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
-    invocation.setWorkDirectory(spec.getObjectFileDir());
     commandLineTool.execute(invocation);
   }
   return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
