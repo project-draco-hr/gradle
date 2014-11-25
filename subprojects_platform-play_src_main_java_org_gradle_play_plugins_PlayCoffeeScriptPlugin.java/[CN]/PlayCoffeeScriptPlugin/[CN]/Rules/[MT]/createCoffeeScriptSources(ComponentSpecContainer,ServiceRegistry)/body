@@ -1,11 +1,14 @@
 {
   components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>(){
-    public void execute(    PlayApplicationSpec playComponent){
+    public void execute(    final PlayApplicationSpec playComponent){
       CoffeeScriptSourceSet coffeeScriptSourceSet=new DefaultCoffeeScriptSourceSet("coffeeScriptSources",playComponent.getName(),serviceRegistry.get(FileResolver.class));
       coffeeScriptSourceSet.getSource().srcDir("app");
       coffeeScriptSourceSet.getSource().include("**/*.coffee");
+      JavaScriptSourceSet javaScriptSourceSet=new DefaultJavaScriptSourceSet("coffeeScriptGenerated",playComponent.getName(),serviceRegistry.get(FileResolver.class));
+      javaScriptSourceSet.builtBy(coffeeScriptSourceSet);
+      javaScriptSourceSet.getSource().include("**/*.js");
       ((ComponentSpecInternal)playComponent).getSources().add(coffeeScriptSourceSet);
-      ((ComponentSpecInternal)playComponent).getSources().add(((CoffeeScriptSourceSetInternal)coffeeScriptSourceSet).getOutputSourceSet());
+      ((ComponentSpecInternal)playComponent).getSources().add(javaScriptSourceSet);
     }
   }
 );
