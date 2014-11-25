@@ -10,7 +10,8 @@
       PlatformScalaCompile compile=(PlatformScalaCompile)task;
       ScalaLanguageSourceSet scalaSourceSet=(ScalaLanguageSourceSet)sourceSet;
       JvmBinarySpec binary=(JvmBinarySpec)binarySpec;
-      compile.setScalaClasspath(toolChain.getScalaClasspath());
+      JavaPlatform targetPlatform=binary.getTargetPlatform();
+      compile.setScalaClasspath(toolChain.getScalaClasspath(new DefaultScalaPlatform("2.10.4")));
       compile.setZincClasspath(toolChain.getZincClasspath());
       compile.getScalaCompileOptions().setUseAnt(false);
       compile.getScalaCompileOptions().setFork(true);
@@ -20,8 +21,8 @@
       compile.setDestinationDir(binary.getClassesDir());
       compile.setSource(scalaSourceSet.getSource());
       compile.setClasspath(scalaSourceSet.getCompileClasspath().getFiles());
-      compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
-      compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
+      compile.setTargetCompatibility(targetPlatform.getTargetCompatibility().toString());
+      compile.setSourceCompatibility(targetPlatform.getTargetCompatibility().toString());
       compile.dependsOn(scalaSourceSet);
       binary.getTasks().getJar().dependsOn(compile);
     }
