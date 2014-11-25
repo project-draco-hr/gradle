@@ -2,21 +2,21 @@
   ModelType<R> type=extractionContext.getType();
   if (type.getRawClass().isAnnotationPresent(Managed.class)) {
     validateType(type,extractionContext);
-    List<Method> methodList=nonEquivalentMethods(type.getRawClass().getMethods());
-    if (methodList.isEmpty()) {
+    Iterable<Method> methods=removeEquivalentMethods(type.getRawClass().getMethods());
+    if (Iterables.isEmpty(methods)) {
       return new ModelSchemaExtractionResult<R>(ModelSchema.struct(type,Collections.<ModelProperty<?>>emptySet()));
     }
     List<ModelProperty<?>> properties=Lists.newLinkedList();
-    Map<String,Method> methods=Maps.newHashMap();
-    for (    Method method : methodList) {
+    Map<String,Method> methodsByName=Maps.newHashMap();
+    for (    Method method : methods) {
       String name=method.getName();
-      if (methods.containsKey(name)) {
-        throw invalidMethods(extractionContext,"overloaded methods are not supported",ImmutableList.of(method,methods.get(name)));
+      if (methodsByName.containsKey(name)) {
+        throw invalidMethods(extractionContext,"overloaded methods are not supported",ImmutableList.of(method,methodsByName.get(name)));
       }
-      methods.put(name,method);
+      methodsByName.put(name,method);
     }
     List<Method> handled=Lists.newArrayList();
-    for (    Method method : methodList) {
+    for (    Method method : methods) {
       String methodName=method.getName();
       if (methodName.startsWith("get") && !methodName.equals("get")) {
         if (method.getParameterTypes().length != 0) {
@@ -30,9 +30,9 @@
         String propertyNameCapitalized=methodName.substring(3);
         String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName="set" + propertyNameCapitalized;
-        boolean isWritable=methods.containsKey(setterName);
+        boolean isWritable=methodsByName.containsKey(setterName);
         if (isWritable) {
-          Method setter=methods.get(setterName);
+          Method setter=methodsByName.get(setterName);
           validateSetter(extractionContext,returnType,setter);
           handled.add(setter);
         }
@@ -40,9 +40,9 @@
         handled.add(method);
       }
     }
-    methodList.removeAll(handled);
-    if (!methodList.isEmpty()) {
-      throw invalidMethods(extractionContext,"only paired getter/setter methods are supported",methodList);
+    Iterable<Method> notHandled=Iterables.filter(methods,Predicates.not(Predicates.in(handled)));
+    if (!Iterables.isEmpty(notHandled)) {
+      throw invalidMethods(extractionContext,"only paired getter/setter methods are supported",notHandled);
     }
     ModelSchema<R> schema=ModelSchema.struct(type,properties);
     Iterable<ModelSchemaExtractionContext<?>> propertyDependencies=Iterables.transform(properties,new Function<ModelProperty<?>,ModelSchemaExtractionContext<?>>(){
