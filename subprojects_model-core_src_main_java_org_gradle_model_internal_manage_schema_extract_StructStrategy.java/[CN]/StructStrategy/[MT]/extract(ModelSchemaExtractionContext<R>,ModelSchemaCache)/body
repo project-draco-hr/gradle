@@ -7,14 +7,13 @@
       return new ModelSchemaExtractionResult<R>(ModelSchema.struct(type,Collections.<ModelProperty<?>>emptySet()));
     }
     List<ModelProperty<?>> properties=Lists.newLinkedList();
-    Map<String,Method> methodsByName=Maps.newHashMap();
-    for (    Method method : methods) {
-      String name=method.getName();
-      if (methodsByName.containsKey(name)) {
-        throw invalidMethods(extractionContext,"overloaded methods are not supported",ImmutableList.of(method,methodsByName.get(name)));
+    final ImmutableListMultimap<String,Method> methodsByName=Multimaps.index(methods,new Function<Method,String>(){
+      public String apply(      Method method){
+        return method.getName();
       }
-      methodsByName.put(name,method);
     }
+);
+    ensureNoOverloadedMethods(extractionContext,methodsByName);
     List<Method> handled=Lists.newArrayList();
     for (    Method method : methods) {
       String methodName=method.getName();
@@ -32,7 +31,7 @@
         String setterName="set" + propertyNameCapitalized;
         boolean isWritable=methodsByName.containsKey(setterName);
         if (isWritable) {
-          Method setter=methodsByName.get(setterName);
+          Method setter=methodsByName.get(setterName).get(0);
           validateSetter(extractionContext,returnType,setter);
           handled.add(setter);
         }
