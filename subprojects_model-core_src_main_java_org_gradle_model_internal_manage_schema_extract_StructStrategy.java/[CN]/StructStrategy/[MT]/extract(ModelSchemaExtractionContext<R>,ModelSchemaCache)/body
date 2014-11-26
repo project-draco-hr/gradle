@@ -2,8 +2,8 @@
   ModelType<R> type=extractionContext.getType();
   if (type.getRawClass().isAnnotationPresent(Managed.class)) {
     validateType(type,extractionContext);
-    Iterable<Method> methods=removeEquivalentMethods(type.getRawClass().getMethods());
-    if (Iterables.isEmpty(methods)) {
+    List<Method> methods=CollectionUtils.dedup(Arrays.asList(type.getRawClass().getMethods()),new MethodSignatureEquivalence());
+    if (methods.isEmpty()) {
       return new ModelSchemaExtractionResult<R>(ModelSchema.struct(type,Collections.<ModelProperty<?>>emptySet()));
     }
     List<ModelProperty<?>> properties=Lists.newLinkedList();
@@ -14,7 +14,7 @@
     }
 );
     ensureNoOverloadedMethods(extractionContext,methodsByName);
-    List<Method> handled=Lists.newArrayList();
+    List<Method> handled=Lists.newArrayListWithCapacity(methods.size());
     for (    Method method : methods) {
       String methodName=method.getName();
       if (methodName.startsWith("get") && !methodName.equals("get")) {
