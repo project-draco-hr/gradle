@@ -1,20 +1,22 @@
 {
   ScalaCompileOptions scalaOptions=spec.getScalaCompileOptions();
+  Set<File> scalaClasspathFiles=scalaClasspath.getFiles();
   if (scalaOptions.isUseAnt()) {
-    Compiler<ScalaCompileSpec> scalaCompiler=new AntScalaCompiler(antBuilder);
+    Compiler<ScalaCompileSpec> scalaCompiler=new AntScalaCompiler(antBuilder,scalaClasspathFiles);
     Compiler<JavaCompileSpec> javaCompiler=javaCompilerFactory.createForJointCompilation(spec.getCompileOptions());
     return new NormalizingScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler,javaCompiler));
   }
   if (!scalaOptions.isFork()) {
     throw new GradleException("The Zinc based Scala compiler ('scalaCompileOptions.useAnt=false') " + "requires forking ('scalaCompileOptions.fork=true'), but the latter is set to 'false'.");
   }
+  Set<File> zincClasspathFiles=zincClasspath.getFiles();
   Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
   try {
-    scalaCompiler=(Compiler<ScalaJavaJointCompileSpec>)getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").newInstance();
+    scalaCompiler=(Compiler<ScalaJavaJointCompileSpec>)getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").getConstructor(Iterable.class,Iterable.class).newInstance(scalaClasspathFiles,zincClasspathFiles);
   }
  catch (  Exception e) {
     throw new RuntimeException("Internal error: Failed to load org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler",e);
   }
-  scalaCompiler=new DaemonScalaCompiler(rootProjectDirectory,scalaCompiler,compilerDaemonFactory);
+  scalaCompiler=new DaemonScalaCompiler(rootProjectDirectory,scalaCompiler,compilerDaemonFactory,zincClasspathFiles);
   return new NormalizingScalaCompiler(scalaCompiler);
 }
