@@ -1,34 +1,49 @@
 {
   ModelType<R> type=extractionContext.getType();
-  if (type.getRawClass().isAnnotationPresent(Managed.class)) {
+  Class<? super R> clazz=type.getRawClass();
+  if (clazz.isAnnotationPresent(Managed.class)) {
     validateType(type,extractionContext);
-    TypeMethods typeMethods=TypeMethods.of(type);
-    ensureNoOverloadedMethods(extractionContext,typeMethods);
+    ImmutableListMultimap<String,Method> methodsByName=Multimaps.index(Arrays.asList(clazz.getMethods()),new Function<Method,String>(){
+      public String apply(      Method method){
+        return method.getName();
+      }
+    }
+);
+    ensureNoOverloadedMethods(extractionContext,methodsByName);
     List<ModelProperty<?>> properties=Lists.newLinkedList();
-    List<Method> handled=Lists.newArrayListWithCapacity(type.getRawClass().getMethods().length);
-    for (    String methodName : typeMethods.getNames()) {
+    List<Method> handled=Lists.newArrayListWithCapacity(clazz.getMethods().length);
+    for (    String methodName : methodsByName.keySet()) {
       if (methodName.startsWith("get") && !methodName.equals("get")) {
-        if (typeMethods.getParameterTypes(methodName).length != 0) {
-          throw invalidMethod(extractionContext,"getter methods cannot take parameters",typeMethods.getFirst(methodName));
+        ImmutableList<Method> getterMethods=methodsByName.get(methodName);
+        Method sampleMethod=getterMethods.get(0);
+        if (sampleMethod.getParameterTypes().length != 0) {
+          throw invalidMethod(extractionContext,"getter methods cannot take parameters",sampleMethod);
         }
         Character getterPropertyNameFirstChar=methodName.charAt(3);
         if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
-          throw invalidMethod(extractionContext,"the 4th character of the getter method name must be an uppercase character",typeMethods.getFirst(methodName));
+          throw invalidMethod(extractionContext,"the 4th character of the getter method name must be an uppercase character",sampleMethod);
         }
-        ModelType<?> returnType=ModelType.of(typeMethods.getGenericReturnType(methodName));
+        ModelType<?> returnType=ModelType.of(sampleMethod.getGenericReturnType());
         String propertyNameCapitalized=methodName.substring(3);
         String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName="set" + propertyNameCapitalized;
-        boolean isWritable=typeMethods.hasMethod(setterName);
+        ImmutableList<Method> setterMethods=methodsByName.get(setterName);
+        boolean isWritable=!setterMethods.isEmpty();
         if (isWritable) {
-          validateSetter(extractionContext,returnType,typeMethods.getFirst(setterName));
-          handled.addAll(typeMethods.get(setterName));
+          validateSetter(extractionContext,returnType,setterMethods.get(0));
+          handled.addAll(setterMethods);
         }
-        properties.add(ModelProperty.of(returnType,propertyName,isWritable,typeMethods.getDeclaredBy(methodName)));
-        handled.addAll(typeMethods.get(methodName));
+        ImmutableSet<ModelType<?>> declaringClasses=ImmutableSet.copyOf(Iterables.transform(getterMethods,new Function<Method,ModelType<?>>(){
+          public ModelType<?> apply(          Method input){
+            return ModelType.of(input.getDeclaringClass());
+          }
+        }
+));
+        properties.add(ModelProperty.of(returnType,propertyName,isWritable,declaringClasses));
+        handled.addAll(getterMethods);
       }
     }
-    Iterable<Method> notHandled=Iterables.filter(typeMethods,Predicates.not(Predicates.in(handled)));
+    Iterable<Method> notHandled=Iterables.filter(methodsByName.values(),Predicates.not(Predicates.in(handled)));
     if (!Iterables.isEmpty(notHandled)) {
       throw invalidMethods(extractionContext,"only paired getter/setter methods are supported",notHandled);
     }
