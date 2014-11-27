@@ -1,0 +1,17 @@
+{
+  for (  PlayApplicationBinarySpec binarySpec : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+    final LanguageSourceSet javaScriptSourceSet=binarySpec.getSource().matching(new Spec<LanguageSourceSet>(){
+      public boolean isSatisfiedBy(      LanguageSourceSet element){
+        return "coffeeScriptGenerated".equals(element.getName());
+      }
+    }
+).iterator().next();
+    binarySpec.getTasks().withType(PlayCoffeeScriptCompile.class).all(new Action<PlayCoffeeScriptCompile>(){
+      public void execute(      PlayCoffeeScriptCompile playCoffeeScriptCompile){
+        javaScriptSourceSet.getSource().srcDir(playCoffeeScriptCompile.getDestinationDir());
+        javaScriptSourceSet.builtBy(playCoffeeScriptCompile);
+      }
+    }
+);
+  }
+}
