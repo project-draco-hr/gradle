@@ -12,10 +12,11 @@
     ensureNoOverloadedMethods(extractionContext,methodsByName);
     List<ModelProperty<?>> properties=Lists.newLinkedList();
     List<Method> handled=Lists.newArrayListWithCapacity(clazz.getMethods().length);
+    ReturnTypeSpecializationOrdering returnTypeSpecializationOrdering=new ReturnTypeSpecializationOrdering();
     for (    String methodName : methodsByName.keySet()) {
       if (methodName.startsWith("get") && !methodName.equals("get")) {
         ImmutableList<Method> getterMethods=methodsByName.get(methodName);
-        Method sampleMethod=getterMethods.get(0);
+        Method sampleMethod=returnTypeSpecializationOrdering.max(getterMethods);
         if (sampleMethod.getParameterTypes().length != 0) {
           throw invalidMethod(extractionContext,"getter methods cannot take parameters",sampleMethod);
         }
