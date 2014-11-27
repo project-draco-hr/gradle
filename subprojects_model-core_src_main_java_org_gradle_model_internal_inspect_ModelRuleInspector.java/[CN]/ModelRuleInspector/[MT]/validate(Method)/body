@@ -2,4 +2,15 @@
   if (ruleMethod.getTypeParameters().length > 0) {
     throw invalid(ruleMethod,"cannot have type variables (i.e. cannot be a generic method)");
   }
+  Type returnType=ruleMethod.getGenericReturnType();
+  if (isRawInstanceOfParameterizedType(returnType)) {
+    throw invalid(ruleMethod,"raw type " + ((Class)returnType).getName() + " used for return type (all type parameters must be specified of parameterized type)");
+  }
+  int i=0;
+  for (  Type type : ruleMethod.getGenericParameterTypes()) {
+    ++i;
+    if (isRawInstanceOfParameterizedType(type)) {
+      throw invalid(ruleMethod,"raw type " + ((Class)type).getName() + " used for parameter "+ i+ " (all type parameters must be specified of parameterized type)");
+    }
+  }
 }
