@@ -4,19 +4,18 @@
   final DependencyHandler dependencyHandler=serviceRegistry.get(DependencyHandler.class);
   final PlayToolChain playToolChain=serviceRegistry.get(PlayToolChain.class);
   for (  final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-    PlayPlatform targetPlatform=binary.getTargetPlatform();
-    Dependency playTestDependency=dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s",targetPlatform.getScalaVersion(),targetPlatform.getPlayVersion()));
+    final PlayPlatform targetPlatform=binary.getTargetPlatform();
+    Dependency playTestDependency=dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s",targetPlatform.getScalaMainVersion(),targetPlatform.getPlayVersion()));
     final Configuration testCompileConfiguration=configurationContainer.detachedConfiguration(playTestDependency);
     Dependency zincDependency=dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s",ScalaLanguagePlugin.DEFAULT_ZINC_VERSION));
     final Configuration zincClasspath=configurationContainer.detachedConfiguration(zincDependency);
     final FileCollection testCompileClasspath=fileResolver.resolveFiles(binary.getJarFile()).plus(testCompileConfiguration);
     final String testCompileTaskName=String.format("compile%sTests",StringUtils.capitalize(binary.getName()));
-    tasks.create(testCompileTaskName,ScalaCompile.class,new Action<ScalaCompile>(){
-      public void execute(      ScalaCompile scalaCompile){
+    tasks.create(testCompileTaskName,PlatformScalaCompile.class,new Action<PlatformScalaCompile>(){
+      public void execute(      PlatformScalaCompile scalaCompile){
         scalaCompile.dependsOn(binary.getBuildTask());
         scalaCompile.setClasspath(testCompileClasspath);
-        scalaCompile.setZincClasspath(zincClasspath);
-        scalaCompile.setScalaClasspath(new ScalaRuntime(scalaCompile.getProject()).inferScalaClasspath(testCompileClasspath));
+        scalaCompile.setPlatform(new DefaultScalaPlatform(binary.getTargetPlatform().getScalaVersion()));
         scalaCompile.setDestinationDir(binary.getTestClasses().getClassesDir());
         scalaCompile.setSource(binary.getTestScala().getSource());
         scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
