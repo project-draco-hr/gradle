@@ -39,21 +39,10 @@
   }
   if (!suiteFiles.isEmpty()) {
     testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
-    Object rootId=idGenerator.generateId();
-    TestDescriptorInternal rootSuite=new DefaultTestSuiteDescriptor(rootId,options.getDefaultTestName());
-    TestResultProcessor decorator=new AttachParentTestResultProcessor(resultProcessor);
-    decorator.started(rootSuite,new TestStartEvent(timeProvider.getCurrentTime()));
-    testNg.addListener((Object)adaptListener(new TestNGTestResultProcessorAdapter(decorator,idGenerator)));
-    try {
-      testNg.run();
-    }
-  finally {
-      decorator.completed(rootId,new TestCompleteEvent(System.currentTimeMillis()));
-    }
   }
  else {
     testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
-    testNg.addListener((Object)adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor,idGenerator)));
-    testNg.run();
   }
+  testNg.addListener((Object)adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor,idGenerator,timeProvider)));
+  testNg.run();
 }
