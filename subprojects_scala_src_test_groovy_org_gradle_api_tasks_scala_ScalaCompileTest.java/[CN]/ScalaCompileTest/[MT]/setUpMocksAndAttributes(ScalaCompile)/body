@@ -5,7 +5,22 @@
   compile.setSourceCompatibility("1.5");
   compile.setTargetCompatibility("1.5");
   compile.setDestinationDir(destDir);
-  scalaClasspath=context.mock(FileCollection.class);
+  scalaClasspath=context.mock(FileTree.class);
   compile.setScalaClasspath(scalaClasspath);
-  compile.setClasspath(context.mock(FileCollection.class));
+  final FileTree classpath=context.mock(FileTree.class);
+  final FileTree zincClasspath=context.mock(FileTree.class);
+  context.checking(new Expectations(){
+{
+      allowing(scalaClasspath).getFiles();
+      will(returnValue(new HashSet<File>()));
+      allowing(classpath).getFiles();
+      will(returnValue(new HashSet<File>()));
+      allowing(zincClasspath).getFiles();
+      will(returnValue(new HashSet<File>()));
+    }
+  }
+);
+  compile.setClasspath(classpath);
+  compile.setZincClasspath(zincClasspath);
+  compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(new File("analysisFile"));
 }
