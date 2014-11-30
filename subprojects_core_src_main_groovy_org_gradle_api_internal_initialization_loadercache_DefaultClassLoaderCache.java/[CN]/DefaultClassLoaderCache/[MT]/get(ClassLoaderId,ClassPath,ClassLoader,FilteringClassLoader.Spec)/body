@@ -1,15 +1,17 @@
 {
   ClassPathSnapshot s=snapshotter.snapshot(classPath);
   Key key=new Key(parent,s,filterSpec);
-  invalidateStaleEntries(id,key);
-  ClassLoader existingLoader=storage.get(key);
-  if (existingLoader != null) {
-    idCache.put(id,key);
-    return existingLoader;
-  }
+synchronized (lock) {
+    invalidateStaleEntries(id,key);
+    ClassLoader existingLoader=storage.get(key);
+    if (existingLoader != null) {
+      idCache.put(id,key);
+      return existingLoader;
+    }
  else {
-    ClassLoader newLoader=(filterSpec == null) ? new URLClassLoader(classPath.getAsURLArray(),parent) : new FilteringClassLoader(get(id,classPath,parent,null),filterSpec);
-    storage.put(key,newLoader);
-    return newLoader;
+      ClassLoader newLoader=(filterSpec == null) ? new URLClassLoader(classPath.getAsURLArray(),parent) : new FilteringClassLoader(get(id,classPath,parent,null),filterSpec);
+      storage.put(key,newLoader);
+      return newLoader;
+    }
   }
 }
