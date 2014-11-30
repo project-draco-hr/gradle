@@ -1,0 +1,22 @@
+{
+  ExecAction toolExec=execActionFactory.newExecAction();
+  toolExec.executable(executable);
+  if (invocation.getWorkDirectory() != null) {
+    GFileUtils.mkdirs(invocation.getWorkDirectory());
+    toolExec.workingDir(invocation.getWorkDirectory());
+  }
+  toolExec.args(invocation.getArgs());
+  if (!invocation.getPath().isEmpty()) {
+    String pathVar=OperatingSystem.current().getPathVar();
+    String toolPath=Joiner.on(File.pathSeparator).join(invocation.getPath());
+    toolPath=toolPath + File.pathSeparator + System.getenv(pathVar);
+    toolExec.environment(pathVar,toolPath);
+  }
+  toolExec.environment(invocation.getEnvironment());
+  try {
+    toolExec.execute();
+  }
+ catch (  ExecException e) {
+    throw new GradleException(String.format("%s failed; see the error output for details.",getDisplayName()),e);
+  }
+}

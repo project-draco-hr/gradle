@@ -1,14 +1,26 @@
 {
-  boolean windowsPathLimitation=OperatingSystem.current().isWindows();
-  MutableCommandLineToolInvocation invocation=baseInvocation.copy();
-  invocation.setWorkDirectory(spec.getObjectFileDir());
+  final MutableCommandLineToolInvocation invocation=baseInvocation.copy();
+  T transformedSpec=specTransformer.transform(spec);
+  invocation.setArgs(argsTransformer.transform(transformedSpec));
+  List<String> invocationArgs=invocation.getArgs();
   if (useCommandFile) {
-    invocation.addPostArgsAction(getPostArgsAction(spec));
+    getOptionsWriter(transformedSpec).execute(invocationArgs);
   }
-  for (  File sourceFile : spec.getSourceFiles()) {
-    SingleSourceCompileArgTransformer<T> sourceArgTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileSuffix,new ShortCircuitArgsTransformer<T>(argsTransformer),windowsPathLimitation,outputFileArgTransformer);
-    invocation.setArgs(sourceArgTransformer.transform(specTransformer.transform(spec)));
-    commandLineTool.execute(invocation);
+  final StoppableExecutor executor;
+  if (useParallelCompile()) {
+    executor=new DefaultExecutorFactory().create(commandLineTool.getDisplayName());
   }
-  return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
+ else {
+    executor=new CallingThreadExecutor();
+  }
+  boolean windowsPathLimitation=OperatingSystem.current().isWindows();
+  for (  File sourceFile : transformedSpec.getSourceFiles()) {
+    SingleSourceCompileArgTransformer<T> sourceArgTransformer=new SingleSourceCompileArgTransformer<T>(sourceFile,objectFileSuffix,invocationArgs,windowsPathLimitation,outputFileArgTransformer);
+    MutableCommandLineToolInvocation perFileInvocation=invocation.copy();
+    perFileInvocation.setWorkDirectory(transformedSpec.getObjectFileDir());
+    perFileInvocation.setArgs(sourceArgTransformer.transform(transformedSpec));
+    executor.execute(commandLineTool.toRunnableExecution(perFileInvocation));
+  }
+  executor.stop();
+  return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
 }
