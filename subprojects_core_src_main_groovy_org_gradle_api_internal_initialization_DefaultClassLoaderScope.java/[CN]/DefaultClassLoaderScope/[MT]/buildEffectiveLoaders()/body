@@ -6,25 +6,25 @@
         effectiveExportClassLoader=parent.getExportClassLoader();
       }
  else       if (export.isEmpty()) {
-        effectiveLocalClassLoader=buildLockedLoader(local);
+        effectiveLocalClassLoader=buildLockedLoader(id.localId().getId(),local);
         effectiveExportClassLoader=parent.getExportClassLoader();
       }
  else       if (local.isEmpty()) {
-        effectiveLocalClassLoader=buildLockedLoader(export);
+        effectiveLocalClassLoader=buildLockedLoader(id.exportId().getId(),export);
         effectiveExportClassLoader=effectiveLocalClassLoader;
       }
  else {
-        effectiveExportClassLoader=buildLockedLoader(export);
-        effectiveLocalClassLoader=buildLockedLoader(effectiveExportClassLoader,local);
+        effectiveExportClassLoader=buildLockedLoader(id.exportId().getId(),export);
+        effectiveLocalClassLoader=buildLockedLoader(id.localId().getId(),effectiveExportClassLoader,local);
       }
     }
  else {
       if (Boolean.getBoolean(STRICT_MODE_PROPERTY)) {
         throw new IllegalStateException("Attempt to define scope class loader before scope is locked");
       }
-      exportingClassLoader=new MultiParentClassLoader(parent.getExportClassLoader(),loader(export));
+      exportingClassLoader=new MultiParentClassLoader(parent.getExportClassLoader(),loader(id.exportId().getId(),export));
       effectiveExportClassLoader=new CachingClassLoader(exportingClassLoader);
-      localClassLoader=new MultiParentClassLoader(effectiveExportClassLoader,loader(local));
+      localClassLoader=new MultiParentClassLoader(effectiveExportClassLoader,loader(id.localId().getId(),local));
       effectiveLocalClassLoader=new CachingClassLoader(localClassLoader);
     }
     export=null;
