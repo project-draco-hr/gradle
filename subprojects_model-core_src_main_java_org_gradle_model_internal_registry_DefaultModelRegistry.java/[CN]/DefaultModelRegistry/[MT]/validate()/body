@@ -1,4 +1,33 @@
 {
+  if (binders.isEmpty()) {
+    return;
+  }
+  while (!binders.isEmpty()) {
+    Iterable<ModelPath> unboundPaths=Iterables.concat(Iterables.transform(binders,new Function<RuleBinder<?>,Iterable<ModelPath>>(){
+      public Iterable<ModelPath> apply(      RuleBinder<?> input){
+        return input.getUnboundPaths();
+      }
+    }
+));
+    ModelPath unboundTopLevelModelPath=Iterables.find(unboundPaths,new Predicate<ModelPath>(){
+      public boolean apply(      ModelPath input){
+        return input.getRootParent() != null;
+      }
+    }
+,null);
+    if (unboundTopLevelModelPath != null) {
+      ModelPath rootParent=unboundTopLevelModelPath.getRootParent();
+      if (creations.containsKey(rootParent)) {
+        get(rootParent);
+      }
+ else {
+        break;
+      }
+    }
+ else {
+      break;
+    }
+  }
   if (!binders.isEmpty()) {
     ModelPathSuggestionProvider suggestionsProvider=new ModelPathSuggestionProvider(Iterables.concat(modelGraph.getFlattened().keySet(),creations.keySet()));
     List<? extends UnboundRule> unboundRules=new UnboundRulesProcessor(binders,suggestionsProvider).process();
