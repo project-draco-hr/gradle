@@ -7,8 +7,6 @@
     final PlayPlatform targetPlatform=binary.getTargetPlatform();
     Dependency playTestDependency=dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s",targetPlatform.getScalaMainVersion(),targetPlatform.getPlayVersion()));
     final Configuration testCompileConfiguration=configurationContainer.detachedConfiguration(playTestDependency);
-    Dependency zincDependency=dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s",DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
-    final Configuration zincClasspath=configurationContainer.detachedConfiguration(zincDependency);
     final FileCollection testCompileClasspath=fileResolver.resolveFiles(binary.getJarFile()).plus(testCompileConfiguration);
     final String testCompileTaskName=String.format("compile%sTests",StringUtils.capitalize(binary.getName()));
     final File testSourceDir=fileResolver.resolve("test");
@@ -33,13 +31,13 @@
     tasks.create(testTaskName,Test.class,new Action<Test>(){
       public void execute(      Test test){
         test.setTestClassesDir(testClassesDir);
-        test.setBinResultsDir(new File(buildDir,String.format("binTestResultsDir/%s",binary.getName())));
-        test.getReports().getJunitXml().setDestination(new File(buildDir,String.format("reports/test/%s/test-results",binary.getName())));
-        test.getReports().getHtml().setDestination(new File(buildDir,String.format("reports/test/%s/html",binary.getName())));
+        test.setBinResultsDir(new File(buildDir,String.format("tmp/testResults/%s",test.getName())));
+        test.getReports().getJunitXml().setDestination(new File(buildDir,String.format("reports/test/%s/junit",binary.getName())));
+        test.getReports().getHtml().setDestination(new File(buildDir,String.format("reports/test/%s",binary.getName())));
         test.dependsOn(testCompileTaskName);
-        test.setTestSrcDirs(Arrays.asList(fileResolver.resolve("test")));
+        test.setTestSrcDirs(Arrays.asList(testSourceDir));
         test.setWorkingDir(projectIdentifier.getProjectDir());
-        test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir)));
+        test.setClasspath(testCompileClasspath);
       }
     }
 );
