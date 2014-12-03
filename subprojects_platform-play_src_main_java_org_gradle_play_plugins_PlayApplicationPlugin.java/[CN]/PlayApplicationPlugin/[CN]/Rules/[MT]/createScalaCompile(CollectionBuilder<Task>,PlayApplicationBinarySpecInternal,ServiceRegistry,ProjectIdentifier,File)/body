@@ -1,15 +1,12 @@
 {
   final FileResolver fileResolver=serviceRegistry.get(FileResolver.class);
-  ConfigurationContainer configurationContainer=serviceRegistry.get(ConfigurationContainer.class);
-  DependencyHandler dependencyHandler=serviceRegistry.get(DependencyHandler.class);
   PlayToolChainInternal playToolChain=serviceRegistry.get(PlayToolChainInternal.class);
-  final Dependency playDependency=dependencyHandler.create(playToolChain.select(binary.getTargetPlatform()).getPlayDependencyNotation());
-  final Configuration appCompileClasspath=configurationContainer.detachedConfiguration(playDependency);
+  final FileCollection playDependencies=playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
   final String scalaCompileTaskName=String.format("scalaCompile%s",StringUtils.capitalize(binary.getName()));
   tasks.create(scalaCompileTaskName,PlatformScalaCompile.class,new Action<PlatformScalaCompile>(){
     public void execute(    PlatformScalaCompile scalaCompile){
       scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
-      scalaCompile.setClasspath(appCompileClasspath);
+      scalaCompile.setClasspath(playDependencies);
       scalaCompile.setPlatform(new DefaultScalaPlatform(binary.getTargetPlatform().getScalaVersion()));
       scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
       scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());

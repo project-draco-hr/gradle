@@ -1,13 +1,10 @@
 {
   final FileResolver fileResolver=serviceRegistry.get(FileResolver.class);
-  final ConfigurationContainer configurationContainer=serviceRegistry.get(ConfigurationContainer.class);
-  final DependencyHandler dependencyHandler=serviceRegistry.get(DependencyHandler.class);
-  final PlayToolChain playToolChain=serviceRegistry.get(PlayToolChain.class);
+  final PlayToolChainInternal playToolChain=serviceRegistry.get(PlayToolChainInternal.class);
   for (  final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
     final PlayPlatform targetPlatform=binary.getTargetPlatform();
-    Dependency playTestDependency=dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s",targetPlatform.getScalaMainVersion(),targetPlatform.getPlayVersion()));
-    final Configuration testCompileConfiguration=configurationContainer.detachedConfiguration(playTestDependency);
-    final FileCollection testCompileClasspath=fileResolver.resolveFiles(binary.getJarFile()).plus(testCompileConfiguration);
+    FileCollection playTestDependencies=playToolChain.select(targetPlatform).getPlayTestDependencies();
+    final FileCollection testCompileClasspath=fileResolver.resolveFiles(binary.getJarFile()).plus(playTestDependencies);
     final String testCompileTaskName=String.format("compile%sTests",StringUtils.capitalize(binary.getName()));
     final File testSourceDir=fileResolver.resolve("test");
     final File testClassesDir=new File(buildDir,String.format("testClasses/%s",binary.getName()));
