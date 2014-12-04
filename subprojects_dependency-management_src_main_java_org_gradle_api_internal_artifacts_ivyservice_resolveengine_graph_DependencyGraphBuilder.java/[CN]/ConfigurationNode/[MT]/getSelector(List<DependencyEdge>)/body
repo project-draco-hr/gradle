@@ -1,15 +1,15 @@
 {
-  ModuleVersionSpec selector;
+  ModuleResolutionFilter resolutionFilter;
   if (transitiveEdges.isEmpty()) {
-    selector=ModuleVersionSpec.forExcludes();
+    resolutionFilter=DefaultModuleResolutionFilter.forExcludes();
   }
  else {
-    selector=transitiveEdges.get(0).getSelector();
+    resolutionFilter=transitiveEdges.get(0).getSelector();
     for (int i=1; i < transitiveEdges.size(); i++) {
       DependencyEdge dependencyEdge=transitiveEdges.get(i);
-      selector=selector.union(dependencyEdge.getSelector());
+      resolutionFilter=resolutionFilter.union(dependencyEdge.getSelector());
     }
   }
-  selector=selector.intersect(ModuleVersionSpec.forExcludes(metaData.getExcludeRules()));
-  return selector;
+  resolutionFilter=resolutionFilter.intersect(DefaultModuleResolutionFilter.forExcludes(metaData.getExcludeRules()));
+  return resolutionFilter;
 }

@@ -21,9 +21,9 @@
     }
     return;
   }
-  ModuleVersionSpec selectorSpec=getSelector(transitiveIncoming);
+  ModuleResolutionFilter resolutionFilter=getSelector(transitiveIncoming);
   if (previousTraversal != null) {
-    if (previousTraversal.acceptsSameModulesAs(selectorSpec)) {
+    if (previousTraversal.acceptsSameModulesAs(resolutionFilter)) {
       LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring",this);
       return;
     }
@@ -32,15 +32,15 @@
   for (  DependencyMetaData dependency : metaData.getDependencies()) {
     DependencyDescriptor dependencyDescriptor=dependency.getDescriptor();
     ModuleId targetModuleId=dependencyDescriptor.getDependencyRevisionId().getModuleId();
-    if (isSelectorSatisfied(selectorSpec,targetModuleId)) {
+    if (isExcluded(resolutionFilter,targetModuleId)) {
       continue;
     }
-    DependencyEdge dependencyEdge=new DependencyEdge(this,dependency,selectorSpec,resolveState);
-    if (isSelectorSatisfied(dependencyEdge.getSelector(),targetModuleId)) {
+    DependencyEdge dependencyEdge=new DependencyEdge(this,dependency,resolutionFilter,resolveState);
+    if (isExcluded(dependencyEdge.getSelector(),targetModuleId)) {
       continue;
     }
     outgoingEdges.add(dependencyEdge);
     target.add(dependencyEdge);
   }
-  previousTraversal=selectorSpec;
+  previousTraversal=resolutionFilter;
 }
