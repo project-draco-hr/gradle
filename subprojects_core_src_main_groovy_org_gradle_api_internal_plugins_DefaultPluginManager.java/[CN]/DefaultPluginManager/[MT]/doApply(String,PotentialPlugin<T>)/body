@@ -1,0 +1,50 @@
+{
+  Class<T> pluginClass=potentialPlugin.asClass();
+  try {
+    if (potentialPlugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
+      throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
+    }
+ else {
+      boolean imperative=potentialPlugin.isImperative();
+      if (addPluginInternal(pluginClass)) {
+        if (imperative) {
+          T instance=findInstance(pluginClass,pluginContainer);
+          if (instance == null) {
+            instance=instantiatePlugin(pluginClass);
+          }
+          Plugin<?> cast=Cast.uncheckedCast(instance);
+          instances.add(cast);
+          if (potentialPlugin.isHasRules()) {
+            applicator.applyImperativeRulesHybrid(pluginId,cast);
+          }
+ else {
+            applicator.applyImperative(pluginId,cast);
+          }
+          pluginContainer.add(cast);
+          return instance;
+        }
+ else {
+          applicator.applyRules(pluginId,pluginClass);
+        }
+      }
+ else {
+        if (imperative) {
+          T instance=findInstance(pluginClass,instances);
+          if (instance == null) {
+            throw new IllegalStateException("Plugin of type " + pluginClass.getName() + " has been applied, but an instance wasn't found in the plugin container");
+          }
+ else {
+            return instance;
+          }
+        }
+      }
+    }
+  }
+ catch (  PluginApplicationException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new PluginApplicationException(pluginId == null ? "class '" + pluginClass.getName() + "'" : "id '" + pluginId + "'",e);
+  }
+  return null;
+}
