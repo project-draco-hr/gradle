@@ -1,0 +1,16 @@
+{
+  for (  PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
+    for (    JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
+      LanguageSourceSetInternal sourceSetInternal=(LanguageSourceSetInternal)javaScriptSourceSet;
+      if (sourceSetInternal.getMayHaveSources()) {
+        File javascriptOutputDirectory=new File(buildDir,String.format("%s/javascript",binary.getName()));
+        String processTaskName="process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+        JavaScriptProcessResources javaScriptProcessResources=tasks.create(processTaskName,JavaScriptProcessResources.class);
+        javaScriptProcessResources.from(javaScriptSourceSet.getSource());
+        javaScriptProcessResources.setDestinationDir(javascriptOutputDirectory);
+        binary.getAssets().builtBy(javaScriptProcessResources);
+        binary.getAssets().addAssetDir(javascriptOutputDirectory);
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  for (  PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
+    for (    CoffeeScriptSourceSet coffeeScriptSourceSet : binary.getSource().withType(CoffeeScriptSourceSet.class)) {
+      LanguageSourceSetInternal sourceSetInternal=(LanguageSourceSetInternal)coffeeScriptSourceSet;
+      if (sourceSetInternal.getMayHaveSources()) {
+        File coffeeScriptCompileOutputDirectory=new File(buildDir,String.format("%s/coffeescript",binary.getName()));
+        String compileTaskName="compile" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+        PlayCoffeeScriptCompile coffeeScriptCompile=tasks.create(compileTaskName,PlayCoffeeScriptCompile.class);
+        coffeeScriptCompile.setDestinationDir(coffeeScriptCompileOutputDirectory);
+        coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
+        coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
+        coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
+        File coffeeScriptProcessOutputDirectory=new File(buildDir,String.format("%s/javascript",binary.getName()));
+        String processTaskName="process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+        JavaScriptProcessResources processGeneratedJavascript=tasks.create(processTaskName,JavaScriptProcessResources.class);
+        processGeneratedJavascript.dependsOn(coffeeScriptCompile);
+        processGeneratedJavascript.from(coffeeScriptCompile.getDestinationDir());
+        processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
+        binary.getAssets().builtBy(processGeneratedJavascript);
+        binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
+      }
+    }
+  }
+}
