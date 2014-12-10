@@ -10,9 +10,7 @@
     public ArtifactResolutionResult create(){
       Set<ComponentResult> componentResults=Sets.newHashSet();
       for (      ComponentIdentifier componentId : componentIds) {
-        if (!(componentId instanceof ModuleComponentIdentifier)) {
-          throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.",componentId.getDisplayName(),componentId.getClass().getName()));
-        }
+        handleNonModuleComponentIdentifier(componentId);
         ModuleComponentIdentifier moduleComponentId=(ModuleComponentIdentifier)componentId;
         try {
           componentResults.add(buildComponentResult(moduleComponentId,repositoryChain,artifactResolver));
@@ -22,6 +20,14 @@
         }
       }
       return new DefaultArtifactResolutionResult(componentResults);
+    }
+    private void handleNonModuleComponentIdentifier(    ComponentIdentifier componentId){
+      if (!(componentId instanceof ModuleComponentIdentifier)) {
+        if (componentId instanceof ProjectComponentIdentifier) {
+          throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for the project component with path %s",((ProjectComponentIdentifier)componentId).getProjectPath()));
+        }
+        throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.",componentId.getDisplayName(),componentId.getClass().getName()));
+      }
     }
   }
 );
