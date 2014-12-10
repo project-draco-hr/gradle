@@ -6,8 +6,10 @@
     CompilerDaemonFactory compilerDaemonFactory=getServices().get(CompilerDaemonManager.class);
     JavaCompilerFactory javaCompilerFactory=getServices().get(JavaCompilerFactory.class);
     ScalaCompilerFactory scalaCompilerFactory=new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(),antBuilder,javaCompilerFactory,compilerDaemonFactory,getScalaClasspath(),getZincClasspath());
-    org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> delegatingCompiler=scalaCompilerFactory.newCompiler(spec);
-    compiler=new CleaningScalaCompiler(delegatingCompiler,getOutputs(),spec.getScalaCompileOptions().isUseAnt());
+    compiler=scalaCompilerFactory.newCompiler(spec);
+    if (getScalaCompileOptions().isUseAnt()) {
+      compiler=new CleaningScalaCompiler(compiler,getOutputs());
+    }
   }
   return compiler;
 }
