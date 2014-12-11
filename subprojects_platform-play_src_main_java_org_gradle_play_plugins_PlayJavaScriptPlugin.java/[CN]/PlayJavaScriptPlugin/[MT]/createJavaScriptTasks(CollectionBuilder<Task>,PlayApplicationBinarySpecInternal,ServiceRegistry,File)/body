@@ -1,0 +1,18 @@
+{
+  for (  final JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
+    LanguageSourceSetInternal sourceSetInternal=(LanguageSourceSetInternal)javaScriptSourceSet;
+    if (sourceSetInternal.getMayHaveSources()) {
+      String processTaskName="process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+      tasks.create(processTaskName,JavaScriptProcessResources.class,new Action<JavaScriptProcessResources>(){
+        @Override public void execute(        JavaScriptProcessResources javaScriptProcessResources){
+          File javascriptOutputDirectory=new File(buildDir,String.format("%s/javascript",binary.getName()));
+          javaScriptProcessResources.from(javaScriptSourceSet.getSource());
+          javaScriptProcessResources.setDestinationDir(javascriptOutputDirectory);
+          binary.getAssets().builtBy(javaScriptProcessResources);
+          binary.getAssets().addAssetDir(javascriptOutputDirectory);
+        }
+      }
+);
+    }
+  }
+}

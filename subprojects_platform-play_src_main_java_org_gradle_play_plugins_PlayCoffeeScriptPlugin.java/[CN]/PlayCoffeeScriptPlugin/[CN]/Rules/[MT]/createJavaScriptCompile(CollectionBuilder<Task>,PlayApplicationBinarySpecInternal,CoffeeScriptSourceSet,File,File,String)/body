@@ -1,0 +1,15 @@
+{
+  LanguageSourceSetInternal sourceSetInternal=(LanguageSourceSetInternal)coffeeScriptSourceSet;
+  String processTaskName="process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+  tasks.create(processTaskName,JavaScriptProcessResources.class,new Action<JavaScriptProcessResources>(){
+    @Override public void execute(    JavaScriptProcessResources processGeneratedJavascript){
+      File coffeeScriptProcessOutputDirectory=new File(buildDir,String.format("%s/javascript",binary.getName()));
+      processGeneratedJavascript.dependsOn(compileTaskName);
+      processGeneratedJavascript.from(coffeeScriptCompileOutputDirectory);
+      processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
+      binary.getAssets().builtBy(processGeneratedJavascript);
+      binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
+    }
+  }
+);
+}
