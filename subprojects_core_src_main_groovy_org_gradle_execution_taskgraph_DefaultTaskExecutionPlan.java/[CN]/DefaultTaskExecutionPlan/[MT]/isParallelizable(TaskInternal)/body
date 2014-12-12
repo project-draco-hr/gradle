@@ -1,3 +1,11 @@
 {
-  return intraProjectParallelization && task.getClass().isAnnotationPresent(ParallelizableTask.class) && !task.isHasCustomActions();
+  if (intraProjectParallelization) {
+    Boolean safe=isParallelSafeCache.get(task);
+    if (safe == null) {
+      safe=detectIsParallelizable(task);
+      isParallelSafeCache.put(task,safe);
+    }
+    return safe;
+  }
+  return false;
 }
