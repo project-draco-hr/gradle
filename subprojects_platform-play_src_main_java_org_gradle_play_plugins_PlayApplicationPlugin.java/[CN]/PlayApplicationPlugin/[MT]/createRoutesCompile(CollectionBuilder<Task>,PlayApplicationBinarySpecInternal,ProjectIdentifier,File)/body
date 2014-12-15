@@ -2,13 +2,13 @@
   final String routesCompileTaskName=String.format("routesCompile%s",StringUtils.capitalize(binary.getName()));
   tasks.create(routesCompileTaskName,RoutesCompile.class,new Action<RoutesCompile>(){
     public void execute(    RoutesCompile routesCompile){
-      final File routesCompilerOutputDirectory=new File(buildDir,String.format("%s/src_managed",binary.getName()));
       routesCompile.setPlatform(binary.getTargetPlatform());
-      routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
       routesCompile.setAdditionalImports(new ArrayList<String>());
       routesCompile.setSource(new File(projectIdentifier.getProjectDir(),"conf"));
       routesCompile.include("*.routes");
       routesCompile.include("routes");
+      final File routesCompilerOutputDirectory=new File(buildDir,String.format("%s/src/%s",binary.getName(),routesCompileTaskName));
+      routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
       binary.getGeneratedScala().getSource().srcDir(routesCompilerOutputDirectory);
       binary.getGeneratedScala().builtBy(routesCompile);
     }

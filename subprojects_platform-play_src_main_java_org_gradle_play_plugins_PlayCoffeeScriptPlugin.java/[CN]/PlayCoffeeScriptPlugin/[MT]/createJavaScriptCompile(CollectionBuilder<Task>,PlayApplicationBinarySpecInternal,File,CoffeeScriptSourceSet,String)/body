@@ -1,11 +1,10 @@
 {
-  LanguageSourceSetInternal sourceSetInternal=(LanguageSourceSetInternal)coffeeScriptSourceSet;
-  String processTaskName="process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+  final String processTaskName="process" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
   tasks.create(processTaskName,JavaScriptProcessResources.class,new Action<JavaScriptProcessResources>(){
     @Override public void execute(    JavaScriptProcessResources processGeneratedJavascript){
-      File coffeeScriptProcessOutputDirectory=new File(buildDir,String.format("%s/javascript",binary.getName()));
       processGeneratedJavascript.dependsOn(compileTaskName);
-      processGeneratedJavascript.from(coffeeScriptCompileOutputDirectory);
+      processGeneratedJavascript.from(outputDirectory(buildDir,binary,compileTaskName));
+      File coffeeScriptProcessOutputDirectory=outputDirectory(buildDir,binary,processTaskName);
       processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
       binary.getAssets().builtBy(processGeneratedJavascript);
       binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
