@@ -1,39 +1,8 @@
 {
-  TestNG testNg=new TestNG();
-  testNg.setOutputDirectory(testReportDir.getAbsolutePath());
-  testNg.setDefaultSuiteName(options.getDefaultSuiteName());
-  testNg.setDefaultTestName(options.getDefaultTestName());
-  testNg.setParallel(options.getParallel());
-  testNg.setThreadCount(options.getThreadCount());
   try {
-    JavaReflectionUtil.method(TestNG.class,Object.class,"setAnnotations").invoke(testNg,options.getAnnotations());
+    runTests();
   }
- catch (  NoSuchMethodException e) {
+  finally {
+    resultProcessorActor.stop();
   }
-  if (options.getJavadocAnnotations()) {
-    testNg.setSourcePath(CollectionUtils.join(File.pathSeparator,options.getTestResources()));
-  }
-  testNg.setUseDefaultListeners(options.getUseDefaultListeners());
-  testNg.setVerbose(0);
-  testNg.setGroups(CollectionUtils.join(",",options.getIncludeGroups()));
-  testNg.setExcludedGroups(CollectionUtils.join(",",options.getExcludeGroups()));
-  for (  String listenerClass : options.getListeners()) {
-    try {
-      testNg.addListener(applicationClassLoader.loadClass(listenerClass).newInstance());
-    }
- catch (    Throwable e) {
-      throw new GradleException(String.format("Could not add a test listener with class '%s'.",listenerClass),e);
-    }
-  }
-  testNg.addListener((Object)adaptListener(testResultProcessor));
-  if (!options.getIncludedTests().isEmpty()) {
-    testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
-  }
-  if (!suiteFiles.isEmpty()) {
-    testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
-  }
- else {
-    testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
-  }
-  testNg.run();
 }

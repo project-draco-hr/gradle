@@ -11,7 +11,7 @@
       boolean allTasksComplete=true;
       for (      TaskInfo taskInfo : executionPlan.values()) {
         allTasksComplete=allTasksComplete && taskInfo.isComplete();
-        if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && !runningProjects.contains(taskInfo.getTask().getProject().getPath())) {
+        if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
           nextMatching=taskInfo;
           break;
         }
@@ -30,7 +30,7 @@
  else {
         if (nextMatching.allDependenciesSuccessful()) {
           nextMatching.startExecution();
-          runningProjects.add(nextMatching.getTask().getProject().getPath());
+          recordTaskStarted(nextMatching);
           return nextMatching;
         }
  else {

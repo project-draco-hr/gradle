@@ -1,0 +1,42 @@
+{
+  return new Action<ModelNode>(){
+    public void execute(    ModelNode modelNode){
+      ModelView<? extends T> modelView=modelNode.getAdapter().asWritable(modelSchema.getType(),descriptor,inputs,modelNode);
+      if (modelView == null) {
+        throw new IllegalStateException("Couldn't produce managed node as schema type");
+      }
+      for (      ModelProperty<?> property : modelSchema.getProperties().values()) {
+        addPropertyLink(modelNode,property);
+      }
+      initializer.execute(modelView,inputs);
+      modelView.close();
+    }
+    private <P>void addPropertyLink(    ModelNode modelNode,    ModelProperty<P> property){
+      ModelType<P> propertyType=property.getType();
+      ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
+      ModelNode childNode;
+      if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
+        Set<ModelProjection> projections=Collections.<ModelProjection>singleton(new ManagedModelProjection<P>(propertyType,schemaStore,proxyFactory));
+        ModelPromise promise=new ProjectionBackedModelPromise(projections);
+        ModelAdapter adapter=new ProjectionBackedModelAdapter(projections);
+        childNode=modelNode.addLink(property.getName(),descriptor,promise,adapter);
+        if (!property.isWritable()) {
+          for (          ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
+            addPropertyLink(childNode,modelProperty);
+          }
+        }
+      }
+ else {
+        Set<ModelProjection> projections=Collections.<ModelProjection>singleton(new UnmanagedModelProjection<P>(propertyType,true,true));
+        ModelPromise promise=new ProjectionBackedModelPromise(projections);
+        ModelAdapter adapter=new ProjectionBackedModelAdapter(projections);
+        childNode=modelNode.addLink(property.getName(),descriptor,promise,adapter);
+        if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
+          P instance=modelInstantiator.newInstance(propertySchema);
+          childNode.setPrivateData(propertyType,instance);
+        }
+      }
+    }
+  }
+;
+}

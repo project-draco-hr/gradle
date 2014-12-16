@@ -1,0 +1,26 @@
+{
+  return Proxy.newProxyInstance(classLoader,new Class<?>[]{getBuildLinkClass(classLoader)},new InvocationHandler(){
+    private volatile boolean shouldReloadNextTime=true;
+    public Object invoke(    Object proxy,    Method method,    Object[] args) throws Throwable {
+      if (method.getName().equals("projectPath")) {
+        return getProjectPath();
+      }
+ else       if (method.getName().equals("reload")) {
+        if (shouldReloadNextTime) {
+          shouldReloadNextTime=false;
+          DefaultClassPath projectClasspath=new DefaultClassPath(getClasspath());
+          URLClassLoader classLoader=new URLClassLoader(projectClasspath.getAsURLs().toArray(new URL[]{}),Thread.currentThread().getContextClassLoader());
+          return classLoader;
+        }
+ else {
+          return null;
+        }
+      }
+ else       if (method.getName().equals("settings")) {
+        return new HashMap<String,String>();
+      }
+      return null;
+    }
+  }
+);
+}

@@ -1,0 +1,28 @@
+{
+  for (  Method method : annotation.annotationType().getDeclaredMethods()) {
+    String name=method.getName();
+    Class<?> returnType=method.getReturnType();
+    if (returnType.isEnum()) {
+      annotationVisitor.visitEnum(name,Type.getType(returnType).getDescriptor(),getAnnotationParameterValue(annotation,method).toString());
+    }
+ else     if (returnType.isArray() && !PRIMITIVE_TYPES.contains(returnType.getComponentType())) {
+      AnnotationVisitor arrayVisitor=annotationVisitor.visitArray(name);
+      Object[] elements=(Object[])getAnnotationParameterValue(annotation,method);
+      visitArrayElements(arrayVisitor,returnType.getComponentType(),elements);
+      arrayVisitor.visitEnd();
+    }
+ else     if (returnType.equals(Class.class)) {
+      Class<?> clazz=(Class<?>)getAnnotationParameterValue(annotation,method);
+      annotationVisitor.visit(name,Type.getType(clazz));
+    }
+ else     if (returnType.isAnnotation()) {
+      Annotation nestedAnnotation=(Annotation)getAnnotationParameterValue(annotation,method);
+      AnnotationVisitor nestedAnnotationVisitor=annotationVisitor.visitAnnotation(name,Type.getType(returnType).getDescriptor());
+      visitAnnotationValues(nestedAnnotation,nestedAnnotationVisitor);
+      nestedAnnotationVisitor.visitEnd();
+    }
+ else {
+      annotationVisitor.visit(name,getAnnotationParameterValue(annotation,method));
+    }
+  }
+}

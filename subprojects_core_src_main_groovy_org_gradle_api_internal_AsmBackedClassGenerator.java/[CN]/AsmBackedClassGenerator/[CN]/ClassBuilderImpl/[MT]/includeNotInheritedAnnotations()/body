@@ -1,0 +1,12 @@
+{
+  for (  Annotation annotation : type.getDeclaredAnnotations()) {
+    if (annotation.annotationType().getAnnotation(Inherited.class) != null) {
+      continue;
+    }
+    Retention retention=annotation.annotationType().getAnnotation(Retention.class);
+    boolean visible=retention != null && retention.value() == RetentionPolicy.RUNTIME;
+    AnnotationVisitor annotationVisitor=visitor.visitAnnotation(Type.getType(annotation.annotationType()).getDescriptor(),visible);
+    visitAnnotationValues(annotation,annotationVisitor);
+    annotationVisitor.visitEnd();
+  }
+}

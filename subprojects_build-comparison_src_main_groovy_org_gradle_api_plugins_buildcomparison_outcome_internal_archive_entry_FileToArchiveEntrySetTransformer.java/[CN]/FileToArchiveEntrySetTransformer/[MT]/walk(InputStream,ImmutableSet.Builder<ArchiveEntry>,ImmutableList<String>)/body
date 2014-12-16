@@ -1,0 +1,43 @@
+{
+  ImmutableSet.Builder<ArchiveEntry> entries=ImmutableSet.builder();
+  ZipInputStream zipStream=new ZipInputStream(archiveInputStream);
+  try {
+    ZipEntry entry=zipStream.getNextEntry();
+    while (entry != null) {
+      ArchiveEntry.Builder builder=new ArchiveEntry.Builder();
+      builder.setParentPaths(parentPaths);
+      builder.setPath(entry.getName());
+      builder.setCrc(entry.getCrc());
+      builder.setDirectory(entry.isDirectory());
+      builder.setSize(entry.getSize());
+      if (!builder.isDirectory() && (zipStream.available() == 1)) {
+        boolean zipEntry;
+        final BufferedInputStream bis=new BufferedInputStream(zipStream){
+          @Override public void close() throws IOException {
+          }
+        }
+;
+        bis.mark(Integer.MAX_VALUE);
+        zipEntry=new ZipInputStream(bis).getNextEntry() != null;
+        bis.reset();
+        if (zipEntry) {
+          ImmutableList<String> nextParentPaths=ImmutableList.<String>builder().addAll(parentPaths).add(entry.getName()).build();
+          ImmutableSet<ArchiveEntry> subEntries=walk(bis,allEntries,nextParentPaths);
+          builder.setSubEntries(subEntries);
+        }
+      }
+      ArchiveEntry archiveEntry=builder.build();
+      entries.add(archiveEntry);
+      allEntries.add(archiveEntry);
+      zipStream.closeEntry();
+      entry=zipStream.getNextEntry();
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+ finally {
+    IOUtils.closeQuietly(zipStream);
+  }
+  return entries.build();
+}

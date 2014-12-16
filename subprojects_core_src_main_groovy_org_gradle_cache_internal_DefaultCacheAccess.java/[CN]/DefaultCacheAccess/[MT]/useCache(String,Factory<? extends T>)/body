@@ -2,10 +2,16 @@
   if (lockOptions != null && lockOptions.getMode() == FileLockManager.LockMode.Shared) {
     throw new UnsupportedOperationException("Not implemented yet.");
   }
-  takeOwnership(operationDisplayName);
   boolean wasStarted=false;
+  lock.lock();
   try {
+    takeOwnership(operationDisplayName);
     wasStarted=onStartWork();
+  }
+  finally {
+    lock.unlock();
+  }
+  try {
     return factory.create();
   }
   finally {

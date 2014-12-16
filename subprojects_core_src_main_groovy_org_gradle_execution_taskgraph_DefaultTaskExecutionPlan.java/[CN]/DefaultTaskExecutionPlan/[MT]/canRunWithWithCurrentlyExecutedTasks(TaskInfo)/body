@@ -1,0 +1,22 @@
+{
+  TaskInternal task=taskInfo.getTask();
+  String projectPath=task.getProject().getPath();
+  if (isParallelizable(task)) {
+    if (projectsWithRunningNonParallelizableTasks.contains(projectPath)) {
+      return false;
+    }
+  }
+ else {
+    if (projectsWithRunningTasks.contains(projectPath)) {
+      return false;
+    }
+  }
+  Tuple<TaskInternal,String> overlap=firstTaskWithOverlappingOutput(task);
+  if (overlap == null) {
+    return true;
+  }
+ else {
+    LOGGER.info("Cannot execute task " + task.getPath() + " in parallel with task "+ overlap.left.getPath()+ " due to overlapping output: "+ overlap.right);
+  }
+  return false;
+}

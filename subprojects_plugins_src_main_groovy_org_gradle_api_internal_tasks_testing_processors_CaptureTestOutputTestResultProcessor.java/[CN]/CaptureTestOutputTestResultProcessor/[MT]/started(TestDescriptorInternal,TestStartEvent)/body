@@ -1,9 +1,15 @@
 {
   processor.started(test,event);
-  redirectOutputFor(test.getId());
-  if (suiteId != null) {
-    return;
+  outputRedirector.setOutputOwner(test.getId());
+  if (rootId == null) {
+    outputRedirector.startRedirecting();
+    rootId=test.getId();
   }
-  suiteId=test.getId();
-  outputRedirector.start();
+ else {
+    Object parentId=event.getParentId();
+    if (parentId == null) {
+      parentId=rootId;
+    }
+    parents.put(test.getId(),parentId);
+  }
 }

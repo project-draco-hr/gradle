@@ -1,13 +1,18 @@
 {
-  matching(new Spec<Plugin>(){
-    public boolean isSatisfiedBy(    Plugin element){
-      try {
-        return idLookupCache.get(new IdLookupCacheKey(element.getClass(),pluginId));
+  Action<DefaultPluginManager.PluginWithId> wrappedAction=new Action<DefaultPluginManager.PluginWithId>(){
+    public void execute(    final DefaultPluginManager.PluginWithId pluginWithId){
+      matching(new Spec<Plugin>(){
+        public boolean isSatisfiedBy(        Plugin element){
+          return pluginWithId.clazz.equals(element.getClass());
+        }
       }
- catch (      ExecutionException e) {
-        throw UncheckedException.throwAsUncheckedException(e);
-      }
+).all(action);
     }
   }
-).all(action);
+;
+  String qualified=DefaultPluginManager.maybeQualify(pluginId);
+  if (qualified != null) {
+    pluginManager.pluginsForId(qualified).all(wrappedAction);
+  }
+  pluginManager.pluginsForId(pluginId).all(wrappedAction);
 }

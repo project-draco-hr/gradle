@@ -1,0 +1,27 @@
+{
+  boolean didWork=false;
+  Iterable<File> sources=spec.getSources();
+  ArrayList<File> secondaryRoutes=Lists.newArrayList();
+  CollectionUtils.filter(sources,secondaryRoutes,new Spec<File>(){
+    @Override public boolean isSatisfiedBy(    File file){
+      return !file.getName().equals("routes");
+    }
+  }
+);
+  ArrayList<File> routes=Lists.newArrayList();
+  CollectionUtils.filter(sources,secondaryRoutes,new Spec<File>(){
+    @Override public boolean isSatisfiedBy(    File file){
+      return file.getName().equals("routes");
+    }
+  }
+);
+  for (  File sourceFile : secondaryRoutes) {
+    Boolean ret=compile(sourceFile,spec);
+    didWork=ret || didWork;
+  }
+  for (  File sourceFile : routes) {
+    Boolean ret=compile(sourceFile,spec);
+    didWork=ret || didWork;
+  }
+  return new SimpleWorkResult(didWork);
+}

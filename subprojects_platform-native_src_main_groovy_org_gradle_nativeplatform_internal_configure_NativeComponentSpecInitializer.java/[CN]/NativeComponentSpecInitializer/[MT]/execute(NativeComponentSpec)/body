@@ -1,6 +1,10 @@
 {
   TargetedNativeComponentInternal targetedComponent=(TargetedNativeComponentInternal)projectNativeComponent;
-  List<NativePlatform> targetPlatforms=platforms.select(NativePlatform.class,targetedComponent.getTargetPlatforms());
+  List<String> targetPlatformNames=targetedComponent.getTargetPlatforms();
+  if (targetPlatformNames.isEmpty()) {
+    targetPlatformNames=Collections.singletonList(NativePlatforms.getDefaultPlatformName());
+  }
+  List<NativePlatform> targetPlatforms=platforms.chooseFromTargets(NativePlatform.class,targetPlatformNames);
   for (  NativePlatform platform : targetPlatforms) {
     NativeToolChainInternal toolChain=(NativeToolChainInternal)toolChainRegistry.getForPlatform(platform);
     PlatformToolProvider toolProvider=toolChain.select((NativePlatformInternal)platform);

@@ -1,0 +1,21 @@
+{
+  final List<File> grammarFiles=new ArrayList<File>();
+  final Set<File> sourceFiles=getSource().getFiles();
+  inputs.outOfDate(new Action<InputFileDetails>(){
+    public void execute(    InputFileDetails details){
+      File input=details.getFile();
+      for (      File file : sourceFiles) {
+        if (file.getAbsolutePath().equals(input.getAbsolutePath())) {
+          grammarFiles.add(input);
+          break;
+        }
+      }
+    }
+  }
+);
+  List<String> args=buildArguments(grammarFiles);
+  AntlrWorkerManager manager=new AntlrWorkerManager();
+  AntlrSpec spec=new AntlrSpec(args,maxHeapSize);
+  AntlrResult result=manager.runWorker(getProject().getProjectDir(),getWorkerProcessBuilderFactory(),getAntlrClasspath(),spec);
+  evaluateAntlrResult(result);
+}

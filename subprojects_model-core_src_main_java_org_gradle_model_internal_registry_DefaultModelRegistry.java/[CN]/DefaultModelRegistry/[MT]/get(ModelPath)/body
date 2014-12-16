@@ -1,12 +1,20 @@
 {
-  if (store.containsKey(path)) {
-    return store.get(path);
+  ModelSearchResult searchResult=modelGraph.search(path);
+  ModelNode targetNode=searchResult.getTargetNode();
+  if (targetNode != null) {
+    close(targetNode);
+    return targetNode;
   }
-  inCreation=removeCreator(path);
-  try {
-    return createAndClose(inCreation);
+  inCreation=creations.remove(path);
+  if (inCreation == null) {
+    return null;
   }
+ else {
+    try {
+      return createAndClose(inCreation);
+    }
   finally {
-    inCreation=null;
+      inCreation=null;
+    }
   }
 }

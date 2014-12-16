@@ -1,0 +1,19 @@
+{
+  ArrayList<File> outputFiles=Lists.newArrayList();
+  try {
+    ClassLoader cl=getClass().getClassLoader();
+    ScalaMethod compile=spec.getCompileMethod(cl);
+    Iterable<File> sources=spec.getSources();
+    for (    File sourceFile : sources) {
+      Object result=compile.invoke(spec.createCompileParameters(cl,sourceFile));
+      ScalaOptionInvocationWrapper<File> maybeFile=new ScalaOptionInvocationWrapper<File>(result);
+      if (maybeFile.isDefined()) {
+        outputFiles.add(maybeFile.get());
+      }
+    }
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Error invoking Play Twirl template compiler.",e);
+  }
+  return new TwirlCompilerWorkResult(outputFiles);
+}

@@ -7,6 +7,7 @@
   services.add(Instantiator.class,instantiator);
   services.add(ScriptHandler.class,scriptHandler);
   services.add(FileLookup.class,fileLookup);
+  services.add(ModelRuleSourceDetector.class,modelRuleSourceDetector);
   ScriptSource withImports=importsReader.withImports(scriptSource);
   PluginDependenciesService pluginDependenciesService=new PluginDependenciesService(getSource());
   services.add(PluginDependenciesService.class,pluginDependenciesService);
@@ -21,8 +22,8 @@
   classPathScriptRunner.getScript().init(target,services);
   classPathScriptRunner.run();
   List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
-  PluginAware pluginAware=target instanceof PluginAware ? (PluginAware)target : null;
-  pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,pluginAware,targetScope);
+  PluginManager pluginManager=target instanceof PluginAwareInternal ? ((PluginAwareInternal)target).getPluginManager() : null;
+  pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,pluginManager,targetScope);
   compiler.setClassloader(targetScope.getLocalClassLoader());
   BuildScriptTransformer transformer=new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert(),scriptSource);
   compiler.setTransformer(transformer);

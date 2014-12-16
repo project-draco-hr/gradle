@@ -3,29 +3,29 @@
 {
       one(serviceRegistryFactoryMock).createFor(with(any(DefaultGradle.class)));
       will(returnValue(gradleServiceRegistryMock));
-      allowing(gradleServiceRegistryMock).get(ScriptHandler.class);
+      allowing(gradleServiceRegistryMock).get((Type)ScriptHandler.class);
       will(returnValue(scriptHandlerMock));
       allowing(gradleServiceRegistryMock).get(ClassLoaderScopeRegistry.class);
       will(returnValue(classLoaderScopeRegistry));
       allowing(classLoaderScopeRegistry).getCoreAndPluginsScope();
       will(returnValue(classLoaderScope));
-      allowing(gradleServiceRegistryMock).get(PluginRegistry.class);
-      will(returnValue(pluginRegistry));
-      allowing(gradleServiceRegistryMock).get(TaskGraphExecuter.class);
+      allowing(gradleServiceRegistryMock).get((Type)DefaultPluginManager.class);
+      will(returnValue(pluginManager));
+      allowing(gradleServiceRegistryMock).get((Type)TaskGraphExecuter.class);
       will(returnValue(taskExecuter));
-      allowing(gradleServiceRegistryMock).get(ListenerManager.class);
+      allowing(gradleServiceRegistryMock).get((Type)ListenerManager.class);
       will(returnValue(listenerManager));
       allowing(gradleServiceRegistryMock).get(MultiParentClassLoader.class);
       will(returnValue(scriptClassLoaderMock));
-      allowing(gradleServiceRegistryMock).get(GradleDistributionLocator.class);
+      allowing(gradleServiceRegistryMock).get((Type)GradleDistributionLocator.class);
       will(returnValue(gradleDistributionLocatorMock));
       allowing(gradleServiceRegistryMock).get(PluginContainer.class);
       will(returnValue(pluginContainer));
-      allowing(gradleServiceRegistryMock).get(FileResolver.class);
+      allowing(gradleServiceRegistryMock).get((Type)FileResolver.class);
       will(returnValue(fileResolverMock));
-      allowing(gradleServiceRegistryMock).get(ScriptPluginFactory.class);
+      allowing(gradleServiceRegistryMock).get((Type)ScriptPluginFactory.class);
       will(returnValue(scriptPluginFactory));
-      allowing(gradleServiceRegistryMock).get(ScriptHandlerFactory.class);
+      allowing(gradleServiceRegistryMock).get((Type)ScriptHandlerFactory.class);
       will(returnValue(scriptHandlerFactory));
       allowing(listenerManager).createAnonymousBroadcaster(BuildListener.class);
       will(returnValue(buildListenerBroadcast));
@@ -34,5 +34,6 @@
     }
   }
 );
-  gradle=new DefaultGradle(parent,parameter,serviceRegistryFactoryMock);
+  AsmBackedClassGenerator classGenerator=new AsmBackedClassGenerator();
+  gradle=classGenerator.newInstance(DefaultGradle.class,parent,parameter,serviceRegistryFactoryMock);
 }

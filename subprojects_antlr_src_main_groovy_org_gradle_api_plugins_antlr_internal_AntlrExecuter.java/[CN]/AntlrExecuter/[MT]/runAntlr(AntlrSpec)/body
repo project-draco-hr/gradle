@@ -1,0 +1,30 @@
+{
+  List<String> arguments=spec.getArguments();
+  String[] argArr=new String[arguments.size()];
+  arguments.toArray(argArr);
+  try {
+    Object toolObj=loadTool("org.antlr.v4.Tool",argArr);
+    LOGGER.info("Processing with ANTLR 4");
+    return processV4(toolObj);
+  }
+ catch (  ClassNotFoundException e) {
+    LOGGER.debug("ANTLR 4 not found on classpath");
+  }
+  try {
+    Object toolObj=loadTool("org.antlr.Tool",argArr);
+    LOGGER.info("Processing with ANTLR 3");
+    return processV3(toolObj);
+  }
+ catch (  ClassNotFoundException e) {
+    LOGGER.debug("ANTLR 3 not found on classpath");
+  }
+  try {
+    Object toolObj=loadTool("antlr.Tool",null);
+    LOGGER.info("Processing with ANTLR 2");
+    return processV2(toolObj,argArr);
+  }
+ catch (  ClassNotFoundException e) {
+    LOGGER.debug("ANTLR 2 not found on classpath");
+  }
+  throw new IllegalStateException("No Antlr implementation available");
+}

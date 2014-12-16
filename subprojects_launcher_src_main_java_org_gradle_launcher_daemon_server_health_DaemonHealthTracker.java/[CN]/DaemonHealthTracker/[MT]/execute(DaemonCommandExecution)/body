@@ -1,0 +1,17 @@
+{
+  if (execution.isSingleUseDaemon()) {
+    execution.proceed();
+    return;
+  }
+  stats.buildStarted();
+  logger.logHealth(stats,LOG);
+  try {
+    execution.proceed();
+  }
+  finally {
+    stats.buildFinished();
+  }
+  if (status.isDaemonTired(stats)) {
+    execution.getDaemonStateControl().requestStop();
+  }
+}
