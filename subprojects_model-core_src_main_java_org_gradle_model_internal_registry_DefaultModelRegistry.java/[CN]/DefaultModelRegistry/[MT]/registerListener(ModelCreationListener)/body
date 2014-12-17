@@ -1,17 +1,8 @@
 {
   boolean remove;
-  List<ModelPath> creationKeys=new ArrayList<ModelPath>(creations.keySet());
-  for (  ModelPath key : creationKeys) {
-    BoundModelCreator boundCreator=creations.get(key);
-    ModelCreator creator=boundCreator.getCreator();
-    remove=listener.onCreate(creator.getDescriptor(),creator.getPath(),creator.getPromise());
-    if (remove) {
-      return;
-    }
-  }
-  for (  Map.Entry<ModelPath,ModelNode> entry : modelGraph.getFlattened().entrySet()) {
-    ModelNode node=entry.getValue();
-    remove=listener.onCreate(node.getCreationDescriptor(),entry.getKey(),node.getPromise());
+  List<ModelCreation> currentCreations=Lists.newArrayList(creations);
+  for (  ModelCreation creation : currentCreations) {
+    remove=listener.onCreate(creation);
     if (remove) {
       return;
     }

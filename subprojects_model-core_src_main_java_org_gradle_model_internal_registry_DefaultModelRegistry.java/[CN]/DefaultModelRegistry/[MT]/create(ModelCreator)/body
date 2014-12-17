@@ -3,14 +3,15 @@
   if (path.getDepth() > 1) {
     throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
   }
-  BoundModelCreator existingCreation=creations.get(path);
+  BoundModelCreator existingCreation=creators.get(path);
   if (existingCreation != null) {
     throw new DuplicateModelException(String.format("Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered to create a model element at this path",toString(creator.getDescriptor()),path,toString(existingCreation.getCreator().getDescriptor())));
   }
   ModelSearchResult searchResult=modelGraph.search(path);
   if (searchResult.getTargetNode() != null) {
-    throw new DuplicateModelException(String.format("Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered (and the model element has been created)",toString(creator.getDescriptor()),path,toString(searchResult.getTargetNode().getCreationDescriptor())));
+    throw new DuplicateModelException(String.format("Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered (and the model element has been created)",toString(creator.getDescriptor()),path,toString(searchResult.getTargetNode().getDescriptor())));
   }
-  notifyCreationListeners(creator.getDescriptor(),creator.getPath(),creator.getPromise());
+  notifyCreationListeners(creator);
   bind(creator);
+  creations.add(creator);
 }
