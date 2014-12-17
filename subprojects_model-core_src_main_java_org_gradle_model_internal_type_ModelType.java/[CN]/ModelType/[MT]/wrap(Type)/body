@@ -1,0 +1,19 @@
+{
+  if (type == null) {
+    return NullTypeWrapper.INSTANCE;
+  }
+ else   if (type instanceof Class) {
+    return new ClassTypeWrapper((Class<?>)type);
+  }
+ else   if (type instanceof ParameterizedType) {
+    ParameterizedType parameterizedType=(ParameterizedType)type;
+    return new ParameterizedTypeImpl(toWrappers(parameterizedType.getActualTypeArguments()),wrap(parameterizedType.getRawType()),wrap(parameterizedType.getOwnerType()),type.hashCode());
+  }
+ else   if (type instanceof WildcardType) {
+    WildcardType wildcardType=(WildcardType)type;
+    return new WildcardTypeImpl(toWrappers(wildcardType.getUpperBounds()),toWrappers(wildcardType.getLowerBounds()),type.hashCode());
+  }
+ else {
+    throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());
+  }
+}
