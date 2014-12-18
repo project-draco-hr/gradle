@@ -13,7 +13,20 @@
     }
 class State implements ModelElementState {
       public <T>T get(      ModelType<T> modelType,      String name){
-        return modelNode.getLinks().get(name).getPrivateData(modelType);
+        ModelNode propertyNode=modelNode.getLinks().get(name);
+        ModelProperty<?> property=schema.getProperties().get(name);
+        if (!property.isWritable()) {
+          ModelAdapter adapter=propertyNode.getAdapter();
+          if (writable) {
+            return adapter.asWritable(modelType,null,null,propertyNode).getInstance();
+          }
+ else {
+            return adapter.asReadOnly(modelType,propertyNode).getInstance();
+          }
+        }
+ else {
+          return propertyNode.getPrivateData(modelType);
+        }
       }
       public <T>void set(      ModelType<T> propertyType,      String name,      T value){
         if (!writable) {

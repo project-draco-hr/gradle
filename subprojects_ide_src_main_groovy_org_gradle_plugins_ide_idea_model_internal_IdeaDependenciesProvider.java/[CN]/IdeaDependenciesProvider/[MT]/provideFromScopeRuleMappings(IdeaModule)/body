@@ -16,7 +16,9 @@
       for (      IdeExtendedRepoFileDependency ideRepoFileDependency : ideRepoFileDependencies) {
         IdeDependencyKey<?,Dependency> key=IdeDependencyKey.forRepoFileDependency(ideRepoFileDependency,new IdeDependencyKey.DependencyBuilder<IdeExtendedRepoFileDependency,Dependency>(){
           public Dependency buildDependency(          IdeExtendedRepoFileDependency dependency,          String scope){
-            SingleEntryModuleLibrary library=new SingleEntryModuleLibrary(getPath.apply(dependency.getFile()),getPath.apply(dependency.getJavadocFile()),getPath.apply(dependency.getSourceFile()),scope);
+            Set<FilePath> javadoc=CollectionUtils.collect(dependency.getJavadocFiles(),new LinkedHashSet<FilePath>(),getPath);
+            Set<FilePath> source=CollectionUtils.collect(dependency.getSourceFiles(),new LinkedHashSet<FilePath>(),getPath);
+            SingleEntryModuleLibrary library=new SingleEntryModuleLibrary(getPath.transform(dependency.getFile()),javadoc,source,scope);
             library.setModuleVersion(dependency.getId());
             return library;
           }
@@ -29,7 +31,7 @@
     for (    IdeLocalFileDependency fileDependency : ideLocalFileDependencies) {
       IdeDependencyKey<?,Dependency> key=IdeDependencyKey.forLocalFileDependency(fileDependency,new IdeDependencyKey.DependencyBuilder<IdeLocalFileDependency,Dependency>(){
         public Dependency buildDependency(        IdeLocalFileDependency dependency,        String scope){
-          return new SingleEntryModuleLibrary(getPath.apply(dependency.getFile()),scope);
+          return new SingleEntryModuleLibrary(getPath.transform(dependency.getFile()),scope);
         }
       }
 );

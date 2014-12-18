@@ -1,11 +1,13 @@
 {
   TestDescriptorInternal testInternal;
+  Object parentId;
 synchronized (lock) {
     testInternal=new DefaultTestSuiteDescriptor(idGenerator.generateId(),iTestContext.getName());
-    suites.put(testInternal.getName(),testInternal.getId());
+    parentId=suiteId.get(iTestContext.getSuite());
+    testId.put(iTestContext,testInternal.getId());
     for (    ITestNGMethod method : iTestContext.getAllTestMethods()) {
-      testMethodToSuiteMapping.put(method,testInternal.getId());
+      testMethodParentId.put(method,testInternal.getId());
     }
   }
-  resultProcessor.started(testInternal,new TestStartEvent(iTestContext.getStartDate().getTime()));
+  resultProcessor.started(testInternal,new TestStartEvent(iTestContext.getStartDate().getTime(),parentId));
 }

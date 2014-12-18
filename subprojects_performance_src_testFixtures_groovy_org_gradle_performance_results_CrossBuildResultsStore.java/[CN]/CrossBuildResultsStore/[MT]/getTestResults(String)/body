@@ -1,0 +1,58 @@
+{
+  try {
+    return db.withConnection(new ConnectionAction<CrossBuildTestExecutionHistory>(){
+      public CrossBuildTestExecutionHistory execute(      Connection connection) throws Exception {
+        List<CrossBuildPerformanceResults> results=Lists.newArrayList();
+        Set<BuildSpecification> buildSpecifications=Sets.newTreeSet(new Comparator<BuildSpecification>(){
+          @Override public int compare(          BuildSpecification o1,          BuildSpecification o2){
+            return o1.getDisplayName().compareTo(o2.getDisplayName());
+          }
+        }
+);
+        PreparedStatement executionsForName=connection.prepareStatement("select id, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
+        PreparedStatement operationsForExecution=connection.prepareStatement("select testProject, displayName, tasks, args, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+        executionsForName.setString(1,testName);
+        ResultSet testExecutions=executionsForName.executeQuery();
+        while (testExecutions.next()) {
+          long id=testExecutions.getLong(1);
+          CrossBuildPerformanceResults performanceResults=new CrossBuildPerformanceResults();
+          performanceResults.setTestId(testName);
+          performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
+          performanceResults.setVersionUnderTest(testExecutions.getString(3));
+          performanceResults.setOperatingSystem(testExecutions.getString(4));
+          performanceResults.setJvm(testExecutions.getString(5));
+          performanceResults.setVcsBranch(testExecutions.getString(6).trim());
+          performanceResults.setVcsCommit(testExecutions.getString(7));
+          results.add(performanceResults);
+          operationsForExecution.setLong(1,id);
+          ResultSet builds=operationsForExecution.executeQuery();
+          while (builds.next()) {
+            BuildSpecification specification=new BuildSpecification();
+            specification.setProjectName(builds.getString(1));
+            specification.setDisplayName(builds.getString(2));
+            specification.setTasksToRun(toArray(builds.getObject(3)));
+            specification.setArgs(toArray(builds.getObject(4)));
+            MeasuredOperation operation=new MeasuredOperation();
+            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(5)));
+            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(6)));
+            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
+            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(8)));
+            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
+            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(10)));
+            performanceResults.buildResult(specification).add(operation);
+            buildSpecifications.add(specification);
+          }
+          builds.close();
+        }
+        testExecutions.close();
+        operationsForExecution.close();
+        executionsForName.close();
+        return new CrossBuildTestExecutionHistory(testName,ImmutableList.copyOf(buildSpecifications),results);
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(String.format("Could not load results from datastore '%s'.",dbFile),e);
+  }
+}

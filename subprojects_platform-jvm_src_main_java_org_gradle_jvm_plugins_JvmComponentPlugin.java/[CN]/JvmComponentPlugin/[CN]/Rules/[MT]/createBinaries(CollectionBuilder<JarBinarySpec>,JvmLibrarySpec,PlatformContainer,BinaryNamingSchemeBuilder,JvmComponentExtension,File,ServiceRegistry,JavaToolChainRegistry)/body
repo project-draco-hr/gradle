@@ -1,22 +1,26 @@
 {
-  List<Action<? super JarBinarySpec>> actions=Lists.newArrayList();
-  actions.add(new JarBinarySpecInitializer(buildDir));
-  actions.add(new MarkBinariesBuildable());
-  final Action<JarBinarySpec> initAction=Actions.composite(actions);
+  final File binariesDir=new File(buildDir,"jars");
+  final File classesDir=new File(buildDir,"classes");
   List<String> targetPlatforms=jvmLibrary.getTargetPlatforms();
   if (targetPlatforms.isEmpty()) {
     targetPlatforms=Collections.singletonList(new DefaultJavaPlatform(JavaVersion.current()).getName());
   }
   List<JavaPlatform> selectedPlatforms=platforms.chooseFromTargets(JavaPlatform.class,targetPlatforms);
   for (  final JavaPlatform platform : selectedPlatforms) {
-    final JavaToolChain toolChain=toolChains.getForPlatform(platform);
+    final JavaToolChainInternal toolChain=(JavaToolChainInternal)toolChains.getForPlatform(platform);
     final String binaryName=createBinaryName(jvmLibrary,namingSchemeBuilder,selectedPlatforms,platform);
     binaries.create(binaryName,new Action<JarBinarySpec>(){
       public void execute(      JarBinarySpec jarBinary){
-        ((JarBinarySpecInternal)jarBinary).setBaseName(jvmLibrary.getName());
+        JarBinarySpecInternal jarBinaryInternal=(JarBinarySpecInternal)jarBinary;
+        jarBinaryInternal.setBaseName(jvmLibrary.getName());
         jarBinary.setToolChain(toolChain);
         jarBinary.setTargetPlatform(platform);
-        initAction.execute(jarBinary);
+        File outputDir=new File(classesDir,jarBinary.getName());
+        jarBinary.setClassesDir(outputDir);
+        jarBinary.setResourcesDir(outputDir);
+        jarBinary.setJarFile(new File(binariesDir,String.format("%s/%s.jar",jarBinary.getName(),jarBinaryInternal.getBaseName())));
+        boolean canBuild=toolChain.select(jarBinary.getTargetPlatform()).isAvailable();
+        jarBinaryInternal.setBuildable(canBuild);
         jvmComponentExtension.getAllBinariesAction().execute(jarBinary);
       }
     }

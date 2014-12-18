@@ -1,0 +1,31 @@
+{
+  modelRegistry.create(ModelCreators.of(ModelReference.of(modelPath,containerType),new Transformer<Action<? super ModelNode>,Inputs>(){
+    public Action<? super ModelNode> transform(    Inputs inputs){
+      return new Action<ModelNode>(){
+        public void execute(        final ModelNode modelNode){
+          modelNode.setPrivateData(containerType,container);
+          container.all(new Action<I>(){
+            public void execute(            final I item){
+              final String name=namer.determineName(item);
+              if (!modelNode.getLinks().containsKey(name)) {
+                UnmanagedModelProjection<I> projection=new UnmanagedModelProjection<I>(ModelType.typeOf(item),true,true);
+                Set<ModelProjection> projections=Collections.<ModelProjection>singleton(projection);
+                modelNode.addLink(name,new SimpleModelRuleDescriptor(itemDescriptorGenerator.transform(name)),new ProjectionBackedModelPromise(projections),new ProjectionBackedModelAdapter(projections)).setPrivateData(ModelType.typeOf(item),item);
+              }
+            }
+          }
+);
+        }
+      }
+;
+    }
+  }
+).simpleDescriptor(descriptor).withProjection(new UnmanagedModelProjection<P>(publicType,true,true)).withProjection(new PolymorphicDomainObjectContainerModelProjection<C,I>(instantiator,container,itemType.getConcreteClass())).build());
+  container.whenObjectRemoved(new Action<I>(){
+    public void execute(    I item){
+      ModelPath path=modelPath.child(namer.determineName(item));
+      modelRegistry.remove(path);
+    }
+  }
+);
+}

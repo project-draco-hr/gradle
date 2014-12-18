@@ -1,0 +1,26 @@
+{
+  if (arrayElementType.isEnum()) {
+    String enumDescriptor=Type.getType(arrayElementType).getDescriptor();
+    for (    Object value : arrayElements) {
+      arrayVisitor.visitEnum(null,enumDescriptor,value.toString());
+    }
+  }
+ else   if (arrayElementType.equals(Class.class)) {
+    for (    Object value : arrayElements) {
+      Class<?> clazz=(Class<?>)value;
+      arrayVisitor.visit(null,Type.getType(clazz));
+    }
+  }
+ else   if (arrayElementType.isAnnotation()) {
+    for (    Object annotation : arrayElements) {
+      AnnotationVisitor nestedAnnotationVisitor=arrayVisitor.visitAnnotation(null,Type.getType(arrayElementType).getDescriptor());
+      visitAnnotationValues((Annotation)annotation,nestedAnnotationVisitor);
+      nestedAnnotationVisitor.visitEnd();
+    }
+  }
+ else {
+    for (    Object value : arrayElements) {
+      arrayVisitor.visit(null,value);
+    }
+  }
+}

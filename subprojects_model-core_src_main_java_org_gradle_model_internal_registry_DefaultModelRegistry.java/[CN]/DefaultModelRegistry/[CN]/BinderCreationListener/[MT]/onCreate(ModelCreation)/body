@@ -1,0 +1,28 @@
+{
+  ModelRuleDescriptor creatorDescriptor=creation.getDescriptor();
+  ModelPath path=creation.getPath();
+  ModelPromise promise=creation.getPromise();
+  if (path.isTopLevel() && boundTo != null && isTypeCompatible(promise)) {
+    throw new InvalidModelRuleException(descriptor,new ModelRuleBindingException(new AmbiguousBindingReporter(reference,boundTo,boundToCreator,path,creatorDescriptor).asString()));
+  }
+ else   if (reference.getPath() == null && path.isTopLevel()) {
+    boolean typeCompatible=isTypeCompatible(promise);
+    if (typeCompatible) {
+      bindAction.execute(path);
+      boundTo=path;
+      boundToCreator=creatorDescriptor;
+      return false;
+    }
+  }
+ else   if (path.equals(reference.getPath())) {
+    boolean typeCompatible=isTypeCompatible(promise);
+    if (typeCompatible) {
+      bindAction.execute(path);
+      return true;
+    }
+ else {
+      throw new InvalidModelRuleException(descriptor,new ModelRuleBindingException(IncompatibleTypeReferenceReporter.of(creatorDescriptor,promise,reference,writable).asString()));
+    }
+  }
+  return false;
+}

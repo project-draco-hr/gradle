@@ -17,8 +17,18 @@
     projection=new UnmanagedModelProjection<T>(managedType,true,true);
   }
  else {
-    transformer=new ManagedModelRuleInvokerGraphBackedTransformer<T>(modelSchema,schemaStore,modelInstantiator,descriptor,ruleDefinition.getRuleInvoker(),inputs);
-    projection=new ManagedModelProjection<T>(managedType,schemaStore,proxyFactory);
+    return ManagedModelInitializer.creator(descriptor,modelPath,modelSchema,schemaStore,modelInstantiator,proxyFactory,inputs,new BiAction<ModelView<? extends T>,Inputs>(){
+      public void execute(      ModelView<? extends T> modelView,      Inputs inputs){
+        T instance=modelView.getInstance();
+        Object[] args=new Object[inputs.size() + 1];
+        args[0]=instance;
+        for (int i=0; i < inputs.size(); i++) {
+          args[i + 1]=inputs.get(i,inputs.getReferences().get(i).getType()).getInstance();
+        }
+        ruleDefinition.getRuleInvoker().invoke(args);
+      }
+    }
+);
   }
   return ModelCreators.of(ModelReference.of(modelPath,managedType),transformer).withProjection(projection).descriptor(descriptor).inputs(inputs).build();
 }

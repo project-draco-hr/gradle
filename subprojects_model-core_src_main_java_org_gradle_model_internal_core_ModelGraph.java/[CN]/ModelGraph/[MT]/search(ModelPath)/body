@@ -1,0 +1,25 @@
+{
+  List<String> reached=Lists.newArrayListWithCapacity(path.getDepth());
+  ModelNode node=null;
+  ModelNode nextNode;
+  for (  String pathComponent : path) {
+    if (node == null) {
+      nextNode=entryNodes.get(pathComponent);
+    }
+ else {
+      nextNode=node.getLinks().get(pathComponent);
+    }
+    if (nextNode == null) {
+      if (reached.isEmpty()) {
+        return new ModelSearchResult(null,path,null,null);
+      }
+ else {
+        return new ModelSearchResult(null,path,node,new ModelPath(reached));
+      }
+    }
+ else {
+      node=nextNode;
+    }
+  }
+  return new ModelSearchResult(node,path,node,path);
+}

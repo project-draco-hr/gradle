@@ -1,21 +1,27 @@
 {
   boolean didWork=false;
-  try {
-    ClassLoader cl=getClass().getClassLoader();
-    Iterable<File> sources=spec.getSources();
-    ScalaMethod compile=spec.getCompileMethod(cl);
-    for (    File sourceFile : sources) {
-      Object ret=compile.invoke(spec.createCompileParameters(cl,sourceFile));
-      if (ret != null && ret instanceof Boolean) {
-        didWork=(Boolean)ret || didWork;
-      }
- else {
-        didWork=true;
-      }
+  Iterable<File> sources=spec.getSources();
+  ArrayList<File> secondaryRoutes=Lists.newArrayList();
+  CollectionUtils.filter(sources,secondaryRoutes,new Spec<File>(){
+    @Override public boolean isSatisfiedBy(    File file){
+      return !file.getName().equals("routes");
     }
   }
- catch (  Exception e) {
-    throw new RuntimeException("Error invoking the Play routes compiler.",e);
+);
+  ArrayList<File> routes=Lists.newArrayList();
+  CollectionUtils.filter(sources,secondaryRoutes,new Spec<File>(){
+    @Override public boolean isSatisfiedBy(    File file){
+      return file.getName().equals("routes");
+    }
+  }
+);
+  for (  File sourceFile : secondaryRoutes) {
+    Boolean ret=compile(sourceFile,spec);
+    didWork=ret || didWork;
+  }
+  for (  File sourceFile : routes) {
+    Boolean ret=compile(sourceFile,spec);
+    didWork=ret || didWork;
   }
   return new SimpleWorkResult(didWork);
 }
