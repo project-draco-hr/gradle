@@ -1,0 +1,30 @@
+{
+  return new ModelView<M>(){
+    public boolean closed;
+    @Override public ModelType<M> getType(){
+      return ManagedSetModelProjection.this.getType();
+    }
+    @Override public M getInstance(){
+      Class<M> clazz=getType().getConcreteClass();
+      Object view=Proxy.newProxyInstance(clazz.getClassLoader(),new Class[]{clazz,ManagedInstance.class},new ManagedSetViewInvocationHandler());
+      return Cast.uncheckedCast(view);
+    }
+    @Override public void close(){
+      closed=true;
+    }
+class ManagedSetViewInvocationHandler implements InvocationHandler {
+      @Override public Object invoke(      Object proxy,      Method method,      Object[] args) throws Throwable {
+        if (method.getName().equals("create")) {
+          if (!writable) {
+            throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' as it is an input to rule '%s'",modelNode.getPath(),getType(),ruleDescriptor));
+          }
+          if (closed) {
+            throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' used as subject of rule '%s' after the rule has completed",modelNode.getPath(),getType(),ruleDescriptor));
+          }
+        }
+        return method.invoke(modelNode.getPrivateData(getType()),args);
+      }
+    }
+  }
+;
+}
