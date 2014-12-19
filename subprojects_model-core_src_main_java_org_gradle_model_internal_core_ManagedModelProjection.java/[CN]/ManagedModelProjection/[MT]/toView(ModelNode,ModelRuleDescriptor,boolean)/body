@@ -18,7 +18,11 @@ class State implements ModelElementState {
         if (!property.isWritable()) {
           ModelAdapter adapter=propertyNode.getAdapter();
           if (writable) {
-            return adapter.asWritable(modelType,propertyNode,ruleDescriptor,null).getInstance();
+            ModelView<? extends T> modelView=adapter.asWritable(modelType,propertyNode,ruleDescriptor,null);
+            if (closed) {
+              modelView.close();
+            }
+            return modelView.getInstance();
           }
  else {
             return adapter.asReadOnly(modelType,propertyNode,ruleDescriptor).getInstance();
