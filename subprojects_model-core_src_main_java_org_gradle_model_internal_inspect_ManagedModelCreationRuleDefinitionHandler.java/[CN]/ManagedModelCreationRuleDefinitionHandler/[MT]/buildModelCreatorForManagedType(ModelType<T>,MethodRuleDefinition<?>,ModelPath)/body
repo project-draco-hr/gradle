@@ -10,10 +10,10 @@
   List<ModelReference<?>> bindings=ruleDefinition.getReferences();
   List<ModelReference<?>> inputs=bindings.subList(1,bindings.size());
   ModelRuleDescriptor descriptor=ruleDefinition.getDescriptor();
-  Transformer<Action<ModelNode>,Inputs> transformer;
+  BiAction<ModelNode,Inputs> initializer;
   ModelProjection projection;
   if (managedType.getConcreteClass().equals(ManagedSet.class)) {
-    transformer=new ManagedModelRuleInvokerInstanceBackedTransformer<T>(modelSchema,modelInstantiator,ruleDefinition.getRuleInvoker(),descriptor,inputs);
+    initializer=new ManagedModelRuleInvokerInstanceBackedTransformer<T>(modelSchema,modelInstantiator,ruleDefinition.getRuleInvoker(),descriptor,inputs);
     projection=new ManagedSetModelProjection<T>(managedType);
   }
  else {
@@ -30,5 +30,5 @@
     }
 );
   }
-  return ModelCreators.of(ModelReference.of(modelPath,managedType),transformer).withProjection(projection).descriptor(descriptor).inputs(inputs).build();
+  return ModelCreators.of(ModelReference.of(modelPath,managedType),initializer).withProjection(projection).descriptor(descriptor).inputs(inputs).build();
 }
