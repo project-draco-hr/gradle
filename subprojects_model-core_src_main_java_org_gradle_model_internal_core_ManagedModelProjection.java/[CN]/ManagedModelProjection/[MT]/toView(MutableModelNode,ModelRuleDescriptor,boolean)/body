@@ -13,19 +13,18 @@
     }
 class State implements ModelElementState {
       public <T>T get(      ModelType<T> modelType,      String name){
-        ModelNode propertyNode=modelNode.getLinks().get(name);
+        MutableModelNode propertyNode=modelNode.getLink(name);
         ModelProperty<?> property=schema.getProperties().get(name);
         if (!property.isWritable()) {
-          ModelAdapter adapter=propertyNode.getAdapter();
           if (writable) {
-            ModelView<? extends T> modelView=adapter.asWritable(modelType,propertyNode,ruleDescriptor,null);
+            ModelView<? extends T> modelView=propertyNode.asWritable(modelType,ruleDescriptor,null);
             if (closed) {
               modelView.close();
             }
             return modelView.getInstance();
           }
  else {
-            return adapter.asReadOnly(modelType,propertyNode,ruleDescriptor).getInstance();
+            return propertyNode.asReadOnly(modelType,ruleDescriptor).getInstance();
           }
         }
  else {
@@ -43,7 +42,7 @@ class State implements ModelElementState {
         if (schema.getKind().isManaged() && !ManagedInstance.class.isInstance(value)) {
           throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'",name,getType()));
         }
-        modelNode.getLinks().get(name).setPrivateData(propertyType,value);
+        modelNode.getLink(name).setPrivateData(propertyType,value);
       }
     }
   }
