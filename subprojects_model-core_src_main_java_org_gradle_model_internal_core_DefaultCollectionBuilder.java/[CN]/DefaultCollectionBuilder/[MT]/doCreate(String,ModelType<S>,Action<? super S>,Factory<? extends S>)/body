@@ -1,13 +1,10 @@
 {
-  ModelRuleDescriptor descriptor=new NestedModelRuleDescriptor(sourceDescriptor,ActionModelRuleDescriptor.from(new ErroringAction<Appendable>(){
-    @Override protected void doExecute(    Appendable thing) throws Exception {
-      thing.append("create(").append(name).append(")");
+  doCreate(name,type,new Factory<S>(){
+    @Override public S create(){
+      S item=factory.create();
+      configAction.execute(item);
+      return item;
     }
   }
-));
-  ModelProjection projection=new UnmanagedModelProjection<S>(type,true,true);
-  MutableModelNode childNode=modelNode.addLink(name,descriptor,projection,projection);
-  S s=factory.create();
-  configAction.execute(s);
-  childNode.setPrivateData(type,s);
+);
 }
