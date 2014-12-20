@@ -1,0 +1,15 @@
+{
+  T instance=instantiator.newInstance(schema);
+  modelNode.setPrivateData(schema.getType(),instance);
+  ModelView<? extends T> modelView=modelNode.asWritable(schema.getType(),descriptor,inputs);
+  if (modelView == null) {
+    throw new IllegalStateException("Couldn't produce managed node as schema type");
+  }
+  Object[] args=new Object[inputs.size() + 1];
+  args[0]=modelView.getInstance();
+  for (int i=0; i < inputs.size(); i++) {
+    args[i + 1]=inputs.get(i,inputReferences.get(i).getType()).getInstance();
+  }
+  ruleInvoker.invoke(args);
+  modelView.close();
+}
