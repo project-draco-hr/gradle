@@ -16,10 +16,8 @@
       ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
       ModelNode childNode;
       if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
-        Set<ModelProjection> projections=Collections.<ModelProjection>singleton(new ManagedModelProjection<P>(propertyType,schemaStore,proxyFactory));
-        ModelPromise promise=new ProjectionBackedModelPromise(projections);
-        ModelAdapter adapter=new ProjectionBackedModelAdapter(projections);
-        childNode=modelNode.addLink(property.getName(),descriptor,promise,adapter);
+        ModelProjection projection=new ManagedModelProjection<P>(propertyType,schemaStore,proxyFactory);
+        childNode=modelNode.addLink(property.getName(),descriptor,projection,projection);
         if (!property.isWritable()) {
           for (          ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
             addPropertyLink(childNode,modelProperty);
@@ -27,10 +25,8 @@
         }
       }
  else {
-        Set<ModelProjection> projections=Collections.<ModelProjection>singleton(new UnmanagedModelProjection<P>(propertyType,true,true));
-        ModelPromise promise=new ProjectionBackedModelPromise(projections);
-        ModelAdapter adapter=new ProjectionBackedModelAdapter(projections);
-        childNode=modelNode.addLink(property.getName(),descriptor,promise,adapter);
+        ModelProjection projection=new UnmanagedModelProjection<P>(propertyType,true,true);
+        childNode=modelNode.addLink(property.getName(),descriptor,projection,projection);
         if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
           P instance=modelInstantiator.newInstance(propertySchema);
           childNode.setPrivateData(propertyType,instance);
