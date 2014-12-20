@@ -6,8 +6,9 @@
         public void execute(        final I item){
           final String name=namer.determineName(item);
           if (!modelNode.hasLink(name)) {
-            UnmanagedModelProjection<I> projection=new UnmanagedModelProjection<I>(ModelType.typeOf(item),true,true);
-            modelNode.addLink(name,new SimpleModelRuleDescriptor(itemDescriptorGenerator.transform(name)),projection,projection).setPrivateData(ModelType.typeOf(item),item);
+            ModelType<I> itemType=ModelType.typeOf(item);
+            ModelReference<I> itemReference=ModelReference.of(modelPath.child(name),itemType);
+            modelNode.addLink(ModelCreators.bridgedInstance(itemReference,item).simpleDescriptor(itemDescriptorGenerator.transform(name)).build());
           }
         }
       }
