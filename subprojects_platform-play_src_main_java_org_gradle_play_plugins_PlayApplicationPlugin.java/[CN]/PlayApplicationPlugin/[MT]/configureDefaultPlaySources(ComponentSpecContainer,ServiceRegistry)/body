@@ -1,0 +1,14 @@
+{
+  final FileResolver fileResolver=serviceRegistry.get(FileResolver.class);
+  final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
+  components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>(){
+    public void execute(    PlayApplicationSpec playComponent){
+      ScalaLanguageSourceSet appSources=BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class,"appSources",playComponent.getName(),fileResolver,instantiator);
+      appSources.getSource().srcDir("app");
+      appSources.getSource().include("**/*.scala");
+      appSources.getSource().include("**/*.java");
+      ((ComponentSpecInternal)playComponent).getSources().add(appSources);
+    }
+  }
+);
+}
