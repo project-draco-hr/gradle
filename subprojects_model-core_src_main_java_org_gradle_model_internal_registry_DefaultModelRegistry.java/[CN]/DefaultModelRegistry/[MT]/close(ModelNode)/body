@@ -1,7 +1,21 @@
 {
   ModelPath path=node.getPath();
-  fireMutations(node,path,mutators.removeAll(path),usedMutators);
-  fireMutations(node,path,finalizers.removeAll(path),usedFinalizers);
+  if (node.getState() == ModelNode.State.Known) {
+    BoundModelCreator creator=creators.remove(path);
+    if (creator == null) {
+      throw new IllegalStateException("Don't know how to create model element at '" + path + "'");
+    }
+    doCreate(node,creator);
+    node.setState(ModelNode.State.Created);
+  }
+  if (node.getState() == ModelNode.State.Created) {
+    fireMutations(node,path,mutators.removeAll(path),usedMutators);
+    node.setState(ModelNode.State.Mutated);
+  }
+  if (node.getState() == ModelNode.State.Mutated) {
+    fireMutations(node,path,finalizers.removeAll(path),usedFinalizers);
+    node.setState(ModelNode.State.Closed);
+  }
   for (  ModelNode child : node.getLinks().values()) {
     close(child);
   }
