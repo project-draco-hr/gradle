@@ -1,5 +1,9 @@
 {
+  if (node.getState() == ModelNode.State.GraphClosed) {
+    return;
+  }
   ModelPath path=node.getPath();
+  LOGGER.debug("Closing {}",path);
   if (node.getState() == ModelNode.State.Known) {
     BoundModelCreator creator=creators.remove(path);
     if (creator == null) {
@@ -14,9 +18,13 @@
   }
   if (node.getState() == ModelNode.State.Mutated) {
     fireMutations(node,path,finalizers.removeAll(path),usedFinalizers);
-    node.setState(ModelNode.State.Closed);
+    node.setState(ModelNode.State.SelfClosed);
   }
-  for (  ModelNode child : node.getLinks().values()) {
-    close(child);
+  if (node.getState() == ModelNode.State.SelfClosed) {
+    for (    ModelNode child : node.getLinks().values()) {
+      close(child);
+    }
+    node.setState(ModelNode.State.GraphClosed);
   }
+  LOGGER.debug("Finished closing {}",path);
 }
