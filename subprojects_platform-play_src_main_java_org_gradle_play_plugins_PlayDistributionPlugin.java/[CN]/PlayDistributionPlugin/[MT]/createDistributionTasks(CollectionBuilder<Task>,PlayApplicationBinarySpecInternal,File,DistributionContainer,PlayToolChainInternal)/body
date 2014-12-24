@@ -1,10 +1,11 @@
 {
   final File scriptsDir=new File(buildDir,String.format("scripts/%s",binary.getName()));
+  final FileCollection playDependencies=playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
   String createStartScriptsTaskName=String.format("create%sStartScripts",StringUtils.capitalize(binary.getName()));
   tasks.create(createStartScriptsTaskName,CreateStartScripts.class,new Action<CreateStartScripts>(){
     @Override public void execute(    CreateStartScripts createStartScripts){
       createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
-      createStartScripts.setClasspath(new SimpleFileCollection(binary.getJarFile(),binary.getAssetsJarFile()));
+      createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(),binary.getAssetsJarFile()),playDependencies));
       createStartScripts.setMainClassName("play.core.server.NettyServer");
       createStartScripts.setApplicationName(binary.getName());
       createStartScripts.setOutputDir(scriptsDir);
