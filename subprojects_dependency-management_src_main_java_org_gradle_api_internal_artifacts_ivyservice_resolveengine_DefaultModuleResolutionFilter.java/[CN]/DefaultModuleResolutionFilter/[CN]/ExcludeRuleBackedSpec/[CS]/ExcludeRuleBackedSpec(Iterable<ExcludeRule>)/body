@@ -6,8 +6,9 @@
     }
     ArtifactId artifactId=rule.getId();
     ModuleId moduleId=artifactId.getModuleId();
-    boolean wildcardOrganisation=MatcherHelper.matchesAnyExpression(moduleId.getOrganisation());
-    boolean wildcardModule=MatcherHelper.matchesAnyExpression(moduleId.getName());
+    boolean wildcardOrganisation=isWildcard(moduleId.getOrganisation());
+    boolean wildcardModule=isWildcard(moduleId.getName());
+    boolean wildcardArtifact=isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
     if (wildcardOrganisation && wildcardModule) {
       excludeSpecs.add(new ExcludeRuleSpec(rule));
     }
@@ -17,16 +18,11 @@
  else     if (wildcardModule) {
       excludeSpecs.add(new GroupNameSpec(moduleId.getOrganisation()));
     }
+ else     if (wildcardArtifact) {
+      excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(),moduleId.getName()));
+    }
  else {
-      boolean wildcardName=MatcherHelper.matchesAnyExpression(artifactId.getName());
-      boolean wildcardType=MatcherHelper.matchesAnyExpression(artifactId.getType());
-      boolean wildcardExt=MatcherHelper.matchesAnyExpression(artifactId.getExt());
-      if (wildcardName && wildcardType && wildcardExt) {
-        excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(),moduleId.getName()));
-      }
- else {
-        excludeSpecs.add(new ExcludeRuleSpec(rule));
-      }
+      excludeSpecs.add(new ExcludeRuleSpec(rule));
     }
   }
 }
