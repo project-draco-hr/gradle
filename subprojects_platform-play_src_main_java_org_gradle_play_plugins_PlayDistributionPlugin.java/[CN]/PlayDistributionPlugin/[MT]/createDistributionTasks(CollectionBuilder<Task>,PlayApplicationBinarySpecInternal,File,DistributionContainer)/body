@@ -1,5 +1,5 @@
 {
-  final File scriptsDir=new File(buildDir,"scripts");
+  final File scriptsDir=new File(buildDir,String.format("scripts/%s",binary.getName()));
   String createStartScriptsTaskName=String.format("create%sStartScripts",StringUtils.capitalize(binary.getName()));
   tasks.create(createStartScriptsTaskName,CreateStartScripts.class,new Action<CreateStartScripts>(){
     @Override public void execute(    CreateStartScripts createStartScripts){
@@ -8,11 +8,11 @@
       createStartScripts.setMainClassName("play.core.server.NettyServer");
       createStartScripts.setApplicationName(binary.getName());
       createStartScripts.setOutputDir(scriptsDir);
+      CopySpecInternal distSpec=(CopySpecInternal)distributions.findByName(binary.getName()).getContents();
+      distSpec.addChild().into("bin").from(createStartScripts);
     }
   }
 );
-  CopySpecInternal distSpec=(CopySpecInternal)distributions.findByName(binary.getName()).getContents();
-  distSpec.addChild().into("bin").from(scriptsDir);
   String distTaskName=String.format("create%sDist",StringUtils.capitalize(binary.getName()));
   tasks.create(distTaskName,Zip.class,new Action<Zip>(){
     @Override public void execute(    Zip zip){

@@ -1,7 +1,10 @@
 {
   for (  PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
     Distribution distribution=distributions.create(binary.getName());
+    FileCollection playDependencies=playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
     CopySpecInternal distSpec=(CopySpecInternal)distributions.findByName(binary.getName()).getContents();
-    distSpec.addChild().into("lib").from(binary.getJarFile(),binary.getAssetsJarFile());
+    CopySpec libSpec=distSpec.addChild().into("lib");
+    libSpec.from(binary.getJarFile(),binary.getAssetsJarFile());
+    libSpec.from(playDependencies);
   }
 }
