@@ -4,26 +4,8 @@
   }
   ModelPath path=node.getPath();
   LOGGER.debug("Closing {}",path);
-  if (node.getState() == ModelNode.State.Known) {
-    BoundModelCreator creator=creators.remove(path);
-    if (creator == null) {
-      throw new IllegalStateException("Don't know how to create model element at '" + path + "'");
-    }
-    doCreate(node,creator);
-    node.setState(ModelNode.State.Created);
-  }
-  if (node.getState() == ModelNode.State.Created) {
-    fireMutations(node,path,mutators.removeAll(new MutationKey(path,MutationType.Defaults)),usedMutators);
-    fireMutations(node,path,mutators.removeAll(new MutationKey(path,MutationType.Initialize)),usedMutators);
-    fireMutations(node,path,mutators.removeAll(new MutationKey(path,MutationType.Mutate)),usedMutators);
-    fireMutations(node,path,mutators.removeAll(new MutationKey(path,MutationType.Finalize)),usedMutators);
-    node.setState(ModelNode.State.SelfClosed);
-  }
-  if (node.getState() == ModelNode.State.SelfClosed) {
-    for (    ModelNode child : node.getLinks().values()) {
-      close(child);
-    }
-    node.setState(ModelNode.State.GraphClosed);
-  }
+  maybeCreate(node);
+  maybeMutate(node);
+  maybeCloseLinked(node);
   LOGGER.debug("Finished closing {}",path);
 }
