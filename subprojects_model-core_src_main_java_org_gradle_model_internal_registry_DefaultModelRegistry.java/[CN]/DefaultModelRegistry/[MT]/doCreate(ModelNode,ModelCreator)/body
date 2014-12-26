@@ -1,0 +1,15 @@
+{
+  ModelPath path=creator.getPath();
+  ModelNode node=modelGraph.find(path);
+  if (node != null) {
+    if (node.getState() == ModelNode.State.Known) {
+      throw new DuplicateModelException(String.format("Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",path,toString(creator.getDescriptor()),toString(node.getDescriptor())));
+    }
+    throw new DuplicateModelException(String.format("Cannot create '%s' using creation rule '%s' as the rule '%s' has already been used to create this model element.",path,toString(creator.getDescriptor()),toString(node.getDescriptor())));
+  }
+  node=parent.addLink(path.getName(),creator.getDescriptor(),creator.getPromise(),creator.getAdapter());
+  modelGraph.add(node);
+  notifyCreationListeners(node);
+  bind(creator);
+  return node;
+}
