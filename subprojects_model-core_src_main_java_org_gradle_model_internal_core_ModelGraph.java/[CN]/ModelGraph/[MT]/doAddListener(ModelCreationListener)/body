@@ -1,8 +1,30 @@
 {
   notifying=true;
   try {
+    if (listener.matchPath() != null) {
+      ModelNode node=flattened.get(listener.matchPath());
+      if (node != null) {
+        if (maybeNotify(node,listener)) {
+          return;
+        }
+      }
+      pathListeners.put(listener.matchPath(),listener);
+      return;
+    }
+    if (listener.matchParent() != null) {
+      ModelNode parent=flattened.get(listener.matchParent());
+      if (parent != null) {
+        for (        ModelNode node : parent.getLinks().values()) {
+          if (maybeNotify(node,listener)) {
+            return;
+          }
+        }
+      }
+      parentListeners.put(listener.matchParent(),listener);
+      return;
+    }
     for (    ModelNode node : flattened.values()) {
-      if (maybeNotify(listener,node)) {
+      if (maybeNotify(node,listener)) {
         return;
       }
     }
