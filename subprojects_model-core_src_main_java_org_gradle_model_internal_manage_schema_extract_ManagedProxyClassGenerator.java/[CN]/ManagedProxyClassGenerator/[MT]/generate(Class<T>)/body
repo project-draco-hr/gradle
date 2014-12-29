@@ -2,7 +2,16 @@
   ClassWriter visitor=new ClassWriter(ClassWriter.COMPUTE_MAXS);
   String generatedTypeName=managedTypeClass.getName() + "_Impl";
   Type generatedType=Type.getType("L" + generatedTypeName.replaceAll("\\.","/") + ";");
-  Type superclassType=Type.getType(Object.class);
-  generateProxyClass(visitor,managedTypeClass,generatedType,superclassType);
+  Class<?> superclass;
+  List<String> interfaceInternalNames;
+  if (managedTypeClass.isInterface()) {
+    superclass=Object.class;
+    interfaceInternalNames=ImmutableList.of(Type.getInternalName(managedTypeClass),Type.getInternalName(ManagedInstance.class));
+  }
+ else {
+    superclass=managedTypeClass;
+    interfaceInternalNames=ImmutableList.of(Type.getInternalName(ManagedInstance.class));
+  }
+  generateProxyClass(visitor,managedTypeClass,interfaceInternalNames,generatedType,Type.getType(superclass));
   return defineClass(visitor,managedTypeClass.getClassLoader(),generatedTypeName);
 }

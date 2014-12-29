@@ -3,7 +3,11 @@
   Class<? super R> clazz=type.getRawClass();
   if (clazz.isAnnotationPresent(Managed.class)) {
     validateType(type,extractionContext);
-    ImmutableListMultimap<String,Method> methodsByName=Multimaps.index(Arrays.asList(clazz.getMethods()),new Function<Method,String>(){
+    Iterable<Method> methods=Arrays.asList(clazz.getMethods());
+    if (!clazz.isInterface()) {
+      methods=filterIgnoredMethods(methods);
+    }
+    ImmutableListMultimap<String,Method> methodsByName=Multimaps.index(methods,new Function<Method,String>(){
       public String apply(      Method method){
         return method.getName();
       }
@@ -17,6 +21,9 @@
       if (methodName.startsWith("get") && !methodName.equals("get")) {
         ImmutableList<Method> getterMethods=methodsByName.get(methodName);
         Method sampleMethod=returnTypeSpecializationOrdering.max(getterMethods);
+        if (!Modifier.isAbstract(sampleMethod.getModifiers())) {
+          throw invalidMethod(extractionContext,"non-abstract methods are not allowed",sampleMethod);
+        }
         if (sampleMethod.getParameterTypes().length != 0) {
           throw invalidMethod(extractionContext,"getter methods cannot take parameters",sampleMethod);
         }
@@ -56,7 +63,13 @@
     }
     Class<R> concreteClass=type.getConcreteClass();
     Class<? extends R> implClass=classGenerator.generate(concreteClass);
-    ModelSchema<R> schema=ModelSchema.struct(type,properties,implClass);
+    final ModelSchema<R> schema=ModelSchema.struct(type,properties,implClass);
+    extractionContext.addValidator(new Action<ModelSchemaExtractionContext<R>>(){
+      @Override public void execute(      ModelSchemaExtractionContext<R> validatorModelSchemaExtractionContext){
+        ensureCanBeInstantiated(extractionContext,schema);
+      }
+    }
+);
     Iterable<ModelSchemaExtractionContext<?>> propertyDependencies=Iterables.transform(properties,new Function<ModelProperty<?>,ModelSchemaExtractionContext<?>>(){
       public ModelSchemaExtractionContext<?> apply(      final ModelProperty<?> property){
         return toPropertyExtractionContext(extractionContext,property,cache);
