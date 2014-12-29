@@ -1,13 +1,14 @@
 {
   for (  PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-    Distribution distribution=distributions.create(binary.getName());
+    PlayDistribution distribution=distributions.create(binary.getName());
     FileCollection playDependencies=playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
-    CopySpecInternal distSpec=(CopySpecInternal)distributions.findByName(binary.getName()).getContents();
+    CopySpecInternal distSpec=(CopySpecInternal)distribution.getContents();
     CopySpec libSpec=distSpec.addChild().into("lib");
-    libSpec.from(binary.getJarFile(),binary.getAssetsJarFile());
+    libSpec.from(binary.getTasks().withType(Jar.class));
     libSpec.from(playDependencies);
     CopySpec confSpec=distSpec.addChild().into("conf");
     confSpec.from("conf").exclude("routes");
     distSpec.from("README");
+    distribution.setBinary(binary);
   }
 }

@@ -1,0 +1,43 @@
+{
+  for (  final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+    final File scriptsDir=new File(buildDir,String.format("scripts/%s",binary.getName()));
+    final FileCollection playDependencies=playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
+    String createStartScriptsTaskName=String.format("create%sStartScripts",StringUtils.capitalize(binary.getName()));
+    tasks.create(createStartScriptsTaskName,CreateStartScripts.class,new Action<CreateStartScripts>(){
+      @Override public void execute(      CreateStartScripts createStartScripts){
+        createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
+        createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(),binary.getAssetsJarFile()),playDependencies));
+        createStartScripts.setMainClassName("play.core.server.NettyServer");
+        createStartScripts.setApplicationName(binary.getName());
+        createStartScripts.setOutputDir(scriptsDir);
+        Spec<PlayDistribution> matchingBinary=new Spec<PlayDistribution>(){
+          @Override public boolean isSatisfiedBy(          PlayDistribution distribution){
+            return distribution.getBinary() == binary;
+          }
+        }
+;
+        for (        PlayDistribution distribution : distributions.matching(matchingBinary)) {
+          CopySpecInternal distSpec=(CopySpecInternal)distribution.getContents();
+          distSpec.addChild().into("bin").from(createStartScripts);
+        }
+      }
+    }
+);
+  }
+  for (  final PlayDistribution distribution : distributions) {
+    String distributionTaskName=String.format("create%sDist",StringUtils.capitalize(distribution.getName()));
+    tasks.create(distributionTaskName,Zip.class,new Action<Zip>(){
+      @Override public void execute(      Zip zip){
+        zip.setDescription("Bundles the play binary as a distribution.");
+        zip.setGroup(DISTRIBUTION_GROUP);
+        zip.setBaseName(distribution.getName());
+        zip.setDestinationDir(new File(buildDir,"distributions"));
+        String baseDirName=zip.getArchiveName().substring(0,zip.getArchiveName().length() - zip.getExtension().length() - 1);
+        CopySpecInternal baseSpec=zip.getRootSpec().addChild();
+        baseSpec.into(baseDirName);
+        baseSpec.with(distribution.getContents());
+      }
+    }
+);
+  }
+}
