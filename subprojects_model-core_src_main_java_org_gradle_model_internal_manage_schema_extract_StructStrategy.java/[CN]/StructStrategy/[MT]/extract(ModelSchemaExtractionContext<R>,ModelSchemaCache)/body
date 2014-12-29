@@ -54,7 +54,9 @@
     if (!Iterables.isEmpty(notHandled)) {
       throw invalidMethods(extractionContext,"only paired getter/setter methods are supported",notHandled);
     }
-    ModelSchema<R> schema=ModelSchema.struct(type,properties);
+    Class<R> concreteClass=type.getConcreteClass();
+    Class<? extends R> implClass=classGenerator.generate(concreteClass);
+    ModelSchema<R> schema=ModelSchema.struct(type,properties,implClass);
     Iterable<ModelSchemaExtractionContext<?>> propertyDependencies=Iterables.transform(properties,new Function<ModelProperty<?>,ModelSchemaExtractionContext<?>>(){
       public ModelSchemaExtractionContext<?> apply(      final ModelProperty<?> property){
         return toPropertyExtractionContext(extractionContext,property,cache);
