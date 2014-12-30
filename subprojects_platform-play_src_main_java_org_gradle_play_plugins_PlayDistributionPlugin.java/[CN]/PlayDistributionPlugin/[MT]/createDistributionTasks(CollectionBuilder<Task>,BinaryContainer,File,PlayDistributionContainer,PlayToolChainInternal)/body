@@ -25,12 +25,25 @@
 );
   }
   for (  final PlayDistribution distribution : distributions) {
+    String stageTaskName=String.format("stage%sDist",StringUtils.capitalize(distribution.getName()));
+    tasks.create(stageTaskName,Copy.class,new Action<Copy>(){
+      @Override public void execute(      Copy copy){
+        copy.setDescription("Copies the binary distribution to a staging directory.");
+        copy.setGroup(DISTRIBUTION_GROUP);
+        copy.setDestinationDir(new File(buildDir,"stage"));
+        String baseDirName=distribution.getName();
+        CopySpecInternal baseSpec=copy.getRootSpec().addChild();
+        baseSpec.into(baseDirName);
+        baseSpec.with(distribution.getContents());
+      }
+    }
+);
     String distributionTaskName=String.format("create%sDist",StringUtils.capitalize(distribution.getName()));
     tasks.create(distributionTaskName,Zip.class,new Action<Zip>(){
       @Override public void execute(      Zip zip){
         zip.setDescription("Bundles the play binary as a distribution.");
         zip.setGroup(DISTRIBUTION_GROUP);
-        zip.setBaseName(distribution.getName());
+        zip.setBaseName(StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName());
         zip.setDestinationDir(new File(buildDir,"distributions"));
         String baseDirName=zip.getArchiveName().substring(0,zip.getArchiveName().length() - zip.getExtension().length() - 1);
         CopySpecInternal baseSpec=zip.getRootSpec().addChild();
