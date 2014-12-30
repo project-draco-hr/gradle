@@ -1,7 +1,13 @@
 {
   final StoppableExecutor executor;
   if (useParallelCompile()) {
-    executor=new DefaultExecutorFactory().create(commandLineTool.getDisplayName());
+    ExecutorFactory executorFactory=new DefaultExecutorFactory(){
+      @Override protected ExecutorService createExecutor(      String displayName){
+        return Executors.newFixedThreadPool(4,new ThreadFactoryImpl(displayName));
+      }
+    }
+;
+    executor=executorFactory.create(commandLineTool.getDisplayName());
   }
  else {
     executor=new CallingThreadExecutor();
