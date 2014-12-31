@@ -1,15 +1,16 @@
 {
   TargetedNativeComponentInternal targetedComponent=(TargetedNativeComponentInternal)projectNativeComponent;
-  List<String> targetPlatformNames=targetedComponent.getTargetPlatforms();
-  if (targetPlatformNames.isEmpty()) {
-    targetPlatformNames=Collections.singletonList(NativePlatforms.getDefaultPlatformName());
+  List<PlatformRequirement> targetPlatforms=targetedComponent.getTargetPlatforms();
+  if (targetPlatforms.isEmpty()) {
+    PlatformRequirement requirement=DefaultPlatformRequirement.create(NativePlatforms.getDefaultPlatformName());
+    targetPlatforms=Collections.singletonList(requirement);
   }
-  List<NativePlatform> targetPlatforms=platforms.chooseFromTargets(NativePlatform.class,targetPlatformNames);
-  for (  NativePlatform platform : targetPlatforms) {
+  List<NativePlatform> resolvedPlatforms=platforms.resolve(NativePlatform.class,targetPlatforms);
+  for (  NativePlatform platform : resolvedPlatforms) {
     NativeToolChainInternal toolChain=(NativeToolChainInternal)toolChainRegistry.getForPlatform(platform);
     PlatformToolProvider toolProvider=toolChain.select((NativePlatformInternal)platform);
     BinaryNamingSchemeBuilder builder=namingSchemeBuilder.withComponentName(projectNativeComponent.getName());
-    builder=maybeAddDimension(builder,platform,targetPlatforms);
+    builder=maybeAddDimension(builder,platform,resolvedPlatforms);
     executeForEachBuildType(projectNativeComponent,(NativePlatformInternal)platform,builder,toolChain,toolProvider);
   }
 }
