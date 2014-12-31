@@ -1,25 +1,21 @@
 {
-  return new ModelView<M>(){
+  return new ModelView<ManagedSet<I>>(){
     private boolean closed;
-    @Override public ModelType<M> getType(){
+    @Override public ModelType<ManagedSet<I>> getType(){
       return ManagedSetModelProjection.this.getType();
     }
-    @Override public M getInstance(){
-      ModelType<?> elementType=getType().getTypeVariables().get(0);
-      return Cast.uncheckedCast(getManagedSetInstance(elementType));
-    }
-    private <E>ManagedSet<E> getManagedSetInstance(    ModelType<E> elementType){
-      return new DelegatingManagedSet<E>(elementType);
+    @Override public ManagedSet<I> getInstance(){
+      return new DelegatingManagedSet();
     }
     @Override public void close(){
       closed=true;
     }
-class DelegatingManagedSet<E> implements ManagedSet<E>, ManagedInstance {
-      private final ManagedSet<E> delegate;
-      public DelegatingManagedSet(      ModelType<E> elementType){
+class DelegatingManagedSet implements ManagedSet<I>, ManagedInstance {
+      private final ManagedSet<I> delegate;
+      public DelegatingManagedSet(){
         delegate=Cast.uncheckedCast(modelNode.getPrivateData(getType()));
       }
-      @Override public void create(      Action<? super E> action){
+      @Override public void create(      Action<? super I> action){
         if (!writable || closed) {
           throw new ModelViewClosedException(getType(),ruleDescriptor);
         }
@@ -42,7 +38,7 @@ class DelegatingManagedSet<E> implements ManagedSet<E>, ManagedInstance {
         ensureReadable();
         return delegate.contains(o);
       }
-      @Override public Iterator<E> iterator(){
+      @Override public Iterator<I> iterator(){
         ensureReadable();
         return delegate.iterator();
       }
@@ -54,7 +50,7 @@ class DelegatingManagedSet<E> implements ManagedSet<E>, ManagedInstance {
         ensureReadable();
         return delegate.toArray(a);
       }
-      @Override public boolean add(      E e){
+      @Override public boolean add(      I e){
         return delegate.add(e);
       }
       @Override public boolean remove(      Object o){
@@ -64,7 +60,7 @@ class DelegatingManagedSet<E> implements ManagedSet<E>, ManagedInstance {
         ensureReadable();
         return delegate.containsAll(c);
       }
-      @Override public boolean addAll(      Collection<? extends E> c){
+      @Override public boolean addAll(      Collection<? extends I> c){
         return delegate.addAll(c);
       }
       @Override public boolean retainAll(      Collection<?> c){
