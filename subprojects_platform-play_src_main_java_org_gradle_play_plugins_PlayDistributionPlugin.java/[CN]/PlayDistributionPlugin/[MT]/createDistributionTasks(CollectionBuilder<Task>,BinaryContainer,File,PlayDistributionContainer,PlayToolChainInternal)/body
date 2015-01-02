@@ -40,11 +40,18 @@
 );
     String distributionTaskName=String.format("create%sDist",StringUtils.capitalize(distribution.getName()));
     tasks.create(distributionTaskName,Zip.class,new Action<Zip>(){
-      @Override public void execute(      Zip zip){
+      @Override public void execute(      final Zip zip){
         zip.setDescription("Bundles the play binary as a distribution.");
         zip.setGroup(DISTRIBUTION_GROUP);
         zip.setBaseName(StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName());
         zip.setDestinationDir(new File(buildDir,"distributions"));
+        ConventionMapping mapping=zip.getConventionMapping();
+        mapping.map("version",new Callable<String>(){
+          @Override public String call() throws Exception {
+            return zip.getProject().getVersion() == Project.DEFAULT_VERSION ? null : zip.getProject().getVersion().toString();
+          }
+        }
+);
         String baseDirName=zip.getArchiveName().substring(0,zip.getArchiveName().length() - zip.getExtension().length() - 1);
         CopySpecInternal baseSpec=zip.getRootSpec().addChild();
         baseSpec.into(baseDirName);
