@@ -3,12 +3,11 @@
     throw new GradleException("Unknown model name " + modelName);
   }
   List<LaunchableGradleTaskSelector> selectors=Lists.newArrayList();
-  Set<String> aggregatedTasks=Sets.newLinkedHashSet();
+  TreeBasedTable<String,String,String> aggregatedTasksWithDescription=TreeBasedTable.create(Ordering.usingToString(),new TaskNameComparator());
   Set<String> visibleTasks=Sets.newLinkedHashSet();
-  TreeBasedTable<String,String,String> taskDescriptions=TreeBasedTable.create(Ordering.usingToString(),new TaskNameComparator());
-  findTasks(project,aggregatedTasks,visibleTasks,taskDescriptions);
-  for (  String selectorName : aggregatedTasks) {
-    SortedMap<String,String> descriptionsFromAllPaths=taskDescriptions.row(selectorName);
+  findTasks(project,aggregatedTasksWithDescription,visibleTasks);
+  for (  String selectorName : aggregatedTasksWithDescription.rowKeySet()) {
+    SortedMap<String,String> descriptionsFromAllPaths=aggregatedTasksWithDescription.row(selectorName);
     String description=descriptionsFromAllPaths.get(descriptionsFromAllPaths.firstKey());
     selectors.add(new LaunchableGradleTaskSelector().setName(selectorName).setTaskName(selectorName).setProjectPath(project.getPath()).setDisplayName(String.format("%s in %s and subprojects.",selectorName,project.toString())).setDescription(description != NULL_STRING ? description : null).setPublic(visibleTasks.contains(selectorName)));
   }
