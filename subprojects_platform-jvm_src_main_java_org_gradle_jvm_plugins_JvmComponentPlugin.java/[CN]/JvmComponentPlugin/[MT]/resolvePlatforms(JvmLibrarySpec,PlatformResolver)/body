@@ -4,5 +4,10 @@
     String defaultJavaPlatformName=new DefaultJavaPlatform(JavaVersion.current()).getName();
     targetPlatforms=Collections.singletonList(DefaultPlatformRequirement.create(defaultJavaPlatformName));
   }
-  return platforms.resolve(JavaPlatform.class,targetPlatforms);
+  return CollectionUtils.collect(targetPlatforms,new Transformer<JavaPlatform,PlatformRequirement>(){
+    @Override public JavaPlatform transform(    PlatformRequirement platformRequirement){
+      return platforms.resolve(JavaPlatform.class,platformRequirement);
+    }
+  }
+);
 }
