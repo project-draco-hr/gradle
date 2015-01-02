@@ -5,9 +5,11 @@
   List<LaunchableGradleTaskSelector> selectors=Lists.newArrayList();
   Set<String> aggregatedTasks=Sets.newLinkedHashSet();
   Set<String> visibleTasks=Sets.newLinkedHashSet();
-  findTasks(project,aggregatedTasks,visibleTasks);
+  TreeBasedTable<String,String,String> taskDescriptions=TreeBasedTable.create(Ordering.usingToString(),new TaskNameComparator());
+  findTasks(project,aggregatedTasks,visibleTasks,taskDescriptions);
   for (  String selectorName : aggregatedTasks) {
-    selectors.add(new LaunchableGradleTaskSelector().setName(selectorName).setTaskName(selectorName).setProjectPath(project.getPath()).setDescription(project.getParent() != null ? String.format("%s:%s task selector",project.getPath(),selectorName) : String.format("%s task selector",selectorName)).setDisplayName(String.format("%s in %s and subprojects.",selectorName,project.toString())).setPublic(visibleTasks.contains(selectorName)));
+    SortedMap<String,String> descriptionsFromAllPaths=taskDescriptions.row(selectorName);
+    selectors.add(new LaunchableGradleTaskSelector().setName(selectorName).setTaskName(selectorName).setProjectPath(project.getPath()).setDescription(descriptionsFromAllPaths.get(descriptionsFromAllPaths.firstKey())).setDisplayName(String.format("%s in %s and subprojects.",selectorName,project.toString())).setPublic(visibleTasks.contains(selectorName)));
   }
   return new DefaultBuildInvocations().setSelectors(selectors).setTasks(tasks(project));
 }
