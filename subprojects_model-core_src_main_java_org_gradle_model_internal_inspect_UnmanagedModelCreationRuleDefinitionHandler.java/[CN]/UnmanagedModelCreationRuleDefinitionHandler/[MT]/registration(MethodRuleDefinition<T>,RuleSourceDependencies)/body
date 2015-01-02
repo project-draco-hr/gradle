@@ -1,0 +1,9 @@
+{
+  String modelName=determineModelName(ruleDefinition);
+  ModelType<T> returnType=ruleDefinition.getReturnType();
+  List<ModelReference<?>> references=ruleDefinition.getReferences();
+  ModelRuleDescriptor descriptor=ruleDefinition.getDescriptor();
+  BiAction<MutableModelNode,Inputs> transformer=new ModelRuleInvokerBackedTransformer<T>(returnType,ruleDefinition.getRuleInvoker(),descriptor,references);
+  ModelCreator modelCreator=ModelCreators.of(ModelReference.of(ModelPath.path(modelName),returnType),transformer).withProjection(new UnmanagedModelProjection<T>(returnType,true,true)).descriptor(descriptor).inputs(references).build();
+  return new ModelCreatorRegistration(modelCreator);
+}
