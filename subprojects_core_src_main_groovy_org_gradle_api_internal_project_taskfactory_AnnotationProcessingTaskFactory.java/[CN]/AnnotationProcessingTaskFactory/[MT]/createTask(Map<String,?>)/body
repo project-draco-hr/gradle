@@ -1,20 +1,3 @@
 {
-  TaskInternal task=taskFactory.createTask(args);
-  TaskClassInfo taskClassInfo=getTaskClassInfo(task.getClass());
-  if (taskClassInfo.incremental) {
-    task.getOutputs().upToDateWhen(new Spec<Task>(){
-      public boolean isSatisfiedBy(      Task element){
-        return true;
-      }
-    }
-);
-  }
-  for (  Factory<Action<Task>> actionFactory : taskClassInfo.taskActions) {
-    task.prependParallelSafeAction(actionFactory.create());
-  }
-  if (taskClassInfo.validator != null) {
-    task.prependParallelSafeAction(taskClassInfo.validator);
-    taskClassInfo.validator.addInputsAndOutputs(task);
-  }
-  return task;
+  return process(taskFactory.createTask(args));
 }
