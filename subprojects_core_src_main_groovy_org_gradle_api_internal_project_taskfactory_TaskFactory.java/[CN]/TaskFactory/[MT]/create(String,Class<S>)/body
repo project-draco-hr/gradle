@@ -2,7 +2,13 @@
   if (!Task.class.isAssignableFrom(type)) {
     throw new InvalidUserDataException(String.format("Cannot create task of type '%s' as it does not implement the Task interface.",type.getSimpleName()));
   }
-  final Class<? extends Task> generatedType=generator.generate(type);
+  final Class<? extends Task> generatedType;
+  if (type.isAssignableFrom(DefaultTask.class)) {
+    generatedType=generator.generate(DefaultTask.class);
+  }
+ else {
+    generatedType=generator.generate(type);
+  }
   return type.cast(AbstractTask.injectIntoNewInstance(project,name,new Callable<Task>(){
     public Task call() throws Exception {
       try {
