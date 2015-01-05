@@ -1,6 +1,13 @@
 {
-  File outputFileDir=new File(destinationDir,fileDetails.getRelativePath().getParent().getPathString());
+  final File outputFileDir=new File(destinationDir,fileDetails.getRelativePath().getParent().getPathString());
   File outputFile=new File(outputFileDir,getMinifiedFileName(fileDetails.getName()));
+  FileOperations fileOperations=(ProjectInternal)getProject();
+  fileOperations.copy(new Action<CopySpec>(){
+    @Override public void execute(    CopySpec copySpec){
+      copySpec.from(fileDetails.getFile()).into(outputFileDir);
+    }
+  }
+);
   JavaExecAction action=new DefaultJavaExecAction(getFileResolver());
   action.setMain("com.google.javascript.jscomp.CommandLineRunner");
   action.args("--js",fileDetails.getFile().getPath(),"--js_output_file",outputFile.getPath());

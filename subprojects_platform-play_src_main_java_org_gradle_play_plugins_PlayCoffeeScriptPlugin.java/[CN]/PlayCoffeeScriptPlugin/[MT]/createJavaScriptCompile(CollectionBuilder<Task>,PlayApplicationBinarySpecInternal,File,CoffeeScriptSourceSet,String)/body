@@ -1,13 +1,13 @@
 {
-  final String processTaskName="process" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
-  tasks.create(processTaskName,JavaScriptProcessResources.class,new Action<JavaScriptProcessResources>(){
-    @Override public void execute(    JavaScriptProcessResources processGeneratedJavascript){
-      processGeneratedJavascript.dependsOn(compileTaskName);
-      processGeneratedJavascript.from(outputDirectory(buildDir,binary,compileTaskName));
-      File coffeeScriptProcessOutputDirectory=outputDirectory(buildDir,binary,processTaskName);
-      processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
-      binary.getAssets().builtBy(processGeneratedJavascript);
-      binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
+  final String minifyTaskName="minify" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
+  tasks.create(minifyTaskName,JavaScriptMinify.class,new Action<JavaScriptMinify>(){
+    @Override public void execute(    JavaScriptMinify javaScriptMinify){
+      javaScriptMinify.dependsOn(compileTaskName);
+      javaScriptMinify.setSource(outputDirectory(buildDir,binary,compileTaskName));
+      File minifyOutputDirectory=outputDirectory(buildDir,binary,minifyTaskName);
+      javaScriptMinify.setDestinationDir(minifyOutputDirectory);
+      binary.getAssets().builtBy(javaScriptMinify);
+      binary.getAssets().addAssetDir(minifyOutputDirectory);
     }
   }
 );
