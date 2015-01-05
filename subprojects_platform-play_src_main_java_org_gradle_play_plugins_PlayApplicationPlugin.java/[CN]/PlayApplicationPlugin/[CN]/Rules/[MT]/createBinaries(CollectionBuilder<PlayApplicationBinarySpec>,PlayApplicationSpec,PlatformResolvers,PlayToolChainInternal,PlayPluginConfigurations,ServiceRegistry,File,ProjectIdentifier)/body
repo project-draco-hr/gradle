@@ -9,8 +9,12 @@
         PlayApplicationBinarySpecInternal playBinaryInternal=(PlayApplicationBinarySpecInternal)playBinary;
         playBinaryInternal.setTargetPlatform(chosenPlatform);
         playBinaryInternal.setToolChain(playToolChainInternal);
-        playBinaryInternal.setJarFile(new File(binaryBuildDir,String.format("lib/%s.jar",componentSpec.getName())));
-        playBinaryInternal.setAssetsJarFile(new File(binaryBuildDir,String.format("lib/%s-assets.jar",componentSpec.getName())));
+        File mainJar=new File(binaryBuildDir,String.format("lib/%s.jar",componentSpec.getName()));
+        File assetsJar=new File(binaryBuildDir,String.format("lib/%s-assets.jar",componentSpec.getName()));
+        playBinaryInternal.setJarFile(mainJar);
+        playBinaryInternal.setAssetsJarFile(assetsJar);
+        configurations.getPlay().getArtifacts().add(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar",null,new Date(),mainJar,playBinaryInternal));
+        configurations.getPlay().getArtifacts().add(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar","assets",new Date(),assetsJar,playBinaryInternal));
         JvmClasses classes=playBinary.getClasses();
         classes.setClassesDir(new File(binaryBuildDir,"classes"));
         classes.addResourceDir(new File(projectIdentifier.getProjectDir(),"conf"));
