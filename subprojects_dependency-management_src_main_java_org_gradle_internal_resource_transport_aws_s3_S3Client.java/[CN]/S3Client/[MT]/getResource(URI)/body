@@ -1,5 +1,9 @@
 {
   LOGGER.debug("Attempting to get s3 resource: [{}]",uri.toString());
-  S3Object object=amazonS3Client.getObject(getBucketName(uri),getS3BucketKey(uri));
-  return object;
+  try {
+    return amazonS3Client.getObject(getBucketName(uri),getS3BucketKey(uri));
+  }
+ catch (  AmazonClientException e) {
+    throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s",uri.toString(),e.getMessage()),e);
+  }
 }

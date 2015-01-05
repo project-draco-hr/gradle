@@ -4,5 +4,10 @@
   String bucketName=getBucketName(destination);
   String s3Key=getS3BucketKey(destination);
   LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]",s3Key,bucketName);
-  amazonS3Client.putObject(bucketName,s3Key,inputStream,objectMetadata);
+  try {
+    amazonS3Client.putObject(bucketName,s3Key,inputStream,objectMetadata);
+  }
+ catch (  AmazonClientException e) {
+    throw new S3Exception(String.format("Could not put s3 resource: [%s]. %s",destination.toString(),e.getMessage()),e);
+  }
 }

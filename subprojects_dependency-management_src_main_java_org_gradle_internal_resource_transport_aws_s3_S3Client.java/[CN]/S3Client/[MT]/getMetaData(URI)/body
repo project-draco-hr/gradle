@@ -1,6 +1,11 @@
 {
+  LOGGER.debug("Attempting to get s3 meta-data: [{}]",uri.toString());
   String bucketName=getBucketName(uri);
   String s3Key=getS3BucketKey(uri);
-  ObjectMetadata objectMetadata=amazonS3Client.getObjectMetadata(bucketName,s3Key);
-  return objectMetadata;
+  try {
+    return amazonS3Client.getObjectMetadata(bucketName,s3Key);
+  }
+ catch (  AmazonClientException e) {
+    throw new S3Exception(String.format("Could not get s3 meta-data: [%s]. %s",uri.toString(),e.getMessage()),e);
+  }
 }
