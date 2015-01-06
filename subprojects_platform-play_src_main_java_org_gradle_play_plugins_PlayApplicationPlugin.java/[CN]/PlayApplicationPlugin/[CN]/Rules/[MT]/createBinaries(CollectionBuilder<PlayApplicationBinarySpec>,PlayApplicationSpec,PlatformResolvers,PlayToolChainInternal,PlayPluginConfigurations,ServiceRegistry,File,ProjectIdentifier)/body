@@ -1,30 +1,30 @@
 {
   final FileResolver fileResolver=serviceRegistry.get(FileResolver.class);
   final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
-  for (  final PlayPlatform chosenPlatform : resolveTargetPlatforms(componentSpec,platforms)) {
-    final String binaryName=String.format("%sBinary",componentSpec.getName());
-    final File binaryBuildDir=new File(buildDir,binaryName);
-    binaries.create(binaryName,new Action<PlayApplicationBinarySpec>(){
-      public void execute(      PlayApplicationBinarySpec playBinary){
-        PlayApplicationBinarySpecInternal playBinaryInternal=(PlayApplicationBinarySpecInternal)playBinary;
-        playBinaryInternal.setTargetPlatform(chosenPlatform);
-        playBinaryInternal.setToolChain(playToolChainInternal);
-        File mainJar=new File(binaryBuildDir,String.format("lib/%s.jar",projectIdentifier.getName()));
-        File assetsJar=new File(binaryBuildDir,String.format("lib/%s-assets.jar",projectIdentifier.getName()));
-        playBinaryInternal.setJarFile(mainJar);
-        playBinaryInternal.setAssetsJarFile(assetsJar);
-        configurations.getPlay().getArtifacts().add(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar",null,new Date(),mainJar,playBinaryInternal));
-        configurations.getPlay().getArtifacts().add(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar","assets",new Date(),assetsJar,playBinaryInternal));
-        JvmClasses classes=playBinary.getClasses();
-        classes.setClassesDir(new File(binaryBuildDir,"classes"));
-        classes.addResourceDir(new File(projectIdentifier.getProjectDir(),"conf"));
-        PublicAssets assets=playBinary.getAssets();
-        assets.addAssetDir(new File(projectIdentifier.getProjectDir(),"public"));
-        ScalaLanguageSourceSet genSources=BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class,"genSources",binaryName,fileResolver,instantiator);
-        playBinaryInternal.setGeneratedScala(genSources);
-        playBinaryInternal.addClasspath(configurations.getPlay());
-      }
+  final String binaryName=String.format("%sBinary",componentSpec.getName());
+  binaries.create(binaryName,new Action<PlayApplicationBinarySpec>(){
+    public void execute(    PlayApplicationBinarySpec playBinary){
+      PlayApplicationBinarySpecInternal playBinaryInternal=(PlayApplicationBinarySpecInternal)playBinary;
+      final File binaryBuildDir=new File(buildDir,binaryName);
+      final PlayPlatform chosenPlatform=resolveTargetPlatform(componentSpec,platforms,configurations);
+      initialiseConfigurations(configurations,chosenPlatform);
+      playBinaryInternal.setTargetPlatform(chosenPlatform);
+      playBinaryInternal.setToolChain(playToolChainInternal);
+      File mainJar=new File(binaryBuildDir,String.format("lib/%s.jar",projectIdentifier.getName()));
+      File assetsJar=new File(binaryBuildDir,String.format("lib/%s-assets.jar",projectIdentifier.getName()));
+      playBinaryInternal.setJarFile(mainJar);
+      playBinaryInternal.setAssetsJarFile(assetsJar);
+      configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar",null,new Date(),mainJar,playBinaryInternal));
+      configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar","assets",new Date(),assetsJar,playBinaryInternal));
+      JvmClasses classes=playBinary.getClasses();
+      classes.setClassesDir(new File(binaryBuildDir,"classes"));
+      classes.addResourceDir(new File(projectIdentifier.getProjectDir(),"conf"));
+      PublicAssets assets=playBinary.getAssets();
+      assets.addAssetDir(new File(projectIdentifier.getProjectDir(),"public"));
+      ScalaLanguageSourceSet genSources=BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class,"genSources",binaryName,fileResolver,instantiator);
+      playBinaryInternal.setGeneratedScala(genSources);
+      playBinaryInternal.setClasspath(configurations.getPlay().getFileCollection());
     }
-);
   }
+);
 }
