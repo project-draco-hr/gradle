@@ -1,0 +1,35 @@
+{
+  List<String> errors=Lists.newArrayList();
+  try {
+    loadCompilerClasses(getClass().getClassLoader());
+    Method fromCodeMethod=sourceFileClass.getMethod("fromCode",String.class,String.class);
+    Object extern=fromCodeMethod.invoke(null,"/dev/null","");
+    Method fromFileMethod=sourceFileClass.getMethod("fromFile",File.class);
+    Object sourceFile=fromFileMethod.invoke(null,javascriptFile.getFile());
+    Constructor compilerOptionsConstructor=compilerOptionsClass.getConstructor();
+    Object compilerOptions=compilerOptionsConstructor.newInstance();
+    Object simpleLevel=Enum.valueOf(compilationLevelClass,"SIMPLE_OPTIMIZATIONS");
+    Method setOptionsForCompilationLevelMethod=compilationLevelClass.getMethod("setOptionsForCompilationLevel",compilerOptionsClass);
+    setOptionsForCompilationLevelMethod.invoke(simpleLevel,compilerOptions);
+    Constructor compilerConstructor=compilerClass.getConstructor(PrintStream.class);
+    Object compiler=compilerConstructor.newInstance(getDummyPrintStream());
+    Method compileMethod=compilerClass.getMethod("compile",sourceFileClass,sourceFileClass,compilerOptionsClass);
+    Object result=compileMethod.invoke(compiler,extern,sourceFile,compilerOptions);
+    Field jsErrorsField=result.getClass().getField("errors");
+    Object[] jsErrors=(Object[])jsErrorsField.get(result);
+    if (jsErrors.length == 0) {
+      Method toSourceMethod=compilerClass.getMethod("toSource");
+      String compiledSource=(String)toSourceMethod.invoke(compiler);
+      GFileUtils.writeFile(compiledSource,destinationCalculator.transform(javascriptFile));
+    }
+ else {
+      for (      Object error : jsErrors) {
+        errors.add(error.toString());
+      }
+    }
+    return errors;
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Error invoking the Play javascript compiler.",e);
+  }
+}

@@ -1,6 +1,5 @@
 {
   final File outputFileDir=new File(destinationDir,fileDetails.getRelativePath().getParent().getPathString());
-  File outputFile=new File(outputFileDir,getMinifiedFileName(fileDetails.getName()));
   FileOperations fileOperations=(ProjectInternal)getProject();
   fileOperations.copy(new Action<CopySpec>(){
     @Override public void execute(    CopySpec copySpec){
@@ -8,15 +7,5 @@
     }
   }
 );
-  JavaExecAction action=new DefaultJavaExecAction(getFileResolver());
-  action.setMain("com.google.javascript.jscomp.CommandLineRunner");
-  action.args("--js",fileDetails.getFile().getPath(),"--js_output_file",outputFile.getPath());
-  action.classpath(classpath);
-  try {
-    action.execute();
-  }
- catch (  ExecException e) {
-    hasFailures=true;
-    failedFiles.add(fileDetails.getRelativePath().getPathString());
-  }
+  relativeFiles.add(new RelativeFile(fileDetails.getFile(),fileDetails.getRelativePath()));
 }

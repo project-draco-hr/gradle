@@ -15,5 +15,11 @@
     @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler=(Compiler<T>)new MappingSpecCompiler<RoutesCompileSpec,VersionedRoutesCompileSpec>(compiler,WrapUtil.toMap(routesCompileSpec,versionedSpec));
     return routesSpecCompiler;
   }
+ else   if (spec instanceof JavaScriptCompileSpec) {
+    JavaScriptCompileSpec javaScriptCompileSpec=(JavaScriptCompileSpec)spec;
+    Set<File> javaScriptCompilerClasspath=resolveToolClasspath(javaScriptCompileSpec.getDependencyNotation()).getFiles();
+    @SuppressWarnings("unchecked") Compiler<T> compiler=(Compiler<T>)new DaemonJavaScriptCompiler<JavaScriptCompileSpec>(fileResolver.resolve("."),new JavaScriptCompiler(),compilerDaemonManager,javaScriptCompilerClasspath);
+    return compiler;
+  }
   throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'",spec.getClass().getSimpleName()));
 }
