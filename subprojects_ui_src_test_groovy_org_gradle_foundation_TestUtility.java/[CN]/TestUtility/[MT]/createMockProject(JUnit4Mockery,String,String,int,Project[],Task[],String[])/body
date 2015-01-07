@@ -1,5 +1,11 @@
 {
-  final Project project=context.mock(Project.class,"[project]_" + name + '_'+ uniqueNameCounter++);
+  final ProjectInternal project=context.mock(ProjectInternal.class,"[project]_" + name + '_'+ uniqueNameCounter++);
+  final ServiceRegistry services=ServiceRegistryBuilder.builder().provider(new Object(){
+    ProjectTaskLister createTaskLister(){
+      return new DefaultProjectTaskLister();
+    }
+  }
+).build();
   context.checking(new Expectations(){
 {
       allowing(project).getName();
@@ -10,6 +16,8 @@
       will(returnValue(new File(buildFilePath)));
       allowing(project).getDepth();
       will(returnValue(depth));
+      allowing(project).getServices();
+      will(returnValue(services));
     }
   }
 );
