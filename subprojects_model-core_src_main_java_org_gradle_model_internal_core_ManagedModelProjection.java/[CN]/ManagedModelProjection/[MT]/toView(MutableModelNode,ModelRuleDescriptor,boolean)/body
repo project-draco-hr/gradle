@@ -14,24 +14,19 @@ class State implements ModelElementState {
       public Object get(      String name){
         ModelProperty<?> property=schema.getProperties().get(name);
         ModelType<?> propertyType=property.getType();
-        return doGet(propertyType,name,property);
+        return doGet(propertyType,name);
       }
-      private <T>T doGet(      ModelType<T> propertyType,      String propertyName,      ModelProperty<?> property){
+      private <T>T doGet(      ModelType<T> propertyType,      String propertyName){
         MutableModelNode propertyNode=modelNode.getLink(propertyName);
-        if (!property.isWritable()) {
-          if (writable) {
-            ModelView<? extends T> modelView=propertyNode.asWritable(propertyType,ruleDescriptor,null);
-            if (closed) {
-              modelView.close();
-            }
-            return modelView.getInstance();
+        if (writable) {
+          ModelView<? extends T> modelView=propertyNode.asWritable(propertyType,ruleDescriptor,null);
+          if (closed) {
+            modelView.close();
           }
- else {
-            return propertyNode.asReadOnly(propertyType,ruleDescriptor).getInstance();
-          }
+          return modelView.getInstance();
         }
  else {
-          return propertyNode.getPrivateData(propertyType);
+          return propertyNode.asReadOnly(propertyType,ruleDescriptor).getInstance();
         }
       }
       public void set(      String name,      Object value){
