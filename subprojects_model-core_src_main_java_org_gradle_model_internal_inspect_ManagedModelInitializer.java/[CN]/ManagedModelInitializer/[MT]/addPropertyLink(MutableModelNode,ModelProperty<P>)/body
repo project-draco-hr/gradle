@@ -2,15 +2,13 @@
   ModelType<P> propertyType=property.getType();
   ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
   MutableModelNode childNode;
-  if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
+  if (propertySchema.getKind() == ModelSchema.Kind.STRUCT && !property.isWritable()) {
     ModelProjection projection=new ManagedModelProjection<P>(propertyType,schemaStore,proxyFactory);
     ModelCreator creator=ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()),propertyType),NO_OP).withProjection(projection).descriptor(descriptor).build();
     childNode=modelNode.addLink(creator);
     childNode.ensureCreated();
-    if (!property.isWritable()) {
-      for (      ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
-        addPropertyLink(childNode,modelProperty);
-      }
+    for (    ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
+      addPropertyLink(childNode,modelProperty);
     }
   }
  else {
