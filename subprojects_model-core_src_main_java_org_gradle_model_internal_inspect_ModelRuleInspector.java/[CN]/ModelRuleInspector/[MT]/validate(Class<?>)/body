@@ -26,6 +26,20 @@
       throw invalid(source,"cannot declare a constructor that takes arguments");
     }
   }
+  try {
+    Constructor<?> constructor=constructors[0];
+    constructor.setAccessible(true);
+    constructor.newInstance();
+  }
+ catch (  InvocationTargetException e) {
+    throw invalid(source,"instance creation failed",e.getCause());
+  }
+catch (  InstantiationException e) {
+    throw invalid(source,"instance creation failed",e);
+  }
+catch (  IllegalAccessException e) {
+    throw invalid(source,"must have an accessible constructor",e);
+  }
   Field[] fields=source.getDeclaredFields();
   for (  Field field : fields) {
     int fieldModifiers=field.getModifiers();
