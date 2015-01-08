@@ -1,6 +1,7 @@
 {
-  if (node.getState() != from) {
-    return;
+  ModelNode.State nodeState=node.getState();
+  if (nodeState.ordinal() >= to.ordinal()) {
+    return nodeState.ordinal() < desired.ordinal();
   }
   Collection<BoundModelMutator<?>> mutators=this.actions.removeAll(new MutationKey(path,type));
   for (  BoundModelMutator<?> mutator : mutators) {
@@ -14,4 +15,11 @@
     usedActions.put(path,inputPaths);
   }
   node.setState(to);
+  if (to == desired) {
+    LOGGER.debug("Finished transitioning model element {} from state {} to {}",path,originalState.name(),desired.name());
+    return false;
+  }
+ else {
+    return true;
+  }
 }
