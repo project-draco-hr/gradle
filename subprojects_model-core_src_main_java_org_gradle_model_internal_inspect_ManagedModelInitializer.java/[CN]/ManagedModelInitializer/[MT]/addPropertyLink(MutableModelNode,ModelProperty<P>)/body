@@ -3,21 +3,14 @@
   ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
   MutableModelNode childNode;
   if (propertySchema.getKind() == ModelSchema.Kind.STRUCT && !property.isWritable()) {
-    ModelProjection projection=new ManagedModelProjection<P>(propertyType,schemaStore,proxyFactory);
-    ModelCreator creator=ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()),propertyType),NO_OP).withProjection(projection).descriptor(descriptor).build();
+    ModelCreator creator=ManagedModelInitializer.creator(descriptor,modelNode.getPath().child(property.getName()),propertySchema,schemaStore,modelInstantiator,proxyFactory,Collections.<ModelReference<?>>emptyList(),NO_OP);
     childNode=modelNode.addLink(creator);
     childNode.ensureCreated();
-    for (    ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
-      addPropertyLink(childNode,modelProperty);
-    }
   }
  else   if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
-    ModelProjection projection=ManagedSetModelProjection.of(propertyType.getTypeVariables().get(0));
-    ModelCreator creator=ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()),propertyType),NO_OP).withProjection(projection).descriptor(descriptor).build();
+    ModelCreator creator=ManagedModelInitializer.creator(descriptor,modelNode.getPath().child(property.getName()),propertySchema,schemaStore,modelInstantiator,proxyFactory,Collections.<ModelReference<?>>emptyList(),NO_OP);
     childNode=modelNode.addLink(creator);
     childNode.ensureCreated();
-    P instance=modelInstantiator.newInstance(propertySchema);
-    childNode.setPrivateData(propertyType,instance);
   }
  else {
     ModelProjection projection=new UnmanagedModelProjection<P>(propertyType,true,true);
