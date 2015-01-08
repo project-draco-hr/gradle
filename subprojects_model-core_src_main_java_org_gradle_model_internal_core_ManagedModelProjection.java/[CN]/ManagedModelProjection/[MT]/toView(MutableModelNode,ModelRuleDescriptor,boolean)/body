@@ -18,6 +18,7 @@ class State implements ModelElementState {
       }
       private <T>T doGet(      ModelType<T> propertyType,      String propertyName){
         MutableModelNode propertyNode=modelNode.getLink(propertyName);
+        propertyNode.ensureCreated();
         if (writable) {
           ModelView<? extends T> modelView=propertyNode.asWritable(propertyType,ruleDescriptor,null);
           if (closed) {
@@ -43,7 +44,9 @@ class State implements ModelElementState {
           throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'",name,getType()));
         }
         T castValue=Cast.uncheckedCast(value);
-        modelNode.getLink(name).setPrivateData(propertyType,castValue);
+        MutableModelNode propertyNode=modelNode.getLink(name);
+        propertyNode.ensureCreated();
+        propertyNode.setPrivateData(propertyType,castValue);
       }
     }
   }
