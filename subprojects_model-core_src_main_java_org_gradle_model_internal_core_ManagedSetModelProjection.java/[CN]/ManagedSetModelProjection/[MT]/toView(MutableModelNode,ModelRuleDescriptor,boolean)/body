@@ -11,15 +11,18 @@
       closed=true;
     }
 class DelegatingManagedSet implements ManagedSet<I>, ManagedInstance {
-      private final ManagedSet<I> delegate;
-      public DelegatingManagedSet(){
-        delegate=modelNode.getPrivateData(getType());
-      }
-      @Override public void create(      Action<? super I> action){
+      @Override public void create(      final Action<? super I> action){
         if (!writable || closed) {
           throw new ModelViewClosedException(getType(),ruleDescriptor);
         }
-        delegate.create(action);
+        String name=String.valueOf(modelNode.getLinkCount(elementType));
+        ModelPath path=modelNode.getPath().child(name);
+        modelNode.addLink(modelCreatorFactory.creator(ruleDescriptor,path,elementSchema,Collections.<ModelReference<?>>emptyList(),new BiAction<I,Inputs>(){
+          @Override public void execute(          I i,          Inputs inputs){
+            action.execute(i);
+          }
+        }
+));
       }
       private void ensureReadable(){
         if (writable && !closed) {
@@ -28,49 +31,53 @@ class DelegatingManagedSet implements ManagedSet<I>, ManagedInstance {
       }
       @Override public int size(){
         ensureReadable();
-        return delegate.size();
+        return modelNode.getLinkCount(elementType);
       }
       @Override public boolean isEmpty(){
         ensureReadable();
-        return delegate.isEmpty();
+        return modelNode.getLinkCount(elementType) == 0;
       }
       @Override public boolean contains(      Object o){
         ensureReadable();
-        return delegate.contains(o);
+        throw new UnsupportedOperationException();
       }
       @Override public Iterator<I> iterator(){
         ensureReadable();
-        return delegate.iterator();
+        List<I> values=new ArrayList<I>();
+        for (        String name : modelNode.getLinkNames(elementType)) {
+          values.add(modelNode.getLink(name).asReadOnly(elementType,ruleDescriptor).getInstance());
+        }
+        return values.iterator();
       }
       @Override public Object[] toArray(){
         ensureReadable();
-        return delegate.toArray();
+        throw new UnsupportedOperationException();
       }
       @Override public <T>T[] toArray(      T[] a){
         ensureReadable();
-        return delegate.toArray(a);
+        throw new UnsupportedOperationException();
       }
       @Override public boolean add(      I e){
-        return delegate.add(e);
+        throw new UnsupportedOperationException();
       }
       @Override public boolean remove(      Object o){
-        return delegate.remove(o);
+        throw new UnsupportedOperationException();
       }
       @Override public boolean containsAll(      Collection<?> c){
         ensureReadable();
-        return delegate.containsAll(c);
+        throw new UnsupportedOperationException();
       }
       @Override public boolean addAll(      Collection<? extends I> c){
-        return delegate.addAll(c);
+        throw new UnsupportedOperationException();
       }
       @Override public boolean retainAll(      Collection<?> c){
-        return delegate.retainAll(c);
+        throw new UnsupportedOperationException();
       }
       @Override public boolean removeAll(      Collection<?> c){
-        return delegate.removeAll(c);
+        throw new UnsupportedOperationException();
       }
       @Override public void clear(){
-        delegate.clear();
+        throw new UnsupportedOperationException();
       }
       public void create(      Closure<?> closure){
         create(new ClosureBackedAction<I>(closure));
