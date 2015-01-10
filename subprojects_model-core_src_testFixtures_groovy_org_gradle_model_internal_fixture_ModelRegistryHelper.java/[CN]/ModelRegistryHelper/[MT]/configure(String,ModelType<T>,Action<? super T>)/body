@@ -1,19 +1,5 @@
 {
   final ModelPath modelPath=ModelPath.validatedPath(modelPathString);
-  modelRegistry.apply(ModelActionRole.Mutate,new ModelAction<T>(){
-    public ModelReference<T> getSubject(){
-      return ModelReference.of(modelPath,type);
-    }
-    public void execute(    MutableModelNode modelNode,    T object,    Inputs inputs){
-      configurer.execute(object);
-    }
-    public List<ModelReference<?>> getInputs(){
-      return Collections.emptyList();
-    }
-    public ModelRuleDescriptor getDescriptor(){
-      return new SimpleModelRuleDescriptor("ModelRegistryHelper.configure - " + modelPathString);
-    }
-  }
-);
+  modelRegistry.apply(ModelActionRole.Mutate,new ActionBackedModelAction<T>(ModelReference.of(modelPath,type),configurer,new SimpleModelRuleDescriptor("ModelRegistryHelper.configure - " + modelPathString)));
   return this;
 }
