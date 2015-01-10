@@ -1,6 +1,7 @@
 {
   return new ModelView<M>(){
     private boolean closed;
+    private final Map<String,Object> propertyViews=new HashMap<String,Object>();
     public ModelType<M> getType(){
       return ManagedModelProjection.this.getType();
     }
@@ -15,9 +16,14 @@ class State implements ModelElementState {
         return String.format("%s '%s'",getType(),modelNode.getPath().toString());
       }
       public Object get(      String name){
+        if (propertyViews.containsKey(name)) {
+          return propertyViews.get(name);
+        }
         ModelProperty<?> property=schema.getProperties().get(name);
         ModelType<?> propertyType=property.getType();
-        return doGet(propertyType,name);
+        Object value=doGet(propertyType,name);
+        propertyViews.put(name,value);
+        return value;
       }
       private <T>T doGet(      ModelType<T> propertyType,      String propertyName){
         MutableModelNode propertyNode=modelNode.getLink(propertyName);
@@ -40,6 +46,7 @@ class State implements ModelElementState {
         ModelProperty<?> property=schema.getProperties().get(name);
         ModelType<?> propertyType=property.getType();
         doSet(name,value,propertyType);
+        propertyViews.remove(name);
       }
       private <T>void doSet(      String name,      Object value,      ModelType<T> propertyType){
         ModelSchema<T> schema=schemaStore.getSchema(propertyType);
