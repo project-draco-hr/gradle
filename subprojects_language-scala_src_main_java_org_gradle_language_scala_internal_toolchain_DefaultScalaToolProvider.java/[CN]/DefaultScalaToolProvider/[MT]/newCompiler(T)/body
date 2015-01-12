@@ -1,13 +1,7 @@
 {
   if (spec instanceof ScalaJavaJointCompileSpec) {
     File projectDir=projectFinder.getProject(":").getProjectDir();
-    org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
-    try {
-      scalaCompiler=(Compiler<ScalaJavaJointCompileSpec>)getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").getConstructor(Iterable.class,Iterable.class).newInstance(resolvedScalaClasspath,resolvedZincClasspath);
-    }
- catch (    Exception e) {
-      throw new RuntimeException("Internal error: Failed to load org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler",e);
-    }
+    Compiler<ScalaJavaJointCompileSpec> scalaCompiler=new ZincScalaCompiler(resolvedScalaClasspath,resolvedZincClasspath);
     return (Compiler<T>)new NormalizingScalaCompiler(new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(projectDir,scalaCompiler,compilerDaemonManager,resolvedZincClasspath));
   }
   throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'",spec.getClass().getSimpleName()));
