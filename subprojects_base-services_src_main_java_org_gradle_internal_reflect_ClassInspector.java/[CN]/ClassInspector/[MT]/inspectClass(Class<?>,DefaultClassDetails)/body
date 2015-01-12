@@ -1,0 +1,27 @@
+{
+  for (  Method method : type.getDeclaredMethods()) {
+    classDetails.method(method);
+    if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers()) || method.isBridge()) {
+      continue;
+    }
+    Class<?>[] parameterTypes=method.getParameterTypes();
+    if (method.getName().startsWith("get") && method.getName().length() > 3 && !method.getReturnType().equals(Void.TYPE) && parameterTypes.length == 0) {
+      String propertyName=method.getName().substring(3);
+      propertyName=Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+      classDetails.property(propertyName).addGetter(method);
+    }
+ else     if (method.getName().startsWith("is") && method.getName().length() > 2 && (method.getReturnType().equals(Boolean.class) || method.getReturnType().equals(Boolean.TYPE)) && parameterTypes.length == 0) {
+      String propertyName=method.getName().substring(2);
+      propertyName=Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+      classDetails.property(propertyName).addGetter(method);
+    }
+ else     if (method.getName().startsWith("set") && method.getName().length() > 3 && parameterTypes.length == 1) {
+      String propertyName=method.getName().substring(3);
+      propertyName=Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+      classDetails.property(propertyName).addSetter(method);
+    }
+ else {
+      classDetails.instanceMethod(method);
+    }
+  }
+}
