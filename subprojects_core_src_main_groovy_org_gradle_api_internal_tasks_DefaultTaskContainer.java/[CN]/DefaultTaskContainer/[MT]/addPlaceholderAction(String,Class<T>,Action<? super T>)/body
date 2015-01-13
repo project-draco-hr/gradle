@@ -1,0 +1,15 @@
+{
+  if (!hasTaskNode(placeholderName)) {
+    placeholders.add(placeholderName);
+    final ModelType<T> taskModelType=ModelType.of(taskType);
+    getModelNodeAtCurrentState().addLink(ModelCreators.of(ModelReference.of(MODEL_PATH.child(placeholderName)),new BiAction<MutableModelNode,Inputs>(){
+      @Override public void execute(      MutableModelNode mutableModelNode,      Inputs inputs){
+        T t=instantiator.create(placeholderName,taskType);
+        configure.execute(t);
+        add(t);
+        mutableModelNode.setPrivateData(taskModelType,t);
+      }
+    }
+).withProjection(new UnmanagedModelProjection<T>(taskModelType,true,true)).descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")")).build());
+  }
+}

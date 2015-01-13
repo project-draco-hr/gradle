@@ -1,0 +1,21 @@
+{
+  final ModelRegistry modelRegistry=project.getModelRegistry();
+  if (includeSubProjects) {
+    Set<Task> tasks=Sets.newLinkedHashSet();
+    new MultiProjectTaskSelectionResult(taskName,project).collectTasks(tasks);
+    if (!tasks.isEmpty()) {
+      return new FixedTaskSelectionResult(tasks);
+    }
+  }
+ else {
+    if (hasTask(taskName,project)) {
+      return new TaskSelectionResult(){
+        @Override public void collectTasks(        Collection<? super Task> tasks){
+          tasks.add(getTask(modelRegistry,taskName));
+        }
+      }
+;
+    }
+  }
+  return null;
+}
