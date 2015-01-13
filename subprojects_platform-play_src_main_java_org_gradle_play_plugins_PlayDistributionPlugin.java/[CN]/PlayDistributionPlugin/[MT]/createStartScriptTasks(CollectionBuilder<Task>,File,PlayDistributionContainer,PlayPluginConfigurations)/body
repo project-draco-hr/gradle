@@ -1,0 +1,32 @@
+{
+  for (  final PlayDistribution distribution : distributions) {
+    final PlayApplicationBinarySpecInternal binary=(PlayApplicationBinarySpecInternal)distribution.getBinary();
+    if (binary != null) {
+      String createStartScriptsTaskName=String.format("create%sStartScripts",StringUtils.capitalize(binary.getName()));
+      if (tasks.get(createStartScriptsTaskName) == null) {
+        final File scriptsDir=new File(buildDir,String.format("scripts/%s",binary.getName()));
+        tasks.create(createStartScriptsTaskName,CreateStartScripts.class,new Action<CreateStartScripts>(){
+          @Override public void execute(          CreateStartScripts createStartScripts){
+            createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
+            createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(),binary.getAssetsJarFile()),configurations.getPlayRun().getFileCollection()));
+            createStartScripts.setMainClassName("play.core.server.NettyServer");
+            createStartScripts.setApplicationName(binary.getName());
+            createStartScripts.setOutputDir(scriptsDir);
+            Spec<PlayDistribution> matchingBinary=new Spec<PlayDistribution>(){
+              @Override public boolean isSatisfiedBy(              PlayDistribution distribution){
+                return distribution.getBinary() == binary;
+              }
+            }
+;
+          }
+        }
+);
+      }
+      Task createStartScripts=tasks.get(createStartScriptsTaskName);
+      CopySpecInternal distSpec=(CopySpecInternal)distribution.getContents();
+      CopySpec binSpec=distSpec.addChild().into("bin");
+      binSpec.from(createStartScripts);
+      binSpec.setFileMode(0755);
+    }
+  }
+}
