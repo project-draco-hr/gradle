@@ -1,10 +1,9 @@
 {
   if (spec instanceof TwirlCompileSpec) {
-    TwirlCompileSpec twirlCompileSpec=(TwirlCompileSpec)spec;
-    VersionedTwirlCompileSpec versionedSpec=TwirlCompileSpecFactory.create(twirlCompileSpec,targetPlatform);
-    Set<File> twirlClasspath=resolveToolClasspath(versionedSpec.getDependencyNotation()).getFiles();
-    DaemonPlayCompiler<VersionedTwirlCompileSpec> compiler=new DaemonPlayCompiler<VersionedTwirlCompileSpec>(fileResolver.resolve("."),new TwirlCompiler(),compilerDaemonManager,twirlClasspath);
-    @SuppressWarnings("unchecked") Compiler<T> twirlCompileSpecCompiler=(Compiler<T>)new MappingSpecCompiler<TwirlCompileSpec,VersionedTwirlCompileSpec>(compiler,WrapUtil.toMap(twirlCompileSpec,versionedSpec));
+    TwirlCompiler twirlCompiler=TwirlCompilerFactory.create(targetPlatform);
+    Set<File> twirlClasspath=resolveToolClasspath(twirlCompiler.getDependencyNotation()).getFiles();
+    Compiler<TwirlCompileSpec> compiler=new DaemonTwirlCompiler(fileResolver.resolve("."),twirlCompiler,compilerDaemonManager,twirlClasspath,twirlCompiler.getClassLoaderPackages());
+    @SuppressWarnings("unchecked") Compiler<T> twirlCompileSpecCompiler=(Compiler<T>)compiler;
     return twirlCompileSpecCompiler;
   }
  else   if (spec instanceof RoutesCompileSpec) {
