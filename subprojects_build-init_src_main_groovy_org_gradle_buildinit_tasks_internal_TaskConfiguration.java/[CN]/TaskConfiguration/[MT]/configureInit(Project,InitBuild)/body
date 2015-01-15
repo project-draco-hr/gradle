@@ -1,0 +1,45 @@
+{
+  init.setGroup(GROUP);
+  init.setDescription("Initializes a new Gradle build. [incubating]");
+  final Factory<String> setupCanBeSkipped=new Factory<String>(){
+    @Override public String create(){
+      if (project.file("build.gradle").exists()) {
+        return "The build file 'build.gradle' already exists. Skipping build initialization.";
+      }
+      File buildFile=project.getBuildFile();
+      if (buildFile != null && buildFile.exists()) {
+        return "The build file \'" + buildFile.getName() + "\' already exists. Skipping build initialization.";
+      }
+      if (project.file("settings.gradle").exists()) {
+        return "The settings file 'settings.gradle' already exists. Skipping build initialization.";
+      }
+      if (project.getSubprojects().size() > 0) {
+        return "This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.";
+      }
+      return null;
+    }
+  }
+;
+  init.onlyIf(new Spec<Task>(){
+    @Override public boolean isSatisfiedBy(    Task element){
+      Object skippedMsg=setupCanBeSkipped.create();
+      if (skippedMsg != null) {
+        project.getLogger().warn((String)skippedMsg);
+        return false;
+      }
+      return true;
+    }
+  }
+);
+  init.dependsOn(new Callable<String>(){
+    @Override public String call() throws Exception {
+      if (setupCanBeSkipped.create() == null) {
+        return "wrapper";
+      }
+ else {
+        return null;
+      }
+    }
+  }
+);
+}
