@@ -1,9 +1,8 @@
 {
-  ModuleComponentIdentifier componentIdentifier=componentChooser.choose(selectionResult.getVersions(),dependency,moduleAccess);
-  if (componentIdentifier == null) {
-    return false;
+  ChosenComponentResult chosenComponent=componentChooser.choose(selectionResult.getVersions(),dependency,moduleAccess);
+  if (chosenComponent.hasMatch()) {
+    dependency=dependency.withRequestedVersion(chosenComponent.getModuleComponentIdentifier().getVersion());
+    moduleAccess.resolveComponentMetaData(dependency,chosenComponent.getModuleComponentIdentifier(),resolveResult);
   }
-  dependency=dependency.withRequestedVersion(componentIdentifier.getVersion());
-  moduleAccess.resolveComponentMetaData(dependency,componentIdentifier,resolveResult);
-  return true;
+  return chosenComponent;
 }

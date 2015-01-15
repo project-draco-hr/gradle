@@ -2,17 +2,23 @@
   ModuleVersionSelector requestedModule=dependency.getRequested();
   VersionSelector requestedVersion=versionSelectorScheme.parseSelector(requestedModule.getVersion());
   Collection<SpecRuleAction<? super ComponentSelection>> rules=componentSelectionRules.getRules();
+  ChosenComponentResult chosenComponent=new DefaultChosenComponentResult();
   for (  Versioned candidate : sortLatestFirst(versions)) {
     ModuleComponentIdentifier candidateIdentifier=DefaultModuleComponentIdentifier.newId(requestedModule.getGroup(),requestedModule.getName(),candidate.getVersion());
     MetadataProvider metadataProvider=new MetadataProvider(new MetaDataSupplier(dependency,candidateIdentifier,moduleAccess));
+    if (requestedVersion.requiresMetadata() && metadataProvider.getMetaData() == null) {
+      chosenComponent.cannotDetermine();
+      return chosenComponent;
+    }
     if (versionMatches(requestedVersion,candidateIdentifier,metadataProvider)) {
       if (!isRejectedByRules(candidateIdentifier,rules,metadataProvider)) {
-        return candidateIdentifier;
+        chosenComponent.matches(candidateIdentifier);
+        return chosenComponent;
       }
       if (requestedVersion.matchesUniqueVersion()) {
         break;
       }
     }
   }
-  return null;
+  return chosenComponent;
 }
