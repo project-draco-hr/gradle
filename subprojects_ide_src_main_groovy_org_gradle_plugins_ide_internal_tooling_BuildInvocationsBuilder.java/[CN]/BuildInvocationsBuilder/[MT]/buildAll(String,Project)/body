@@ -3,13 +3,12 @@
     throw new GradleException("Unknown model name " + modelName);
   }
   List<LaunchableGradleTaskSelector> selectors=Lists.newArrayList();
-  TreeBasedTable<String,String,String> aggregatedTasksWithDescription=TreeBasedTable.create(Ordering.usingToString(),new TaskNameComparator());
+  Map<String,LaunchableGradleTaskSelector> selectorsByName=Maps.newTreeMap(Ordering.natural());
   Set<String> visibleTasks=Sets.newLinkedHashSet();
-  findTasks(project,aggregatedTasksWithDescription,visibleTasks);
-  for (  String selectorName : aggregatedTasksWithDescription.rowKeySet()) {
-    SortedMap<String,String> descriptionsFromAllPaths=aggregatedTasksWithDescription.row(selectorName);
-    String description=descriptionsFromAllPaths.get(descriptionsFromAllPaths.firstKey());
-    selectors.add(new LaunchableGradleTaskSelector().setName(selectorName).setTaskName(selectorName).setProjectPath(project.getPath()).setDisplayName(String.format("%s in %s and subprojects.",selectorName,project.toString())).setDescription(description != NULL_STRING ? description : null).setPublic(visibleTasks.contains(selectorName)));
+  findTasks(project,selectorsByName,visibleTasks);
+  for (  String selectorName : selectorsByName.keySet()) {
+    LaunchableGradleTaskSelector selector=selectorsByName.get(selectorName);
+    selectors.add(new LaunchableGradleTaskSelector().setName(selectorName).setTaskName(selectorName).setProjectPath(project.getPath()).setDisplayName(String.format("%s in %s and subprojects.",selectorName,project.toString())).setDescription(selector.getDescription()).setPublic(visibleTasks.contains(selectorName)));
   }
   List<LaunchableGradleTask> projectTasks=tasks(project);
   return new DefaultBuildInvocations().setSelectors(selectors).setTasks(projectTasks);
