@@ -2,12 +2,12 @@
   List<String> results=new ArrayList<String>();
   String bucketName=getBucketName(parent);
   String s3Key=getS3BucketKey(parent);
-  ListObjectsRequest listObjectsRequest=new ListObjectsRequest().withBucketName(bucketName).withPrefix(s3Key).withDelimiter("/");
-  ObjectListing objectListing=amazonS3Client.listObjects(listObjectsRequest);
-  results.addAll(resolveResourceNames(objectListing));
-  while (objectListing.isTruncated()) {
-    objectListing=amazonS3Client.listNextBatchOfObjects(objectListing);
-    results.addAll(resolveResourceNames(objectListing));
+  try {
+    S3Object[] s3Objects=s3Service.listObjects(bucketName,s3Key,"/");
+    results.addAll(resolveResourceNames(s3Objects));
+  }
+ catch (  S3ServiceException e) {
+    throw new S3Exception(String.format("Could not list s3 resources for '%s'.",parent.toString()),e);
   }
   return results;
 }

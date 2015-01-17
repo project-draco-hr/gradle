@@ -1,11 +1,14 @@
 {
   try {
     S3Object resource=s3Client.getResource(new URI(location.toString() + ".sha1"));
-    S3ObjectInputStream objectContent=resource.getObjectContent();
+    InputStream objectContent=resource.getDataInputStream();
     String sha=IOUtils.toString(objectContent);
     return HashValue.parse(sha);
   }
- catch (  IOException e) {
+ catch (  ServiceException e) {
+    LOGGER.error("Could not get contents of resource sha",e);
+  }
+catch (  IOException e) {
     LOGGER.error("Could not get contents of resource sha",e);
   }
 catch (  URISyntaxException e) {

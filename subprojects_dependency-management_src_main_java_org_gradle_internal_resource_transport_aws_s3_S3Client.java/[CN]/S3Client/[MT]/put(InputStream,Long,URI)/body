@@ -1,13 +1,14 @@
 {
-  ObjectMetadata objectMetadata=new ObjectMetadata();
-  objectMetadata.setContentLength(contentLength);
-  String bucketName=getBucketName(destination);
-  String s3Key=getS3BucketKey(destination);
-  LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]",s3Key,bucketName);
   try {
-    amazonS3Client.putObject(bucketName,s3Key,inputStream,objectMetadata);
+    String bucketName=getBucketName(destination);
+    String s3BucketKey=getS3BucketKey(destination);
+    S3Object object=new S3Object(s3BucketKey);
+    object.setContentLength(contentLength);
+    object.setDataInputStream(inputStream);
+    LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]",s3BucketKey,bucketName);
+    s3Service.putObject(bucketName,object);
   }
- catch (  AmazonClientException e) {
+ catch (  S3ServiceException e) {
     throw new S3Exception(String.format("Could not put s3 resource: [%s]. %s",destination.toString(),e.getMessage()),e);
   }
 }
