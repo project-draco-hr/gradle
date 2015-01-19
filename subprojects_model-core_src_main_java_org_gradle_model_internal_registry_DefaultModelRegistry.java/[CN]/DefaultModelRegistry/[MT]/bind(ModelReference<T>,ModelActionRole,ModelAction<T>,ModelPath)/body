@@ -1,21 +1,6 @@
 {
-  final RuleBinder<T> binder=bind(subject,mutator.getInputs(),mutator.getDescriptor(),scope,new Action<RuleBinder<T>>(){
-    public void execute(    RuleBinder<T> ruleBinder){
-      BoundModelMutator<T> boundMutator=new BoundModelMutator<T>(mutator,ruleBinder.getSubjectBinding(),ruleBinder.getInputBindings());
-      ModelPath path=boundMutator.getSubject().getPath();
-      ModelNodeInternal subject=modelGraph.get(path);
-      if (!subject.canApply(type)) {
-        throw new IllegalStateException(String.format("Cannot add %s rule '%s' for model element '%s' when element is in state %s.",type,boundMutator.getMutator().getDescriptor(),path,subject.getState()));
-      }
-      actions.put(new MutationKey(path,type),boundMutator);
-    }
-  }
-);
-  registerListener(listener(binder.getDescriptor(),binder.getSubjectReference(),scope,true,new Action<ModelPath>(){
-    public void execute(    ModelPath modelPath){
-      binder.bindSubject(modelPath);
-    }
-  }
-));
+  RuleBinder<T> binder=bind(subject,mutator.getInputs(),mutator.getDescriptor(),scope,new BindModelAction<T>(mutator,type,modelGraph,actions));
+  ModelCreationListener listener=listener(binder.getDescriptor(),binder.getSubjectReference(),scope,true,new BindSubject<T>(binder));
+  registerListener(listener);
   bindInputs(binder,scope);
 }
