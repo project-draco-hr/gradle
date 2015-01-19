@@ -1,0 +1,27 @@
+{
+  Jets3tProperties properties=Jets3tProperties.getInstance(Constants.JETS3T_PROPERTIES_FILENAME);
+  Optional<URI> endpoint=s3ConnectionProperties.getEndpoint();
+  if (endpoint.isPresent()) {
+    URI uri=endpoint.get();
+    properties.setProperty(S3SERVICE_S3_ENDPOINT,uri.getHost());
+    properties.setProperty(S3SERVICE_S3_ENDPOINT_HTTP_PORT,Integer.toString(uri.getPort()));
+    properties.setProperty(S3SERVICE_HTTPS_ONLY,Boolean.toString(uri.getScheme().toUpperCase().equals("HTTPS")));
+    properties.setProperty(S3SERVICE_DISABLE_DNS_BUCKETS,"true");
+  }
+  Optional<HttpProxySettings.HttpProxy> proxyOptional=s3ConnectionProperties.getProxy();
+  if (proxyOptional.isPresent()) {
+    HttpProxySettings.HttpProxy proxy=proxyOptional.get();
+    properties.setProperty(HTTPCLIENT_PROXY_AUTODETECT,"false");
+    properties.setProperty(HTTPCLIENT_PROXY_HOST,proxy.host);
+    properties.setProperty(HTTPCLIENT_PROXY_PORT,Integer.toString(proxy.port));
+    PasswordCredentials credentials=proxy.credentials;
+    if (credentials != null) {
+      properties.setProperty(HTTPCLIENT_PROXY_USER,credentials.getUsername());
+      properties.setProperty(HTTPCLIENT_PROXY_PASSWORD,credentials.getPassword());
+    }
+  }
+ else {
+    properties.setProperty(HTTPCLIENT_PROXY_AUTODETECT,"true");
+  }
+  return properties;
+}
