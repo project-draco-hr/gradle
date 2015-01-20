@@ -3,9 +3,15 @@
     findTasks(child,taskSelectors,visibleTasks);
   }
   for (  Task task : taskLister.listProjectTasks(project)) {
-    if (!taskSelectors.containsKey(task.getName()) || hasPathWithLowerOrdering(task,taskSelectors.get(task.getName()))) {
+    if (!taskSelectors.containsKey(task.getName())) {
       LaunchableGradleTaskSelector taskSelector=new LaunchableGradleTaskSelector().setDescription(task.getDescription()).setProjectPath(task.getPath());
       taskSelectors.put(task.getName(),taskSelector);
+    }
+ else {
+      LaunchableGradleTaskSelector taskSelector=taskSelectors.get(task.getName());
+      if (hasPathWithLowerOrdering(task,taskSelector)) {
+        taskSelector.setDescription(task.getDescription()).setProjectPath(task.getPath());
+      }
     }
     if (PublicTaskSpecification.INSTANCE.isSatisfiedBy(task)) {
       visibleTasks.add(task.getName());
