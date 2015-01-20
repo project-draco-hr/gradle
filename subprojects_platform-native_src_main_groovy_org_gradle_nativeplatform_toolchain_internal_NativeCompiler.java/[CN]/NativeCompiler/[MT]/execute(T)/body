@@ -1,12 +1,12 @@
 {
   final T transformedSpec=specTransformer.transform(spec);
   final List<String> genericArgs=getArguments(transformedSpec);
-  final StoppableExecutor executor=getExecutor();
+  final OperationQueue<CommandLineToolInvocation> buildQueue=buildOperationProcessor.newQueue(commandLineTool);
   File objectDir=transformedSpec.getObjectFileDir();
   for (  File sourceFile : transformedSpec.getSourceFiles()) {
     CommandLineToolInvocation perFileInvocation=createPerFileInvocation(genericArgs,sourceFile,objectDir);
-    executor.execute(commandLineTool.toRunnableExecution(perFileInvocation));
+    buildQueue.add(perFileInvocation);
   }
-  executor.stop();
+  buildQueue.waitForCompletion();
   return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
 }
