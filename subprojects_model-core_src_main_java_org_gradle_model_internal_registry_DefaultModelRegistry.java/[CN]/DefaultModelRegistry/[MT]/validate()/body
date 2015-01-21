@@ -2,25 +2,11 @@
   if (binders.isEmpty()) {
     return;
   }
-  while (!binders.isEmpty()) {
-    for (    ModelPath scope : getBinderScopesWithUnboundByTypeReferences()) {
-      selfCloseAllComponents(scope);
-    }
-    Iterable<ModelPath> unboundPaths=Iterables.concat(Iterables.transform(binders,new Function<RuleBinder<?>,Iterable<ModelPath>>(){
-      public Iterable<ModelPath> apply(      RuleBinder<?> input){
-        return input.getUnboundPaths();
-      }
-    }
-));
-    ModelPath unboundPath=Iterables.getFirst(unboundPaths,null);
-    if (unboundPath != null) {
-      ModelNode selfClosedParent=selfCloseAllComponents(unboundPath.getParent());
-      if (selfClosedParent == null || modelGraph.find(unboundPath) == null) {
-        break;
-      }
-    }
- else {
-      break;
+  boolean newInputsBound=true;
+  while (!binders.isEmpty() && newInputsBound) {
+    newInputsBound=false;
+    for (int i=0; i < binders.size(); i++) {
+      newInputsBound=newInputsBound || tryForceBind(binders.get(i));
     }
   }
   if (!binders.isEmpty()) {
