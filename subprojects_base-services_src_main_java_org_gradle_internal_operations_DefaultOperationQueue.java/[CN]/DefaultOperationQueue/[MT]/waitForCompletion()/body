@@ -1,15 +1,23 @@
 {
   completed=true;
-  try {
-    Futures.allAsList(workFutures).get();
-  }
- catch (  InterruptedException e) {
-    throw new UncheckedException(e);
-  }
-catch (  ExecutionException e) {
-    if (e.getCause() instanceof GradleException) {
-      throw (GradleException)e.getCause();
+  boolean cancelExecution=false;
+  for (  ListenableFuture<?> future : workFutures) {
+    if (!cancelExecution) {
+      if (hasFailed(future)) {
+        cancelExecution=true;
+      }
     }
-    throw new GradleException(String.format("Build operation for worker %s failed",worker),e.getCause());
+ else {
+      future.cancel(false);
+    }
+  }
+synchronized (failures) {
+    if (!failures.isEmpty()) {
+      Throwable firstFailure=failures.get(0);
+      if (firstFailure instanceof GradleException) {
+        throw (GradleException)firstFailure;
+      }
+      throw new GradleException("build operation failed",failures.get(0));
+    }
   }
 }
