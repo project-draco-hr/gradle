@@ -6,7 +6,6 @@
   if (target == null) {
     throw new IllegalStateException("Plugin target is 'null' and there are plugin requests");
   }
-  final PluginResolutionApplicator resolutionApplicator=new PluginResolutionApplicator(target);
   final PluginResolver effectivePluginResolver=wrapInNotInClasspathCheck(classLoaderScope);
   List<Result> results=collect(requests,new Transformer<Result,PluginRequest>(){
     public Result transform(    PluginRequest request){
@@ -26,28 +25,32 @@
   if (!legacy.isEmpty()) {
     final RepositoryHandler repositories=scriptHandler.getRepositories();
     final List<MavenArtifactRepository> mavenRepos=repositories.withType(MavenArtifactRepository.class);
+    final Set<String> repoUrls=Sets.newLinkedHashSet();
     for (    final Result result : legacy) {
       result.legacyFound.action.execute(new LegacyPluginResolveContext(){
-        public Dependency add(        String pluginId,        final String m2RepoUrl,        Object dependencyNotation){
+        public void addLegacy(        String pluginId,        final String m2RepoUrl,        Object dependencyNotation){
           legacyActualPluginIds.put(result,pluginId);
-          boolean repoExists=any(mavenRepos,new Spec<MavenArtifactRepository>(){
-            public boolean isSatisfiedBy(            MavenArtifactRepository element){
-              return element.getUrl().toString().equals(m2RepoUrl);
-            }
-          }
-);
-          if (!repoExists) {
-            repositories.maven(new Action<MavenArtifactRepository>(){
-              public void execute(              MavenArtifactRepository mavenArtifactRepository){
-                mavenArtifactRepository.setUrl(m2RepoUrl);
-              }
-            }
-);
-          }
-          return scriptHandler.getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION,dependencyNotation);
+          repoUrls.add(m2RepoUrl);
+          scriptHandler.getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION,dependencyNotation);
         }
       }
 );
+    }
+    for (    final String m2RepoUrl : repoUrls) {
+      boolean repoExists=any(mavenRepos,new Spec<MavenArtifactRepository>(){
+        public boolean isSatisfiedBy(        MavenArtifactRepository element){
+          return element.getUrl().toString().equals(m2RepoUrl);
+        }
+      }
+);
+      if (!repoExists) {
+        repositories.maven(new Action<MavenArtifactRepository>(){
+          public void execute(          MavenArtifactRepository mavenArtifactRepository){
+            mavenArtifactRepository.setUrl(m2RepoUrl);
+          }
+        }
+);
+      }
     }
   }
   defineScriptHandlerClassScope(scriptHandler,classLoaderScope);
@@ -64,7 +67,8 @@
   for (  final Result result : nonLegacy) {
     applyPlugin(result.request,result.found.resolution.getPluginId().toString(),new Runnable(){
       public void run(){
-        resolutionApplicator.execute(result.found.resolution);
+        Class<?> pluginClass=result.found.resolution.resolve();
+        target.apply(pluginClass);
       }
     }
 );
