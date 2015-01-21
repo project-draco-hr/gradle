@@ -1,7 +1,10 @@
 {
+  OperationQueue<CommandLineToolInvocation> queue=buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
   MutableCommandLineToolInvocation invocation=baseInvocation.copy();
   invocation.addPostArgsAction(new VisualCppOptionsFileArgsWriter(spec.getTempDir()));
   invocation.setArgs(argsTransformer.transform(specTransformer.transform(spec)));
   commandLineToolInvocationWorker.execute(invocation);
+  queue.add(invocation);
+  queue.waitForCompletion();
   return new SimpleWorkResult(true);
 }
