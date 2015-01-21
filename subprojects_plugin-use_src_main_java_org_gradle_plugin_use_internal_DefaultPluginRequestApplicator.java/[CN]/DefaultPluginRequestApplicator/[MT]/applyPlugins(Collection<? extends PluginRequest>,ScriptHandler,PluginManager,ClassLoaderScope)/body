@@ -13,25 +13,26 @@
     }
   }
 );
-  ImmutableListMultimap<Boolean,Result> categorizedResults=groupBy(results,new Transformer<Boolean,Result>(){
-    public Boolean transform(    Result original){
-      return original.legacyFound != null;
-    }
-  }
-);
-  final List<Result> legacy=categorizedResults.get(true);
-  List<Result> nonLegacy=categorizedResults.get(false);
-  final Map<Result,String> legacyActualPluginIds=Maps.newLinkedHashMap();
-  if (!legacy.isEmpty()) {
+  final Map<Result,PluginId> legacyActualPluginIds=Maps.newLinkedHashMap();
+  final Map<Result,Class<?>> pluginImpls=Maps.newLinkedHashMap();
+  if (!results.isEmpty()) {
     final RepositoryHandler repositories=scriptHandler.getRepositories();
     final List<MavenArtifactRepository> mavenRepos=repositories.withType(MavenArtifactRepository.class);
     final Set<String> repoUrls=Sets.newLinkedHashSet();
-    for (    final Result result : legacy) {
-      result.legacyFound.action.execute(new PluginResolveContext(){
-        public void addLegacy(        String pluginId,        final String m2RepoUrl,        Object dependencyNotation){
-          legacyActualPluginIds.put(result,pluginId);
-          repoUrls.add(m2RepoUrl);
-          scriptHandler.getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION,dependencyNotation);
+    for (    final Result result : results) {
+      applyPlugin(result.request,result.found.getPluginId(),new Runnable(){
+        @Override public void run(){
+          result.found.execute(new PluginResolveContext(){
+            public void addLegacy(            PluginId pluginId,            final String m2RepoUrl,            Object dependencyNotation){
+              legacyActualPluginIds.put(result,pluginId);
+              repoUrls.add(m2RepoUrl);
+              scriptHandler.getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION,dependencyNotation);
+            }
+            @Override public void add(            PluginId pluginId,            Class<?> implementationClass){
+              pluginImpls.put(result,implementationClass);
+            }
+          }
+);
         }
       }
 );
@@ -54,20 +55,21 @@
     }
   }
   defineScriptHandlerClassScope(scriptHandler,classLoaderScope);
-  for (  final Map.Entry<Result,String> entry : legacyActualPluginIds.entrySet()) {
+  for (  final Map.Entry<Result,PluginId> entry : legacyActualPluginIds.entrySet()) {
     final PluginRequest request=entry.getKey().request;
-    final String id=entry.getValue();
+    final PluginId id=entry.getValue();
     applyPlugin(request,id,new Runnable(){
       public void run(){
-        target.apply(id);
+        target.apply(id.toString());
       }
     }
 );
   }
-  for (  final Result result : nonLegacy) {
-    applyPlugin(result.request,result.found.resolution.getPluginId().toString(),new Runnable(){
+  for (  final Map.Entry<Result,Class<?>> entry : pluginImpls.entrySet()) {
+    final Result result=entry.getKey();
+    applyPlugin(result.request,result.found.getPluginId(),new Runnable(){
       public void run(){
-        Class<?> pluginClass=result.found.resolution.resolve();
+        Class<?> pluginClass=entry.getValue();
         target.apply(pluginClass);
       }
     }
