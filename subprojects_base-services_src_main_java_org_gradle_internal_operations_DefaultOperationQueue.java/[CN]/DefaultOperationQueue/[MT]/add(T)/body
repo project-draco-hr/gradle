@@ -1,7 +1,8 @@
 {
-  if (completed) {
+  if (waitingForCompletion) {
     throw new IllegalStateException("OperationQueue cannot be reused once it has started completion.");
   }
   ListenableFuture<?> future=executor.submit(new Operation(operation));
-  workFutures.add(future);
+  Futures.addCallback(future,new FailuresCallback());
+  operations.add(future);
 }

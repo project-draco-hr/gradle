@@ -1,21 +1,16 @@
 {
-  completed=true;
-  boolean cancelExecution=false;
-  for (  ListenableFuture<?> future : workFutures) {
-    if (!cancelExecution) {
-      if (hasFailed(future)) {
-        cancelExecution=true;
-      }
-    }
- else {
-      future.cancel(false);
-    }
+  waitingForCompletion=true;
+  CountDownLatch finished=new CountDownLatch(operations.size());
+  for (  ListenableFuture operation : operations) {
+    Futures.addCallback(operation,new CompletionCallback(finished));
+  }
+  try {
+    finished.await();
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
   }
   if (!failures.isEmpty()) {
-    Throwable firstFailure=failures.get(0);
-    if (firstFailure instanceof GradleException) {
-      throw (GradleException)firstFailure;
-    }
-    throw new GradleException("build operation failed",failures.get(0));
+    throw new MultipleBuildOperationFailures(getFailureMessage(),failures);
   }
 }
