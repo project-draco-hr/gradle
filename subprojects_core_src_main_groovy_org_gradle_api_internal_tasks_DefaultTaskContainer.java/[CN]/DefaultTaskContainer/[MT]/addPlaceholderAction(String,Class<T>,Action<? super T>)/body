@@ -1,8 +1,21 @@
 {
-  placeholders.put(placeholderName,new Runnable(){
-    @Override public void run(){
-      create(placeholderName,type,configure);
-    }
-  }
+  if (!hasTaskNode(placeholderName)) {
+    placeholders.add(placeholderName);
+    final ModelType<T> taskModelType=ModelType.of(taskType);
+    ModelPath path=MODEL_PATH.child(placeholderName);
+    modelNode.addLink(ModelCreators.of(ModelReference.of(path),new BiAction<MutableModelNode,Inputs>(){
+      @Override public void execute(      MutableModelNode mutableModelNode,      Inputs inputs){
+        final T task=instantiator.create(placeholderName,taskType);
+        configure.execute(task);
+        DeprecationLogger.whileDisabled(new Runnable(){
+          @Override public void run(){
+            add(task);
+          }
+        }
 );
+        mutableModelNode.setPrivateData(taskModelType,task);
+      }
+    }
+).withProjection(new UnmanagedModelProjection<T>(taskModelType,true,true)).descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")")).build());
+  }
 }
