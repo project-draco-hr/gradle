@@ -3,8 +3,8 @@
   this.pluginInspector=pluginInspector;
   this.classLoaderFactory=classLoaderFactory;
   this.classMappings=CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector));
-  this.idMappings=CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey,Optional<PotentialPluginWithId<?>>>(){
-    @Override public Optional<PotentialPluginWithId<?>> load(    @SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
+  this.idMappings=CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey,Optional<PluginImplementation<?>>>(){
+    @Override public Optional<PluginImplementation<?>> load(    @SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
       final PluginId pluginId=key.getId();
       ClassLoader classLoader=key.getClassLoader();
       PluginDescriptorLocator locator=new ClassloaderBackedPluginDescriptorLocator(classLoader);
@@ -24,12 +24,12 @@
         throw new InvalidPluginException(String.format("Could not find implementation class '%s' for plugin '%s' specified in %s.",implClassName,pluginId,pluginDescriptor),e);
       }
       PotentialPlugin<?> potentialPlugin=inspect(implClass);
-      PotentialPluginWithId<?> withId=new DefaultPotentialPluginWithId<Object>(pluginId,potentialPlugin){
+      PluginImplementation<?> withId=new DefaultPotentialPluginWithId<Object>(pluginId,potentialPlugin){
         @Override public boolean isAlsoKnownAs(        PluginId id){
           if (pluginId.equals(id)) {
             return true;
           }
-          PotentialPluginWithId<?> other=lookupSelf(id);
+          PluginImplementation<?> other=lookupSelf(id);
           return other != null && other.asClass().equals(implClass);
         }
       }
