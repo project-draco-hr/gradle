@@ -1,0 +1,29 @@
+{
+  boolean result=false;
+  String originalId=originalRepository.getId();
+  if (WILDCARD.equals(pattern) || pattern.equals(originalId)) {
+    result=true;
+  }
+ else {
+    String[] repos=pattern.split(",");
+    for (    String repo : repos) {
+      if (repo.length() > 1 && repo.startsWith("!")) {
+        if (originalId.equals(repo.substring(1))) {
+          result=false;
+          break;
+        }
+      }
+ else       if (originalId.equals(repo)) {
+        result=true;
+        break;
+      }
+ else       if (EXTERNAL_WILDCARD.equals(repo) && isExternalRepo(originalRepository)) {
+        result=true;
+      }
+ else       if (WILDCARD.equals(repo)) {
+        result=true;
+      }
+    }
+  }
+  return result;
+}

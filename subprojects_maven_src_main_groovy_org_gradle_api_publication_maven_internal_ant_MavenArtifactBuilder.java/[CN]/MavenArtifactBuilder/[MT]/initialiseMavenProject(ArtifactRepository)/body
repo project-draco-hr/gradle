@@ -1,0 +1,14 @@
+{
+  ProjectBuilderConfiguration builderConfig=this.createProjectBuilderConfig(localRepository);
+  try {
+    mavenProject=mavenProjectBuilder.build(pomFile,builderConfig);
+    mavenProjectBuilder.calculateConcreteState(mavenProject,builderConfig,false);
+  }
+ catch (  ProjectBuildingException pbe) {
+    throw new BuildException("Unable to initialize POM " + pomFile.getName() + ": "+ pbe.getMessage(),pbe);
+  }
+catch (  ModelInterpolationException mie) {
+    throw new BuildException("Unable to interpolate POM " + pomFile.getName() + ": "+ mie.getMessage(),mie);
+  }
+  modelDefaultsInjector.injectDefaults(mavenProject.getModel());
+}

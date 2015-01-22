@@ -1,0 +1,24 @@
+{
+  if (mainArtifact == null && (attachedArtifacts.size() == 0)) {
+    throw new BuildException("You must specify a file and/or an attached artifact for Maven publishing.");
+  }
+  ArtifactRepository localRepo=createLocalArtifactRepository();
+  MavenArtifactBuilder mavenArtifactBuilder=getArtifactBuilder(localRepo);
+  if (mainArtifact != null) {
+    Artifact artifact=mavenArtifactBuilder.getMainArtifact();
+    boolean isPomArtifact=mavenArtifactBuilder.isPomPackaging();
+    if (isPomArtifact) {
+      doPublish(artifact,pomFile,localRepo);
+    }
+ else {
+      ArtifactMetadata metadata=new ProjectArtifactMetadata(artifact,pomFile);
+      artifact.addMetadata(metadata);
+      doPublish(artifact,mainArtifact,localRepo);
+    }
+  }
+  if (attachedArtifacts != null) {
+    for (    Artifact attachedArtifact : mavenArtifactBuilder.getAttachedArtifacts()) {
+      doPublish(attachedArtifact,attachedArtifact.getFile(),localRepo);
+    }
+  }
+}
