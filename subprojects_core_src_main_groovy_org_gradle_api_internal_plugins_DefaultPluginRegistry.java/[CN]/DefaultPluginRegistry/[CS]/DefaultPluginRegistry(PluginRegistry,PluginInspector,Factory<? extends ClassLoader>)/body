@@ -5,10 +5,10 @@
   this.classMappings=CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector));
   this.idMappings=CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey,Optional<PotentialPluginWithId<?>>>(){
     @Override public Optional<PotentialPluginWithId<?>> load(    @SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
-      String pluginId=key.getId();
+      PluginId pluginId=key.getId();
       ClassLoader classLoader=key.getClassLoader();
       PluginDescriptorLocator locator=new ClassloaderBackedPluginDescriptorLocator(classLoader);
-      PluginDescriptor pluginDescriptor=locator.findPluginDescriptor(pluginId);
+      PluginDescriptor pluginDescriptor=locator.findPluginDescriptor(pluginId.toString());
       if (pluginDescriptor == null) {
         return Optional.absent();
       }
@@ -24,7 +24,7 @@
         throw new InvalidPluginException(String.format("Could not find implementation class '%s' for plugin '%s' specified in %s.",implClassName,pluginId,pluginDescriptor),e);
       }
       PotentialPlugin<?> potentialPlugin=inspect(implClass);
-      PotentialPluginWithId<?> withId=DefaultPotentialPluginWithId.of(PluginId.unvalidated(pluginId),potentialPlugin);
+      PotentialPluginWithId<?> withId=DefaultPotentialPluginWithId.of(pluginId,potentialPlugin);
       return Cast.uncheckedCast(Optional.of(withId));
     }
   }
