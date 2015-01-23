@@ -1,9 +1,10 @@
 {
-  MutableCommandLineToolInvocation invocation=baseInvocation.copy();
+  List<String> args=argsTransformer.transform(spec);
+  invocationContext.getArgAction().execute(args);
   if (useCommandFile) {
-    invocation.addPostArgsAction(new GccOptionsFileArgsWriter(spec.getTempDir()));
+    new GccOptionsFileArgsWriter(spec.getTempDir()).execute(args);
   }
-  invocation.setArgs(argsTransformer.transform(spec));
+  CommandLineToolInvocation invocation=invocationContext.createInvocation(args);
   commandLineToolInvocationWorker.execute(invocation);
   return new SimpleWorkResult(true);
 }
