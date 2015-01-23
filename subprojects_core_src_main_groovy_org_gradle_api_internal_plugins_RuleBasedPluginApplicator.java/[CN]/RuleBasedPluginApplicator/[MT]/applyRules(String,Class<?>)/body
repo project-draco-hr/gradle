@@ -1,3 +1,13 @@
 {
-  modelRuleSourceApplicator.apply(clazz,ModelPath.ROOT,target.getModelRegistry(),target.getPluginManager());
+  ModelRegistry modelRegistry=target.getModelRegistry();
+  Iterable<Class<? extends RuleSource>> declaredSources=ruleDetector.getDeclaredSources(clazz);
+  for (  Class<? extends RuleSource> ruleSource : declaredSources) {
+    List<ModelRuleRegistration> rules=ruleInspector.inspect(ruleSource);
+    for (    ModelRuleRegistration rule : rules) {
+      for (      Class<?> dependency : rule.getRuleDependencies()) {
+        target.getPluginManager().apply(dependency);
+      }
+      rule.applyTo(modelRegistry,ModelPath.ROOT);
+    }
+  }
 }
