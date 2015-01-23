@@ -8,14 +8,14 @@
     }
  else {
       boolean imperative=plugin.isImperative();
-      if (addPluginInternal(pluginClass)) {
+      if (addPluginInternal(plugin)) {
         if (imperative) {
           T instance=findInstance(pluginClass,pluginContainer);
           if (instance == null) {
             instance=instantiatePlugin(pluginClass);
           }
           Plugin<?> cast=Cast.uncheckedCast(instance);
-          instances.add(cast);
+          instances.put(pluginClass,cast);
           if (plugin.isHasRules()) {
             applicator.applyImperativeRulesHybrid(pluginIdStr,cast);
           }
@@ -31,7 +31,7 @@
       }
  else {
         if (imperative) {
-          T instance=findInstance(pluginClass,instances);
+          T instance=pluginClass.cast(instances.get(pluginClass));
           if (instance == null) {
             throw new IllegalStateException("Plugin of type " + pluginClass.getName() + " has been applied, but an instance wasn't found in the plugin container");
           }
