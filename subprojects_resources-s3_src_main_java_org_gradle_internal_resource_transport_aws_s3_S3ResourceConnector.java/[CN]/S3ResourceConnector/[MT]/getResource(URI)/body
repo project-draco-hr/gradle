@@ -1,5 +1,13 @@
 {
   LOGGER.debug("Attempting to get resource: {}",location);
-  S3Object s3Object=s3Client.getResource(location);
-  return new S3Resource(s3Object,location);
+  try {
+    S3Object s3Object=s3Client.getResource(location);
+    if (s3Object == null) {
+      return null;
+    }
+    return new S3Resource(s3Object,location);
+  }
+ catch (  S3Exception s3x) {
+    throw new UncheckedIOException(s3x.getMessage(),s3x);
+  }
 }

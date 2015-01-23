@@ -6,6 +6,9 @@
     return s3Service.getObjectDetails(bucketName,s3Key);
   }
  catch (  ServiceException e) {
-    throw new S3Exception(String.format("Could not get s3 meta-data: [%s]. %s",uri.toString(),e.getMessage()),e);
+    if (e.getResponseCode() == 404) {
+      return null;
+    }
+    throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s",uri.toString(),e.getErrorMessage()),e);
   }
 }

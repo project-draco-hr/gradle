@@ -4,7 +4,10 @@
     String bucketName=getBucketName(uri);
     return s3Service.getObject(bucketName,getS3BucketKey(uri));
   }
- catch (  ServiceException e) {
+ catch (  S3ServiceException e) {
+    if (e.getResponseCode() == 404) {
+      return null;
+    }
     throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s",uri.toString(),e.getErrorMessage()),e);
   }
 }
