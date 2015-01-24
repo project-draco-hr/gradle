@@ -1,7 +1,7 @@
 {
   PluginId pluginId=plugin.getPluginId();
   String pluginIdStr=pluginId == null ? null : pluginId.toString();
-  Class<? extends T> pluginClass=plugin.asClass();
+  Class<?> pluginClass=plugin.asClass();
   try {
     if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
       throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
@@ -10,34 +10,22 @@
       boolean imperative=plugin.isImperative();
       if (addPluginInternal(plugin)) {
         if (imperative) {
-          T instance=findInstance(pluginClass,pluginContainer);
+          Object instance=findInstance(pluginClass,pluginContainer);
           if (instance == null) {
             instance=instantiatePlugin(pluginClass);
           }
-          Plugin<?> cast=Cast.uncheckedCast(instance);
-          instances.put(pluginClass,cast);
+          Plugin<?> pluginInstance=Cast.uncheckedCast(instance);
+          instances.put(pluginClass,pluginInstance);
           if (plugin.isHasRules()) {
-            applicator.applyImperativeRulesHybrid(pluginIdStr,cast);
+            applicator.applyImperativeRulesHybrid(pluginIdStr,pluginInstance);
           }
  else {
-            applicator.applyImperative(pluginIdStr,cast);
+            applicator.applyImperative(pluginIdStr,pluginInstance);
           }
-          pluginContainer.add(cast);
-          return instance;
+          pluginContainer.add(pluginInstance);
         }
  else {
           applicator.applyRules(pluginIdStr,pluginClass);
-        }
-      }
- else {
-        if (imperative) {
-          T instance=pluginClass.cast(instances.get(pluginClass));
-          if (instance == null) {
-            throw new IllegalStateException("Plugin of type " + pluginClass.getName() + " has been applied, but an instance wasn't found in the plugin container");
-          }
- else {
-            return instance;
-          }
         }
       }
     }
@@ -48,5 +36,4 @@
 catch (  Exception e) {
     throw new PluginApplicationException(plugin.getDisplayName(),e);
   }
-  return null;
 }
