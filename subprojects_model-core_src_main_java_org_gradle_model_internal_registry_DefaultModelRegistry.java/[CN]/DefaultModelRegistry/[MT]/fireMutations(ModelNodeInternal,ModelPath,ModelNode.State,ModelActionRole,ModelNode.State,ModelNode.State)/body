@@ -3,21 +3,26 @@
   if (nodeState.ordinal() >= to.ordinal()) {
     return nodeState.ordinal() < desired.ordinal();
   }
-  node.setState(to);
-  while (!mutationBindersByActionRole.get(type).get(path).isEmpty()) {
-    forceBind(mutationBindersByActionRole.get(type).get(path).iterator().next());
-  }
-  Collection<BoundModelMutator<?>> mutators=this.actions.removeAll(new MutationKey(path,type));
-  for (  BoundModelMutator<?> mutator : mutators) {
-    fireMutation(node,mutator);
-    List<ModelPath> inputPaths=Lists.transform(mutator.getInputs(),new Function<ModelBinding<?>,ModelPath>(){
-      @Nullable public ModelPath apply(      ModelBinding<?> input){
-        return input.getPath();
-      }
+  while (true) {
+    while (!mutationBindersByActionRole.get(type).get(path).isEmpty()) {
+      forceBind(mutationBindersByActionRole.get(type).get(path).iterator().next());
     }
+    Collection<BoundModelMutator<?>> mutators=this.actions.removeAll(new MutationKey(path,type));
+    if (mutators.isEmpty()) {
+      break;
+    }
+    for (    BoundModelMutator<?> mutator : mutators) {
+      fireMutation(node,mutator);
+      List<ModelPath> inputPaths=Lists.transform(mutator.getInputs(),new Function<ModelBinding<?>,ModelPath>(){
+        @Nullable public ModelPath apply(        ModelBinding<?> input){
+          return input.getPath();
+        }
+      }
 );
-    usedActions.put(path,inputPaths);
+      usedActions.put(path,inputPaths);
+    }
   }
+  node.setState(to);
   if (to == desired) {
     LOGGER.debug("Finished transitioning model element {} from state {} to {}",path,originalState.name(),desired.name());
     return false;
