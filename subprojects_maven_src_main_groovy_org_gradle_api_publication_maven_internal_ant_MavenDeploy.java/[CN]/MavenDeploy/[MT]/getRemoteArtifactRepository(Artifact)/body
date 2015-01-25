@@ -1,9 +1,11 @@
 {
+  RemoteRepository deploymentRepository=remoteRepository;
   if (artifact.isSnapshot() && remoteSnapshotRepository != null) {
-    return createDeploymentArtifactRepository(remoteSnapshotRepository);
+    deploymentRepository=remoteSnapshotRepository;
   }
-  if (remoteRepository == null) {
+  if (deploymentRepository == null) {
     throw new GradleException("Must specify a repository for deployment");
   }
-  return createDeploymentArtifactRepository(remoteRepository);
+  initWagonManagerWithRepositorySettings("remote",deploymentRepository);
+  return new DefaultArtifactRepository("remote",deploymentRepository.getUrl(),new DefaultRepositoryLayout(),uniqueVersion);
 }
