@@ -1,0 +1,15 @@
+{
+  final MavenPublicationInternal publication=getPublicationInternal();
+  if (publication == null) {
+    throw new InvalidUserDataException("The 'publication' property is required");
+  }
+  new PublishOperation(publication,"mavenLocal"){
+    @Override protected void publish() throws Exception {
+      MavenPublisher antBackedPublisher=new AntTaskBackedMavenLocalPublisher(getLoggingManagerFactory(),getMavenRepositoryLocator());
+      MavenPublisher staticLockingPublisher=new StaticLockingMavenPublisher(antBackedPublisher);
+      MavenPublisher validatingPublisher=new ValidatingMavenPublisher(staticLockingPublisher);
+      validatingPublisher.publish(publication.asNormalisedPublication(),null);
+    }
+  }
+.run();
+}
