@@ -1,0 +1,20 @@
+{
+  if (systemProperties.containsKey("maven.repo.local")) {
+    return new File(systemProperties.get("maven.repo.local"));
+  }
+  try {
+    Settings settings=settingsProvider.buildSettings();
+    String repoPath=settings.getLocalRepository();
+    if (repoPath != null) {
+      return new File(resolvePlaceholders(repoPath.trim()));
+    }
+ else {
+      File defaultLocation=new File(System.getProperty("user.home"),"/.m2/repository").getAbsoluteFile();
+      LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s",defaultLocation));
+      return defaultLocation;
+    }
+  }
+ catch (  SettingsBuildingException e) {
+    throw new CannotLocateLocalMavenRepositoryException("Unable to parse local Maven settings.",e);
+  }
+}
