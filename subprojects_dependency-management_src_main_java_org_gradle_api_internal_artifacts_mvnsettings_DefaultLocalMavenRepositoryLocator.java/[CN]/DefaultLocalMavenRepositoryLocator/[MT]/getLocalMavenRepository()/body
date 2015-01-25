@@ -1,7 +1,20 @@
 {
-  if (localMavenRepository != null) {
-    return localMavenRepository;
+  String localOverride=system.getProperty("maven.repo.local");
+  if (localOverride != null) {
+    return new File(localOverride);
   }
-  localMavenRepository=determineLocalMavenRepository();
-  return localMavenRepository;
+  try {
+    String repoPath=parseLocalRepoPathFromMavenSettings();
+    if (repoPath != null) {
+      return new File(resolvePlaceholders(repoPath.trim()));
+    }
+ else {
+      File defaultLocation=new File(system.getProperty("user.home"),"/.m2/repository").getAbsoluteFile();
+      LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s",defaultLocation));
+      return defaultLocation;
+    }
+  }
+ catch (  SettingsBuildingException e) {
+    throw new CannotLocateLocalMavenRepositoryException("Unable to parse local Maven settings.",e);
+  }
 }
