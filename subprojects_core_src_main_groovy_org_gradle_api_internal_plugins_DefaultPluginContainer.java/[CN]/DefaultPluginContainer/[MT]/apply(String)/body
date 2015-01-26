@@ -1,12 +1,12 @@
 {
-  PotentialPluginWithId potentialPlugin=pluginRegistry.lookup(id);
-  if (potentialPlugin == null) {
+  PluginImplementation plugin=pluginRegistry.lookup(PluginId.unvalidated(id));
+  if (plugin == null) {
     throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
   }
-  if (!potentialPlugin.isImperative()) {
-    throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
+  if (!Plugin.class.isAssignableFrom(plugin.asClass())) {
+    throw new IllegalArgumentException("Plugin implementation '" + plugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
   }
  else {
-    return pluginManager.addImperativePlugin(potentialPlugin.getPluginId().toString(),potentialPlugin.asClass());
+    return pluginManager.addImperativePlugin(plugin);
   }
 }

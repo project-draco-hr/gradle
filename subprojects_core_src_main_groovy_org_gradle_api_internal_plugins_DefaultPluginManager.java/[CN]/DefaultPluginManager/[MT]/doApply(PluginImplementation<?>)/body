@@ -1,0 +1,39 @@
+{
+  PluginId pluginId=plugin.getPluginId();
+  String pluginIdStr=pluginId == null ? null : pluginId.toString();
+  Class<?> pluginClass=plugin.asClass();
+  try {
+    if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
+      throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
+    }
+ else {
+      boolean imperative=plugin.isImperative();
+      if (addPluginInternal(plugin)) {
+        if (imperative) {
+          Object instance=findInstance(pluginClass,pluginContainer);
+          if (instance == null) {
+            instance=instantiatePlugin(pluginClass);
+          }
+          Plugin<?> pluginInstance=Cast.uncheckedCast(instance);
+          instances.put(pluginClass,pluginInstance);
+          if (plugin.isHasRules()) {
+            applicator.applyImperativeRulesHybrid(pluginIdStr,pluginInstance);
+          }
+ else {
+            applicator.applyImperative(pluginIdStr,pluginInstance);
+          }
+          pluginContainer.add(pluginInstance);
+        }
+ else {
+          applicator.applyRules(pluginIdStr,pluginClass);
+        }
+      }
+    }
+  }
+ catch (  PluginApplicationException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new PluginApplicationException(plugin.getDisplayName(),e);
+  }
+}
