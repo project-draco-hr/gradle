@@ -6,20 +6,22 @@
     }
     ArtifactId artifactId=rule.getId();
     ModuleId moduleId=artifactId.getModuleId();
-    boolean wildcardOrganisation=isWildcard(moduleId.getOrganisation());
-    boolean wildcardModule=isWildcard(moduleId.getName());
-    boolean wildcardArtifact=isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
-    if (wildcardOrganisation && wildcardModule) {
-      excludeSpecs.add(new ExcludeRuleSpec(rule));
-    }
- else     if (wildcardOrganisation) {
-      excludeSpecs.add(new ModuleNameSpec(moduleId.getName()));
-    }
- else     if (wildcardModule) {
-      excludeSpecs.add(new GroupNameSpec(moduleId.getOrganisation()));
-    }
- else     if (wildcardArtifact) {
-      excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(),moduleId.getName()));
+    boolean anyOrganisation=isWildcard(moduleId.getOrganisation());
+    boolean anyModule=isWildcard(moduleId.getName());
+    boolean anyArtifact=isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
+    if (anyArtifact) {
+      if (!anyOrganisation && !anyModule) {
+        excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(),moduleId.getName()));
+      }
+ else       if (!anyModule) {
+        excludeSpecs.add(new ModuleNameSpec(moduleId.getName()));
+      }
+ else       if (!anyOrganisation) {
+        excludeSpecs.add(new GroupNameSpec(moduleId.getOrganisation()));
+      }
+ else {
+        excludeSpecs.add(new ExcludeRuleSpec(rule));
+      }
     }
  else {
       excludeSpecs.add(new ExcludeRuleSpec(rule));
