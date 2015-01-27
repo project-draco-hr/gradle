@@ -1,0 +1,17 @@
+{
+  List<ModelView<?>> inputs=toViews(boundMutator.getInputs(),boundMutator.getMutator().getDescriptor());
+  ModelNodeInternal node=boundMutator.getSubject();
+  ModelAction<T> mutator=boundMutator.getMutator();
+  ModelRuleDescriptor descriptor=mutator.getDescriptor();
+  LOGGER.debug("Mutating {} using {}",node.getPath(),mutator.getDescriptor());
+  ModelView<? extends T> view=assertView(node,boundMutator.getSubjectReference(),descriptor,inputs);
+  try {
+    mutator.execute(node,view.getInstance(),inputs);
+  }
+ catch (  Exception e) {
+    throw new ModelRuleExecutionException(descriptor,e);
+  }
+ finally {
+    view.close();
+  }
+}
