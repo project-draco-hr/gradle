@@ -1,18 +1,31 @@
 {
-  final List<File> grammarFiles=new ArrayList<File>();
+  final Set<File> grammarFiles=new HashSet<File>();
   final Set<File> sourceFiles=getSource().getFiles();
+  final AtomicBoolean cleanRebuild=new AtomicBoolean();
   inputs.outOfDate(new Action<InputFileDetails>(){
     public void execute(    InputFileDetails details){
       File input=details.getFile();
-      for (      File file : sourceFiles) {
-        if (file.getAbsolutePath().equals(input.getAbsolutePath())) {
-          grammarFiles.add(input);
-          break;
-        }
+      if (sourceFiles.contains(input)) {
+        grammarFiles.add(input);
+      }
+ else {
+        cleanRebuild.set(true);
       }
     }
   }
 );
+  inputs.removed(new Action<InputFileDetails>(){
+    @Override public void execute(    InputFileDetails details){
+      if (details.isRemoved()) {
+        cleanRebuild.set(true);
+      }
+    }
+  }
+);
+  if (cleanRebuild.get()) {
+    GFileUtils.cleanDirectory(outputDirectory);
+    grammarFiles.addAll(sourceFiles);
+  }
   List<String> args=buildArguments(grammarFiles);
   AntlrWorkerManager manager=new AntlrWorkerManager();
   AntlrSpec spec=new AntlrSpec(args,maxHeapSize);
