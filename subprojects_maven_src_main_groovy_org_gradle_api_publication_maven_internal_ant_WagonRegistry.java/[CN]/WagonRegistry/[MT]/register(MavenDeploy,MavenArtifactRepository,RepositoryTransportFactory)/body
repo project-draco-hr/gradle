@@ -1,0 +1,26 @@
+{
+  PlexusContainer container=mavenDeploy.getContainer();
+  String protocol=artifactRepository.getUrl().getScheme().toLowerCase();
+  if (wagonDeployments.contains(protocol)) {
+    try {
+      WagonManager wagonManager=(WagonManager)container.lookup(WagonManager.ROLE);
+      ComponentDescriptor componentDescriptor=new ComponentDescriptor();
+      componentDescriptor.setRole(Wagon.ROLE);
+      componentDescriptor.setRoleHint(protocol);
+      componentDescriptor.setImplementation(RepositoryTransportDeployWagon.class.getCanonicalName());
+      componentDescriptor.setInstantiationStrategy(SINGLETON_INSTANTIATION_STRATEGY);
+      container.addComponentDescriptor(componentDescriptor);
+      RepositoryTransportDeployWagon wagon=(RepositoryTransportDeployWagon)wagonManager.getWagon(protocol);
+      wagon.createDelegate(protocol,artifactRepository,repositoryTransportFactory);
+    }
+ catch (    ComponentLookupException e) {
+      throwWagonException(FAILED_TO_REGISTER_WAGON,e);
+    }
+catch (    UnsupportedProtocolException e) {
+      throwWagonException(FAILED_TO_REGISTER_WAGON,e);
+    }
+catch (    ComponentRepositoryException e) {
+      throwWagonException(FAILED_TO_REGISTER_WAGON,e);
+    }
+  }
+}
