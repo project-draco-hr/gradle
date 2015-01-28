@@ -1,10 +1,10 @@
 {
-  Transformer<Iterable<ModelPath>,BoundModelMutator<?>> extractInputPaths=new Transformer<Iterable<ModelPath>,BoundModelMutator<?>>(){
-    public Iterable<ModelPath> transform(    BoundModelMutator<?> boundModelMutator){
-      return Iterables.transform(boundModelMutator.getInputs(),ModelBinding.GetPath.INSTANCE);
+  Collection<ModelNodeInternal> allNodes=modelGraph.getFlattened().values();
+  Iterable<ModelPath> allDependedUpon=Iterables.concat(Iterables.transform(allNodes,new Function<ModelNodeInternal,Iterable<ModelPath>>(){
+    @Override public Iterable<ModelPath> apply(    ModelNodeInternal input){
+      return input.getMutationDependencies();
     }
   }
-;
-  Transformer<List<ModelPath>,List<ModelPath>> passThrough=Transformers.noOpTransformer();
-  return hasModelPath(candidate,actions.values(),extractInputPaths) || hasModelPath(candidate,usedActions.values(),passThrough);
+));
+  return Iterables.any(allDependedUpon,Predicates.equalTo(candidate)) || Iterables.any(Iterables.concat(usedActions.values()),Predicates.equalTo(candidate));
 }
