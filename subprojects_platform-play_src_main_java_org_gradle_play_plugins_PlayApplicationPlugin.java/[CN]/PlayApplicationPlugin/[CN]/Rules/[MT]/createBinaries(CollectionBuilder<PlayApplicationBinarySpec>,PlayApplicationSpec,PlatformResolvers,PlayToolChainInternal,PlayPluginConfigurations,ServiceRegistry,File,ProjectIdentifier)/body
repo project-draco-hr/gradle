@@ -18,7 +18,12 @@
       configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar","assets",new Date(),assetsJar,playBinaryInternal));
       JvmClasses classes=playBinary.getClasses();
       classes.setClassesDir(new File(binaryBuildDir,"classes"));
-      classes.addResourceDir(new File(projectIdentifier.getProjectDir(),"conf"));
+      DomainObjectSet<JvmResourceSet> jvmResourceSets=componentSpec.getSource().withType(JvmResourceSet.class);
+      for (      JvmResourceSet jvmResourceSet : jvmResourceSets) {
+        for (        File resourceDir : jvmResourceSet.getSource()) {
+          classes.addResourceDir(resourceDir);
+        }
+      }
       PublicAssets assets=playBinary.getAssets();
       assets.addAssetDir(new File(projectIdentifier.getProjectDir(),"public"));
       ScalaLanguageSourceSet genSources=BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class,"genSources",binaryName,fileResolver,instantiator);
