@@ -1,16 +1,19 @@
 {
-  if (!includeSubProjects) {
-    realizeTasks(project);
-    TaskInternal task=(TaskInternal)project.getTasks().findByName(name);
-    if (task != null) {
-      return new FixedTaskSelectionResult(Collections.<Task>singleton(task));
+  if (includeSubProjects) {
+    Set<Task> tasks=Sets.newLinkedHashSet();
+    new MultiProjectTaskSelectionResult(taskName,project).collectTasks(tasks);
+    if (!tasks.isEmpty()) {
+      return new FixedTaskSelectionResult(tasks);
     }
   }
  else {
-    LinkedHashSet<Task> tasks=new LinkedHashSet<Task>();
-    new MultiProjectTaskSelectionResult(name,project).collectTasks(tasks);
-    if (!tasks.isEmpty()) {
-      return new FixedTaskSelectionResult(tasks);
+    if (hasTask(taskName,project)) {
+      return new TaskSelectionResult(){
+        @Override public void collectTasks(        Collection<? super Task> tasks){
+          tasks.add(getTask(project,taskName));
+        }
+      }
+;
     }
   }
   return null;

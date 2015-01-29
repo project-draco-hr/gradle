@@ -2,7 +2,25 @@
   BinaryContainer binaries=ModelViews.assertType(inputs.get(0),ModelType.of(BinaryContainer.class)).getInstance();
   for (  T binary : binaries.withType(binaryType)) {
     NamedEntityInstantiator<Task> instantiator=new Instantiator(binary,container);
-    DefaultCollectionBuilder<Task> collectionBuilder=new DefaultCollectionBuilder<Task>(ModelType.of(Task.class),instantiator,container,getDescriptor(),modelNode);
+    DefaultCollectionBuilder<Task> collectionBuilder=new DefaultCollectionBuilder<Task>(ModelType.of(Task.class),instantiator,container,getDescriptor(),modelNode){
+      @Override public void create(      String name){
+        super.create(name);
+        get(name);
+      }
+      @Override public void create(      String name,      Action<? super Task> configAction){
+        super.create(name,configAction);
+        get(name);
+      }
+      @Override public <S extends Task>void create(      String name,      Class<S> type){
+        super.create(name,type);
+        get(name);
+      }
+      @Override public <S extends Task>void create(      String name,      Class<S> type,      Action<? super S> configAction){
+        super.create(name,type,configAction);
+        get(name);
+      }
+    }
+;
     invoke(inputs,collectionBuilder,binary,binaries);
   }
 }
