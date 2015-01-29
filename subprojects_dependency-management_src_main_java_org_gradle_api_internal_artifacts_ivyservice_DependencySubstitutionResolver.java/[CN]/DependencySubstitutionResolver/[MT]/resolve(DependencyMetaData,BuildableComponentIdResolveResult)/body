@@ -1,0 +1,16 @@
+{
+  DependencyResolveDetailsInternal<? extends ComponentSelector> details=new DefaultDependencyResolveDetails<ComponentSelector>(dependency.getSelector(),dependency.getRequested());
+  try {
+    rule.execute(details);
+  }
+ catch (  Throwable e) {
+    result.failed(new ModuleVersionResolveException(dependency.getSelector(),Arrays.asList(e)));
+    return;
+  }
+  if (details.isUpdated()) {
+    resolver.resolve(dependency.withTarget(details.getTarget()),result);
+    result.setSelectionReason(details.getSelectionReason());
+    return;
+  }
+  resolver.resolve(dependency,result);
+}
