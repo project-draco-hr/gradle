@@ -2,11 +2,15 @@
   try {
     RuleMethodDataCollector dataCollector=new RuleMethodDataCollector();
     verifyMethodSignature(dataCollector,ruleDefinition);
-    Class<S> binaryType=dataCollector.getParameterType(BinarySpec.class);
-    ModelReference<TaskContainer> tasks=ModelReference.of(ModelPath.path("tasks"),ModelType.of(TaskContainer.class));
-    BinaryTaskRule<R,S> binaryTaskRule=new BinaryTaskRule<R,S>(tasks,binaryType,ruleDefinition);
+    final Class<S> binaryType=dataCollector.getParameterType(BinarySpec.class);
+    final BinaryTaskRule<R,S> binaryTaskRule=new BinaryTaskRule<R,S>(binaryType,ruleDefinition);
     ImmutableList<ModelType<?>> dependencies=ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
-    return new ExtractedModelMutator(ModelActionRole.Mutate,binaryTaskRule,dependencies);
+    return new ExtractedModelMutator(ModelActionRole.Defaults,dependencies,DirectNodeModelAction.of(ModelReference.of("binaries"),new SimpleModelRuleDescriptor("binaries*.create()"),new Action<MutableModelNode>(){
+      @Override public void execute(      MutableModelNode modelNode){
+        modelNode.applyToAllLinks(ModelActionRole.Finalize,binaryTaskRule);
+      }
+    }
+));
   }
  catch (  InvalidModelException e) {
     throw invalidModelRule(ruleDefinition,e);
