@@ -3,17 +3,10 @@
   if (nodeState.ordinal() >= to.ordinal()) {
     return nodeState.ordinal() < desired.ordinal();
   }
-  while (true) {
-    while (!mutationBindersByActionRole.get(type).get(path).isEmpty()) {
-      forceBind(mutationBindersByActionRole.get(type).get(path).iterator().next());
-    }
-    List<BoundModelMutator<?>> mutators=node.removeMutators(type);
-    if (mutators.isEmpty()) {
-      break;
-    }
-    for (    BoundModelMutator<?> mutator : mutators) {
-      fireMutation(mutator);
-    }
+  flushPendingMutatorBinders();
+  for (  MutatorRuleBinder<?> binder : node.getMutatorBinders(type)) {
+    forceBind(binder);
+    fireMutation(binder);
   }
   node.setState(to);
   if (to == desired) {
