@@ -14,8 +14,14 @@
       }
     }
 );
+    tasks.named("stage",new Action<Task>(){
+      @Override public void execute(      Task task){
+        task.dependsOn(stageTaskName);
+      }
+    }
+);
     final Task stageTask=tasks.get(stageTaskName);
-    String distributionTaskName=String.format("create%sDist",StringUtils.capitalize(distribution.getName()));
+    final String distributionTaskName=String.format("create%sDist",StringUtils.capitalize(distribution.getName()));
     tasks.create(distributionTaskName,Zip.class,new Action<Zip>(){
       @Override public void execute(      final Zip zip){
         zip.setDescription("Bundles the play binary as a distribution.");
@@ -23,6 +29,12 @@
         zip.setArchiveName(String.format("%s.zip",baseName));
         zip.setDestinationDir(new File(buildDir,"distributions"));
         zip.from(stageTask);
+      }
+    }
+);
+    tasks.named("dist",new Action<Task>(){
+      @Override public void execute(      Task task){
+        task.dependsOn(distributionTaskName);
       }
     }
 );
