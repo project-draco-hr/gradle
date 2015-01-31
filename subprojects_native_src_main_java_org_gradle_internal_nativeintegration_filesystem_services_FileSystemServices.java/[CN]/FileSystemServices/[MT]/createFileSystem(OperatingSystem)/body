@@ -2,15 +2,15 @@
   if (operatingSystem.isWindows()) {
     return new GenericFileSystem(new EmptyChmod(),new FallbackStat(),new WindowsSymlink());
   }
-  try {
-    PosixFiles posixFiles=net.rubygrapefruit.platform.Native.get(PosixFiles.class);
+  PosixFiles posixFiles=nativeServices.getInitialized().get(PosixFiles.class);
+  if (posixFiles instanceof UnavailablePosixFiles) {
+    LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
+  }
+ else {
     Symlink symlink=new NativePlatformBackedSymlink(posixFiles);
     FileModeMutator chmod=new NativePlatformBackedChmod(posixFiles);
     FileModeAccessor stat=new NativePlatformBackedStat(posixFiles);
     return new GenericFileSystem(chmod,stat,symlink);
-  }
- catch (  NativeIntegrationUnavailableException ex) {
-    LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
   }
   LOGGER.debug("Using UnsupportedSymlink implementation.");
   Symlink symlink=new UnsupportedSymlink();
