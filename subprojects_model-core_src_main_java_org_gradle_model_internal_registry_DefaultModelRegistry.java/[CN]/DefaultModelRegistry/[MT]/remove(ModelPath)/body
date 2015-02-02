@@ -1,6 +1,12 @@
 {
-  if (isDependedOn(path)) {
-    throw new RuntimeException("Tried to remove model " + path + " but it is depended on by other model elements");
+  ModelNodeInternal node=modelGraph.find(path);
+  if (node == null) {
+    return;
   }
-  modelGraph.remove(path);
+  if (Iterables.isEmpty(node.getDependents())) {
+    modelGraph.remove(node);
+  }
+ else {
+    throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: "+ Joiner.on(", ").join(node.getDependents()));
+  }
 }
