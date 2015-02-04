@@ -1,14 +1,18 @@
 {
-  doCreate(name,type,new Factory<S>(){
-    @Override public S create(){
-      return instantiator.create(name,type.getConcreteClass());
+  ModelRuleDescriptor descriptor=new NestedModelRuleDescriptor(sourceDescriptor,ActionModelRuleDescriptor.from(new ErroringAction<Appendable>(){
+    @Override protected void doExecute(    Appendable thing) throws Exception {
+      thing.append("create(").append(name).append(")");
     }
   }
-,new Action<S>(){
+));
+  ModelCreators.Builder creatorBuilder=creatorFunction.apply(modelNode.getPath().child(name),type);
+  ModelCreator creator=creatorBuilder.withProjection(new UnmanagedModelProjection<S>(type,true,true)).descriptor(descriptor).build();
+  modelNode.addLink(creator);
+  modelNode.applyToLink(ModelActionRole.Initialize,new ActionBackedModelAction<S>(ModelReference.of(creator.getPath(),type),descriptor,new Action<S>(){
     @Override public void execute(    S s){
-      configAction.execute(s);
+      initAction.execute(s);
       target.add(s);
     }
   }
-);
+));
 }

@@ -3,14 +3,14 @@
     return uncheckedCast(this);
   }
   if (elementType.getConcreteClass().isAssignableFrom(type)) {
-    NamedEntityInstantiator<? super S> castInstantiator=uncheckedCast(instantiator);
-    Collection<? super S> castTarget=uncheckedCast(target);
-    return new DefaultCollectionBuilder<S>(ModelType.of(type),castInstantiator,castTarget,sourceDescriptor,modelNode);
+    Class<? extends T> castType=uncheckedCast(type);
+    CollectionBuilder<? extends T> subType=toSubType(castType);
+    return uncheckedCast(subType);
   }
-  return new DefaultCollectionBuilder<S>(ModelType.of(type),new NamedEntityInstantiator<S>(){
-    @Override public <U extends S>U create(    String name,    Class<U> type){
-      throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.",type.getName(),elementType.toString()));
+  return new DefaultCollectionBuilder<S>(ModelType.of(type),ImmutableList.<S>of(),sourceDescriptor,modelNode,new BiFunction<ModelCreators.Builder,ModelPath,ModelType<? extends S>>(){
+    @Override public ModelCreators.Builder apply(    ModelPath s,    ModelType<? extends S> modelType){
+      throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.",modelType,elementType.toString()));
     }
   }
-,ImmutableList.<S>of(),sourceDescriptor,modelNode);
+);
 }
