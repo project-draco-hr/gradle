@@ -5,6 +5,7 @@
     ModelPath path=MODEL_PATH.child(placeholderName);
     modelNode.addLink(ModelCreators.of(ModelReference.of(path),new BiAction<MutableModelNode,List<ModelView<?>>>(){
       @Override public void execute(      MutableModelNode mutableModelNode,      List<ModelView<?>> inputs){
+        NamedEntityInstantiator<Task> instantiator=ModelViews.getInstance(inputs.get(0),instantiatorReference);
         final T task=instantiator.create(placeholderName,taskType);
         configure.execute(task);
         DeprecationLogger.whileDisabled(new Runnable(){
@@ -16,6 +17,6 @@
         mutableModelNode.setPrivateData(taskModelType,task);
       }
     }
-).withProjection(new UnmanagedModelProjection<T>(taskModelType,true,true)).descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")")).build());
+).inputs(instantiatorReference).withProjection(new UnmanagedModelProjection<T>(taskModelType,true,true)).descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")")).build());
   }
 }
