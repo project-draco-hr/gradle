@@ -1,6 +1,5 @@
 {
-  if (!hasTaskNode(placeholderName)) {
-    placeholders.add(placeholderName);
+  if (!modelNode.hasLink(placeholderName)) {
     final ModelType<T> taskModelType=ModelType.of(taskType);
     ModelPath path=MODEL_PATH.child(placeholderName);
     modelNode.addLink(ModelCreators.of(ModelReference.of(path),new BiAction<MutableModelNode,List<ModelView<?>>>(){
@@ -10,7 +9,7 @@
         configure.execute(task);
         DeprecationLogger.whileDisabled(new Runnable(){
           @Override public void run(){
-            add(task);
+            modelNode.getPrivateData(ModelType.of(TaskContainerInternal.class)).add(task);
           }
         }
 );
@@ -18,5 +17,8 @@
       }
     }
 ).inputs(instantiatorReference).withProjection(new UnmanagedModelProjection<T>(taskModelType,true,true)).descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")")).build());
+  }
+  if (findByNameWithoutRules(placeholderName) == null) {
+    placeholders.add(placeholderName);
   }
 }
