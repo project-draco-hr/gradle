@@ -1,0 +1,19 @@
+{
+  if (target instanceof ModuleComponentSelector) {
+    ModuleComponentSelector moduleTarget=(ModuleComponentSelector)target;
+    ModuleVersionSelector requestedVersion=DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(),moduleTarget.getModule(),moduleTarget.getVersion());
+    if (requestedVersion.equals(requested)) {
+      return this;
+    }
+    ModuleRevisionId requestedId=IvyUtil.createModuleRevisionId(requestedVersion.getGroup(),requestedVersion.getName(),requestedVersion.getVersion());
+    DependencyDescriptor substitutedDescriptor=new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor,requestedId);
+    return new DefaultDependencyMetaData(substitutedDescriptor);
+  }
+ else   if (target instanceof ProjectComponentSelector) {
+    ProjectComponentSelector projectTarget=(ProjectComponentSelector)target;
+    return new DefaultProjectDependencyMetaData(getDescriptor(),projectTarget.getProjectPath());
+  }
+ else {
+    throw new AssertionError();
+  }
+}
