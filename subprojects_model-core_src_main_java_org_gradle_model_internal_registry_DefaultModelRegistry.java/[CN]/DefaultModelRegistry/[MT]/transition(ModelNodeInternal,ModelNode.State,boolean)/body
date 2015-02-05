@@ -1,15 +1,49 @@
 {
   ModelPath path=node.getPath();
-  if (!transitionedNodes.add(path)) {
-    List<ModelPath> transitionedNodesList=Lists.newArrayList(transitionedNodes);
-    List<ModelPath> cycleElements=transitionedNodesList.subList(transitionedNodesList.indexOf(path),transitionedNodesList.size());
-    cycleElements.add(path);
-    throw new ConfigurationCycleException("A cycle in model rule dependencies has been detected. Nodes forming the cycle: " + Joiner.on(" -> ").join(cycleElements));
+  ModelNode.State state=node.getState();
+  LOGGER.debug("Transitioning model element '{}' from state {} to {}",path,state.name(),desired.name());
+  if (desired.ordinal() < state.ordinal()) {
+    if (laterOk) {
+      return;
+    }
+ else {
+      throw new IllegalStateException("Cannot lifecycle model node '" + path + "' to state "+ desired.name()+ " as it is already at "+ state.name());
+    }
   }
-  try {
-    performTransition(node,desired,laterOk);
+  if (state == desired) {
+    return;
   }
-  finally {
-    transitionedNodes.remove(path);
+  if (state == Known && desired.ordinal() >= Created.ordinal()) {
+    CreatorRuleBinder creatorBinder=node.getCreatorBinder();
+    if (creatorBinder != null) {
+      forceBind(creatorBinder);
+    }
+    doCreate(node,creatorBinder);
+    node.setState(Created);
+    if (desired == Created) {
+      return;
+    }
   }
+  if (!fireMutations(node,path,state,Defaults,DefaultsApplied,desired)) {
+    return;
+  }
+  if (!fireMutations(node,path,state,Initialize,Initialized,desired)) {
+    return;
+  }
+  if (!fireMutations(node,path,state,Mutate,Mutated,desired)) {
+    return;
+  }
+  if (!fireMutations(node,path,state,Finalize,Finalized,desired)) {
+    return;
+  }
+  if (!fireMutations(node,path,state,Validate,SelfClosed,desired)) {
+    return;
+  }
+  if (desired.ordinal() >= GraphClosed.ordinal()) {
+    for (    ModelNodeInternal child : node.getLinks()) {
+      close(child);
+    }
+    node.setState(GraphClosed);
+  }
+  LOGGER.debug("Finished transitioning model element {} from state {} to {}",path,state.name(),desired.name());
 }
