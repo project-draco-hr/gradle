@@ -1,11 +1,14 @@
 {
-  ITaskFactory taskFactory=ModelViews.assertType(inputs.get(0),ModelType.of(ITaskFactory.class)).getInstance();
-  NamedEntityInstantiator<Task> instantiator=new Instantiator(binary,taskFactory);
-  DefaultCollectionBuilder<Task> collectionBuilder=new DefaultCollectionBuilder<Task>(ModelType.of(Task.class),binary.getTasks(),getDescriptor(),modelNode,instantiator){
-    @Override protected <S extends Task>void onCreate(    String name,    ModelType<S> type){
-      get(name);
+  DefaultCollectionBuilder<TaskInternal> collectionBuilder=new DefaultCollectionBuilder<TaskInternal>(ModelType.of(TaskInternal.class),binary.getTasks(),getDescriptor(),modelNode,ModelReference.of(ITaskFactory.class)){
+    @Override protected <S extends TaskInternal>void onCreate(    final String name,    ModelType<S> type){
+      Task task=get(name);
+      binary.builtBy(task);
     }
   }
 ;
-  invoke(inputs,collectionBuilder,binary,taskFactory);
+  CollectionBuilder<Task> cast=Cast.uncheckedCast(collectionBuilder);
+  List<ModelView<?>> inputsWithBinary=new ArrayList<ModelView<?>>(inputs.size() + 1);
+  inputsWithBinary.addAll(inputs);
+  inputsWithBinary.add(new InstanceModelView<T>(getSubject().getPath(),getSubject().getType(),binary));
+  invoke(inputsWithBinary,cast,binary,binary);
 }
