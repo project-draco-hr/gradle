@@ -1,18 +1,18 @@
 {
   List<String> errors=Lists.newArrayList();
   loadCompilerClasses(getClass().getClassLoader());
-  JavaMethod fromCodeJavaMethod=JavaReflectionUtil.staticMethod(sourceFileClass,Object.class,"fromCode",String.class,String.class);
+  JavaMethod<?,Object> fromCodeJavaMethod=JavaReflectionUtil.staticMethod(sourceFileClass,Object.class,"fromCode",String.class,String.class);
   Object extern=fromCodeJavaMethod.invokeStatic("/dev/null","");
-  JavaMethod fromFileJavaMethod=JavaReflectionUtil.staticMethod(sourceFileClass,Object.class,"fromFile",File.class);
+  JavaMethod<?,Object> fromFileJavaMethod=JavaReflectionUtil.staticMethod(sourceFileClass,Object.class,"fromFile",File.class);
   Object sourceFile=fromFileJavaMethod.invokeStatic(javascriptFile.getFile());
   Factory<?> compilerOptionsFactory=JavaReflectionUtil.factory(new DirectInstantiator(),compilerOptionsClass);
   Object compilerOptions=compilerOptionsFactory.create();
-  Enum simpleLevel=Enum.valueOf(compilationLevelClass,"SIMPLE_OPTIMIZATIONS");
-  JavaMethod setOptionsForCompilationLevelMethod=JavaReflectionUtil.method(compilationLevelClass,Void.class,"setOptionsForCompilationLevel",compilerOptionsClass);
+  @SuppressWarnings({"rawtypes","unchecked"}) Enum simpleLevel=Enum.valueOf(compilationLevelClass,"SIMPLE_OPTIMIZATIONS");
+  @SuppressWarnings("rawtypes") JavaMethod<Enum,Void> setOptionsForCompilationLevelMethod=JavaReflectionUtil.method(compilationLevelClass,Void.class,"setOptionsForCompilationLevel",compilerOptionsClass);
   setOptionsForCompilationLevelMethod.invoke(simpleLevel,compilerOptions);
   Factory<?> compilerFactory=JavaReflectionUtil.factory(new DirectInstantiator(),compilerClass,getDummyPrintStream());
   Object compiler=compilerFactory.create();
-  JavaMethod compileMethod=JavaReflectionUtil.method(compilerClass,Object.class,"compile",sourceFileClass,sourceFileClass,compilerOptionsClass);
+  JavaMethod<Object,Object> compileMethod=JavaReflectionUtil.method(compilerClass,Object.class,"compile",sourceFileClass,sourceFileClass,compilerOptionsClass);
   Object result=compileMethod.invoke(compiler,extern,sourceFile,compilerOptions);
   PropertyAccessor<Object,Object[]> jsErrorsField=JavaReflectionUtil.readableField(result,Object[].class,"errors");
   Object[] jsErrors=jsErrorsField.getValue(result);
