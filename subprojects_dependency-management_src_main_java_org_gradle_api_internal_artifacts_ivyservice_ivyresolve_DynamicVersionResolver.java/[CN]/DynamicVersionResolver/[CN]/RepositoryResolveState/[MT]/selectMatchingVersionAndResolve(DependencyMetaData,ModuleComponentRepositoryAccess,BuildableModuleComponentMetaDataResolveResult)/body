@@ -1,14 +1,15 @@
 {
   BuildableComponentSelectionResult componentSelectionResult=new DefaultBuildableComponentSelectionResult();
   componentChooser.choose(versionListingResult.getVersions(),dynamicVersionDependency,moduleAccess,componentSelectionResult);
-switch (componentSelectionResult.getReason()) {
-case NO_MATCH:
+switch (componentSelectionResult.getState()) {
+case NoMatch:
     resolveResult.missing();
   resolveResult.setAuthoritative(versionListingResult.isAuthoritative());
 break;
-case MATCH:
-DependencyMetaData staticVersionDependency=dynamicVersionDependency.withRequestedVersion(componentSelectionResult.getModuleComponentIdentifier().getVersion());
-moduleAccess.resolveComponentMetaData(staticVersionDependency,componentSelectionResult.getModuleComponentIdentifier(),resolveResult);
+case Match:
+ModuleComponentIdentifier selectedComponentId=componentSelectionResult.getMatch();
+DependencyMetaData selectedVersionDependency=dynamicVersionDependency.withRequestedVersion(selectedComponentId.getVersion());
+moduleAccess.resolveComponentMetaData(selectedVersionDependency,selectedComponentId,resolveResult);
 break;
 default :
 }
