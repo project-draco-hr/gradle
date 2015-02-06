@@ -2,13 +2,11 @@
   for (  NativeTestSuiteBinarySpec testBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
     NativeBinarySpecInternal binary=(NativeBinarySpecInternal)testBinary;
     final BinaryNamingScheme namingScheme=binary.getNamingScheme();
-    RunTestExecutable runTask=tasks.create(namingScheme.getTaskName("run"),RunTestExecutable.class);
-    final Project project=runTask.getProject();
+    RunTestExecutable runTask=binary.getTasks().create(namingScheme.getTaskName("run"),RunTestExecutable.class,Actions.doNothing());
     runTask.setDescription(String.format("Runs the %s",binary));
     final InstallExecutable installTask=binary.getTasks().withType(InstallExecutable.class).iterator().next();
     runTask.getInputs().files(installTask.getOutputs().getFiles());
     runTask.setExecutable(installTask.getRunScript().getPath());
-    runTask.setOutputDir(new File(project.getBuildDir(),"/test-results/" + namingScheme.getOutputDirectoryBase()));
-    testBinary.getTasks().add(runTask);
+    runTask.setOutputDir(new File(buildDir,"/test-results/" + namingScheme.getOutputDirectoryBase()));
   }
 }
