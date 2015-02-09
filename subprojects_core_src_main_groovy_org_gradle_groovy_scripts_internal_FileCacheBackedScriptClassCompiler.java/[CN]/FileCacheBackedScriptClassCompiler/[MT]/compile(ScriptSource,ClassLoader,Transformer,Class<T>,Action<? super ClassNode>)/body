@@ -5,6 +5,11 @@
   String cacheName=String.format("scripts/%s/%s/%s",source.getClassName(),scriptBaseClass.getSimpleName(),transformer.getId());
   PersistentCache cache=cacheRepository.cache(cacheName).withProperties(properties).withValidator(validator).withDisplayName(String.format("%s class cache for %s",transformer.getId(),source.getDisplayName())).withInitializer(new ProgressReportingInitializer(progressLoggerFactory,new CacheInitializer(source,classLoader,transformer,verifier,scriptBaseClass))).open();
   caches.add(cache);
-  File classesDir=classesDir(cache);
-  return scriptCompilationHandler.loadFromDir(source,classLoader,classesDir,scriptBaseClass);
+  final File classesDir=classesDir(cache);
+  return new ClassCachingCompiledScript<T>(new CompiledScript<T>(){
+    public Class<? extends T> loadClass(){
+      return scriptCompilationHandler.loadFromDir(source,classLoader,classesDir,scriptBaseClass);
+    }
+  }
+);
 }
