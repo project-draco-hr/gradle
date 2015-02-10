@@ -1,16 +1,25 @@
 {
-  if (new File(scriptCacheDir,EMPTY_SCRIPT_MARKER_FILE_NAME).isFile()) {
-    return emptyScriptGenerator.generate(scriptBaseClass);
-  }
-  try {
-    ClassLoader loader=this.classLoaderCache.get(ClassLoaderIds.buildScript(source.getFileName()),new DefaultClassPath(scriptCacheDir),classLoader,null);
-    return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
-  }
- catch (  Exception e) {
-    File expectedClassFile=new File(scriptCacheDir,source.getClassName() + ".class");
-    if (!expectedClassFile.exists()) {
-      throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.",source.getDisplayName(),expectedClassFile.getAbsolutePath()),e);
+  final boolean hasImperativeStatements=new File(scriptCacheDir,IMPERATIVE_STATEMENTS_MARKER_FILE_NAME).isFile();
+  return new ClassCachingCompiledScript<T>(new CompiledScript<T>(){
+    public boolean hasImperativeStatements(){
+      return hasImperativeStatements;
     }
-    throw new GradleException(String.format("Could not load compiled classes for %s from cache.",source.getDisplayName()),e);
+    @Override public Class<? extends T> loadClass(){
+      if (new File(scriptCacheDir,EMPTY_SCRIPT_MARKER_FILE_NAME).isFile()) {
+        return emptyScriptGenerator.generate(scriptBaseClass);
+      }
+      try {
+        ClassLoader loader=classLoaderCache.get(ClassLoaderIds.buildScript(source.getFileName()),new DefaultClassPath(scriptCacheDir),classLoader,null);
+        return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
+      }
+ catch (      Exception e) {
+        File expectedClassFile=new File(scriptCacheDir,source.getClassName() + ".class");
+        if (!expectedClassFile.exists()) {
+          throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.",source.getDisplayName(),expectedClassFile.getAbsolutePath()),e);
+        }
+        throw new GradleException(String.format("Could not load compiled classes for %s from cache.",source.getDisplayName()),e);
+      }
+    }
   }
+);
 }

@@ -1,6 +1,9 @@
 {
-  scriptCompilationHandler.compileToDir(scriptSource,classLoader,scriptCacheDir,null,expectedScriptClass,verifier);
+  scriptCompilationHandler.compileToDir(scriptSource,classLoader,scriptCacheDir,null,classpathClosureName,expectedScriptClass,verifier);
   checkScriptClassesInCache();
-  Script script=scriptCompilationHandler.loadFromDir(scriptSource,classLoader,scriptCacheDir,expectedScriptClass).newInstance();
+  checkHasImperativeStatementsMarkerInCache();
+  CompiledScript<? extends Script> compiledScript=scriptCompilationHandler.loadFromDir(scriptSource,classLoader,scriptCacheDir,expectedScriptClass);
+  assertThat(compiledScript.hasImperativeStatements(),is(true));
+  Script script=compiledScript.loadClass().newInstance();
   evaluateScript(script);
 }
