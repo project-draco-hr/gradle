@@ -5,19 +5,6 @@
   for (  final JavaPlatform platform : selectedPlatforms) {
     final JavaToolChainInternal toolChain=(JavaToolChainInternal)toolChains.getForPlatform(platform);
     final String binaryName=createBinaryName(jvmLibrary,namingSchemeBuilder,selectedPlatforms,platform);
-    binaries.create(binaryName,new Action<JarBinarySpec>(){
-      public void execute(      JarBinarySpec jarBinary){
-        JarBinarySpecInternal jarBinaryInternal=(JarBinarySpecInternal)jarBinary;
-        jarBinaryInternal.setBaseName(jvmLibrary.getName());
-        jarBinary.setToolChain(toolChain);
-        jarBinary.setTargetPlatform(platform);
-        File outputDir=new File(classesDir,jarBinary.getName());
-        jarBinary.setClassesDir(outputDir);
-        jarBinary.setResourcesDir(outputDir);
-        jarBinary.setJarFile(new File(binariesDir,String.format("%s/%s.jar",jarBinary.getName(),jarBinaryInternal.getBaseName())));
-        jvmComponentExtension.getAllBinariesAction().execute(jarBinary);
-      }
-    }
-);
+    binaries.create(binaryName,new ConfigureJarBinary(jvmLibrary,toolChain,platform,classesDir,binariesDir,jvmComponentExtension));
   }
 }

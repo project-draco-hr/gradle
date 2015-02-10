@@ -1,16 +1,11 @@
 {
   BridgedCollections.staticTypes(modelRegistry,TaskContainerInternal.MODEL_PATH,TaskContainerInternal.MODEL_TYPE,taskModelType,ModelType.of(TaskContainer.class),new Transformer<TaskContainerInternal,MutableModelNode>(){
     @Override public TaskContainerInternal transform(    MutableModelNode mutableModelNode){
-      ModelReference<NamedEntityInstantiator<Task>> instantiatorReference=BridgedCollections.instantiatorReference(TaskContainerInternal.MODEL_PATH,taskModelType);
+      ModelReference<NamedEntityInstantiator<Task>> instantiatorReference=BridgedCollections.instantiatorReference(TaskContainerInternal.MODEL_PATH,TaskContainerInternal.TASK_MODEL_TYPE);
       return instantiator.newInstance(DefaultTaskContainer.class,mutableModelNode,instantiatorReference,project,instantiator,taskFactory,projectAccessListener);
     }
   }
-,new Task.Namer(),"Project.<init>.tasks()",new Transformer<String,String>(){
-    public String transform(    String s){
-      return "Project.<init>.tasks." + s + "()";
-    }
-  }
-);
+,new Task.Namer(),"Project.<init>.tasks()",new Namer());
   ModelNode modelNode=modelRegistry.atStateOrLater(TaskContainerInternal.MODEL_PATH,ModelNode.State.Created);
   if (modelNode == null) {
     throw new IllegalStateException("Couldn't get task container from model registry");

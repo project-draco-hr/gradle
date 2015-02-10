@@ -1,8 +1,8 @@
 {
   init.setGroup(GROUP);
   init.setDescription("Initializes a new Gradle build. [incubating]");
-  final Factory<String> setupCanBeSkipped=new Factory<String>(){
-    @Override public String create(){
+  final Transformer<String,Project> setupCanBeSkipped=new Transformer<String,Project>(){
+    @Override public String transform(    Project project){
       if (project.file("build.gradle").exists()) {
         return "The build file 'build.gradle' already exists. Skipping build initialization.";
       }
@@ -22,9 +22,9 @@
 ;
   init.onlyIf(new Spec<Task>(){
     @Override public boolean isSatisfiedBy(    Task element){
-      Object skippedMsg=setupCanBeSkipped.create();
+      Object skippedMsg=setupCanBeSkipped.transform(element.getProject());
       if (skippedMsg != null) {
-        project.getLogger().warn((String)skippedMsg);
+        element.getProject().getLogger().warn((String)skippedMsg);
         return false;
       }
       return true;
@@ -33,7 +33,7 @@
 );
   init.dependsOn(new Callable<String>(){
     @Override public String call() throws Exception {
-      if (setupCanBeSkipped.create() == null) {
+      if (setupCanBeSkipped.transform(init.getProject()) == null) {
         return "wrapper";
       }
  else {
