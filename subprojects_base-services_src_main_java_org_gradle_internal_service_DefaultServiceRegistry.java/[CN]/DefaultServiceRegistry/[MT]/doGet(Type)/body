@@ -3,11 +3,17 @@ synchronized (lock) {
     if (closed) {
       throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.",format(serviceType),displayName));
     }
-    DefaultLookupContext context=new DefaultLookupContext();
-    ServiceProvider provider=context.find(serviceType,allServices);
-    if (provider != null) {
-      return provider.get();
+    ServiceProvider provider=providerCache.get(serviceType);
+    if (provider == null) {
+      DefaultLookupContext context=new DefaultLookupContext();
+      provider=context.find(serviceType,allServices);
+      if (provider == null) {
+        throw new UnknownServiceException(serviceType,String.format("No service of type %s available in %s.",format(serviceType),displayName));
+      }
+ else {
+        providerCache.put(serviceType,provider);
+      }
     }
-    throw new UnknownServiceException(serviceType,String.format("No service of type %s available in %s.",format(serviceType),displayName));
+    return provider.get();
   }
 }

@@ -1,12 +1,13 @@
 {
-  for (  Method method : type.getDeclaredMethods()) {
+  Class<?> type=builder.type;
+  Iterator<Method> iterator=builder.remainingMethods.iterator();
+  while (iterator.hasNext()) {
+    Method method=iterator.next();
     if (method.getName().startsWith("create") && !Modifier.isStatic(method.getModifiers())) {
       if (method.getReturnType().equals(Void.TYPE)) {
         throw new ServiceLookupException(String.format("Method %s.%s() must not return void.",type.getSimpleName(),method.getName()));
       }
-      if (factoryMethods.add(method.getName())) {
-        ownServices.add(new FactoryMethodService(target,method));
-      }
+      builder.add(iterator,builder.factories,method);
     }
   }
 }

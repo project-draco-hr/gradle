@@ -1,8 +1,16 @@
 {
-  Set<String> methods=new HashSet<String>();
-  for (Class<?> type=target.getClass(); type != Object.class; type=type.getSuperclass()) {
-    findDecoratorMethods(target,type,methods,ownServices);
-    findFactoryMethods(target,type,methods,ownServices);
+  Class<?> type=target.getClass();
+  RelevantMethods methods=getMethods(type);
+  for (  Method method : methods.decorators) {
+    if (parentServices == null) {
+      throw new ServiceLookupException(String.format("Cannot use decorator method %s.%s() when no parent registry is provided.",type.getSimpleName(),method.getName()));
+    }
+    ownServices.add(new DecoratorMethodService(target,method));
   }
-  findConfigureMethod(target);
+  for (  Method method : methods.factories) {
+    ownServices.add(new FactoryMethodService(target,method));
+  }
+  for (  Method method : methods.configurers) {
+    applyConfigureMethod(method,target);
+  }
 }
