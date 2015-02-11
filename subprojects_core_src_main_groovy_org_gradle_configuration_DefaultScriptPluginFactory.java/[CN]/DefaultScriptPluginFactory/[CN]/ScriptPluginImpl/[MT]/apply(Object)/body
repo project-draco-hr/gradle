@@ -1,5 +1,5 @@
 {
-  DefaultServiceRegistry services=new DefaultServiceRegistry();
+  final DefaultServiceRegistry services=new DefaultServiceRegistry();
   services.add(ScriptPluginFactory.class,DefaultScriptPluginFactory.this);
   services.add(ScriptHandlerFactory.class,scriptHandlerFactory);
   services.add(ClassLoaderScope.class,targetScope);
@@ -11,7 +11,7 @@
   ScriptSource withImports=importsReader.withImports(scriptSource);
   PluginDependenciesService pluginDependenciesService=new PluginDependenciesService(getSource());
   services.add(PluginDependenciesService.class,pluginDependenciesService);
-  ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
+  final ScriptCompiler compiler=scriptCompilerFactory.createCompiler(withImports);
   compiler.setClassloader(baseScope.getExportClassLoader());
   boolean supportsPluginsBlock=ProjectScript.class.isAssignableFrom(scriptType);
   String onPluginBlockError=supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
@@ -29,11 +29,22 @@
   BuildScriptTransformer transformer=new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert(),scriptSource);
   compiler.setTransformer(transformer);
   compiler.setVerifier(new ClosureCreationInterceptingVerifier());
-  ScriptRunner<? extends BasicScript> runner=compiler.compile(scriptType);
-  BasicScript script=runner.getScript();
-  script.init(target,services);
-  if (ownerScript && target instanceof ScriptAware) {
-    ((ScriptAware)target).setScript(script);
+  final ScriptRunner<? extends BasicScript> runner=compiler.compile(scriptType);
+  Runnable buildScriptRunner=new Runnable(){
+    public void run(){
+      BasicScript script=runner.getScript();
+      script.init(target,services);
+      if (ownerScript && target instanceof ScriptAware) {
+        ((ScriptAware)target).setScript(script);
+      }
+      runner.run();
+    }
   }
-  runner.run();
+;
+  if (!runner.getCompiledScript().hasImperativeStatements() && target instanceof ProjectInternal) {
+    ((ProjectInternal)target).setModelRulesBlockRunner(buildScriptRunner);
+  }
+ else {
+    buildScriptRunner.run();
+  }
 }
