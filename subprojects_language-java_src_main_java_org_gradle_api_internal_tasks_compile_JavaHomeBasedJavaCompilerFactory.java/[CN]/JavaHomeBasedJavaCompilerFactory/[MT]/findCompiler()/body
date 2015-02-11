@@ -1,0 +1,16 @@
+{
+  File realJavaHome=currentJvmJavaHomeProviderFacade.getDir();
+  File javaHomeFromToolProvidersPointOfView=systemPropertiesJavaHomeProviderFacade.getDir();
+  if (realJavaHome.equals(javaHomeFromToolProvidersPointOfView)) {
+    return javaCompilerProviderFacade.getCompiler();
+  }
+  lock.lock();
+  SystemProperties.setJavaHomeDir(realJavaHome);
+  try {
+    return javaCompilerProviderFacade.getCompiler();
+  }
+  finally {
+    SystemProperties.setJavaHomeDir(javaHomeFromToolProvidersPointOfView);
+    lock.unlock();
+  }
+}
