@@ -3,10 +3,7 @@
   getSource().visit(relativeFileCollector);
   TwirlCompileSpec spec=new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles,getOutputDirectory(),getForkOptions(),useJavaDefaults());
   if (!inputs.isIncremental()) {
-    if (compiler == null) {
-      compiler=new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(),getOutputs());
-    }
-    compiler.execute(spec);
+    new CleaningPlayToolCompiler<TwirlCompileSpec>(compilerTool.get(),getOutputs()).execute(spec);
   }
  else {
     final Set<File> sourcesToCompile=new HashSet<File>();
@@ -27,6 +24,6 @@
       cleaner=new TwirlStaleOutputCleaner(getOutputDirectory());
     }
     cleaner.execute(staleOutputFiles);
-    getCompiler().execute(spec);
+    compilerTool.get().execute(spec);
   }
 }
