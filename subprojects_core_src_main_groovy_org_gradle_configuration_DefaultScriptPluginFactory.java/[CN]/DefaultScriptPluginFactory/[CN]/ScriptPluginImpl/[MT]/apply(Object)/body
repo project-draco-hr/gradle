@@ -17,9 +17,8 @@
   String onPluginBlockError=supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
   PluginsAndBuildscriptTransformer scriptBlockTransformer=new PluginsAndBuildscriptTransformer(classpathClosureName,onPluginBlockError,documentationRegistry);
   StatementExtractingScriptTransformer classpathScriptTransformer=new StatementExtractingScriptTransformer(classpathClosureName,scriptBlockTransformer);
-  compiler.setTransformer(classpathScriptTransformer);
   compiler.setClasspathClosureName(classpathClosureName);
-  ScriptRunner<? extends BasicScript> classPathScriptRunner=compiler.compile(scriptType);
+  ScriptRunner<? extends BasicScript> classPathScriptRunner=compiler.compile(scriptType,new TransformationOnlyMetadataExtractingTransformer(classpathScriptTransformer));
   classPathScriptRunner.getScript().init(target,services);
   classPathScriptRunner.run();
   List<PluginRequest> pluginRequests=pluginDependenciesService.getRequests();
@@ -27,9 +26,8 @@
   pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,pluginManager,targetScope);
   compiler.setClassloader(targetScope.getLocalClassLoader());
   BuildScriptTransformer transformer=new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert(),scriptSource);
-  compiler.setTransformer(transformer);
   compiler.setVerifier(new ClosureCreationInterceptingVerifier());
-  final ScriptRunner<? extends BasicScript> runner=compiler.compile(scriptType);
+  final ScriptRunner<? extends BasicScript> runner=compiler.compile(scriptType,new TransformationOnlyMetadataExtractingTransformer(transformer));
   Runnable buildScriptRunner=new Runnable(){
     public void run(){
       BasicScript script=runner.getScript();
