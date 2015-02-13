@@ -9,13 +9,25 @@
     }
   }
  else {
-    if (args.length != 1 || !(args[0] instanceof Closure)) {
-      throw new MissingMethodException(name,getClass(),args);
-    }
- else {
+    if (args.length == 1 && args[0] instanceof Closure) {
       Closure<?> closure=(Closure)args[0];
       getChildPath(name).registerConfigurationAction(closure);
       return null;
+    }
+ else     if (args.length == 2 && args[0] instanceof Class && args[1] instanceof Closure) {
+      Class<?> clazz=(Class<?>)args[0];
+      Closure<?> closure=(Closure<?>)args[1];
+      getChildPath(name).registerCreator(clazz,closure);
+      return null;
+    }
+ else     if (args.length == 1 && args[0] instanceof Class) {
+      Class<?> clazz=(Class<?>)args[0];
+      Closure<?> closure=Closure.IDENTITY;
+      getChildPath(name).registerCreator(clazz,closure);
+      return null;
+    }
+ else {
+      throw new MissingMethodException(name,getClass(),args);
     }
   }
 }

@@ -1,20 +1,23 @@
 {
   ClosureExpression closureExpression=AstUtils.getSingleClosureArg(call);
-  if (closureExpression == null) {
-    restrict(call,ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE);
+  if (closureExpression != null) {
+    rewriteAction(call,extractModelPathFromMethodTarget(call),closureExpression);
     return;
   }
-  String modelPath=extractModelPathFromMethodTarget(call);
-  if (modelPath == null) {
+  Pair<ClassExpression,ClosureExpression> args=AstUtils.getClassAndClosureArgs(call);
+  if (args != null) {
+    rewriteCreator(call,extractModelPathFromMethodTarget(call),args.getRight(),args.getLeft());
     return;
   }
-  ConstantExpression modelPathArgument=new ConstantExpression(modelPath);
-  ArgumentListExpression replacedArgumentList=new ArgumentListExpression(modelPathArgument,closureExpression);
-  call.setMethod(new ConstantExpression("configure"));
-  call.setArguments(replacedArgumentList);
-  call.setImplicitThis(true);
-  call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION,"getDelegate",ArgumentListExpression.EMPTY_ARGUMENTS));
-  SourceLocation sourceLocation=new SourceLocation(getScriptSourceDescription(),call.getLineNumber(),call.getColumnNumber());
-  closureExpression.getCode().setNodeMetaData(RuleVisitor.AST_NODE_METADATA_LOCATION_KEY,sourceLocation);
-  closureExpression.visit(ruleVisitor);
+  ClassExpression classArg=AstUtils.getClassArg(call);
+  if (classArg != null) {
+    List<Statement> statements=Lists.newLinkedList();
+    statements.add(new EmptyStatement());
+    BlockStatement block=new BlockStatement(statements,new VariableScope());
+    closureExpression=new ClosureExpression(Parameter.EMPTY_ARRAY,block);
+    closureExpression.setVariableScope(block.getVariableScope());
+    rewriteCreator(call,extractModelPathFromMethodTarget(call),closureExpression,classArg);
+    return;
+  }
+  restrict(call,INVALID_RULE_SIGNATURE);
 }
