@@ -1,5 +1,12 @@
 {
-  if (!WrapUtil.toSet(SUPPORTED_SCHEMES).containsAll(schemes)) {
-    throw new InvalidUserDataException("You may only specify 'file', 'http', 'https', 'sftp' and 's3' URLs for a repository.");
+  Set<String> validSchemes=Sets.newLinkedHashSet();
+  validSchemes.add("file");
+  for (  ResourceConnectorFactory registeredProtocol : registeredProtocols) {
+    validSchemes.addAll(registeredProtocol.getSupportedProtocols());
+  }
+  for (  String scheme : schemes) {
+    if (!validSchemes.contains(scheme)) {
+      throw new InvalidUserDataException(String.format("Not a supported repository protocol '%s': valid protocols are %s",scheme,validSchemes));
+    }
   }
 }
