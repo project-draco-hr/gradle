@@ -1,0 +1,19 @@
+{
+  try {
+    for (    String protocol : protocols) {
+      ComponentDescriptor componentDescriptor=new ComponentDescriptor();
+      componentDescriptor.setRole(Wagon.ROLE);
+      componentDescriptor.setRoleHint(protocol);
+      componentDescriptor.setImplementation(RepositoryTransportDeployWagon.class.getCanonicalName());
+      componentDescriptor.setInstantiationStrategy(SINGLETON_INSTANTIATION_STRATEGY);
+      plexusContainer.addComponentDescriptor(componentDescriptor);
+      RepositoryTransportDeployWagon wagon=(RepositoryTransportDeployWagon)wagonManager().getWagon(protocol);
+    }
+  }
+ catch (  UnsupportedProtocolException e) {
+    throwWagonException(FAILED_TO_REGISTER_WAGON,e);
+  }
+catch (  ComponentRepositoryException e) {
+    throwWagonException(FAILED_TO_REGISTER_WAGON,e);
+  }
+}
