@@ -1,8 +1,9 @@
 {
   waitingForCompletion=true;
   CountDownLatch finished=new CountDownLatch(operations.size());
+  List<Throwable> failures=Lists.newCopyOnWriteArrayList();
   for (  ListenableFuture operation : operations) {
-    Futures.addCallback(operation,new CompletionCallback(finished));
+    Futures.addCallback(operation,new CompletionCallback(finished,failures));
   }
   try {
     finished.await();
@@ -11,6 +12,6 @@
     throw UncheckedException.throwAsUncheckedException(e);
   }
   if (!failures.isEmpty()) {
-    throw new MultipleBuildOperationFailures(getFailureMessage(),failures);
+    throw new MultipleBuildOperationFailures(getFailureMessage(failures),failures);
   }
 }
