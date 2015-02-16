@@ -24,9 +24,9 @@
   PluginManagerInternal pluginManager=target instanceof PluginAwareInternal ? ((PluginAwareInternal)target).getPluginManager() : null;
   pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,pluginManager,targetScope);
   compiler.setClassloader(targetScope.getLocalClassLoader());
-  BuildScriptTransformer transformer=new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert(),scriptSource);
+  BuildScriptMetadataExtractingTransformer transformer=new BuildScriptMetadataExtractingTransformer("no_" + classpathScriptTransformer.getId(),classpathScriptTransformer.invert(),classpathClosureName,scriptSource);
   compiler.setVerifier(new ClosureCreationInterceptingVerifier());
-  final ScriptRunner<? extends BasicScript,Void> runner=compiler.compile(scriptType,new TransformationOnlyMetadataExtractingTransformer(transformer));
+  final ScriptRunner<? extends BasicScript,Boolean> runner=compiler.compile(scriptType,transformer);
   Runnable buildScriptRunner=new Runnable(){
     public void run(){
       BasicScript script=runner.getScript();
@@ -38,7 +38,7 @@
     }
   }
 ;
-  if (!runner.getCompiledScript().hasImperativeStatements() && target instanceof ProjectInternal) {
+  if (!runner.getCompiledScript().getMetadata() && target instanceof ProjectInternal) {
     ((ProjectInternal)target).setModelRulesBlockRunner(buildScriptRunner);
   }
  else {

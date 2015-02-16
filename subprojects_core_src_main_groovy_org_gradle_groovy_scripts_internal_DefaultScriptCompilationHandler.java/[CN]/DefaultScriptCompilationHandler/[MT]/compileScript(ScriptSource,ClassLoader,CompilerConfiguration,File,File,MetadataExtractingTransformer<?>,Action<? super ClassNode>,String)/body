@@ -3,7 +3,6 @@
   logger.info("Compiling {} using {}.",source.getDisplayName(),transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
   final EmptyScriptDetector emptyScriptDetector=new EmptyScriptDetector();
   final PackageStatementDetector packageDetector=new PackageStatementDetector();
-  final ImperativeStatementDetector imperativeStatementDetector=new ImperativeStatementDetector(classpathClosureName);
   GroovyClassLoader groovyClassLoader=new GroovyClassLoader(classLoader,configuration,false){
     @Override protected CompilationUnit createCompilationUnit(    CompilerConfiguration compilerConfiguration,    CodeSource codeSource){
       CompilationUnit compilationUnit=new CustomCompilationUnit(compilerConfiguration,codeSource,customVerifier,source,this);
@@ -12,7 +11,6 @@
       }
       compilationUnit.addPhaseOperation(packageDetector,Phases.CANONICALIZATION);
       compilationUnit.addPhaseOperation(emptyScriptDetector,Phases.CANONICALIZATION);
-      compilationUnit.addPhaseOperation(imperativeStatementDetector,Phases.CANONICALIZATION);
       return compilationUnit;
     }
   }
@@ -34,9 +32,6 @@ catch (  CompilationFailedException e) {
   }
   if (emptyScriptDetector.isEmptyScript()) {
     GFileUtils.touch(new File(classesDir,EMPTY_SCRIPT_MARKER_FILE_NAME));
-  }
-  if (imperativeStatementDetector.hasImperativeStatements) {
-    GFileUtils.touch(new File(classesDir,IMPERATIVE_STATEMENTS_MARKER_FILE_NAME));
   }
   serializeMetadata(source,extractingTransformer,metadataDir);
 }

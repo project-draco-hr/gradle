@@ -1,0 +1,14 @@
+{
+  if (!source.getAST().getMethods().isEmpty()) {
+    imperativeStatementDetected=true;
+    return;
+  }
+  BlockStatement statementBlock=source.getAST().getStatementBlock();
+  List<Statement> statements=statementBlock.getStatements();
+  if (statements.size() == 1 && AstUtils.isReturnNullStatement(statements.get(0))) {
+    return;
+  }
+  ImperativeCodeDetectingVisitor visitor=new ImperativeCodeDetectingVisitor(scriptBlockNames);
+  statementBlock.visit(visitor);
+  imperativeStatementDetected=visitor.isImperativeStatementDetected();
+}
