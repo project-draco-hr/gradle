@@ -1,8 +1,16 @@
 {
-  if (isSnapshotVersion(moduleComponentIdentifier)) {
+  if (isNonUniqueSnapshot(moduleComponentIdentifier)) {
     final MavenUniqueSnapshotModuleSource uniqueSnapshotVersion=findUniqueSnapshotVersion(moduleComponentIdentifier,result);
     if (uniqueSnapshotVersion != null) {
       resolveUniqueSnapshotDependency(dependency,moduleComponentIdentifier,result,uniqueSnapshotVersion);
+      return;
+    }
+  }
+ else   if (isUniqueSnapshot(moduleComponentIdentifier)) {
+    final MavenUniqueSnapshotModuleSource uniqueSnapshotVersion=composeUniqueSnapshotVersion(moduleComponentIdentifier);
+    if (uniqueSnapshotVersion != null) {
+      ModuleComponentIdentifier snapshotIdentifier=composeSnapshotIdentifier(moduleComponentIdentifier,uniqueSnapshotVersion);
+      resolveUniqueSnapshotDependency(dependency,snapshotIdentifier,result,uniqueSnapshotVersion);
       return;
     }
   }
