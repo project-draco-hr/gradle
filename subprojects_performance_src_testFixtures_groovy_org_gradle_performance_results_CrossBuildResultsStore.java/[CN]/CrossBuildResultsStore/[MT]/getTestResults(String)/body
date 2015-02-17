@@ -3,8 +3,8 @@
     return db.withConnection(new ConnectionAction<CrossBuildTestExecutionHistory>(){
       public CrossBuildTestExecutionHistory execute(      Connection connection) throws Exception {
         List<CrossBuildPerformanceResults> results=Lists.newArrayList();
-        Set<BuildSpecification> buildSpecifications=Sets.newTreeSet(new Comparator<BuildSpecification>(){
-          @Override public int compare(          BuildSpecification o1,          BuildSpecification o2){
+        Set<BuildDisplayInfo> builds=Sets.newTreeSet(new Comparator<BuildDisplayInfo>(){
+          @Override public int compare(          BuildDisplayInfo o1,          BuildDisplayInfo o2){
             return o1.getDisplayName().compareTo(o2.getDisplayName());
           }
         }
@@ -26,25 +26,25 @@
           performanceResults.setTestGroup(testExecutions.getString(8));
           results.add(performanceResults);
           operationsForExecution.setLong(1,id);
-          ResultSet builds=operationsForExecution.executeQuery();
-          while (builds.next()) {
-            BuildSpecification specification=BuildSpecification.forProject(builds.getString(1)).displayName(builds.getString(2)).tasksToRun(toArray(builds.getObject(3))).args(toArray(builds.getObject(4))).build();
+          ResultSet resultSet=operationsForExecution.executeQuery();
+          while (resultSet.next()) {
+            BuildDisplayInfo displayInfo=new BuildDisplayInfo(resultSet.getString(1),resultSet.getString(2),toList(resultSet.getObject(3)),toList(resultSet.getObject(4)));
             MeasuredOperation operation=new MeasuredOperation();
-            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(5)));
-            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(6)));
-            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
-            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(8)));
-            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
-            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(10)));
-            performanceResults.buildResult(specification).add(operation);
-            buildSpecifications.add(specification);
+            operation.setExecutionTime(Duration.millis(resultSet.getBigDecimal(5)));
+            operation.setTotalMemoryUsed(DataAmount.bytes(resultSet.getBigDecimal(6)));
+            operation.setTotalHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(7)));
+            operation.setMaxHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(8)));
+            operation.setMaxUncollectedHeap(DataAmount.bytes(resultSet.getBigDecimal(9)));
+            operation.setMaxCommittedHeap(DataAmount.bytes(resultSet.getBigDecimal(10)));
+            performanceResults.buildResult(displayInfo).add(operation);
+            builds.add(displayInfo);
           }
-          builds.close();
+          resultSet.close();
         }
         testExecutions.close();
         operationsForExecution.close();
         executionsForName.close();
-        return new CrossBuildTestExecutionHistory(testName,ImmutableList.copyOf(buildSpecifications),results);
+        return new CrossBuildTestExecutionHistory(testName,ImmutableList.copyOf(builds),results);
       }
     }
 );
