@@ -1,10 +1,12 @@
 {
+  OperationQueue<CommandLineToolInvocation> queue=buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
   List<String> args=argsTransformer.transform(spec);
   invocationContext.getArgAction().execute(args);
   if (useCommandFile) {
     new GccOptionsFileArgsWriter(spec.getTempDir()).execute(args);
   }
   CommandLineToolInvocation invocation=invocationContext.createInvocation(String.format("linking %s",spec.getOutputFile().getName()),args);
-  commandLineToolInvocationWorker.execute(invocation);
+  queue.add(invocation);
+  queue.waitForCompletion();
   return new SimpleWorkResult(true);
 }
