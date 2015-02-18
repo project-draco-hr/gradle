@@ -1,7 +1,15 @@
 {
   File testProjectDir=tmpDir.createDir("projectDir");
   classLoader=getClass().getClassLoader();
-  scriptCompilationHandler=new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(),new DummyClassLoaderCache());
+  importsReader=context.mock(ImportsReader.class);
+  context.checking(new Expectations(){
+{
+      allowing(importsReader).getImportPackages();
+      will(returnValue(Collections.emptyList()));
+    }
+  }
+);
+  scriptCompilationHandler=new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(),new DummyClassLoaderCache(),importsReader);
   scriptCacheDir=new File(testProjectDir,"cache");
   metadataCacheDir=new File(testProjectDir,"metadata");
   scriptText="System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '"+ TEST_EXPECTED_SYSTEMPROP_VALUE+ "')";
