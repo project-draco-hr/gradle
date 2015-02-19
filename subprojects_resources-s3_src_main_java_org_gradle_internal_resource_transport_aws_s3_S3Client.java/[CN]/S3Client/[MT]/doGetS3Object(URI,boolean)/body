@@ -1,0 +1,18 @@
+{
+  String bucketName=getBucketName(uri);
+  String s3Key=getS3BucketKey(uri);
+  GetObjectRequest getObjectRequest=new GetObjectRequest(bucketName,s3Key);
+  if (isLightWeight) {
+    getObjectRequest.setRange(0,0);
+  }
+  try {
+    return amazonS3Client.getObject(getObjectRequest);
+  }
+ catch (  AmazonServiceException e) {
+    String errorCode=e.getErrorCode();
+    if (null != errorCode && errorCode.equalsIgnoreCase("NoSuchKey")) {
+      return null;
+    }
+    throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s",uri.toString(),e.getErrorMessage()),e);
+  }
+}
