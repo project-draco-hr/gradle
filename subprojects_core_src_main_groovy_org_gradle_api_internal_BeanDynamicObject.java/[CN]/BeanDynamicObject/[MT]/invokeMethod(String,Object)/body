@@ -1,4 +1,19 @@
 {
-  arguments=argsTransformer.transform(bean,name,arguments);
-  return delegate.invokeMethod(name,arguments);
+  try {
+    return delegate.invokeMethod(name,arguments);
+  }
+ catch (  MissingMethodException e) {
+    if (e.isStatic() || !e.getMethod().equals(name) || !Arrays.equals(e.getArguments(),arguments)) {
+      throw e;
+    }
+ else {
+      Object[] transformedArguments=argsTransformer.transform(bean,name,arguments);
+      if (transformedArguments != arguments) {
+        return delegate.invokeMethod(name,transformedArguments);
+      }
+ else {
+        throw e;
+      }
+    }
+  }
 }
