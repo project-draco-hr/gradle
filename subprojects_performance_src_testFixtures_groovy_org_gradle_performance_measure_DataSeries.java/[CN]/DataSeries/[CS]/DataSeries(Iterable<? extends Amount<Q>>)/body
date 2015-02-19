@@ -8,6 +8,7 @@
     average=null;
     max=null;
     min=null;
+    stddev=null;
     return;
   }
   Amount<Q> total=get(0);
@@ -22,4 +23,16 @@
   average=total.div(size());
   this.min=min;
   this.max=max;
+  BigDecimal sumSquares=BigDecimal.ZERO;
+  Units<Q> baseUnits=average.getUnits().getBaseUnits();
+  BigDecimal averageValue=average.toUnits(baseUnits).getValue();
+  for (int i=0; i < size(); i++) {
+    Amount<Q> amount=get(i);
+    BigDecimal diff=amount.toUnits(baseUnits).getValue();
+    diff=diff.subtract(averageValue);
+    diff=diff.multiply(diff);
+    sumSquares=sumSquares.add(diff);
+  }
+  BigDecimal result=BigDecimal.valueOf(Math.sqrt(sumSquares.divide(BigDecimal.valueOf(size()),BigDecimal.ROUND_HALF_UP).doubleValue())).setScale(2,BigDecimal.ROUND_HALF_UP);
+  stddev=Amount.valueOf(result,baseUnits);
 }
