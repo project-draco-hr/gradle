@@ -3,11 +3,12 @@
   logger.info("Compiling {} using {}.",source.getDisplayName(),transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
   final EmptyScriptDetector emptyScriptDetector=new EmptyScriptDetector();
   final PackageStatementDetector packageDetector=new PackageStatementDetector();
-  final DefaultImportsAdder defaultImportsAdder=new DefaultImportsAdder();
   GroovyClassLoader groovyClassLoader=new GroovyClassLoader(classLoader,configuration,false){
     @Override protected CompilationUnit createCompilationUnit(    CompilerConfiguration compilerConfiguration,    CodeSource codeSource){
+      ImportCustomizer customizer=new ImportCustomizer();
+      customizer.addStarImports(defaultImportPackages);
+      compilerConfiguration.addCompilationCustomizers(customizer);
       CompilationUnit compilationUnit=new CustomCompilationUnit(compilerConfiguration,codeSource,customVerifier,source,this);
-      compilationUnit.addPhaseOperation(defaultImportsAdder,Phases.CONVERSION);
       if (transformer != null) {
         transformer.register(compilationUnit);
       }
