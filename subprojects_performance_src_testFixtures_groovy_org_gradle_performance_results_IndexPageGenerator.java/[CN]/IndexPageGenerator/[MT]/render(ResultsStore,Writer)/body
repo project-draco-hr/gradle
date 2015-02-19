@@ -1,5 +1,5 @@
 {
-  new Html(writer){
+  new MetricsHtml(writer){
 {
       html();
       head();
@@ -36,32 +36,23 @@
         }
         end();
         List<PerformanceResults> results=testHistory.getPerformanceResults();
-        for (int i=0; i < results.size(); i++) {
-          PerformanceResults performanceResults=results.get(i);
+        for (        PerformanceResults performanceResults : results) {
           tr();
           td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
           td().text(performanceResults.getVersionUnderTest()).end();
           td().text(performanceResults.getVcsBranch()).end();
-          for (          MeasuredOperationList measuredExecution : performanceResults.getExperiments()) {
-            td().classAttr("numeric");
-            if (measuredExecution.isEmpty()) {
-              text("");
+          renderSamplesForExperiment(performanceResults.getExperiments(),new Transformer<DataSeries<Duration>,MeasuredOperationList>(){
+            @Override public DataSeries<Duration> transform(            MeasuredOperationList measuredOperations){
+              return measuredOperations.getExecutionTime();
             }
- else {
-              text(measuredExecution.getExecutionTime().getAverage().format());
-            }
-            end();
           }
-          for (          MeasuredOperationList measuredExecution : performanceResults.getExperiments()) {
-            td().classAttr("numeric");
-            if (measuredExecution.isEmpty()) {
-              text("");
+);
+          renderSamplesForExperiment(performanceResults.getExperiments(),new Transformer<DataSeries<DataAmount>,MeasuredOperationList>(){
+            @Override public DataSeries<DataAmount> transform(            MeasuredOperationList measuredOperations){
+              return measuredOperations.getTotalMemoryUsed();
             }
- else {
-              text(measuredExecution.getTotalMemoryUsed().getAverage().format());
-            }
-            end();
           }
+);
           end();
         }
         tr();
