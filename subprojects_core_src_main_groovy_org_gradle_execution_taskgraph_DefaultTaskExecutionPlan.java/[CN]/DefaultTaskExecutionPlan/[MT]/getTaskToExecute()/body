@@ -1,6 +1,5 @@
 {
   lock.lock();
-  int indexOfTaskToExecute=0;
   try {
     while (true) {
       if (cancellationToken.isCancellationRequested()) {
@@ -10,13 +9,15 @@
       }
       TaskInfo nextMatching=null;
       boolean allTasksComplete=true;
-      for (      TaskInfo taskInfo : executionQueue) {
+      Iterator<TaskInfo> iterator=executionQueue.iterator();
+      while (iterator.hasNext()) {
+        TaskInfo taskInfo=iterator.next();
         allTasksComplete=allTasksComplete && taskInfo.isComplete();
         if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
           nextMatching=taskInfo;
+          iterator.remove();
           break;
         }
-        ++indexOfTaskToExecute;
       }
       if (allTasksComplete) {
         return null;
@@ -30,7 +31,6 @@
         }
       }
  else {
-        executionQueue.remove(indexOfTaskToExecute);
         if (nextMatching.allDependenciesSuccessful()) {
           nextMatching.startExecution();
           recordTaskStarted(nextMatching);
