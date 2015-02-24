@@ -2,9 +2,6 @@
   execSpec.setMain("jarjar." + GradleWorkerMain.class.getName());
   execSpec.classpath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
   Object requestedSecurityManager=execSpec.getSystemProperties().get("java.security.manager");
-  if (requestedSecurityManager != null) {
-    execSpec.systemProperty("org.gradle.security.manager",requestedSecurityManager);
-  }
   execSpec.systemProperty("java.security.manager","jarjar." + BootstrapSecurityManager.class.getName());
   Collection<URL> workerClassPath=classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs();
   ActionExecutionWorker worker=create();
@@ -18,6 +15,7 @@
     for (    File file : applicationClasspath) {
       outstr.writeUTF(file.getAbsolutePath());
     }
+    outstr.writeUTF(requestedSecurityManager == null ? "" : requestedSecurityManager.toString());
     outstr.writeInt(workerClassPath.size());
     for (    URL entry : workerClassPath) {
       outstr.writeUTF(entry.toString());
