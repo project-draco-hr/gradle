@@ -1,4 +1,9 @@
 {
   execSpec.setMain(IsolatedGradleWorkerMain.class.getName());
   execSpec.classpath(classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles());
+  ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+  OutputStream encoded=new EncodedStream.EncodedOutput(bytes);
+  GUtil.serialize(create(),encoded);
+  ByteArrayInputStream stdinContent=new ByteArrayInputStream(bytes.toByteArray());
+  execSpec.setStandardInput(stdinContent);
 }

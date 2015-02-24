@@ -14,15 +14,9 @@
     for (    File file : processBuilder.getApplicationClasspath()) {
       outstr.writeUTF(file.getAbsolutePath());
     }
+    GUtil.serialize(create(),outstr);
     outstr.close();
-    final InputStream originalStdin=execSpec.getStandardInput();
-    InputStream input=ByteStreams.join(ByteStreams.newInputStreamSupplier(bytes.toByteArray()),new InputSupplier<InputStream>(){
-      public InputStream getInput() throws IOException {
-        return originalStdin;
-      }
-    }
-).getInput();
-    execSpec.setStandardInput(input);
+    execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
   }
  catch (  IOException e) {
     throw new UncheckedIOException(e);
