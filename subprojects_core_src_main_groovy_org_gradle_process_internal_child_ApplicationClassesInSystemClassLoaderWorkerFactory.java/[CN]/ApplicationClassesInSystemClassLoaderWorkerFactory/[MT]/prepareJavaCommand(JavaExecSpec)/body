@@ -7,8 +7,10 @@
   }
   execSpec.systemProperty("java.security.manager","jarjar." + BootstrapSecurityManager.class.getName());
   Collection<URL> workerClassPath=classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs();
-  ImplementationClassLoaderWorker worker=create();
+  ActionExecutionWorker worker=create();
   Collection<File> applicationClasspath=processBuilder.getApplicationClasspath();
+  LogLevel logLevel=processBuilder.getLogLevel();
+  Set<String> sharedPackages=processBuilder.getSharedPackages();
   ByteArrayOutputStream bytes=new ByteArrayOutputStream();
   try {
     DataOutputStream outstr=new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
@@ -18,6 +20,15 @@
     }
     outstr.writeInt(workerClassPath.size());
     for (    URL entry : workerClassPath) {
+      outstr.writeUTF(entry.toString());
+    }
+    outstr.writeInt(logLevel.ordinal());
+    outstr.writeInt(sharedPackages.size());
+    for (    String str : sharedPackages) {
+      outstr.writeUTF(str);
+    }
+    outstr.writeInt(implementationClassPath.size());
+    for (    URL entry : implementationClassPath) {
       outstr.writeUTF(entry.toString());
     }
     byte[] serializedWorker=GUtil.serialize(worker);
