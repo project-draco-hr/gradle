@@ -1,5 +1,16 @@
 {
-  ObjectInputStream instr=new ObjectInputStream(new EncodedStream.EncodedInput(System.in));
-  Callable<?> main=(Callable<?>)instr.readObject();
+  DataInputStream instr=new DataInputStream(new EncodedStream.EncodedInput(System.in));
+  int classPathLength=instr.readInt();
+  URL[] workerClassPath=new URL[classPathLength];
+  for (int i=0; i < classPathLength; i++) {
+    String url=instr.readUTF();
+    workerClassPath[i]=new URL(url);
+  }
+  int serializedWorkerLength=instr.readInt();
+  byte[] serializedWorker=new byte[serializedWorkerLength];
+  instr.readFully(serializedWorker);
+  URLClassLoader classLoader=new URLClassLoader(workerClassPath,ClassLoader.getSystemClassLoader().getParent());
+  Class<? extends Callable> workerClass=classLoader.loadClass("org.gradle.process.internal.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
+  Callable<Void> main=workerClass.getConstructor(byte[].class).newInstance(serializedWorker);
   main.call();
 }
