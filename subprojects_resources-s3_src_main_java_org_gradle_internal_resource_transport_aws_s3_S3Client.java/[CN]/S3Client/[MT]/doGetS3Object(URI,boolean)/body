@@ -1,0 +1,20 @@
+{
+  S3RegionalResource s3RegionalResource=new S3RegionalResource(uri);
+  String bucketName=s3RegionalResource.getBucketName();
+  String s3BucketKey=s3RegionalResource.getKey();
+  configureClient(s3RegionalResource);
+  GetObjectRequest getObjectRequest=new GetObjectRequest(bucketName,s3BucketKey);
+  if (isLightWeight) {
+    getObjectRequest.setRange(0,0);
+  }
+  try {
+    return amazonS3Client.getObject(getObjectRequest);
+  }
+ catch (  AmazonServiceException e) {
+    String errorCode=e.getErrorCode();
+    if (null != errorCode && errorCode.equalsIgnoreCase("NoSuchKey")) {
+      return null;
+    }
+    throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s",uri.toString(),e.getErrorMessage()),e);
+  }
+}

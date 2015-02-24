@@ -1,0 +1,23 @@
+{
+  Matcher matcher=REGIONAL_ENDPOINT_PATTERN.matcher(uri.toString());
+  if (matcher.find()) {
+    String bucketName=matcher.group(1);
+    String region=matcher.group(2);
+    String key=matcher.group(4);
+    Region derivedRegion;
+    if (region.equals("external-1")) {
+      derivedRegion=Region.getRegion(Regions.US_EAST_1);
+    }
+ else {
+      derivedRegion=RegionUtils.getRegion(region);
+    }
+    this.region=derivedRegion;
+    this.bucketName=bucketName;
+    this.key=key;
+  }
+ else {
+    this.region=DEFAULT_REGION;
+    this.bucketName=getBucketName(uri.getHost());
+    this.key=getS3BucketKey(uri);
+  }
+}

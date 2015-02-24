@@ -1,15 +1,15 @@
 {
   List<String> results=new ArrayList<String>();
-  String bucketName=getBucketName(parent);
-  String s3Key=getS3BucketKey(parent);
-  try {
-    S3Object[] s3Objects=s3Service.listObjects(bucketName,s3Key,"/");
-    results.addAll(resolveResourceNames(s3Objects));
-  }
- catch (  S3ServiceException e) {
-    if (e.getResponseCode() != 404) {
-      throw new S3Exception(String.format("Could not list s3 resources for '%s'.",parent.toString()),e);
-    }
+  S3RegionalResource s3RegionalResource=new S3RegionalResource(parent);
+  String bucketName=s3RegionalResource.getBucketName();
+  String s3BucketKey=s3RegionalResource.getKey();
+  configureClient(s3RegionalResource);
+  ListObjectsRequest listObjectsRequest=new ListObjectsRequest().withBucketName(bucketName).withPrefix(s3BucketKey).withMaxKeys(1000).withDelimiter("/");
+  ObjectListing objectListing=amazonS3Client.listObjects(listObjectsRequest);
+  results.addAll(resolveResourceNames(objectListing));
+  while (objectListing.isTruncated()) {
+    objectListing=amazonS3Client.listNextBatchOfObjects(objectListing);
+    results.addAll(resolveResourceNames(objectListing));
   }
   return results;
 }

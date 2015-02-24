@@ -1,13 +1,14 @@
 {
+  LOGGER.debug("Attempting to get resource sha1: {}",location);
   try {
     S3Object resource=s3Client.getResource(new URI(location.toString() + ".sha1"));
     if (resource != null) {
-      InputStream objectContent=resource.getDataInputStream();
+      InputStream objectContent=resource.getObjectContent();
       String sha=IOUtils.toString(objectContent);
       return HashValue.parse(sha);
     }
   }
- catch (  ServiceException e) {
+ catch (  AmazonS3Exception e) {
     LOGGER.error("Could not get contents of resource sha",e);
   }
 catch (  IOException e) {
