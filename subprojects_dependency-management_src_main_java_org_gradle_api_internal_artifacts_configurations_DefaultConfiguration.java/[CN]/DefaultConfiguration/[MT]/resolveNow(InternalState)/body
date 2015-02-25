@@ -1,0 +1,34 @@
+{
+synchronized (lock) {
+    boolean needsResolve=false;
+switch (state) {
+case UNOBSERVED:
+case OBSERVED:
+      needsResolve=true;
+    break;
+case TASK_DEPENDENCIES_RESOLVED:
+  needsResolve=modified && requestedState == InternalState.RESULTS_RESOLVED;
+break;
+case RESULTS_RESOLVED:
+break;
+}
+if (needsResolve) {
+DependencyResolutionListener broadcast=getDependencyResolutionBroadcast();
+ResolvableDependencies incoming=getIncoming();
+broadcast.beforeResolve(incoming);
+cachedResolverResults=resolver.resolve(this);
+for (Configuration configuration : extendsFrom) {
+((ConfigurationInternal)configuration).markAsObserved();
+}
+resolvedWithFailures=cachedResolverResults.getResolvedConfiguration().hasError();
+markAsResolved(requestedState);
+broadcast.afterResolve(incoming);
+}
+ else {
+if (modified) {
+DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to resolve %s that has been resolved previously. Changes made since the configuration was originally resolved are ignored",getDisplayName()));
+}
+markAsResolved(requestedState);
+}
+}
+}
