@@ -1,6 +1,14 @@
 {
+  if (credentials == null) {
+    return null;
+  }
   if (org.gradle.internal.resource.PasswordCredentials.class.isAssignableFrom(type)) {
     return type.cast(convertPasswordCredentials(credentials));
   }
-  return type.cast(credentials);
+  if (type.isAssignableFrom(credentials.getClass())) {
+    return type.cast(credentials);
+  }
+ else {
+    throw new IllegalArgumentException(String.format("Credentials must be an instance of '%s'.",type.getCanonicalName()));
+  }
 }
