@@ -1,0 +1,17 @@
+{
+  boolean wasOnBackslash=false;
+  StringBuilder escapedJvmOpt=new StringBuilder();
+  CharacterIterator it=new StringCharacterIterator(jvmOpts);
+  for (char ch=it.first(); ch != CharacterIterator.DONE; ch=it.next()) {
+    String repl=Character.toString(ch);
+    if (ch == '%') {
+      repl="%%";
+    }
+ else     if (ch == '"') {
+      repl=(wasOnBackslash ? '\\' : "") + "\\\"";
+    }
+    wasOnBackslash=ch == '\\';
+    escapedJvmOpt.append(repl);
+  }
+  return escapedJvmOpt.toString();
+}
