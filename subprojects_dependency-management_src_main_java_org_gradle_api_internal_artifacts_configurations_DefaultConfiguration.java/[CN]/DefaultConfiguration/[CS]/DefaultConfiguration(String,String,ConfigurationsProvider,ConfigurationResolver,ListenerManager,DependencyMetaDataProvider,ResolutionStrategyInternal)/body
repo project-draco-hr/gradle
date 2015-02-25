@@ -7,7 +7,12 @@
   this.metaDataProvider=metaDataProvider;
   this.resolutionStrategy=resolutionStrategy;
   resolutionListenerBroadcast=listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-  VetoContainerChangeAction veto=new VetoContainerChangeAction();
+  RunnableMutationValidator veto=new RunnableMutationValidator(false){
+    @Override public void validateMutation(    boolean lenient){
+      DefaultConfiguration.this.validateMutation(lenient);
+    }
+  }
+;
   DefaultDomainObjectSet<Dependency> ownDependencies=new DefaultDomainObjectSet<Dependency>(Dependency.class);
   ownDependencies.beforeChange(veto);
   dependencies=new DefaultDependencySet(String.format("%s dependencies",getDisplayName()),ownDependencies);
