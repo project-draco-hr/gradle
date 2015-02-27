@@ -1,0 +1,16 @@
+{
+  BuildActionParameters parameters=new DefaultBuildActionParameters(buildRequestContext.getClient(),actionParameters.getStartTime(),this.parameters.getEffectiveSystemProperties(),System.getenv(),SystemProperties.getInstance().getCurrentDir(),actionParameters.getBuildLogLevel());
+  try {
+    return executer.execute(action,buildRequestContext,parameters);
+  }
+ catch (  ReportedException e) {
+    Throwable t=e.getCause();
+    while (t != null) {
+      if (t instanceof BuildCancelledException) {
+        throw new InternalBuildCancelledException(e.getCause());
+      }
+      t=t.getCause();
+    }
+    throw new BuildExceptionVersion1(e.getCause());
+  }
+}
