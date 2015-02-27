@@ -7,15 +7,21 @@
   this.metaDataProvider=metaDataProvider;
   this.resolutionStrategy=resolutionStrategy;
   resolutionListenerBroadcast=listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-  VetoContainerChangeAction veto=new VetoContainerChangeAction();
+  RunnableMutationValidator veto=new RunnableMutationValidator(false){
+    @Override public void validateMutation(    boolean lenient){
+      DefaultConfiguration.this.validateMutation(lenient);
+    }
+  }
+;
   DefaultDomainObjectSet<Dependency> ownDependencies=new DefaultDomainObjectSet<Dependency>(Dependency.class);
   ownDependencies.beforeChange(veto);
   dependencies=new DefaultDependencySet(String.format("%s dependencies",getDisplayName()),ownDependencies);
   inheritedDependencies=CompositeDomainObjectSet.create(Dependency.class,ownDependencies);
   allDependencies=new DefaultDependencySet(String.format("%s all dependencies",getDisplayName()),inheritedDependencies);
   DefaultDomainObjectSet<PublishArtifact> ownArtifacts=new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
-  ownArtifacts.beforeChange(new VetoContainerChangeAction());
+  ownArtifacts.beforeChange(veto);
   artifacts=new DefaultPublishArtifactSet(String.format("%s artifacts",getDisplayName()),ownArtifacts);
   inheritedArtifacts=CompositeDomainObjectSet.create(PublishArtifact.class,ownArtifacts);
   allArtifacts=new DefaultPublishArtifactSet(String.format("%s all artifacts",getDisplayName()),inheritedArtifacts);
+  resolutionStrategy.beforeChange(veto);
 }
