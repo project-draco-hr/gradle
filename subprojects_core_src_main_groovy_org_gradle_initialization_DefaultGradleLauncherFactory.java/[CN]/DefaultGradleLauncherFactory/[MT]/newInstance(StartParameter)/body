@@ -1,14 +1,17 @@
 {
   BuildRequestMetaData requestMetaData;
   BuildCancellationToken cancellationToken;
+  BuildEventConsumer buildEventConsumer;
   if (tracker.getCurrentBuild() != null) {
     ServiceRegistry services=tracker.getCurrentBuild().getServices();
     requestMetaData=new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class),System.currentTimeMillis());
     cancellationToken=services.get(BuildCancellationToken.class);
+    buildEventConsumer=services.get(BuildEventConsumer.class);
   }
  else {
     requestMetaData=new DefaultBuildRequestMetaData(System.currentTimeMillis());
     cancellationToken=new FixedBuildCancellationToken();
+    buildEventConsumer=new NoOpBuildEventConsumer();
   }
-  return doNewInstance(startParameter,cancellationToken,requestMetaData);
+  return doNewInstance(startParameter,cancellationToken,requestMetaData,buildEventConsumer);
 }
