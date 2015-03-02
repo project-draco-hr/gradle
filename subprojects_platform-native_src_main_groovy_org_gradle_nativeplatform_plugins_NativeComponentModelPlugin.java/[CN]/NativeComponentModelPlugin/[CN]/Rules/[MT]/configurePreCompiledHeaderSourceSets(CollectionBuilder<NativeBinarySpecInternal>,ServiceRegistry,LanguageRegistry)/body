@@ -1,0 +1,19 @@
+{
+  binaries.all(new Action<NativeBinarySpecInternal>(){
+    @Override public void execute(    final NativeBinarySpecInternal nativeBinarySpec){
+      nativeBinarySpec.getSource().withType(DependentSourceSet.class,new Action<DependentSourceSet>(){
+        @Override public void execute(        DependentSourceSet dependentSourceSet){
+          if (dependentSourceSet.getPreCompiledHeader() != null) {
+            LanguageSourceSet pchSourceSet=createPreCompiledHeaderSourceSet(dependentSourceSet,serviceRegistry,languageRegistry);
+            pchSourceSet.getSource().srcDir(dependentSourceSet.getPreCompiledHeader().getParent());
+            pchSourceSet.getSource().include(dependentSourceSet.getPreCompiledHeader().getName());
+            nativeBinarySpec.getPreCompiledHeaderMappings().put(pchSourceSet,dependentSourceSet);
+            nativeBinarySpec.source(pchSourceSet);
+          }
+        }
+      }
+);
+    }
+  }
+);
+}
