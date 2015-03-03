@@ -1,13 +1,17 @@
 {
-  Class<?> pluginClass=plugin.asClass();
+  final Class<?> pluginClass=plugin.asClass();
   if (plugins.containsKey(pluginClass)) {
-    return false;
+    return null;
   }
   plugins.put(pluginClass,plugin);
-  for (  PluginId id : idMappings.keySet()) {
-    if (plugin.isAlsoKnownAs(id)) {
-      idMappings.get(id).add(new PluginWithId(id,pluginClass));
+  return new Runnable(){
+    @Override public void run(){
+      for (      PluginId id : idMappings.keySet()) {
+        if (plugin.isAlsoKnownAs(id)) {
+          idMappings.get(id).add(new PluginWithId(id,pluginClass));
+        }
+      }
     }
   }
-  return true;
+;
 }
