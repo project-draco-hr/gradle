@@ -1,15 +1,19 @@
 {
   if (action instanceof ExecuteBuildAction) {
     buildController.run();
-    return null;
+    buildController.setResult(null);
   }
-  if (action instanceof BuildModelAction) {
+ else   if (action instanceof BuildModelAction) {
     BuildModelAction buildModelAction=(BuildModelAction)action;
-    return buildModelAction.run(buildController);
+    BuildActionResult result=buildModelAction.run(buildController);
+    buildController.setResult(result);
   }
-  if (action instanceof ClientProvidedBuildAction) {
+ else   if (action instanceof ClientProvidedBuildAction) {
     ClientProvidedBuildAction clientProvidedBuildAction=(ClientProvidedBuildAction)action;
-    return clientProvidedBuildAction.run(buildController);
+    BuildActionResult result=clientProvidedBuildAction.run(buildController);
+    buildController.setResult(result);
   }
-  throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.",action.getClass().getSimpleName()));
+ else {
+    throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.",action.getClass().getSimpleName()));
+  }
 }
