@@ -1,7 +1,31 @@
 {
-  if (action instanceof ClientProvidedBuildAction) {
-    ClientProvidedBuildAction clientProvidedBuildAction=(ClientProvidedBuildAction)action;
-    BuildActionResult result=clientProvidedBuildAction.run(buildController);
-    buildController.setResult(result);
+  if (!(action instanceof ClientProvidedBuildAction)) {
+    return;
   }
+  ClientProvidedBuildAction clientProvidedBuildAction=(ClientProvidedBuildAction)action;
+  GradleInternal gradle=buildController.getGradle();
+  PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
+  InternalBuildAction<?> clientAction=(InternalBuildAction<?>)payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
+  buildController.configure();
+  gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
+  InternalBuildController internalBuildController=new DefaultBuildController(gradle);
+  Object model=null;
+  Throwable failure=null;
+  try {
+    model=clientAction.execute(internalBuildController);
+  }
+ catch (  BuildCancelledException e) {
+    failure=new InternalBuildCancelledException(e);
+  }
+catch (  RuntimeException e) {
+    failure=new InternalBuildActionFailureException(e);
+  }
+  BuildActionResult buildActionResult;
+  if (failure != null) {
+    buildActionResult=new BuildActionResult(null,payloadSerializer.serialize(failure));
+  }
+ else {
+    buildActionResult=new BuildActionResult(payloadSerializer.serialize(model),null);
+  }
+  buildController.setResult(buildActionResult);
 }
