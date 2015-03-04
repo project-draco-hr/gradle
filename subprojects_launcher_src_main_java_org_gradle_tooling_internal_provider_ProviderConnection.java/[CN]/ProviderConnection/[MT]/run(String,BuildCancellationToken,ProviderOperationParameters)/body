@@ -12,6 +12,7 @@
     return new DefaultBuildEnvironment(params.gradleUserhome,GradleVersion.current().getVersion(),params.daemonParams.getEffectiveJavaHome(),params.daemonParams.getEffectiveJvmArgs());
   }
   StartParameter startParameter=new ProviderStartParameterConverter().toStartParameter(providerParameters,params.properties);
-  BuildAction action=new BuildModelAction(startParameter,modelName,tasks != null);
-  return run(action,cancellationToken,providerParameters,params);
+  BuildEventConsumer buildEventConsumer=createBuildEventConsumer(providerParameters);
+  BuildAction action=new BuildModelAction(startParameter,modelName,tasks != null,!(buildEventConsumer instanceof NoOpBuildEventConsumer));
+  return run(action,cancellationToken,buildEventConsumer,providerParameters,params);
 }
