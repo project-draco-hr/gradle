@@ -1,4 +1,5 @@
 {
+  BuildOperationLogger operationLogger=getOperationLoggerFactory().newOperationLogger(getName(),getTemporaryDir(),10);
   NativeCompileSpec spec=new DefaultWindowsResourceCompileSpec();
   spec.setTempDir(getTemporaryDir());
   spec.setObjectFileDir(getOutputDir());
@@ -7,7 +8,14 @@
   spec.setMacros(getMacros());
   spec.args(getCompilerArgs());
   spec.setIncrementalCompile(inputs.isIncremental());
+  spec.setOperationLogger(operationLogger);
   PlatformToolProvider platformToolProvider=toolChain.select(targetPlatform);
-  WorkResult result=CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this,platformToolProvider.newCompiler(spec.getClass()),toolChain)).execute(spec);
-  setDidWork(result.getDidWork());
+  operationLogger.start();
+  try {
+    WorkResult result=CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this,platformToolProvider.newCompiler(spec.getClass()),toolChain)).execute(spec);
+    setDidWork(result.getDidWork());
+  }
+  finally {
+    operationLogger.done();
+  }
 }

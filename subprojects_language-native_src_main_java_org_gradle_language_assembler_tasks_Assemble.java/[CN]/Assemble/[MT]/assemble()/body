@@ -1,4 +1,5 @@
 {
+  BuildOperationLogger operationLogger=getOperationLoggerFactory().newOperationLogger(getName(),getTemporaryDir(),10);
   SimpleStaleClassCleaner cleaner=new SimpleStaleClassCleaner(getOutputs());
   cleaner.setDestinationDir(getObjectFileDir());
   cleaner.execute();
@@ -7,6 +8,13 @@
   spec.setObjectFileDir(getObjectFileDir());
   spec.source(getSource());
   spec.args(getAssemblerArgs());
-  WorkResult result=toolChain.select(targetPlatform).newCompiler(AssembleSpec.class).execute(spec);
-  setDidWork(result.getDidWork());
+  spec.setOperationLogger(operationLogger);
+  operationLogger.start();
+  try {
+    WorkResult result=toolChain.select(targetPlatform).newCompiler(AssembleSpec.class).execute(spec);
+    setDidWork(result.getDidWork());
+  }
+  finally {
+    operationLogger.done();
+  }
 }
