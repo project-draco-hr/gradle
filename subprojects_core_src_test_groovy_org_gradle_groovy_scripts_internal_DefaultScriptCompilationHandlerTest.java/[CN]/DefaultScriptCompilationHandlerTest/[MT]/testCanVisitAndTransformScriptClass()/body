@@ -1,8 +1,5 @@
 {
   final Transformer visitor=new AbstractScriptTransformer(){
-    public String getId(){
-      return "id";
-    }
     protected int getPhase(){
       return Phases.CANONICALIZATION;
     }
@@ -20,7 +17,21 @@
     }
   }
 ;
-  MetadataExtractingTransformer<?> transformer=new TransformationOnlyMetadataExtractingTransformer(visitor);
+  CompileOperation<?> transformer=new CompileOperation<Boolean>(){
+    @Override public String getId(){
+      return "id";
+    }
+    @Override public Transformer getTransformer(){
+      return visitor;
+    }
+    @Override public Boolean getExtractedData(){
+      return true;
+    }
+    @Override public Serializer<Boolean> getDataSerializer(){
+      return BooleanSerializer.INSTANCE;
+    }
+  }
+;
   ScriptSource source=scriptSource("transformMe()");
   scriptCompilationHandler.compileToDir(source,classLoader,scriptCacheDir,metadataCacheDir,transformer,classpathClosureName,expectedScriptClass,verifier);
   Script script=scriptCompilationHandler.loadFromDir(source,classLoader,scriptCacheDir,metadataCacheDir,transformer,expectedScriptClass).loadClass().newInstance();
