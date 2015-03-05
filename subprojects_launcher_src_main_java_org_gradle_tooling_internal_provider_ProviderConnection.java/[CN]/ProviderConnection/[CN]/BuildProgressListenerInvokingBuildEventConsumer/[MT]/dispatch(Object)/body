@@ -1,3 +1,39 @@
 {
-  this.buildProgressListener.onEvent(event);
+  if (event instanceof InternalTestProgressEvent) {
+    final InternalTestProgressEvent testProgressEvent=(InternalTestProgressEvent)event;
+    this.buildProgressListener.onEvent(new TestProgressEventVersion1(){
+      @Override public String getEventType(){
+        return testProgressEvent.getEventType();
+      }
+      @Override public TestDescriptorVersion1 getDescriptor(){
+        return new TestDescriptorVersion1(){
+          @Override public Object getId(){
+            return testProgressEvent.getDescriptor().getId();
+          }
+          @Override public String getName(){
+            return testProgressEvent.getDescriptor().getName();
+          }
+          @Override public String getClassName(){
+            return testProgressEvent.getDescriptor().getClassName();
+          }
+          @Override public TestDescriptorVersion1 getParent(){
+            return null;
+          }
+        }
+;
+      }
+      @Override public TestResultVersion1 getResult(){
+        return new TestResultVersion1(){
+          @Override public long getStartTime(){
+            return testProgressEvent.getResult().getStartTime();
+          }
+          @Override public long getEndTime(){
+            return testProgressEvent.getResult().getEndTime();
+          }
+        }
+;
+      }
+    }
+);
+  }
 }
