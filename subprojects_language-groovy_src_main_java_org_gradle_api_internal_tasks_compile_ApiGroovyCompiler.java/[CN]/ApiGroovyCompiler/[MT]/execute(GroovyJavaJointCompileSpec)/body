@@ -35,18 +35,23 @@
   }
 ;
   unit.addSources(Iterables.toArray(spec.getSource(),File.class));
-  unit.setCompilerFactory(new org.codehaus.groovy.tools.javac.JavaCompilerFactory(){
+  unit.setCompilerFactory(new JavaCompilerFactory(){
     public JavaCompiler createCompiler(    final CompilerConfiguration config){
       return new JavaCompiler(){
         public void compile(        List<String> files,        CompilationUnit cu){
+          if (shouldProcessAnnotations(astTransformClassLoader,spec)) {
+            spec.setSource(spec.getSource().plus(new SimpleFileCollection((File)config.getJointCompilationOptions().get("stubDir")).getAsFileTree()));
+          }
+ else {
+            spec.getCompileOptions().getCompilerArgs().add("-sourcepath");
+            spec.getCompileOptions().getCompilerArgs().add(((File)config.getJointCompilationOptions().get("stubDir")).getAbsolutePath());
+          }
           spec.setSource(spec.getSource().filter(new Spec<File>(){
             public boolean isSatisfiedBy(            File file){
               return file.getName().endsWith(".java");
             }
           }
 ));
-          spec.getCompileOptions().getCompilerArgs().add("-sourcepath");
-          spec.getCompileOptions().getCompilerArgs().add(((File)config.getJointCompilationOptions().get("stubDir")).getAbsolutePath());
           try {
             javaCompiler.execute(spec);
           }
