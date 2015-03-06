@@ -31,20 +31,16 @@
     }
     task.setCompilerArgs(tool.getArgs());
   }
-  if (binary.getPreCompiledHeaderMappings().containsKey(sourceSet)) {
+  if (sourceSet instanceof PreCompiledHeaderExportingSourceSetInternal && ((PreCompiledHeaderExportingSourceSetInternal)sourceSet).getConsumingSourceSet() != null) {
+    DependentSourceSet consumingSourceSet=((PreCompiledHeaderExportingSourceSetInternal)sourceSet).getConsumingSourceSet();
     task.setIsPreCompiledHeader(true);
-    binary.getPreCompiledHeaderMappings().get(sourceSet).lib(new PreCompiledHeaderNativeDependencySet(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch"))));
+    binary.getPreCompiledHeaderObjectMappings().put(consumingSourceSet,task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch","**/*.gch")));
   }
   if (sourceSet instanceof DependentSourceSet && ((DependentSourceSet)sourceSet).getPreCompiledHeader() != null) {
-    task.includePreCompiledHeader(new Callable<List<FileCollection>>(){
-      public List<FileCollection> call(){
-        Collection<NativeDependencySet> libs=binary.getLibs((DependentSourceSet)sourceSet);
-        return CollectionUtils.collect(libs,new Transformer<FileCollection,NativeDependencySet>(){
-          @Override public FileCollection transform(          NativeDependencySet nativeDependencySet){
-            return nativeDependencySet.getPreCompiledHeader();
-          }
-        }
-);
+    task.setPreCompiledHeaderFile(((DependentSourceSet)sourceSet).getPreCompiledHeader());
+    task.preCompiledHeaderInclude(new Callable<FileCollection>(){
+      public FileCollection call(){
+        return binary.getPreCompiledHeaderObjectMappings().get(sourceSet);
       }
     }
 );
