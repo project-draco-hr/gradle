@@ -14,7 +14,8 @@
  catch (  NoSuchMethodError ignored) {
   }
   Map<String,Object> jointCompilationOptions=new HashMap<String,Object>();
-  jointCompilationOptions.put("stubDir",spec.getGroovyCompileOptions().getStubDir());
+  final File stubDir=spec.getGroovyCompileOptions().getStubDir();
+  jointCompilationOptions.put("stubDir",stubDir);
   jointCompilationOptions.put("keepStubs",spec.getGroovyCompileOptions().isKeepStubs());
   configuration.setJointCompilationOptions(jointCompilationOptions);
   URLClassLoader classPathLoader=new GroovyCompileTransformingClassLoader(getExtClassLoader(),new DefaultClassPath(spec.getClasspath()));
@@ -34,17 +35,21 @@
     }
   }
 ;
+  final boolean shouldProcessAnnotations=shouldProcessAnnotations(astTransformClassLoader,spec);
+  if (shouldProcessAnnotations) {
+    unit.addSources(new File[]{new File("ForceStubGeneration.java")});
+  }
   unit.addSources(Iterables.toArray(spec.getSource(),File.class));
   unit.setCompilerFactory(new JavaCompilerFactory(){
     public JavaCompiler createCompiler(    final CompilerConfiguration config){
       return new JavaCompiler(){
         public void compile(        List<String> files,        CompilationUnit cu){
-          if (shouldProcessAnnotations(astTransformClassLoader,spec)) {
-            spec.setSource(spec.getSource().plus(new SimpleFileCollection((File)config.getJointCompilationOptions().get("stubDir")).getAsFileTree()));
+          if (shouldProcessAnnotations) {
+            spec.setSource(spec.getSource().plus(new SimpleFileCollection(stubDir).getAsFileTree()));
           }
  else {
             spec.getCompileOptions().getCompilerArgs().add("-sourcepath");
-            spec.getCompileOptions().getCompilerArgs().add(((File)config.getJointCompilationOptions().get("stubDir")).getAbsolutePath());
+            spec.getCompileOptions().getCompilerArgs().add(stubDir.getAbsolutePath());
           }
           spec.setSource(spec.getSource().filter(new Spec<File>(){
             public boolean isSatisfiedBy(            File file){
