@@ -1,5 +1,10 @@
 {
-  byte type=getType(metaData);
-  String packaging=getPackaging(metaData);
-  return new ModuleDescriptorCacheEntry(type,metaData.isChanging(),packaging,createTimestamp,moduleDescriptorHash,metaData.getSource());
+  if (metaData instanceof IvyModuleResolveMetaData) {
+    return new IvyModuleCacheEntry(metaData.isChanging(),createTimestamp,moduleDescriptorHash,metaData.getSource());
+  }
+  if (metaData instanceof MavenModuleResolveMetaData) {
+    String packaging=((MavenModuleResolveMetaData)metaData).getPackaging();
+    return new MavenModuleCacheEntry(metaData.isChanging(),packaging,createTimestamp,moduleDescriptorHash,metaData.getSource());
+  }
+  throw new IllegalArgumentException("Not a valid module version type: " + metaData);
 }
