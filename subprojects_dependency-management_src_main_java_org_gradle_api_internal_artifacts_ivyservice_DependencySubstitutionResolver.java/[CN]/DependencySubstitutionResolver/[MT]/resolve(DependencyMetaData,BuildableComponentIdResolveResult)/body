@@ -1,10 +1,20 @@
 {
-  DependencyResolveDetailsInternal<? extends ComponentSelector> details=new DefaultDependencyResolveDetails<ComponentSelector>(dependency.getSelector(),dependency.getRequested());
+  ComponentSelector selector=dependency.getSelector();
+  DependencySubstitutionInternal details;
+  if (selector instanceof ModuleComponentSelector) {
+    details=new DefaultModuleDependencySubstitution((ModuleComponentSelector)selector,dependency.getRequested());
+  }
+ else   if (selector instanceof ProjectComponentSelector) {
+    details=new DefaultProjectDependencySubstitution((ProjectComponentSelector)selector,dependency.getRequested());
+  }
+ else {
+    throw new IllegalStateException("Unknown type of component selector: " + selector);
+  }
   try {
     rule.execute(details);
   }
  catch (  Throwable e) {
-    result.failed(new ModuleVersionResolveException(dependency.getSelector(),Arrays.asList(e)));
+    result.failed(new ModuleVersionResolveException(selector,Arrays.asList(e)));
     return;
   }
   if (details.isUpdated()) {
