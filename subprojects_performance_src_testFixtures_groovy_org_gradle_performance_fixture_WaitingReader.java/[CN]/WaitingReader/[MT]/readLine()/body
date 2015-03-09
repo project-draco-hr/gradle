@@ -1,15 +1,23 @@
 {
   long upTo=System.currentTimeMillis() + timeoutMs;
-  String line=reader.readLine();
-  while (line == null && System.currentTimeMillis() < upTo) {
-    try {
-      Thread.sleep(clockTick);
+  reader.mark(EIGHT_KB);
+  int character=EOF;
+  while (character != NEW_LINE) {
+    character=reader.read();
+    if (character == EOF) {
+      if (System.currentTimeMillis() >= upTo) {
+        break;
+      }
+      try {
+        Thread.sleep(clockTick);
+      }
+ catch (      InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      retriedCount++;
     }
- catch (    InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-    retriedCount++;
-    line=reader.readLine();
   }
+  reader.reset();
+  String line=reader.readLine();
   return line;
 }
