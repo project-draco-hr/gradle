@@ -11,7 +11,7 @@
 );
         Set<String> allBranches=new TreeSet<String>();
         PreparedStatement executionsForName=connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
-        PreparedStatement operationsForExecution=connection.prepareStatement("select version, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+        PreparedStatement operationsForExecution=connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
         executionsForName.setInt(1,mostRecentN);
         executionsForName.setString(2,testName);
         ResultSet testExecutions=executionsForName.executeQuery();
@@ -38,12 +38,14 @@
               continue;
             }
             MeasuredOperation operation=new MeasuredOperation();
-            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(2)));
-            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(3)));
-            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(4)));
-            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(5)));
-            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(6)));
-            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(7)));
+            operation.setTotalTime(Duration.millis(builds.getBigDecimal(2)));
+            operation.setConfigurationTime(Duration.millis(builds.getBigDecimal(3)));
+            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(4)));
+            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(5)));
+            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(6)));
+            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
+            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(8)));
+            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
             if (version == null) {
               performanceResults.getCurrent().add(operation);
             }

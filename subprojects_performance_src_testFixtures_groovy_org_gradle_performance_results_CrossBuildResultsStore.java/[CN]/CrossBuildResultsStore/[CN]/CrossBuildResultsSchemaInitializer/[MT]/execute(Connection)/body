@@ -7,6 +7,15 @@
   statement.execute("update testExecution set testGroup = 'project using variants' where testGroup is null and testId like '%project using variants%'");
   statement.execute("update testExecution set testGroup = testId where testGroup is null");
   statement.execute("alter table testExecution alter column testGroup set not null");
+  if (columnExists(connection,"TESTOPERATION","EXECUTIONTIMEMS")) {
+    statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
+    statement.execute("alter table testOperation add column executionTime decimal");
+    statement.execute("update testOperation set executionTime = 0");
+    statement.execute("alter table testOperation alter column executionTime set not null");
+    statement.execute("alter table testOperation add column configurationTime decimal");
+    statement.execute("update testOperation set configurationTime = 0");
+    statement.execute("alter table testOperation alter column configurationTime set not null");
+  }
   statement.close();
   return null;
 }

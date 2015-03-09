@@ -8,6 +8,15 @@
   statement.execute("alter table testOperation add column if not exists maxHeapUsageBytes decimal");
   statement.execute("alter table testOperation add column if not exists maxUncollectedHeapBytes decimal");
   statement.execute("alter table testOperation add column if not exists maxCommittedHeapBytes decimal");
+  if (columnExists(connection,"TESTOPERATION","EXECUTIONTIMEMS")) {
+    statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
+    statement.execute("alter table testOperation add column executionTime decimal");
+    statement.execute("update testOperation set executionTime = 0");
+    statement.execute("alter table testOperation alter column executionTime set not null");
+    statement.execute("alter table testOperation add column configurationTime decimal");
+    statement.execute("update testOperation set configurationTime = 0");
+    statement.execute("alter table testOperation alter column configurationTime set not null");
+  }
   statement.close();
   return null;
 }
