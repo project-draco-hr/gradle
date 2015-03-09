@@ -48,8 +48,11 @@
             spec.setSource(spec.getSource().plus(new SimpleFileCollection(stubDir).getAsFileTree()));
           }
  else {
-            spec.getCompileOptions().getCompilerArgs().add("-sourcepath");
-            spec.getCompileOptions().getCompilerArgs().add(stubDir.getAbsolutePath());
+            FileCollection sourcepath=new SimpleFileCollection(stubDir);
+            if (spec.getCompileOptions().getSourcepath() != null) {
+              sourcepath=spec.getCompileOptions().getSourcepath().plus(sourcepath);
+            }
+            spec.getCompileOptions().setSourcepath(sourcepath);
           }
           spec.setSource(spec.getSource().filter(new Spec<File>(){
             public boolean isSatisfiedBy(            File file){
