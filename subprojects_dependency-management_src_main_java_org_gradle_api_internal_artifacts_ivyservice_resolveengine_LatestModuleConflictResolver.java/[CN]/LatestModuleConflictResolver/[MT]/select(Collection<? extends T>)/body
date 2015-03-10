@@ -1,3 +1,31 @@
 {
-  return Collections.max(candidates,versionComparator);
+  Version baseVersion=null;
+  Map<Version,T> matches=new LinkedHashMap<Version,T>();
+  for (  T candidate : candidates) {
+    Version version=versionParser.transform(candidate.getVersion());
+    if (baseVersion == null || versionComparator.compare(version.getBaseVersion(),baseVersion) > 0) {
+      matches.clear();
+      baseVersion=version.getBaseVersion();
+      matches.put(version,candidate);
+    }
+ else     if (version.getBaseVersion().equals(baseVersion)) {
+      matches.put(version,candidate);
+    }
+  }
+  if (matches.size() == 1) {
+    return matches.values().iterator().next();
+  }
+  List<Version> sorted=new ArrayList<Version>(matches.keySet());
+  Collections.sort(sorted,Collections.reverseOrder(versionComparator));
+  for (  Version version : sorted) {
+    T component=matches.get(version);
+    if (!version.isQualified()) {
+      return component;
+    }
+    ComponentResolveMetaData metaData=component.getMetaData();
+    if (metaData != null && "release".equals(metaData.getStatus())) {
+      return component;
+    }
+  }
+  return matches.get(sorted.get(0));
 }
