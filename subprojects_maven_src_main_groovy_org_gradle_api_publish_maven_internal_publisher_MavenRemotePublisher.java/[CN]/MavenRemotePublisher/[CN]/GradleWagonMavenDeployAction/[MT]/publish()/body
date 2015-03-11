@@ -1,9 +1,11 @@
 {
-  RepositoryTransportDeployWagon.init(artifactRepository,repositoryTransportFactory);
+  String protocol=artifactRepository.getUrl().getScheme().toLowerCase();
+  RepositoryTransportWagonAdapter adapter=new RepositoryTransportWagonAdapter(protocol,artifactRepository,repositoryTransportFactory);
+  RepositoryTransportDeployWagon.contextualize(adapter);
   try {
     super.publish();
   }
   finally {
-    RepositoryTransportDeployWagon.reset();
+    RepositoryTransportDeployWagon.decontextualize();
   }
 }
