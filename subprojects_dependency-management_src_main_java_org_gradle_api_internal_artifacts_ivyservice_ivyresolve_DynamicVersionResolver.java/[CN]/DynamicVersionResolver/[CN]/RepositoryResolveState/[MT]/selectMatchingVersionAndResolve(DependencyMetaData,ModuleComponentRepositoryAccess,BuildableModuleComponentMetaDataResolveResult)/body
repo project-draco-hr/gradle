@@ -1,10 +1,11 @@
 {
-  BuildableComponentSelectionResult componentSelectionResult=new DefaultBuildableComponentSelectionResult();
+  DefaultBuildableComponentSelectionResult componentSelectionResult=new DefaultBuildableComponentSelectionResult();
   versionedComponentChooser.selectNewestMatchingComponent(versionListingResult.getVersions(),dynamicVersionDependency,moduleAccess,componentSelectionResult);
 switch (componentSelectionResult.getState()) {
 case NoMatch:
-    resolveResult.missing();
-  resolveResult.setAuthoritative(versionListingResult.isAuthoritative());
+    componentSelectionResult.applyTo(resolveResult);
+  resolveResult.missing();
+resolveResult.setAuthoritative(versionListingResult.isAuthoritative());
 break;
 case Match:
 ModuleComponentIdentifier selectedComponentId=componentSelectionResult.getMatch();
@@ -12,5 +13,6 @@ DependencyMetaData selectedVersionDependency=dynamicVersionDependency.withReques
 moduleAccess.resolveComponentMetaData(selectedVersionDependency,selectedComponentId,resolveResult);
 break;
 default :
+throw new IllegalStateException("Unexpected state for component selection result.");
 }
 }
