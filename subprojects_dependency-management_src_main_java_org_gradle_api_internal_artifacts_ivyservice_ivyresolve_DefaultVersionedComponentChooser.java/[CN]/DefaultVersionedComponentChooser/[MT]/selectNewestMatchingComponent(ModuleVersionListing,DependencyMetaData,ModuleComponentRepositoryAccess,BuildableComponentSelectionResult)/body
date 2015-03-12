@@ -5,32 +5,25 @@
   for (  Versioned candidate : sortLatestFirst(versions)) {
     ModuleComponentIdentifier candidateIdentifier=DefaultModuleComponentIdentifier.newId(requestedModule.getGroup(),requestedModule.getName(),candidate.getVersion());
     MetadataProvider metadataProvider=new MetadataProvider(dependency,candidateIdentifier,moduleAccess);
-    if (requestedVersion.requiresMetadata() && !metadataProvider.resolve()) {
-      BuildableModuleComponentMetaDataResolveResult metaDataResult=metadataProvider.getResult();
-switch (metaDataResult.getState()) {
-case Unknown:
-        result.noMatchFound();
+    boolean versionMatches=versionMatches(requestedVersion,candidateIdentifier,metadataProvider);
+    if (!metadataProvider.isUsable()) {
+      applyTo(metadataProvider,result);
       return;
-case Missing:
-    metaDataResult.applyTo(result);
+    }
+    if (versionMatches) {
+      boolean accepted=!isRejectedByRules(candidateIdentifier,rules,metadataProvider);
+      if (!metadataProvider.isUsable()) {
+        applyTo(metadataProvider,result);
+        return;
+      }
+      if (accepted) {
+        result.matches(candidateIdentifier);
+        return;
+      }
+      if (requestedVersion.matchesUniqueVersion()) {
+        break;
+      }
+    }
+  }
   result.noMatchFound();
-return;
-case Failed:
-result.failed(metaDataResult.getFailure());
-return;
-default :
-throw new IllegalStateException("Unexpected meta-data resolution result.");
-}
-}
-if (versionMatches(requestedVersion,candidateIdentifier,metadataProvider)) {
-if (!isRejectedByRules(candidateIdentifier,rules,metadataProvider)) {
-result.matches(candidateIdentifier);
-return;
-}
-if (requestedVersion.matchesUniqueVersion()) {
-break;
-}
-}
-}
-result.noMatchFound();
 }
