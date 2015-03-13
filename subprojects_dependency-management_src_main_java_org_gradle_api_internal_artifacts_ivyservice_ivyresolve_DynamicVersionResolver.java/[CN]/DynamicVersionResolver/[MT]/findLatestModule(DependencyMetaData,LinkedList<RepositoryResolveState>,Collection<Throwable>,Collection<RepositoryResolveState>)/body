@@ -10,15 +10,18 @@
       continue;
     }
 switch (request.metaDataResolveResult.getState()) {
-case Missing:
-      if (!request.metaDataResolveResult.isAuthoritative() && request.canMakeFurtherAttempts()) {
-        missing.add(request);
-      }
+case Failed:
+      failures.add(request.metaDataResolveResult.getFailure());
     break;
-case Unknown:
-  if (request.canMakeFurtherAttempts()) {
-    queue.addFirst(request);
+case Missing:
+  if (!request.metaDataResolveResult.isAuthoritative() && request.canMakeFurtherAttempts()) {
+    missing.add(request);
   }
+break;
+case Unknown:
+if (request.canMakeFurtherAttempts()) {
+queue.addFirst(request);
+}
 break;
 case Resolved:
 RepositoryChainModuleResolution moduleResolution=new RepositoryChainModuleResolution(request.repository,request.metaDataResolveResult.getMetaData());
