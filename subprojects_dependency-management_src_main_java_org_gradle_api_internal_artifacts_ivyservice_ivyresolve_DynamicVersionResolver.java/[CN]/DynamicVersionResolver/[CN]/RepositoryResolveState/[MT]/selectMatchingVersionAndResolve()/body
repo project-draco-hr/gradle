@@ -1,6 +1,6 @@
 {
   DefaultBuildableComponentSelectionResult componentSelectionResult=new DefaultBuildableComponentSelectionResult();
-  versionedComponentChooser.selectNewestMatchingComponent(candidates(dynamicVersionDependency,moduleAccess,versionListingResult.result.getVersions()),dynamicVersionDependency,componentSelectionResult);
+  versionedComponentChooser.selectNewestMatchingComponent(candidates(),dependency,componentSelectionResult);
 switch (componentSelectionResult.getState()) {
 case NoMatch:
     componentSelectionResult.applyTo(resolveResult);
@@ -9,8 +9,8 @@ resolveResult.setAuthoritative(false);
 break;
 case Match:
 ModuleComponentIdentifier selectedComponentId=componentSelectionResult.getMatch();
-DependencyMetaData selectedVersionDependency=dynamicVersionDependency.withRequestedVersion(selectedComponentId.getVersion());
-moduleAccess.resolveComponentMetaData(selectedVersionDependency,selectedComponentId,resolveResult);
+CandidateResult candidateResult=candidateComponents.get(selectedComponentId.getVersion());
+candidateResult.resolve(resolveResult);
 break;
 case Failed:
 resolveResult.failed(componentSelectionResult.getFailure());

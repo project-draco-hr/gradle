@@ -1,5 +1,17 @@
 {
-  DefaultBuildableModuleComponentMetaDataResolveResult metaDataResolveResult=new DefaultBuildableModuleComponentMetaDataResolveResult();
-  repositoryAccess.resolveComponentMetaData(dependencyMetaData.withRequestedVersion(version),identifier,metaDataResolveResult);
-  return metaDataResolveResult;
+  if (!searchedLocally) {
+    searchedLocally=true;
+    repository.getLocalAccess().resolveComponentMetaData(dependencyMetaData.withRequestedVersion(version),identifier,result);
+    if (result.hasResult() && result.isAuthoritative()) {
+      searchedRemotely=true;
+    }
+  }
+  if (result.getState() == Resolved || result.getState() == Failed) {
+    return result;
+  }
+  if (!searchedRemotely) {
+    searchedRemotely=true;
+    repository.getRemoteAccess().resolveComponentMetaData(dependencyMetaData.withRequestedVersion(version),identifier,result);
+  }
+  return result;
 }
