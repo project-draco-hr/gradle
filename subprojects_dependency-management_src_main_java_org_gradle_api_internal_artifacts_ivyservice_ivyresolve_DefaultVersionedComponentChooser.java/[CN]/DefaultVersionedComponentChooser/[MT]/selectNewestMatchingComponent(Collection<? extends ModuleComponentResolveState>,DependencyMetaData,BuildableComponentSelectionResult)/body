@@ -2,15 +2,15 @@
   ModuleVersionSelector requestedModule=dependency.getRequested();
   VersionSelector requestedVersion=versionSelectorScheme.parseSelector(requestedModule.getVersion());
   Collection<SpecRuleAction<? super ComponentSelection>> rules=componentSelectionRules.getRules();
-  for (  Versioned candidate : sortLatestFirst(versions)) {
-    ModuleComponentIdentifier candidateIdentifier=DefaultModuleComponentIdentifier.newId(requestedModule.getGroup(),requestedModule.getName(),candidate.getVersion());
-    MetadataProvider metadataProvider=new MetadataProvider(dependency,candidateIdentifier,moduleAccess);
-    boolean versionMatches=versionMatches(requestedVersion,candidateIdentifier,metadataProvider);
+  for (  ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
+    MetadataProvider metadataProvider=new MetadataProvider(candidate);
+    boolean versionMatches=versionMatches(requestedVersion,candidate,metadataProvider);
     if (!metadataProvider.isUsable()) {
       applyTo(metadataProvider,result);
       return;
     }
     if (versionMatches) {
+      ModuleComponentIdentifier candidateIdentifier=candidate.getId();
       boolean accepted=!isRejectedByRules(candidateIdentifier,rules,metadataProvider);
       if (!metadataProvider.isUsable()) {
         applyTo(metadataProvider,result);
