@@ -9,20 +9,23 @@
       applyTo(metadataProvider,result);
       return;
     }
-    if (versionMatches) {
-      ModuleComponentIdentifier candidateIdentifier=candidate.getId();
-      boolean accepted=!isRejectedByRules(candidateIdentifier,rules,metadataProvider);
-      if (!metadataProvider.isUsable()) {
-        applyTo(metadataProvider,result);
-        return;
-      }
-      if (accepted) {
-        result.matches(candidateIdentifier);
-        return;
-      }
-      if (requestedVersion.matchesUniqueVersion()) {
-        break;
-      }
+    if (!versionMatches) {
+      result.notMatched(candidate.getVersion());
+      continue;
+    }
+    ModuleComponentIdentifier candidateIdentifier=candidate.getId();
+    boolean accepted=!isRejectedByRules(candidateIdentifier,rules,metadataProvider);
+    if (!metadataProvider.isUsable()) {
+      applyTo(metadataProvider,result);
+      return;
+    }
+    if (accepted) {
+      result.matches(candidateIdentifier);
+      return;
+    }
+    result.rejected(candidate.getVersion());
+    if (requestedVersion.matchesUniqueVersion()) {
+      break;
     }
   }
   result.noMatchFound();

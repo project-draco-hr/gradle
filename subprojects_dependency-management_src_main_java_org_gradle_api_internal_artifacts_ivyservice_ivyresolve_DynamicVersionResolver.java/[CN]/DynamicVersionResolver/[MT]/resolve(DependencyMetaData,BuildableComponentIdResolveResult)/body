@@ -6,7 +6,7 @@
   for (  ModuleComponentRepository repository : repositories) {
     resolveStates.add(new RepositoryResolveState(dependency,repository));
   }
-  final RepositoryChainModuleResolution latestResolved=findLatestModule(dependency,resolveStates,errors);
+  final RepositoryChainModuleResolution latestResolved=findLatestModule(resolveStates,errors);
   if (latestResolved != null) {
     LOGGER.debug("Using {} from {}",latestResolved.module.getId(),latestResolved.repository);
     for (    Throwable error : errors) {
@@ -19,9 +19,6 @@
     result.failed(new ModuleVersionResolveException(requested,errors));
   }
  else {
-    for (    RepositoryResolveState resolveState : resolveStates) {
-      resolveState.applyTo(result);
-    }
-    result.notFound(requested);
+    notFound(result,requested,resolveStates);
   }
 }
