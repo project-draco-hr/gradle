@@ -1,27 +1,14 @@
 {
-  if (ROOT_LOGGER_NAME.equals(name)) {
-    return root;
+  Logger logger=loggers.get(name);
+  if (logger != null) {
+    return logger;
   }
-  OutputEventListenerBackedLogger childLogger=loggers.get(name);
-  if (childLogger != null) {
-    return childLogger;
-  }
-  OutputEventListenerBackedLogger logger=root;
-  int separatorIndex=0;
-  while (true) {
-    int nextSeparatorIndex=OutputEventListenerBackedLogger.getSeparatorIndex(name,separatorIndex);
-    String childName=nextSeparatorIndex == -1 ? name : name.substring(0,nextSeparatorIndex);
-    separatorIndex=nextSeparatorIndex + 1;
-synchronized (logger) {
-      childLogger=logger.getChildByName(childName);
-      if (childLogger == null) {
-        childLogger=logger.createChildByName(childName);
-        loggers.put(childName,childLogger);
-      }
+synchronized (loggers) {
+    logger=loggers.get(name);
+    if (logger == null) {
+      logger=new OutputEventListenerBackedLogger(name,this);
+      loggers.put(name,logger);
     }
-    logger=childLogger;
-    if (nextSeparatorIndex == -1) {
-      return childLogger;
-    }
+    return logger;
   }
 }
