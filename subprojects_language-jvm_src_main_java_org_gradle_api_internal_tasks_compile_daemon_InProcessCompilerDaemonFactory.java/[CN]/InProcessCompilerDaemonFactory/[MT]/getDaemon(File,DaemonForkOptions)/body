@@ -6,9 +6,9 @@
       for (      String packageName : forkOptions.getSharedPackages()) {
         filteredGroovy.allowPackage(packageName);
       }
-      FilteringClassLoader loggingClassLoader=new FilteringClassLoader(compiler.getClass().getClassLoader());
+      FilteringClassLoader loggingClassLoader=classLoaderFactory.createFilteringClassLoader(compiler.getClass().getClassLoader());
       loggingClassLoader.allowPackage("org.slf4j");
-      MultiParentClassLoader groovyAndLoggingClassLoader=new MultiParentClassLoader(loggingClassLoader,filteredGroovy);
+      ClassLoader groovyAndLoggingClassLoader=new CachingClassLoader(new MultiParentClassLoader(loggingClassLoader,filteredGroovy));
       ClassLoader workerClassLoader=new MutableURLClassLoader(groovyAndLoggingClassLoader,ClasspathUtil.getClasspath(compiler.getClass().getClassLoader()));
       try {
         byte[] serializedWorker=GUtil.serialize(new Worker<T>(compiler,spec));
