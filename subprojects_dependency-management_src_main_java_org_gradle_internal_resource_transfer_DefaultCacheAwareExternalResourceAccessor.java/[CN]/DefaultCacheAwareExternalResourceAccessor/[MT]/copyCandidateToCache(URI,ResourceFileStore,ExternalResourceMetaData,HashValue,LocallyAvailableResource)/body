@@ -1,0 +1,14 @@
+{
+  final File destination=temporaryFileProvider.createTemporaryFile("gradle_download","bin");
+  try {
+    GFileUtils.copyFile(local.getFile(),destination);
+    HashValue localChecksum=HashUtil.createHash(destination,"SHA1");
+    if (!localChecksum.equals(remoteChecksum)) {
+      return null;
+    }
+    return moveIntoCache(source,destination,fileStore,remoteMetaData);
+  }
+  finally {
+    destination.delete();
+  }
+}
