@@ -1,15 +1,16 @@
 {
   List<String> arguments=spec.getArguments();
   Set<File> grammarFiles=spec.getGrammarFiles();
-  List<String> args=new ArrayList<String>();
-  args.addAll(arguments);
-  for (  File file : grammarFiles) {
-    args.add(file.getAbsolutePath());
+  String[] allArguments=new String[arguments.size() + grammarFiles.size()];
+  int i=0;
+  for (  String argument : arguments) {
+    allArguments[i++]=argument;
   }
-  String[] argArr=new String[args.size()];
-  args.toArray(argArr);
+  for (  File grammarFile : grammarFiles) {
+    allArguments[i++]=grammarFile.getAbsolutePath();
+  }
   try {
-    Object toolObj=loadTool("org.antlr.v4.Tool",argArr);
+    Object toolObj=loadTool("org.antlr.v4.Tool",allArguments);
     LOGGER.info("Processing with ANTLR 4");
     return processV4(toolObj);
   }
@@ -17,7 +18,7 @@
     LOGGER.debug("ANTLR 4 not found on classpath");
   }
   try {
-    Object toolObj=loadTool("org.antlr.Tool",argArr);
+    Object toolObj=loadTool("org.antlr.Tool",allArguments);
     LOGGER.info("Processing with ANTLR 3");
     return processV3(toolObj);
   }

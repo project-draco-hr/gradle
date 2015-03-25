@@ -4,9 +4,8 @@
   XRef xref=new MetadataExtracter().extractMetadata(grammarFiles);
   List<GenerationPlan> generationPlans=new GenerationPlanBuilder(spec.getOutputDirectory()).buildGenerationPlans(xref);
   for (  GenerationPlan generationPlan : generationPlans) {
-    List<String> args=CollectionUtils.flattenCollections(String.class,arguments,generationPlan.getSource().getAbsolutePath());
-    String[] argArr=new String[args.size()];
-    args.toArray(argArr);
+    String[] argArr=arguments.toArray(new String[arguments.size() + 1]);
+    argArr[arguments.size()]=generationPlan.getSource().getAbsolutePath();
     JavaReflectionUtil.method(tool,Integer.class,"doEverything",String[].class).invoke(tool,new Object[]{argArr});
   }
   return new AntlrResult(0);
