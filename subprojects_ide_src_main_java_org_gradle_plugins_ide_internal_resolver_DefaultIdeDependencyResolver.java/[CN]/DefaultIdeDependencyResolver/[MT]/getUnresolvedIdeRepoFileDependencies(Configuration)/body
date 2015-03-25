@@ -1,11 +1,13 @@
 {
-  List<ComponentSelector> componentSelectors=getUnresolvedComponentSelectors(configuration);
+  ResolutionResult result=getIncomingResolutionResult(configuration);
+  List<UnresolvedDependencyResult> unresolvedDependencies=findAllUnresolvedDependencyResults(result.getRoot().getDependencies());
   List<UnresolvedIdeRepoFileDependency> unresolvedIdeRepoFileDependencies=new ArrayList<UnresolvedIdeRepoFileDependency>();
-  for (  ComponentSelector componentSelector : componentSelectors) {
+  for (  UnresolvedDependencyResult unresolvedDependencyResult : unresolvedDependencies) {
+    Throwable failure=unresolvedDependencyResult.getFailure();
+    ComponentSelector componentSelector=unresolvedDependencyResult.getAttempted();
     String displayName=componentSelector.getDisplayName();
     File file=new File(unresolvedFileName(componentSelector));
-    UnresolvedIdeRepoFileDependency unresolvedIdeRepoFileDependency=new UnresolvedIdeRepoFileDependency(configuration,displayName,file);
-    unresolvedIdeRepoFileDependencies.add(unresolvedIdeRepoFileDependency);
+    unresolvedIdeRepoFileDependencies.add(new UnresolvedIdeRepoFileDependency(configuration,file,failure,displayName));
   }
   return unresolvedIdeRepoFileDependencies;
 }
