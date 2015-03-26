@@ -1,16 +1,7 @@
 {
-  List<String> arguments=buildCommonArguments(spec);
-  Set<File> grammarFiles=spec.getGrammarFiles();
-  String[] allArguments=new String[arguments.size() + grammarFiles.size()];
-  int i=0;
-  for (  String argument : arguments) {
-    allArguments[i++]=argument;
-  }
-  for (  File grammarFile : grammarFiles) {
-    allArguments[i++]=grammarFile.getAbsolutePath();
-  }
+  String[] commandLine=toArray(spec.asCommandLineWithFiles());
   try {
-    Object toolObj=loadTool("org.antlr.v4.Tool",allArguments);
+    Object toolObj=loadTool("org.antlr.v4.Tool",commandLine);
     LOGGER.info("Processing with ANTLR 4");
     return processV4(toolObj);
   }
@@ -18,7 +9,7 @@
     LOGGER.debug("ANTLR 4 not found on classpath");
   }
   try {
-    Object toolObj=loadTool("org.antlr.Tool",allArguments);
+    Object toolObj=loadTool("org.antlr.Tool",commandLine);
     LOGGER.info("Processing with ANTLR 3");
     return processV3(toolObj);
   }
@@ -28,7 +19,7 @@
   try {
     Object toolObj=loadTool("antlr.Tool",null);
     LOGGER.info("Processing with ANTLR 2");
-    return processV2(toolObj,arguments,grammarFiles,spec.getOutputDirectory());
+    return processV2(toolObj,spec.asCommandLineWithoutFiles(),spec.getGrammarFiles(),spec.getOutputDirectory());
   }
  catch (  ClassNotFoundException e) {
     LOGGER.debug("ANTLR 2 not found on classpath");
