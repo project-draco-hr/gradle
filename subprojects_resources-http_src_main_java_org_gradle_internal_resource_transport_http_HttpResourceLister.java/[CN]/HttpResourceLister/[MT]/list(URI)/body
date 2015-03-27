@@ -1,12 +1,12 @@
 {
-  final HttpResponseResource resource=accessor.getResource(directory);
+  final ExternalResource resource=accessor.getResource(directory);
   if (resource == null) {
     return null;
   }
   try {
-    return resource.withContent(new Transformer<List<String>,InputStream>(){
-      public List<String> transform(      InputStream inputStream){
-        String contentType=resource.getContentType();
+    return resource.withContent(new ExternalResource.ContentAction<List<String>>(){
+      @Override public List<String> execute(      InputStream inputStream,      ExternalResourceMetaData metaData) throws IOException {
+        String contentType=metaData.getContentType();
         ApacheDirectoryListingParser directoryListingParser=new ApacheDirectoryListingParser();
         try {
           return directoryListingParser.parse(directory,inputStream,contentType);
