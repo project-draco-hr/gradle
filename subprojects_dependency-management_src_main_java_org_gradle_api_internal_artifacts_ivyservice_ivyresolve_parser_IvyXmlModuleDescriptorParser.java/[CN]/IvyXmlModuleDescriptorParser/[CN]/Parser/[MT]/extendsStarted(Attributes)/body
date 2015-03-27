@@ -5,37 +5,25 @@
   String location=elvis(attributes.getValue("location"),"../ivy.xml");
   String extendType=elvis(attributes.getValue("extendType"),"all").toLowerCase();
   List<String> extendTypes=Arrays.asList(extendType.split(","));
-  ModuleDescriptor parent=null;
+  ModuleDescriptor parent;
   try {
     LOGGER.debug("Trying to parse included ivy file :" + location);
     parent=parseOtherIvyFileOnFileSystem(location);
-    ModuleId expected=IvyUtil.createModuleId(parentOrganisation,parentModule);
-    ModuleId pid=parent.getModuleRevisionId().getModuleId();
-    if (!expected.equals(pid)) {
-      LOGGER.warn("Ignoring parent Ivy file " + location + "; expected "+ expected+ " but found "+ pid);
-      parent=null;
+    if (parent != null) {
+      ModuleId expected=IvyUtil.createModuleId(parentOrganisation,parentModule);
+      ModuleId pid=parent.getModuleRevisionId().getModuleId();
+      if (!expected.equals(pid)) {
+        LOGGER.warn("Ignoring parent Ivy file " + location + "; expected "+ expected+ " but found "+ pid);
+        parent=null;
+      }
     }
-  }
- catch (  ParseException e) {
-    LOGGER.debug("Unable to parse included ivy file " + location + ": "+ e.getMessage());
-  }
-catch (  IOException e) {
-    LOGGER.debug("Unable to parse included ivy file " + location + ": "+ e.getMessage());
-  }
-  if (parent == null) {
-    try {
+    if (parent == null) {
       LOGGER.debug("Trying to parse included ivy file by asking repository for module :" + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision);
       parent=parseOtherIvyFile(parentOrganisation,parentModule,parentRevision);
     }
- catch (    IOException e) {
-      LOGGER.warn("Unable to access included ivy file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision);
-    }
-catch (    ParseException e) {
-      LOGGER.warn("Unable to parse included ivy file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision);
-    }
-catch (    SAXException e) {
-      LOGGER.warn("Unable to parse included ivy file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision);
-    }
+  }
+ catch (  Exception e) {
+    throw (ParseException)new ParseException("Unable to parse included ivy file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision,0).initCause(e);
   }
   if (parent == null) {
     throw new ParseException("Unable to parse included ivy file for " + parentOrganisation + "#"+ parentModule+ ";"+ parentRevision,0);
