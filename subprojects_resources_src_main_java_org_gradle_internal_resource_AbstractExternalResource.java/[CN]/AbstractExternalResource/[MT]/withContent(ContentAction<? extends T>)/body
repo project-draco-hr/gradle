@@ -1,9 +1,14 @@
 {
-  InputStream input=openStream();
+  InputStream input=openBuffered();
   try {
-    return readAction.execute(input,getMetaData());
+    try {
+      return readAction.execute(input,getMetaData());
+    }
+ catch (    IOException e) {
+      throw ResourceException.getFailed(getURI(),e);
+    }
   }
   finally {
-    input.close();
+    close(input);
   }
 }
