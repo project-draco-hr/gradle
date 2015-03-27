@@ -1,0 +1,30 @@
+{
+  task.setToolChain(binary.getToolChain());
+  task.setTargetPlatform(binary.getTargetPlatform());
+  task.setPositionIndependentCode(binary instanceof SharedLibraryBinarySpec);
+  task.includes(new Callable<Set<File>>(){
+    public Set<File> call() throws Exception {
+      return ((HeaderExportingSourceSet)sourceSet).getExportedHeaders().getSrcDirs();
+    }
+  }
+);
+  task.includes(new Callable<List<FileCollection>>(){
+    public List<FileCollection> call(){
+      Collection<NativeDependencySet> libs=binary.getLibs((DependentSourceSet)sourceSet);
+      return CollectionUtils.collect(libs,new Transformer<FileCollection,NativeDependencySet>(){
+        public FileCollection transform(        NativeDependencySet original){
+          return original.getIncludeRoots();
+        }
+      }
+);
+    }
+  }
+);
+  for (  String toolName : languageTransform.getBinaryTools().keySet()) {
+    Tool tool=(Tool)((ExtensionAware)binary).getExtensions().getByName(toolName);
+    if (tool instanceof PreprocessingTool) {
+      task.setMacros(((PreprocessingTool)tool).getMacros());
+    }
+    task.setCompilerArgs(tool.getArgs());
+  }
+}

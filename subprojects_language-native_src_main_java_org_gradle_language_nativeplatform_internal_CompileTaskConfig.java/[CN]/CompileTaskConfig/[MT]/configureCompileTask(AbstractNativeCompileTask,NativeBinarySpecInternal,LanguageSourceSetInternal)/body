@@ -1,65 +1,25 @@
 {
   task.setDescription(String.format("Compiles the %s of %s",sourceSet,binary));
-  task.setToolChain(binary.getToolChain());
-  task.setTargetPlatform(binary.getTargetPlatform());
-  task.setPositionIndependentCode(binary instanceof SharedLibraryBinarySpec);
-  task.includes(new Callable<Set<File>>(){
-    public Set<File> call() throws Exception {
-      return ((HeaderExportingSourceSet)sourceSet).getExportedHeaders().getSrcDirs();
-    }
-  }
-);
-  task.includes(new Callable<List<FileCollection>>(){
-    public List<FileCollection> call(){
-      Collection<NativeDependencySet> libs=binary.getLibs((DependentSourceSet)sourceSet);
-      return CollectionUtils.collect(libs,new Transformer<FileCollection,NativeDependencySet>(){
-        public FileCollection transform(        NativeDependencySet original){
-          return original.getIncludeRoots();
-        }
-      }
-);
-    }
-  }
-);
   task.source(sourceSet.getSource());
   final Project project=task.getProject();
   task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase()+ "/"+ sourceSet.getFullName()));
-  for (  String toolName : languageTransform.getBinaryTools().keySet()) {
-    Tool tool=(Tool)((ExtensionAware)binary).getExtensions().getByName(toolName);
-    if (tool instanceof PreprocessingTool) {
-      task.setMacros(((PreprocessingTool)tool).getMacros());
-    }
-    task.setCompilerArgs(tool.getArgs());
-  }
-  if (sourceSet instanceof PreCompiledHeaderExportingSourceSetInternal && ((PreCompiledHeaderExportingSourceSetInternal)sourceSet).getConsumingSourceSet() != null) {
-    final DependentSourceSet consumingSourceSet=((PreCompiledHeaderExportingSourceSetInternal)sourceSet).getConsumingSourceSet();
-    task.setIsPreCompiledHeader(true);
-    task.includes(new Callable<Set<File>>(){
-      public Set<File> call() throws Exception {
-        return ((HeaderExportingSourceSet)consumingSourceSet).getExportedHeaders().getSrcDirs();
-      }
-    }
-);
-    task.includes(new Callable<List<FileCollection>>(){
-      public List<FileCollection> call(){
-        Collection<NativeDependencySet> libs=binary.getLibs(consumingSourceSet);
-        return CollectionUtils.collect(libs,new Transformer<FileCollection,NativeDependencySet>(){
-          public FileCollection transform(          NativeDependencySet original){
-            return original.getIncludeRoots();
-          }
-        }
-);
-      }
-    }
-);
-    binary.getPreCompiledHeaderObjectMappings().put(consumingSourceSet,task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch","**/*.gch")));
-  }
-  if (sourceSet instanceof DependentSourceSet && org.apache.commons.collections.CollectionUtils.isNotEmpty(((DependentSourceSet)sourceSet).getPreCompiledHeaders())) {
-    task.setPrefixHeaderFile(binary.getPrefixHeaderFileMappings().get(sourceSet));
+  if (sourceSet instanceof DependentSourceSet && !((DependentSourceSet)sourceSet).getPreCompiledHeaders().isEmpty()) {
+    task.setPrefixHeaderFile(((DependentSourceSet)sourceSet).getPrefixHeaderFile());
     task.setPreCompiledHeaders(((DependentSourceSet)sourceSet).getPreCompiledHeaders());
     task.preCompiledHeaderInclude(new Callable<FileCollection>(){
       public FileCollection call(){
-        return binary.getPreCompiledHeaderObjectMappings().get(sourceSet);
+        Set<AbstractNativePCHCompileTask> pchTasks=binary.getTasks().withType(AbstractNativePCHCompileTask.class).matching(new Spec<AbstractNativePCHCompileTask>(){
+          @Override public boolean isSatisfiedBy(          AbstractNativePCHCompileTask pchCompileTask){
+            return ((DependentSourceSet)sourceSet).getPrefixHeaderFile().equals(pchCompileTask.getPrefixHeaderFile());
+          }
+        }
+);
+        if (!pchTasks.isEmpty()) {
+          return pchTasks.iterator().next().getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch","**/*.gch"));
+        }
+ else {
+          return new SimpleFileCollection();
+        }
       }
     }
 );
