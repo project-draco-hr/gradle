@@ -5,12 +5,7 @@
   }
   DefaultGradleProject<LaunchableGradleTask> gradleProject=new DefaultGradleProject<LaunchableGradleTask>().setPath(project.getPath()).setName(project.getName()).setDescription(project.getDescription()).setBuildDirectory(project.getBuildDir()).setProjectDirectory(project.getProjectDir()).setChildren(children);
   gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
-  Collection<Task> tasks=taskLister.listProjectTasks(project);
-  List<LaunchableGradleTask> launchableTasks=Lists.newArrayList(tasks.size());
-  for (  Task task : tasks) {
-    launchableTasks.add(new LaunchableGradleProjectTask().setProject(gradleProject).setPath(task.getPath()).setName(task.getName()).setDisplayName(task.toString()).setDescription(task.getDescription()).setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task)));
-  }
-  gradleProject.setTasks(launchableTasks);
+  gradleProject.setTasks(tasks(gradleProject,(TaskContainerInternal)project.getTasks()));
   for (  DefaultGradleProject child : children) {
     child.setParent(gradleProject);
   }
