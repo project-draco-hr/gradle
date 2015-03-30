@@ -1,12 +1,16 @@
 {
+  List<BinarySpecInternal> notBuildable=Lists.newArrayList();
   for (  BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
     if (!binary.isLegacyBinary()) {
       if (binary.isBuildable()) {
         assemble.dependsOn(binary);
       }
  else {
-        ((AssembleBinariesTask)assemble).notBuildable(binary);
+        notBuildable.add(binary);
       }
     }
+  }
+  if (!notBuildable.isEmpty()) {
+    assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
   }
 }
