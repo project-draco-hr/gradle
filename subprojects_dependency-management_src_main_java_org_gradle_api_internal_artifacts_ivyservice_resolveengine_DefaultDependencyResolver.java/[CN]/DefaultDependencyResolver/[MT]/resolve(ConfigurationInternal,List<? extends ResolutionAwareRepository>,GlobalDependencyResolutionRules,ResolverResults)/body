@@ -26,7 +26,13 @@
       Store<TransientConfigurationResults> oldModelCache=stores.newModelStore();
       TransientConfigurationResultsBuilder oldTransientModelBuilder=new TransientConfigurationResultsBuilder(oldModelStore,oldModelCache);
       DefaultResolvedConfigurationBuilder oldModelBuilder=new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
-      ResolvedProjectConfigurationResultBuilder projectModelBuilder=new DefaultResolvedProjectConfigurationResultBuilder();
+      ResolvedProjectConfigurationResultBuilder projectModelBuilder;
+      if (buildProjectDependencies) {
+        projectModelBuilder=new DefaultResolvedProjectConfigurationResultBuilder();
+      }
+ else {
+        projectModelBuilder=ResolvedProjectConfigurationResultBuilder.NOOP_BUILDER;
+      }
       builder.resolve(configuration,newModelBuilder,oldModelBuilder,projectModelBuilder);
       oldModelBuilder.resolveArtifacts();
       DefaultLenientConfiguration result=new DefaultLenientConfiguration(configuration,oldModelBuilder,cacheLockingManager);
