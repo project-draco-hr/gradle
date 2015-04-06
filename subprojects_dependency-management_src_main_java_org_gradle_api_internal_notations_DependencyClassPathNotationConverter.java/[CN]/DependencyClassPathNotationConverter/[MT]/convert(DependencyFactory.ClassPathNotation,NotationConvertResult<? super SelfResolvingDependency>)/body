@@ -1,5 +1,13 @@
 {
-  Collection<File> classpath=classPathRegistry.getClassPath(notation.name()).getAsFiles();
-  FileCollection files=fileResolver.resolveFiles(classpath);
-  result.converted(instantiator.newInstance(DefaultSelfResolvingDependency.class,files));
+  SelfResolvingDependency dependency=internCache.get(notation);
+  if (dependency == null) {
+    internCacheWriteLock.lock();
+    try {
+      dependency=maybeCreateUnderLock(notation);
+    }
+  finally {
+      internCacheWriteLock.unlock();
+    }
+  }
+  result.converted(dependency);
 }
