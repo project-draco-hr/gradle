@@ -1,15 +1,23 @@
 {
-  boolean userAlreadyNagged=false;
-  if (getState() != State.UNRESOLVED) {
-    if (type == MutationType.CONTENT) {
-      throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.",getDisplayName()));
-    }
- else {
-      userAlreadyNagged=true;
-      DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved",getDisplayName()));
-    }
-  }
-  if (!userAlreadyNagged && includedInResult) {
+switch (state) {
+case UNOBSERVED:
+    break;
+case OBSERVED:
+  if (type == MutationType.CONTENT) {
     DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution",getDisplayName()));
   }
+break;
+case TASK_DEPENDENCIES_RESOLVED:
+DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved",getDisplayName()));
+break;
+case RESULTS_RESOLVED:
+if (type == MutationType.CONTENT) {
+throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.",getDisplayName()));
+}
+ else {
+DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved",getDisplayName()));
+}
+break;
+}
+markAsModifiedAndNotifyChildren(type);
 }
