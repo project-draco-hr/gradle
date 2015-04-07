@@ -1,6 +1,7 @@
 {
 synchronized (lock) {
     boolean needsResolve=false;
+    boolean needsArtifacts=requestedState == InternalState.RESULTS_RESOLVED;
 switch (state) {
 case UNOBSERVED:
 case OBSERVED:
@@ -10,6 +11,7 @@ case TASK_DEPENDENCIES_RESOLVED:
   needsResolve=modified && requestedState == InternalState.RESULTS_RESOLVED;
 break;
 case RESULTS_RESOLVED:
+needsArtifacts=false;
 break;
 }
 if (needsResolve) {
@@ -17,8 +19,7 @@ DependencyResolutionListener broadcast=getDependencyResolutionBroadcast();
 ResolvableDependencies incoming=getIncoming();
 broadcast.beforeResolve(incoming);
 triggerWhenEmptyActionsIfNecessary();
-cachedResolverResults=resolver.resolve(this);
-resolvedWithFailures=cachedResolverResults.getResolvedConfiguration().hasError();
+resolver.resolve(this,cachedResolverResults);
 markAsObserved();
 for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
 ProjectInternal project=projectFinder.getProject(projectResult.getId().getProjectPath());
@@ -36,5 +37,10 @@ DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to reso
 }
 markAsResolved(requestedState);
 }
+if (needsArtifacts) {
+resolver.resolveArtifacts(this,cachedResolverResults);
+resolvedWithFailures=cachedResolverResults.getResolvedConfiguration().hasError();
+}
+markAsResolved(requestedState);
 }
 }
