@@ -1,9 +1,15 @@
 {
   final DependentSourceSet sourceSet=(DependentSourceSet)languageSourceSet;
   task.setDescription(String.format("Compiles a pre-compiled header for the %s of %s",sourceSet,binary));
+  task.includes(new Callable<Set<File>>(){
+    public Set<File> call() throws Exception {
+      return sourceSet.getSource().getSrcDirs();
+    }
+  }
+);
   final Project project=task.getProject();
   task.setPrefixHeaderFile(sourceSet.getPrefixHeaderFile());
-  task.setPreCompiledHeaders(sourceSet.getPreCompiledHeaders());
+  task.setPreCompiledHeader(sourceSet.getPreCompiledHeader());
   task.source(sourceSet.getPrefixHeaderFile());
   task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase()+ "/"+ languageSourceSet.getFullName()+ "PreCompiledHeader"));
   task.dependsOn(project.getTasks().withType(PrefixHeaderFileGenerateTask.class).matching(new Spec<PrefixHeaderFileGenerateTask>(){

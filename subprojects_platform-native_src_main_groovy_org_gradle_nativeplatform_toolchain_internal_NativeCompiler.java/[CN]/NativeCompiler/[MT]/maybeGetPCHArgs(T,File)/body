@@ -1,22 +1,18 @@
 {
-  if (spec.getPreCompiledHeaders() == null) {
+  if (spec.getPreCompiledHeader() == null) {
     return Lists.newArrayList();
   }
   final SourceIncludes includes=spec.getSourceFileIncludes().get(sourceFile);
-  boolean usePCH=CollectionUtils.every(spec.getPreCompiledHeaders(),new Spec<String>(){
-    @Override public boolean isSatisfiedBy(    String header){
-      List<String> headerIncludes;
-      if (header.startsWith("<")) {
-        header=header.substring(1,header.length() - 1);
-        headerIncludes=includes.getSystemIncludes();
-      }
- else {
-        headerIncludes=includes.getQuotedIncludes();
-      }
-      return headerIncludes.contains(header);
-    }
+  String header=spec.getPreCompiledHeader();
+  List<String> headerIncludes;
+  if (header.startsWith("<")) {
+    header=header.substring(1,header.length() - 1);
+    headerIncludes=includes.getSystemIncludes();
   }
-);
+ else {
+    headerIncludes=includes.getQuotedIncludes();
+  }
+  boolean usePCH=headerIncludes.contains(header);
   if (usePCH) {
     return getPCHArgs(spec);
   }
