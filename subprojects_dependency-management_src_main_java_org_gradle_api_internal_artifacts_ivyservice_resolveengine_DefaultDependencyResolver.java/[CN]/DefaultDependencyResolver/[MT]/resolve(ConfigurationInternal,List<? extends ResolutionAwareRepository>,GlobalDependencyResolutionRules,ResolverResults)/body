@@ -26,6 +26,7 @@
       Store<TransientConfigurationResults> oldModelCache=stores.newModelStore();
       TransientConfigurationResultsBuilder oldTransientModelBuilder=new TransientConfigurationResultsBuilder(oldModelStore,oldModelCache);
       DefaultResolvedConfigurationBuilder oldModelBuilder=new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
+      DefaultResolvedArtifactsBuilder artifactsBuilder=new DefaultResolvedArtifactsBuilder();
       ResolvedProjectConfigurationResultBuilder projectModelBuilder;
       if (buildProjectDependencies) {
         projectModelBuilder=new DefaultResolvedProjectConfigurationResultBuilder();
@@ -33,9 +34,10 @@
  else {
         projectModelBuilder=ResolvedProjectConfigurationResultBuilder.NOOP_BUILDER;
       }
-      builder.resolve(configuration,newModelBuilder,oldModelBuilder,projectModelBuilder);
+      builder.resolve(configuration,newModelBuilder,oldModelBuilder,artifactsBuilder,projectModelBuilder);
       results.resolved(newModelBuilder.complete(),projectModelBuilder.complete());
-      results.retainConfigurationBuilder(oldModelBuilder);
+      ResolvedGraphResults graphResults=oldModelBuilder.complete();
+      results.retainState(graphResults,artifactsBuilder,oldTransientModelBuilder);
     }
   }
 );
