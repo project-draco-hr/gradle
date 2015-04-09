@@ -1,14 +1,9 @@
 {
   LOGGER.debug("Attempting to get resource metadata: {}",location);
-  try {
-    S3Object s3Object=s3Client.getMetaData(location);
-    if (s3Object == null) {
-      return null;
-    }
-    ObjectMetadata objectMetadata=s3Object.getObjectMetadata();
-    return new DefaultExternalResourceMetaData(location,objectMetadata.getLastModified().getTime(),objectMetadata.getContentLength(),objectMetadata.getETag(),null);
+  S3Object s3Object=s3Client.getMetaData(location);
+  if (s3Object == null) {
+    return null;
   }
- catch (  S3Exception s3x) {
-    throw new UncheckedIOException(s3x.getMessage(),s3x);
-  }
+  ObjectMetadata objectMetadata=s3Object.getObjectMetadata();
+  return new DefaultExternalResourceMetaData(location,objectMetadata.getLastModified().getTime(),objectMetadata.getContentLength(),objectMetadata.getContentType(),objectMetadata.getETag(),null);
 }

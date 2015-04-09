@@ -1,24 +1,25 @@
 {
-  final HttpResponseResource resource=accessor.getResource(parent);
-  if (resource == null) {
+  final ExternalResourceReadResponse response=accessor.openResource(directory);
+  if (response == null) {
     return null;
   }
   try {
-    return resource.withContent(new Transformer<List<String>,InputStream>(){
-      public List<String> transform(      InputStream inputStream){
-        String contentType=resource.getContentType();
-        ApacheDirectoryListingParser directoryListingParser=new ApacheDirectoryListingParser();
-        try {
-          return directoryListingParser.parse(parent,inputStream,contentType);
-        }
- catch (        Exception e) {
-          throw new ResourceException("Unable to parse HTTP directory listing.",e);
-        }
+    try {
+      String contentType=response.getMetaData().getContentType();
+      ApacheDirectoryListingParser directoryListingParser=new ApacheDirectoryListingParser();
+      InputStream inputStream=response.openStream();
+      try {
+        return directoryListingParser.parse(directory,inputStream,contentType);
+      }
+ catch (      Exception e) {
+        throw new ResourceException(directory,String.format("Unable to parse HTTP directory listing for '%s'.",directory),e);
       }
     }
-);
-  }
   finally {
-    resource.close();
+      response.close();
+    }
+  }
+ catch (  IOException e) {
+    throw ResourceException.getFailed(directory,e);
   }
 }

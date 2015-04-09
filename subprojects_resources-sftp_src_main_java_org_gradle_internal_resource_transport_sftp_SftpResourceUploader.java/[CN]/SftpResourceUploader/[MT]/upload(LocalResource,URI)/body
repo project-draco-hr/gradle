@@ -1,0 +1,20 @@
+{
+  LockableSftpClient client=sftpClientFactory.createSftpClient(destination,credentials);
+  try {
+    ChannelSftp channel=client.getSftpClient();
+    ensureParentDirectoryExists(channel,destination);
+    InputStream sourceStream=resource.open();
+    try {
+      channel.put(sourceStream,destination.getPath());
+    }
+  finally {
+      sourceStream.close();
+    }
+  }
+ catch (  com.jcraft.jsch.SftpException e) {
+    throw ResourceException.putFailed(destination,e);
+  }
+ finally {
+    sftpClientFactory.releaseSftpClient(client);
+  }
+}

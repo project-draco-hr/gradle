@@ -4,18 +4,20 @@
   this.transferEventSupport.fireTransferStarted(transferEvent(resource,TRANSFER_STARTED,REQUEST_GET));
   try {
     if (!destination.exists()) {
-      LOGGER.debug("Wagon deployment supplied a file [{}] which does not exist, forcing create.",destination.getAbsolutePath());
       destination.getParentFile().mkdirs();
       destination.createNewFile();
     }
     if (!getDelegate().getRemoteFile(destination,resourceName)) {
-      throw new ResourceDoesNotExistException(String.format("'%s' does not exist",resourceName));
+      throw new ResourceDoesNotExistException(String.format("Resource '%s' does not exist",resourceName));
     }
-    signalMavenToGenerateChecksums(destination,resource,REQUEST_GET);
     this.transferEventSupport.fireTransferCompleted(transferEvent(resource,TRANSFER_COMPLETED,REQUEST_GET));
   }
- catch (  IOException e) {
-    this.transferEventSupport.fireTransferError(transferEvent(resource,TRANSFER_ERROR,REQUEST_GET));
-    throw new TransferFailedException(String.format("Cannot get and write file '%s'",resourceName),e);
+ catch (  ResourceDoesNotExistException e) {
+    this.transferEventSupport.fireTransferError(transferEvent(resource,e,REQUEST_GET));
+    throw e;
+  }
+catch (  Exception e) {
+    this.transferEventSupport.fireTransferError(transferEvent(resource,e,REQUEST_GET));
+    throw new TransferFailedException(String.format("Could not get resource '%s'",resourceName),e);
   }
 }

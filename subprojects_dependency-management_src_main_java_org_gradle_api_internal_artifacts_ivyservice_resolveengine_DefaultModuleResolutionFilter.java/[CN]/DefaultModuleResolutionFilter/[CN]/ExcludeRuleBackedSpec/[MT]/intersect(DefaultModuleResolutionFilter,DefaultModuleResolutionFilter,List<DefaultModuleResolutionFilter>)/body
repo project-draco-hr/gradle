@@ -1,30 +1,36 @@
 {
-  if (spec1 instanceof ArtifactSpec) {
-    merged.add(spec1);
-  }
- else   if (spec2 instanceof ArtifactSpec) {
+  if (spec1 instanceof ExcludeAllModulesSpec) {
     merged.add(spec2);
   }
- else   if (spec1 instanceof GroupNameSpec) {
-    intersect((GroupNameSpec)spec1,spec2,merged);
+ else   if (spec2 instanceof ExcludeAllModulesSpec) {
+    merged.add(spec1);
   }
- else   if (spec2 instanceof GroupNameSpec) {
-    intersect((GroupNameSpec)spec2,spec1,merged);
+ else   if (spec1 instanceof ArtifactExcludeSpec) {
+    merged.add(spec1);
   }
- else   if (spec1 instanceof ModuleNameSpec) {
-    intersect((ModuleNameSpec)spec1,spec2,merged);
+ else   if (spec2 instanceof ArtifactExcludeSpec) {
+    merged.add(spec2);
   }
- else   if (spec2 instanceof ModuleNameSpec) {
-    intersect((ModuleNameSpec)spec2,spec1,merged);
+ else   if (spec1 instanceof GroupNameExcludeSpec) {
+    intersect((GroupNameExcludeSpec)spec1,spec2,merged);
   }
- else   if ((spec1 instanceof ModuleIdSpec) && (spec2 instanceof ModuleIdSpec)) {
-    ModuleIdSpec moduleSpec1=(ModuleIdSpec)spec1;
-    ModuleIdSpec moduleSpec2=(ModuleIdSpec)spec2;
+ else   if (spec2 instanceof GroupNameExcludeSpec) {
+    intersect((GroupNameExcludeSpec)spec2,spec1,merged);
+  }
+ else   if (spec1 instanceof ModuleNameExcludeSpec) {
+    intersect((ModuleNameExcludeSpec)spec1,spec2,merged);
+  }
+ else   if (spec2 instanceof ModuleNameExcludeSpec) {
+    intersect((ModuleNameExcludeSpec)spec2,spec1,merged);
+  }
+ else   if ((spec1 instanceof ModuleIdExcludeSpec) && (spec2 instanceof ModuleIdExcludeSpec)) {
+    ModuleIdExcludeSpec moduleSpec1=(ModuleIdExcludeSpec)spec1;
+    ModuleIdExcludeSpec moduleSpec2=(ModuleIdExcludeSpec)spec2;
     if (moduleSpec1.moduleId.equals(moduleSpec2.moduleId)) {
       merged.add(moduleSpec1);
     }
   }
  else {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException(String.format("Cannot calculate intersection of exclude rules: %s, %s",spec1,spec2));
   }
 }

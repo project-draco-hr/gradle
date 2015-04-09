@@ -1,15 +1,28 @@
 {
-  IncrementalCompilation compilation=cacheAccess.useCache("process source files",new Factory<IncrementalCompilation>(){
+  final PersistentStateCache<CompilationState> compileStateCache=compilationStateCacheFactory.create(task.getPath());
+  final IncrementalCompilation compilation=cacheAccess.useCache("process source files",new Factory<IncrementalCompilation>(){
     public IncrementalCompilation create(){
       DefaultSourceIncludesParser sourceIncludesParser=new DefaultSourceIncludesParser(sourceParser,importsAreIncludes);
-      IncrementalCompileProcessor processor=createProcessor(sourceIncludesParser,spec.getIncludeRoots());
-      return processor.processSourceFiles(spec.getSourceFiles());
+      IncrementalCompileProcessor processor=createProcessor(compileStateCache,sourceIncludesParser,spec.getIncludeRoots());
+      IncrementalCompilation incrementalCompilation=processor.processSourceFiles(spec.getSourceFiles());
+      spec.setSourceFileIncludes(incrementalCompilation.getSourceFileIncludes());
+      return incrementalCompilation;
     }
   }
 );
-  spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(),compilationStateCacheFactory.create(task.getPath()).get()));
+  WorkResult workResult;
   if (spec.isIncrementalCompile()) {
-    return doIncrementalCompile(compilation,spec);
+    workResult=doIncrementalCompile(compilation,spec);
   }
-  return doCleanIncrementalCompile(spec);
+ else {
+    workResult=doCleanIncrementalCompile(spec);
+  }
+  cacheAccess.useCache("update compilation state",new Factory<Void>(){
+    public Void create(){
+      compileStateCache.set(compilation.getFinalState());
+      return null;
+    }
+  }
+);
+  return workResult;
 }

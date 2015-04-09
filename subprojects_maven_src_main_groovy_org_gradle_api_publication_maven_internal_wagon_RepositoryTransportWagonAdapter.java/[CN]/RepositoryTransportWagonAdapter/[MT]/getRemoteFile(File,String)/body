@@ -1,15 +1,14 @@
 {
   URI uriForResource=getUriForResource(resourceName);
-  try {
-    ExternalResource resource=transport.getRepository().getResource(uriForResource);
-    if (null != resource) {
-      resource.writeTo(destination);
-      return true;
-    }
-  }
- catch (  Exception e) {
-    LOGGER.debug("Could get and write file:",e);
+  ExternalResource resource=transport.getRepository().getResource(uriForResource);
+  if (resource == null) {
     return false;
   }
-  return false;
+  try {
+    resource.writeTo(destination);
+  }
+  finally {
+    resource.close();
+  }
+  return true;
 }

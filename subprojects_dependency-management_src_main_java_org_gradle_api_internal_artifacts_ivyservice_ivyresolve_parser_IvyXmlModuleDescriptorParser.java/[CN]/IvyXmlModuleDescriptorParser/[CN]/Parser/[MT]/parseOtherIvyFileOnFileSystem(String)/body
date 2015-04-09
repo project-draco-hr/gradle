@@ -1,5 +1,14 @@
 {
   URL url=relativeUrlResolver.getURL(descriptorURL,location);
   LOGGER.debug("Trying to load included ivy file from " + url.toString());
-  return parseModuleDescriptor(new UrlExternalResource(url),url);
+  ExternalResource resource=UrlExternalResource.open(url);
+  try {
+    return parseModuleDescriptor(resource,url);
+  }
+ catch (  ResourceNotFoundException e) {
+    return null;
+  }
+ finally {
+    resource.close();
+  }
 }
