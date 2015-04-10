@@ -1,9 +1,9 @@
 {
-  LOGGER.debug("Attempting to resolve component for {} using repositories {}",moduleComponentIdentifier,repositoryNames);
+  LOGGER.debug("Attempting to resolve component for {} using repositories {}",identifier,repositoryNames);
   List<Throwable> errors=new ArrayList<Throwable>();
   List<ComponentMetaDataResolveState> resolveStates=new ArrayList<ComponentMetaDataResolveState>();
   for (  ModuleComponentRepository repository : repositories) {
-    resolveStates.add(new ComponentMetaDataResolveState(dependency,moduleComponentIdentifier,repository,versionedComponentChooser));
+    resolveStates.add(new ComponentMetaDataResolveState(identifier,componentRequestMetaData,repository,versionedComponentChooser));
   }
   final RepositoryChainModuleResolution latestResolved=findBestMatch(resolveStates,errors);
   if (latestResolved != null) {
@@ -15,12 +15,12 @@
     return;
   }
   if (!errors.isEmpty()) {
-    result.failed(new ModuleVersionResolveException(moduleComponentIdentifier,errors));
+    result.failed(new ModuleVersionResolveException(identifier,errors));
   }
  else {
     for (    ComponentMetaDataResolveState resolveState : resolveStates) {
       resolveState.applyTo(result);
     }
-    result.notFound(moduleComponentIdentifier);
+    result.notFound(identifier);
   }
 }
