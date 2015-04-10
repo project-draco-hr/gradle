@@ -1,7 +1,13 @@
 {
-  NamedDomainObjectFactory<? extends T> factory=factories.get(getType());
-  if (factory == null) {
-    throw new InvalidUserDataException(String.format("Cannot create a %s named '%s' because this container " + "does not support creating elements by name alone. Please specify which subtype of %s to create. " + "Known subtypes are: %s",getTypeDisplayName(),name,getTypeDisplayName(),getSupportedTypeNames()));
+  try {
+    return namedEntityInstantiator.create(name,getType());
   }
-  return factory.create(name);
+ catch (  InvalidUserDataException e) {
+    if (e.getCause() instanceof NoFactoryRegisteredForTypeException) {
+      throw new InvalidUserDataException(String.format("Cannot create a %s named '%s' because this container " + "does not support creating elements by name alone. Please specify which subtype of %s to create. " + "Known subtypes are: %s",getTypeDisplayName(),name,getTypeDisplayName(),namedEntityInstantiator.getSupportedTypeNames()));
+    }
+ else {
+      throw e;
+    }
+  }
 }
