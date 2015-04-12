@@ -1,0 +1,26 @@
+{
+  LOGGER.debug("Attempting to resolve component for {} using repositories {}",identifier,repositoryNames);
+  List<Throwable> errors=new ArrayList<Throwable>();
+  List<ComponentMetaDataResolveState> resolveStates=new ArrayList<ComponentMetaDataResolveState>();
+  for (  ModuleComponentRepository repository : repositories) {
+    resolveStates.add(new ComponentMetaDataResolveState(identifier,componentOverrideMetadata,repository,versionedComponentChooser));
+  }
+  final RepositoryChainModuleResolution latestResolved=findBestMatch(resolveStates,errors);
+  if (latestResolved != null) {
+    LOGGER.debug("Using {} from {}",latestResolved.module.getId(),latestResolved.repository);
+    for (    Throwable error : errors) {
+      LOGGER.debug("Discarding resolve failure.",error);
+    }
+    result.resolved(metaDataFactory.transform(latestResolved));
+    return;
+  }
+  if (!errors.isEmpty()) {
+    result.failed(new ModuleVersionResolveException(identifier,errors));
+  }
+ else {
+    for (    ComponentMetaDataResolveState resolveState : resolveStates) {
+      resolveState.applyTo(result);
+    }
+    result.notFound(identifier);
+  }
+}

@@ -1,0 +1,31 @@
+{
+  VersionSelector requestedVersion=versionSelectorScheme.parseSelector(requested.getVersion());
+  Collection<SpecRuleAction<? super ComponentSelection>> rules=componentSelectionRules.getRules();
+  for (  ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
+    MetadataProvider metadataProvider=new MetadataProvider(candidate);
+    boolean versionMatches=versionMatches(requestedVersion,candidate,metadataProvider);
+    if (!metadataProvider.isUsable()) {
+      applyTo(metadataProvider,result);
+      return;
+    }
+    if (!versionMatches) {
+      result.notMatched(candidate.getVersion());
+      continue;
+    }
+    ModuleComponentIdentifier candidateIdentifier=candidate.getId();
+    boolean accepted=!isRejectedByRules(candidateIdentifier,rules,metadataProvider);
+    if (!metadataProvider.isUsable()) {
+      applyTo(metadataProvider,result);
+      return;
+    }
+    if (accepted) {
+      result.matches(candidateIdentifier);
+      return;
+    }
+    result.rejected(candidate.getVersion());
+    if (requestedVersion.matchesUniqueVersion()) {
+      break;
+    }
+  }
+  result.noMatchFound();
+}

@@ -9,12 +9,7 @@
   spec.source(getSource());
   spec.args(getAssemblerArgs());
   spec.setOperationLogger(operationLogger);
-  operationLogger.start();
-  try {
-    WorkResult result=toolChain.select(targetPlatform).newCompiler(AssembleSpec.class).execute(spec);
-    setDidWork(result.getDidWork());
-  }
-  finally {
-    operationLogger.done();
-  }
+  Compiler<AssembleSpec> compiler=toolChain.select(targetPlatform).newCompiler(AssembleSpec.class);
+  WorkResult result=BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
+  setDidWork(result.getDidWork());
 }

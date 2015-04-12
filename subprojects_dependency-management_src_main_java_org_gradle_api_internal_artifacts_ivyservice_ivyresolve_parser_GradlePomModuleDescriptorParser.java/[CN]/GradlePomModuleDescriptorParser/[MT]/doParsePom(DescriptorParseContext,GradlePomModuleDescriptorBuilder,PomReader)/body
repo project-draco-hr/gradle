@@ -1,6 +1,6 @@
 {
   if (pomReader.hasParent()) {
-    ModuleVersionIdentifier parentId=DefaultModuleVersionIdentifier.newId(pomReader.getParentGroupId(),pomReader.getParentArtifactId(),pomReader.getParentVersion());
+    ModuleComponentIdentifier parentId=DefaultModuleComponentIdentifier.newId(pomReader.getParentGroupId(),pomReader.getParentArtifactId(),pomReader.getParentVersion());
     PomReader parentPomReader=parseOtherPom(parserSettings,parentId);
     pomReader.setPomParent(parentPomReader);
   }
@@ -18,7 +18,7 @@
       LOGGER.error("POM relocation to an other version number is not fully supported in Gradle : {} relocated to {}.",mdBuilder.getModuleDescriptor().getModuleRevisionId(),relocation);
       LOGGER.warn("Please update your dependency to directly use the correct version '{}'.",relocation);
       LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
-      PomReader relocatedModule=parseOtherPom(parserSettings,DefaultModuleVersionIdentifier.newId(relocation));
+      PomReader relocatedModule=parseOtherPom(parserSettings,DefaultModuleComponentIdentifier.newId(relocation.getOrganisation(),relocation.getName(),relocation.getRevision()));
       Collection<PomDependencyData> pomDependencyDataList=relocatedModule.getDependencies().values();
       for (      PomDependencyData pomDependencyData : pomDependencyDataList) {
         mdBuilder.addDependency(pomDependencyData);

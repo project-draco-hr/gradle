@@ -1,10 +1,15 @@
 {
-  Project project=findProject(requirement);
-  ComponentSpecContainer componentSpecContainer=project.getExtensions().findByType(ComponentSpecContainer.class);
-  if (componentSpecContainer == null) {
+  ProjectInternal project=findProject(requirement);
+  ModelRegistry modelRegistry=project.getModelRegistry();
+  CollectionBuilder<NativeLibrarySpec> nativeLibraries=modelRegistry.find(ModelPath.path("components"),ModelTypes.collectionBuilderOf(NativeLibrarySpec.class));
+  if (nativeLibraries == null) {
     throw new LibraryResolveException(String.format("Project does not have a libraries container: '%s'",project.getPath()));
   }
-  DomainObjectSet<NativeBinarySpec> projectBinaries=componentSpecContainer.withType(NativeLibrarySpec.class).getByName(requirement.getLibraryName()).getBinaries().withType(NativeBinarySpec.class);
+  String libraryName=requirement.getLibraryName();
+  if (!nativeLibraries.containsKey(libraryName)) {
+    throw new UnknownDomainObjectException(String.format("%s with name '%s' not found.",NativeLibrarySpec.class.getSimpleName(),libraryName));
+  }
+  DomainObjectSet<NativeBinarySpec> projectBinaries=nativeLibraries.get(libraryName).getBinaries().withType(NativeBinarySpec.class);
   DomainObjectSet<NativeLibraryBinary> binaries=new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
   for (  NativeBinarySpec nativeBinarySpec : projectBinaries) {
     binaries.add((NativeLibraryBinary)nativeBinarySpec);
