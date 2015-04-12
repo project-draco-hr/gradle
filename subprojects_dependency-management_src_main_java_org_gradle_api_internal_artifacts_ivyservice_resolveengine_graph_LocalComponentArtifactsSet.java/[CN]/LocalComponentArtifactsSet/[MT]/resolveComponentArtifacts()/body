@@ -1,0 +1,20 @@
+{
+  if (artifacts == null) {
+    BuildableComponentResolveResult moduleResolveResult=new DefaultBuildableComponentResolveResult();
+    componentResolver.resolve(componentIdentifier,componentOverrideMetadata,moduleResolveResult);
+    ComponentResolveMetaData component=moduleResolveResult.getMetaData();
+    BuildableArtifactSetResolveResult result=new DefaultBuildableArtifactSetResolveResult();
+    getArtifactResolver().resolveModuleArtifacts(component,new DefaultComponentUsage(configurationId.getConfiguration()),result);
+    artifacts=result.getArtifacts();
+  }
+  Set<ComponentArtifactMetaData> result=new LinkedHashSet<ComponentArtifactMetaData>();
+  ModuleIdentifier moduleId=configurationId.getId().getModule();
+  for (  ComponentArtifactMetaData artifact : artifacts) {
+    IvyArtifactName artifactName=artifact.getName();
+    if (!selector.acceptArtifact(moduleId,artifactName)) {
+      continue;
+    }
+    result.add(artifact);
+  }
+  return result;
+}
