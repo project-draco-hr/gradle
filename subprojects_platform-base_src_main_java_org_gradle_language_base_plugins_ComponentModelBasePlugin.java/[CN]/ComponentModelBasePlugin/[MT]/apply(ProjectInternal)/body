@@ -1,6 +1,19 @@
 {
   project.getPluginManager().apply(LanguageBasePlugin.class);
-  DefaultComponentSpecContainer components=project.getExtensions().create("componentSpecs",DefaultComponentSpecContainer.class,instantiator);
   String descriptor=ComponentModelBasePlugin.class.getName() + ".apply()";
-  BridgedCollections.dynamicTypes(modelRegistry,ModelPath.path("components"),descriptor,ModelType.of(DefaultComponentSpecContainer.class),ModelType.of(DefaultComponentSpecContainer.class),ModelType.of(ComponentSpec.class),components,Named.Namer.INSTANCE,BridgedCollections.itemDescriptor(descriptor));
+  ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> factoryRegistryType=new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>(){
+  }
+;
+  ModelReference<CollectionBuilder<ComponentSpec>> containerReference=ModelReference.of("components",ModelTypes.collectionBuilderOf(ComponentSpec.class));
+  ModelCreator componentsCreator=ModelCreators.of(containerReference,new BiAction<MutableModelNode,List<ModelView<?>>>(){
+    @Override public void execute(    MutableModelNode mutableModelNode,    List<ModelView<?>> modelViews){
+      final DefaultDynamicTypesNamedEntityInstantiator<ComponentSpec> namedEntityInstantiator=new DefaultDynamicTypesNamedEntityInstantiator<ComponentSpec>(ComponentSpec.class,"this collection");
+      ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>> instantiatorType=new ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>>(){
+      }
+;
+      mutableModelNode.setPrivateData(instantiatorType,new DefaultRuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>(namedEntityInstantiator));
+    }
+  }
+).descriptor(descriptor).ephemeral(true).withProjection(new DynamicTypesCollectionBuilderProjection<ComponentSpec>(ModelType.of(ComponentSpec.class))).withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>(factoryRegistryType)).build();
+  modelRegistry.createOrReplace(componentsCreator);
 }
