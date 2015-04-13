@@ -11,9 +11,9 @@
   }
   Map<String,String> implicitJvmSystemProperties=getImplicitJvmSystemProperties();
   System.getProperties().putAll(implicitJvmSystemProperties);
-  StartParameter parameter=new StartParameter();
-  parameter.setCurrentDir(getWorkingDir());
-  parameter.setShowStacktrace(ShowStacktrace.ALWAYS);
+  StartParameter startParameter=new StartParameter();
+  startParameter.setCurrentDir(getWorkingDir());
+  startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
   CommandLineParser parser=new CommandLineParser();
   DefaultCommandLineConverter converter=new DefaultCommandLineConverter();
   converter.configure(parser);
@@ -22,22 +22,22 @@
   Map<String,String> properties=new HashMap<String,String>();
   new LayoutToPropertiesConverter().convert(layout,properties);
   converter.getSystemPropertiesConverter().convert(parsedCommandLine,properties);
-  new PropertiesToStartParameterConverter().convert(properties,parameter);
-  converter.convert(parsedCommandLine,parameter);
-  DefaultGradleLauncherFactory factory=GLOBAL_SERVICES.get(DefaultGradleLauncherFactory.class);
-  factory.addListener(listener);
+  new PropertiesToStartParameterConverter().convert(properties,startParameter);
+  converter.convert(parsedCommandLine,startParameter);
+  BuildActionExecuter<BuildActionParameters> actionExecuter=GLOBAL_SERVICES.get(BuildActionExecuter.class);
+  ListenerManager listenerManager=GLOBAL_SERVICES.get(ListenerManager.class);
+  listenerManager.addListener(listener);
   try {
-    GradleLauncher gradleLauncher=factory.newInstance(parameter);
-    try {
-      gradleLauncher.addStandardOutputListener(outputListener);
-      gradleLauncher.addStandardErrorListener(errorListener);
-      return gradleLauncher.run();
-    }
-  finally {
-      gradleLauncher.stop();
-    }
+    BuildAction action=new ExecuteBuildAction(startParameter);
+    BuildActionParameters buildActionParameters=new DefaultBuildActionParameters(System.getProperties(),System.getenv(),SystemProperties.getInstance().getCurrentDir(),startParameter.getLogLevel(),DaemonUsage.EXPLICITLY_DISABLED);
+    BuildRequestContext buildRequestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),ManagementFactory.getRuntimeMXBean().getStartTime()),new FixedBuildCancellationToken(),new NoOpBuildEventConsumer(),outputListener,errorListener);
+    actionExecuter.execute(action,buildRequestContext,buildActionParameters);
+    return new BuildResult(null,null);
   }
-  finally {
+ catch (  ReportedException e) {
+    return new BuildResult(null,e.getCause());
+  }
+ finally {
     System.setProperties(originalSysProperties);
     processEnvironment.maybeSetProcessDir(originalUserDir);
     for (    String envVar : getEnvironmentVars().keySet()) {
@@ -49,7 +49,7 @@
         processEnvironment.maybeRemoveEnvironmentVariable(envVar);
       }
     }
-    factory.removeListener(listener);
+    listenerManager.removeListener(listener);
     System.setIn(originalStdIn);
   }
 }
