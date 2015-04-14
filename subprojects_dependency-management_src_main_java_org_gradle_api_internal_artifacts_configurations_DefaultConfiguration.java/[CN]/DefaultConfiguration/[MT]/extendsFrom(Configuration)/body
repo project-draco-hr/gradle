@@ -4,9 +4,11 @@
     if (configuration.getHierarchy().contains(this)) {
       throw new InvalidUserDataException(String.format("Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s",this,configuration,configuration.getHierarchy()));
     }
-    this.extendsFrom.add(configuration);
-    inheritedArtifacts.addCollection(configuration.getAllArtifacts());
-    inheritedDependencies.addCollection(configuration.getAllDependencies());
+    if (this.extendsFrom.add(configuration)) {
+      inheritedArtifacts.addCollection(configuration.getAllArtifacts());
+      inheritedDependencies.addCollection(configuration.getAllDependencies());
+      ((ConfigurationInternal)configuration).addMutationValidator(parentMutationValidator);
+    }
   }
   return this;
 }

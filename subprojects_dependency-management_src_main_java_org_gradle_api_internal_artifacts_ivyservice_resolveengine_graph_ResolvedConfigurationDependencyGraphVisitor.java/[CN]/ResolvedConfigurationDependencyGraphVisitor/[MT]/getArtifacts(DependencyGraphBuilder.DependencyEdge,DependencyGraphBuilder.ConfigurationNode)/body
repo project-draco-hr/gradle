@@ -1,0 +1,13 @@
+{
+  ResolvedConfigurationIdentifier configurationIdentifier=childConfiguration.id;
+  ConfigurationMetaData metaData=childConfiguration.getMetaData();
+  ComponentResolveMetaData component=metaData.getComponent();
+  Set<ComponentArtifactMetaData> artifacts=dependency.getArtifacts(metaData);
+  if (!artifacts.isEmpty()) {
+    return new DependencyArtifactSet(component.getId(),component.getSource(),artifacts,artifactResolver);
+  }
+  if (component.getComponentId() instanceof ProjectComponentIdentifier) {
+    return new LazyResolveConfigurationArtifactSet(component,configurationIdentifier,dependency.getSelector(),componentResolver,artifactResolver);
+  }
+  return new EagerResolveConfigurationArtifactsSet(component,configurationIdentifier,dependency.getSelector(),artifactResolver);
+}

@@ -1,7 +1,13 @@
 {
+  resolveArtifacts();
   DefaultIvyModulePublishMetaData publishMetaData=new DefaultIvyModulePublishMetaData(id);
   for (  DefaultLocalArtifactMetaData artifact : artifactsById.values()) {
-    publishMetaData.addArtifact(artifact.artifact,artifact.file);
+    IvyArtifactName artifactName=artifact.getName();
+    MDArtifact ivyArtifact=new MDArtifact(moduleDescriptor,artifactName.getName(),artifactName.getType(),artifactName.getExtension(),null,ivyArtifactAttributes(artifactName));
+    for (    String configuration : artifact.configurations) {
+      ivyArtifact.addConfiguration(configuration);
+    }
+    publishMetaData.addArtifact(ivyArtifact,artifact.file);
   }
   return publishMetaData;
 }
