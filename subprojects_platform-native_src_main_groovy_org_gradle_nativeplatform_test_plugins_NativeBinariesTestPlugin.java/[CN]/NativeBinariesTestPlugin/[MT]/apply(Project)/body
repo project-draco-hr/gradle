@@ -1,6 +1,19 @@
 {
   project.getPluginManager().apply(NativeComponentPlugin.class);
-  DefaultTestSuiteContainer testSuiteSpecs=instantiator.newInstance(DefaultTestSuiteContainer.class,instantiator);
   String descriptor=NativeBinariesTestPlugin.class.getName() + ".apply()";
-  BridgedCollections.dynamicTypes(modelRegistry,ModelPath.path("testSuites"),descriptor,ModelType.of(DefaultTestSuiteContainer.class),ModelType.of(DefaultTestSuiteContainer.class),ModelType.of(TestSuiteSpec.class),testSuiteSpecs,Named.Namer.INSTANCE,BridgedCollections.itemDescriptor(descriptor));
+  ModelType<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>> factoryRegistryType=new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>>(){
+  }
+;
+  ModelReference<CollectionBuilder<TestSuiteSpec>> containerReference=ModelReference.of("testSuites",DefaultCollectionBuilder.typeOf(TestSuiteSpec.class));
+  ModelCreator testSuitesCreator=ModelCreators.of(containerReference,new BiAction<MutableModelNode,List<ModelView<?>>>(){
+    @Override public void execute(    MutableModelNode mutableModelNode,    List<ModelView<?>> modelViews){
+      final DefaultDynamicTypesNamedEntityInstantiator<TestSuiteSpec> namedEntityInstantiator=new DefaultDynamicTypesNamedEntityInstantiator<TestSuiteSpec>(TestSuiteSpec.class,"this collection");
+      ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>> instantiatorType=new ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>>(){
+      }
+;
+      mutableModelNode.setPrivateData(instantiatorType,new DefaultRuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>(namedEntityInstantiator));
+    }
+  }
+).descriptor(descriptor).ephemeral(true).withProjection(new DynamicTypesCollectionBuilderProjection<TestSuiteSpec>(ModelType.of(TestSuiteSpec.class))).withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>>(factoryRegistryType)).build();
+  modelRegistry.createOrReplace(testSuitesCreator);
 }

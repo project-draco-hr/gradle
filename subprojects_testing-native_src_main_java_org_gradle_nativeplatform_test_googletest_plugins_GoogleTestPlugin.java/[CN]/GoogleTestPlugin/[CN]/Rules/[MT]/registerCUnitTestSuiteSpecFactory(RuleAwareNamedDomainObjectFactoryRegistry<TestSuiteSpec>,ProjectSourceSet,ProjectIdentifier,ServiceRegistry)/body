@@ -1,0 +1,13 @@
+{
+  final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
+  final FileResolver fileResolver=serviceRegistry.get(FileResolver.class);
+  factoryRegistry.registerFactory(GoogleTestTestSuiteSpec.class,new NamedDomainObjectFactory<GoogleTestTestSuiteSpec>(){
+    @Override public GoogleTestTestSuiteSpec create(    String suiteName){
+      String path=projectIdentifier.getPath();
+      ComponentSpecIdentifier id=new DefaultComponentSpecIdentifier(path,suiteName);
+      FunctionalSourceSet testSuiteSourceSet=createGoogleTestSources(instantiator,suiteName,projectSourceSet,fileResolver);
+      return BaseComponentSpec.create(DefaultGoogleTestTestSuiteSpec.class,id,testSuiteSourceSet,instantiator);
+    }
+  }
+,new SimpleModelRuleDescriptor(this.getClass().toString() + ".registerCUnitTestSuiteSpecFactory()"));
+}

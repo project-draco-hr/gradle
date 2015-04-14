@@ -1,0 +1,13 @@
+{
+  final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
+  final FileResolver fileResolver=serviceRegistry.get(FileResolver.class);
+  factoryRegistry.registerFactory(CUnitTestSuiteSpec.class,new NamedDomainObjectFactory<CUnitTestSuiteSpec>(){
+    @Override public CUnitTestSuiteSpec create(    String suiteName){
+      String path=projectIdentifier.getPath();
+      ComponentSpecIdentifier id=new DefaultComponentSpecIdentifier(path,suiteName);
+      FunctionalSourceSet testSuiteSourceSet=createCUnitSources(instantiator,suiteName,projectSourceSet,fileResolver);
+      return BaseComponentSpec.create(DefaultCUnitTestSuiteSpec.class,id,testSuiteSourceSet,instantiator);
+    }
+  }
+,new SimpleModelRuleDescriptor(this.getClass().toString() + ".registerCUnitTestSuiteSpecFactory()"));
+}
