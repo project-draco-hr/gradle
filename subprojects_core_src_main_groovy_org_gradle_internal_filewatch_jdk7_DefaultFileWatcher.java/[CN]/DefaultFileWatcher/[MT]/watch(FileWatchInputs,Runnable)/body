@@ -1,6 +1,11 @@
 {
-  if (!runningFlag.compareAndSet(false,true)) {
-    throw new IllegalStateException("FileWatcher cannot start watching new inputs when it's already running.");
+  CountDownLatch latch=createLatch();
+  AtomicBoolean runningFlag=new AtomicBoolean(true);
+  Future<?> execution=executor.submit(new FileWatcherExecutor(runningFlag,callback,new ArrayList(inputs.getDirectoryTrees()),new ArrayList(inputs.getFiles()),latch));
+  try {
+    latch.await();
   }
-  submitWithLatch(inputs,callback);
+ catch (  InterruptedException e) {
+  }
+  return new FileWatcherStopper(runningFlag,execution);
 }
