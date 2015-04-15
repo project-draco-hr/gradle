@@ -1,7 +1,14 @@
 {
-  if (watchModeEnabled(actionParameters)) {
+  if (continuousModeEnabled(actionParameters)) {
     SingleMessageLogger.incubatingFeatureUsed("Continuous mode");
-    return executeMultipleBuilds(action,requestContext,actionParameters);
+    TriggerGenerator generator=triggerGeneratorFactory.newInstance(this);
+    generator.start();
+    try {
+      return executeMultipleBuilds(action,requestContext,actionParameters);
+    }
+  finally {
+      generator.stop();
+    }
   }
   return executeSingleBuild(action,requestContext,actionParameters);
 }

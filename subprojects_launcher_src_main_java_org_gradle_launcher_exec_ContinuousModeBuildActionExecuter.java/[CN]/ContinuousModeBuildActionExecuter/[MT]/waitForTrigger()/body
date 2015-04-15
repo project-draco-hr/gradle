@@ -1,8 +1,14 @@
 {
   try {
-    Thread.sleep(5000);
+synchronized (lock) {
+      while (lastSeenTrigger == null) {
+        lock.wait();
+      }
+      logger.lifecycle("Rebuild triggered due to " + lastSeenTrigger.getReason());
+      lastSeenTrigger=null;
+    }
   }
- catch (  Exception e) {
+ catch (  InterruptedException e) {
     UncheckedException.throwAsUncheckedException(e);
   }
 }
