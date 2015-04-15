@@ -11,25 +11,19 @@
   }
   Map<String,String> implicitJvmSystemProperties=getImplicitJvmSystemProperties();
   System.getProperties().putAll(implicitJvmSystemProperties);
-  StartParameter startParameter=new StartParameter();
+  CommandLineParser parser=new CommandLineParser();
+  ParametersConverter parametersConverter=new ParametersConverter();
+  parametersConverter.configure(parser);
+  Parameters parameters=parametersConverter.convert(parser.parse(getAllArgs()),new Parameters());
+  StartParameter startParameter=parameters.getStartParameter();
   startParameter.setCurrentDir(getWorkingDir());
   startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
-  CommandLineParser parser=new CommandLineParser();
-  DefaultCommandLineConverter converter=new DefaultCommandLineConverter();
-  converter.configure(parser);
-  ParsedCommandLine parsedCommandLine=parser.parse(getAllArgs());
-  BuildLayoutParameters layout=converter.getLayoutConverter().convert(parsedCommandLine,new BuildLayoutParameters());
-  Map<String,String> properties=new HashMap<String,String>();
-  new LayoutToPropertiesConverter().convert(layout,properties);
-  converter.getSystemPropertiesConverter().convert(parsedCommandLine,properties);
-  new PropertiesToStartParameterConverter().convert(properties,startParameter);
-  converter.convert(parsedCommandLine,startParameter);
   BuildActionExecuter<BuildActionParameters> actionExecuter=GLOBAL_SERVICES.get(BuildActionExecuter.class);
   ListenerManager listenerManager=GLOBAL_SERVICES.get(ListenerManager.class);
   listenerManager.addListener(listener);
   try {
     BuildAction action=new ExecuteBuildAction(startParameter);
-    BuildActionParameters buildActionParameters=new DefaultBuildActionParameters(System.getProperties(),System.getenv(),SystemProperties.getInstance().getCurrentDir(),startParameter.getLogLevel(),DaemonUsage.EXPLICITLY_DISABLED,false);
+    BuildActionParameters buildActionParameters=new DefaultBuildActionParameters(System.getProperties(),System.getenv(),SystemProperties.getInstance().getCurrentDir(),startParameter.getLogLevel(),DaemonUsage.EXPLICITLY_DISABLED,parameters.getContinuousModeParameters().isEnabled());
     BuildRequestContext buildRequestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),ManagementFactory.getRuntimeMXBean().getStartTime()),new FixedBuildCancellationToken(),new NoOpBuildEventConsumer(),outputListener,errorListener);
     actionExecuter.execute(action,buildRequestContext,buildActionParameters);
     return new BuildResult(null,null);
