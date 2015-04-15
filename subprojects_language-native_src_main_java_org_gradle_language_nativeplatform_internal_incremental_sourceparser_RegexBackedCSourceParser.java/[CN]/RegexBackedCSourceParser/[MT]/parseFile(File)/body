@@ -1,0 +1,24 @@
+{
+  List<Include> includes=Lists.newArrayList();
+  try {
+    BufferedReader bf=new BufferedReader(new PreprocessingReader(new BufferedReader(new FileReader(file))));
+    try {
+      String line;
+      while ((line=bf.readLine()) != null) {
+        Matcher m=includePattern.matcher(line.trim());
+        if (m.matches()) {
+          boolean isImport="import".equals(m.group(1));
+          String value=m.group(2);
+          includes.add(DefaultInclude.parse(value,isImport));
+        }
+      }
+    }
+  finally {
+      IOUtils.closeQuietly(bf);
+    }
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+  return includes;
+}
