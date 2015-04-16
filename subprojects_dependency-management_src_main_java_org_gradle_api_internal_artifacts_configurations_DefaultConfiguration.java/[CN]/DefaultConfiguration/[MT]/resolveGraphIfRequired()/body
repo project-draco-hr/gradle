@@ -1,0 +1,28 @@
+{
+  if (state == InternalState.RESULTS_RESOLVED) {
+    if (modified) {
+      DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to resolve %s that has been resolved previously. Changes made since the configuration was originally resolved are ignored",getDisplayName()));
+    }
+    return;
+  }
+  if (state == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+    if (!modified) {
+      return;
+    }
+  }
+  DependencyResolutionListener broadcast=resolutionListenerBroadcast.getSource();
+  ResolvableDependencies incoming=getIncoming();
+  broadcast.beforeResolve(incoming);
+  triggerWhenEmptyActionsIfNecessary();
+  resolver.resolve(this,cachedResolverResults);
+  markAsObserved();
+  for (  ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
+    ProjectInternal project=projectFinder.getProject(projectResult.getId().getProjectPath());
+    for (    String targetConfigName : projectResult.getTargetConfigurations()) {
+      ConfigurationInternal targetConfig=(ConfigurationInternal)project.getConfigurations().getByName(targetConfigName);
+      targetConfig.markAsObserved();
+    }
+  }
+  markAsResolved(InternalState.TASK_DEPENDENCIES_RESOLVED);
+  broadcast.afterResolve(incoming);
+}
