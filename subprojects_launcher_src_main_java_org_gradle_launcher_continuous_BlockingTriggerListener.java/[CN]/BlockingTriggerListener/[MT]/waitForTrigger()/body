@@ -1,0 +1,26 @@
+{
+  try {
+synchronized (lock) {
+      Clock started=new Clock();
+      while (currentTrigger == null) {
+        if (timeoutMs == 0) {
+          lock.wait();
+        }
+ else {
+          lock.wait(50);
+          long waited=started.getTimeInMs();
+          if (waited > timeoutMs) {
+            currentTrigger=new DefaultTriggerDetails("giving up after " + waited + " ms");
+          }
+        }
+      }
+      TriggerDetails lastReason=currentTrigger;
+      currentTrigger=null;
+      return lastReason;
+    }
+  }
+ catch (  InterruptedException e) {
+    UncheckedException.throwAsUncheckedException(e);
+    return null;
+  }
+}

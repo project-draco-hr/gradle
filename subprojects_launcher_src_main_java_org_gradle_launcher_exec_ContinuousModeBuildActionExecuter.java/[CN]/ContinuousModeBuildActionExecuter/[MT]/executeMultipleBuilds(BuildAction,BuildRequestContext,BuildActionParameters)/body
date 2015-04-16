@@ -6,9 +6,13 @@
     }
  catch (    Throwable t) {
     }
-    logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
-    waitForTrigger();
-    requestContext.getBuildTimeClock().reset();
+    if (buildNotStopped(requestContext)) {
+      logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
+      TriggerDetails reason=triggerListener.waitForTrigger();
+      logger.lifecycle("Rebuild triggered due to " + reason.getReason());
+      requestContext.getBuildTimeClock().reset();
+    }
   }
+  logger.lifecycle("Build cancelled, exiting 'continuous mode'.");
   return lastResult;
 }
