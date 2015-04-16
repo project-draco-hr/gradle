@@ -1,19 +1,11 @@
 {
   project.getPluginManager().apply(LanguageBasePlugin.class);
   String descriptor=ComponentModelBasePlugin.class.getName() + ".apply()";
-  ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> factoryRegistryType=new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>(){
-  }
-;
-  ModelReference<CollectionBuilder<ComponentSpec>> containerReference=ModelReference.of("components",DefaultCollectionBuilder.typeOf(ComponentSpec.class));
-  ModelCreator componentsCreator=ModelCreators.of(containerReference,new BiAction<MutableModelNode,List<ModelView<?>>>(){
-    @Override public void execute(    MutableModelNode mutableModelNode,    List<ModelView<?>> modelViews){
-      final DefaultDynamicTypesNamedEntityInstantiator<ComponentSpec> namedEntityInstantiator=new DefaultDynamicTypesNamedEntityInstantiator<ComponentSpec>(ComponentSpec.class,"this collection");
-      ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>> instantiatorType=new ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>>(){
-      }
-;
-      mutableModelNode.setPrivateData(instantiatorType,new DefaultRuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>(namedEntityInstantiator));
+  ModelCreator componentsCreator=SpecializedCollectionBuilders.specializedCollectionBuilder("components",ComponentSpec.class,ComponentSpecContainer.class,new SpecializedCollectionBuilderFactory<ComponentSpecContainer>(){
+    @Override public ComponentSpecContainer create(    MutableModelNode modelNode,    ModelRuleDescriptor ruleDescriptor){
+      return instantiator.newInstance(DefaultComponentSpecContainer.class,ModelType.of(ComponentSpec.class),ruleDescriptor,modelNode,DefaultCollectionBuilder.createUsingParentNode(ModelType.of(ComponentSpec.class),BiActions.doNothing()));
     }
   }
-).descriptor(descriptor).ephemeral(true).withProjection(new SpecializedCollectionBuilderProjection<ComponentSpecContainer,ComponentSpec,DefaultComponentSpecContainer>(ModelType.of(ComponentSpecContainer.class),ModelType.of(ComponentSpec.class),DefaultComponentSpecContainer.class,instantiator)).withProjection(new DynamicTypesCollectionBuilderProjection<ComponentSpec>(ModelType.of(ComponentSpec.class),new ComponentSpecInitializationAction())).withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>(factoryRegistryType)).build();
+,descriptor,new ComponentSpecInitializationAction());
   modelRegistry.createOrReplace(componentsCreator);
 }

@@ -1,19 +1,11 @@
 {
   project.getPluginManager().apply(NativeComponentPlugin.class);
   String descriptor=NativeBinariesTestPlugin.class.getName() + ".apply()";
-  ModelType<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>> factoryRegistryType=new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>>(){
-  }
-;
-  ModelReference<CollectionBuilder<TestSuiteSpec>> containerReference=ModelReference.of("testSuites",DefaultCollectionBuilder.typeOf(TestSuiteSpec.class));
-  ModelCreator testSuitesCreator=ModelCreators.of(containerReference,new BiAction<MutableModelNode,List<ModelView<?>>>(){
-    @Override public void execute(    MutableModelNode mutableModelNode,    List<ModelView<?>> modelViews){
-      final DefaultDynamicTypesNamedEntityInstantiator<TestSuiteSpec> namedEntityInstantiator=new DefaultDynamicTypesNamedEntityInstantiator<TestSuiteSpec>(TestSuiteSpec.class,"this collection");
-      ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>> instantiatorType=new ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>>(){
-      }
-;
-      mutableModelNode.setPrivateData(instantiatorType,new DefaultRuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>(namedEntityInstantiator));
+  ModelCreator testSuitesCreator=SpecializedCollectionBuilders.specializedCollectionBuilder("testSuites",TestSuiteSpec.class,TestSuiteContainer.class,new SpecializedCollectionBuilderFactory<TestSuiteContainer>(){
+    @Override public DefaultTestSuiteContainer create(    MutableModelNode modelNode,    ModelRuleDescriptor ruleDescriptor){
+      return instantiator.newInstance(DefaultTestSuiteContainer.class,ModelType.of(TestSuiteSpec.class),ruleDescriptor,modelNode,DefaultCollectionBuilder.createUsingParentNode(ModelType.of(TestSuiteSpec.class),BiActions.doNothing()));
     }
   }
-).descriptor(descriptor).ephemeral(true).withProjection(new SpecializedCollectionBuilderProjection<TestSuiteContainer,TestSuiteSpec,DefaultTestSuiteContainer>(ModelType.of(TestSuiteContainer.class),ModelType.of(TestSuiteSpec.class),DefaultTestSuiteContainer.class,instantiator)).withProjection(new DynamicTypesCollectionBuilderProjection<TestSuiteSpec>(ModelType.of(TestSuiteSpec.class),BiActions.doNothing())).withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>>(factoryRegistryType)).build();
+,descriptor,BiActions.doNothing());
   modelRegistry.createOrReplace(testSuitesCreator);
 }
