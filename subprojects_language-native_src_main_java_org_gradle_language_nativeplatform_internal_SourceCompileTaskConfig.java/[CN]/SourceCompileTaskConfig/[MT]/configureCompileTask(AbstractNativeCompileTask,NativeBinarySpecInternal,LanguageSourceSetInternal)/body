@@ -1,0 +1,30 @@
+{
+  AbstractNativeSourceCompileTask task=(AbstractNativeSourceCompileTask)abstractTask;
+  task.setDescription(String.format("Compiles the %s of %s",sourceSet,binary));
+  task.source(sourceSet.getSource());
+  final Project project=task.getProject();
+  task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase()+ "/"+ sourceSet.getFullName()));
+  if (sourceSet instanceof DependentSourceSetInternal && ((DependentSourceSetInternal)sourceSet).getPreCompiledHeader() != null) {
+    final DependentSourceSetInternal dependentSourceSet=(DependentSourceSetInternal)sourceSet;
+    task.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
+    task.setPreCompiledHeader(dependentSourceSet.getPreCompiledHeader());
+    task.preCompiledHeaderInclude(new Callable<FileCollection>(){
+      public FileCollection call(){
+        Set<AbstractNativePCHCompileTask> pchTasks=binary.getTasks().withType(AbstractNativePCHCompileTask.class).matching(new Spec<AbstractNativePCHCompileTask>(){
+          @Override public boolean isSatisfiedBy(          AbstractNativePCHCompileTask pchCompileTask){
+            return dependentSourceSet.getPrefixHeaderFile().equals(pchCompileTask.getPrefixHeaderFile());
+          }
+        }
+);
+        if (!pchTasks.isEmpty()) {
+          return pchTasks.iterator().next().getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch","**/*.gch"));
+        }
+ else {
+          return new SimpleFileCollection();
+        }
+      }
+    }
+);
+  }
+  binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj","**/*.o")));
+}
