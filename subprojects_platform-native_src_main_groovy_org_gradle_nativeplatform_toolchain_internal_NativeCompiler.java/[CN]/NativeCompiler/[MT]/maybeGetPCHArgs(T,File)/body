@@ -3,14 +3,20 @@
     return Lists.newArrayList();
   }
   final SourceIncludes includes=spec.getSourceFileIncludes().get(sourceFile);
-  String header=spec.getPreCompiledHeader();
-  List<String> headers=includes.getAllIncludeStrings();
-  boolean usePCH=!headers.isEmpty() && header.equals(headers.get(0));
+  final String header=spec.getPreCompiledHeader();
+  List<Include> headers=includes.getIncludesAndImports();
+  boolean usePCH=!headers.isEmpty() && header.equals(headers.get(0).getValue());
   if (usePCH) {
     return getPCHArgs(spec);
   }
  else {
-    if (headers.contains(header)) {
+    boolean containsHeader=CollectionUtils.any(headers,new Spec<Include>(){
+      @Override public boolean isSatisfiedBy(      Include include){
+        return include.getValue().equals(header);
+      }
+    }
+);
+    if (containsHeader) {
       logger.log(LogLevel.WARN,getCantUsePCHMessage(spec.getPreCompiledHeader(),sourceFile));
     }
     return Lists.newArrayList();
