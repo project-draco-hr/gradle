@@ -8,23 +8,7 @@
     final DependentSourceSetInternal dependentSourceSet=(DependentSourceSetInternal)sourceSet;
     task.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
     task.setPreCompiledHeader(dependentSourceSet.getPreCompiledHeader());
-    task.preCompiledHeaderInclude(new Callable<FileCollection>(){
-      public FileCollection call(){
-        Set<AbstractNativePCHCompileTask> pchTasks=binary.getTasks().withType(AbstractNativePCHCompileTask.class).matching(new Spec<AbstractNativePCHCompileTask>(){
-          @Override public boolean isSatisfiedBy(          AbstractNativePCHCompileTask pchCompileTask){
-            return dependentSourceSet.getPrefixHeaderFile().equals(pchCompileTask.getPrefixHeaderFile());
-          }
-        }
-);
-        if (!pchTasks.isEmpty()) {
-          return pchTasks.iterator().next().getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch","**/*.gch"));
-        }
- else {
-          return new SimpleFileCollection();
-        }
-      }
-    }
-);
+    task.preCompiledHeaderInclude(binary.getPrefixFileToPCH().get(dependentSourceSet.getPrefixHeaderFile()));
   }
   binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj","**/*.o")));
 }
