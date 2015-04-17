@@ -1,0 +1,15 @@
+{
+  DirectoryTree watchedTree=pathToDirectoryTree.get(changeDetails.getWatchedPath());
+  if (watchedTree != null) {
+    FileTreeElement fileTreeElement=toFileTreeElement(changeDetails,watchedTree);
+    if (!isExcluded(watchedTree,fileTreeElement)) {
+      boolean isDirectory=isDirectory(changeDetails.getFullItemPath());
+      if (isDirectory && changeDetails.getChangeType() == ChangeDetails.ChangeType.CREATE) {
+        handleNewDirectory(changeDetails,changesNotifier,watchedTree);
+      }
+      if (!isDirectory && isIncluded(watchedTree,fileTreeElement)) {
+        handleFileChange(changeDetails,changesNotifier,watchedTree);
+      }
+    }
+  }
+}

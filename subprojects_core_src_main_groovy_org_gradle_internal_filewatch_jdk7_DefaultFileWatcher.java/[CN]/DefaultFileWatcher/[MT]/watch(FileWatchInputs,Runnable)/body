@@ -1,11 +1,5 @@
 {
-  CountDownLatch latch=createLatch();
   AtomicBoolean runningFlag=new AtomicBoolean(true);
-  Future<?> execution=executor.submit(new FileWatcherExecutor(runningFlag,callback,new ArrayList(inputs.getDirectoryTrees()),new ArrayList(inputs.getFiles()),latch));
-  try {
-    latch.await();
-  }
- catch (  InterruptedException e) {
-  }
-  return new FileWatcherStopper(runningFlag,execution);
+  Future<?> taskCompletion=executor.submit(new FileWatcherTask(createWatchStrategy(),inputs,runningFlag,callback));
+  return new FileWatcherStopper(runningFlag,taskCompletion);
 }
