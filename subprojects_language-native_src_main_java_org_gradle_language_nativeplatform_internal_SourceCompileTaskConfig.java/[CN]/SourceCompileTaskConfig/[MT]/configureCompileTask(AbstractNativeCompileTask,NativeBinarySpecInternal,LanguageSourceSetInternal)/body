@@ -6,9 +6,10 @@
   task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase()+ "/"+ sourceSet.getFullName()));
   if (sourceSet instanceof DependentSourceSetInternal && ((DependentSourceSetInternal)sourceSet).getPreCompiledHeader() != null) {
     final DependentSourceSetInternal dependentSourceSet=(DependentSourceSetInternal)sourceSet;
-    task.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
-    task.setPreCompiledHeader(dependentSourceSet.getPreCompiledHeader());
-    task.preCompiledHeaderInclude(binary.getPrefixFileToPCH().get(dependentSourceSet.getPrefixHeaderFile()));
+    PreCompiledHeader pch=binary.getPrefixFileToPCH().get(dependentSourceSet.getPrefixHeaderFile());
+    pch.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
+    pch.setIncludeString(dependentSourceSet.getPreCompiledHeader());
+    task.setPreCompiledHeader(pch);
   }
   binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj","**/*.o")));
 }
