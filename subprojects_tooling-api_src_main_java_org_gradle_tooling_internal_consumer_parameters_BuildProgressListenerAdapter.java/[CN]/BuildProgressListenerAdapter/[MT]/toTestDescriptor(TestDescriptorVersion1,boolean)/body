@@ -1,6 +1,6 @@
 {
   if (fromCache) {
-    TestDescriptor cachedTestDescriptor=this.testDescriptorCache.get(testDescriptor.getId());
+    TestOperationDescriptor cachedTestDescriptor=this.testDescriptorCache.get(testDescriptor.getId());
     if (cachedTestDescriptor == null) {
       throw new IllegalStateException(String.format("%s not available.",toString(testDescriptor)));
     }
@@ -10,24 +10,13 @@
     }
   }
  else {
-    TestDescriptor cachedTestDescriptor=this.testDescriptorCache.get(testDescriptor.getId());
+    TestOperationDescriptor cachedTestDescriptor=this.testDescriptorCache.get(testDescriptor.getId());
     if (cachedTestDescriptor != null) {
       throw new IllegalStateException(String.format("%s already available.",toString(testDescriptor)));
     }
  else {
-      final TestDescriptor parent=getParentTestDescriptor(testDescriptor);
-      TestDescriptor newTestDescriptor=new TestDescriptor(){
-        @Override public String getName(){
-          return testDescriptor.getName();
-        }
-        @Override public String getClassName(){
-          return testDescriptor.getClassName();
-        }
-        @Override public TestDescriptor getParent(){
-          return parent;
-        }
-      }
-;
+      final TestOperationDescriptor parent=getParentTestDescriptor(testDescriptor);
+      TestOperationDescriptor newTestDescriptor=toTestDescriptor(testDescriptor,parent);
       testDescriptorCache.put(testDescriptor.getId(),newTestDescriptor);
       return newTestDescriptor;
     }
