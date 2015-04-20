@@ -1,9 +1,10 @@
 {
   project.getPluginManager().apply(NativeComponentPlugin.class);
   String descriptor=NativeBinariesTestPlugin.class.getName() + ".apply()";
-  ModelCreator testSuitesCreator=CollectionBuilderCreators.specialized("testSuites",TestSuiteSpec.class,TestSuiteContainer.class,new SpecializedCollectionBuilderFactory<TestSuiteContainer>(){
-    @Override public DefaultTestSuiteContainer create(    MutableModelNode modelNode,    ModelRuleDescriptor ruleDescriptor){
-      return new DefaultTestSuiteContainer(ModelType.of(TestSuiteSpec.class),ruleDescriptor,modelNode,DefaultCollectionBuilder.createUsingParentNode(ModelType.of(TestSuiteSpec.class),BiActions.doNothing()));
+  ModelCreator testSuitesCreator=CollectionBuilderCreators.specialized("testSuites",TestSuiteSpec.class,TestSuiteContainer.class,new SpecializedCollectionBuilderFactory<TestSuiteContainer,TestSuiteSpec>(){
+    @Override public TestSuiteContainer create(    MutableModelNode modelNode,    ModelRuleDescriptor ruleDescriptor){
+      DefaultTestSuiteContainer instance=new DefaultTestSuiteContainer(ModelType.of(TestSuiteSpec.class),ruleDescriptor,modelNode,DefaultCollectionBuilder.createUsingParentNode(ModelType.of(TestSuiteSpec.class),BiActions.doNothing()));
+      return new TestSuiteContainerGroovyDecorator(instance,ModelType.of(TestSuiteContainer.class),ruleDescriptor);
     }
   }
 ,descriptor,new ComponentSpecInitializationAction());
