@@ -1,30 +1,27 @@
 {
   final long eventTime=event.getEventTime();
   String eventType=event.getEventType();
-  if (TestProgressEventVersion1.EVENT_TYPE_STARTED.equals(eventType)) {
+  if (EVENT_TYPE_STARTED.equals(eventType)) {
     TestOperationDescriptor testDescriptor=toTestDescriptor(event.getDescriptor(),false);
     String eventDescription=event.getDisplayName();
     return new DefaultStartEvent(eventTime,eventDescription,testDescriptor);
   }
- else   if (TestProgressEventVersion1.EVENT_TYPE_FAILED.equals(eventType)) {
+ else   if (EVENT_TYPE_FINISHED.equals(eventType)) {
     TestOperationDescriptor testDescriptor=toTestDescriptor(event.getDescriptor(),true);
     String eventDescription=event.getDisplayName();
-    FailureOutcome outcome=toTestFailure(event.getResult());
-    return new DefaultFailureEvent(eventTime,eventDescription,testDescriptor,outcome);
+    if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
+      FailureOutcome outcome=toTestFailure(event.getResult());
+      return new DefaultFailureEvent(eventTime,eventDescription,testDescriptor,outcome);
+    }
+ else     if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
+      SuccessOutcome outcome=toTestSuccess(event.getResult());
+      return new DefaultSkippedEvent(eventTime,eventDescription,testDescriptor,outcome);
+    }
+ else     if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
+      SuccessOutcome outcome=toTestSuccess(event.getResult());
+      return new DefaultSuccessEvent(eventTime,eventDescription,testDescriptor,outcome);
+    }
+    throw new IllegalArgumentException("Cannot adapt progress event: " + event);
   }
- else   if (TestProgressEventVersion1.EVENT_TYPE_SKIPPED.equals(eventType)) {
-    TestOperationDescriptor testDescriptor=toTestDescriptor(event.getDescriptor(),true);
-    String eventDescription=event.getDisplayName();
-    SuccessOutcome outcome=toTestSuccess(event.getResult());
-    return new DefaultSkippedEvent(eventTime,eventDescription,testDescriptor,outcome);
-  }
- else   if (TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED.equals(eventType)) {
-    TestOperationDescriptor testDescriptor=toTestDescriptor(event.getDescriptor(),true);
-    String eventDescription=event.getDisplayName();
-    SuccessOutcome outcome=toTestSuccess(event.getResult());
-    return new DefaultSuccessEvent(eventTime,eventDescription,testDescriptor,outcome);
-  }
- else {
-    return null;
-  }
+  return null;
 }
