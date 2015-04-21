@@ -3,16 +3,28 @@
   String eventDescription=event.getDisplayName();
   final long eventTime=event.getEventTime();
   if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
-    FailureOutcome outcome=toTestFailure(event.getResult());
-    return new DefaultTestFailureEvent(eventTime,eventDescription,testDescriptor,outcome);
+    return new DefaultTestFinishEvent(eventTime,eventDescription,testDescriptor,new FailureResult(){
+      @Override public FailureOutcome getOutcome(){
+        return toTestFailure(event.getResult());
+      }
+    }
+);
   }
  else   if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
-    SuccessOutcome outcome=toTestSuccess(event.getResult());
-    return new DefaultTestSkippedEvent(eventTime,eventDescription,testDescriptor,outcome);
+    return new DefaultTestFinishEvent(eventTime,eventDescription,testDescriptor,new SkippedResult(){
+      @Override public Outcome getOutcome(){
+        return toTestSuccess(event.getResult());
+      }
+    }
+);
   }
  else   if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
-    SuccessOutcome outcome=toTestSuccess(event.getResult());
-    return new DefaultTestSuccessEvent(eventTime,eventDescription,testDescriptor,outcome);
+    return new DefaultTestFinishEvent(eventTime,eventDescription,testDescriptor,new SuccessResult(){
+      @Override public SuccessOutcome getOutcome(){
+        return toTestSuccess(event.getResult());
+      }
+    }
+);
   }
   throw new IllegalArgumentException("Cannot adapt progress event: " + event);
 }
