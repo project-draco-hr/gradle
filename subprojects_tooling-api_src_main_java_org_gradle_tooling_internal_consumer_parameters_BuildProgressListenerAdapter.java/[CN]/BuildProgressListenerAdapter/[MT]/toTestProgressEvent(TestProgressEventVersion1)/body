@@ -1,26 +1,9 @@
 {
-  final long eventTime=event.getEventTime();
   if (event instanceof TestStartedProgressEventVersion1) {
-    TestOperationDescriptor testDescriptor=toTestDescriptor(event.getDescriptor(),false);
-    String eventDescription=event.getDisplayName();
-    return new DefaultStartEvent(eventTime,eventDescription,testDescriptor);
+    return startedEvent((TestStartedProgressEventVersion1)event);
   }
  else   if (event instanceof TestFinishedProgressEventVersion1) {
-    TestOperationDescriptor testDescriptor=toTestDescriptor(event.getDescriptor(),true);
-    String eventDescription=event.getDisplayName();
-    if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
-      FailureOutcome outcome=toTestFailure(event.getResult());
-      return new DefaultFailureEvent(eventTime,eventDescription,testDescriptor,outcome);
-    }
- else     if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
-      SuccessOutcome outcome=toTestSuccess(event.getResult());
-      return new DefaultSkippedEvent(eventTime,eventDescription,testDescriptor,outcome);
-    }
- else     if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
-      SuccessOutcome outcome=toTestSuccess(event.getResult());
-      return new DefaultSuccessEvent(eventTime,eventDescription,testDescriptor,outcome);
-    }
-    throw new IllegalArgumentException("Cannot adapt progress event: " + event);
+    return finishedEvent((TestFinishedProgressEventVersion1)event);
   }
   return null;
 }
