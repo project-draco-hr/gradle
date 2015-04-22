@@ -9,8 +9,13 @@
     if (buildNotStopped(requestContext)) {
       logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
       TriggerDetails reason=triggerListener.waitForTrigger();
-      logger.lifecycle("Rebuild triggered due to " + reason.getReason());
-      requestContext.getBuildTimeClock().reset();
+      logger.lifecycle(reason.getType() + " triggered due to " + reason.getReason());
+      if (reason.getType() == TriggerDetails.Type.REBUILD) {
+        requestContext.getBuildTimeClock().reset();
+      }
+ else {
+        break;
+      }
     }
   }
   logger.lifecycle("Build cancelled, exiting 'continuous mode'.");
