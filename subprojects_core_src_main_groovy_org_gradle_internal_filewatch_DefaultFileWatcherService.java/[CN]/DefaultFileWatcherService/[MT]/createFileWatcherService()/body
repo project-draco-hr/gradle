@@ -3,13 +3,12 @@
     Class clazz;
     try {
       clazz=classLoader.loadClass("org.gradle.internal.filewatch.jdk7.DefaultFileWatcher");
+      return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz,executor));
     }
  catch (    ClassNotFoundException e) {
-      throw new RuntimeException("Cannot find FileWatcherService implementation class",e);
+      LOG.error("Could not load JDK7 class with a JDK7+ JVM, falling back to no-op implementation.");
     }
-    return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz,executor));
   }
- else {
-    return new NoOpFileWatcherService();
-  }
+  LOG.warn("Using no-op file watcher service.");
+  return new NoOpFileWatcherService();
 }
