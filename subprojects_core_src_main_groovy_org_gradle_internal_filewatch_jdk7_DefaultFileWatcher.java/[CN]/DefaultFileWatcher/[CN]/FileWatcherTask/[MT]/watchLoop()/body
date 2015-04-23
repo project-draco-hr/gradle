@@ -1,0 +1,20 @@
+{
+  changesNotifier.reset();
+  while (watchLoopRunning()) {
+    watchStrategy.pollChanges(POLL_TIMEOUT_MILLIS,TimeUnit.MILLISECONDS,new WatchHandler(){
+      @Override public void onActivation(){
+        changesNotifier.eventReceived();
+      }
+      @Override public void onOverflow(){
+        changesNotifier.notifyChanged();
+      }
+      @Override public void onChange(      ChangeDetails changeDetails){
+        System.out.println("change: " + changeDetails.getFullItemPath());
+        dirTreeWatchRegistry.handleChange(changeDetails,changesNotifier);
+        individualFileWatchRegistry.handleChange(changeDetails,changesNotifier);
+      }
+    }
+);
+    changesNotifier.handlePendingChanges();
+  }
+}

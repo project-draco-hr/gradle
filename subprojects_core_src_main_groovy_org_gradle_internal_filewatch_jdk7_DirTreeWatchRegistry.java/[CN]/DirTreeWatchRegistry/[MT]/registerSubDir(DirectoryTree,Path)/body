@@ -8,6 +8,9 @@
       FileTreeElement fileTreeElement=toFileTreeElement(dir,rootPath.relativize(dir));
       if (!excludeSpec.isSatisfiedBy(fileTreeElement)) {
         watchDirectory(dir);
+        if (pathToDirectoryTree.containsKey(dir)) {
+          throw new IllegalStateException("The current implementation doesn't support watching nested directory trees");
+        }
         pathToDirectoryTree.put(dir,tree);
         return FileVisitResult.CONTINUE;
       }
@@ -17,7 +20,7 @@
     }
     @Override public FileVisitResult visitFile(    Path file,    BasicFileAttributes attrs) throws IOException {
       FileTreeElement fileTreeElement=toFileTreeElement(file,rootPath.relativize(file));
-      if (fileSpec.isSatisfiedBy(fileTreeElement)) {
+      if (!containsValidFiles.get() && fileSpec.isSatisfiedBy(fileTreeElement)) {
         containsValidFiles.set(true);
       }
       return FileVisitResult.CONTINUE;

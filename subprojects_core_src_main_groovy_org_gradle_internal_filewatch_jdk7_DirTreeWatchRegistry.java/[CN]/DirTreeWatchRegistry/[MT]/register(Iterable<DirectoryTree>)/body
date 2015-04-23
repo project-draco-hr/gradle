@@ -1,5 +1,14 @@
 {
-  for (  DirectoryTree tree : trees) {
-    registerSubDir(tree,dirToPath(tree.getDir()));
+  for (  DirectoryTree originalTree : trees) {
+    HashableDirectoryTree tree=new HashableDirectoryTree(originalTree);
+    markLive(tree);
+    Path rootPath=dirToPath(tree.getDir());
+    DirectoryTree existingTree=pathToDirectoryTree.get(rootPath);
+    if (existingTree == null) {
+      registerSubDir(tree,rootPath);
+    }
+ else     if (!tree.equals(existingTree)) {
+      throw new IllegalStateException("Watching same root path with multiple DirectoryTrees isn't supported yet.");
+    }
   }
 }

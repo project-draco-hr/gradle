@@ -1,14 +1,19 @@
 {
+  Set<Path> addedParents=new HashSet<Path>();
   for (  File file : files) {
+    liveFiles.add(file);
     Path parent=dirToPath(file.getParentFile());
     Set<File> children=individualFilesByParentPath.get(parent);
     if (children == null) {
       children=new LinkedHashSet<File>();
       individualFilesByParentPath.put(parent,children);
+      addedParents.add(parent);
     }
     children.add(file.getAbsoluteFile());
   }
-  for (  Path parent : individualFilesByParentPath.keySet()) {
-    watchDirectory(parent);
+  for (  Path parent : addedParents) {
+    if (!isWatching(parent)) {
+      watchDirectory(parent);
+    }
   }
 }
