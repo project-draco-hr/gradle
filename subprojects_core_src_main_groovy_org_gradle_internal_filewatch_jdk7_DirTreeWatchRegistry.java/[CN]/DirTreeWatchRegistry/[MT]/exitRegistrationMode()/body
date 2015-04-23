@@ -1,9 +1,18 @@
 {
-  for (Iterator<Entry<Path,DirectoryTree>> iterator=pathToDirectoryTree.entrySet().iterator(); iterator.hasNext(); ) {
-    Entry<Path,DirectoryTree> entry=iterator.next();
-    if (!liveDirectoryTrees.contains(entry.getValue())) {
+  for (Iterator<Entry<Path,Set<DirectoryTree>>> iterator=pathToDirectoryTrees.entrySet().iterator(); iterator.hasNext(); ) {
+    Entry<Path,Set<DirectoryTree>> entry=iterator.next();
+    Set<DirectoryTree> updatedDirectories=new HashSet<DirectoryTree>();
+    for (    DirectoryTree tree : entry.getValue()) {
+      if (liveDirectoryTreeToSourceKeys.containsKey(tree)) {
+        updatedDirectories.add(tree);
+      }
+    }
+    if (updatedDirectories.size() == 0) {
       unwatchDirectory(entry.getKey());
       iterator.remove();
+    }
+ else {
+      entry.setValue(updatedDirectories);
     }
   }
 }

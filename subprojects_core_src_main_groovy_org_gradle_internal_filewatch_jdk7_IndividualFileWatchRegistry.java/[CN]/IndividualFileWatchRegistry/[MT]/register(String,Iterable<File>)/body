@@ -1,7 +1,13 @@
 {
   Set<Path> addedParents=new HashSet<Path>();
-  for (  File file : files) {
-    liveFiles.add(file);
+  for (  File originalFile : files) {
+    File file=originalFile.getAbsoluteFile();
+    Set<String> sourceKeys=liveFilesToSourceKeys.get(file);
+    if (sourceKeys == null) {
+      sourceKeys=new HashSet<String>();
+      liveFilesToSourceKeys.put(file,sourceKeys);
+    }
+    sourceKeys.add(sourceKey);
     Path parent=dirToPath(file.getParentFile());
     Set<File> children=individualFilesByParentPath.get(parent);
     if (children == null) {
@@ -9,7 +15,7 @@
       individualFilesByParentPath.put(parent,children);
       addedParents.add(parent);
     }
-    children.add(file.getAbsoluteFile());
+    children.add(file);
   }
   for (  Path parent : addedParents) {
     if (!isWatching(parent)) {

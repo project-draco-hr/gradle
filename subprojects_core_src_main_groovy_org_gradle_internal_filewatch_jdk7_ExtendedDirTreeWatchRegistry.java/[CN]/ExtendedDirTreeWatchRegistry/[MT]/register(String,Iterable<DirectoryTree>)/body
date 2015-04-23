@@ -1,0 +1,18 @@
+{
+  for (  DirectoryTree originalTree : trees) {
+    DirectoryTree tree=new HashableDirectoryTree(originalTree);
+    markLive(sourceKey,tree);
+    Path treePath=dirToPath(tree.getDir());
+    Set<DirectoryTree> watchedTrees=pathToDirectoryTrees.get(treePath);
+    if (watchedTrees == null) {
+      watchedTrees=new HashSet<DirectoryTree>();
+      pathToDirectoryTrees.put(treePath,watchedTrees);
+    }
+    if (!watchedTrees.contains(tree)) {
+      watchedTrees.add(tree);
+      if (watchedTrees.size() == 1) {
+        subTreeWatchStrategy.watchFileTree(treePath);
+      }
+    }
+  }
+}

@@ -7,11 +7,15 @@
     @Override public FileVisitResult preVisitDirectory(    Path dir,    BasicFileAttributes attrs) throws IOException {
       FileTreeElement fileTreeElement=toFileTreeElement(dir,rootPath.relativize(dir));
       if (!excludeSpec.isSatisfiedBy(fileTreeElement)) {
-        watchDirectory(dir);
-        if (pathToDirectoryTree.containsKey(dir)) {
-          throw new IllegalStateException("The current implementation doesn't support watching nested directory trees");
+        Set<DirectoryTree> watchedTrees=pathToDirectoryTrees.get(dir);
+        if (watchedTrees == null) {
+          watchedTrees=new HashSet<DirectoryTree>();
+          pathToDirectoryTrees.put(dir,watchedTrees);
         }
-        pathToDirectoryTree.put(dir,tree);
+        if (watchedTrees.size() == 0) {
+          watchDirectory(dir);
+        }
+        watchedTrees.add(tree);
         return FileVisitResult.CONTINUE;
       }
  else {
