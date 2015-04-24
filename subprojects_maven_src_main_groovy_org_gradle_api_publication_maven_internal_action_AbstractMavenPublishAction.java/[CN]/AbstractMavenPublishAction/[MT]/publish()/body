@@ -1,13 +1,14 @@
 {
-  ClassLoader originalClassLoader=Thread.currentThread().getContextClassLoader();
-  try {
-    if (plexusClassLoader != null) {
-      Thread.currentThread().setContextClassLoader(plexusClassLoader);
-    }
-    doPublish();
+  List<Artifact> artifacts=new ArrayList<Artifact>();
+  if (mainArtifact.getFile() != null) {
+    artifacts.add(mainArtifact);
   }
-  finally {
-    plexusClassLoader=Thread.currentThread().getContextClassLoader();
-    Thread.currentThread().setContextClassLoader(originalClassLoader);
+  artifacts.add(pomArtifact);
+  artifacts.addAll(attached);
+  try {
+    publishArtifacts(artifacts,newRepositorySystem(),session);
+  }
+ catch (  RepositoryException e) {
+    throw new GradleException(e.getMessage(),e);
   }
 }

@@ -1,0 +1,17 @@
+{
+  RemoteRepository gradleRepo=remoteRepository;
+  if (artifacts.iterator().next().isSnapshot() && remoteSnapshotRepository != null) {
+    gradleRepo=remoteSnapshotRepository;
+  }
+  if (gradleRepo == null) {
+    throw new GradleException("Must specify a repository for deployment");
+  }
+  org.sonatype.aether.repository.RemoteRepository aetherRepo=createRepository(gradleRepo);
+  DeployRequest request=new DeployRequest();
+  request.setRepository(aetherRepo);
+  for (  Artifact artifact : artifacts) {
+    request.addArtifact(artifact);
+  }
+  LOGGER.info("Deploying to " + gradleRepo.getUrl());
+  repositorySystem.deploy(session,request);
+}
