@@ -1,11 +1,11 @@
 {
   TaskState state=task.getState();
-  if (isSkipped(state)) {
-    return new DefaultTaskSkippedResult(0,0,!state.getDidWork());
-  }
-  if (state.getDidWork()) {
-    return new DefaultTaskSuccessResult(0L,0L);
+  if (state.getSkipped()) {
+    return new DefaultTaskSkippedResult(0,0,"UP-TO-DATE".equals(state.getSkipMessage()));
   }
   Throwable failure=state.getFailure();
-  return new DefaultTaskFailureResult(0,0,failure != null ? DefaultFailure.fromThrowable(failure) : null);
+  if (failure == null) {
+    return new DefaultTaskSuccessResult(0L,0L);
+  }
+  return new DefaultTaskFailureResult(0,0,DefaultFailure.fromThrowable(failure));
 }
