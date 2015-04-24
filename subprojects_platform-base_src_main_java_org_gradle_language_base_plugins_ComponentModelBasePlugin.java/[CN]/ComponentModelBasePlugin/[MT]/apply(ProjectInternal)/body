@@ -1,10 +1,9 @@
 {
   project.getPluginManager().apply(LanguageBasePlugin.class);
   String descriptor=ComponentModelBasePlugin.class.getName() + ".apply()";
-  ModelCreator componentsCreator=CollectionBuilderCreators.specialized("components",ComponentSpec.class,ComponentSpecContainer.class,new SpecializedCollectionBuilderFactory<ComponentSpecContainer,ComponentSpec>(){
-    @Override public ComponentSpecContainer create(    MutableModelNode modelNode,    ModelRuleDescriptor ruleDescriptor){
-      DefaultComponentSpecContainer componentSpecs=new DefaultComponentSpecContainer(ModelType.of(ComponentSpec.class),ruleDescriptor,modelNode,DefaultCollectionBuilder.createUsingParentNode(ModelType.of(ComponentSpec.class),BiActions.doNothing()));
-      return new ComponentSpecContainerGroovyDecorator(componentSpecs,ModelType.of(ComponentSpecContainer.class),ruleDescriptor);
+  ModelCreator componentsCreator=CollectionBuilderCreators.specialized("components",ComponentSpec.class,ComponentSpecContainer.class,new Transformer<ComponentSpecContainer,CollectionBuilder<ComponentSpec>>(){
+    @Override public ComponentSpecContainer transform(    CollectionBuilder<ComponentSpec> componentSpecs){
+      return new DefaultComponentSpecContainer(componentSpecs);
     }
   }
 ,descriptor,new ComponentSpecInitializationAction());
