@@ -1,6 +1,8 @@
 {
   TaskInternal task=taskInfo.getTask();
+  TaskStateInternal state=task.getState();
 synchronized (lock) {
+    state.setStartTime(System.currentTimeMillis());
     taskListener.beforeExecute(task);
   }
   try {
@@ -8,7 +10,8 @@ synchronized (lock) {
   }
   finally {
 synchronized (lock) {
-      taskListener.afterExecute(task,task.getState());
+      state.setEndTime(System.currentTimeMillis());
+      taskListener.afterExecute(task,state);
     }
   }
 }
