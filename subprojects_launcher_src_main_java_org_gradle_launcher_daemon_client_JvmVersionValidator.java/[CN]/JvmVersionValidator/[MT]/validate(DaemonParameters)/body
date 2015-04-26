@@ -2,14 +2,7 @@
   if (parameters.getEffectiveJavaHome().equals(Jvm.current().getJavaHome())) {
     return;
   }
-  ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
-  ExecHandleBuilder builder=new ExecHandleBuilder();
-  builder.setWorkingDir(new File(".").getAbsolutePath());
-  builder.setCommandLine(parameters.getEffectiveJavaExecutable(),"-version");
-  builder.setStandardOutput(new ByteArrayOutputStream());
-  builder.setErrorOutput(outputStream);
-  builder.build().start().waitForFinish().assertNormalExitValue();
-  JavaVersion javaVersion=parseJavaVersionCommandOutput(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
+  JavaVersion javaVersion=getJavaVersion(parameters);
   if (!javaVersion.isJava6Compatible()) {
     throw UnsupportedJavaRuntimeException.configuredWithUnsupportedVersion("Gradle",JavaVersion.VERSION_1_6,javaVersion);
   }

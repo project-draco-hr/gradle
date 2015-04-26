@@ -1,5 +1,10 @@
 {
-  executor=new DefaultExecutorFactory().create("Read output from: " + processName);
+  if (process == null || processName == null) {
+    throw new IllegalArgumentException("Cannot connect streams because provided process or its name is null");
+  }
+  standardInputRunner=new ExecOutputHandleRunner("write standard input into: " + processName,stdInput,process.getOutputStream());
+  executor=executorFactory.create("Read output from: " + processName);
+  final InputStream inputStream=process.getInputStream();
   streamConsumer=new Runnable(){
     public void run(){
       Scanner scanner=new Scanner(inputStream);
