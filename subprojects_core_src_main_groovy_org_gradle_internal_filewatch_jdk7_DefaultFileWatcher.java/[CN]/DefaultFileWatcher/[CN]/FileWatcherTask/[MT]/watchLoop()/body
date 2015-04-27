@@ -1,19 +1,14 @@
 {
-  changesNotifier.reset();
   while (watchLoopRunning()) {
     watchStrategy.pollChanges(POLL_TIMEOUT_MILLIS,TimeUnit.MILLISECONDS,new WatchHandler(){
-      @Override public void onActivation(){
-        changesNotifier.eventReceived();
-      }
       @Override public void onOverflow(){
-        changesNotifier.notifyChanged();
+        listener.onOverflow();
       }
       @Override public void onChange(      ChangeDetails changeDetails){
-        dirTreeWatchRegistry.handleChange(changeDetails,changesNotifier);
-        individualFileWatchRegistry.handleChange(changeDetails,changesNotifier);
+        dirTreeWatchRegistry.handleChange(changeDetails,listener);
+        individualFileWatchRegistry.handleChange(changeDetails,listener);
       }
     }
 );
-    changesNotifier.handlePendingChanges();
   }
 }
