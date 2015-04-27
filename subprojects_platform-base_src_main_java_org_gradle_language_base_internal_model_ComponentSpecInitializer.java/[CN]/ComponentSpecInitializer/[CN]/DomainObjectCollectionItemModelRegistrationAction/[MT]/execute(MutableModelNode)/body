@@ -1,0 +1,20 @@
+{
+  collectionModelNode.getPrivateData(collectionType).all(new Action<T>(){
+    @Override public void execute(    T item){
+      ComponentSpec componentSpec=collectionModelNode.getParent().getPrivateData(ModelType.of(ComponentSpec.class));
+      itemInitializationAction.execute(item,(ComponentSpecInternal)componentSpec);
+      final String name=item.getName();
+      ModelType<T> itemType=ModelType.typeOf(item);
+      ModelReference<T> itemReference=ModelReference.of(collectionModelNode.getPath().child(name),itemType);
+      ModelCreator itemCreator=ModelCreators.unmanagedInstance(itemReference,new Factory<T>(){
+        public T create(){
+          return collectionModelNode.getPrivateData(collectionType).getByName(name);
+        }
+      }
+).descriptor(itemCreatorDescriptorFactory.transform(name)).build();
+      collectionModelNode.addLink(itemCreator);
+      collectionModelNode.getLink(name).ensureUsable();
+    }
+  }
+);
+}

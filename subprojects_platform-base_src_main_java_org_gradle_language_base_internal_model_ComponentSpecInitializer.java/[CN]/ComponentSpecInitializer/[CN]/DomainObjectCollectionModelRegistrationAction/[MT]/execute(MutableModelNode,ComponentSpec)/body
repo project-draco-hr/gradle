@@ -1,0 +1,15 @@
+{
+  ModelReference<C> reference=ModelReference.of(mutableModelNode.getPath().child(domainObjectCollectionName),collectionType);
+  String containerCreatorDescriptor=new StandardDescriptorFactory(mutableModelNode.getDescriptor()).transform(domainObjectCollectionName);
+  final StandardDescriptorFactory itemCreatorDescriptorFactory=new StandardDescriptorFactory(containerCreatorDescriptor);
+  Factory<C> domainObjectCollectionFactory=new Factory<C>(){
+    public C create(){
+      ComponentSpec componentSpec=mutableModelNode.getPrivateData(ModelType.of(ComponentSpec.class));
+      return collectionTransformer.transform((ComponentSpecInternal)componentSpec);
+    }
+  }
+;
+  Action<MutableModelNode> itemRegistrar=domainObjectCollectionItemModelRegistrar(collectionType,itemCreatorDescriptorFactory,itemInitializationAction);
+  mutableModelNode.addLink(ModelCreators.unmanagedInstance(reference,domainObjectCollectionFactory,itemRegistrar).descriptor(containerCreatorDescriptor).build());
+  mutableModelNode.getLink(domainObjectCollectionName).ensureUsable();
+}

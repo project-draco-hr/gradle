@@ -1,0 +1,16 @@
+{
+  if (type.equals(elementClass)) {
+    return uncheckedCast(this);
+  }
+  if (elementClass.isAssignableFrom(type)) {
+    Class<? extends T> castType=uncheckedCast(type);
+    CollectionBuilder<? extends T> subType=toSubtype(castType);
+    return uncheckedCast(subType);
+  }
+  return new DefaultCollectionBuilder<S>(ModelType.of(type),sourceDescriptor,modelNode,new BiFunction<ModelCreators.Builder,MutableModelNode,ModelReference<? extends S>>(){
+    @Override public ModelCreators.Builder apply(    MutableModelNode parent,    ModelReference<? extends S> reference){
+      throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.",reference.getType(),elementType.toString()));
+    }
+  }
+);
+}
