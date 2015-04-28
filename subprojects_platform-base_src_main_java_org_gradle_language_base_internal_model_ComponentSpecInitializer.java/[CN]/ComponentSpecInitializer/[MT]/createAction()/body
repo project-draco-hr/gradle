@@ -5,7 +5,7 @@
     }
   }
 ;
-  BiAction<MutableModelNode,ComponentSpec> sourcePropertyRegistrar=domainObjectCollectionModelRegistrar("sources",namedDomainObjectCollectionOf(LanguageSourceSet.class),sourcesPropertyTransformer,BiActions.doNothing());
+  BiAction<MutableModelNode,ComponentSpec> sourcePropertyRegistrar=domainObjectCollectionModelRegistrar("sources",namedDomainObjectCollectionOf(LanguageSourceSet.class),sourcesPropertyTransformer);
   Transformer<NamedDomainObjectCollection<BinarySpec>,ComponentSpecInternal> binariesPropertyTransformer=new Transformer<NamedDomainObjectCollection<BinarySpec>,ComponentSpecInternal>(){
     public NamedDomainObjectCollection<BinarySpec> transform(    ComponentSpecInternal componentSpec){
       return componentSpec.getBinaries();
@@ -20,7 +20,21 @@
     }
   }
 ;
-  BiAction<MutableModelNode,ComponentSpec> binariesPropertyRegistrar=domainObjectCollectionModelRegistrar("binaries",binariesType,binariesPropertyTransformer,binaryInitializationAction);
+  Action<MutableModelNode> binaryNodeInitializationAction=new Action<MutableModelNode>(){
+    public void execute(    final MutableModelNode node){
+      ModelType<BinaryTasksCollection> itemType=ModelType.of(BinaryTasksCollection.class);
+      ModelReference<BinaryTasksCollection> itemReference=ModelReference.of(node.getPath().child("tasks"),itemType);
+      ModelCreator itemCreator=ModelCreators.unmanagedInstance(itemReference,new Factory<BinaryTasksCollection>(){
+        public BinaryTasksCollection create(){
+          return node.getPrivateData(ModelType.of(BinarySpec.class)).getTasks();
+        }
+      }
+).descriptor(new StandardDescriptorFactory(node.getDescriptor()).transform("tasks")).build();
+      node.addLink(itemCreator);
+    }
+  }
+;
+  BiAction<MutableModelNode,ComponentSpec> binariesPropertyRegistrar=domainObjectCollectionModelRegistrar("binaries",binariesType,binariesPropertyTransformer,binaryInitializationAction,binaryNodeInitializationAction);
   @SuppressWarnings("unchecked") BiAction<MutableModelNode,ComponentSpec> initializer=BiActions.composite(sourcePropertyRegistrar,binariesPropertyRegistrar);
   return initializer;
 }
