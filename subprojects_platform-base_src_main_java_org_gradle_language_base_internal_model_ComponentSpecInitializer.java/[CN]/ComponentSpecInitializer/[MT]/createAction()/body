@@ -1,0 +1,26 @@
+{
+  Transformer<NamedDomainObjectCollection<LanguageSourceSet>,ComponentSpecInternal> sourcesPropertyTransformer=new Transformer<NamedDomainObjectCollection<LanguageSourceSet>,ComponentSpecInternal>(){
+    public NamedDomainObjectCollection<LanguageSourceSet> transform(    ComponentSpecInternal componentSpec){
+      return componentSpec.getSources();
+    }
+  }
+;
+  BiAction<MutableModelNode,ComponentSpec> sourcePropertyRegistrar=domainObjectCollectionModelRegistrar("sources",namedDomainObjectCollectionOf(LanguageSourceSet.class),sourcesPropertyTransformer,BiActions.doNothing());
+  Transformer<NamedDomainObjectCollection<BinarySpec>,ComponentSpecInternal> binariesPropertyTransformer=new Transformer<NamedDomainObjectCollection<BinarySpec>,ComponentSpecInternal>(){
+    public NamedDomainObjectCollection<BinarySpec> transform(    ComponentSpecInternal componentSpec){
+      return componentSpec.getBinaries();
+    }
+  }
+;
+  ModelType<NamedDomainObjectCollection<BinarySpec>> binariesType=namedDomainObjectCollectionOf(BinarySpec.class);
+  BiAction<BinarySpec,ComponentSpecInternal> binaryInitializationAction=new BiAction<BinarySpec,ComponentSpecInternal>(){
+    public void execute(    BinarySpec binary,    ComponentSpecInternal component){
+      BinarySpecInternal binaryInternal=uncheckedCast(binary);
+      binaryInternal.setBinarySources(component.getSources().copy(binary.getName()));
+    }
+  }
+;
+  BiAction<MutableModelNode,ComponentSpec> binariesPropertyRegistrar=domainObjectCollectionModelRegistrar("binaries",binariesType,binariesPropertyTransformer,binaryInitializationAction);
+  @SuppressWarnings("unchecked") BiAction<MutableModelNode,ComponentSpec> initializer=BiActions.composite(sourcePropertyRegistrar,binariesPropertyRegistrar);
+  return initializer;
+}
