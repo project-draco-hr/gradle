@@ -15,7 +15,8 @@
   InternalBuildProgressListener buildProgressListener=providerParameters.getBuildProgressListener(null);
   boolean listenToTestProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
   boolean listenToTaskProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalTaskProgressListener.TASK_EXECUTION);
-  BuildEventConsumer buildEventConsumer=listenToTestProgress || listenToTaskProgress ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
-  BuildAction action=new BuildModelAction(startParameter,modelName,tasks != null,listenToTestProgress,listenToTaskProgress);
+  boolean listenToBuildProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalTaskProgressListener.BUILD_EXECUTION);
+  BuildEventConsumer buildEventConsumer=listenToTestProgress || listenToTaskProgress || listenToBuildProgress ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
+  BuildAction action=new BuildModelAction(startParameter,modelName,tasks != null,listenToTestProgress,listenToTaskProgress,listenToBuildProgress);
   return run(action,cancellationToken,buildEventConsumer,providerParameters,params);
 }
