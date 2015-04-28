@@ -1,12 +1,12 @@
 {
   super(tempFileProvider,new LazilyInitializedFileTree(){
-    @Override public FileTree createDelegate(){
+    @Override public FileTreeInternal createDelegate(){
       File archiveFile=fileCollection.getSingleFile();
       String fileExtension=Files.getFileExtension(archiveFile.getName());
       FileTree archiveContents=fileExtension.equals("jar") || fileExtension.equals("zip") ? fileOperations.zipTree(archiveFile) : fileOperations.tarTree(archiveFile);
       PatternSet patternSet=new PatternSet();
       patternSet.include(path);
-      return archiveContents.matching(patternSet);
+      return Cast.cast(FileTreeInternal.class,archiveContents.matching(patternSet));
     }
     public TaskDependency getBuildDependencies(){
       return fileCollection.getBuildDependencies();
