@@ -2,17 +2,14 @@
   Set<DirectoryTree> watchedTrees=pathToDirectoryTrees.get(changeDetails.getWatchedPath());
   if (watchedTrees != null) {
     for (    DirectoryTree watchedTree : watchedTrees) {
-      Set<String> sourceKeys=liveDirectoryTreeToSourceKeys.get(watchedTree);
-      if (sourceKeys != null) {
-        FileTreeElement fileTreeElement=toFileTreeElement(changeDetails,watchedTree);
-        if (!isExcluded(watchedTree,fileTreeElement)) {
-          boolean isDirectory=isDirectory(changeDetails.getFullItemPath());
-          if (isDirectory && changeDetails.getChangeType() == ChangeDetails.ChangeType.CREATE) {
-            handleNewDirectory(changeDetails,listener,watchedTree,sourceKeys);
-          }
-          if (!isDirectory && isIncluded(watchedTree,fileTreeElement)) {
-            handleFileChange(changeDetails,listener,watchedTree,sourceKeys);
-          }
+      FileTreeElement fileTreeElement=toFileTreeElement(changeDetails,watchedTree);
+      if (!isExcluded(watchedTree,fileTreeElement)) {
+        boolean isDirectory=isDirectory(changeDetails.getFullItemPath());
+        if (isDirectory && changeDetails.getChangeType() == ChangeDetails.ChangeType.CREATE) {
+          handleNewDirectory(changeDetails,listener,watchedTree);
+        }
+        if (!isDirectory && isIncluded(watchedTree,fileTreeElement)) {
+          handleFileChange(changeDetails,listener,watchedTree);
         }
       }
     }
