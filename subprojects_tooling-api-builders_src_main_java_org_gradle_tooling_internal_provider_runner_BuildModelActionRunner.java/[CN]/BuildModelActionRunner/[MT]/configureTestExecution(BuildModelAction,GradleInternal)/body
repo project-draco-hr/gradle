@@ -1,21 +1,24 @@
 {
   final TestConfiguration testConfiguration=buildModelAction.getTestConfiguration();
-  final String taskName="toolingTestExecution" + generator.generateId();
+  final List<String> taskNames=new ArrayList<String>();
   if (testConfiguration != null) {
     gradle.addProjectEvaluationListener(new ProjectEvaluationListener(){
       @Override public void beforeEvaluate(      Project project){
       }
       @Override public void afterEvaluate(      Project project,      ProjectState state){
-        Task toolingTestExecution=project.task(taskName);
         TaskCollection<Test> testTaskCollection=project.getTasks().withType(Test.class);
         String[] includePatterns=testConfiguration.getIncludePatterns();
+        String[] excludePatterns=testConfiguration.getExcludePatterns();
+        if (excludePatterns.length > 0) {
+          throw new UnsupportedOperationException("Excludes are not supported yet");
+        }
         for (        Test test : testTaskCollection) {
-          toolingTestExecution.dependsOn(test);
+          taskNames.add(test.getName());
+          gradle.getStartParameter().setTaskNames(taskNames);
           test.getFilter().setIncludePatterns(includePatterns);
         }
       }
     }
 );
-    buildModelAction.getStartParameter().setTaskNames(Arrays.asList(taskName));
   }
 }
