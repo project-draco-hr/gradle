@@ -1,4 +1,11 @@
 {
+  if (distributionSha256Sum != null) {
+    logger.log("Verifying " + localZipFile.getName());
+    if (!distributionSha256Sum.equals(calculateSha256Sum(localZipFile))) {
+      deleteDir(distDir);
+      throw new SignatureException("SHA-256 sum verification failed for " + localZipFile.getName() + ". The cache has been deleted, try re-building! "+ "If this problem persists, inform the project maintainer!");
+    }
+  }
   List<File> dirs=listDirs(distDir);
   if (dirs.isEmpty()) {
     throw new RuntimeException(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.",distributionDescription));
