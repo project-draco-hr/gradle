@@ -20,21 +20,7 @@
     }
   }
 ;
-  Action<MutableModelNode> binaryNodeInitializationAction=new Action<MutableModelNode>(){
-    public void execute(    final MutableModelNode node){
-      ModelType<BinaryTasksCollection> itemType=ModelType.of(BinaryTasksCollection.class);
-      ModelReference<BinaryTasksCollection> itemReference=ModelReference.of(node.getPath().child("tasks"),itemType);
-      ModelCreator itemCreator=ModelCreators.unmanagedInstance(itemReference,new Factory<BinaryTasksCollection>(){
-        public BinaryTasksCollection create(){
-          return node.getPrivateData(ModelType.of(BinarySpec.class)).getTasks();
-        }
-      }
-).descriptor(new StandardDescriptorFactory(node.getDescriptor()).transform("tasks")).build();
-      node.addLink(itemCreator);
-    }
-  }
-;
-  BiAction<MutableModelNode,ComponentSpec> binariesPropertyRegistrar=domainObjectCollectionModelRegistrar("binaries",binariesType,binariesPropertyTransformer,binaryInitializationAction,binaryNodeInitializationAction);
+  BiAction<MutableModelNode,ComponentSpec> binariesPropertyRegistrar=domainObjectCollectionModelRegistrar("binaries",binariesType,binariesPropertyTransformer,binaryInitializationAction,Actions.doNothing());
   @SuppressWarnings("unchecked") BiAction<MutableModelNode,ComponentSpec> initializer=BiActions.composite(sourcePropertyRegistrar,binariesPropertyRegistrar);
   return initializer;
 }
