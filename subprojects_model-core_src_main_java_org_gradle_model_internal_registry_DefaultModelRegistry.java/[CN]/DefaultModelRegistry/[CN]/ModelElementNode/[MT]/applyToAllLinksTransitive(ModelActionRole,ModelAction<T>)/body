@@ -1,0 +1,17 @@
+{
+  if (action.getSubject().getPath() != null) {
+    throw new IllegalArgumentException("Linked element action reference must have null path.");
+  }
+  registerListener(new ModelCreationListener(){
+    @Nullable @Override public ModelType<?> matchType(){
+      return action.getSubject().getType();
+    }
+    @Override public boolean onCreate(    ModelNodeInternal node){
+      if (getPath().isDescendant(node.getPath())) {
+        bind(ModelReference.of(node.getPath(),action.getSubject().getType()),type,action,ModelPath.ROOT);
+      }
+      return false;
+    }
+  }
+);
+}
