@@ -1,13 +1,7 @@
 {
   this.listener=listener;
-  DirectoryTree dir=new DirectoryFileTree(new File("."));
-  dir.getPatterns().exclude("build/**/*",".gradle/**/*");
-  FileWatchInputs inputs=FileWatchInputs.newBuilder().add(dir).build();
-  try {
-    this.fileWatcher=fileWatcherFactory.createFileWatcher(new FileChangeCallback(listener));
-    this.fileWatcher.watch(inputs);
-  }
- catch (  IOException e) {
-    UncheckedException.throwAsUncheckedException(e);
-  }
+  DirectoryFileTree directoryFileTree=new DirectoryFileTree(new File("."));
+  directoryFileTree.getPatterns().exclude("build/**/*",".gradle/**/*");
+  FileCollectionInternal fileCollection=new FileTreeAdapter(directoryFileTree);
+  this.fileWatcher=fileWatcherFactory.watch(fileCollection.getFileSystemRoots(),new FileChangeCallback(listener,fileCollection));
 }
