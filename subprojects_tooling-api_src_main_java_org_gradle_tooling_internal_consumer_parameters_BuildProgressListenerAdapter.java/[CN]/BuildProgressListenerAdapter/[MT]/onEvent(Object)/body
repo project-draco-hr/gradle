@@ -1,11 +1,13 @@
 {
-  if (event instanceof InternalTestProgressEvent) {
-    broadcastTestProgressEvent((InternalTestProgressEvent)event);
+  if (failsafeListeners) {
+    try {
+      doBroadcast(event);
+    }
+ catch (    Throwable e) {
+      listenerFailures.add(e);
+    }
   }
- else   if (event instanceof InternalTaskProgressEvent) {
-    broadcastTaskProgressEvent((InternalTaskProgressEvent)event);
-  }
- else   if (event instanceof InternalBuildProgressEvent) {
-    broadcastBuildProgressEvent((InternalBuildProgressEvent)event);
+ else {
+    doBroadcast(event);
   }
 }
