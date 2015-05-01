@@ -1,0 +1,24 @@
+{
+  final FileCollectionInternal taskInputs=new UnionFileCollection(CollectionUtils.collect(tasks,new Transformer<FileCollection,Task>(){
+    public FileCollection transform(    Task input){
+      return input.getInputs().getFiles();
+    }
+  }
+));
+  fileWatcherFactory.watch(taskInputs.getFileSystemRoots(),new Action<Throwable>(){
+    @Override public void execute(    Throwable throwable){
+      listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.STOP,"error " + throwable.getMessage()));
+    }
+  }
+,new FilteringFileWatcherListener(new Spec<FileWatcherEvent>(){
+    @Override public boolean isSatisfiedBy(    FileWatcherEvent element){
+      return element.getType().equals(FileWatcherEvent.Type.OVERFLOW) || element.getType().equals(FileWatcherEvent.Type.DELETE) || taskInputs.contains(element.getFile());
+    }
+  }
+,new StopThenFireFileWatcherListener(new Runnable(){
+    @Override public void run(){
+      listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD,"file change"));
+    }
+  }
+)));
+}
