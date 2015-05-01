@@ -1,13 +1,8 @@
 {
   project.getPluginManager().apply(LanguageBasePlugin.class);
   String descriptor=ComponentModelBasePlugin.class.getName() + ".apply()";
-  final ModelMapSchema<ComponentSpecContainer> schema=(ModelMapSchema<ComponentSpecContainer>)schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
-  ModelCreator componentsCreator=CollectionBuilderCreators.specialized("components",ComponentSpec.class,ComponentSpecContainer.class,new Transformer<ComponentSpecContainer,CollectionBuilder<ComponentSpec>>(){
-    @Override public ComponentSpecContainer transform(    CollectionBuilder<ComponentSpec> componentSpecs){
-      return DirectInstantiator.instantiate(schema.getManagedImpl().asSubclass(ComponentSpecContainer.class),componentSpecs);
-    }
-  }
-,descriptor,BiActions.doNothing());
+  ModelMapSchema<ComponentSpecContainer> schema=(ModelMapSchema<ComponentSpecContainer>)schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
+  ModelCreator componentsCreator=CollectionBuilderCreators.specialized("components",ComponentSpec.class,ComponentSpecContainer.class,schema.getManagedImpl().asSubclass(ComponentSpecContainer.class),descriptor);
   modelRegistry.create(componentsCreator);
   modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,DirectNodeModelAction.of(ModelReference.of(ComponentSpec.class),new SimpleModelRuleDescriptor(descriptor),ComponentSpecInitializer.action()));
   modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,DirectNodeModelAction.of(ModelReference.of(BinarySpec.class),new SimpleModelRuleDescriptor(descriptor),ComponentSpecInitializer.binaryAction()));

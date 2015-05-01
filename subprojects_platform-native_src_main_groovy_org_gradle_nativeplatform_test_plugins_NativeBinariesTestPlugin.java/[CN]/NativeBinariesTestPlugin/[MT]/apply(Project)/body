@@ -1,11 +1,7 @@
 {
   project.getPluginManager().apply(NativeComponentPlugin.class);
   String descriptor=NativeBinariesTestPlugin.class.getName() + ".apply()";
-  ModelCreator testSuitesCreator=CollectionBuilderCreators.specialized("testSuites",TestSuiteSpec.class,TestSuiteContainer.class,new Transformer<TestSuiteContainer,CollectionBuilder<TestSuiteSpec>>(){
-    @Override public TestSuiteContainer transform(    CollectionBuilder<TestSuiteSpec> testSuiteSpecs){
-      return new DefaultTestSuiteContainer(testSuiteSpecs);
-    }
-  }
-,descriptor,BiActions.doNothing());
+  ModelMapSchema<TestSuiteContainer> schema=(ModelMapSchema<TestSuiteContainer>)schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
+  ModelCreator testSuitesCreator=CollectionBuilderCreators.specialized("testSuites",TestSuiteSpec.class,TestSuiteContainer.class,schema.getManagedImpl().asSubclass(TestSuiteContainer.class),descriptor);
   modelRegistry.create(testSuitesCreator);
 }
