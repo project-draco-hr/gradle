@@ -1,0 +1,17 @@
+{
+  for (  Constructor<?> constructor : implClass.getConstructors()) {
+    Type[] paramTypes=new Type[constructor.getParameterTypes().length];
+    for (int i=0; i < paramTypes.length; i++) {
+      paramTypes[i]=Type.getType(constructor.getParameterTypes()[i]);
+    }
+    String methodDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,paramTypes);
+    MethodVisitor constructorVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,CONSTRUCTOR_NAME,methodDescriptor,CONCRETE_SIGNATURE,NO_EXCEPTIONS);
+    constructorVisitor.visitCode();
+    putThisOnStack(constructorVisitor);
+    for (int i=0; i < paramTypes.length; i++) {
+      constructorVisitor.visitVarInsn(Opcodes.ALOAD,i + 1);
+    }
+    constructorVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),CONSTRUCTOR_NAME,methodDescriptor,false);
+    finishVisitingMethod(constructorVisitor);
+  }
+}
