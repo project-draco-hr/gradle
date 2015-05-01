@@ -1,11 +1,10 @@
 {
-  WatchServiceFileWatcher fileWatcher=null;
   try {
-    fileWatcher=new WatchServiceFileWatcher(roots,listener);
+    WatchService watchService=FileSystems.getDefault().newWatchService();
+    WatchServiceFileWatcherBacking backing=new WatchServiceFileWatcherBacking(roots,listener,watchService);
+    return backing.start(executor);
   }
  catch (  IOException e) {
-    UncheckedException.throwAsUncheckedException(e);
+    throw UncheckedException.throwAsUncheckedException(e);
   }
-  executor.submit(fileWatcher);
-  return fileWatcher;
 }
