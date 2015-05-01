@@ -5,6 +5,9 @@
     }
   }
 ));
+  if (LOGGER.isDebugEnabled()) {
+    LOGGER.debug("Task inputs: {}",taskInputs.getFiles());
+  }
   fileWatcherFactory.watch(taskInputs.getFileSystemRoots(),new Action<Throwable>(){
     @Override public void execute(    Throwable throwable){
       listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.STOP,"error " + throwable.getMessage()));
@@ -12,6 +15,9 @@
   }
 ,new FilteringFileWatcherListener(new Spec<FileWatcherEvent>(){
     @Override public boolean isSatisfiedBy(    FileWatcherEvent element){
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Received file system event: {}",element);
+      }
       return element.getType().equals(FileWatcherEvent.Type.OVERFLOW) || element.getType().equals(FileWatcherEvent.Type.DELETE) || taskInputs.contains(element.getFile());
     }
   }
