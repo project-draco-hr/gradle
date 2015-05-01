@@ -1,6 +1,17 @@
 {
-  DirectoryFileTree directoryFileTree=new DirectoryFileTree(new File("."));
+  File workingDir=new File(".");
+  DirectoryFileTree directoryFileTree=new DirectoryFileTree(workingDir);
   directoryFileTree.getPatterns().exclude("build/**/*",".gradle/**/*");
-  FileCollectionInternal fileCollection=new FileTreeAdapter(directoryFileTree);
-  fileWatcherFactory.watch(fileCollection.getFileSystemRoots(),Actions.doNothing(),new FileChangeCallback(listener,fileCollection));
+  final FileCollectionInternal fileCollection=new FileTreeAdapter(directoryFileTree);
+  fileWatcherFactory.watch(fileCollection.getFileSystemRoots(),Actions.doNothing(),new FilteringFileWatcherListener(new Spec<FileWatcherEvent>(){
+    @Override public boolean isSatisfiedBy(    FileWatcherEvent element){
+      return element.getType().equals(FileWatcherEvent.Type.OVERFLOW) || element.getType().equals(FileWatcherEvent.Type.DELETE) || fileCollection.contains(element.getFile());
+    }
+  }
+,new StopThenFireFileWatcherListener(new Runnable(){
+    @Override public void run(){
+      listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD,"file change"));
+    }
+  }
+)));
 }
