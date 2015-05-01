@@ -3,13 +3,12 @@
   Transformer<FileWatcherEvent,WatchEvent<?>> watchEventTransformer=new Transformer<FileWatcherEvent,WatchEvent<?>>(){
     @Override public FileWatcherEvent transform(    WatchEvent<?> event){
       WatchEvent.Kind kind=event.kind();
-      EventType eventType=toEventType(kind);
       File file=null;
       if (kind.type() == Path.class) {
         WatchEvent<Path> ev=Cast.uncheckedCast(event);
         file=watchedPath.resolve(ev.context()).toFile();
       }
-      return new DefaultFileWatcherEvent(eventType,file);
+      return toEvent(kind,file);
     }
   }
 ;
