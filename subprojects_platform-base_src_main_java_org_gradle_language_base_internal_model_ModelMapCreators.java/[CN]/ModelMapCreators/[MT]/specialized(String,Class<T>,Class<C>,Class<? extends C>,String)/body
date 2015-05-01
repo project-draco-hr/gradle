@@ -1,0 +1,26 @@
+{
+  ModelType<RuleAwareNamedDomainObjectFactoryRegistry<T>> factoryRegistryType=new ModelType.Builder<RuleAwareNamedDomainObjectFactoryRegistry<T>>(){
+  }
+.where(new ModelType.Parameter<T>(){
+  }
+,ModelType.of(typeClass)).build();
+  ModelReference<ModelMap<T>> containerReference=ModelReference.of(name,DefaultModelMap.modelMapTypeOf(typeClass));
+  PolymorphicModelMapProjection<T> modelMapProjection=new PolymorphicModelMapProjection<T>(ModelType.of(typeClass),BiActions.doNothing());
+  return ModelCreators.of(containerReference,new BiAction<MutableModelNode,List<ModelView<?>>>(){
+    @Override public void execute(    MutableModelNode mutableModelNode,    List<ModelView<?>> modelViews){
+      final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator=new DefaultPolymorphicNamedEntityInstantiator<T>(typeClass,"this collection");
+      ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType=new ModelType.Builder<RuleAwarePolymorphicNamedEntityInstantiator<T>>(){
+      }
+.where(new ModelType.Parameter<T>(){
+      }
+,ModelType.of(typeClass)).build();
+      mutableModelNode.setPrivateData(instantiatorType,new DefaultRuleAwarePolymorphicNamedEntityInstantiator<T>(namedEntityInstantiator));
+    }
+  }
+).descriptor(descriptor).withProjection(modelMapProjection).withProjection(new SpecializedModelMapProjection<C,T>(ModelType.of(containerClass),ModelType.of(typeClass),modelMapProjection,new Transformer<C,ModelMap<T>>(){
+    @Override public C transform(    ModelMap<T> delegate){
+      return DirectInstantiator.instantiate(viewClass,delegate);
+    }
+  }
+)).withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<T>>(factoryRegistryType)).build();
+}

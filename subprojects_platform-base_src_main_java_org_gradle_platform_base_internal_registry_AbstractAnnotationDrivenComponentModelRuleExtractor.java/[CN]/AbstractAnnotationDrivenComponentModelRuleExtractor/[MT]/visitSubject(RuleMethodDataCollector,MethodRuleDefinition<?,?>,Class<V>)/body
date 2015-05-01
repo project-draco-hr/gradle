@@ -1,0 +1,18 @@
+{
+  if (ruleDefinition.getReferences().size() == 0) {
+    throw new InvalidModelException(String.format("Method %s must have a parameter of type '%s'.",getDescription(),ModelMap.class.getName()));
+  }
+  @SuppressWarnings("ConstantConditions") ModelType<?> builder=ruleDefinition.getSubjectReference().getType();
+  @SuppressWarnings("deprecation") Class<?> containerClass=org.gradle.model.collection.CollectionBuilder.class;
+  if (!ModelType.of(containerClass).isAssignableFrom(builder)) {
+    throw new InvalidModelException(String.format("Method %s first parameter must be of type '%s'.",getDescription(),ModelMap.class.getName()));
+  }
+  if (builder.getTypeVariables().size() != 1) {
+    throw new InvalidModelException(String.format("Parameter of type '%s' must declare a type parameter extending '%s'.",ModelMap.class.getSimpleName(),typeParameter.getSimpleName()));
+  }
+  ModelType<?> subType=builder.getTypeVariables().get(0);
+  if (subType.isWildcard()) {
+    throw new InvalidModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).",typeParameter.getName(),subType.toString()));
+  }
+  dataCollector.parameterTypes.put(typeParameter,subType.getConcreteClass());
+}
