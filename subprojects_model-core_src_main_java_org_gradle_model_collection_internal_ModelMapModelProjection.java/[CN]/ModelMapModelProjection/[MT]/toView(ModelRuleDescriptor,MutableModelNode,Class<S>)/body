@@ -1,7 +1,8 @@
 {
   ModelType<S> itemType=ModelType.of(itemClass);
-  ModelMap<I> builder=new DefaultModelMap<I>(baseItemModelType,sourceDescriptor,node,getCreatorFunction());
+  ModelMap<I> builder=new DefaultModelMap<I>(baseItemModelType,sourceDescriptor,node,creatorFunction);
   ModelMap<S> subBuilder=builder.withType(itemClass);
-  ModelMapModelView<S> view=new ModelMapModelView<S>(node.getPath(),DefaultModelMap.modelMapTypeOf(itemType),subBuilder,sourceDescriptor);
-  return uncheckedCast(view);
+  ModelType<ModelMap<S>> viewType=DefaultModelMap.modelMapTypeOf(itemType);
+  DefaultModelViewState state=new DefaultModelViewState(viewType,sourceDescriptor);
+  return new ModelMapModelView<ModelMap<S>>(node.getPath(),viewType,new ModelMapGroovyDecorator<S>(subBuilder,state),state);
 }
