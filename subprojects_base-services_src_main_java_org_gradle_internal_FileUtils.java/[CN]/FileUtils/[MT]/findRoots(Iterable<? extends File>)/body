@@ -1,12 +1,16 @@
 {
   List<File> roots=Lists.newLinkedList();
-  files:   for (  File file : files) {
+  Set<File> directories=new LinkedHashSet<File>();
+  for (  File file : files) {
     File absoluteFile=file.getAbsoluteFile();
-    String path=absoluteFile.getPath();
+    directories.add(file.isDirectory() ? absoluteFile : absoluteFile.getParentFile());
+  }
+  files:   for (  File dir : directories) {
+    String path=dir.getPath() + File.separator;
     Iterator<File> rootsIterator=roots.iterator();
     while (rootsIterator.hasNext()) {
       File root=rootsIterator.next();
-      String rootPath=root.getPath();
+      String rootPath=root.getPath() + File.separator;
       if (path.startsWith(rootPath)) {
         continue files;
       }
@@ -14,7 +18,7 @@
         rootsIterator.remove();
       }
     }
-    roots.add(absoluteFile);
+    roots.add(dir);
   }
   return roots;
 }
