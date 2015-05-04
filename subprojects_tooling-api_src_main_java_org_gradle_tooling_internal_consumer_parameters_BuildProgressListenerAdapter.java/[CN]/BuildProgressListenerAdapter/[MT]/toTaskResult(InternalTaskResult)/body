@@ -1,7 +1,24 @@
 {
-  if (result instanceof InternalTaskSkippedResult) {
-    return new TaskSkippedResult(){
-      @Override public String getSkipMessage(){
+  if (result instanceof InternalTaskSkippedSuccessResult) {
+    return new TaskSkippedSuccessResult(){
+      public String getSkipMessage(){
+        return ((InternalTaskSkippedResult)result).getSkipMessage();
+      }
+      @Override public long getStartTime(){
+        return result.getStartTime();
+      }
+      @Override public long getEndTime(){
+        return result.getEndTime();
+      }
+    }
+;
+  }
+  if (result instanceof InternalTaskSkippedFailureResult) {
+    return new TaskSkippedFailureResult(){
+      @Override public List<? extends Failure> getFailures(){
+        return toFailures(result.getFailures());
+      }
+      public String getSkipMessage(){
         return ((InternalTaskSkippedResult)result).getSkipMessage();
       }
       @Override public long getStartTime(){
