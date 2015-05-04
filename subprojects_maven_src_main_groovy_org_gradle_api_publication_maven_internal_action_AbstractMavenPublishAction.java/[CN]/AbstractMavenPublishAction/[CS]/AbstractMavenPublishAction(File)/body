@@ -1,5 +1,9 @@
 {
-  this.pomFile=pomFile;
-  this.wagonManager=lookup(WagonManager.class);
-  wagonManager.setDownloadMonitor(new LoggingMavenTransferListener());
+  container=newPlexusContainer();
+  session=new MavenRepositorySystemSession();
+  session.setTransferListener(new LoggingMavenTransferListener());
+  session.getConfigProperties().put("maven.metadata.legacy","true");
+  Model pom=parsePom(pomFile);
+  pomArtifact=new DefaultArtifact(pom.getGroupId(),pom.getArtifactId(),"pom",pom.getVersion()).setFile(pomFile);
+  mainArtifact=createTypedArtifact(pom.getPackaging(),null);
 }
