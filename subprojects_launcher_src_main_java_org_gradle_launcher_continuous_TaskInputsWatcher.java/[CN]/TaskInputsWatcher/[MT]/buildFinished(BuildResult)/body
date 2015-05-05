@@ -1,14 +1,16 @@
 {
-  final FileSystemSubset fileSystemSubset=fileSystemSubsetBuilder.build();
-  fileWatcherFactory.watch(fileSystemSubset,new Action<Throwable>(){
-    @Override public void execute(    Throwable throwable){
-      listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.STOP,"error " + throwable.getMessage()));
+  if (result.getGradle().getParent() == null) {
+    final FileSystemSubset fileSystemSubset=fileSystemSubsetBuilder.build();
+    fileWatcherFactory.watch(fileSystemSubset,new Action<Throwable>(){
+      @Override public void execute(      Throwable throwable){
+        listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.STOP,"error " + throwable.getMessage()));
+      }
     }
-  }
 ,new StopThenFireFileWatcherListener(new Runnable(){
-    @Override public void run(){
-      listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD,"file change"));
+      @Override public void run(){
+        listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD,"file change"));
+      }
     }
-  }
 ));
+  }
 }
