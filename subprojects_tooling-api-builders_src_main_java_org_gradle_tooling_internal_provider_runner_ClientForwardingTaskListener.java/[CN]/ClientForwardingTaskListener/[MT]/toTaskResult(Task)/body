@@ -5,12 +5,16 @@
   if (state.getUpToDate()) {
     return new DefaultTaskSuccessResult(startTime,endTime,true);
   }
-  if (state.getSkipped()) {
+ else   if (state.getSkipped()) {
     return new DefaultTaskSkippedResult(startTime,endTime,state.getSkipMessage());
   }
-  Throwable failure=state.getFailure();
-  if (failure == null) {
-    return new DefaultTaskSuccessResult(startTime,endTime,false);
+ else {
+    Throwable failure=state.getFailure();
+    if (failure == null) {
+      return new DefaultTaskSuccessResult(startTime,endTime,false);
+    }
+ else {
+      return new DefaultTaskFailureResult(startTime,endTime,Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+    }
   }
-  return new DefaultTaskFailureResult(startTime,endTime,Collections.singletonList(DefaultFailure.fromThrowable(failure)));
 }
