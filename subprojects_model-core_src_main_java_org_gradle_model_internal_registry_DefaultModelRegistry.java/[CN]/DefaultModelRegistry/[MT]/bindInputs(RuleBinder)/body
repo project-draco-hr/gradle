@@ -1,18 +1,14 @@
 {
-  if (!binder.isBindingInputs()) {
-    binder.setBindingInputs(true);
-    List<? extends ModelReference<?>> inputReferences=binder.getInputReferences();
-    for (int i=0; i < inputReferences.size(); i++) {
-      final int finalI=i;
-      ModelReference<?> input=inputReferences.get(i);
-      ModelPath effectiveScope=input.getPath() == null ? ModelPath.ROOT : binder.getScope();
-      registerListener(listener(binder.getDescriptor(),input,effectiveScope,false,new Action<ModelNodeInternal>(){
-        public void execute(        ModelNodeInternal modelNode){
-          binder.bindInput(finalI,modelNode);
-        }
+  List<? extends ModelReference<?>> inputReferences=binder.getInputReferences();
+  for (int i=0; i < inputReferences.size(); i++) {
+    final int finalI=i;
+    ModelReference<?> input=inputReferences.get(i);
+    ModelPath effectiveScope=input.getPath() == null ? ModelPath.ROOT : binder.getScope();
+    registerListener(listener(binder.getDescriptor(),input,effectiveScope,false,new Action<ModelNodeInternal>(){
+      public void execute(      ModelNodeInternal modelNode){
+        binder.bindInput(finalI,modelNode);
       }
-));
     }
-    tryForceBind(binder);
+));
   }
 }

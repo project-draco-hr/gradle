@@ -1,25 +1,25 @@
 {
   flushPendingMutatorBinders();
-  if (binders.isEmpty()) {
+  if (unboundRules.isEmpty()) {
     return;
   }
   boolean newInputsBound=true;
-  while (!binders.isEmpty() && newInputsBound) {
+  while (!unboundRules.isEmpty() && newInputsBound) {
     newInputsBound=false;
-    RuleBinder[] unboundBinders=binders.toArray(new RuleBinder[binders.size()]);
+    RuleBinder[] unboundBinders=unboundRules.toArray(new RuleBinder[unboundRules.size()]);
     for (    RuleBinder binder : unboundBinders) {
       tryForceBind(binder);
       newInputsBound=newInputsBound || binder.isBound();
     }
   }
-  if (!binders.isEmpty()) {
+  if (!unboundRules.isEmpty()) {
     SortedSet<RuleBinder> sortedBinders=new TreeSet<RuleBinder>(new Comparator<RuleBinder>(){
       @Override public int compare(      RuleBinder o1,      RuleBinder o2){
         return o1.getDescriptor().toString().compareTo(o2.getDescriptor().toString());
       }
     }
 );
-    sortedBinders.addAll(binders);
+    sortedBinders.addAll(unboundRules);
     throw unbound(sortedBinders);
   }
 }
