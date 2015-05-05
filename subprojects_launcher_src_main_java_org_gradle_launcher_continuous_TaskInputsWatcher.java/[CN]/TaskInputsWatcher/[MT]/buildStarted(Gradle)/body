@@ -1,7 +1,11 @@
 {
-  gradle.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener(){
-    @Override public void graphPopulated(    TaskExecutionGraph graph){
-      tasks.addAll(graph.getAllTasks());
+  gradle.getTaskGraph().addTaskExecutionListener(new TaskExecutionAdapter(){
+    @Override public void beforeExecute(    Task task){
+      FileCollection inputFiles=task.getInputs().getFiles();
+      if (inputFiles instanceof FileCollectionInternal) {
+        inputFiles=((FileCollectionInternal)inputFiles).resolveToFileTreesAndFiles();
+      }
+      taskInputs.add(inputFiles);
     }
   }
 );
