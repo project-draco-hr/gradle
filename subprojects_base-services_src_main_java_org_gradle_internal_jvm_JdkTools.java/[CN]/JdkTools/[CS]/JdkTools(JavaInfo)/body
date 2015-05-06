@@ -1,7 +1,12 @@
 {
-  File toolsJar=javaInfo.getToolsJar();
-  if (toolsJar == null) {
-    throw new IllegalStateException("Could not find tools.jar");
+  if (Jvm.current().getJavaVersion().isJava9Compatible()) {
+    isolatedToolsLoader=ClassLoader.getSystemClassLoader().getParent();
   }
-  isolatedToolsLoader=new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(toolsJar));
+ else {
+    File toolsJar=javaInfo.getToolsJar();
+    if (toolsJar == null) {
+      throw new IllegalStateException("Could not find any JDK jars or modules");
+    }
+    isolatedToolsLoader=new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(toolsJar));
+  }
 }
