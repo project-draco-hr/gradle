@@ -1,15 +1,18 @@
 {
   TaskInternal task=taskInfo.getTask();
   TaskStateInternal state=task.getState();
+  Project project=task.getProject();
+  String parentId=project != null ? OperationIdGenerator.generateId(project.getGradle()) : null;
+  TaskOperationInternal taskOperation=new TaskOperationInternal(OperationIdGenerator.generateId(task),task,state,parentId);
 synchronized (lock) {
-    taskListener.beforeExecute(task,state);
+    taskListener.beforeExecute(taskOperation);
   }
   try {
     task.executeWithoutThrowingTaskFailure();
   }
   finally {
 synchronized (lock) {
-      taskListener.afterExecute(task,state);
+      taskListener.afterExecute(taskOperation);
     }
   }
 }
