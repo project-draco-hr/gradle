@@ -1,16 +1,11 @@
 {
-  final RuntimeException failure=new RuntimeException();
-  final RuntimeException transformedException=new RuntimeException();
-  expectLoggingStarted();
-  expectInitScriptsExecuted();
-  expectSettingsBuilt();
-  expectDagBuilt();
-  expectTasksRunWithFailure(failure);
   context.checking(new Expectations(){
 {
       one(buildBroadcaster).buildStarted(gradleMock);
       one(buildBroadcaster).projectsLoaded(gradleMock);
       one(buildBroadcaster).projectsEvaluated(gradleMock);
+      one(buildBroadcaster).buildFinished(with(result(nullValue(Throwable.class))));
+      one(modelListenerMock).onConfigure(gradleMock);
       startEvent(this,InternalBuildListener.BUILD_TYPE);
       startEvent(this,InternalBuildListener.EVAL_INIT_SCRIPTS);
       finishEvent(this,InternalBuildListener.EVAL_INIT_SCRIPTS);
@@ -22,17 +17,14 @@
       startEvent(this,InternalBuildListener.PROJECTS_EVALUATION_TYPE);
       finishEvent(this,InternalBuildListener.PROJECTS_EVALUATION_TYPE);
       finishEvent(this,InternalBuildListener.CONFIGURE_BUILD_TYPE);
-      startEvent(this,InternalBuildListener.POPULATE_TASKS_TYPE);
-      finishEvent(this,InternalBuildListener.POPULATE_TASKS_TYPE);
-      startEvent(this,InternalBuildListener.EXECUTE_BUILD_TYPE);
+      if (execute) {
+        startEvent(this,InternalBuildListener.POPULATE_TASKS_TYPE);
+        finishEvent(this,InternalBuildListener.POPULATE_TASKS_TYPE);
+        startEvent(this,InternalBuildListener.EXECUTE_BUILD_TYPE);
+        finishEvent(this,InternalBuildListener.EXECUTE_BUILD_TYPE);
+      }
       finishEvent(this,InternalBuildListener.BUILD_TYPE);
-      one(modelListenerMock).onConfigure(gradleMock);
-      one(exceptionAnalyserMock).transform(failure);
-      will(returnValue(transformedException));
-      one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
     }
   }
 );
-  BuildResult buildResult=gradleLauncher.run();
-  assertThat(buildResult.getFailure(),sameInstance((Throwable)transformedException));
 }
