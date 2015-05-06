@@ -2,18 +2,14 @@
   List<UnboundRule> unboundRules=new ArrayList<UnboundRule>();
   for (  RuleBinder binder : binders) {
     UnboundRule.Builder builder=UnboundRule.descriptor(binder.getDescriptor().toString());
-    ModelPath scope=binder.getScope();
-    if (binder.getSubjectReference() != null) {
+    if (binder.getSubjectBinding() != null) {
       ModelBinding binding=binder.getSubjectBinding();
-      UnboundRuleInput.Builder inputBuilder=toInputBuilder(binding,scope);
-      if (scope != ModelPath.ROOT) {
-        inputBuilder.scope(scope.toString());
-      }
+      UnboundRuleInput.Builder inputBuilder=toInputBuilder(binding);
       builder.mutableInput(inputBuilder);
     }
-    for (int i=0; i < binder.getInputReferences().size(); ++i) {
+    for (int i=0; i < binder.getInputBindings().size(); ++i) {
       ModelBinding binding=binder.getInputBindings().get(i);
-      builder.immutableInput(toInputBuilder(binding,binder.getScope()));
+      builder.immutableInput(toInputBuilder(binding));
     }
     unboundRules.add(builder.build());
   }

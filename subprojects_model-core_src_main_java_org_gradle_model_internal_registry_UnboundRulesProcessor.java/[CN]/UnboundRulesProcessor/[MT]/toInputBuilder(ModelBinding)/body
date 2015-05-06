@@ -1,0 +1,24 @@
+{
+  ModelReference<?> reference=binding.getReference();
+  UnboundRuleInput.Builder builder=UnboundRuleInput.type(reference.getType());
+  ModelPath path;
+  if (binding.isBound()) {
+    builder.bound();
+    path=binding.getNode().getPath();
+  }
+ else {
+    path=reference.getPath();
+    if (path != null) {
+      builder.suggestions(CollectionUtils.stringize(suggestionsProvider.transform(path)));
+    }
+    ModelPath scope=reference.getScope();
+    if (scope != null && !scope.equals(ModelPath.ROOT)) {
+      builder.scope(scope.toString());
+    }
+  }
+  if (path != null) {
+    builder.path(path);
+  }
+  builder.description(reference.getDescription());
+  return builder;
+}
