@@ -1,19 +1,8 @@
 {
-  if (LOGGER.isDebugEnabled()) {
-    LOGGER.debug("Task inputs: {}",taskInputs.getFiles());
-    LOGGER.debug("taskInputs.getFileSystemRoots(): {}",taskInputs.getFileSystemRoots());
-  }
-  fileWatcherFactory.watch(taskInputs.getFileSystemRoots(),new Action<Throwable>(){
+  final FileSystemSubset fileSystemSubset=fileSystemSubsetBuilder.build();
+  fileWatcherFactory.watch(fileSystemSubset,new Action<Throwable>(){
     @Override public void execute(    Throwable throwable){
       listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.STOP,"error " + throwable.getMessage()));
-    }
-  }
-,new FilteringFileWatcherListener(new Spec<FileWatcherEvent>(){
-    @Override public boolean isSatisfiedBy(    FileWatcherEvent element){
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Received file system event: {}",element);
-      }
-      return element.getType().equals(FileWatcherEvent.Type.UNDEFINED) || taskInputs.wouldContain(element.getFile());
     }
   }
 ,new StopThenFireFileWatcherListener(new Runnable(){
@@ -21,5 +10,5 @@
       listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD,"file change"));
     }
   }
-)));
+));
 }

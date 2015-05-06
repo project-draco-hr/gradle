@@ -1,0 +1,21 @@
+{
+  this.watchService=watchService;
+  this.fileSystemSubset=fileSystemSubset;
+  this.unfilteredFileSystemSubset=fileSystemSubset.unfiltered();
+  this.roots=fileSystemSubset.getRoots();
+  this.delegate=delegate;
+  Iterable<File> enclosingDirsThatExist=Iterables.transform(roots,new Function<File,File>(){
+    @Override public File apply(    File input){
+      File target=input;
+      while (!target.isDirectory()) {
+        target=target.getParentFile();
+      }
+      return target;
+    }
+  }
+);
+  Iterable<? extends File> startingWatchPoints=FileUtils.calculateRoots(enclosingDirsThatExist);
+  for (  File dir : startingWatchPoints) {
+    maybeWatchDirRecurse(dir);
+  }
+}

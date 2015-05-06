@@ -1,11 +1,8 @@
 {
   gradle.getTaskGraph().addTaskExecutionListener(new TaskExecutionAdapter(){
     @Override public void beforeExecute(    Task task){
-      FileCollection inputFiles=task.getInputs().getFiles();
-      if (inputFiles instanceof FileCollectionInternal) {
-        inputFiles=((FileCollectionInternal)inputFiles).resolveToFileTreesAndFiles();
-      }
-      taskInputs.add(inputFiles);
+      FileCollectionInternal inputFiles=Cast.cast(FileCollectionInternal.class,task.getInputs().getFiles());
+      inputFiles.registerWatchPoints(fileSystemSubsetBuilder);
     }
   }
 );
