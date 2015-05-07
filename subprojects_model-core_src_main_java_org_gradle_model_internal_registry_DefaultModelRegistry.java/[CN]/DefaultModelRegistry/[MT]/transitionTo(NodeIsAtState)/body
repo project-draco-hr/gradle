@@ -1,0 +1,45 @@
+{
+  LOGGER.debug("Attempting to transition model element '{}' to {}",target.path,target.state.name());
+  GoalGraph goalGraph=new GoalGraph();
+  LinkedList<GoalGraphNode> queue=new LinkedList<GoalGraphNode>();
+  GoalGraphNode targetGoal=goalGraph.nodeAtState(target);
+  queue.add(targetGoal);
+  while (!queue.isEmpty()) {
+    GoalGraphNode goal=queue.getFirst();
+    if (goal.state == GoalGraphNode.State.Achieved) {
+      queue.removeFirst();
+      continue;
+    }
+    if (goal.state == GoalGraphNode.State.VisitingDependencies) {
+      goal.apply();
+      goal.state=GoalGraphNode.State.Achieved;
+      queue.removeFirst();
+      continue;
+    }
+    if (goal.state == GoalGraphNode.State.NotSeen) {
+      ModelNodeInternal node=modelGraph.find(goal.getPath());
+      if (node != null) {
+        goal.node=node;
+        if (goal.isAchieved()) {
+          goal.state=GoalGraphNode.State.Achieved;
+          queue.removeFirst();
+          continue;
+        }
+      }
+      goal.calculatePredecessors(goalGraph);
+      goal.state=GoalGraphNode.State.VisitingPredecessor;
+    }
+ else     if (goal.state == GoalGraphNode.State.VisitingPredecessor) {
+      ModelNodeInternal node=modelGraph.find(goal.getPath());
+      if (node == null) {
+        throw new IllegalStateException(String.format("Model element '%s' does not exist.",goal.getPath()));
+      }
+      goal.node=node;
+      goal.calculateDependencies(goalGraph);
+      goal.state=GoalGraphNode.State.VisitingDependencies;
+    }
+    for (int i=goal.dependencies.size() - 1; i >= 0; i--) {
+      queue.addFirst(goal.dependencies.get(i));
+    }
+  }
+}
