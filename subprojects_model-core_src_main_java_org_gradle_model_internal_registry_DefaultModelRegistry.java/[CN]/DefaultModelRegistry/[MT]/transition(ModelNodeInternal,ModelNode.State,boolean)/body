@@ -13,38 +13,5 @@
   if (state == desired) {
     return;
   }
-  if (state == Known && desired.ordinal() >= Created.ordinal()) {
-    CreatorRuleBinder creatorBinder=node.getCreatorBinder();
-    if (creatorBinder != null) {
-      forceBind(creatorBinder);
-    }
-    doCreate(node,creatorBinder);
-    node.notifyFired(creatorBinder);
-    node.setState(Created);
-    if (desired == Created) {
-      return;
-    }
-  }
-  if (!fireMutations(node,path,state,Defaults,DefaultsApplied,desired)) {
-    return;
-  }
-  if (!fireMutations(node,path,state,Initialize,Initialized,desired)) {
-    return;
-  }
-  if (!fireMutations(node,path,state,Mutate,Mutated,desired)) {
-    return;
-  }
-  if (!fireMutations(node,path,state,Finalize,Finalized,desired)) {
-    return;
-  }
-  if (!fireMutations(node,path,state,Validate,SelfClosed,desired)) {
-    return;
-  }
-  if (desired.ordinal() >= GraphClosed.ordinal()) {
-    for (    ModelNodeInternal child : node.getLinks()) {
-      close(child);
-    }
-    node.setState(GraphClosed);
-  }
-  LOGGER.debug("Finished transitioning model element {} from state {} to {}",path,state.name(),desired.name());
+  transitionTo(new NodeState(node.getPath(),desired));
 }

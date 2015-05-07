@@ -1,0 +1,35 @@
+{
+  ModelNodeInternal node=transition.node;
+switch (transition.getTargetState()) {
+case Known:
+case GraphClosed:
+    break;
+case Created:
+  CreatorRuleBinder creatorBinder=node.getCreatorBinder();
+if (creatorBinder != null) {
+  forceBind(creatorBinder);
+}
+doCreate(node,creatorBinder);
+node.notifyFired(creatorBinder);
+node.setState(Created);
+break;
+case DefaultsApplied:
+fireMutations(node,ModelActionRole.Defaults);
+break;
+case Initialized:
+fireMutations(node,ModelActionRole.Initialize);
+break;
+case Mutated:
+fireMutations(node,ModelActionRole.Mutate);
+break;
+case Finalized:
+fireMutations(node,ModelActionRole.Finalize);
+break;
+case SelfClosed:
+fireMutations(node,ModelActionRole.Validate);
+break;
+default :
+throw new IllegalArgumentException("Unknown node state.");
+}
+node.setState(transition.getTargetState());
+}
