@@ -1,2 +1,24 @@
 {
+  final String descriptor=LanguageBasePlugin.class.getName() + ".apply()";
+  final ModelRuleDescriptor ruleDescriptor=new SimpleModelRuleDescriptor(descriptor);
+  ModelPath binariesPath=ModelPath.path("binaries");
+  BridgedCollections.dynamicTypes(modelRegistry,binariesPath,descriptor,ModelType.of(DefaultBinaryContainer.class),ModelType.of(DefaultBinaryContainer.class),ModelType.of(BinarySpec.class),binaries,Named.Namer.INSTANCE,BridgedCollections.itemDescriptor(descriptor));
+  modelRegistry.configure(ModelActionRole.Defaults,DirectNodeModelAction.of(ModelReference.of(binariesPath),ruleDescriptor,new Action<MutableModelNode>(){
+    @Override public void execute(    MutableModelNode binariesNode){
+      binariesNode.applyToAllLinks(ModelActionRole.Finalize,BiActionBackedModelAction.single(ModelReference.of(BinarySpec.class),ruleDescriptor,ModelReference.of(ITaskFactory.class),new BiAction<BinarySpec,ITaskFactory>(){
+        @Override public void execute(        BinarySpec binary,        ITaskFactory taskFactory){
+          if (!((BinarySpecInternal)binary).isLegacyBinary()) {
+            TaskInternal binaryLifecycleTask=taskFactory.create(binary.getName(),DefaultTask.class);
+            binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+            binaryLifecycleTask.setDescription(String.format("Assembles %s.",binary));
+            binary.setBuildTask(binaryLifecycleTask);
+          }
+        }
+      }
+));
+    }
+  }
+));
+  modelRegistry.createOrReplace(ModelCreators.unmanagedInstance(ModelReference.of(ModelPath.path("__binarySpecFactoryRegistry"),ModelType.of(BinarySpecFactoryRegistry.class)),Factories.constant(new BinarySpecFactoryRegistry())).descriptor(ruleDescriptor).ephemeral(true).hidden(true).build());
+  modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,DirectNodeModelAction.of(ModelReference.of(BinarySpec.class),new SimpleModelRuleDescriptor(descriptor),ComponentSpecInitializer.binaryAction()));
 }
