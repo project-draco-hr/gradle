@@ -1,6 +1,8 @@
 {
   if (result.getGradle().getParent() == null) {
-    final FileSystemSubset fileSystemSubset=fileSystemSubsetBuilder.build();
+    GradleInternal gradleInternal=Cast.uncheckedCast(result.getGradle());
+    final WatchPointsRegistry watchPointsRegistry=gradleInternal.getServices().get(WatchPointsRegistry.class);
+    final FileSystemSubset fileSystemSubset=watchPointsRegistry.buildFileSystemSubset();
     fileWatcherFactory.watch(fileSystemSubset,new Action<Throwable>(){
       @Override public void execute(      Throwable throwable){
         listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.STOP,"error " + throwable.getMessage()));
