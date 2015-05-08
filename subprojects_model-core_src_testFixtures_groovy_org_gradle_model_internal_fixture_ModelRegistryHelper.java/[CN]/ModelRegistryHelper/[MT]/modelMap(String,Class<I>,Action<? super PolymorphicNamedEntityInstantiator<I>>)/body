@@ -1,0 +1,25 @@
+{
+  configure(ModelActionRole.Initialize,ModelReference.of(path,ModelMapCreators.instantiatorType(itemType)),new Action<RuleAwarePolymorphicNamedEntityInstantiator<I>>(){
+    @Override public void execute(    final RuleAwarePolymorphicNamedEntityInstantiator<I> instantiator){
+      registrations.execute(new PolymorphicNamedEntityInstantiator<I>(){
+        @Override public Set<? extends Class<? extends I>> getCreatableTypes(){
+          return instantiator.getCreatableTypes();
+        }
+        @Override public <U extends I>void registerFactory(        Class<U> type,        NamedDomainObjectFactory<? extends U> factory){
+          instantiator.registerFactory(type,factory,new SimpleModelRuleDescriptor("ModelRegistryHelper.modelMap"));
+        }
+        @Override public <S extends I>S create(        String name,        Class<S> type){
+          return instantiator.create(name,type);
+        }
+      }
+);
+    }
+  }
+);
+  return create(path,new Transformer<ModelCreator,ModelCreatorBuilder>(){
+    @Override public ModelCreator transform(    ModelCreatorBuilder modelCreatorBuilder){
+      return modelCreatorBuilder.modelMap(itemType);
+    }
+  }
+);
+}

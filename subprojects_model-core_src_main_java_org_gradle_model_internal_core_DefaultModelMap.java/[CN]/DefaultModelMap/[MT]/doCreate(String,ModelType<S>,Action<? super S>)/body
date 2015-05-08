@@ -1,13 +1,11 @@
 {
-  ModelRuleDescriptor descriptor=NestedModelRuleDescriptor.append(sourceDescriptor,"create(%s)",name);
-  ModelCreators.Builder creatorBuilder=creatorFunction.apply(modelNode,ModelReference.of(modelNode.getPath().child(name),type));
-  ModelCreator creator=creatorBuilder.withProjection(new UnmanagedModelProjection<S>(type,true,true)).descriptor(descriptor).build();
+  ModelCreator creator=creatorStrategy.creator(modelNode,sourceDescriptor,type,name);
   modelNode.addLink(creator);
+  ModelRuleDescriptor descriptor=NestedModelRuleDescriptor.append(sourceDescriptor,"%s.<init>",name);
   modelNode.applyToLink(ModelActionRole.Initialize,new ActionBackedModelAction<S>(ModelReference.of(creator.getPath(),type),descriptor,new Action<S>(){
     @Override public void execute(    S s){
       initAction.execute(s);
     }
   }
 ));
-  onCreate(name,type);
 }

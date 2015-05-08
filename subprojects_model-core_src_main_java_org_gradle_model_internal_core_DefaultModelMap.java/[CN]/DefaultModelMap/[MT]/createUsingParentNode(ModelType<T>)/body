@@ -1,20 +1,8 @@
 {
-  return new BiFunction<ModelCreators.Builder,MutableModelNode,ModelReference<? extends T>>(){
-    @Override public ModelCreators.Builder apply(    final MutableModelNode parent,    ModelReference<? extends T> reference){
-      final ModelPath path=reference.getPath();
-      final ModelType<? extends T> modelType=reference.getType();
-      return ModelCreators.of(path,new BiAction<MutableModelNode,List<ModelView<?>>>(){
-        @Override public void execute(        MutableModelNode modelNode,        List<ModelView<?>> modelViews){
-          doExecute(modelNode,modelType);
-        }
-        public <S extends T>void doExecute(        MutableModelNode modelNode,        ModelType<S> subType){
-          NamedEntityInstantiator<T> instantiator=parent.getPrivateData(instantiatorTypeOf(baseItemModelType));
-          S item=instantiator.create(path.getName(),subType.getConcreteClass());
-          modelNode.setPrivateData(subType,item);
-        }
-      }
-);
+  return createUsingParentNode(new Transformer<NamedEntityInstantiator<T>,MutableModelNode>(){
+    @Override public NamedEntityInstantiator<T> transform(    MutableModelNode modelNode){
+      return modelNode.getPrivateData(instantiatorTypeOf(baseItemModelType));
     }
   }
-;
+);
 }
