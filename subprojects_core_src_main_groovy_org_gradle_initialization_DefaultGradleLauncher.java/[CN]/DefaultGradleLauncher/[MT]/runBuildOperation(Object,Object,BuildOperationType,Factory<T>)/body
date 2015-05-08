@@ -1,0 +1,19 @@
+{
+  long startTime=System.currentTimeMillis();
+  BuildOperationInternal startEvent=new BuildOperationInternal(id,parentId,operationType,gradle,startTime);
+  internalBuildListener.started(startEvent);
+  T result=null;
+  Throwable error=null;
+  try {
+    result=factory.create();
+  }
+ catch (  Throwable e) {
+    error=e;
+  }
+  BuildOperationInternal endEvent=new BuildOperationInternal(id,parentId,operationType,error != null ? error : result,startTime,System.currentTimeMillis());
+  internalBuildListener.finished(endEvent);
+  if (error != null) {
+    UncheckedException.throwAsUncheckedException(error);
+  }
+  return result;
+}
