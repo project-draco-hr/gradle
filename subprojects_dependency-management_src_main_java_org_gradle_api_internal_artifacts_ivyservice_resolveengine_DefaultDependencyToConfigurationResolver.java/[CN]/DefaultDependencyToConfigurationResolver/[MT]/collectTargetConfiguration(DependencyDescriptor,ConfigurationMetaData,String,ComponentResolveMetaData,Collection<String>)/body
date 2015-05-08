@@ -14,9 +14,17 @@
       }
     }
     if (candidate.equals("*")) {
-      Collections.addAll(targetConfigs,targetModule.getPublicConfigurationsNames());
+      for (      String configName : targetModule.getConfigurationNames()) {
+        if (targetModule.getConfiguration(configName).isPublic()) {
+          targetConfigs.add(configName);
+        }
+      }
       continue;
     }
-    targetConfigs.add(candidate);
+    if (targetModule.getConfiguration(candidate) != null) {
+      targetConfigs.add(candidate);
+      continue;
+    }
+    throw new RuntimeException(String.format("Module version %s, configuration '%s' declares a dependency on configuration '%s' which is not declared in the module descriptor for %s",fromConfiguration.getComponent().getId(),fromConfiguration.getName(),target,targetModule.getId()));
   }
 }
