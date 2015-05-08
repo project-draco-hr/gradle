@@ -7,28 +7,25 @@
       queue.removeFirst();
       continue;
     }
-    if (goal.state == ModelGoal.State.VisitingDependencies) {
-      goal.apply();
-      goal.state=ModelGoal.State.Achieved;
-      queue.removeFirst();
-      continue;
-    }
     if (goal.state == ModelGoal.State.NotSeen) {
       if (goal.isAchieved()) {
         goal.state=ModelGoal.State.Achieved;
         queue.removeFirst();
         continue;
       }
-      goal.calculatePredecessors(goalGraph);
-      goal.state=ModelGoal.State.VisitingPredecessor;
     }
- else     if (goal.state == ModelGoal.State.VisitingPredecessor) {
-      goal.attachNode();
-      goal.calculateDependencies(goalGraph);
-      goal.state=ModelGoal.State.VisitingDependencies;
+    if (goal.state == ModelGoal.State.VisitingDependencies) {
+      goal.apply();
+      goal.state=ModelGoal.State.Achieved;
+      queue.removeFirst();
+      continue;
     }
-    for (int i=goal.dependencies.size() - 1; i >= 0; i--) {
-      ModelGoal dependency=goal.dependencies.get(i);
+    List<ModelGoal> newDependencies=new ArrayList<ModelGoal>();
+    goal.attachNode();
+    boolean done=goal.calculateDependencies(goalGraph,newDependencies);
+    goal.state=done ? ModelGoal.State.VisitingDependencies : ModelGoal.State.DiscoveringDependencies;
+    for (int i=newDependencies.size() - 1; i >= 0; i--) {
+      ModelGoal dependency=newDependencies.get(i);
       if (dependency.state == ModelGoal.State.Achieved) {
         continue;
       }
