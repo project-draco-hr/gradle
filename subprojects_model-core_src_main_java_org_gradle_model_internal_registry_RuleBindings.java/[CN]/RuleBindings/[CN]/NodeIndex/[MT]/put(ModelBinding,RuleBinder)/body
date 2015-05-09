@@ -1,0 +1,31 @@
+{
+  ModelReference<?> reference=binding.getReference();
+  if (reference.getPath() != null) {
+    if (reference.getParent() != null || reference.getScope() != null) {
+      throw new UnsupportedOperationException("Currently not implemented");
+    }
+    ModelNodeInternal node=modelGraph.find(reference.getPath());
+    if (node != null) {
+      binding.onCreate(node);
+      bound.put(new NodeAtState(node.getPath(),reference.getState()),rule);
+    }
+ else {
+      rulesByPath.put(reference.getPath(),new Reference(rule,binding));
+    }
+  }
+ else   if (reference.getScope() != null) {
+    if (reference.getParent() != null) {
+      throw new UnsupportedOperationException("Currently not implemented");
+    }
+    for (    ModelNodeInternal node : modelGraph.findAllInScope(reference.getScope())) {
+      if (binding.isTypeCompatible(node.getPromise())) {
+        binding.onCreate(node);
+        bound.put(new NodeAtState(node.getPath(),reference.getState()),rule);
+      }
+    }
+    rulesByScope.put(reference.getScope(),new Reference(rule,binding));
+  }
+ else {
+    throw new UnsupportedOperationException("Currently not implemented");
+  }
+}
