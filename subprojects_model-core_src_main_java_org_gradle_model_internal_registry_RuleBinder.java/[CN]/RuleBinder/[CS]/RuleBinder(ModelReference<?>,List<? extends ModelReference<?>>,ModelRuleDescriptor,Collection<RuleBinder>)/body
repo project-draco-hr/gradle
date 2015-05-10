@@ -3,8 +3,13 @@
   this.inputReferences=inputReferences;
   this.descriptor=descriptor;
   this.binders=binders;
-  inputBindAction=new Action<ModelNodeInternal>(){
-    @Override public void execute(    ModelNodeInternal nodeInternal){
+  inputBindAction=new Action<ModelBinding>(){
+    @Override public void execute(    ModelBinding modelBinding){
+      ModelNodeInternal node=modelBinding.getNode();
+      ModelReference<?> reference=modelBinding.getReference();
+      if (node.getState().compareTo(reference.getState()) > 0) {
+        throw new IllegalStateException(String.format("Cannot add rule %s with input model element '%s' at state %s as this element is already at state %s.",modelBinding.referrer,node.getPath(),reference.getState(),node.getState()));
+      }
       ++inputsBound;
       maybeFire();
     }
