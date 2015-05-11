@@ -1,12 +1,18 @@
 {
-  if (Jvm.current().getJavaVersion().isJava9Compatible()) {
-    isolatedToolsLoader=ClassLoader.getSystemClassLoader().getParent();
-  }
- else {
+  DefaultClassLoaderFactory defaultClassLoaderFactory=new DefaultClassLoaderFactory();
+  JavaVersion javaVersion=Jvm.current().getJavaVersion();
+  FilteringClassLoader filteringClassLoader=defaultClassLoaderFactory.createSystemFilteringClassLoader();
+  if (!javaVersion.isJava9Compatible()) {
     File toolsJar=javaInfo.getToolsJar();
     if (toolsJar == null) {
-      throw new IllegalStateException("Could not find any JDK jars or modules");
+      throw new IllegalStateException("Could not find tools.jar");
     }
-    isolatedToolsLoader=new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(toolsJar));
+    DefaultClassPath defaultClassPath=new DefaultClassPath(toolsJar);
+    MutableURLClassLoader mutableURLClassLoader=new MutableURLClassLoader(filteringClassLoader,defaultClassPath.getAsURLs());
+    isolatedToolsLoader=mutableURLClassLoader;
+  }
+ else {
+    filteringClassLoader.allowPackage("com.sun.tools");
+    isolatedToolsLoader=filteringClassLoader;
   }
 }
