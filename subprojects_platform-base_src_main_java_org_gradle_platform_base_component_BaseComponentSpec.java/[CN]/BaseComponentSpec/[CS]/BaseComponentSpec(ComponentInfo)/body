@@ -5,17 +5,13 @@
   this.identifier=info.componentIdentifier;
   this.typeName=info.typeName;
   this.mainSourceSet=info.sourceSets;
-  this.source=ModelMapGroovyDecorator.alwaysMutable(new NamedDomainObjectSetBackedModelMap<LanguageSourceSet>(LanguageSourceSet.class,mainSourceSet,new NamedEntityInstantiator<LanguageSourceSet>(){
+  this.source=ModelMapGroovyDecorator.alwaysMutable(NamedDomainObjectSetBackedModelMap.ofNamed(LanguageSourceSet.class,mainSourceSet,new NamedEntityInstantiator<LanguageSourceSet>(){
     public <S extends LanguageSourceSet>S create(    String name,    Class<S> type){
       mainSourceSet.create(name,type);
       return null;
     }
   }
-,new org.gradle.api.Namer<Object>(){
-    public String determineName(    Object object){
-      return Cast.cast(Named.class,object).getName();
-    }
-  }
 ));
   this.binaries=info.instantiator.newInstance(DefaultBinaryContainer.class,info.instantiator);
+  this.binariesMap=ModelMapGroovyDecorator.alwaysMutable(NamedDomainObjectSetBackedModelMap.ofNamed(BinarySpec.class,this.binaries,this.binaries));
 }

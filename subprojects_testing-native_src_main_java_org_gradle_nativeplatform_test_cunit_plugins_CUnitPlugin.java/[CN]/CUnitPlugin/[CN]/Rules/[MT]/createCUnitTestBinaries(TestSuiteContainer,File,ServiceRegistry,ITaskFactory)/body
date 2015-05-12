@@ -1,13 +1,14 @@
 {
   testSuites.withType(CUnitTestSuiteSpec.class).afterEach(new Action<CUnitTestSuiteSpec>(){
     @Override public void execute(    CUnitTestSuiteSpec cUnitTestSuite){
-      for (      NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
+      for (      NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
         if (testedBinary instanceof SharedLibraryBinary) {
           continue;
         }
         DefaultCUnitTestSuiteBinary testBinary=createTestBinary(serviceRegistry,cUnitTestSuite,testedBinary,taskFactory);
         configure(testBinary,buildDir);
-        cUnitTestSuite.getBinaries().add(testBinary);
+        ComponentSpecInternal cUnitTestSuiteInternal=(ComponentSpecInternal)cUnitTestSuite;
+        cUnitTestSuiteInternal.getBinariesContainer().add(testBinary);
       }
     }
   }

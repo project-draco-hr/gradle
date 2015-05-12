@@ -1,13 +1,14 @@
 {
   testSuites.withType(GoogleTestTestSuiteSpec.class).afterEach(new Action<GoogleTestTestSuiteSpec>(){
     @Override public void execute(    GoogleTestTestSuiteSpec testSuiteSpec){
-      for (      NativeBinarySpec testedBinary : testSuiteSpec.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
+      for (      NativeBinarySpec testedBinary : testSuiteSpec.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
         if (testedBinary instanceof SharedLibraryBinary) {
           continue;
         }
         DefaultGoogleTestTestSuiteBinary testBinary=createTestBinary(serviceRegistry,testSuiteSpec,testedBinary,taskFactory);
         configure(testBinary,buildDir);
-        testSuiteSpec.getBinaries().add(testBinary);
+        ComponentSpecInternal testSuiteSpecInternal=(ComponentSpecInternal)testSuiteSpec;
+        testSuiteSpecInternal.getBinariesContainer().add(testBinary);
       }
     }
   }
