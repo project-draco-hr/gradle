@@ -1,21 +1,22 @@
 {
   Object lastResult=null;
+  int counter=0;
   while (buildNotStopped(requestContext)) {
+    if (++counter != 1) {
+      requestContext.getBuildTimeClock().reset();
+    }
     try {
       lastResult=executeSingleBuild(action,requestContext,actionParameters);
     }
  catch (    Throwable t) {
     }
     if (buildNotStopped(requestContext)) {
-      logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
-      TriggerDetails reason=triggerable.waitForTrigger();
-      logger.lifecycle(reason.getType() + " triggered due to " + reason.getReason());
-      if (reason.getType() == TriggerDetails.Type.REBUILD) {
-        requestContext.getBuildTimeClock().reset();
+      waiter.execute(new Runnable(){
+        @Override public void run(){
+          logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
+        }
       }
- else {
-        break;
-      }
+);
     }
   }
   logger.lifecycle("Build cancelled, exiting 'continuous mode'.");
