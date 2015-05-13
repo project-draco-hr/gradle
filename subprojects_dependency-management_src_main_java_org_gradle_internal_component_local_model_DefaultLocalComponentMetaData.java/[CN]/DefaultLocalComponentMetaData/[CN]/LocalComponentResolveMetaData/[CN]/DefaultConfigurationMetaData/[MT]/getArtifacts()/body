@@ -1,14 +1,16 @@
 {
-  resolveArtifacts();
-  if (configurationArtifacts == null) {
-    configurationArtifacts=Sets.newLinkedHashSet();
-    for (    String configName : getHierarchy()) {
-      for (      DefaultLocalArtifactMetaData artifactMetaData : artifactsById.values()) {
-        if (artifactMetaData.configurations.contains(configName)) {
-          configurationArtifacts.add(artifactMetaData);
+  Set<IvyArtifactName> seen=Sets.newHashSet();
+  Set<ComponentArtifactMetaData> artifacts=Sets.newHashSet();
+  for (  String config : getHierarchy()) {
+    PublishArtifactSet publishArtifacts=allArtifacts.get(config);
+    if (publishArtifacts != null) {
+      for (      PublishArtifact publishArtifact : publishArtifacts) {
+        IvyArtifactName ivyArtifact=DefaultIvyArtifactName.forPublishArtifact(publishArtifact,id.getName());
+        if (seen.add(ivyArtifact)) {
+          artifacts.add(new DefaultLocalArtifactMetaData(componentIdentifier,componentIdentifier.getDisplayName(),ivyArtifact,publishArtifact.getFile()));
         }
       }
     }
   }
-  return configurationArtifacts;
+  return artifacts;
 }
