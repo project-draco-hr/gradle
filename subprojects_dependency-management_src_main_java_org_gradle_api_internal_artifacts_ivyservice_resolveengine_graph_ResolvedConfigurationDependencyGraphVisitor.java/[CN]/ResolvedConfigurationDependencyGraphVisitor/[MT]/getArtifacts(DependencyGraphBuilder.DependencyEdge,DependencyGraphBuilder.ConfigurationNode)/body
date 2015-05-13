@@ -1,13 +1,21 @@
 {
+  long id=idGenerator.generateId();
   ResolvedConfigurationIdentifier configurationIdentifier=childConfiguration.id;
   ConfigurationMetaData metaData=childConfiguration.getMetaData();
   ComponentResolveMetaData component=metaData.getComponent();
   Set<ComponentArtifactMetaData> artifacts=dependency.getArtifacts(metaData);
   if (!artifacts.isEmpty()) {
-    return new DependencyArtifactSet(component.getId(),component.getSource(),artifacts,artifactResolver,allResolvedArtifacts);
+    return new DependencyArtifactSet(component.getId(),component.getSource(),artifacts,artifactResolver,allResolvedArtifacts,id);
   }
-  if (component.getComponentId() instanceof ProjectComponentIdentifier) {
-    return new LazyResolveConfigurationArtifactSet(component,configurationIdentifier,dependency.getSelector(),artifactResolver,allResolvedArtifacts);
+  ArtifactSet configurationArtifactSet=artifactSetsByConfiguration.get(configurationIdentifier);
+  if (configurationArtifactSet == null) {
+    if (component.getComponentId() instanceof ProjectComponentIdentifier) {
+      configurationArtifactSet=new LazyResolveConfigurationArtifactSet(component,configurationIdentifier,dependency.getSelector(),artifactResolver,allResolvedArtifacts,id);
+    }
+ else {
+      configurationArtifactSet=new EagerResolveConfigurationArtifactsSet(component,configurationIdentifier,dependency.getSelector(),artifactResolver,allResolvedArtifacts,id);
+    }
+    artifactSetsByConfiguration.put(configurationIdentifier,configurationArtifactSet);
   }
-  return new EagerResolveConfigurationArtifactsSet(component,configurationIdentifier,dependency.getSelector(),artifactResolver,allResolvedArtifacts);
+  return configurationArtifactSet;
 }
