@@ -1,0 +1,22 @@
+{
+  if (model.isHidden()) {
+    return;
+  }
+  StyledTextOutput styledTextoutput=output.getOutput();
+  if (model.getPath().equals(ModelPath.ROOT)) {
+    styledTextoutput.println("model");
+  }
+ else {
+    styledTextoutput.withStyle(Identifier).format("%s",modelNodeDescriptor.label(model));
+    Optional<String> value=modelNodeDescriptor.value(model);
+    if (value.isPresent()) {
+      styledTextoutput.withStyle(Description).format(" = %s",value.get());
+    }
+    styledTextoutput.println();
+  }
+  Map<String,ModelNode> links=new TreeMap<String,ModelNode>();
+  for (  ModelNode node : model.getLinks(ModelType.untyped())) {
+    links.put(node.getPath().getName(),node);
+  }
+  output.collection(links.values(),this);
+}
