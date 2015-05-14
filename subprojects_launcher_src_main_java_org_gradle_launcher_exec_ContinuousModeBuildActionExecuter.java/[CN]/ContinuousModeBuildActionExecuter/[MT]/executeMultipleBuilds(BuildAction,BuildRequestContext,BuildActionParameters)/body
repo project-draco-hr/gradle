@@ -5,13 +5,14 @@
     if (++counter != 1) {
       requestContext.getBuildTimeClock().reset();
     }
+    FileSystemSubset.Builder fileSystemSubsetBuilder=FileSystemSubset.builder();
     try {
-      lastResult=executeSingleBuild(action,requestContext,actionParameters);
+      lastResult=executeBuildAndAccumulateInputs(action,requestContext,actionParameters,fileSystemSubsetBuilder);
     }
  catch (    Throwable t) {
     }
     if (buildNotStopped(requestContext)) {
-      waiter.execute(new Runnable(){
+      waiter.execute(fileSystemSubsetBuilder.build(),new Runnable(){
         @Override public void run(){
           logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.");
         }
