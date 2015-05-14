@@ -1,14 +1,15 @@
 {
-  DefaultTaskDependency taskDependency=new DefaultTaskDependency();
+  final DefaultTaskDependency taskDependency=new DefaultTaskDependency();
   resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
-  for (  ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
-    ProjectInternal project=projectFinder.getProject(projectResult.getId().getProjectPath());
-    for (    String targetConfigName : projectResult.getTargetConfigurations()) {
-      Configuration targetConfig=project.getConfigurations().getByName(targetConfigName);
+  cachedResolverResults.eachResolvedProject(new Action<ResolvedProjectConfiguration>(){
+    @Override public void execute(    ResolvedProjectConfiguration projectResult){
+      ProjectInternal project=projectFinder.getProject(projectResult.getId().getProjectPath());
+      Configuration targetConfig=project.getConfigurations().getByName(projectResult.getTargetConfiguration());
       taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(targetConfig.getAllDependencies()));
       taskDependency.add(targetConfig.getAllArtifacts());
     }
   }
+);
   taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(allDependencies));
   return taskDependency;
 }
