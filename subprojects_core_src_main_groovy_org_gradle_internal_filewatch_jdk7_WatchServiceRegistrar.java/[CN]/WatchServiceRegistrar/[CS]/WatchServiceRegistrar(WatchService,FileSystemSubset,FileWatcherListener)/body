@@ -16,6 +16,17 @@
 );
   Iterable<? extends File> startingWatchPoints=FileUtils.calculateRoots(enclosingDirsThatExist);
   for (  File dir : startingWatchPoints) {
-    maybeWatchDirRecurse(dir);
+    Files.walkFileTree(dir.toPath(),new SimpleFileVisitor<Path>(){
+      @Override public FileVisitResult preVisitDirectory(      Path path,      BasicFileAttributes attrs) throws IOException {
+        if (inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile())) {
+          watchDir(path);
+          return FileVisitResult.CONTINUE;
+        }
+ else {
+          return FileVisitResult.SKIP_SUBTREE;
+        }
+      }
+    }
+);
   }
 }
