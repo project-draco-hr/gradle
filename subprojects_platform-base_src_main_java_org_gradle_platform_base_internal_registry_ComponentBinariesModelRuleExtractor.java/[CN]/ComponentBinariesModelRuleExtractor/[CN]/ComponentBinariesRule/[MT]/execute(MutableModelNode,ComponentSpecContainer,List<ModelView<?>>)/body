@@ -1,18 +1,8 @@
 {
-  TriAction<MutableModelNode,C,List<ModelView<?>>> action=new TriAction<MutableModelNode,C,List<ModelView<?>>>(){
-    @Override public void execute(    MutableModelNode componentModelNode,    C component,    List<ModelView<?>> componentRuleInputs){
-      ComponentSpecInternal componentSpecInternal=uncheckedCast(componentModelNode.getPrivateData());
-      MutableModelNode binariesNode=componentModelNode.getLink("binaries");
-      DefaultModelViewState binariesState=new DefaultModelViewState(DefaultModelMap.modelMapTypeOf(binaryType),getDescriptor());
-      ModelMap<BinarySpec> binarySpecs=new ModelMapGroovyDecorator<BinarySpec>(new PolymorphicDomainObjectContainerBackedModelMap<BinarySpec>(componentSpecInternal.getBinariesContainer(),ModelType.of(BinarySpec.class),binariesNode,getDescriptor()),binariesState);
-      try {
-        invoke(componentRuleInputs,binarySpecs.withType(binaryType),componentSpecInternal);
-      }
-  finally {
-        binariesState.close();
-      }
+  modelNode.applyToAllLinks(ModelActionRole.Mutate,TriActionBackedModelAction.of(ModelReference.of(ModelType.of(componentType)),getDescriptor(),getInputs(),new TriAction<MutableModelNode,C,List<ModelView<?>>>(){
+    @Override public void execute(    MutableModelNode componentModelNode,    C component,    final List<ModelView<?>> componentRuleInputs){
+      invoke(componentRuleInputs,component.getBinaries().withType(binaryType),component);
     }
   }
-;
-  modelNode.applyToAllLinks(ModelActionRole.Mutate,TriActionBackedModelAction.of(ModelReference.of(ModelType.of(componentType)),getDescriptor(),getInputs(),action));
+));
 }

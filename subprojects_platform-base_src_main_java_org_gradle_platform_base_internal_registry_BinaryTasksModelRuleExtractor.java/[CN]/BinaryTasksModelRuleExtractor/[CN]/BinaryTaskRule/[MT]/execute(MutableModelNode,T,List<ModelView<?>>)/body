@@ -1,23 +1,19 @@
 {
-  ModelMap<Task> cast=new DomainObjectSetBackedModelMap<Task>(Task.class,binary.getTasks(),new NamedEntityInstantiator<Task>(){
-    @Override public <S extends Task>S create(    String name,    Class<S> type){
-      modelNode.getPrivateData(ModelType.of(BinarySpec.class)).getTasks().create(name,type,Actions.doNothing());
-      return null;
-    }
-  }
-,new Namer<Object>(){
+  NamedEntityInstantiator<Task> taskFactory=Cast.uncheckedCast(ModelViews.getInstance(inputs.get(0),ITaskFactory.class));
+  ModelMap<Task> cast=DomainObjectSetBackedModelMap.wrap(Task.class,binary.getTasks(),taskFactory,new Namer<Object>(){
     @Override public String determineName(    Object object){
       return Cast.cast(Task.class,object).getName();
     }
   }
 ,new Action<Task>(){
     @Override public void execute(    Task task){
+      binary.getTasks().add(task);
       binary.builtBy(task);
     }
   }
 );
-  List<ModelView<?>> inputsWithBinary=new ArrayList<ModelView<?>>(inputs.size() + 1);
-  inputsWithBinary.addAll(inputs);
+  List<ModelView<?>> inputsWithBinary=new ArrayList<ModelView<?>>(inputs.size());
+  inputsWithBinary.addAll(inputs.subList(1,inputs.size()));
   inputsWithBinary.add(InstanceModelView.of(getSubject().getPath(),getSubject().getType(),binary));
   invoke(inputsWithBinary,cast,binary,binary);
 }
