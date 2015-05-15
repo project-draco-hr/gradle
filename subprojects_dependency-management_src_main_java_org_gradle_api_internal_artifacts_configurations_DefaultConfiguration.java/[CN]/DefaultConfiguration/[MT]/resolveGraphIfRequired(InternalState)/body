@@ -1,31 +1,26 @@
 {
-  if (state == InternalState.RESULTS_RESOLVED) {
+  if (resolvedState == InternalState.RESULTS_RESOLVED) {
     if (dependenciesModified) {
       DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to resolve %s that has been resolved previously. Changes made since the configuration was originally resolved are ignored",getDisplayName()));
     }
     return;
   }
-  if (state == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+  if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
     if (!dependenciesModified) {
       return;
     }
     DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Resolving %s again after modification",getDisplayName()));
   }
-  DependencyResolutionListener broadcast=resolutionListenerBroadcast.getSource();
+  DependencyResolutionListener dependencyResolutionListener=dependencyResolutionListeners.getSource();
   ResolvableDependencies incoming=getIncoming();
-  broadcast.beforeResolve(incoming);
+  dependencyResolutionListener.beforeResolve(incoming);
   triggerWhenEmptyActionsIfNecessary();
   resolver.resolve(this,cachedResolverResults);
-  markAsObserved(requestedState);
-  cachedResolverResults.eachResolvedProject(new Action<ResolvedProjectConfiguration>(){
-    @Override public void execute(    ResolvedProjectConfiguration projectResult){
-      ProjectInternal project=projectFinder.getProject(projectResult.getId().getProjectPath());
-      ConfigurationInternal targetConfig=(ConfigurationInternal)project.getConfigurations().getByName(projectResult.getTargetConfiguration());
-      targetConfig.markAsObserved(requestedState);
-    }
-  }
-);
-  markAsResolved(InternalState.TASK_DEPENDENCIES_RESOLVED);
   dependenciesModified=false;
-  broadcast.afterResolve(incoming);
+  if (resolvedState != InternalState.RESULTS_RESOLVED) {
+    resolvedState=InternalState.TASK_DEPENDENCIES_RESOLVED;
+  }
+  markParentsObserved(requestedState);
+  markReferencedProjectConfigurationsObserved(requestedState);
+  dependencyResolutionListener.afterResolve(incoming);
 }

@@ -8,16 +8,16 @@
   this.resolutionStrategy=resolutionStrategy;
   this.projectAccessListener=projectAccessListener;
   this.projectFinder=projectFinder;
-  resolutionListenerBroadcast=listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+  dependencyResolutionListeners=listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
   DefaultDomainObjectSet<Dependency> ownDependencies=new DefaultDomainObjectSet<Dependency>(Dependency.class);
-  ownDependencies.beforeChange(wrapMutationValidator(configurationMutationValidator,MutationType.DEPENDENCIES));
+  ownDependencies.beforeChange(validateMutationType(this,MutationType.DEPENDENCIES));
   dependencies=new DefaultDependencySet(String.format("%s dependencies",getDisplayName()),ownDependencies);
   inheritedDependencies=CompositeDomainObjectSet.create(Dependency.class,ownDependencies);
   allDependencies=new DefaultDependencySet(String.format("%s all dependencies",getDisplayName()),inheritedDependencies);
   DefaultDomainObjectSet<PublishArtifact> ownArtifacts=new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
-  ownArtifacts.beforeChange(wrapMutationValidator(configurationMutationValidator,MutationType.ARTIFACTS));
+  ownArtifacts.beforeChange(validateMutationType(this,MutationType.ARTIFACTS));
   artifacts=new DefaultPublishArtifactSet(String.format("%s artifacts",getDisplayName()),ownArtifacts);
   inheritedArtifacts=CompositeDomainObjectSet.create(PublishArtifact.class,ownArtifacts);
   allArtifacts=new DefaultPublishArtifactSet(String.format("%s all artifacts",getDisplayName()),inheritedArtifacts);
-  resolutionStrategy.setMutationValidator(configurationMutationValidator);
+  resolutionStrategy.setMutationValidator(this);
 }
