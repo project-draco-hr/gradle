@@ -1,14 +1,23 @@
 {
   testSuites.withType(GoogleTestTestSuiteSpec.class).afterEach(new Action<GoogleTestTestSuiteSpec>(){
-    @Override public void execute(    GoogleTestTestSuiteSpec testSuiteSpec){
-      for (      NativeBinarySpec testedBinary : testSuiteSpec.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
+    @Override public void execute(    final GoogleTestTestSuiteSpec testSuiteSpec){
+      for (      final NativeBinarySpec testedBinary : testSuiteSpec.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
         if (testedBinary instanceof SharedLibraryBinary) {
           continue;
         }
-        DefaultGoogleTestTestSuiteBinary testBinary=createTestBinary(serviceRegistry,testSuiteSpec,testedBinary,taskFactory);
-        configure(testBinary,buildDir);
-        ComponentSpecInternal testSuiteSpecInternal=(ComponentSpecInternal)testSuiteSpec;
-        testSuiteSpecInternal.getBinariesContainer().add(testBinary);
+        final BinaryNamingScheme namingScheme=new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal)testedBinary).getNamingScheme()).withComponentName(testSuiteSpec.getBaseName()).withTypeString("GoogleTestExe").build();
+        final NativeDependencyResolver resolver=serviceRegistry.get(NativeDependencyResolver.class);
+        testSuiteSpec.getBinaries().create(namingScheme.getLifecycleTaskName(),GoogleTestTestSuiteBinarySpec.class,new Action<GoogleTestTestSuiteBinarySpec>(){
+          @Override public void execute(          GoogleTestTestSuiteBinarySpec binary){
+            DefaultGoogleTestTestSuiteBinary testBinary=(DefaultGoogleTestTestSuiteBinary)binary;
+            testBinary.setComponent(testSuiteSpec);
+            testBinary.setTestedBinary((NativeBinarySpecInternal)testedBinary);
+            testBinary.setNamingScheme(namingScheme);
+            testBinary.setResolver(resolver);
+            configure(testBinary,buildDir);
+          }
+        }
+);
       }
     }
   }
