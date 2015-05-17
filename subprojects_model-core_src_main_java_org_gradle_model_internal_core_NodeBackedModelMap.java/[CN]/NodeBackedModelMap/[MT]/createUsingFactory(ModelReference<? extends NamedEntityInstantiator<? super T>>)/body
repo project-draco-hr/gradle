@@ -1,0 +1,15 @@
+{
+  return new ChildNodeCreatorStrategy<T>(){
+    @Override public <S extends T>ModelCreator creator(    final MutableModelNode parentNode,    ModelRuleDescriptor sourceDescriptor,    final ModelType<S> type,    final String name){
+      return ModelCreators.of(parentNode.getPath().child(name),new BiAction<MutableModelNode,List<ModelView<?>>>(){
+        @Override public void execute(        MutableModelNode modelNode,        List<ModelView<?>> modelViews){
+          NamedEntityInstantiator<? super T> instantiator=Cast.uncheckedCast(modelViews.get(0).getInstance());
+          S item=instantiator.create(name,type.getConcreteClass());
+          modelNode.setPrivateData(type,item);
+        }
+      }
+).inputs(factoryReference).withProjection(UnmanagedModelProjection.of(type)).descriptor(NestedModelRuleDescriptor.append(sourceDescriptor,"create(%s)",name)).build();
+    }
+  }
+;
+}
