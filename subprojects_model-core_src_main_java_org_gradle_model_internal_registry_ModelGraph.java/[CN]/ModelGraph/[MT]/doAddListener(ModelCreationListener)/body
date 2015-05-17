@@ -2,42 +2,18 @@
   notifying=true;
   try {
     if (listener.getPath() != null) {
-      ModelNodeInternal node=flattened.get(listener.getPath());
-      if (node != null) {
-        if (maybeNotify(node,listener)) {
-          return;
-        }
-      }
-      pathListeners.put(listener.getPath(),listener);
+      addPathListener(listener);
       return;
     }
     if (listener.getParent() != null) {
-      ModelNodeInternal parent=flattened.get(listener.getParent());
-      if (parent != null) {
-        for (        ModelNodeInternal node : parent.getLinks()) {
-          if (maybeNotify(node,listener)) {
-            return;
-          }
-        }
-      }
-      parentListeners.put(listener.getParent(),listener);
+      addParentListener(listener);
       return;
     }
-    if (listener.getScope() != null) {
-      for (      ModelNodeInternal node : findAllInScope(listener.getScope())) {
-        if (maybeNotify(node,listener)) {
-          return;
-        }
-      }
-      scopeListeners.put(listener.getScope(),listener);
+    if (listener.getAncestor() != null) {
+      addAncestorListener(listener);
       return;
     }
-    for (    ModelNodeInternal node : flattened.values()) {
-      if (maybeNotify(node,listener)) {
-        return;
-      }
-    }
-    listeners.add(listener);
+    addEverythingListener(listener);
   }
   finally {
     notifying=false;
