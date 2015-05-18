@@ -1,12 +1,9 @@
 {
   project.getPluginManager().apply(LanguageBasePlugin.class);
   SimpleModelRuleDescriptor descriptor=new SimpleModelRuleDescriptor(ComponentModelBasePlugin.class.getName() + ".apply()");
-  ModelReference<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>> componentTypeRegistryType=ModelReference.of(new ModelType<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>(){
-  }
-);
   ModelMapSchema<ComponentSpecContainer> schema=(ModelMapSchema<ComponentSpecContainer>)schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
   ModelPath components=ModelPath.path("components");
-  ModelCreator componentsCreator=ModelMapCreators.specialized(components,ComponentSpec.class,ComponentSpecContainer.class,schema.getManagedImpl().asSubclass(ComponentSpecContainer.class),componentTypeRegistryType,descriptor);
+  ModelCreator componentsCreator=ModelMapCreators.specialized(components,ComponentSpec.class,ComponentSpecContainer.class,schema.getManagedImpl().asSubclass(ComponentSpecContainer.class),ModelReference.of(ComponentSpecFactory.class),descriptor);
   modelRegistry.create(componentsCreator);
   modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,DirectNodeNoInputsModelAction.of(ModelReference.of(ComponentSpec.class),descriptor,ComponentSpecInitializer.action()));
   modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class),ComponentRules.class);
