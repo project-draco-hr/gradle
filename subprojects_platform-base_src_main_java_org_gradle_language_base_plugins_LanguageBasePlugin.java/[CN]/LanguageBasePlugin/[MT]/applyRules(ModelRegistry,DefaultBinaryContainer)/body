@@ -4,9 +4,9 @@
   ModelPath binariesPath=ModelPath.path("binaries");
   ModelType<BinarySpec> binarySpecModelType=ModelType.of(BinarySpec.class);
   modelRegistry.createOrReplace(BridgedCollections.creator(ModelReference.of(binariesPath,DefaultBinaryContainer.class),Transformers.constant(binaries),Named.Namer.INSTANCE,descriptor,BridgedCollections.itemDescriptor(descriptor)).descriptor(descriptor).ephemeral(true).withProjection(PolymorphicModelMapProjection.of(binarySpecModelType,NodeBackedModelMap.createUsingParentNode(binarySpecModelType))).withProjection(UnmanagedModelProjection.of(DefaultBinaryContainer.class)).build());
-  modelRegistry.configure(ModelActionRole.Defaults,DirectNodeModelAction.of(ModelReference.of(binariesPath),ruleDescriptor,new Action<MutableModelNode>(){
+  modelRegistry.configure(ModelActionRole.Defaults,DirectNodeNoInputsModelAction.of(ModelReference.of(binariesPath),ruleDescriptor,new Action<MutableModelNode>(){
     @Override public void execute(    MutableModelNode binariesNode){
-      binariesNode.applyToAllLinks(ModelActionRole.Finalize,BiActionBackedModelAction.single(ModelReference.of(BinarySpec.class),ruleDescriptor,ModelReference.of(ITaskFactory.class),new BiAction<BinarySpec,ITaskFactory>(){
+      binariesNode.applyToAllLinks(ModelActionRole.Finalize,InputUsingModelAction.single(ModelReference.of(BinarySpec.class),ruleDescriptor,ModelReference.of(ITaskFactory.class),new BiAction<BinarySpec,ITaskFactory>(){
         @Override public void execute(        BinarySpec binary,        ITaskFactory taskFactory){
           if (!((BinarySpecInternal)binary).isLegacyBinary()) {
             TaskInternal binaryLifecycleTask=taskFactory.create(binary.getName(),DefaultTask.class);
@@ -21,5 +21,5 @@
   }
 ));
   modelRegistry.createOrReplace(ModelCreators.unmanagedInstance(ModelReference.of(ModelPath.path("__binarySpecFactoryRegistry"),ModelType.of(BinarySpecFactoryRegistry.class)),Factories.constant(new BinarySpecFactoryRegistry())).descriptor(ruleDescriptor).ephemeral(true).hidden(true).build());
-  modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,DirectNodeModelAction.of(ModelReference.of(BinarySpec.class),new SimpleModelRuleDescriptor(descriptor),ComponentSpecInitializer.binaryAction()));
+  modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,DirectNodeNoInputsModelAction.of(ModelReference.of(BinarySpec.class),new SimpleModelRuleDescriptor(descriptor),ComponentSpecInitializer.binaryAction()));
 }
