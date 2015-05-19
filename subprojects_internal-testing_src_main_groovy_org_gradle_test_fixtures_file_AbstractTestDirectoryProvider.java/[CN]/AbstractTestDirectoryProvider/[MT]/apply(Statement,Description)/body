@@ -1,10 +1,6 @@
 {
-  init(description.getMethodName(),description.getTestClass().getSimpleName());
-  return new Statement(){
-    @Override public void evaluate() throws Throwable {
-      base.evaluate();
-      getTestDirectory().maybeDeleteDir();
-    }
-  }
-;
+  Class<?> testClass=description.getTestClass();
+  init(description.getMethodName(),testClass.getSimpleName());
+  boolean leaksHandles=testClass.getAnnotation(LeaksFileHandles.class) != null || description.getAnnotation(LeaksFileHandles.class) != null;
+  return new TestDirectoryCleaningStatement(base,getTestDirectory(),leaksHandles);
 }
