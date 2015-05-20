@@ -1,0 +1,19 @@
+{
+  if (subscribed.compareAndSet(false,true)) {
+    while (!stopped.get()) {
+      try {
+        if (control.await(lastActivityAt.get())) {
+          if (stopped.compareAndSet(false,true)) {
+            onTimeOut.run();
+          }
+        }
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+  }
+ else {
+    throw new IllegalStateException("idle timeout is already subscribed");
+  }
+}
