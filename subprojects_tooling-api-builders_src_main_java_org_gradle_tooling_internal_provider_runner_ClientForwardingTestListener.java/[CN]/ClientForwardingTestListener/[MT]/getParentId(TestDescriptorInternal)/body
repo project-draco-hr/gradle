@@ -1,15 +1,10 @@
 {
   TestDescriptorInternal parent=descriptor.getParent();
-  Object parentId=parent != null ? parent.getId() : null;
-  if (parentId == null) {
-    if (listenerConfiguration.isSendTaskProgressEvents()) {
-      if (descriptor instanceof DecoratingTestDescriptor) {
-        descriptor=((DecoratingTestDescriptor)descriptor).getDescriptor();
-      }
-      if (descriptor instanceof TestMainAction.RootTestSuiteDescriptor) {
-        parentId=((TestMainAction.RootTestSuiteDescriptor)descriptor).getTestTaskOperationId();
-      }
-    }
+  if (parent != null) {
+    return parent.getId();
   }
-  return parentId;
+  if (listenerConfiguration.isSendTaskProgressEvents()) {
+    return descriptor.getOwnerBuildOperationId();
+  }
+  return null;
 }
