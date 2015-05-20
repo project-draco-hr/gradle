@@ -11,8 +11,13 @@
     }
  catch (    Throwable t) {
     }
-    if (buildNotStopped(requestContext)) {
-      waiter.execute(fileSystemSubsetBuilder.build(),new Runnable(){
+    FileSystemSubset toWatch=fileSystemSubsetBuilder.build();
+    if (toWatch.isEmpty()) {
+      logger.lifecycle("Exiting continuous mode as no executed tasks declared file system inputs.");
+      return lastResult;
+    }
+ else     if (buildNotStopped(requestContext)) {
+      waiter.execute(toWatch,new Runnable(){
         @Override public void run(){
           logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
         }
