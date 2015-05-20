@@ -30,6 +30,8 @@
     }
   }
 );
+  final StoppableExecutor keyboardHandlerExecutor=executorFactory.create("Continuous mode keyboard handler");
+  ListenableFuture<Boolean> keyboardHandlerFuture=submitAsyncKeyboardHandler(MoreExecutors.listeningDecorator(keyboardHandlerExecutor),latch);
   try {
     notifier.run();
     latch.await();
@@ -42,6 +44,12 @@
     throw UncheckedException.throwAsUncheckedException(e);
   }
  finally {
-    CompositeStoppable.stoppable(watcher,executorService).stop();
+    if (!keyboardHandlerFuture.isDone()) {
+      keyboardHandlerFuture.cancel(true);
+    }
+ else     if (Futures.getUnchecked(keyboardHandlerFuture)) {
+      cancellationRequested.set(true);
+    }
+    CompositeStoppable.stoppable(watcher,executorService,keyboardHandlerExecutor).stop();
   }
 }
