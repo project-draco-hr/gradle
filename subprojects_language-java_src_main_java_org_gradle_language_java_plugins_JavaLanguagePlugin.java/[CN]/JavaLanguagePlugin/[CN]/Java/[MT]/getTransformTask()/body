@@ -10,11 +10,13 @@
       PlatformJavaCompile compile=(PlatformJavaCompile)task;
       JavaSourceSet javaSourceSet=(JavaSourceSet)sourceSet;
       JvmBinarySpec binary=(JvmBinarySpec)binarySpec;
+      GradleInternal gradle=(GradleInternal)task.getProject().getGradle();
+      ArtifactDependencyResolver dependencyResolver=gradle.getServices().get(ArtifactDependencyResolver.class);
       compile.setDescription(String.format("Compiles %s.",javaSourceSet));
       compile.setDestinationDir(binary.getClassesDir());
       compile.setPlatform(binary.getTargetPlatform());
       compile.setSource(javaSourceSet.getSource());
-      compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
+      compile.setClasspath(new DependencyResolvingClasspath(javaSourceSet,dependencyResolver));
       compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
       compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
       compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(),"jvm-dep-cache"));
