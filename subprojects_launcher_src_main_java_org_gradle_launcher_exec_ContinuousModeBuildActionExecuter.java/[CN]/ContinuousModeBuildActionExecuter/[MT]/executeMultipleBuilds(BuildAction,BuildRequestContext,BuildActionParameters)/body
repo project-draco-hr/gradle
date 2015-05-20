@@ -4,6 +4,7 @@
   while (buildNotStopped(requestContext)) {
     if (++counter != 1) {
       requestContext.getBuildTimeClock().reset();
+      logger.println("Change detected, executing build...").println();
     }
     FileSystemSubset.Builder fileSystemSubsetBuilder=FileSystemSubset.builder();
     try {
@@ -13,18 +14,18 @@
     }
     FileSystemSubset toWatch=fileSystemSubsetBuilder.build();
     if (toWatch.isEmpty()) {
-      logger.lifecycle("Exiting continuous mode as no executed tasks declared file system inputs.");
+      logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous building as no executed tasks declared file system inputs.");
       return lastResult;
     }
  else     if (buildNotStopped(requestContext)) {
       waiter.execute(toWatch,new Runnable(){
         @Override public void run(){
-          logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.");
+          logger.println().println("Waiting for changes to input files of tasks... (ctrl+c to exit)");
         }
       }
 );
     }
   }
-  logger.lifecycle("Build cancelled, exiting 'continuous mode'.");
+  logger.println("Build cancelled.");
   return lastResult;
 }
