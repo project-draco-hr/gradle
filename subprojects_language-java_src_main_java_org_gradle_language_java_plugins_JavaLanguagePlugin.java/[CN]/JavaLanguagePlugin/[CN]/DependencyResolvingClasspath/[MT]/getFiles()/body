@@ -2,22 +2,8 @@
   Set<File> classpath=new LinkedHashSet<File>();
   classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
   ResolverResults results=new ResolverResults();
-  ImmutableList<ArtifactRepository> artifactRepositories=ImmutableList.copyOf(repositories.iterator());
-  List<ResolutionAwareRepository> resolutionRepositories=new LinkedList<ResolutionAwareRepository>();
-  for (  ArtifactRepository artifactRepository : artifactRepositories) {
-    if (artifactRepository instanceof ResolutionAwareRepository) {
-      resolutionRepositories.add((ResolutionAwareRepository)artifactRepository);
-    }
-  }
+  List<ResolutionAwareRepository> resolutionRepositories=getResolutionAwareRepositories();
   DependentSourceSetInternal dss=(DependentSourceSetInternal)sourceSet;
-  ResolveContext context=new ResolveContext(){
-    @Override public DependencySet getDependencies(){
-      return new DefaultDependencySet("foo",new DefaultDomainObjectSet<Dependency>(Dependency.class));
-    }
-    @Override public DependencySet getAllDependencies(){
-      return new DefaultDependencySet("foo",new DefaultDomainObjectSet<Dependency>(Dependency.class));
-    }
-  }
-;
+  dependencyResolver.resolveArtifacts(new DefaultJavaSourceSetResolveContext(dss),resolutionRepositories,globalDependencyResolutionRules,results);
   return classpath;
 }
