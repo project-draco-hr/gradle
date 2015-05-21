@@ -1,7 +1,7 @@
 {
   final CountDownLatch latch=new CountDownLatch(1);
   final AtomicReference<Throwable> error=new AtomicReference<Throwable>();
-  final StoppableExecutor executorService=executorFactory.create("quiet period waiter");
+  final StoppableExecutor executorService=executorFactory.create("continuous building - wait");
   FileWatcher watcher=fileWatcherFactory.watch(taskFileSystemInputs,new Action<Throwable>(){
     @Override public void execute(    Throwable throwable){
       error.set(throwable);
@@ -30,8 +30,39 @@
     }
   }
 );
-  final StoppableExecutor keyboardHandlerExecutor=executorFactory.create("Continuous building keyboard handler");
-  ListenableFuture<Boolean> keyboardHandlerFuture=submitAsyncKeyboardHandler(MoreExecutors.listeningDecorator(keyboardHandlerExecutor),latch);
+  executorService.submit(new Runnable(){
+    @Override public void run(){
+      try {
+        final InputStream inputStream=System.in;
+        while (!Thread.currentThread().isInterrupted()) {
+          int c=inputStream.read();
+          if (c == KEY_CODE_CTRL_D || c == EOF) {
+            cancellationToken.doCancel();
+            break;
+          }
+        }
+      }
+ catch (      IOException e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+  }
+);
+  executorService.submit(new Runnable(){
+    @Override public void run(){
+      while (!cancellationToken.isCancellationRequested()) {
+        try {
+          Thread.sleep(100);
+        }
+ catch (        InterruptedException e) {
+          Thread.currentThread().interrupt();
+          return;
+        }
+      }
+      latch.countDown();
+    }
+  }
+);
   try {
     notifier.run();
     latch.await();
@@ -44,12 +75,11 @@
     throw UncheckedException.throwAsUncheckedException(e);
   }
  finally {
-    if (!keyboardHandlerFuture.isDone()) {
-      keyboardHandlerFuture.cancel(true);
+    CompositeStoppable.stoppable(watcher,new Stoppable(){
+      @Override public void stop(){
+        executorService.shutdownNow();
+      }
     }
- else     if (Futures.getUnchecked(keyboardHandlerFuture)) {
-      cancellationRequested.set(true);
-    }
-    CompositeStoppable.stoppable(watcher,executorService,keyboardHandlerExecutor).stop();
+).stop();
   }
 }

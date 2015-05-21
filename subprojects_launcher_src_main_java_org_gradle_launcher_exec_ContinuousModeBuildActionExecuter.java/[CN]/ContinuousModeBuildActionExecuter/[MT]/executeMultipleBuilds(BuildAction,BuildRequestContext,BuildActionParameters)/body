@@ -1,7 +1,8 @@
 {
   Object lastResult=null;
   int counter=0;
-  while (buildNotStopped(requestContext)) {
+  DefaultBuildCancellationToken cancellationToken=requestContext.getCancellationToken() instanceof DefaultBuildCancellationToken ? (DefaultBuildCancellationToken)requestContext.getCancellationToken() : new DefaultBuildCancellationToken();
+  while (!cancellationToken.isCancellationRequested()) {
     if (++counter != 1) {
       requestContext.getBuildTimeClock().reset();
       logger.println("Change detected, executing build...").println();
@@ -17,10 +18,10 @@
       logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous building as no executed tasks declared file system inputs.");
       return lastResult;
     }
- else     if (buildNotStopped(requestContext)) {
-      waiter.execute(toWatch,new Runnable(){
+ else {
+      waiter.wait(toWatch,cancellationToken,new Runnable(){
         @Override public void run(){
-          logger.println().println("Waiting for changes to input files of tasks... (ctrl+c to exit)");
+          logger.println().println("Waiting for changes to input files of tasks... (ctrl+d to exit)");
         }
       }
 );
