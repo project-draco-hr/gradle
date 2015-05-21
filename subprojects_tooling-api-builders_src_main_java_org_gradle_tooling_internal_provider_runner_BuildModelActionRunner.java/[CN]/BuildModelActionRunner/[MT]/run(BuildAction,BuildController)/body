@@ -5,14 +5,14 @@
   BuildModelAction buildModelAction=(BuildModelAction)action;
   GradleInternal gradle=buildController.getGradle();
   BuildEventConsumer eventConsumer=gradle.getServices().get(BuildEventConsumer.class);
-  ConsumerListenerConfiguration listenerConfiguration=buildModelAction.getConsumerListenerConfiguration();
-  if (listenerConfiguration.isSendTestProgressEvents()) {
-    gradle.addListener(new ClientForwardingTestListener(eventConsumer,listenerConfiguration));
+  BuildClientSubscriptions clientSubscriptions=buildModelAction.getClientSubscriptions();
+  if (clientSubscriptions.isSendTestProgressEvents()) {
+    gradle.addListener(new ClientForwardingTestListener(eventConsumer,clientSubscriptions));
   }
-  if (listenerConfiguration.isSendTaskProgressEvents()) {
-    gradle.addListener(new ClientForwardingTaskListener(eventConsumer,listenerConfiguration));
+  if (clientSubscriptions.isSendTaskProgressEvents()) {
+    gradle.addListener(new ClientForwardingTaskListener(eventConsumer,clientSubscriptions));
   }
-  if (listenerConfiguration.isSendBuildProgressEvents()) {
+  if (clientSubscriptions.isSendBuildProgressEvents()) {
     gradle.addListener(new ClientForwardingBuildListener(eventConsumer));
   }
   if (buildModelAction.isRunTasks()) {
