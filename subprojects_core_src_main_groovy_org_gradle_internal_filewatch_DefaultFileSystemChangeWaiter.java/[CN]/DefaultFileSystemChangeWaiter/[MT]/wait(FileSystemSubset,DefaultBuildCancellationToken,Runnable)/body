@@ -1,4 +1,11 @@
 {
+  final InputStream systemInProxy;
+  if (System.in instanceof DisconnectableInputStream) {
+    systemInProxy=System.in;
+  }
+ else {
+    systemInProxy=new DisconnectableInputStream(System.in);
+  }
   final CountDownLatch latch=new CountDownLatch(1);
   final AtomicReference<Throwable> error=new AtomicReference<Throwable>();
   final StoppableExecutor executorService=executorFactory.create("continuous building - wait");
@@ -33,9 +40,8 @@
   executorService.submit(new Runnable(){
     @Override public void run(){
       try {
-        final InputStream inputStream=systemInProxy;
         while (!Thread.currentThread().isInterrupted()) {
-          int c=inputStream.read();
+          int c=systemInProxy.read();
           if (c == KEY_CODE_CTRL_D || c == EOF) {
             cancellationToken.doCancel();
             break;
