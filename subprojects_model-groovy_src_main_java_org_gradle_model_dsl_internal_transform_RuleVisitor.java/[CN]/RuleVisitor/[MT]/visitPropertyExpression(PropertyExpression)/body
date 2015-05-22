@@ -1,16 +1,19 @@
 {
   ArrayList<String> names=Lists.newArrayList();
-  boolean propertyIsLiteral=extractPropertyPath(expression,names);
-  if (names.isEmpty() || !names.get(0).equals("thing")) {
-    super.visitPropertyExpression(expression);
-  }
+  boolean propertyNameIsPart=extractPropertyPath(expression,names);
+  if (!names.isEmpty()) {
+    if (names.get(0).equals("thing")) {
+      String modelPath=ModelPath.pathString(names);
+      inputs.relativePath(modelPath,expression.getLineNumber());
+      if (propertyNameIsPart) {
+        replaceVisitedExpressionWith(conditionalInputGet(modelPath,expression));
+      }
  else {
-    String modelPath=ModelPath.pathString(names);
-    ConstantExpression modelPathConstantExpression=new ConstantExpression(modelPath);
-    inputs.relativePath(modelPath,expression.getLineNumber());
-    VariableExpression inputsVariable=new VariableExpression(accessVariable);
-    Expression originalObjectExpression=expression.getObjectExpression();
-    ArgumentListExpression modelPathArgumentExpression=new ArgumentListExpression(modelPathConstantExpression);
-    expression.setObjectExpression(new TernaryExpression(new BooleanExpression(new MethodCallExpression(inputsVariable,HAS,modelPathArgumentExpression)),new MethodCallExpression(inputsVariable,propertyIsLiteral ? PROPERTY : INPUT,modelPathArgumentExpression),originalObjectExpression));
+        expression.setObjectExpression(conditionalInputGet(modelPath,expression.getObjectExpression()));
+      }
+    }
+ else {
+      expression.setObjectExpression(new TernaryExpression(new BooleanExpression(ConstantExpression.TRUE),expression.getObjectExpression(),ConstantExpression.FALSE));
+    }
   }
 }
