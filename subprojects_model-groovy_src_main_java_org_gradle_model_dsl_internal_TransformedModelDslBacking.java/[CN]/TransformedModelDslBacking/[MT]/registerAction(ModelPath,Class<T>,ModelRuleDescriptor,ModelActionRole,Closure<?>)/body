@@ -2,8 +2,21 @@
   final ModelReference<T> reference=ModelReference.of(modelPath,viewType);
   ModelAction<T> action=DirectNodeNoInputsModelAction.of(reference,descriptor,new Action<MutableModelNode>(){
     @Override public void execute(    MutableModelNode modelNode){
-      List<ModelReference<?>> inputs=inputPathsExtractor.transform(closure);
-      ModelAction<T> runClosureAction=InputUsingModelAction.of(reference,descriptor,inputs,new ExecuteClosure<T>(closure));
+      InputReferences inputs=inputPathsExtractor.transform(closure);
+      List<String> absolutePaths=inputs.getAbsolutePaths();
+      List<Integer> absolutePathLineNumbers=inputs.getAbsolutePathLineNumbers();
+      List<String> relativePaths=inputs.getRelativePaths();
+      List<Integer> relativePathLineNumbers=inputs.getRelativePathLineNumbers();
+      List<ModelReference<?>> references=Lists.newArrayListWithCapacity(absolutePaths.size() + inputs.getRelativePaths().size());
+      for (int i=0; i < absolutePaths.size(); i++) {
+        String description=String.format("@ line %d",absolutePathLineNumbers.get(i));
+        references.add(ModelReference.untyped(ModelPath.path(absolutePaths.get(i)),description));
+      }
+      for (int i=0; i < relativePaths.size(); i++) {
+        String description=String.format("@ line %d",relativePathLineNumbers.get(i));
+        references.add(ModelReference.untyped(ModelPath.path(relativePaths.get(i)),description));
+      }
+      ModelAction<T> runClosureAction=InputUsingModelAction.of(reference,descriptor,references,new ExecuteClosure<T>(closure));
       modelRegistry.configure(role,runClosureAction);
     }
   }
