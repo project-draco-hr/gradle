@@ -2,11 +2,14 @@
   return new Statement(){
     @Override public void evaluate() throws Throwable {
       final InputStream originalStdIn=System.in;
+      initPipe();
+      System.setIn(emulatedSystemIn);
       try {
         base.evaluate();
       }
   finally {
         System.setIn(originalStdIn);
+        CompositeStoppable.stoppable(stdinPipe,emulatedSystemIn).stop();
       }
     }
   }
