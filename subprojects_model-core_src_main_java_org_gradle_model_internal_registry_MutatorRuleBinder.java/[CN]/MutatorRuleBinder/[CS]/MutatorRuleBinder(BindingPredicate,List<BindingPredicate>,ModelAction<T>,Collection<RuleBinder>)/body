@@ -1,0 +1,15 @@
+{
+  super(subjectReference,inputs,action.getDescriptor(),binders);
+  subjectBinding=binding(subjectReference,true,new Action<ModelBinding>(){
+    @Override public void execute(    ModelBinding modelBinding){
+      ModelNodeInternal node=modelBinding.getNode();
+      BindingPredicate predicate=modelBinding.getPredicate();
+      if (predicate.getState() != null && node.getState().compareTo(predicate.getState()) >= 0) {
+        throw new IllegalStateException(String.format("Cannot add rule %s for model element '%s' at state %s as this element is already at state %s.",modelBinding.referrer,node.getPath(),predicate.getState().previous(),node.getState()));
+      }
+      maybeFire();
+    }
+  }
+);
+  this.action=action;
+}

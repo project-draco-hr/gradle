@@ -1,24 +1,22 @@
 {
-  ModelReference<?> reference=binding.getReference();
-  if (reference.getPath() != null) {
-    if (reference.getScope() != null) {
+  BindingPredicate predicate=binding.getPredicate();
+  if (predicate.getPath() != null) {
+    if (predicate.getScope() != null) {
       throw new UnsupportedOperationException("Currently not implemented");
     }
-    ModelNodeInternal node=modelGraph.find(reference.getPath());
+    ModelNodeInternal node=modelGraph.find(predicate.getPath());
     if (node != null) {
-      binding.onCreate(node);
-      bound.put(new NodeAtState(node.getPath(),reference.getState()),rule);
+      bound(binding,rule,node);
     }
-    rulesByPath.put(reference.getPath(),new Reference(rule,binding));
+    rulesByPath.put(predicate.getPath(),new Reference(rule,binding));
   }
- else   if (reference.getScope() != null) {
-    for (    ModelNodeInternal node : modelGraph.findAllInScope(reference.getScope())) {
+ else   if (predicate.getScope() != null) {
+    for (    ModelNodeInternal node : modelGraph.findAllInScope(predicate.getScope())) {
       if (binding.isTypeCompatible(node.getPromise())) {
-        binding.onCreate(node);
-        bound.put(new NodeAtState(node.getPath(),reference.getState()),rule);
+        bound(binding,rule,node);
       }
     }
-    rulesByScope.put(reference.getScope(),new Reference(rule,binding));
+    rulesByScope.put(predicate.getScope(),new Reference(rule,binding));
   }
  else {
     throw new UnsupportedOperationException("Currently not implemented");
