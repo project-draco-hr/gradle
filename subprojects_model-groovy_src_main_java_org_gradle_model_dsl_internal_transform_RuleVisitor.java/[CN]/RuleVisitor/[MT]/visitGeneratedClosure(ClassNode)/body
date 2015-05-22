@@ -7,16 +7,12 @@
     metadataAnnotation.addMember("scriptSourceDescription",new ConstantExpression(sourceLocation.getScriptSourceDescription()));
     metadataAnnotation.addMember("lineNumber",new ConstantExpression(sourceLocation.getLineNumber()));
     metadataAnnotation.addMember("columnNumber",new ConstantExpression(sourceLocation.getColumnNumber()));
-    ListMultimap<String,Integer> inputs=closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
+    InputReferences inputs=closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
     if (!inputs.isEmpty()) {
-      List<Expression> pathValues=Lists.newArrayListWithCapacity(inputs.size());
-      List<Expression> lineNumberValues=Lists.newArrayListWithCapacity(inputs.size());
-      for (      Map.Entry<String,List<Integer>> input : Multimaps.asMap(inputs).entrySet()) {
-        pathValues.add(new ConstantExpression(input.getKey()));
-        lineNumberValues.add(new ConstantExpression(input.getValue().get(0)));
-      }
-      metadataAnnotation.addMember("inputPaths",new ListExpression(pathValues));
-      metadataAnnotation.addMember("inputLineNumbers",new ListExpression(lineNumberValues));
+      metadataAnnotation.addMember("absoluteInputPaths",new ListExpression(constants(inputs.absolutePaths)));
+      metadataAnnotation.addMember("absoluteInputLineNumbers",new ListExpression(constants(inputs.absolutePathLineNumbers)));
+      metadataAnnotation.addMember("relativeInputPaths",new ListExpression(constants(inputs.relativePaths)));
+      metadataAnnotation.addMember("relativeInputLineNumbers",new ListExpression(constants(inputs.relativePathLineNumbers)));
     }
     node.addAnnotation(metadataAnnotation);
   }
