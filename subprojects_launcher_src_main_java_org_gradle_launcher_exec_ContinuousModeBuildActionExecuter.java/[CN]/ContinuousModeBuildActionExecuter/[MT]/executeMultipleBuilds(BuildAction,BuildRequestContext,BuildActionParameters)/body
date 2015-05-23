@@ -1,7 +1,16 @@
 {
+  if (!javaVersion.isJava7Compatible()) {
+    throw new IllegalStateException(String.format("Continuous building requires Java %s or later.",JavaVersion.VERSION_1_7));
+  }
+  SingleMessageLogger.incubatingFeatureUsed("Continuous building");
+  BuildCancellationToken cancellationToken=requestContext.getCancellationToken();
+  if (!(System.in instanceof DisconnectableInputStream)) {
+    System.setIn(new DisconnectableInputStream(System.in));
+  }
+  DisconnectableInputStream inputStream=(DisconnectableInputStream)System.in;
+  final DefaultCancellableOperationManager cancellableOperationManager=new DefaultCancellableOperationManager(executorFactory.create("cancel signal monitor"),inputStream,cancellationToken);
   Object lastResult=null;
   int counter=0;
-  BuildCancellationToken cancellationToken=requestContext.getCancellationToken();
   while (!cancellationToken.isCancellationRequested()) {
     if (++counter != 1) {
       requestContext.getBuildTimeClock().reset();
@@ -13,15 +22,20 @@
     }
  catch (    Throwable t) {
     }
-    FileSystemSubset toWatch=fileSystemSubsetBuilder.build();
+    final FileSystemSubset toWatch=fileSystemSubsetBuilder.build();
     if (toWatch.isEmpty()) {
       logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous building as no executed tasks declared file system inputs.");
       return lastResult;
     }
  else {
-      waiter.wait(toWatch,cancellationToken,new Runnable(){
-        @Override public void run(){
-          logger.println().println("Waiting for changes to input files of tasks... (ctrl+d to exit)");
+      cancellableOperationManager.monitorInputExecute(new Action<BuildCancellationToken>(){
+        @Override public void execute(        BuildCancellationToken cancellationToken){
+          waiter.wait(toWatch,cancellationToken,new Runnable(){
+            @Override public void run(){
+              logger.println().println("Waiting for changes to input files of tasks... (ctrl+d to exit)");
+            }
+          }
+);
         }
       }
 );

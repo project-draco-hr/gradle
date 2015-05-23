@@ -1,12 +1,4 @@
 {
-  final InputStream systemInProxy;
-  if (System.in instanceof DisconnectableInputStream) {
-    systemInProxy=System.in;
-  }
- else {
-    systemInProxy=new DisconnectableInputStream(System.in);
-    System.setIn(systemInProxy);
-  }
   final CountDownLatch latch=new CountDownLatch(1);
   final AtomicReference<Throwable> error=new AtomicReference<Throwable>();
   final StoppableExecutor executorService=executorFactory.create("continuous building - wait");
@@ -35,38 +27,6 @@
 );
       }
       timeout.tick();
-    }
-  }
-);
-  executorService.submit(new Runnable(){
-    @Override public void run(){
-      try {
-        while (!Thread.currentThread().isInterrupted()) {
-          int c=systemInProxy.read();
-          if (c == KEY_CODE_CTRL_D || c == EOF) {
-            cancellationToken.cancel();
-            break;
-          }
-        }
-      }
- catch (      IOException e) {
-        throw UncheckedException.throwAsUncheckedException(e);
-      }
-    }
-  }
-);
-  executorService.submit(new Runnable(){
-    @Override public void run(){
-      while (!cancellationToken.isCancellationRequested()) {
-        try {
-          Thread.sleep(100);
-        }
- catch (        InterruptedException e) {
-          Thread.currentThread().interrupt();
-          return;
-        }
-      }
-      latch.countDown();
     }
   }
 );

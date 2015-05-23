@@ -1,0 +1,28 @@
+{
+  Future<?> handle=null;
+  try {
+    handle=executorService.submit(new Runnable(){
+      @Override public void run(){
+        try {
+          while (!Thread.currentThread().isInterrupted()) {
+            int c=input.read();
+            if (c == KEY_CODE_CTRL_D || c == EOF) {
+              cancellationToken.cancel();
+              break;
+            }
+          }
+        }
+ catch (        IOException e) {
+          throw UncheckedException.throwAsUncheckedException(e);
+        }
+      }
+    }
+);
+    return interruptYield(operation);
+  }
+  finally {
+    if (handle != null) {
+      handle.cancel(true);
+    }
+  }
+}
