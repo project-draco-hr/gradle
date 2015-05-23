@@ -4,17 +4,7 @@
   }
   BuildModelAction buildModelAction=(BuildModelAction)action;
   GradleInternal gradle=buildController.getGradle();
-  BuildEventConsumer eventConsumer=gradle.getServices().get(BuildEventConsumer.class);
-  BuildClientSubscriptions clientSubscriptions=buildModelAction.getClientSubscriptions();
-  if (clientSubscriptions.isSendTestProgressEvents()) {
-    gradle.addListener(new ClientForwardingTestListener(eventConsumer,clientSubscriptions));
-  }
-  if (clientSubscriptions.isSendTaskProgressEvents()) {
-    gradle.addListener(new ClientForwardingTaskListener(eventConsumer,clientSubscriptions));
-  }
-  if (clientSubscriptions.isSendBuildProgressEvents()) {
-    gradle.addListener(new ClientForwardingBuildListener(eventConsumer));
-  }
+  BuildClientSubscriptionsSetup.registerListenersForClientSubscriptions(buildModelAction.getClientSubscriptions(),gradle);
   if (buildModelAction.isRunTasks()) {
     buildController.run();
   }

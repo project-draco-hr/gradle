@@ -2,7 +2,7 @@
   SerializedPayload serializedAction=payloadSerializer.serialize(clientAction);
   Parameters params=initParams(providerParameters);
   StartParameter startParameter=new ProviderStartParameterConverter().toStartParameter(providerParameters,params.properties);
-  NoOpBuildEventConsumer buildEventConsumer=new NoOpBuildEventConsumer();
-  BuildAction action=new ClientProvidedBuildAction(startParameter,serializedAction);
-  return run(action,cancellationToken,buildEventConsumer,providerParameters,params);
+  ProgressListenerConfiguration listenerConfig=ProgressListenerConfiguration.from(providerParameters);
+  BuildAction action=new ClientProvidedBuildAction(startParameter,serializedAction,listenerConfig.clientSubscriptions);
+  return run(action,cancellationToken,listenerConfig.buildEventConsumer,providerParameters,params);
 }

@@ -1,0 +1,9 @@
+{
+  InternalBuildProgressListener buildProgressListener=providerParameters.getBuildProgressListener(null);
+  boolean listenToTestProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
+  boolean listenToTaskProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
+  boolean listenToBuildProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
+  BuildClientSubscriptions clientSubscriptions=new BuildClientSubscriptions(listenToTestProgress,listenToTaskProgress,listenToBuildProgress);
+  BuildEventConsumer buildEventConsumer=clientSubscriptions.isSendAnyProgressEvents() ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
+  return new ProgressListenerConfiguration(clientSubscriptions,buildEventConsumer);
+}

@@ -14,12 +14,7 @@
     return new DefaultBuildEnvironment(params.gradleUserhome,GradleVersion.current().getVersion(),params.daemonParams.getEffectiveJavaHome(),params.daemonParams.getEffectiveJvmArgs(),requestedJvmArgsList,params.daemonParams.getAllJvmArgs(),params.daemonParams.getEffectiveSystemProperties(),requestedSystemProperties);
   }
   StartParameter startParameter=new ProviderStartParameterConverter().toStartParameter(providerParameters,params.properties);
-  InternalBuildProgressListener buildProgressListener=providerParameters.getBuildProgressListener(null);
-  boolean listenToTestProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
-  boolean listenToTaskProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
-  boolean listenToBuildProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
-  BuildClientSubscriptions clientSubscriptions=new BuildClientSubscriptions(listenToTestProgress,listenToTaskProgress,listenToBuildProgress);
-  BuildEventConsumer buildEventConsumer=clientSubscriptions.isSendAnyProgressEvents() ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
-  BuildAction action=new BuildModelAction(startParameter,modelName,tasks != null,clientSubscriptions);
-  return run(action,cancellationToken,buildEventConsumer,providerParameters,params);
+  ProgressListenerConfiguration listenerConfig=ProgressListenerConfiguration.from(providerParameters);
+  BuildAction action=new BuildModelAction(startParameter,modelName,tasks != null,listenerConfig.clientSubscriptions);
+  return run(action,cancellationToken,listenerConfig.buildEventConsumer,providerParameters,params);
 }
