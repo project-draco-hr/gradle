@@ -4,11 +4,17 @@
   }
   SingleMessageLogger.incubatingFeatureUsed("Continuous building");
   BuildCancellationToken cancellationToken=requestContext.getCancellationToken();
-  if (!(System.in instanceof DisconnectableInputStream)) {
-    System.setIn(new DisconnectableInputStream(System.in));
+  final CancellableOperationManager cancellableOperationManager;
+  if (actionParameters.isInteractive()) {
+    if (!(System.in instanceof DisconnectableInputStream)) {
+      System.setIn(new DisconnectableInputStream(System.in));
+    }
+    DisconnectableInputStream inputStream=(DisconnectableInputStream)System.in;
+    cancellableOperationManager=new DefaultCancellableOperationManager(executorFactory.create("cancel signal monitor"),inputStream,cancellationToken);
   }
-  DisconnectableInputStream inputStream=(DisconnectableInputStream)System.in;
-  final DefaultCancellableOperationManager cancellableOperationManager=new DefaultCancellableOperationManager(executorFactory.create("cancel signal monitor"),inputStream,cancellationToken);
+ else {
+    cancellableOperationManager=new BasicCancellableOperationManager(cancellationToken);
+  }
   Object lastResult=null;
   int counter=0;
   while (!cancellationToken.isCancellationRequested()) {
@@ -36,7 +42,7 @@
         @Override public void execute(        BuildCancellationToken cancellationToken){
           waiter.wait(toWatch,cancellationToken,new Runnable(){
             @Override public void run(){
-              logger.println().println("Waiting for changes to input files of tasks... (ctrl+d to exit)");
+              logger.println().println("Waiting for changes to input files of tasks..." + (actionParameters.isInteractive() ? " (ctrl+d to exit)" : ""));
             }
           }
 );
