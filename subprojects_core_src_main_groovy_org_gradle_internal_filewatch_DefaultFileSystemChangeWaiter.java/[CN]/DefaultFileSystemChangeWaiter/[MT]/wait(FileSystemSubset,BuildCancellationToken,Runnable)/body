@@ -12,21 +12,26 @@
     private IdleTimeout timeout;
     @Override public void onChange(    final FileWatcher watcher,    FileWatcherEvent event){
       if (timeout == null) {
-        timeout=new IdleTimeout(QUIET_PERIOD,new Runnable(){
-          @Override public void run(){
-            watcher.stop();
-            latch.countDown();
+        if (!(event.getType() == FileWatcherEvent.Type.MODIFY && event.getFile().isDirectory())) {
+          timeout=new IdleTimeout(QUIET_PERIOD,new Runnable(){
+            @Override public void run(){
+              watcher.stop();
+              latch.countDown();
+            }
           }
-        }
 );
-        executorService.execute(new Runnable(){
-          @Override public void run(){
-            timeout.await();
+          executorService.execute(new Runnable(){
+            @Override public void run(){
+              timeout.await();
+            }
           }
-        }
 );
+          timeout.tick();
+        }
       }
-      timeout.tick();
+ else {
+        timeout.tick();
+      }
     }
   }
 );

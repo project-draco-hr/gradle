@@ -13,13 +13,11 @@
   }
 ;
   List<WatchEvent<?>> watchEvents=watchKey.pollEvents();
-  final List<FileWatcherEvent> events;
-  if (!watchEvents.isEmpty()) {
-    events=CollectionUtils.collect(watchEvents,watchEventTransformer);
+  watchKey.reset();
+  if (watchEvents.isEmpty()) {
+    return Collections.singletonList(FileWatcherEvent.delete(watchedPath.toFile()));
   }
  else {
-    events=Collections.singletonList(FileWatcherEvent.delete(watchedPath.toFile()));
+    return CollectionUtils.collect(watchEvents,watchEventTransformer);
   }
-  watchKey.reset();
-  return events;
 }
