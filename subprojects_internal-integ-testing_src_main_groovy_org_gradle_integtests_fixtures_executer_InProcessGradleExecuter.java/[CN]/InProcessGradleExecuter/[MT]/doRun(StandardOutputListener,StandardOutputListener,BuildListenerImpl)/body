@@ -17,13 +17,13 @@
   CommandLineParser parser=new CommandLineParser();
   ParametersConverter parametersConverter=new ParametersConverter();
   parametersConverter.configure(parser);
-  Parameters parameters=parametersConverter.convert(parser.parse(getAllArgs()),new Parameters(startParameter));
+  parametersConverter.convert(parser.parse(getAllArgs()),new Parameters(startParameter));
   BuildActionExecuter<BuildActionParameters> actionExecuter=GLOBAL_SERVICES.get(BuildActionExecuter.class);
   ListenerManager listenerManager=GLOBAL_SERVICES.get(ListenerManager.class);
   listenerManager.addListener(listener);
   try {
     BuildAction action=new ExecuteBuildAction(startParameter);
-    BuildActionParameters buildActionParameters=new DefaultBuildActionParameters(System.getProperties(),System.getenv(),SystemProperties.getInstance().getCurrentDir(),startParameter.getLogLevel(),DaemonUsage.EXPLICITLY_DISABLED,startParameter.isContinuous(),true);
+    BuildActionParameters buildActionParameters=new DefaultBuildActionParameters(System.getProperties(),System.getenv(),SystemProperties.getInstance().getCurrentDir(),startParameter.getLogLevel(),DaemonUsage.EXPLICITLY_DISABLED,startParameter.isContinuous(),interactive);
     BuildRequestContext buildRequestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),ManagementFactory.getRuntimeMXBean().getStartTime()),new DefaultBuildCancellationToken(),new NoOpBuildEventConsumer(),outputListener,errorListener);
     actionExecuter.execute(action,buildRequestContext,buildActionParameters);
     return new BuildResult(null,null);
