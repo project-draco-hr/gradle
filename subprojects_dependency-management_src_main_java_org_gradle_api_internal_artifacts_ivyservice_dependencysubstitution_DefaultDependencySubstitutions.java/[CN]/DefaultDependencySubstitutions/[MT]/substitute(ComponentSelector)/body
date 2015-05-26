@@ -1,14 +1,16 @@
 {
   return new Substitution(){
-    @Override public void with(    final ComponentSelector substitute){
-      all(new Action<DependencySubstitution>(){
-        @Override public void execute(        DependencySubstitution dependencySubstitution){
-          if (substituted.equals(dependencySubstitution.getRequested())) {
-            dependencySubstitution.useTarget(substitute);
-          }
-        }
+    @Override public void with(    ComponentSelector substitute){
+      if (substitute instanceof UnversionedModuleComponentSelector) {
+        throw new InvalidUserDataException("Must specify version for target of dependency substitution");
       }
-);
+      if (substituted instanceof UnversionedModuleComponentSelector) {
+        final ModuleIdentifier moduleId=((UnversionedModuleComponentSelector)substituted).getModuleIdentifier();
+        all(new ModuleMatchDependencySubstitutionAction(moduleId,substitute));
+      }
+ else {
+        all(new ExactMatchDependencySubstitutionAction(substituted,substitute));
+      }
     }
   }
 ;
