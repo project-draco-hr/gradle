@@ -2,8 +2,25 @@
   Set<File> classpath=new LinkedHashSet<File>();
   classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
   ResolverResults results=new ResolverResults();
-  List<ResolutionAwareRepository> resolutionRepositories=getResolutionAwareRepositories();
+  final List<ResolutionAwareRepository> resolutionRepositories=getResolutionAwareRepositories();
   DefaultJavaSourceSetResolveContext resolveContext=new DefaultJavaSourceSetResolveContext(project,(DefaultJavaLanguageSourceSet)sourceSet);
   dependencyResolver.resolve(resolveContext,resolutionRepositories,globalDependencyResolutionRules,results);
+  ResolutionResult resolutionResult=results.getResolutionResult();
+  resolutionResult.allComponents(new Action<ResolvedComponentResult>(){
+    @Override public void execute(    ResolvedComponentResult resolvedComponentResult){
+      System.out.println("resolvedComponentResult = " + resolvedComponentResult);
+    }
+  }
+);
+  resolutionResult.allDependencies(new Action<DependencyResult>(){
+    @Override public void execute(    DependencyResult dependencyResult){
+      if (dependencyResult instanceof ResolvedDependencyResult) {
+        ResolvedDependencyResult resolved=(ResolvedDependencyResult)dependencyResult;
+        ResolvedComponentResult selected=resolved.getSelected();
+        System.out.println("selected = " + selected);
+      }
+    }
+  }
+);
   return classpath;
 }
