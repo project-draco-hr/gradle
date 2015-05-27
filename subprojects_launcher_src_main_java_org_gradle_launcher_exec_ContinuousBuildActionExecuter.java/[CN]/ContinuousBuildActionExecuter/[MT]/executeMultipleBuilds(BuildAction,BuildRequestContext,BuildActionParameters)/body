@@ -13,7 +13,7 @@
     cancellableOperationManager=new DefaultCancellableOperationManager(executorFactory.create("cancel signal monitor"),inputStream,cancellationToken);
   }
  else {
-    cancellableOperationManager=new BasicCancellableOperationManager(cancellationToken);
+    cancellableOperationManager=new PassThruCancellableOperationManager(cancellationToken);
   }
   Object lastResult=null;
   int counter=0;
@@ -38,7 +38,7 @@
       return lastResult;
     }
  else {
-      cancellableOperationManager.monitorInputExecute(new Action<BuildCancellationToken>(){
+      cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>(){
         @Override public void execute(        BuildCancellationToken cancellationToken){
           waiter.wait(toWatch,cancellationToken,new Runnable(){
             @Override public void run(){
