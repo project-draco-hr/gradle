@@ -10,15 +10,17 @@
         resolutionStrategy=new DefaultResolutionStrategy();
       }
       RepositoryChain repositoryChain=ivyFactory.create(resolutionStrategy,repositories,metadataHandler.getComponentMetadataProcessor());
-      ComponentMetaDataResolver metaDataResolver=new ClientModuleResolver(repositoryChain.getComponentResolver(),dependencyDescriptorFactory);
-      ProjectDependencyResolver projectDependencyResolver;
-      if (resolveContext instanceof ResolveContextInternal) {
-        projectDependencyResolver=((ResolveContextInternal)resolveContext).newProjectDependencyResolver(projectComponentRegistry,localComponentFactory,repositoryChain.getComponentIdResolver(),metaDataResolver);
-      }
- else {
-        projectDependencyResolver=new ProjectDependencyResolver(projectComponentRegistry,localComponentFactory,repositoryChain.getComponentIdResolver(),metaDataResolver);
-      }
-      DependencyToComponentIdResolver idResolver=new DependencySubstitutionResolver(projectDependencyResolver,resolutionStrategy.getDependencySubstitutionRule());
+      ProjectInternal project=resolveContext.getProject();
+      ServiceRegistry projectServices=project.getServices();
+      List<LocalComponentFactory> localComponentFactories=projectServices.getAll(LocalComponentFactory.class);
+      LocalComponentFactoryChain localComponentFactory=new LocalComponentFactoryChain(localComponentFactories);
+      List<DependencyToComponentIdResolver> dependencyToComponentIdResolvers=Lists.newArrayList(projectServices.getAll(DependencyToComponentIdResolver.class));
+      dependencyToComponentIdResolvers.add(repositoryChain.getComponentIdResolver());
+      DependencyToComponentIdResolverChain componentIdResolver=new DependencyToComponentIdResolverChain(dependencyToComponentIdResolvers);
+      List<ComponentMetaDataResolver> compomentMetaDataResolvers=Lists.newArrayList(projectServices.getAll(ComponentMetaDataResolver.class));
+      compomentMetaDataResolvers.add(new ClientModuleResolver(repositoryChain.getComponentResolver(),dependencyDescriptorFactory));
+      CompositeComponentMetaDataResolver metaDataResolver=new CompositeComponentMetaDataResolver(compomentMetaDataResolvers);
+      DependencyToComponentIdResolver idResolver=new DependencySubstitutionResolver(componentIdResolver,resolutionStrategy.getDependencySubstitutionRule());
       ArtifactResolver artifactResolver=createArtifactResolver(repositoryChain);
       ModuleConflictResolver conflictResolver;
       if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
@@ -29,7 +31,8 @@
       }
       conflictResolver=new VersionSelectionReasonResolver(conflictResolver);
       ConflictHandler conflictHandler=new DefaultConflictHandler(conflictResolver,metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
-      DependencyGraphBuilder builder=new DependencyGraphBuilder(idResolver,projectDependencyResolver,projectDependencyResolver,artifactResolver,conflictHandler,new DefaultDependencyToConfigurationResolver());
+      DefaultResolveContextToComponentResolver moduleResolver=new DefaultResolveContextToComponentResolver(localComponentFactory);
+      DependencyGraphBuilder builder=new DependencyGraphBuilder(idResolver,metaDataResolver,moduleResolver,artifactResolver,conflictHandler,new DefaultDependencyToConfigurationResolver());
       StoreSet stores=storeFactory.createStoreSet();
       BinaryStore newModelStore=stores.nextBinaryStore();
       Store<ResolvedComponentResult> newModelCache=stores.oldModelStore();
