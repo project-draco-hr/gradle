@@ -3,12 +3,31 @@
   classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
   ResolverResults results=new ResolverResults();
   final List<ResolutionAwareRepository> resolutionRepositories=getResolutionAwareRepositories();
-  DefaultJavaSourceSetResolveContext resolveContext=new DefaultJavaSourceSetResolveContext((ProjectInternal)project,(DefaultJavaLanguageSourceSet)sourceSet);
+  DefaultJavaSourceSetResolveContext resolveContext=new DefaultJavaSourceSetResolveContext(project,(DefaultJavaLanguageSourceSet)sourceSet);
   dependencyResolver.resolve(resolveContext,resolutionRepositories,globalDependencyResolutionRules,results);
   ResolutionResult resolutionResult=results.getResolutionResult();
   resolutionResult.allDependencies(new Action<DependencyResult>(){
     @Override public void execute(    DependencyResult dependencyResult){
       if (dependencyResult instanceof ResolvedDependencyResult) {
+        ResolvedDependencyResult resolved=(ResolvedDependencyResult)dependencyResult;
+        ResolvedComponentResult selected=resolved.getSelected();
+        ComponentIdentifier id=selected.getId();
+        if (id instanceof LibraryComponentIdentifier) {
+          LibraryComponentIdentifier library=(LibraryComponentIdentifier)id;
+          String projectPath=library.getProjectPath();
+          String libraryName=library.getLibraryName();
+          if (!projectPath.equals(project.getPath()) || !libraryName.equals(((DefaultJavaLanguageSourceSet)sourceSet).getParentName())) {
+            ComponentSpec component=((ProjectInternal)project.getRootProject().findProject(projectPath)).getModelRegistry().realize(ModelPath.path("components"),ModelType.of(ComponentSpecContainer.class)).get(libraryName);
+            component.getBinaries().all(new Action<BinarySpec>(){
+              @Override public void execute(              BinarySpec binarySpec){
+                classpath.addAll(binarySpec.getTasks().getBuild().getOutputs().getFiles().getFiles());
+              }
+            }
+);
+            System.out.println("component = " + component);
+          }
+        }
+        System.out.println("selected = " + selected);
       }
     }
   }

@@ -1,0 +1,38 @@
+{
+  if (dependency.getSelector() instanceof LibraryComponentSelector) {
+    DefaultLocalComponentMetaData metaData=null;
+    LibraryComponentSelector selector=(LibraryComponentSelector)dependency.getSelector();
+    ProjectInternal project=defaultProject;
+    if (selector.getProjectPath() != null) {
+      project=project.getRootProject().findProject(selector.getProjectPath());
+    }
+    if (project != null) {
+      ComponentSpecContainer components=project.getModelRegistry().realize(ModelPath.path("components"),ModelType.of(ComponentSpecContainer.class));
+      ModelMap<? extends LibrarySpec> libraries=components.withType(LibrarySpec.class);
+      String libraryName=selector.getLibraryName();
+      if (libraryName == null && libraries.size() == 1) {
+        libraryName=libraries.values().iterator().next().getName();
+      }
+      if (libraryName != null) {
+        String version=project.getVersion().toString();
+        String projectPath=project.getPath();
+        LibrarySpec library=libraries.get(libraryName);
+        if (library != null) {
+          ModuleVersionIdentifier id=new DefaultModuleVersionIdentifier(projectPath,libraryName,version);
+          ComponentIdentifier component=new DefaultLibraryComponentIdentifier(projectPath,library.getName());
+          metaData=new DefaultLocalComponentMetaData(id,component,Project.DEFAULT_STATUS);
+          metaData.addConfiguration(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath,libraryName),"Configuration for " + libraryName,Collections.<String>emptySet(),Collections.singleton(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath,libraryName)),true,true);
+        }
+      }
+    }
+    if (metaData != null) {
+      result.resolved(metaData.toResolveMetaData());
+    }
+ else {
+      result.failed(new ModuleVersionResolveException(selector,String.format("Cannot resolve dependency %s",selector)));
+    }
+  }
+ else {
+    super.resolve(dependency,result);
+  }
+}
