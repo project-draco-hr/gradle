@@ -3,9 +3,10 @@
   classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
   ResolverResults results=new ResolverResults();
   final List<ResolutionAwareRepository> resolutionRepositories=getResolutionAwareRepositories();
-  DefaultJavaSourceSetResolveContext resolveContext=new DefaultJavaSourceSetResolveContext(project,(DefaultJavaLanguageSourceSet)sourceSet);
+  DefaultJavaSourceSetResolveContext resolveContext=new DefaultJavaSourceSetResolveContext((ProjectInternal)project,(DefaultJavaLanguageSourceSet)sourceSet);
   dependencyResolver.resolve(resolveContext,resolutionRepositories,globalDependencyResolutionRules,results);
   ResolutionResult resolutionResult=results.getResolutionResult();
+  final List<Throwable> notFound=new LinkedList<Throwable>();
   resolutionResult.allDependencies(new Action<DependencyResult>(){
     @Override public void execute(    DependencyResult dependencyResult){
       if (dependencyResult instanceof ResolvedDependencyResult) {
@@ -13,8 +14,15 @@
         ResolvedComponentResult selected=resolved.getSelected();
         ComponentIdentifier id=selected.getId();
       }
+ else       if (dependencyResult instanceof UnresolvedDependencyResult) {
+        UnresolvedDependencyResult unresolved=(UnresolvedDependencyResult)dependencyResult;
+        notFound.add(unresolved.getFailure());
+      }
     }
   }
 );
+  if (!notFound.isEmpty()) {
+    throw new LibraryResolveException("Could not resolve all dependencies for source set '" + sourceSet.getDisplayName() + "'",notFound);
+  }
   return classpath;
 }

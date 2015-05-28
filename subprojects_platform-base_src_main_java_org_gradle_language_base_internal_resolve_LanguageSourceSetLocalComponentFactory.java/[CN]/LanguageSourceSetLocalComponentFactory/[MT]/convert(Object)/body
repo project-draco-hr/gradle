@@ -1,0 +1,15 @@
+{
+  DefaultLanguageSourceSetResolveContext context=(DefaultLanguageSourceSetResolveContext)source;
+  String projectPath=context.getProject().getPath();
+  BaseLanguageSourceSet sourceSet=context.getSourceSet();
+  String libraryName=sourceSet.getParentName();
+  String version=context.getProject().getVersion().toString();
+  ModuleVersionIdentifier id=new DefaultModuleVersionIdentifier(projectPath,libraryName,version);
+  ComponentIdentifier component=new DefaultLibraryComponentIdentifier(projectPath,libraryName);
+  DefaultLocalComponentMetaData metaData=new DefaultLocalComponentMetaData(id,component,Project.DEFAULT_STATUS);
+  metaData.addConfiguration(context.getName(),"Configuration for " + libraryName,Collections.<String>emptySet(),Collections.singleton(context.getName()),true,true);
+  if (sourceSet instanceof DependentSourceSetInternal) {
+    addDependencies(projectPath,id,metaData,((DependentSourceSetInternal)sourceSet).getDependencies());
+  }
+  return metaData;
+}
