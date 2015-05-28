@@ -9,17 +9,10 @@
  else {
         resolutionStrategy=new DefaultResolutionStrategy();
       }
-      ResolverProvider resolverProvider=ivyFactory.create(resolutionStrategy,repositories,metadataHandler.getComponentMetadataProcessor());
       List<LocalComponentFactory> localComponentFactories=allServices(LocalComponentFactory.class);
-      List<DependencyToComponentIdResolver> componentIdResolvers=allServices(DependencyToComponentIdResolver.class);
-      List<ComponentMetaDataResolver> metaDataResolvers=allServices(ComponentMetaDataResolver.class);
-      componentIdResolvers.add(resolverProvider.getComponentIdResolver());
-      metaDataResolvers.add(new ClientModuleResolver(resolverProvider.getComponentResolver(),dependencyDescriptorFactory));
-      LocalComponentFactoryChain localComponentFactory=new LocalComponentFactoryChain(localComponentFactories);
-      ComponentMetaDataResolverChain metaDataResolver=new ComponentMetaDataResolverChain(metaDataResolvers);
-      DependencyToComponentIdResolverChain componentIdResolver=new DependencyToComponentIdResolverChain(componentIdResolvers);
-      DependencyToComponentIdResolver idResolver=new DependencySubstitutionResolver(componentIdResolver,resolutionStrategy.getDependencySubstitutionRule());
-      ArtifactResolver artifactResolver=createArtifactResolver(resolverProvider);
+      List<ResolverProvider> resolvers=allServices(ResolverProvider.class,ivyFactory.create(resolutionStrategy,repositories,metadataHandler.getComponentMetadataProcessor()));
+      ResolverProviderChain resolverProvider=new ResolverProviderChain(resolvers);
+      WrappingResolverProvider wrappingProvider=new WrappingResolverProvider(new DependencySubstitutionResolver(resolverProvider.getComponentIdResolver(),resolutionStrategy.getDependencySubstitutionRule()),new ClientModuleResolver(resolverProvider.getComponentResolver(),dependencyDescriptorFactory),createArtifactResolver(resolverProvider.getArtifactResolver()));
       ModuleConflictResolver conflictResolver;
       if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
         conflictResolver=new StrictConflictResolver();
@@ -29,8 +22,8 @@
       }
       conflictResolver=new VersionSelectionReasonResolver(conflictResolver);
       ConflictHandler conflictHandler=new DefaultConflictHandler(conflictResolver,metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
-      DefaultResolveContextToComponentResolver moduleResolver=new DefaultResolveContextToComponentResolver(localComponentFactory);
-      DependencyGraphBuilder builder=new DependencyGraphBuilder(idResolver,metaDataResolver,moduleResolver,artifactResolver,conflictHandler,new DefaultDependencyToConfigurationResolver());
+      DefaultResolveContextToComponentResolver moduleResolver=new DefaultResolveContextToComponentResolver(new LocalComponentFactoryChain(localComponentFactories));
+      DependencyGraphBuilder builder=new DependencyGraphBuilder(wrappingProvider,moduleResolver,conflictHandler,new DefaultDependencyToConfigurationResolver());
       StoreSet stores=storeFactory.createStoreSet();
       BinaryStore newModelStore=stores.nextBinaryStore();
       Store<ResolvedComponentResult> newModelCache=stores.oldModelStore();
