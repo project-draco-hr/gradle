@@ -2,16 +2,22 @@
   if (dependency.getSelector() instanceof LibraryComponentSelector) {
     DefaultLocalComponentMetaData metaData=null;
     LibraryComponentSelector selector=(LibraryComponentSelector)dependency.getSelector();
-    ProjectInternal project=projectFinder.getProject(dependency.getRequested().getGroup());
-    if (project != null && selector.getProjectPath() != null) {
-      project=project.getRootProject().findProject(selector.getProjectPath());
+    String requestedProjectPath=dependency.getRequested().getGroup();
+    ProjectInternal project=projectFinder.getProject(requestedProjectPath);
+    String selectorProjectPath=selector.getProjectPath();
+    if (project != null && selectorProjectPath != null) {
+      project=project.getRootProject().findProject(selectorProjectPath);
     }
+    List<String> candidateLibraries=new LinkedList<String>();
     if (project != null) {
       ComponentSpecContainer components=project.getModelRegistry().realize(ModelPath.path("components"),ModelType.of(ComponentSpecContainer.class));
       ModelMap<? extends LibrarySpec> libraries=components.withType(LibrarySpec.class);
       String libraryName=selector.getLibraryName();
       if (libraryName == null && libraries.size() == 1) {
         libraryName=libraries.values().iterator().next().getName();
+      }
+      for (      LibrarySpec candidateLibrary : libraries.values()) {
+        candidateLibraries.add(String.format("'%s'",candidateLibrary.getName()));
       }
       if (libraryName != null) {
         String version=project.getVersion().toString();
@@ -26,7 +32,9 @@
       result.resolved(metaData.toResolveMetaData());
     }
  else {
-      result.failed(new ModuleVersionResolveException(selector,String.format("Could not resolve dependency '%s'",selector)));
+      String message=prettyErrorMessage(selector,project,requestedProjectPath,selectorProjectPath,candidateLibraries);
+      ModuleVersionResolveException failure=new ModuleVersionResolveException(selector,message);
+      result.failed(failure);
     }
   }
 }
