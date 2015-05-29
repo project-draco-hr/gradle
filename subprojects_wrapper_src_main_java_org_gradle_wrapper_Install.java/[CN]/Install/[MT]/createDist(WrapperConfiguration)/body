@@ -8,7 +8,8 @@
     public File call() throws Exception {
       final File markerFile=new File(localZipFile.getParentFile(),localZipFile.getName() + ".ok");
       if (distDir.isDirectory() && markerFile.isFile()) {
-        return getAndVerifyDistributionRoot(localZipFile,distributionSha256Sum,distDir,distDir.getAbsolutePath());
+        verifyDownloadChecksum(localZipFile,distributionSha256Sum);
+        return getAndVerifyDistributionRoot(distDir,distDir.getAbsolutePath());
       }
       boolean needsDownload=!localZipFile.isFile();
       if (needsDownload) {
@@ -23,9 +24,10 @@
         logger.log("Deleting directory " + dir.getAbsolutePath());
         deleteDir(dir);
       }
+      verifyDownloadChecksum(localZipFile,distributionSha256Sum);
       logger.log("Unzipping " + localZipFile.getAbsolutePath() + " to "+ distDir.getAbsolutePath());
       unzip(localZipFile,distDir);
-      File root=getAndVerifyDistributionRoot(localZipFile,distributionSha256Sum,distDir,distributionUrl.toString());
+      File root=getAndVerifyDistributionRoot(distDir,distributionUrl.toString());
       setExecutablePermissions(root);
       markerFile.createNewFile();
       return root;
