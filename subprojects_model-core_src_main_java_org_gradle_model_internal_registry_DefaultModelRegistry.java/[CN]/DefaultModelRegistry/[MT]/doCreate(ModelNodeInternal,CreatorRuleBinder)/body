@@ -1,9 +1,14 @@
 {
-  ModelCreator creator=boundCreator.getCreator();
-  List<ModelView<?>> views=toViews(boundCreator.getInputBindings(),boundCreator.getCreator());
+  final ModelCreator creator=boundCreator.getCreator();
+  final List<ModelView<?>> views=toViews(boundCreator.getInputBindings(),boundCreator.getCreator());
   LOGGER.debug("Creating {} using {}",node.getPath(),creator.getDescriptor());
   try {
-    creator.create(node,views);
+    RuleContext.run(creator.getDescriptor(),new Runnable(){
+      @Override public void run(){
+        creator.create(node,views);
+      }
+    }
+);
   }
  catch (  Exception e) {
     throw new ModelRuleExecutionException(creator.getDescriptor(),e);
