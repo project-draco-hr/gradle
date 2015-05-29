@@ -5,26 +5,31 @@
     String requestedProjectPath=dependency.getRequested().getGroup();
     ProjectInternal project=projectFinder.getProject(requestedProjectPath);
     String selectorProjectPath=selector.getProjectPath();
-    if (project != null && selectorProjectPath != null) {
+    if (project != null) {
       project=project.getRootProject().findProject(selectorProjectPath);
     }
     List<String> candidateLibraries=new LinkedList<String>();
     if (project != null) {
-      ComponentSpecContainer components=project.getModelRegistry().realize(ModelPath.path("components"),ModelType.of(ComponentSpecContainer.class));
-      ModelMap<? extends LibrarySpec> libraries=components.withType(LibrarySpec.class);
-      String libraryName=selector.getLibraryName();
-      if (libraryName == null && libraries.size() == 1) {
-        libraryName=libraries.values().iterator().next().getName();
-      }
-      for (      LibrarySpec candidateLibrary : libraries.values()) {
-        candidateLibraries.add(String.format("'%s'",candidateLibrary.getName()));
-      }
-      if (libraryName != null) {
-        String version=project.getVersion().toString();
-        String projectPath=project.getPath();
-        LibrarySpec library=libraries.get(libraryName);
-        if (library != null) {
-          metaData=DefaultLibraryLocalComponentMetaData.newMetaData(projectPath,libraryName,version);
+      ModelRegistry modelRegistry=project.getModelRegistry();
+      ComponentSpecContainer components=modelRegistry.find(ModelPath.path("components"),ModelType.of(ComponentSpecContainer.class));
+      if (components != null) {
+        ModelMap<? extends LibrarySpec> libraries=components.withType(LibrarySpec.class);
+        String libraryName=selector.getLibraryName();
+        boolean findSingleLibrary="".equals(libraryName);
+        Collection<? extends LibrarySpec> availableLibraries=libraries.values();
+        for (        LibrarySpec candidateLibrary : availableLibraries) {
+          candidateLibraries.add(String.format("'%s'",candidateLibrary.getName()));
+        }
+        if (findSingleLibrary && availableLibraries.size() == 1) {
+          libraryName=availableLibraries.iterator().next().getName();
+        }
+        if (!availableLibraries.isEmpty()) {
+          String version=project.getVersion().toString();
+          String projectPath=project.getPath();
+          LibrarySpec library=libraries.get(libraryName);
+          if (library != null) {
+            metaData=DefaultLibraryLocalComponentMetaData.newMetaData(projectPath,libraryName,version);
+          }
         }
       }
     }

@@ -1,19 +1,17 @@
 {
   ModuleVersionIdentifier mvi=metaData.getId();
   for (  DependencySpec dependency : allDependencies) {
-    ComponentSelector selector;
     String projectPath=dependency.getProjectPath();
     if (projectPath == null) {
       projectPath=defaultProject;
     }
-    if (dependency.getLibraryName() == null) {
-      selector=new DefaultProjectComponentSelector(dependency.getProjectPath());
+    String libraryName=dependency.getLibraryName();
+    if (libraryName == null) {
+      libraryName="";
     }
- else {
-      selector=new DefaultLibraryComponentSelector(projectPath,dependency.getLibraryName());
-    }
-    DefaultModuleVersionSelector requested=new DefaultModuleVersionSelector(projectPath,dependency.getLibraryName(),mvi.getVersion());
-    LocalComponentDependencyMetaData localComponentDependencyMetaData=new LocalComponentDependencyMetaData(selector,requested,DefaultLibraryComponentIdentifier.libraryToConfigurationName(mvi.getGroup(),mvi.getName()),DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath,dependency.getLibraryName()),Collections.<IvyArtifactName>emptySet(),EXCLUDE_RULES,false,false,true);
+    ComponentSelector selector=new DefaultLibraryComponentSelector(projectPath,libraryName);
+    DefaultModuleVersionSelector requested=new DefaultModuleVersionSelector(projectPath,libraryName,mvi.getVersion());
+    LocalComponentDependencyMetaData localComponentDependencyMetaData=new LocalComponentDependencyMetaData(selector,requested,DefaultLibraryComponentIdentifier.libraryToConfigurationName(mvi.getGroup(),mvi.getName()),DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath,libraryName),Collections.<IvyArtifactName>emptySet(),EXCLUDE_RULES,false,false,true);
     metaData.addDependency(localComponentDependencyMetaData);
   }
 }
