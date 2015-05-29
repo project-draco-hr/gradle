@@ -1,37 +1,20 @@
 {
   if (dependency.getSelector() instanceof LibraryComponentSelector) {
-    DefaultLocalComponentMetaData metaData=null;
     LibraryComponentSelector selector=(LibraryComponentSelector)dependency.getSelector();
-    String selectorProjectPath=selector.getProjectPath();
-    ProjectInternal project=projectFinder.getProject(selectorProjectPath);
+    final String selectorProjectPath=selector.getProjectPath();
+    final String libraryName=selector.getLibraryName();
+    final ProjectInternal project=projectFinder.getProject(selectorProjectPath);
     List<String> candidateLibraries=new LinkedList<String>();
     if (project != null) {
-      ModelRegistry modelRegistry=project.getModelRegistry();
-      ComponentSpecContainer components=modelRegistry.find(ModelPath.path("components"),ModelType.of(ComponentSpecContainer.class));
-      if (components != null) {
-        ModelMap<? extends LibrarySpec> libraries=components.withType(LibrarySpec.class);
-        String libraryName=selector.getLibraryName();
-        boolean findSingleLibrary="".equals(libraryName);
-        Collection<? extends LibrarySpec> availableLibraries=libraries.values();
-        for (        LibrarySpec candidateLibrary : availableLibraries) {
-          candidateLibraries.add(String.format("'%s'",candidateLibrary.getName()));
-        }
-        if (findSingleLibrary && availableLibraries.size() == 1) {
-          libraryName=availableLibraries.iterator().next().getName();
-        }
-        if (!availableLibraries.isEmpty()) {
-          String version=project.getVersion().toString();
-          LibrarySpec library=libraries.get(libraryName);
-          if (library != null) {
-            metaData=DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath,libraryName,version);
-          }
+      withLibrary(project,libraryName,candidateLibraries,new Action<LibrarySpec>(){
+        @Override public void execute(        LibrarySpec librarySpec){
+          DefaultLibraryLocalComponentMetaData metaData=DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath,librarySpec.getName(),String.valueOf(project.getVersion()));
+          result.resolved(metaData.toResolveMetaData());
         }
       }
+);
     }
-    if (metaData != null) {
-      result.resolved(metaData.toResolveMetaData());
-    }
- else {
+    if (!result.hasResult()) {
       String message=prettyErrorMessage(selector,project,selectorProjectPath,candidateLibraries);
       ModuleVersionResolveException failure=new ModuleVersionResolveException(selector,message);
       result.failed(failure);

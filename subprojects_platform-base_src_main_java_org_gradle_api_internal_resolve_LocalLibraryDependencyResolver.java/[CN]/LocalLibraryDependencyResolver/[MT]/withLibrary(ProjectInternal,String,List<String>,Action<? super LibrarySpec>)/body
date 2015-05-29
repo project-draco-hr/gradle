@@ -1,0 +1,21 @@
+{
+  ModelRegistry modelRegistry=project.getModelRegistry();
+  ComponentSpecContainer components=modelRegistry.find(ModelPath.path("components"),ModelType.of(ComponentSpecContainer.class));
+  if (components != null) {
+    ModelMap<? extends LibrarySpec> libraries=components.withType(LibrarySpec.class);
+    boolean findSingleLibrary="".equals(libraryName);
+    Collection<? extends LibrarySpec> availableLibraries=libraries.values();
+    for (    LibrarySpec candidateLibrary : availableLibraries) {
+      candidateLibraries.add(String.format("'%s'",candidateLibrary.getName()));
+    }
+    if (findSingleLibrary && availableLibraries.size() == 1) {
+      libraryName=availableLibraries.iterator().next().getName();
+    }
+    if (!availableLibraries.isEmpty()) {
+      LibrarySpec library=libraries.get(libraryName);
+      if (library != null) {
+        action.execute(library);
+      }
+    }
+  }
+}
