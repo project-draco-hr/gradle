@@ -2,9 +2,12 @@
   StringBuilder sb=new StringBuilder("Could not resolve dependency '");
   sb.append(selector);
   sb.append("'");
-  if ("".equals(selector.getLibraryName())) {
-    sb.append(". Project ").append(selectorProjectPath);
-    if (candidateLibraries.isEmpty()) {
+  if ("".equals(selector.getLibraryName()) || candidateLibraries.isEmpty()) {
+    sb.append(". Project '").append(selectorProjectPath).append("'");
+    if (project == null) {
+      sb.append(" not found.");
+    }
+ else     if (candidateLibraries.isEmpty()) {
       sb.append(" doesn't define any library.");
     }
  else {
@@ -12,11 +15,8 @@
       Joiner.on(", ").appendTo(sb,candidateLibraries);
     }
   }
- else   if (project == null) {
-    sb.append(". Project '").append(selectorProjectPath).append("' not found.");
-  }
  else {
-    sb.append(" on project '").append(requestedProjectPath).append("'");
+    sb.append(" on project '").append(selectorProjectPath).append("'");
     sb.append(". Did you want to use ");
     if (candidateLibraries.size() == 1) {
       sb.append(candidateLibraries.get(0));

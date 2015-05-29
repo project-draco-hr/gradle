@@ -2,12 +2,8 @@
   if (dependency.getSelector() instanceof LibraryComponentSelector) {
     DefaultLocalComponentMetaData metaData=null;
     LibraryComponentSelector selector=(LibraryComponentSelector)dependency.getSelector();
-    String requestedProjectPath=dependency.getRequested().getGroup();
-    ProjectInternal project=projectFinder.getProject(requestedProjectPath);
     String selectorProjectPath=selector.getProjectPath();
-    if (project != null) {
-      project=project.getRootProject().findProject(selectorProjectPath);
-    }
+    ProjectInternal project=projectFinder.getProject(selectorProjectPath);
     List<String> candidateLibraries=new LinkedList<String>();
     if (project != null) {
       ModelRegistry modelRegistry=project.getModelRegistry();
@@ -25,10 +21,9 @@
         }
         if (!availableLibraries.isEmpty()) {
           String version=project.getVersion().toString();
-          String projectPath=project.getPath();
           LibrarySpec library=libraries.get(libraryName);
           if (library != null) {
-            metaData=DefaultLibraryLocalComponentMetaData.newMetaData(projectPath,libraryName,version);
+            metaData=DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath,libraryName,version);
           }
         }
       }
@@ -37,7 +32,7 @@
       result.resolved(metaData.toResolveMetaData());
     }
  else {
-      String message=prettyErrorMessage(selector,project,requestedProjectPath,selectorProjectPath,candidateLibraries);
+      String message=prettyErrorMessage(selector,project,selectorProjectPath,candidateLibraries);
       ModuleVersionResolveException failure=new ModuleVersionResolveException(selector,message);
       result.failed(failure);
     }
