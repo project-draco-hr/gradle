@@ -1,5 +1,6 @@
 {
   final URI distributionUrl=configuration.getDistribution();
+  final String distributionSha256Sum=configuration.getDistributionSha256Sum();
   final PathAssembler.LocalDistribution localDistribution=pathAssembler.getDistribution(configuration);
   final File distDir=localDistribution.getDistributionDir();
   final File localZipFile=localDistribution.getZipFile();
@@ -7,7 +8,7 @@
     public File call() throws Exception {
       final File markerFile=new File(localZipFile.getParentFile(),localZipFile.getName() + ".ok");
       if (distDir.isDirectory() && markerFile.isFile()) {
-        return getDistributionRoot(distDir,distDir.getAbsolutePath());
+        return getAndVerifyDistributionRoot(localZipFile,distributionSha256Sum,distDir,distDir.getAbsolutePath());
       }
       boolean needsDownload=!localZipFile.isFile();
       if (needsDownload) {
@@ -24,7 +25,7 @@
       }
       logger.log("Unzipping " + localZipFile.getAbsolutePath() + " to "+ distDir.getAbsolutePath());
       unzip(localZipFile,distDir);
-      File root=getDistributionRoot(distDir,distributionUrl.toString());
+      File root=getAndVerifyDistributionRoot(localZipFile,distributionSha256Sum,distDir,distributionUrl.toString());
       setExecutablePermissions(root);
       markerFile.createNewFile();
       return root;
