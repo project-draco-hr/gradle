@@ -1,0 +1,25 @@
+{
+  final LibraryComponentIdentifier libId=componentId;
+  String projectPath=libId.getProjectPath();
+  String libraryName=libId.getLibraryName();
+  ProjectInternal project=projectFinder.getProject(projectPath);
+  if (project != null) {
+    final List<ComponentArtifactMetaData> artifacts=new LinkedList<ComponentArtifactMetaData>();
+    withLibrary(project,libraryName,null,new Action<LibrarySpec>(){
+      @Override public void execute(      LibrarySpec librarySpec){
+        Collection<BinarySpec> binaries=librarySpec.getBinaries().values();
+        for (        BinarySpec binary : binaries) {
+          BinarySpecToArtifactConverter<BinarySpec> factory=binarySpecToArtifactConverterRegistry.getConverter(binary);
+          if (factory != null) {
+            artifacts.add(factory.convertArtifact(libId,binary));
+          }
+        }
+      }
+    }
+);
+    result.resolved(artifacts);
+  }
+  if (!result.hasResult()) {
+    result.failed(new ArtifactResolveException("Unable to resolve artifact for " + componentId));
+  }
+}
