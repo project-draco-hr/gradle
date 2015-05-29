@@ -2,6 +2,14 @@
   return parentContext.child(property.getType(),propertyDescription(parentContext,property),new Action<ModelSchemaExtractionContext<P>>(){
     public void execute(    ModelSchemaExtractionContext<P> propertyExtractionContext){
       ModelSchema<P> propertySchema=modelSchemaCache.get(property.getType());
+      if (property.getName().equals("name") && Named.class.isAssignableFrom(parentContext.getType().getRawClass())) {
+        if (property.isWritable()) {
+          throw new InvalidManagedModelElementTypeException(parentContext,String.format("@Managed types implementing %s must not declare a setter for the name property",Named.class.getName()));
+        }
+ else {
+          return;
+        }
+      }
       if (propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && property.isUnmanaged()) {
         throw new InvalidManagedModelElementTypeException(parentContext,String.format("property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n%s",property.getName(),property.getType(),supportedTypeDescriptions.create()));
       }
@@ -14,6 +22,14 @@
         }
         if (!propertySchema.getKind().isManaged()) {
           throw new InvalidManagedModelElementTypeException(parentContext,String.format("read only property '%s' has non managed type %s, only managed types can be used",property.getName(),property.getType()));
+        }
+      }
+      if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
+        ModelCollectionSchema<?> propertyCollectionSchema=(ModelCollectionSchema<?>)propertySchema;
+        if (propertyCollectionSchema.isMap()) {
+          if (property.isWritable()) {
+            throw new InvalidManagedModelElementTypeException(parentContext,String.format("property '%s' cannot have a setter (%s properties must be read only).",property.getName(),ModelMap.class.getName()));
+          }
         }
       }
     }
