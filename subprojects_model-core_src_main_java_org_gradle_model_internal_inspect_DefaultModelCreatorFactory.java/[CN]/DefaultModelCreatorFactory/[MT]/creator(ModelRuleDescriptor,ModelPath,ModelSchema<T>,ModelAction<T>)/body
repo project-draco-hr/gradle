@@ -1,12 +1,29 @@
 {
+  ModelCreators.Builder builder;
   if (schema instanceof ModelCollectionSchema) {
+    builder=ModelCreators.of(path);
     ModelCollectionSchema<T> collectionSchema=(ModelCollectionSchema<T>)schema;
     ModelSchema<?> elementSchema=schemaStore.getSchema(collectionSchema.getElementType());
-    return ModelCreators.of(path,new ManagedSetInitializer<T>(initializer)).withProjection(ManagedSetModelProjection.of(elementSchema,this)).descriptor(descriptor).build();
+    if (collectionSchema.isMap()) {
+      builder.withProjection(modelMapProjection(collectionSchema.getElementType()));
+    }
+ else {
+      builder.withProjection(ModelSetModelProjection.of(elementSchema,this));
+    }
   }
-  if (schema instanceof ModelStructSchema) {
+ else   if (schema instanceof ModelStructSchema) {
     ModelStructSchema<T> structSchema=(ModelStructSchema<T>)schema;
-    return ModelCreators.of(path,new ManagedModelInitializer<T>(descriptor,structSchema,schemaStore,this,initializer)).withProjection(new ManagedModelProjection<T>(structSchema,schemaStore,proxyFactory)).descriptor(descriptor).build();
+    builder=ModelCreators.of(path,new ManagedModelInitializer<T>(descriptor,structSchema,schemaStore,this)).withProjection(new ManagedModelProjection<T>(structSchema,schemaStore,proxyFactory));
   }
-  throw new IllegalArgumentException("Don't know how to create model element from schema for " + schema.getType());
+ else {
+    throw new IllegalArgumentException("Don't know how to create model element from schema for " + schema.getType());
+  }
+  builder.descriptor(descriptor);
+  if (schema.getKind() == ModelSchema.Kind.STRUCT && Named.class.isAssignableFrom(schema.getType().getRawClass())) {
+    builder.action(ModelActionRole.Initialize,new NamedInitializer(path,descriptor));
+  }
+  if (initializer != null) {
+    builder.action(ModelActionRole.Initialize,initializer);
+  }
+  return builder.build();
 }
