@@ -1,0 +1,16 @@
+{
+  final DefaultTaskDependency result=new DefaultTaskDependency();
+  result.add(super.getBuildDependencies());
+  resolve(createResolveContext(),new Action<ResolverResults>(){
+    @Override public void execute(    ResolverResults resolverResults){
+      ResolvedArtifactResults resolve=resolverResults.getArtifactsBuilder().resolve();
+      for (      ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+        if (resolvedArtifact instanceof Buildable) {
+          result.add(((Buildable)resolvedArtifact).getBuildDependencies());
+        }
+      }
+    }
+  }
+);
+  return result;
+}

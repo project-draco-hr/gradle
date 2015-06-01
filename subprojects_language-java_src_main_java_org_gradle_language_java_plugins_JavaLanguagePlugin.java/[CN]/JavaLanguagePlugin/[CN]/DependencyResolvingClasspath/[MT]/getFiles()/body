@@ -1,22 +1,23 @@
 {
   final Set<File> classpath=new LinkedHashSet<File>();
   classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
-  ResolverResults results=new ResolverResults();
-  final List<ResolutionAwareRepository> resolutionRepositories=getResolutionAwareRepositories();
-  DefaultJavaSourceSetResolveContext resolveContext=new DefaultJavaSourceSetResolveContext((ProjectInternal)project,(DefaultJavaLanguageSourceSet)sourceSet);
-  dependencyResolver.resolve(resolveContext,resolutionRepositories,globalDependencyResolutionRules,results);
-  ResolutionResult resolutionResult=results.getResolutionResult();
-  ResolvedArtifactResults resolve=results.getArtifactsBuilder().resolve();
-  for (  ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-    classpath.add(resolvedArtifact.getFile());
-  }
+  DefaultJavaSourceSetResolveContext resolveContext=createResolveContext();
   final List<Throwable> notFound=new LinkedList<Throwable>();
-  resolutionResult.allDependencies(new Action<DependencyResult>(){
-    @Override public void execute(    DependencyResult dependencyResult){
-      if (dependencyResult instanceof UnresolvedDependencyResult) {
-        UnresolvedDependencyResult unresolved=(UnresolvedDependencyResult)dependencyResult;
-        notFound.add(unresolved.getFailure());
+  resolve(resolveContext,new Action<ResolverResults>(){
+    @Override public void execute(    ResolverResults resolverResults){
+      ResolvedArtifactResults resolve=resolverResults.getArtifactsBuilder().resolve();
+      for (      ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+        classpath.add(resolvedArtifact.getFile());
       }
+      resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>(){
+        @Override public void execute(        DependencyResult dependencyResult){
+          if (dependencyResult instanceof UnresolvedDependencyResult) {
+            UnresolvedDependencyResult unresolved=(UnresolvedDependencyResult)dependencyResult;
+            notFound.add(unresolved.getFailure());
+          }
+        }
+      }
+);
     }
   }
 );
