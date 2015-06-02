@@ -32,7 +32,10 @@
       ToolResolver toolResolver=serviceRegistry.get(ToolResolver.class);
       final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool=toolResolver.resolve(PlayApplicationRunner.class,chosenPlatform);
       DeploymentRegistry deploymentRegistry=serviceRegistry.get(DeploymentRegistry.class);
-      deploymentRegistry.register(new PlayApplicationDeploymentHandle(chosenPlatform.getName(),playApplicationRunnerTool));
+      String deploymentId=getDeploymentId(projectIdentifier,chosenPlatform.getName());
+      if (playApplicationRunnerTool.isAvailable()) {
+        deploymentRegistry.register(new PlayApplicationDeploymentHandle(deploymentId,playApplicationRunnerTool.get()));
+      }
     }
   }
 );

@@ -2,10 +2,12 @@
   final DeploymentRegistry deploymentRegistry=serviceRegistry.get(DeploymentRegistry.class);
   for (  final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
     String runTaskName=String.format("run%s",StringUtils.capitalize(binary.getName()));
+    final String deploymentId=getDeploymentId(projectIdentifier,binary.getTargetPlatform().getName());
     tasks.create(runTaskName,PlayRun.class,new Action<PlayRun>(){
       public void execute(      PlayRun playRun){
         playRun.setHttpPort(DEFAULT_HTTP_PORT);
-        playRun.setDeploymentHandle(deploymentRegistry.get(PlayApplicationDeploymentHandle.class,binary.getTargetPlatform().getName()));
+        playRun.setDeploymentRegistry(deploymentRegistry);
+        playRun.setDeploymentId(deploymentId);
         playRun.setApplicationJar(binary.getJarFile());
         playRun.setAssetsJar(binary.getAssetsJarFile());
         playRun.setRuntimeClasspath(configurations.getPlayRun().getFileCollection());
