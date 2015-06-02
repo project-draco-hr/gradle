@@ -1,16 +1,20 @@
 {
   componentSpecs.afterEach(new Action<NativeComponentSpec>(){
     @Override public void execute(    NativeComponentSpec componentSpec){
-      for (      LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class).values()) {
-        Task generatorTask=languageSourceSet.getGeneratorTask();
-        if (generatorTask != null) {
-          languageSourceSet.builtBy(generatorTask);
-          maybeSetSourceDir(languageSourceSet.getSource(),generatorTask,"sourceDir");
-          if (languageSourceSet instanceof HeaderExportingSourceSet) {
-            maybeSetSourceDir(((HeaderExportingSourceSet)languageSourceSet).getExportedHeaders(),generatorTask,"headerDir");
+      componentSpec.getSource().withType(LanguageSourceSet.class).afterEach(new Action<LanguageSourceSet>(){
+        @Override public void execute(        LanguageSourceSet languageSourceSet){
+          LanguageSourceSetInternal internalSourceSet=(LanguageSourceSetInternal)languageSourceSet;
+          Task generatorTask=internalSourceSet.getGeneratorTask();
+          if (generatorTask != null) {
+            languageSourceSet.builtBy(generatorTask);
+            maybeSetSourceDir(languageSourceSet.getSource(),generatorTask,"sourceDir");
+            if (languageSourceSet instanceof HeaderExportingSourceSet) {
+              maybeSetSourceDir(((HeaderExportingSourceSet)languageSourceSet).getExportedHeaders(),generatorTask,"headerDir");
+            }
           }
         }
       }
+);
     }
   }
 );

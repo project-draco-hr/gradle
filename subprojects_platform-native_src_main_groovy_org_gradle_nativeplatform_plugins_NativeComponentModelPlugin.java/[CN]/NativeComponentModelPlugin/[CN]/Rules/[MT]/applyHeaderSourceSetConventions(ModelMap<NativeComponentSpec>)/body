@@ -1,14 +1,16 @@
 {
   componentSpecs.afterEach(new Action<NativeComponentSpec>(){
-    @Override public void execute(    NativeComponentSpec componentSpec){
-      ModelMap<HeaderExportingSourceSet> headerSourceSets=componentSpec.getSource().withType(HeaderExportingSourceSet.class);
-      for (      HeaderExportingSourceSet headerSourceSet : headerSourceSets.values()) {
-        if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
-          headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers",componentSpec.getName()));
+    @Override public void execute(    final NativeComponentSpec componentSpec){
+      componentSpec.getSource().withType(HeaderExportingSourceSet.class).afterEach(new Action<HeaderExportingSourceSet>(){
+        @Override public void execute(        HeaderExportingSourceSet headerSourceSet){
+          if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
+            headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers",componentSpec.getName()));
+          }
+          headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
+          headerSourceSet.getImplicitHeaders().include("**/*.h");
         }
-        headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
-        headerSourceSet.getImplicitHeaders().include("**/*.h");
       }
+);
     }
   }
 );
