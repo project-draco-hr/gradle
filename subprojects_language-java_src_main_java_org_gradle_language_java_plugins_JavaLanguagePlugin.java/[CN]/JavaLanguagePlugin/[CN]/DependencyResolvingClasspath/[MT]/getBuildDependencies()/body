@@ -5,15 +5,17 @@
     final List<Throwable> notFound=new LinkedList<Throwable>();
     resolve(createResolveContext(),new Action<ResolverResults>(){
       @Override public void execute(      ResolverResults resolverResults){
-        ResolvedArtifactsBuilder artifactsBuilder=resolverResults.getArtifactsBuilder();
-        ResolvedArtifactResults resolve=artifactsBuilder.resolve();
-        for (        ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-          if (resolvedArtifact instanceof Buildable) {
-            result.add(((Buildable)resolvedArtifact).getBuildDependencies());
+        if (!resolverResults.hasError()) {
+          ResolvedArtifactsBuilder artifactsBuilder=resolverResults.getArtifactsBuilder();
+          ResolvedArtifactResults resolve=artifactsBuilder.resolve();
+          for (          ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+            if (resolvedArtifact instanceof Buildable) {
+              result.add(((Buildable)resolvedArtifact).getBuildDependencies());
+            }
           }
-        }
-        for (        ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-          dependencies.add(resolvedArtifact.getFile());
+          for (          ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+            dependencies.add(resolvedArtifact.getFile());
+          }
         }
         resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>(){
           @Override public void execute(          DependencyResult dependencyResult){
