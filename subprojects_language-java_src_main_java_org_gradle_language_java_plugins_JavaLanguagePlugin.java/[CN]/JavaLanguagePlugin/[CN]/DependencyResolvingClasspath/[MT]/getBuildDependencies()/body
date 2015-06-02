@@ -1,16 +1,36 @@
 {
-  final DefaultTaskDependency result=new DefaultTaskDependency();
-  result.add(super.getBuildDependencies());
-  resolve(createResolveContext(),new Action<ResolverResults>(){
-    @Override public void execute(    ResolverResults resolverResults){
-      ResolvedArtifactResults resolve=resolverResults.getArtifactsBuilder().resolve();
-      for (      ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-        if (resolvedArtifact instanceof Buildable) {
-          result.add(((Buildable)resolvedArtifact).getBuildDependencies());
+  if (taskDependency == null) {
+    final DefaultTaskDependency result=new DefaultTaskDependency();
+    result.add(super.getBuildDependencies());
+    final List<Throwable> notFound=new LinkedList<Throwable>();
+    resolve(createResolveContext(),new Action<ResolverResults>(){
+      @Override public void execute(      ResolverResults resolverResults){
+        ResolvedArtifactsBuilder artifactsBuilder=resolverResults.getArtifactsBuilder();
+        ResolvedArtifactResults resolve=artifactsBuilder.resolve();
+        for (        ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+          if (resolvedArtifact instanceof Buildable) {
+            result.add(((Buildable)resolvedArtifact).getBuildDependencies());
+          }
         }
+        for (        ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+          dependencies.add(resolvedArtifact.getFile());
+        }
+        resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>(){
+          @Override public void execute(          DependencyResult dependencyResult){
+            if (dependencyResult instanceof UnresolvedDependencyResult) {
+              UnresolvedDependencyResult unresolved=(UnresolvedDependencyResult)dependencyResult;
+              notFound.add(unresolved.getFailure());
+            }
+          }
+        }
+);
       }
     }
-  }
 );
-  return result;
+    if (!notFound.isEmpty()) {
+      throw new LibraryResolveException(String.format("Could not resolve all dependencies for source set '%s'",sourceSet.getDisplayName()),notFound);
+    }
+    taskDependency=result;
+  }
+  return taskDependency;
 }
