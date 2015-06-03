@@ -1,19 +1,17 @@
 {
   for (  final NativeComponentSpec nativeComponentSpec : nativeComponents.values()) {
-    nativeComponentSpec.getSource().withType(DependentSourceSetInternal.class,new Action<DependentSourceSetInternal>(){
-      @Override public void execute(      final DependentSourceSetInternal dependentSourceSet){
-        if (dependentSourceSet.getPrefixHeaderFile() != null) {
-          String taskName=String.format("generate%s%sPrefixHeaderFile",StringUtils.capitalize(nativeComponentSpec.getName()),StringUtils.capitalize(dependentSourceSet.getName()));
-          tasks.create(taskName,PrefixHeaderFileGenerateTask.class,new Action<PrefixHeaderFileGenerateTask>(){
-            @Override public void execute(            PrefixHeaderFileGenerateTask prefixHeaderFileGenerateTask){
-              prefixHeaderFileGenerateTask.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
-              prefixHeaderFileGenerateTask.setHeader(dependentSourceSet.getPreCompiledHeader());
-            }
+    for (    final DependentSourceSet dependentSourceSet : nativeComponentSpec.getSource().withType(DependentSourceSet.class).values()) {
+      final DependentSourceSetInternal internalSourceSet=(DependentSourceSetInternal)dependentSourceSet;
+      if (internalSourceSet.getPrefixHeaderFile() != null) {
+        String taskName=String.format("generate%s%sPrefixHeaderFile",StringUtils.capitalize(nativeComponentSpec.getName()),StringUtils.capitalize(dependentSourceSet.getName()));
+        tasks.create(taskName,PrefixHeaderFileGenerateTask.class,new Action<PrefixHeaderFileGenerateTask>(){
+          @Override public void execute(          PrefixHeaderFileGenerateTask prefixHeaderFileGenerateTask){
+            prefixHeaderFileGenerateTask.setPrefixHeaderFile(internalSourceSet.getPrefixHeaderFile());
+            prefixHeaderFileGenerateTask.setHeader(dependentSourceSet.getPreCompiledHeader());
           }
-);
         }
+);
       }
     }
-);
   }
 }

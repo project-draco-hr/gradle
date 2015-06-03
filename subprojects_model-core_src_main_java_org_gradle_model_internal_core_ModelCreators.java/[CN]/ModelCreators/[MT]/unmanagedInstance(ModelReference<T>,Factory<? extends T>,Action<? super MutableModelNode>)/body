@@ -1,9 +1,10 @@
 {
-  @SuppressWarnings("unchecked") Action<MutableModelNode> initializers=Actions.composite(new Action<MutableModelNode>(){
-    public void execute(    MutableModelNode modelNode){
-      modelNode.setPrivateData(modelReference.getType(),factory.create());
+  return unmanagedInstanceOf(modelReference,new Transformer<T,MutableModelNode>(){
+    @Override public T transform(    MutableModelNode modelNode){
+      T t=factory.create();
+      initializer.execute(modelNode);
+      return t;
     }
   }
-,initializer);
-  return of(modelReference.getPath(),initializers).withProjection(UnmanagedModelProjection.of(modelReference.getType()));
+);
 }

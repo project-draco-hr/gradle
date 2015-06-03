@@ -1,14 +1,18 @@
 {
   componentSpecs.afterEach(new Action<NativeComponentSpec>(){
-    @Override public void execute(    NativeComponentSpec componentSpec){
-      for (      DependentSourceSetInternal dependentSourceSet : componentSpec.getSource().withType(DependentSourceSetInternal.class).values()) {
-        if (dependentSourceSet.getPreCompiledHeader() != null) {
-          String prefixHeaderDirName=String.format("tmp/%s/%s/prefixHeaders",componentSpec.getName(),dependentSourceSet.getName());
-          File prefixHeaderDir=new File(buildDir,prefixHeaderDirName);
-          final File prefixHeaderFile=new File(prefixHeaderDir,"prefix-headers.h");
-          dependentSourceSet.setPrefixHeaderFile(prefixHeaderFile);
+    @Override public void execute(    final NativeComponentSpec componentSpec){
+      componentSpec.getSource().withType(DependentSourceSet.class).afterEach(new Action<DependentSourceSet>(){
+        @Override public void execute(        DependentSourceSet dependentSourceSet){
+          if (dependentSourceSet.getPreCompiledHeader() != null) {
+            DependentSourceSetInternal internalSourceSet=(DependentSourceSetInternal)dependentSourceSet;
+            String prefixHeaderDirName=String.format("tmp/%s/%s/prefixHeaders",componentSpec.getName(),dependentSourceSet.getName());
+            File prefixHeaderDir=new File(buildDir,prefixHeaderDirName);
+            File prefixHeaderFile=new File(prefixHeaderDir,"prefix-headers.h");
+            internalSourceSet.setPrefixHeaderFile(prefixHeaderFile);
+          }
         }
       }
+);
     }
   }
 );
