@@ -1,0 +1,17 @@
+{
+  if (collectionSchema.isMap()) {
+    builder.withProjection(modelMapProjection(elementType));
+  }
+ else {
+    Class<? super T> setType=collectionSchema.getType().getRawClass();
+    if (setType.equals(ModelSet.class)) {
+      builder.withProjection(TypedModelProjection.of(ModelTypes.modelSet(elementType),modelSetFactory(elementType)));
+    }
+ else     if (setType.equals(ManagedSet.class)) {
+      builder.withProjection(TypedModelProjection.of(ModelTypes.managedSet(elementType),managedSetFactory(elementType)));
+    }
+ else {
+      throw new IllegalStateException("Expected ModelSet or ManagedSet");
+    }
+  }
+}
