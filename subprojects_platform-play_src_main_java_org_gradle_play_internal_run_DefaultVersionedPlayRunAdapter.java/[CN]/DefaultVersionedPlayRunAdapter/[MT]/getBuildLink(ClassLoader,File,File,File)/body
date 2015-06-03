@@ -1,5 +1,5 @@
 {
-  reloadWithClasspath(classpath);
+  forceReloadNextTime();
   return Proxy.newProxyInstance(classLoader,new Class<?>[]{getBuildLinkClass(classLoader)},new InvocationHandler(){
     public Object invoke(    Object proxy,    Method method,    Object[] args) throws Throwable {
       if (method.getName().equals("projectPath")) {
@@ -10,9 +10,8 @@
         if (result == null) {
           return null;
         }
- else         if (result instanceof DefaultClassPath) {
-          DefaultClassPath projectClasspath=(DefaultClassPath)result;
-          return new URLClassLoader(projectClasspath.getAsURLs().toArray(new URL[]{}),Thread.currentThread().getContextClassLoader());
+ else         if (result == Boolean.TRUE) {
+          return new URLClassLoader(new URL[]{applicationJar.toURI().toURL(),assetsJar.toURI().toURL()},classLoader);
         }
  else {
           throw new IllegalStateException();
