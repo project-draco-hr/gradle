@@ -1,0 +1,26 @@
+{
+  final Action<NativeBinarySpec> setToolsAction=new ToolSettingNativeBinaryInitializer(languageTransforms);
+  testSuites.withType(GoogleTestTestSuiteSpec.class).afterEach(new Action<GoogleTestTestSuiteSpec>(){
+    @Override public void execute(    final GoogleTestTestSuiteSpec testSuiteSpec){
+      for (      final NativeBinarySpec testedBinary : testSuiteSpec.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
+        if (testedBinary instanceof SharedLibraryBinary) {
+          continue;
+        }
+        final BinaryNamingScheme namingScheme=new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal)testedBinary).getNamingScheme()).withComponentName(testSuiteSpec.getBaseName()).withTypeString("GoogleTestExe").build();
+        final NativeDependencyResolver resolver=serviceRegistry.get(NativeDependencyResolver.class);
+        testSuiteSpec.getBinaries().create(namingScheme.getLifecycleTaskName(),GoogleTestTestSuiteBinarySpec.class,new Action<GoogleTestTestSuiteBinarySpec>(){
+          @Override public void execute(          GoogleTestTestSuiteBinarySpec binary){
+            DefaultGoogleTestTestSuiteBinary testBinary=(DefaultGoogleTestTestSuiteBinary)binary;
+            testBinary.setTestedBinary((NativeBinarySpecInternal)testedBinary);
+            testBinary.setNamingScheme(namingScheme);
+            testBinary.setResolver(resolver);
+            setToolsAction.execute(testBinary);
+            configure(testBinary,buildDir);
+          }
+        }
+);
+      }
+    }
+  }
+);
+}
