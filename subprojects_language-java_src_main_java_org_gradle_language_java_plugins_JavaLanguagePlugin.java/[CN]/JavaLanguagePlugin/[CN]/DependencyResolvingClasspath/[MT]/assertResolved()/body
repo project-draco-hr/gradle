@@ -1,17 +1,13 @@
 {
-  if (taskDependency == null) {
+  if (resolverResults == null) {
     final DefaultTaskDependency result=new DefaultTaskDependency();
     result.add(super.getBuildDependencies());
     final List<Throwable> notFound=new LinkedList<Throwable>();
-    resolve(createResolveContext(),new Action<ResolverResults>(){
-      @Override public void execute(      ResolverResults resolverResults){
+    resolve(createResolveContext(),new Action<DefaultResolverResults>(){
+      @Override public void execute(      DefaultResolverResults resolverResults){
         if (!resolverResults.hasError()) {
-          ResolvedArtifactsBuilder artifactsBuilder=resolverResults.getArtifactsBuilder();
-          ResolvedArtifactResults resolve=artifactsBuilder.resolve();
-          for (          ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-            dependencies.add(resolvedArtifact.getFile());
-          }
-          result.add(resolverResults.getResolvedLocalComponents().getComponentBuildDependencies());
+          ResolvedLocalComponentsResult resolvedLocalComponents=resolverResults.getResolvedLocalComponents();
+          result.add(resolvedLocalComponents.getComponentBuildDependencies());
         }
         resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>(){
           @Override public void execute(          DependencyResult dependencyResult){
