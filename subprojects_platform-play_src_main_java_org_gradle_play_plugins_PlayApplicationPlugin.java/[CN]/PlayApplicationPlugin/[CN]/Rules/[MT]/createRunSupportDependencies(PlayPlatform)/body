@@ -1,0 +1,18 @@
+{
+  ImmutableList.Builder<Object> listBuilder=ImmutableList.builder();
+  String scalaCompatibilityVersion=playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
+  VersionNumber playVersion=VersionNumber.parse(playPlatform.getPlayVersion());
+  if (playVersion.compareTo(MINIMUM_PLAY_VERSION_WITH_RUN_SUPPORT) >= 0) {
+    listBuilder.add(((PlayPlatformInternal)playPlatform).getDependencyNotation(RUN_SUPPORT_PLAY_MODULE));
+  }
+ else {
+    DefaultExternalModuleDependency runSupportDependency=new DefaultExternalModuleDependency("com.typesafe.play",String.format("%s_%s",RUN_SUPPORT_PLAY_MODULE,scalaCompatibilityVersion),DefaultPlayPlatform.DEFAULT_PLAY_VERSION);
+    runSupportDependency.setTransitive(false);
+    listBuilder.add(runSupportDependency);
+  }
+  String name=scalaCompatibilityVersion.equals("2.10") ? "io" : String.format("%s_%s","io",scalaCompatibilityVersion);
+  DefaultExternalModuleDependency dependency=new DefaultExternalModuleDependency("org.scala-sbt",name,SBT_IO_VERSION,"runtime");
+  dependency.setTransitive(false);
+  listBuilder.add(dependency);
+  return listBuilder.build();
+}

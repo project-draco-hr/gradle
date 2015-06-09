@@ -2,13 +2,5 @@
   configurations.getPlayPlatform().addDependency(((PlayPlatformInternal)playPlatform).getDependencyNotation("play"));
   configurations.getPlayTest().addDependency(((PlayPlatformInternal)playPlatform).getDependencyNotation("play-test"));
   configurations.getPlayRun().addDependency(((PlayPlatformInternal)playPlatform).getDependencyNotation("play-docs"));
-  VersionNumber playVersion=VersionNumber.parse(playPlatform.getPlayVersion());
-  if (playVersion.compareTo(MINIMUM_PLAY_VERSION_WITH_RUN_SUPPORT) >= 0) {
-    configurations.getPlayRun().addDependency(((PlayPlatformInternal)playPlatform).getDependencyNotation("run-support"));
-    String scalaCompatibilityVersion=playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
-    String name=scalaCompatibilityVersion.equals("2.10") ? "io" : String.format("%s_%s","io",scalaCompatibilityVersion);
-    DefaultExternalModuleDependency dependency=new DefaultExternalModuleDependency("org.scala-sbt",name,"0.13.6","runtime");
-    dependency.setTransitive(false);
-    configurations.getPlayRun().addDependency(dependency);
-  }
+  addRunSupportDependencies(configurations,playPlatform);
 }
