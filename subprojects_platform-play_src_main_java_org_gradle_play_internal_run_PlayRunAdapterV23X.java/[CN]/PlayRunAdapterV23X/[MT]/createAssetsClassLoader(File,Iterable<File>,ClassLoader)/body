@@ -1,0 +1,19 @@
+{
+  Class<?> assetsClassLoaderClass=null;
+  try {
+    assetsClassLoaderClass=classLoader.loadClass("play.runsupport.AssetsClassLoader");
+  }
+ catch (  ClassNotFoundException ignore) {
+    return super.createAssetsClassLoader(assetsJar,assetsDirs,classLoader);
+  }
+  final Class<?> tuple2Class=loadClass(classLoader,"scala.Tuple2");
+  List<?> tuples=CollectionUtils.collect(assetsDirs,new Transformer<Object,File>(){
+    @Override public Object transform(    File file){
+      return DirectInstantiator.instantiate(tuple2Class,"public",file);
+    }
+  }
+);
+  ScalaMethod listToScalaSeqMethod=ScalaReflectionUtil.scalaMethod(classLoader,"scala.collection.convert.WrapAsScala","asScalaBuffer",List.class);
+  Object scalaTuples=listToScalaSeqMethod.invoke(tuples);
+  return Cast.uncheckedCast(DirectInstantiator.instantiate(assetsClassLoaderClass,classLoader,scalaTuples));
+}
