@@ -1,7 +1,13 @@
 {
   if (identifier instanceof ProjectComponentIdentifier) {
-    LocalComponentMetaData componentMetaData=projectComponentRegistry.getProject(((ProjectComponentIdentifier)identifier).getProjectPath());
-    result.resolved(componentMetaData.toResolveMetaData());
+    String projectPath=((ProjectComponentIdentifier)identifier).getProjectPath();
+    LocalComponentMetaData componentMetaData=projectComponentRegistry.getProject(projectPath);
+    if (componentMetaData == null) {
+      result.failed(new ModuleVersionResolveException(new DefaultProjectComponentSelector(projectPath),"project '" + projectPath + "' not found."));
+    }
+ else {
+      result.resolved(componentMetaData.toResolveMetaData());
+    }
   }
  else {
     delegateComponentResolver.resolve(identifier,componentOverrideMetadata,result);
