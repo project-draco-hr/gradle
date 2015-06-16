@@ -1,7 +1,13 @@
 {
   if (dependency.getSelector() instanceof ProjectComponentSelector) {
     ProjectComponentSelector selector=(ProjectComponentSelector)dependency.getSelector();
-    LocalComponentMetaData componentMetaData=projectComponentRegistry.getProject(selector.getProjectPath());
-    result.resolved(componentMetaData.toResolveMetaData());
+    String projectPath=selector.getProjectPath();
+    LocalComponentMetaData componentMetaData=projectComponentRegistry.getProject(projectPath);
+    if (componentMetaData == null) {
+      result.failed(new ModuleVersionResolveException(selector,"project '" + projectPath + "' not found."));
+    }
+ else {
+      result.resolved(componentMetaData.toResolveMetaData());
+    }
   }
 }
