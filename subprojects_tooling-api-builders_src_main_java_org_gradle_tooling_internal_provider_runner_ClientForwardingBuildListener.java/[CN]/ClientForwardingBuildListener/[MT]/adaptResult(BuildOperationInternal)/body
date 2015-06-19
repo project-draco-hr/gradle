@@ -1,14 +1,9 @@
 {
-  Object result=source.getPayload();
+  Throwable failure=source.getFailure();
   long startTime=source.getStartTime();
   long endTime=source.getEndTime();
-  if (result instanceof BuildResult) {
-    return adaptResult((BuildResult)result,startTime,endTime);
+  if (failure != null) {
+    return new DefaultFailureResult(startTime,endTime,Collections.singletonList(DefaultFailure.fromThrowable(failure)));
   }
- else   if (result instanceof Throwable) {
-    return adaptResult((Throwable)result,startTime,endTime);
-  }
- else {
-    return new DefaultSuccessResult(startTime,endTime);
-  }
+  return new DefaultSuccessResult(startTime,endTime);
 }
