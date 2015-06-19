@@ -1,0 +1,31 @@
+{
+  final ByteArrayOutputStream standardOutput=new ByteArrayOutputStream();
+  final ByteArrayOutputStream standardError=new ByteArrayOutputStream();
+  final GradleExecutionHandle gradleExecutionHandle=new GradleExecutionHandle(standardOutput,standardError);
+  GradleConnector gradleConnector=buildConnector();
+  ProjectConnection connection=gradleConnector.connect();
+  try {
+    BuildLauncher launcher=connection.newBuild();
+    launcher.setStandardOutput(standardOutput);
+    launcher.setStandardError(standardError);
+    String[] argumentArray=new String[arguments.size()];
+    arguments.toArray(argumentArray);
+    launcher.withArguments(argumentArray);
+    String[] tasksArray=new String[taskNames.size()];
+    taskNames.toArray(tasksArray);
+    launcher.forTasks(tasksArray);
+    launcher.run();
+  }
+ catch (  GradleConnectionException t) {
+    gradleExecutionHandle.setException(t);
+  }
+catch (  DaemonDisappearedException e) {
+    gradleExecutionHandle.setException(e);
+  }
+ finally {
+    if (connection != null) {
+      connection.close();
+    }
+  }
+  return gradleExecutionHandle;
+}
