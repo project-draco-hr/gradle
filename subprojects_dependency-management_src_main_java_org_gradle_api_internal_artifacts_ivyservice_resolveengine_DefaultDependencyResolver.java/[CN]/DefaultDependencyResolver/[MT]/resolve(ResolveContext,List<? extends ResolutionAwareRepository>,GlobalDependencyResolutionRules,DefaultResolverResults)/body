@@ -6,7 +6,7 @@
       List<LocalComponentFactory> localComponentFactories=allServices(LocalComponentFactory.class);
       List<ResolverProvider> resolvers=allServices(ResolverProvider.class,ivyFactory.create(resolutionStrategy,repositories,metadataHandler.getComponentMetadataProcessor()));
       ResolverProviderChain resolverProvider=new ResolverProviderChain(resolvers);
-      WrappingResolverProvider wrappingProvider=new WrappingResolverProvider(new DependencySubstitutionResolver(resolverProvider.getComponentIdResolver(),resolutionStrategy.getDependencySubstitutionRule()),new ClientModuleResolver(resolverProvider.getComponentResolver(),dependencyDescriptorFactory),createArtifactResolver(resolverProvider.getArtifactResolver()));
+      ResolverProvider wrappingProvider=DelegatingResolverProvider.of(createArtifactResolver(resolverProvider.getArtifactResolver()),new DependencySubstitutionResolver(resolverProvider.getComponentIdResolver(),resolutionStrategy.getDependencySubstitutionRule()),new ClientModuleResolver(resolverProvider.getComponentResolver(),dependencyDescriptorFactory));
       ModuleConflictResolver conflictResolver;
       if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
         conflictResolver=new StrictConflictResolver();
