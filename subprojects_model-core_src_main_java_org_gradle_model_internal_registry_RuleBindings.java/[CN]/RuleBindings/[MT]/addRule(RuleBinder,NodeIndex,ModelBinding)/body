@@ -1,0 +1,25 @@
+{
+  Reference reference=new Reference(rule,index,binding);
+  BindingPredicate predicate=binding.getPredicate();
+  if (predicate.getPath() != null) {
+    if (predicate.getScope() != null) {
+      throw new UnsupportedOperationException("Currently not implemented");
+    }
+    ModelNodeInternal node=modelGraph.find(predicate.getPath());
+    if (node != null) {
+      bound(reference,node);
+    }
+    pathReferences.put(predicate.getPath(),reference);
+  }
+ else   if (predicate.getScope() != null) {
+    for (    ModelNodeInternal node : modelGraph.findAllInScope(predicate.getScope())) {
+      if (binding.isTypeCompatible(node.getPromise())) {
+        bound(reference,node);
+      }
+    }
+    scopeReferences.put(predicate.getScope(),reference);
+  }
+ else {
+    throw new UnsupportedOperationException("Currently not implemented");
+  }
+}

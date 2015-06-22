@@ -8,24 +8,9 @@
   expectTasksRunWithFailure(failure);
   context.checking(new Expectations(){
 {
-      one(gradleMock).getParent();
       one(buildBroadcaster).buildStarted(gradleMock);
       one(buildBroadcaster).projectsLoaded(gradleMock);
       one(buildBroadcaster).projectsEvaluated(gradleMock);
-      startEvent(this,BuildOperationType.RUNNING_BUILD);
-      startEvent(this,BuildOperationType.EVALUATING_INIT_SCRIPTS);
-      finishEvent(this,BuildOperationType.EVALUATING_INIT_SCRIPTS);
-      startEvent(this,BuildOperationType.EVALUATING_SETTINGS);
-      finishEvent(this,BuildOperationType.EVALUATING_SETTINGS);
-      startEvent(this,BuildOperationType.LOADING_BUILD);
-      finishEvent(this,BuildOperationType.LOADING_BUILD);
-      startEvent(this,BuildOperationType.CONFIGURING_BUILD);
-      finishEvent(this,BuildOperationType.CONFIGURING_BUILD);
-      startEvent(this,BuildOperationType.POPULATING_TASK_GRAPH);
-      finishEvent(this,BuildOperationType.POPULATING_TASK_GRAPH);
-      startEvent(this,BuildOperationType.EXECUTING_TASKS);
-      finishEvent(this,BuildOperationType.EXECUTING_TASKS);
-      finishEvent(this,BuildOperationType.RUNNING_BUILD);
       one(modelListenerMock).onConfigure(gradleMock);
       one(exceptionAnalyserMock).transform(failure);
       will(returnValue(transformedException));
@@ -33,6 +18,11 @@
     }
   }
 );
-  BuildResult buildResult=gradleLauncher.run();
-  assertThat(buildResult.getFailure(),sameInstance((Throwable)transformedException));
+  try {
+    gradleLauncher.run();
+    fail();
+  }
+ catch (  ReportedException e) {
+    assertThat((RuntimeException)e.getCause(),sameInstance(transformedException));
+  }
 }

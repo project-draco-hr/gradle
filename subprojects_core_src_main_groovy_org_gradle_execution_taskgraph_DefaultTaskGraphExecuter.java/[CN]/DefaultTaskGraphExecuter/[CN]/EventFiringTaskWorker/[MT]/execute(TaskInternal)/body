@@ -1,0 +1,25 @@
+{
+  Object id=OperationIdGenerator.generateId(task);
+  Object parentId=buildOperationExecutor.getCurrentOperationId();
+  TaskOperationInternal taskOperation=new TaskOperationInternal(id,parentId,task);
+  TaskStateInternal state=task.getState();
+  long startTime=timeProvider.getCurrentTime();
+synchronized (eventNotificationLock) {
+    internalTaskListeners.getSource().beforeExecute(taskOperation,new OperationStartEvent(startTime));
+  }
+  try {
+synchronized (eventNotificationLock) {
+      taskListeners.getSource().beforeExecute(task);
+    }
+    taskExecuter.execute(task,task.getState(),new DefaultTaskExecutionContext());
+synchronized (eventNotificationLock) {
+      taskListeners.getSource().afterExecute(task,state);
+    }
+  }
+  finally {
+synchronized (eventNotificationLock) {
+      long endTime=timeProvider.getCurrentTime();
+      internalTaskListeners.getSource().afterExecute(taskOperation,new OperationResult(startTime,endTime,task.getState().getFailure()));
+    }
+  }
+}
