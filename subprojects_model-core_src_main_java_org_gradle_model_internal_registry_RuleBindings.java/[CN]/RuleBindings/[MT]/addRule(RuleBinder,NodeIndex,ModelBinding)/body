@@ -1,4 +1,5 @@
 {
+  Reference reference=new Reference(rule,index,binding);
   BindingPredicate predicate=binding.getPredicate();
   if (predicate.getPath() != null) {
     if (predicate.getScope() != null) {
@@ -6,17 +7,17 @@
     }
     ModelNodeInternal node=modelGraph.find(predicate.getPath());
     if (node != null) {
-      bound(binding,rule,node);
+      bound(reference,node);
     }
-    rulesByPath.put(predicate.getPath(),new Reference(rule,binding));
+    pathReferences.put(predicate.getPath(),reference);
   }
  else   if (predicate.getScope() != null) {
     for (    ModelNodeInternal node : modelGraph.findAllInScope(predicate.getScope())) {
       if (binding.isTypeCompatible(node.getPromise())) {
-        bound(binding,rule,node);
+        bound(reference,node);
       }
     }
-    rulesByScope.put(predicate.getScope(),new Reference(rule,binding));
+    scopeReferences.put(predicate.getScope(),reference);
   }
  else {
     throw new UnsupportedOperationException("Currently not implemented");
