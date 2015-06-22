@@ -3,7 +3,7 @@
   ivyContextManager.withIvy(new Action<Ivy>(){
     public void execute(    Ivy ivy){
       ResolutionStrategyInternal resolutionStrategy=(ResolutionStrategyInternal)resolveContext.getResolutionStrategy();
-      List<LocalComponentFactory> localComponentFactories=allServices(LocalComponentFactory.class);
+      List<LocalComponentConverter> localComponentFactories=allServices(LocalComponentConverter.class);
       List<ResolverProvider> resolvers=allServices(ResolverProvider.class,ivyFactory.create(resolutionStrategy,repositories,metadataHandler.getComponentMetadataProcessor()));
       ResolverProviderChain resolverProvider=new ResolverProviderChain(resolvers);
       ResolverProvider wrappingProvider=DelegatingResolverProvider.of(createArtifactResolver(resolverProvider.getArtifactResolver()),new DependencySubstitutionResolver(resolverProvider.getComponentIdResolver(),resolutionStrategy.getDependencySubstitutionRule()),new ClientModuleResolver(resolverProvider.getComponentResolver(),dependencyDescriptorFactory));
@@ -16,7 +16,7 @@
       }
       conflictResolver=new VersionSelectionReasonResolver(conflictResolver);
       ConflictHandler conflictHandler=new DefaultConflictHandler(conflictResolver,metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
-      DefaultResolveContextToComponentResolver moduleResolver=new DefaultResolveContextToComponentResolver(new LocalComponentFactoryChain(localComponentFactories));
+      DefaultResolveContextToComponentResolver moduleResolver=new DefaultResolveContextToComponentResolver(new ChainedLocalComponentConverter(localComponentFactories));
       DependencyGraphBuilder builder=new DependencyGraphBuilder(wrappingProvider,moduleResolver,conflictHandler,new DefaultDependencyToConfigurationResolver());
       StoreSet stores=storeFactory.createStoreSet();
       BinaryStore newModelStore=stores.nextBinaryStore();
