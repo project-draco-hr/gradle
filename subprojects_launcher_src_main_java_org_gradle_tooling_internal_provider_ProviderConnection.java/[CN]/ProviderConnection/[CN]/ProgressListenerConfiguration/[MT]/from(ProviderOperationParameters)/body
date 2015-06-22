@@ -4,6 +4,7 @@
   boolean listenToTaskProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
   boolean listenToBuildProgress=buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
   BuildClientSubscriptions clientSubscriptions=new BuildClientSubscriptions(listenToTestProgress,listenToTaskProgress,listenToBuildProgress);
-  BuildEventConsumer buildEventConsumer=clientSubscriptions.isSendAnyProgressEvents() ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
-  return new ProgressListenerConfiguration(clientSubscriptions,new FailsafeBuildEventConsumerAdapter(buildEventConsumer));
+  FailsafeBuildProgressListenerAdapter wrapper=new FailsafeBuildProgressListenerAdapter(buildProgressListener);
+  BuildEventConsumer buildEventConsumer=clientSubscriptions.isSendAnyProgressEvents() ? new BuildProgressListenerInvokingBuildEventConsumer(wrapper) : new NoOpBuildEventConsumer();
+  return new ProgressListenerConfiguration(clientSubscriptions,buildEventConsumer,wrapper);
 }
