@@ -1,13 +1,14 @@
 {
   final ByteArrayOutputStream standardOutput=new ByteArrayOutputStream();
   final ByteArrayOutputStream standardError=new ByteArrayOutputStream();
-  final GradleExecutionHandle gradleExecutionHandle=new GradleExecutionHandle(standardOutput,standardError);
+  final GradleExecutionResult gradleExecutionResult=new GradleExecutionResult(standardOutput,standardError);
   GradleConnector gradleConnector=buildConnector();
   ProjectConnection connection=gradleConnector.connect();
   try {
     BuildLauncher launcher=connection.newBuild();
     launcher.setStandardOutput(standardOutput);
     launcher.setStandardError(standardError);
+    arguments.add("--no-search-upward");
     String[] argumentArray=new String[arguments.size()];
     arguments.toArray(argumentArray);
     launcher.withArguments(argumentArray);
@@ -16,16 +17,13 @@
     launcher.forTasks(tasksArray);
     launcher.run();
   }
- catch (  GradleConnectionException t) {
-    gradleExecutionHandle.setException(t);
-  }
-catch (  DaemonDisappearedException e) {
-    gradleExecutionHandle.setException(e);
+ catch (  RuntimeException t) {
+    gradleExecutionResult.setThrowable(t);
   }
  finally {
     if (connection != null) {
       connection.close();
     }
   }
-  return gradleExecutionHandle;
+  return gradleExecutionResult;
 }
