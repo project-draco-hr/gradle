@@ -1,7 +1,7 @@
 {
   try {
     BuildActionExecuter<ProviderOperationParameters> executer=createExecuter(providerParameters,parameters);
-    BuildRequestContext buildRequestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime()),cancellationToken,buildEventConsumer);
+    BuildRequestContext buildRequestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime()),cancellationToken,progressListenerConfiguration.buildEventConsumer);
     BuildActionResult result=(BuildActionResult)executer.execute(action,buildRequestContext,providerParameters);
     if (result.failure != null) {
       throw (RuntimeException)payloadSerializer.deserialize(result.failure);
@@ -9,6 +9,6 @@
     return payloadSerializer.deserialize(result.result);
   }
   finally {
-    buildEventConsumer.rethrowErrors();
+    progressListenerConfiguration.failsafeWrapper.rethrowErrors();
   }
 }
