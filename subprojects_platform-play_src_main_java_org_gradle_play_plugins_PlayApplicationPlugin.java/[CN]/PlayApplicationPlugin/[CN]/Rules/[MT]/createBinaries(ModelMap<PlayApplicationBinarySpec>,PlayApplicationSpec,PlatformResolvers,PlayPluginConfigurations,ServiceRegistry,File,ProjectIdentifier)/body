@@ -29,12 +29,14 @@
       PublicAssets assets=playBinary.getAssets();
       assets.addAssetDir(new File(projectIdentifier.getProjectDir(),"public"));
       playBinaryInternal.setClasspath(configurations.getPlay().getFileCollection());
-      ToolResolver toolResolver=serviceRegistry.get(ToolResolver.class);
-      final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool=toolResolver.resolve(PlayApplicationRunner.class,chosenPlatform);
       DeploymentRegistry deploymentRegistry=serviceRegistry.get(DeploymentRegistry.class);
       String deploymentId=getDeploymentId(projectIdentifier,playBinary.getName(),chosenPlatform.getName());
-      if (playApplicationRunnerTool.isAvailable()) {
-        deploymentRegistry.register(deploymentId,new PlayApplicationDeploymentHandle(deploymentId,playApplicationRunnerTool.get()));
+      if (deploymentRegistry.get(PlayApplicationDeploymentHandle.class,deploymentId) == null) {
+        ToolResolver toolResolver=serviceRegistry.get(ToolResolver.class);
+        final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool=toolResolver.resolve(PlayApplicationRunner.class,chosenPlatform);
+        if (playApplicationRunnerTool.isAvailable()) {
+          deploymentRegistry.register(deploymentId,new PlayApplicationDeploymentHandle(deploymentId,playApplicationRunnerTool.get()));
+        }
       }
     }
   }
