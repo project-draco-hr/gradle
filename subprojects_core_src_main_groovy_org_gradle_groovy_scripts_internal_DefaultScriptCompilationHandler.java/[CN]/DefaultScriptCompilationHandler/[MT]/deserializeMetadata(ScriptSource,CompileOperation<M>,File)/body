@@ -3,28 +3,18 @@
     return null;
   }
   File metadataFile=new File(metadataCacheDir,METADATA_FILE_NAME);
-  FileInputStream inputStream;
   try {
-    inputStream=new FileInputStream(metadataFile);
-  }
- catch (  FileNotFoundException e) {
-    throw new UncheckedIOException("Could not open build script metadata file " + metadataFile.getAbsolutePath(),e);
-  }
-  KryoBackedDecoder decoder=new KryoBackedDecoder(inputStream);
-  Serializer<M> serializer=extractingTransformer.getDataSerializer();
-  try {
-    return serializer.read(decoder);
+    KryoBackedDecoder decoder=new KryoBackedDecoder(new FileInputStream(metadataFile));
+    try {
+      Serializer<M> serializer=extractingTransformer.getDataSerializer();
+      return serializer.read(decoder);
+    }
+  finally {
+      decoder.close();
+    }
   }
  catch (  Exception e) {
     String transformerName=extractingTransformer.getTransformer().getClass().getName();
     throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted using %s for %s",transformerName,scriptSource.getDisplayName()),e);
-  }
- finally {
-    try {
-      decoder.close();
-    }
- catch (    IOException e) {
-      throw new UncheckedIOException("Failed to close script metadata file decoder backed by " + metadataFile.getAbsolutePath(),e);
-    }
   }
 }

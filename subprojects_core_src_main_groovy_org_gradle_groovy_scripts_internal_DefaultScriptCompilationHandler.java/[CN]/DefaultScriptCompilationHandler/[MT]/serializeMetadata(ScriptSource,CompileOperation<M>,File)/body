@@ -2,25 +2,20 @@
   if (extractingTransformer == null || extractingTransformer.getDataSerializer() == null) {
     return;
   }
-  GFileUtils.mkdirs(metadataDir);
   File metadataFile=new File(metadataDir,METADATA_FILE_NAME);
-  FileOutputStream outputStream;
   try {
-    outputStream=new FileOutputStream(metadataFile);
-  }
- catch (  FileNotFoundException e) {
-    throw new UncheckedIOException("Could not create or open build script metadata file " + metadataFile.getAbsolutePath(),e);
-  }
-  KryoBackedEncoder encoder=new KryoBackedEncoder(outputStream);
-  Serializer<M> serializer=extractingTransformer.getDataSerializer();
-  try {
-    serializer.write(encoder,extractingTransformer.getExtractedData());
+    GFileUtils.mkdirs(metadataDir);
+    KryoBackedEncoder encoder=new KryoBackedEncoder(new FileOutputStream(metadataFile));
+    try {
+      Serializer<M> serializer=extractingTransformer.getDataSerializer();
+      serializer.write(encoder,extractingTransformer.getExtractedData());
+    }
+  finally {
+      encoder.close();
+    }
   }
  catch (  Exception e) {
     String transformerName=extractingTransformer.getTransformer().getClass().getName();
     throw new IllegalStateException(String.format("Failed to serialize script metadata extracted using %s for %s",transformerName,scriptSource.getDisplayName()),e);
-  }
- finally {
-    encoder.close();
   }
 }
