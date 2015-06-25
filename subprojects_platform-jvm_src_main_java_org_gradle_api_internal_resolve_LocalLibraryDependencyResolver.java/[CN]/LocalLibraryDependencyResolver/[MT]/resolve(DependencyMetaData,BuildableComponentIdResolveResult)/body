@@ -12,10 +12,17 @@
       if (variants.size() > 1) {
         result.failed(new ModuleVersionResolveException(selector,String.format("Multiple binaries available for library '%s' : %s",libraryName,variants)));
       }
-      for (      BinarySpec spec : variants) {
-        buildDependencies.add(spec.getBuildTask());
-        DefaultLibraryLocalComponentMetaData metaData=DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath,selectedLibrary.getName(),spec.getName(),buildDependencies);
-        result.resolved(metaData.toResolveMetaData());
+ else {
+        for (        BinarySpec spec : variants) {
+          buildDependencies.add(spec.getBuildTask());
+          DefaultLibraryLocalComponentMetaData metaData=DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath,selectedLibrary.getName(),spec.getName(),buildDependencies);
+          ComponentResolveMetaData resolveMetaData=metaData.toResolveMetaData();
+          result.resolved(resolveMetaData);
+          BinarySpecToArtifactConverter<BinarySpec> factory=binarySpecToArtifactConverterRegistry.getConverter(spec);
+          if (factory != null) {
+            metaData.addArtifact(factory.convertArtifact((LibraryComponentIdentifier)resolveMetaData.getComponentId(),spec));
+          }
+        }
       }
     }
     if (!result.hasResult()) {
