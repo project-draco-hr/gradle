@@ -18,9 +18,10 @@
           DefaultLibraryLocalComponentMetaData metaData=DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath,selectedLibrary.getName(),spec.getName(),buildDependencies);
           ComponentResolveMetaData resolveMetaData=metaData.toResolveMetaData();
           result.resolved(resolveMetaData);
-          BinarySpecToArtifactConverter<BinarySpec> factory=binarySpecToArtifactConverterRegistry.getConverter(spec);
-          if (factory != null) {
-            metaData.addArtifact(factory.convertArtifact((LibraryComponentIdentifier)resolveMetaData.getComponentId(),spec));
+          if (spec instanceof JvmBinarySpec) {
+            Jar jar=((JvmBinarySpec)spec).getTasks().getJar();
+            PublishArtifact publishArtifact=new ArchivePublishArtifact(jar);
+            metaData.addArtifacts(LibraryComponentIdentifier.CONFIGURATION_NAME,Collections.singleton(publishArtifact));
           }
         }
       }

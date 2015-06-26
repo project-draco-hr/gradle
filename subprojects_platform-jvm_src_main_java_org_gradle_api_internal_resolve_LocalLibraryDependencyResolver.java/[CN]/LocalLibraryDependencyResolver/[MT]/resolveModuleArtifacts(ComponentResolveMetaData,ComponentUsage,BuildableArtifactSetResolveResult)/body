@@ -4,11 +4,10 @@
     ConfigurationMetaData configuration=component.getConfiguration(usage.getConfigurationName());
     if (configuration != null) {
       Set<ComponentArtifactMetaData> artifacts=configuration.getArtifacts();
-      if (!artifacts.isEmpty()) {
-        result.resolved(artifacts);
-        return;
-      }
+      result.resolved(artifacts);
     }
-    doConvertArtifact(result,(LibraryComponentIdentifier)componentId);
+    if (!result.hasResult()) {
+      result.failed(new ArtifactResolveException(String.format("Unable to resolve artifact for %s",componentId)));
+    }
   }
 }
