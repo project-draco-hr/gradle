@@ -1,0 +1,20 @@
+{
+  ModelCollectionSchema<T,E> schema=ModelSchema.collection(extractionContext.getType(),elementType,new Function<ModelCollectionSchema<T,E>,NodeInitializer>(){
+    @Override public NodeInitializer apply(    ModelCollectionSchema<T,E> input){
+      final ManagedChildNodeCreatorStrategy<E> childCreator=new ManagedChildNodeCreatorStrategy<E>(store);
+      return new ProjectionOnlyNodeInitializer(ModelMapModelProjection.managed(input.getElementType(),childCreator));
+    }
+  }
+);
+  ModelSchemaExtractionContext<?> typeParamExtractionContext=extractionContext.child(elementType,"element type",new Action<ModelSchemaExtractionContext<?>>(){
+    public void execute(    ModelSchemaExtractionContext<?> context){
+      ModelType<?> elementType=context.getType();
+      ModelSchema<?> typeParamSchema=cache.get(elementType);
+      if (!typeParamSchema.getKind().isManaged()) {
+        throw new InvalidManagedModelElementTypeException(context.getParent(),String.format("cannot create a model map of type %s as it is not a %s type.",elementType,Managed.class.getName()));
+      }
+    }
+  }
+);
+  return new ModelSchemaExtractionResult<T>(schema,ImmutableList.of(typeParamExtractionContext));
+}
