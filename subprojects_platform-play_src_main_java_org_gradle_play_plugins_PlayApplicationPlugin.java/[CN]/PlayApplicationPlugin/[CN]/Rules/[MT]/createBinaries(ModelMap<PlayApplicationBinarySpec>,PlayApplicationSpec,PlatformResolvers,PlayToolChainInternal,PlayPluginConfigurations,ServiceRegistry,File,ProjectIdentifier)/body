@@ -1,0 +1,42 @@
+{
+  final FileResolver fileResolver=serviceRegistry.get(FileResolver.class);
+  final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
+  final String binaryName=String.format("%sBinary",componentSpec.getName());
+  binaries.create(binaryName,new Action<PlayApplicationBinarySpec>(){
+    public void execute(    PlayApplicationBinarySpec playBinary){
+      PlayApplicationBinarySpecInternal playBinaryInternal=(PlayApplicationBinarySpecInternal)playBinary;
+      playBinaryInternal.setApplication(componentSpec);
+      final File binaryBuildDir=new File(buildDir,binaryName);
+      final PlayPlatform chosenPlatform=resolveTargetPlatform(componentSpec,platforms);
+      initialiseConfigurations(configurations,chosenPlatform);
+      playBinaryInternal.setTargetPlatform(chosenPlatform);
+      playBinaryInternal.setToolChain(playToolChainInternal);
+      File mainJar=new File(binaryBuildDir,String.format("lib/%s.jar",projectIdentifier.getName()));
+      File assetsJar=new File(binaryBuildDir,String.format("lib/%s-assets.jar",projectIdentifier.getName()));
+      playBinaryInternal.setJarFile(mainJar);
+      playBinaryInternal.setAssetsJarFile(assetsJar);
+      configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar",null,new Date(),mainJar,playBinaryInternal));
+      configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar","assets",new Date(),assetsJar,playBinaryInternal));
+      JvmClasses classes=playBinary.getClasses();
+      classes.setClassesDir(new File(binaryBuildDir,"classes"));
+      ModelMap<JvmResourceSet> jvmResourceSets=componentSpec.getSource().withType(JvmResourceSet.class);
+      for (      JvmResourceSet jvmResourceSet : jvmResourceSets.values()) {
+        for (        File resourceDir : jvmResourceSet.getSource()) {
+          classes.addResourceDir(resourceDir);
+        }
+      }
+      PublicAssets assets=playBinary.getAssets();
+      assets.addAssetDir(new File(projectIdentifier.getProjectDir(),"public"));
+      playBinaryInternal.setClasspath(configurations.getPlay().getFileCollection());
+      DeploymentRegistry deploymentRegistry=serviceRegistry.get(DeploymentRegistry.class);
+      String deploymentId=getDeploymentId(projectIdentifier,playBinary.getName(),chosenPlatform.getName());
+      if (deploymentRegistry.get(PlayApplicationDeploymentHandle.class,deploymentId) == null) {
+        PlayToolProvider playToolProvider=playToolChainInternal.select(chosenPlatform);
+        if (playToolProvider.isAvailable()) {
+          deploymentRegistry.register(deploymentId,new PlayApplicationDeploymentHandle(deploymentId,playToolProvider.get(PlayApplicationRunner.class)));
+        }
+      }
+    }
+  }
+);
+}

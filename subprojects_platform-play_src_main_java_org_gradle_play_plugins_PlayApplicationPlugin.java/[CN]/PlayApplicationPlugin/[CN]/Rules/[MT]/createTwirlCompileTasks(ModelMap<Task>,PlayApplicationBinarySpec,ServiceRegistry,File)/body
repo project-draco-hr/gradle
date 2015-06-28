@@ -1,15 +1,12 @@
 {
-  final ToolResolver toolResolver=serviceRegistry.get(ToolResolver.class);
-  final ResolvedTool<Compiler<TwirlCompileSpec>> compilerTool=toolResolver.resolveCompiler(TwirlCompileSpec.class,binary.getTargetPlatform());
   for (  final TwirlSourceSet twirlSourceSet : binary.getSource().withType(TwirlSourceSet.class)) {
     final String twirlCompileTaskName=String.format("compile%s%s",StringUtils.capitalize(binary.getName()),StringUtils.capitalize(twirlSourceSet.getName()));
     final File twirlCompileOutputDirectory=srcOutputDirectory(buildDir,binary,twirlCompileTaskName);
     tasks.create(twirlCompileTaskName,TwirlCompile.class,new Action<TwirlCompile>(){
       public void execute(      TwirlCompile twirlCompile){
-        twirlCompile.setDependencyNotation(TwirlCompilerFactory.createAdapter(binary.getTargetPlatform()).getDependencyNotation());
+        twirlCompile.setPlatform(binary.getTargetPlatform());
         twirlCompile.setSource(twirlSourceSet.getSource());
         twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
-        twirlCompile.setCompilerTool(compilerTool);
         ScalaLanguageSourceSet twirlScalaSources=binary.getGeneratedScala().get(twirlSourceSet);
         twirlScalaSources.getSource().srcDir(twirlCompileOutputDirectory);
         twirlScalaSources.builtBy(twirlCompile);
