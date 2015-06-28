@@ -3,6 +3,8 @@
   context.checking(new Expectations(){
 {
       Sequence sequence=context.sequence("seq");
+      one(scriptMock).init(target,scriptServices);
+      inSequence(sequence);
       one(scriptExecutionListenerMock).beforeScript(scriptMock);
       inSequence(sequence);
       one(standardOutputCaptureMock).start();
@@ -28,6 +30,6 @@
 );
   ClassLoader originalClassLoader=Thread.currentThread().getContextClassLoader();
   assertThat(originalClassLoader,not(sameInstance(classLoaderDummy)));
-  scriptRunner.run();
+  scriptRunner.run(target,scriptServices);
   assertThat(Thread.currentThread().getContextClassLoader(),sameInstance(originalClassLoader));
 }
