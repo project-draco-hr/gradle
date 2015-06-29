@@ -1,0 +1,21 @@
+{
+  File metadataFile=new File(metadataDir,METADATA_FILE_NAME);
+  try {
+    GFileUtils.mkdirs(metadataDir);
+    KryoBackedEncoder encoder=new KryoBackedEncoder(new FileOutputStream(metadataFile));
+    try {
+      byte flags=(byte)(emptyScript ? 1 : 0);
+      encoder.writeByte(flags);
+      if (extractingTransformer != null && extractingTransformer.getDataSerializer() != null) {
+        Serializer<M> serializer=extractingTransformer.getDataSerializer();
+        serializer.write(encoder,extractingTransformer.getExtractedData());
+      }
+    }
+  finally {
+      encoder.close();
+    }
+  }
+ catch (  Exception e) {
+    throw new GradleException(String.format("Failed to serialize script metadata extracted for %s",scriptSource.getDisplayName()),e);
+  }
+}

@@ -1,30 +1,27 @@
 {
-  final M metadata=deserializeMetadata(source,transformer,metadataCacheDir);
-  final boolean isEmpty=new File(scriptCacheDir,EMPTY_SCRIPT_MARKER_FILE_NAME).isFile();
-  return new ClassCachingCompiledScript<T,M>(new CompiledScript<T,M>(){
-    @Override public boolean isEmpty(){
-      return isEmpty;
-    }
-    @Override public Class<? extends T> loadClass(){
+  File metadataFile=new File(metadataCacheDir,METADATA_FILE_NAME);
+  try {
+    KryoBackedDecoder decoder=new KryoBackedDecoder(new FileInputStream(metadataFile));
+    try {
+      byte flags=decoder.readByte();
+      boolean isEmpty=(flags & 1) != 0;
       if (isEmpty) {
         classLoaderCache.remove(classLoaderId);
-        return emptyScriptGenerator.generate(scriptBaseClass);
       }
-      try {
-        ClassLoader loader=classLoaderCache.get(classLoaderId,new DefaultClassPath(scriptCacheDir),classLoader,null);
-        return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
+      M data;
+      if (transformer != null && transformer.getDataSerializer() != null) {
+        data=transformer.getDataSerializer().read(decoder);
       }
- catch (      Exception e) {
-        File expectedClassFile=new File(scriptCacheDir,source.getClassName() + ".class");
-        if (!expectedClassFile.exists()) {
-          throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.",source.getDisplayName(),expectedClassFile.getAbsolutePath()),e);
-        }
-        throw new GradleException(String.format("Could not load compiled classes for %s from cache.",source.getDisplayName()),e);
+ else {
+        data=null;
       }
+      return new ClassCachingCompiledScript<T,M>(new ClassesDirCompiledScript<T,M>(isEmpty,classLoaderId,scriptBaseClass,scriptCacheDir,classLoader,source,data));
     }
-    @Override public M getData(){
-      return metadata;
+  finally {
+      decoder.close();
     }
   }
-);
+ catch (  Exception e) {
+    throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted for %s",source.getDisplayName()),e);
+  }
 }
