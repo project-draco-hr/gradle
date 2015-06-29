@@ -1,16 +1,25 @@
 {
-  PlayApplicationDeploymentHandle deploymentHandle=deploymentRegistry.get(PlayApplicationDeploymentHandle.class,deploymentId);
-  if (deploymentHandle == null) {
-    throw new GradleException("There are no deployment handles registered with id '".concat(deploymentId).concat("'"));
-  }
   ProgressLoggerFactory progressLoggerFactory=getServices().get(ProgressLoggerFactory.class);
-  ProgressLogger progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start("Start Play server","Starting Play");
-  int httpPort=getHttpPort();
-  PlayRunSpec spec=new DefaultPlayRunSpec(runtimeClasspath,changingClasspath,applicationJar,assetsJar,assetsDirs,getProject().getProjectDir(),getForkOptions(),httpPort);
+  String deploymentId=getPath();
+  PlayApplicationDeploymentHandle deploymentHandle=getDeploymentRegistry().get(PlayApplicationDeploymentHandle.class,deploymentId);
+  if (deploymentHandle == null) {
+    ProgressLogger progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start("Start Play server","Starting Play");
+    try {
+      int httpPort=getHttpPort();
+      PlayRunSpec spec=new DefaultPlayRunSpec(runtimeClasspath,changingClasspath,applicationJar,assetsJar,assetsDirs,getProject().getProjectDir(),getForkOptions(),httpPort);
+      PlayApplicationRunnerToken runnerToken=playToolProvider.get(PlayApplicationRunner.class).start(spec);
+      deploymentHandle=new PlayApplicationDeploymentHandle(deploymentId,runnerToken);
+      getDeploymentRegistry().register(deploymentId,deploymentHandle);
+    }
+  finally {
+      progressLogger.completed();
+    }
+  }
+ else {
+    deploymentHandle.reload();
+  }
+  ProgressLogger progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start(String.format("Run Play App at http://localhost:%d/",httpPort),String.format("Running at http://localhost:%d/",httpPort));
   try {
-    deploymentHandle.start(spec);
-    progressLogger.completed();
-    progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start(String.format("Run Play App at http://localhost:%d/",httpPort),String.format("Running at http://localhost:%d/",httpPort));
     if (!getProject().getGradle().getStartParameter().isContinuous()) {
       waitForCtrlD();
     }
