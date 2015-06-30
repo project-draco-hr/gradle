@@ -9,7 +9,7 @@
   services.add(FileLookup.class,fileLookup);
   services.add(ModelRuleSourceDetector.class,modelRuleSourceDetector);
   final ScriptTarget scriptTarget=wrap(target);
-  final ScriptCompiler compiler=scriptCompilerFactory.createCompiler(scriptSource);
+  ScriptCompiler compiler=scriptCompilerFactory.createCompiler(scriptSource);
   Class<? extends BasicScript> scriptType=scriptTarget.getScriptClass();
   boolean supportsPluginsBlock=scriptTarget.getSupportsPluginsBlock();
   String onPluginBlockError=supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
@@ -27,8 +27,8 @@
   if (ModelBlockTransformer.isEnabled()) {
     operationId="m_".concat(operationId);
   }
-  CompileOperation<Boolean> operation=new FactoryBackedCompileOperation<Boolean>(operationId,buildScriptTransformer,buildScriptTransformer,BaseSerializerFactory.BOOLEAN_SERIALIZER);
-  final ScriptRunner<? extends BasicScript,Boolean> runner=compiler.compile(scriptType,operation,targetScope.getLocalClassLoader(),ClosureCreationInterceptingVerifier.INSTANCE);
+  CompileOperation<BuildScriptData> operation=new FactoryBackedCompileOperation<BuildScriptData>(operationId,buildScriptTransformer,buildScriptTransformer,buildScriptDataSerializer);
+  final ScriptRunner<? extends BasicScript,BuildScriptData> runner=compiler.compile(scriptType,operation,targetScope.getLocalClassLoader(),ClosureCreationInterceptingVerifier.INSTANCE);
   Runnable buildScriptRunner=new Runnable(){
     public void run(){
       BasicScript script=runner.getScript();
@@ -37,6 +37,6 @@
     }
   }
 ;
-  Boolean hasImperativeStatements=runner.getData();
+  boolean hasImperativeStatements=runner.getData().getHasImperativeStatements();
   scriptTarget.addConfiguration(buildScriptRunner,!hasImperativeStatements);
 }
