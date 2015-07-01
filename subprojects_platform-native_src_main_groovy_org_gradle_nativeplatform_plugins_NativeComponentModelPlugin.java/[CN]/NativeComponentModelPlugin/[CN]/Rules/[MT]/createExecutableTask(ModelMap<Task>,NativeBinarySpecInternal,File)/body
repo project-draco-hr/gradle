@@ -1,0 +1,19 @@
+{
+  String taskName=binary.getNamingScheme().getTaskName("link");
+  tasks.create(taskName,LinkExecutable.class,new Action<LinkExecutable>(){
+    @Override public void execute(    LinkExecutable linkTask){
+      linkTask.setDescription("Links " + binary.getName());
+      linkTask.setToolChain(binary.getToolChain());
+      linkTask.setTargetPlatform(binary.getTargetPlatform());
+      linkTask.setOutputFile(executableFile);
+      linkTask.setLinkerArgs(binary.getLinker().getArgs());
+      linkTask.lib(new BinaryLibs(binary){
+        @Override protected FileCollection getFiles(        NativeDependencySet nativeDependencySet){
+          return nativeDependencySet.getLinkFiles();
+        }
+      }
+);
+    }
+  }
+);
+}
