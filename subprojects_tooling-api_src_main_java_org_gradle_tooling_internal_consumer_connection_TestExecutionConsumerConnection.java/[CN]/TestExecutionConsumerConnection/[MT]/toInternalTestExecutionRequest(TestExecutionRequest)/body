@@ -1,0 +1,25 @@
+{
+  final Collection<JvmTestOperationDescriptor> testTaskPaths=testExecutionRequest.getTestOperationDescriptors();
+  final List<InternalJvmTestExecutionDescriptor> internalJvmTestDescriptors=Lists.newArrayList();
+  for (  final JvmTestOperationDescriptor descriptor : testTaskPaths) {
+    internalJvmTestDescriptors.add(new InternalJvmTestExecutionDescriptor(){
+      @Override public String getClassName(){
+        return descriptor.getClassName();
+      }
+      @Override public String getMethodName(){
+        return descriptor.getMethodName();
+      }
+      @Override public String getTaskPath(){
+        return findTaskPath(descriptor);
+      }
+    }
+);
+  }
+  InternalTestExecutionRequest request=new InternalTestExecutionRequest(){
+    @Override public Collection<InternalJvmTestExecutionDescriptor> getTestExecutionDescriptors(){
+      return internalJvmTestDescriptors;
+    }
+  }
+;
+  return request;
+}
