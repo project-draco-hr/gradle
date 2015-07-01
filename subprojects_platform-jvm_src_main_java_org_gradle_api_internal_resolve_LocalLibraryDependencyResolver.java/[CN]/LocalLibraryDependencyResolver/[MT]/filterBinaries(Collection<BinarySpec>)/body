@@ -1,0 +1,19 @@
+{
+  if (values.isEmpty()) {
+    return values;
+  }
+  TreeMultimap<JavaPlatform,JvmBinarySpec> platformToBinary=TreeMultimap.create(JAVA_PLATFORM_COMPARATOR,JVM_BINARY_SPEC_COMPARATOR);
+  for (  BinarySpec binarySpec : values) {
+    if (binarySpec instanceof JvmBinarySpec) {
+      JvmBinarySpec jvmSpec=(JvmBinarySpec)binarySpec;
+      if (jvmSpec.getTargetPlatform().getTargetCompatibility().compareTo(javaPlatform.getTargetCompatibility()) <= 0) {
+        platformToBinary.put(jvmSpec.getTargetPlatform(),jvmSpec);
+      }
+    }
+  }
+  if (platformToBinary.isEmpty()) {
+    return Collections.emptyList();
+  }
+  JavaPlatform first=platformToBinary.keySet().last();
+  return platformToBinary.get(first);
+}

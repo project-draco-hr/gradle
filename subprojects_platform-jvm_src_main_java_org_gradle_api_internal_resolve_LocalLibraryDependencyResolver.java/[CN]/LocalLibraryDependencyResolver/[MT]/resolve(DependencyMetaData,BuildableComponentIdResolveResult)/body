@@ -7,9 +7,13 @@
     LibrarySpec selectedLibrary=resolutionResult.getSelectedLibrary();
     if (selectedLibrary != null) {
       DefaultTaskDependency buildDependencies=new DefaultTaskDependency();
-      Collection<BinarySpec> variants=selectedLibrary.getBinaries().values();
-      if (variants.size() > 1) {
-        result.failed(new ModuleVersionResolveException(selector,String.format("Multiple binaries available for library '%s' : %s",libraryName,variants)));
+      Collection<BinarySpec> allVariants=selectedLibrary.getBinaries().values();
+      Collection<? extends BinarySpec> variants=filterBinaries(allVariants);
+      if (!allVariants.isEmpty() && variants.isEmpty()) {
+        result.failed(new ModuleVersionResolveException(selector,noCompatiblePlatformErrorMessage(libraryName,javaPlatform,allVariants)));
+      }
+ else       if (variants.size() > 1) {
+        result.failed(new ModuleVersionResolveException(selector,multipleBinariesForSameVariantErrorMessage(libraryName,javaPlatform,variants)));
       }
  else {
         for (        BinarySpec spec : variants) {
@@ -26,7 +30,7 @@
       }
     }
     if (!result.hasResult()) {
-      String message=prettyErrorMessage(selector,resolutionResult);
+      String message=prettyResolutionErrorMessage(selector,resolutionResult);
       ModuleVersionResolveException failure=new ModuleVersionResolveException(selector,new LibraryResolveException(message));
       result.failed(failure);
     }
