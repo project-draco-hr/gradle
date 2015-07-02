@@ -1,0 +1,14 @@
+{
+  if (!(action instanceof SubscribableBuildAction)) {
+    return;
+  }
+  GradleInternal gradle=buildController.getGradle();
+  SubscribableBuildAction subscribableBuildAction=(SubscribableBuildAction)action;
+  if (!buildClientSubscriptionHandler.hasClientSubscriptionsRegistered(subscribableBuildAction.getClientSubscriptions())) {
+    buildClientSubscriptionHandler.registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(),gradle);
+  }
+  delegate.run(action,buildController);
+  if (buildController.hasResult()) {
+    buildClientSubscriptionHandler.removeClientSubscriptions(subscribableBuildAction.getClientSubscriptions());
+  }
+}
