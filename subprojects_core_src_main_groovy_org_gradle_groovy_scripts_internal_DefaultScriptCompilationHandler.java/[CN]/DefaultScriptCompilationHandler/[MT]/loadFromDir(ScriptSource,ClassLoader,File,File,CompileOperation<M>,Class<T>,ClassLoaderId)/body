@@ -4,7 +4,8 @@
     KryoBackedDecoder decoder=new KryoBackedDecoder(new FileInputStream(metadataFile));
     try {
       byte flags=decoder.readByte();
-      boolean isEmpty=(flags & 1) != 0;
+      boolean isEmpty=(flags & EMPTY_FLAG) != 0;
+      boolean hasMethods=(flags & HAS_METHODS_FLAG) != 0;
       if (isEmpty) {
         classLoaderCache.remove(classLoaderId);
       }
@@ -15,7 +16,7 @@
  else {
         data=null;
       }
-      return new ClassCachingCompiledScript<T,M>(new ClassesDirCompiledScript<T,M>(isEmpty,classLoaderId,scriptBaseClass,scriptCacheDir,classLoader,source,data));
+      return new ClassCachingCompiledScript<T,M>(new ClassesDirCompiledScript<T,M>(isEmpty,hasMethods,classLoaderId,scriptBaseClass,scriptCacheDir,classLoader,source,data));
     }
   finally {
       decoder.close();
