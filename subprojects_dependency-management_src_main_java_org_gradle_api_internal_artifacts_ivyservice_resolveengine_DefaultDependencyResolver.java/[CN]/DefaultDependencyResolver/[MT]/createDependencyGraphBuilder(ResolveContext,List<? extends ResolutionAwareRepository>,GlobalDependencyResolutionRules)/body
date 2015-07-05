@@ -1,0 +1,11 @@
+{
+  ResolutionStrategyInternal resolutionStrategy=(ResolutionStrategyInternal)resolveContext.getResolutionStrategy();
+  ResolverProvider componentSource=createComponentSource(resolutionStrategy,resolveContext,repositories,metadataHandler);
+  DependencyToComponentIdResolver componentIdResolver=new DependencySubstitutionResolver(componentSource.getComponentIdResolver(),resolutionStrategy.getDependencySubstitutionRule());
+  ComponentMetaDataResolver componentMetaDataResolver=new ClientModuleResolver(componentSource.getComponentResolver(),dependencyDescriptorFactory);
+  ArtifactResolver artifactResolver=new ErrorHandlingArtifactResolver(new ContextualArtifactResolver(cacheLockingManager,ivyContextManager,componentSource.getArtifactResolver()));
+  DependencyToConfigurationResolver dependencyToConfigurationResolver=new DefaultDependencyToConfigurationResolver();
+  ResolveContextToComponentResolver requestResolver=createResolveContextConverter();
+  ConflictHandler conflictHandler=createConflictHandler(resolutionStrategy,metadataHandler);
+  return new DependencyGraphBuilder(componentIdResolver,componentMetaDataResolver,artifactResolver,requestResolver,dependencyToConfigurationResolver,conflictHandler);
+}

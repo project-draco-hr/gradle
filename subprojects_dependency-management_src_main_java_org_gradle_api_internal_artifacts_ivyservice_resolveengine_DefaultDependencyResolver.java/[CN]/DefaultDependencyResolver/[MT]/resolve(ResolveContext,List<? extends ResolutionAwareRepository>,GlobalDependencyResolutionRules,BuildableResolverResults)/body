@@ -2,30 +2,7 @@
   LOGGER.debug("Resolving {}",resolveContext);
   ivyContextManager.withIvy(new Action<Ivy>(){
     public void execute(    Ivy ivy){
-      ResolutionStrategyInternal resolutionStrategy=(ResolutionStrategyInternal)resolveContext.getResolutionStrategy();
-      List<LocalComponentConverter> localComponentFactories=allServices(LocalComponentConverter.class);
-      List<ResolverProvider> resolvers=allServices(ResolverProvider.class);
-      List<RequestScopeResolverProviderFactory.Query> requestScopeProviderQueries=allServices(RequestScopeResolverProviderFactory.Query.class);
-      for (      RequestScopeResolverProviderFactory.Query query : requestScopeProviderQueries) {
-        ResolverProvider provider=requestScopeResolverProviderFactory.tryCreate(resolveContext,query);
-        if (provider != null) {
-          resolvers.add(provider);
-        }
-      }
-      resolvers.add(ivyFactory.create(resolutionStrategy,repositories,metadataHandler.getComponentMetadataProcessor()));
-      ResolverProviderChain resolverProvider=new ResolverProviderChain(resolvers);
-      ResolverProvider wrappingProvider=DelegatingResolverProvider.of(createArtifactResolver(resolverProvider.getArtifactResolver()),new DependencySubstitutionResolver(resolverProvider.getComponentIdResolver(),resolutionStrategy.getDependencySubstitutionRule()),new ClientModuleResolver(resolverProvider.getComponentResolver(),dependencyDescriptorFactory));
-      ModuleConflictResolver conflictResolver;
-      if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
-        conflictResolver=new StrictConflictResolver();
-      }
- else {
-        conflictResolver=new LatestModuleConflictResolver(versionComparator);
-      }
-      conflictResolver=new VersionSelectionReasonResolver(conflictResolver);
-      ConflictHandler conflictHandler=new DefaultConflictHandler(conflictResolver,metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
-      DefaultResolveContextToComponentResolver moduleResolver=new DefaultResolveContextToComponentResolver(new ChainedLocalComponentConverter(localComponentFactories));
-      DependencyGraphBuilder builder=new DependencyGraphBuilder(wrappingProvider,moduleResolver,conflictHandler,new DefaultDependencyToConfigurationResolver());
+      DependencyGraphBuilder builder=createDependencyGraphBuilder(resolveContext,repositories,metadataHandler);
       StoreSet stores=storeFactory.createStoreSet();
       BinaryStore newModelStore=stores.nextBinaryStore();
       Store<ResolvedComponentResult> newModelCache=stores.oldModelStore();
