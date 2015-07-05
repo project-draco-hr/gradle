@@ -3,13 +3,11 @@
     public void execute(    Ivy ivy){
       Set<Configuration> allConfigurations=configuration.getAll();
       Set<Configuration> configurationsToPublish=configuration.getHierarchy();
-      LocalComponentMetaData allConfigurationsComponentMetaData=publishLocalComponentConverter.convert(new ConfigurationBackedComponent(module,allConfigurations));
       if (descriptor != null) {
-        IvyModulePublishMetaData publishMetaData=allConfigurationsComponentMetaData.toPublishMetaData();
+        IvyModulePublishMetaData publishMetaData=toPublishMetaData(module,allConfigurations);
         ivyModuleDescriptorWriter.write(publishMetaData.getModuleDescriptor(),publishMetaData.getArtifacts(),descriptor);
       }
-      LocalComponentMetaData componentMetaData=publishLocalComponentConverter.convert(new ConfigurationBackedComponent(module,configurationsToPublish));
-      BuildableIvyModulePublishMetaData publishMetaData=componentMetaData.toPublishMetaData();
+      BuildableIvyModulePublishMetaData publishMetaData=toPublishMetaData(module,configurationsToPublish);
       if (descriptor != null) {
         Artifact artifact=MDArtifact.newIvyArtifact(publishMetaData.getModuleDescriptor());
         publishMetaData.addArtifact(artifact,descriptor);
