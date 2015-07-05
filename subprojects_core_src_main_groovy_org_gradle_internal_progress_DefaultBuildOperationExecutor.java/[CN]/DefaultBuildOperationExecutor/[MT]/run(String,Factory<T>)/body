@@ -1,7 +1,8 @@
 {
-  BuildOperationId parentId=operationStack.isEmpty() ? null : operationStack.getFirst();
+  OperationDetails parent=currentOperation.get();
+  BuildOperationId parentId=parent == null ? null : parent.id;
   BuildOperationId id=new BuildOperationId(nextId.getAndIncrement());
-  operationStack.addFirst(id);
+  currentOperation.set(new OperationDetails(parent,id));
   try {
     long startTime=timeProvider.getCurrentTime();
     BuildOperationInternal operation=new BuildOperationInternal(id,parentId,displayName);
@@ -22,6 +23,6 @@
     return result;
   }
   finally {
-    operationStack.removeFirst();
+    currentOperation.set(parent);
   }
 }
