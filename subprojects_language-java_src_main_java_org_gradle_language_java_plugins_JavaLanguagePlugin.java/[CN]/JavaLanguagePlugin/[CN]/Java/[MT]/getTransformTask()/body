@@ -9,15 +9,14 @@
     public void configureTask(    Task task,    BinarySpec binarySpec,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
       PlatformJavaCompile compile=(PlatformJavaCompile)task;
       JavaSourceSet javaSourceSet=(JavaSourceSet)sourceSet;
-      JvmBinarySpec binary=(JvmBinarySpec)binarySpec;
+      JarBinarySpec binary=(JarBinarySpec)binarySpec;
       ArtifactDependencyResolver dependencyResolver=serviceRegistry.get(ArtifactDependencyResolver.class);
-      ProjectInternal project=(ProjectInternal)task.getProject();
       compile.setDescription(String.format("Compiles %s.",javaSourceSet));
       compile.setDestinationDir(binary.getClassesDir());
       compile.setToolChain(binary.getToolChain());
       compile.setPlatform(binary.getTargetPlatform());
       compile.setSource(javaSourceSet.getSource());
-      DependencyResolvingClasspath classpath=new DependencyResolvingClasspath(project.getPath(),((BaseLanguageSourceSet)javaSourceSet).getParentName(),binarySpec,(DependentSourceSetInternal)javaSourceSet,dependencyResolver,javaSourceSet.getCompileClasspath().getFiles(),compile.getPlatform());
+      DependencyResolvingClasspath classpath=new DependencyResolvingClasspath(binary,(DependentSourceSetInternal)javaSourceSet,dependencyResolver);
       compile.setClasspath(classpath);
       compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
       compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
