@@ -1,18 +1,18 @@
 {
-  Map<DependencyGraphBuilder.ModuleVersionResolveState,List<ModuleVersionIdentifier>> shortestPaths=new LinkedHashMap<DependencyGraphBuilder.ModuleVersionResolveState,List<ModuleVersionIdentifier>>();
+  Map<ModuleVersionSelection,List<ModuleVersionIdentifier>> shortestPaths=new LinkedHashMap<ModuleVersionSelection,List<ModuleVersionIdentifier>>();
   List<ModuleVersionIdentifier> rootPath=new ArrayList<ModuleVersionIdentifier>();
   rootPath.add(root.toId());
-  shortestPaths.put(root.moduleRevision,rootPath);
+  shortestPaths.put(root.getSelection(),rootPath);
   Set<DependencyGraphBuilder.ModuleVersionResolveState> directDependees=new LinkedHashSet<DependencyGraphBuilder.ModuleVersionResolveState>();
-  for (  DependencyGraphBuilder.ConfigurationNode node : brokenDependency.requiredBy) {
-    directDependees.add(node.moduleRevision);
+  for (  DependencyGraphNode node : brokenDependency.requiredBy) {
+    directDependees.add(node.getState());
   }
   Set<DependencyGraphBuilder.ModuleVersionResolveState> seen=new HashSet<DependencyGraphBuilder.ModuleVersionResolveState>();
   LinkedList<DependencyGraphBuilder.ModuleVersionResolveState> queue=new LinkedList<DependencyGraphBuilder.ModuleVersionResolveState>();
   queue.addAll(directDependees);
   while (!queue.isEmpty()) {
     DependencyGraphBuilder.ModuleVersionResolveState version=queue.getFirst();
-    if (version == root.moduleRevision) {
+    if (version == root.getSelection()) {
       queue.removeFirst();
     }
  else     if (seen.add(version)) {
