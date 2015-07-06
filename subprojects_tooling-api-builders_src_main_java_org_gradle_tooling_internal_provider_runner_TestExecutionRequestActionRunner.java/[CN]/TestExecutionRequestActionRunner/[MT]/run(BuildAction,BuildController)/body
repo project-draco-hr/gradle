@@ -34,8 +34,26 @@
     }
 );
   }
-  buildController.run();
   PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
-  BuildActionResult buildActionResult=new BuildActionResult(payloadSerializer.serialize(null),null);
+  Throwable failure=null;
+  try {
+    buildController.run();
+  }
+ catch (  RuntimeException rex) {
+    Throwable throwable=findRootCause(rex);
+    if (throwable instanceof TestExecutionException) {
+      failure=new InternalTestExecutionException(throwable);
+    }
+ else {
+      throw rex;
+    }
+  }
+  BuildActionResult buildActionResult;
+  if (failure != null) {
+    buildActionResult=new BuildActionResult(null,payloadSerializer.serialize(failure));
+  }
+ else {
+    buildActionResult=new BuildActionResult(payloadSerializer.serialize(null),null);
+  }
   buildController.setResult(buildActionResult);
 }
