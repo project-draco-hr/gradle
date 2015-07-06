@@ -1,9 +1,17 @@
 {
-  final Collection<TestOperationDescriptor> testOperationDescriptors=testExecutionRequest.getTestOperationDescriptors();
-  final Collection<JvmTestOperationDescriptor> jvmTestOperationDescriptors=toJvmTestOperatorDescriptor(testOperationDescriptors);
+  final Collection<OperationDescriptor> operationDescriptors=testExecutionRequest.getOperationDescriptors();
   final List<InternalJvmTestExecutionDescriptor> internalJvmTestDescriptors=Lists.newArrayList();
-  for (  final JvmTestOperationDescriptor descriptor : jvmTestOperationDescriptors) {
-    internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(descriptor.getClassName(),descriptor.getMethodName(),findTaskPath(descriptor)));
+  for (  final OperationDescriptor descriptor : operationDescriptors) {
+    if (descriptor instanceof JvmTestOperationDescriptor) {
+      JvmTestOperationDescriptor jvmTestOperationDescriptor=(JvmTestOperationDescriptor)descriptor;
+      internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(jvmTestOperationDescriptor.getClassName(),jvmTestOperationDescriptor.getMethodName(),findTaskPath(jvmTestOperationDescriptor)));
+    }
+ else     if (descriptor instanceof TaskOperationDescriptor) {
+      internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(null,null,((TaskOperationDescriptor)descriptor).getTaskPath()));
+    }
+ else {
+      throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
+    }
   }
   InternalTestExecutionRequest internalTestExecutionRequest=new DefaultInternalTestExecutionRequest(internalJvmTestDescriptors);
   return internalTestExecutionRequest;
