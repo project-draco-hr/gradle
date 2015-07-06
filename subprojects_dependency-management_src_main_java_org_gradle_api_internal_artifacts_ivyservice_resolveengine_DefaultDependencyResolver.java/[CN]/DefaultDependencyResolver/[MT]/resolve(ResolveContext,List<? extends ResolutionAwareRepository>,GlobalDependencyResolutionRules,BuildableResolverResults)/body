@@ -2,19 +2,25 @@
   LOGGER.debug("Resolving {}",resolveContext);
   ivyContextManager.withIvy(new Action<Ivy>(){
     public void execute(    Ivy ivy){
-      DependencyGraphBuilder builder=createDependencyGraphBuilder(resolveContext,repositories,metadataHandler);
+      ResolutionStrategyInternal resolutionStrategy=(ResolutionStrategyInternal)resolveContext.getResolutionStrategy();
+      ResolverProvider componentSource=createComponentSource(resolutionStrategy,resolveContext,repositories,metadataHandler);
+      ArtifactResolver artifactResolver=new ErrorHandlingArtifactResolver(new ContextualArtifactResolver(cacheLockingManager,ivyContextManager,componentSource.getArtifactResolver()));
       StoreSet stores=storeFactory.createStoreSet();
       BinaryStore newModelStore=stores.nextBinaryStore();
       Store<ResolvedComponentResult> newModelCache=stores.oldModelStore();
       ResolutionResultBuilder newModelBuilder=new StreamingResolutionResultBuilder(newModelStore,newModelCache);
+      DependencyGraphVisitor newModelVisitor=new ResolutionResultDependencyGraphVisitor(newModelBuilder);
       BinaryStore oldModelStore=stores.nextBinaryStore();
       Store<TransientConfigurationResults> oldModelCache=stores.newModelStore();
       TransientConfigurationResultsBuilder oldTransientModelBuilder=new TransientConfigurationResultsBuilder(oldModelStore,oldModelCache);
       DefaultResolvedConfigurationBuilder oldModelBuilder=new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
-      ResolvedLocalComponentsResultBuilder localComponentsResultBuilder=new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
-      DefaultResolverResults defaultResolverResults=(DefaultResolverResults)results;
       DefaultResolvedArtifactsBuilder artifactsBuilder=new DefaultResolvedArtifactsBuilder();
-      builder.resolve(resolveContext,newModelBuilder,oldModelBuilder,artifactsBuilder,localComponentsResultBuilder);
+      DependencyGraphVisitor oldModelVisitor=new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder,artifactsBuilder,artifactResolver);
+      ResolvedLocalComponentsResultBuilder localComponentsResultBuilder=new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
+      DependencyGraphVisitor projectModelVisitor=new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
+      DependencyGraphBuilder builder=createDependencyGraphBuilder(componentSource,resolutionStrategy,metadataHandler);
+      builder.resolve(resolveContext,oldModelVisitor,newModelVisitor,projectModelVisitor);
+      DefaultResolverResults defaultResolverResults=(DefaultResolverResults)results;
       defaultResolverResults.resolved(newModelBuilder.complete(),localComponentsResultBuilder.complete());
       ResolvedGraphResults graphResults=oldModelBuilder.complete();
       defaultResolverResults.retainState(graphResults,artifactsBuilder,oldTransientModelBuilder);
