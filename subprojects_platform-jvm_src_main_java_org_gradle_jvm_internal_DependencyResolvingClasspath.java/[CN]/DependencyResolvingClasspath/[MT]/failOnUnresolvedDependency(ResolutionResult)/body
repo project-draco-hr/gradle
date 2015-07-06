@@ -1,0 +1,15 @@
+{
+  final List<Throwable> notFound=new LinkedList<Throwable>();
+  resolutionResult.allDependencies(new Action<DependencyResult>(){
+    @Override public void execute(    DependencyResult dependencyResult){
+      if (dependencyResult instanceof UnresolvedDependencyResult) {
+        UnresolvedDependencyResult unresolved=(UnresolvedDependencyResult)dependencyResult;
+        notFound.add(unresolved.getFailure());
+      }
+    }
+  }
+);
+  if (!notFound.isEmpty()) {
+    throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' source set '%s'",binary.getDisplayName(),sourceSet.getDisplayName()),notFound);
+  }
+}

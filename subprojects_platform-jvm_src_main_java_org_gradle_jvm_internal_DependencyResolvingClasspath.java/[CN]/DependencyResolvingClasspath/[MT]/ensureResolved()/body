@@ -1,29 +1,9 @@
 {
-  if (resolverResults == null) {
-    final DefaultTaskDependency result=new DefaultTaskDependency();
-    result.add(super.getBuildDependencies());
-    final List<Throwable> notFound=new LinkedList<Throwable>();
-    resolve(createResolveContext(),new Action<DefaultResolverResults>(){
-      @Override public void execute(      DefaultResolverResults resolverResults){
-        if (!resolverResults.hasError()) {
-          ResolvedLocalComponentsResult resolvedLocalComponents=resolverResults.getResolvedLocalComponents();
-          result.add(resolvedLocalComponents.getComponentBuildDependencies());
-        }
-        resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>(){
-          @Override public void execute(          DependencyResult dependencyResult){
-            if (dependencyResult instanceof UnresolvedDependencyResult) {
-              UnresolvedDependencyResult unresolved=(UnresolvedDependencyResult)dependencyResult;
-              notFound.add(unresolved.getFailure());
-            }
-          }
-        }
-);
-      }
-    }
-);
-    if (!notFound.isEmpty()) {
-      throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' source set '%s'",binary.getDisplayName(),sourceSet.getDisplayName()),notFound);
-    }
-    taskDependency=result;
+  if (cachedResolveResults == null) {
+    DefaultResolverResults results=new DefaultResolverResults();
+    dependencyResolver.resolve(resolveContext,remoteRepositories,globalRules,results);
+    failOnUnresolvedDependency(results.getResolutionResult());
+    taskDependency=results.getResolvedLocalComponents().getComponentBuildDependencies();
+    cachedResolveResults=results;
   }
 }
