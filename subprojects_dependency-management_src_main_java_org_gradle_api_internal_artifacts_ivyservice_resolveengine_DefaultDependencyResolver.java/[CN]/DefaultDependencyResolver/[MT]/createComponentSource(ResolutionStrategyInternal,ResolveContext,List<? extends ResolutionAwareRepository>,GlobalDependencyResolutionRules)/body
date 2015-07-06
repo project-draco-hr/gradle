@@ -1,10 +1,9 @@
 {
   List<ResolverProvider> resolvers=allServices(ResolverProvider.class);
-  List<RequestScopeResolverProviderFactory.Query> requestScopeProviderQueries=allServices(RequestScopeResolverProviderFactory.Query.class);
-  for (  RequestScopeResolverProviderFactory.Query query : requestScopeProviderQueries) {
-    ResolverProvider provider=requestScopeResolverProviderFactory.tryCreate(resolveContext,query);
-    if (provider != null) {
-      resolvers.add(provider);
+  List<ResolverProviderFactory> providerFactories=allServices(ResolverProviderFactory.class);
+  for (  ResolverProviderFactory factory : providerFactories) {
+    if (factory.canCreate(resolveContext)) {
+      resolvers.add(factory.create(resolveContext));
     }
   }
   resolvers.add(ivyFactory.create(resolutionStrategy,repositories,metadataHandler.getComponentMetadataProcessor()));
