@@ -18,7 +18,13 @@
       }
       @Override public void afterEvaluate(      Project project,      ProjectState state){
         final Task task=project.getTasks().findByPath(testTaskPath);
-        if (task != null && task instanceof Test) {
+        if (task == null) {
+          throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found in project '%s'.",testTaskPath,project.getName()));
+        }
+ else         if (!(task instanceof Test)) {
+          throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.",testTaskPath,task.getClass().getName()));
+        }
+ else {
           Test testTask=(Test)task;
           for (          InternalJvmTestExecutionDescriptor testDescriptor : testDescriptors) {
             if (testDescriptor.getTaskPath().equals(testTaskPath)) {
@@ -44,10 +50,10 @@
   }
  catch (  RuntimeException rex) {
     Throwable throwable=findRootCause(rex);
-    if (throwable instanceof TestExecutionException) {
-      failure=new InternalTestExecutionException("Error while running test(s)",throwable);
+    if (throwable instanceof InternalTestExecutionException) {
+      failure=throwable;
     }
- else     if (throwable instanceof TaskSelectionException) {
+ else     if (throwable instanceof TestExecutionException) {
       failure=new InternalTestExecutionException("Error while running test(s)",throwable);
     }
  else {
