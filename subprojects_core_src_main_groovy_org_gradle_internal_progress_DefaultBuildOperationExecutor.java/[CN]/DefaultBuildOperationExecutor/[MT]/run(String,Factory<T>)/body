@@ -1,28 +1,3 @@
 {
-  OperationDetails parent=currentOperation.get();
-  BuildOperationId parentId=parent == null ? null : parent.id;
-  BuildOperationId id=new BuildOperationId(nextId.getAndIncrement());
-  currentOperation.set(new OperationDetails(parent,id));
-  try {
-    long startTime=timeProvider.getCurrentTime();
-    BuildOperationInternal operation=new BuildOperationInternal(id,parentId,displayName);
-    listener.started(operation,new OperationStartEvent(startTime));
-    T result=null;
-    Throwable failure=null;
-    try {
-      result=factory.create();
-    }
- catch (    Throwable t) {
-      failure=t;
-    }
-    long endTime=timeProvider.getCurrentTime();
-    listener.finished(operation,new OperationResult(startTime,endTime,failure));
-    if (failure != null) {
-      throw UncheckedException.throwAsUncheckedException(failure);
-    }
-    return result;
-  }
-  finally {
-    currentOperation.set(parent);
-  }
+  return run(BuildOperationDetails.displayName(displayName).build(),factory);
 }

@@ -1,0 +1,45 @@
+{
+  OperationDetails parent=currentOperation.get();
+  BuildOperationId parentId=parent == null ? null : parent.id;
+  BuildOperationId id=new BuildOperationId(nextId.getAndIncrement());
+  currentOperation.set(new OperationDetails(parent,id));
+  try {
+    long startTime=timeProvider.getCurrentTime();
+    BuildOperationInternal operation=new BuildOperationInternal(id,parentId,operationDetails.getDisplayName());
+    listener.started(operation,new OperationStartEvent(startTime));
+    T result=null;
+    Throwable failure=null;
+    try {
+      ProgressLogger progressLogger;
+      if (operationDetails.getProgressDisplayName() != null) {
+        progressLogger=progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class);
+        progressLogger.setDescription(operationDetails.getDisplayName());
+        progressLogger.setShortDescription(operationDetails.getProgressDisplayName());
+        progressLogger.started();
+      }
+ else {
+        progressLogger=null;
+      }
+      try {
+        result=factory.create();
+      }
+  finally {
+        if (progressLogger != null) {
+          progressLogger.completed();
+        }
+      }
+    }
+ catch (    Throwable t) {
+      failure=t;
+    }
+    long endTime=timeProvider.getCurrentTime();
+    listener.finished(operation,new OperationResult(startTime,endTime,failure));
+    if (failure != null) {
+      throw UncheckedException.throwAsUncheckedException(failure);
+    }
+    return result;
+  }
+  finally {
+    currentOperation.set(parent);
+  }
+}
