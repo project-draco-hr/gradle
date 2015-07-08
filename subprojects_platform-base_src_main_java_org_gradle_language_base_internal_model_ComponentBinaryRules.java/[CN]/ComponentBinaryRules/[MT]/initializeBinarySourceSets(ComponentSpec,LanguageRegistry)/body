@@ -2,8 +2,12 @@
   component.getBinaries().beforeEach(new Action<BinarySpec>(){
     @Override public void execute(    BinarySpec binary){
       for (      LanguageRegistration<?> languageRegistration : languageRegistry) {
-        BinarySourcesRegistrationAction.create(component.getName(),languageRegistration).execute((BinarySpecInternal)binary);
+        register((BinarySpecInternal)binary,component.getName(),languageRegistration);
       }
+    }
+    private <U extends LanguageSourceSet>void register(    BinarySpecInternal binary,    String componentName,    LanguageRegistration<U> languageRegistration){
+      NamedDomainObjectFactory<? extends U> sourceSetFactory=languageRegistration.getSourceSetFactory(componentName);
+      binary.getEntityInstantiator().registerFactory(languageRegistration.getSourceSetType(),sourceSetFactory);
     }
   }
 );
