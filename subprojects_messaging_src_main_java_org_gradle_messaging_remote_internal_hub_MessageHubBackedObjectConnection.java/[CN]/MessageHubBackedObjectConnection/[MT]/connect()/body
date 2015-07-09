@@ -2,8 +2,11 @@
   if (methodParamClassLoader == null) {
     methodParamClassLoader=getClass().getClassLoader();
   }
-  StatefulSerializer<Object[]> paramSerializer=this.paramSerializer;
-  if (paramSerializer == null) {
+  StatefulSerializer<Object[]> paramSerializer;
+  if (this.paramSerializer != null) {
+    paramSerializer=Serializers.stateful(this.paramSerializer);
+  }
+ else {
     paramSerializer=new JavaSerializer<Object[]>(methodParamClassLoader);
   }
   MessageSerializer<InterHubMessage> serializer=new InterHubMessageSerializer(new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,new MethodInvocationSerializer(methodParamClassLoader,paramSerializer)));
