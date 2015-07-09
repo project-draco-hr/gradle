@@ -1,0 +1,18 @@
+{
+  Map<String,Object> variants=Maps.newHashMap();
+  Class<? extends BinarySpec> specClass=spec.getClass();
+  Set<Class<?>> interfaces=ClassInspector.inspect(specClass).getSuperTypes();
+  for (  Class<?> intf : interfaces) {
+    ClassDetails details=ClassInspector.inspect(intf);
+    Collection<? extends PropertyDetails> properties=details.getProperties();
+    for (    PropertyDetails property : properties) {
+      List<Method> getters=property.getGetters();
+      for (      Method getter : getters) {
+        if (getter.getAnnotation(Variant.class) != null) {
+          extractVariant(variants,spec,property.getName(),getter);
+        }
+      }
+    }
+  }
+  return new DefaultVariantsMetaData(ImmutableMap.copyOf(variants));
+}
