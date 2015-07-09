@@ -6,16 +6,16 @@
     LibraryResolutionResult resolutionResult=doResolve(selectorProjectPath,libraryName);
     LibrarySpec selectedLibrary=resolutionResult.getSelectedLibrary();
     if (selectedLibrary != null) {
-      Collection<BinarySpec> allVariants=selectedLibrary.getBinaries().values();
-      Collection<? extends BinarySpec> variants=filterBinaries(allVariants);
-      if (!allVariants.isEmpty() && variants.isEmpty()) {
-        result.failed(new ModuleVersionResolveException(selector,noCompatiblePlatformErrorMessage(libraryName,javaPlatform,allVariants)));
+      Collection<BinarySpec> allBinaries=selectedLibrary.getBinaries().values();
+      Collection<? extends BinarySpec> compatibleBinaries=filterBinaries(allBinaries);
+      if (!allBinaries.isEmpty() && compatibleBinaries.isEmpty()) {
+        result.failed(new ModuleVersionResolveException(selector,noCompatiblePlatformErrorMessage(libraryName,javaPlatform,allBinaries)));
       }
- else       if (variants.size() > 1) {
-        result.failed(new ModuleVersionResolveException(selector,multipleBinariesForSameVariantErrorMessage(libraryName,javaPlatform,variants)));
+ else       if (compatibleBinaries.size() > 1) {
+        result.failed(new ModuleVersionResolveException(selector,multipleBinariesForSameVariantErrorMessage(libraryName,javaPlatform,compatibleBinaries)));
       }
  else {
-        JarBinarySpec jarBinary=(JarBinarySpec)variants.iterator().next();
+        JarBinarySpec jarBinary=(JarBinarySpec)compatibleBinaries.iterator().next();
         DefaultTaskDependency buildDependencies=new DefaultTaskDependency();
         buildDependencies.add(jarBinary);
         DefaultLibraryLocalComponentMetaData metaData=DefaultLibraryLocalComponentMetaData.newMetaData(jarBinary.getId(),buildDependencies);
