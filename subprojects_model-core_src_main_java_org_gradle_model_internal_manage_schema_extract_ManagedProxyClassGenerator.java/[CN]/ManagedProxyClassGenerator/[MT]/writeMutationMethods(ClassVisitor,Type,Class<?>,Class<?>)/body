@@ -1,6 +1,16 @@
 {
   ClassDetails classDetails=ClassInspector.inspect(managedTypeClass);
+  Set<String> delegatePropertyNames;
+  if (delegateTypeClass != null) {
+    delegatePropertyNames=ClassInspector.inspect(delegateTypeClass).getPropertyNames();
+  }
+ else {
+    delegatePropertyNames=Collections.emptySet();
+  }
   for (  PropertyDetails property : classDetails.getProperties()) {
+    if (delegatePropertyNames.contains(property.getName())) {
+      continue;
+    }
     for (    Method method : property.getGetters()) {
       if (Modifier.isAbstract(method.getModifiers())) {
         writeGetter(visitor,generatedType,method);
