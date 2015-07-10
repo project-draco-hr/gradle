@@ -3,47 +3,9 @@
     return;
   }
   final GradleInternal gradle=buildController.getGradle();
-  TestExecutionRequestAction testExecutionRequestAction=(TestExecutionRequestAction)action;
-  final InternalTestExecutionRequest testExecutionRequest=testExecutionRequestAction.getTestExecutionRequest();
-  final Collection<InternalJvmTestExecutionDescriptor> testDescriptors=testExecutionRequest.getTestExecutionDescriptors();
-  final List<String> testTaskPaths=org.gradle.util.CollectionUtils.collect(testDescriptors,new Transformer<String,InternalJvmTestExecutionDescriptor>(){
-    @Override public String transform(    InternalJvmTestExecutionDescriptor internalJvmTestDescriptor){
-      return internalJvmTestDescriptor.getTaskPath();
-    }
-  }
-);
-  gradle.addBuildListener(new BuildAdapter(){
-    @Override public void projectsEvaluated(    Gradle gradle){
-      for (      final String testTaskPath : testTaskPaths) {
-        gradle.getRootProject().getTasks().findByPath(testTaskPath);
-        final Task task=gradle.getRootProject().getTasks().findByPath(testTaskPath);
-        ;
-        if (task == null) {
-          throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.",testTaskPath));
-        }
- else         if (!(task instanceof Test)) {
-          throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.",testTaskPath,task.getClass().getName()));
-        }
- else {
-          Test testTask=(Test)task;
-          for (          InternalJvmTestExecutionDescriptor testDescriptor : testDescriptors) {
-            if (testDescriptor.getTaskPath().equals(testTaskPath)) {
-              final String className=testDescriptor.getClassName();
-              final String methodName=testDescriptor.getMethodName();
-              if (className == null && methodName == null) {
-                testTask.getFilter().includeTestsMatching("*");
-              }
- else {
-                testTask.getFilter().includeTest(className,methodName);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-);
-  testExecutionRequestAction.getStartParameter().setTaskNames(testTaskPaths);
+  final TestExecutionRequestAction testExecutionRequestAction=(TestExecutionRequestAction)action;
+  configureForTestDescriptors(gradle,testExecutionRequestAction);
+  configureForTestClasses(gradle,testExecutionRequestAction);
   PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
   Throwable failure=null;
   try {
