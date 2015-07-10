@@ -4,22 +4,22 @@
   }
   final GradleInternal gradle=buildController.getGradle();
   TestExecutionRequestAction testExecutionRequestAction=(TestExecutionRequestAction)action;
-  final Collection<InternalJvmTestExecutionDescriptor> testDescriptors=testExecutionRequestAction.getTestExecutionDescriptors();
+  final InternalTestExecutionRequest testExecutionRequest=testExecutionRequestAction.getTestExecutionRequest();
+  final Collection<InternalJvmTestExecutionDescriptor> testDescriptors=testExecutionRequest.getTestExecutionDescriptors();
   final List<String> testTaskPaths=org.gradle.util.CollectionUtils.collect(testDescriptors,new Transformer<String,InternalJvmTestExecutionDescriptor>(){
     @Override public String transform(    InternalJvmTestExecutionDescriptor internalJvmTestDescriptor){
       return internalJvmTestDescriptor.getTaskPath();
     }
   }
 );
-  testExecutionRequestAction.getStartParameter().setTaskNames(testTaskPaths);
-  for (  final String testTaskPath : testTaskPaths) {
-    gradle.addProjectEvaluationListener(new ProjectEvaluationListener(){
-      @Override public void beforeEvaluate(      Project project){
-      }
-      @Override public void afterEvaluate(      Project project,      ProjectState state){
-        final Task task=project.getTasks().findByPath(testTaskPath);
+  gradle.addBuildListener(new BuildAdapter(){
+    @Override public void projectsEvaluated(    Gradle gradle){
+      for (      final String testTaskPath : testTaskPaths) {
+        gradle.getRootProject().getTasks().findByPath(testTaskPath);
+        final Task task=gradle.getRootProject().getTasks().findByPath(testTaskPath);
+        ;
         if (task == null) {
-          throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found in project '%s'.",testTaskPath,project.getName()));
+          throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.",testTaskPath));
         }
  else         if (!(task instanceof Test)) {
           throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.",testTaskPath,task.getClass().getName()));
@@ -41,8 +41,9 @@
         }
       }
     }
-);
   }
+);
+  testExecutionRequestAction.getStartParameter().setTaskNames(testTaskPaths);
   PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
   Throwable failure=null;
   try {
