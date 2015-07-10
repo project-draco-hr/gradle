@@ -1,7 +1,8 @@
 {
   RemoteConnection<Object> connection;
   try {
-    connection=connector.connect(daemon.getAddress()).create(getClass().getClassLoader());
+    KryoBackedMessageSerializer<Object> serializer=new KryoBackedMessageSerializer<Object>(Serializers.stateful(DaemonMessageSerializer.create()));
+    connection=connector.connect(daemon.getAddress()).create(serializer);
   }
  catch (  ConnectException e) {
     staleAddressDetector.maybeStaleAddress(e);
