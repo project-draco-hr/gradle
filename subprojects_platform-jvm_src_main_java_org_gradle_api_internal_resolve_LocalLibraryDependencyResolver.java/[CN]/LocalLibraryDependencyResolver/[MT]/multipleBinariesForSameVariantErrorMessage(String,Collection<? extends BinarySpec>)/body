@@ -1,3 +1,26 @@
 {
-  return String.format("Multiple binaries available for library '%s' (%s) : %s",libraryName,javaPlatform,variants);
+  List<String> binaryDescriptors=new ArrayList<String>(binaries.size());
+  StringBuilder binaryDescriptor=new StringBuilder();
+  for (  BinarySpec variant : binaries) {
+    binaryDescriptor.setLength(0);
+    binaryDescriptor.append("   - ").append(variant.getDisplayName()).append(":\n");
+    VariantsMetaData metaData=DefaultVariantsMetaData.extractFrom(variant);
+    Set<String> dimensions=new TreeSet<String>(metaData.getDimensions());
+    if (dimensions.size() > 1) {
+      for (      String dimension : dimensions) {
+        binaryDescriptor.append("       * ").append(dimension).append(" '").append(metaData.getValueAsString(dimension)).append("'\n");
+      }
+      binaryDescriptors.add(binaryDescriptor.toString());
+    }
+  }
+  if (binaryDescriptors.isEmpty()) {
+    return String.format("Multiple binaries available for library '%s' (%s) : %s",libraryName,javaPlatform,binaries);
+  }
+ else {
+    StringBuilder sb=new StringBuilder(String.format("Multiple binaries available for library '%s' (%s) :\n",libraryName,javaPlatform));
+    for (    String descriptor : binaryDescriptors) {
+      sb.append(descriptor);
+    }
+    return sb.toString();
+  }
 }
