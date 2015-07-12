@@ -1,5 +1,5 @@
 {
-  File jarFile=findModuleJar(moduleName);
+  File jarFile=findJar(moduleName);
   if (jarFile != null) {
     Set<File> implementationClasspath=new LinkedHashSet<File>();
     implementationClasspath.add(jarFile);
@@ -7,16 +7,19 @@
     return module(moduleName,properties,implementationClasspath);
   }
   String resourceName=String.format("%s-classpath.properties",moduleName);
-  URL propertiesUrl=classLoader.getResource(resourceName);
-  if (propertiesUrl != null) {
-    Set<File> implementationClasspath=new LinkedHashSet<File>();
-    findImplementationClasspath(moduleName,implementationClasspath);
-    implementationClasspath.add(ClasspathUtil.getClasspathForResource(propertiesUrl,resourceName));
-    Properties properties=GUtil.loadProperties(propertiesUrl);
-    return module(moduleName,properties,implementationClasspath);
+  Set<File> implementationClasspath=new LinkedHashSet<File>();
+  findImplementationClasspath(moduleName,implementationClasspath);
+  for (  File file : implementationClasspath) {
+    if (file.isDirectory()) {
+      File propertiesFile=new File(file,resourceName);
+      if (propertiesFile.isFile()) {
+        Properties properties=GUtil.loadProperties(propertiesFile);
+        return module(moduleName,properties,implementationClasspath);
+      }
+    }
   }
   if (gradleDistributionLocator.getGradleHome() == null) {
-    throw new UnknownModuleException(String.format("Cannot locate classpath manifest for module '%s' in classpath.",moduleName));
+    throw new UnknownModuleException(String.format("Cannot locate manifest for module '%s' in classpath.",moduleName));
   }
   throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.",moduleName,gradleDistributionLocator.getGradleHome()));
 }

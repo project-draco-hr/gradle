@@ -7,6 +7,7 @@
   File daemonBaseDir;
   int idleTimeoutMs;
   String daemonUid;
+  List<File> additionalClassPath;
   KryoBackedDecoder decoder=new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
   try {
     gradleHomeDir=new File(decoder.readString());
@@ -18,6 +19,11 @@
     for (int i=0; i < argCount; i++) {
       startupOpts.add(decoder.readString());
     }
+    int additionalClassPathLength=decoder.readSmallInt();
+    additionalClassPath=new ArrayList<File>(additionalClassPathLength);
+    for (int i=0; i < additionalClassPathLength; i++) {
+      additionalClassPath.add(new File(decoder.readString()));
+    }
   }
  catch (  EOFException e) {
     throw new UncheckedIOException(e);
@@ -27,7 +33,7 @@
   DaemonServerConfiguration parameters=new DefaultDaemonServerConfiguration(daemonUid,daemonBaseDir,idleTimeoutMs,startupOpts);
   LoggingServiceRegistry loggingRegistry=LoggingServiceRegistry.newCommandLineProcessLogging();
   LoggingManagerInternal loggingManager=loggingRegistry.newInstance(LoggingManagerInternal.class);
-  DaemonServices daemonServices=new DaemonServices(parameters,loggingRegistry,loggingManager);
+  DaemonServices daemonServices=new DaemonServices(parameters,loggingRegistry,loggingManager,new DefaultClassPath(additionalClassPath));
   File daemonLog=daemonServices.getDaemonLogFile();
   initialiseLogging(loggingManager,daemonLog);
   Daemon daemon=daemonServices.get(Daemon.class);

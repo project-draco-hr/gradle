@@ -1,10 +1,5 @@
 {
   Pattern pattern=Pattern.compile(Pattern.quote(name) + "-\\d.+\\.jar");
-  for (  File file : classpath) {
-    if (pattern.matcher(file.getName()).matches()) {
-      return file;
-    }
-  }
   for (  File libDir : gradleDistributionLocator.getLibDirs()) {
     for (    File file : libDir.listFiles()) {
       if (pattern.matcher(file.getName()).matches()) {
@@ -12,5 +7,10 @@
       }
     }
   }
-  throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.",name,gradleDistributionLocator.getGradleHome()));
+  for (  File file : classpath) {
+    if (pattern.matcher(file.getName()).matches()) {
+      return file;
+    }
+  }
+  return null;
 }
