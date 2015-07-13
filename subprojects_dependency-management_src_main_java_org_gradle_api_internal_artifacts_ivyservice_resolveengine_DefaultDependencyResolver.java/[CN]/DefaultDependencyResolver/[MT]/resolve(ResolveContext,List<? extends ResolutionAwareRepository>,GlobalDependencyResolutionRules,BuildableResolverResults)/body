@@ -12,15 +12,11 @@
       Store<ResolvedComponentResult> newModelCache=stores.newModelCache();
       ResolutionResultBuilder newModelBuilder=new StreamingResolutionResultBuilder(newModelStore,newModelCache);
       DependencyGraphVisitor newModelVisitor=new ResolutionResultDependencyGraphVisitor(newModelBuilder);
-      ResolutionStrategyInternal resolutionStrategy=(ResolutionStrategyInternal)resolveContext.getResolutionStrategy();
-      ResolverProvider componentSource=createComponentSource(resolutionStrategy,resolveContext,repositories,metadataHandler);
-      ArtifactResolver artifactResolver=new ErrorHandlingArtifactResolver(new ContextualArtifactResolver(cacheLockingManager,ivyContextManager,componentSource.getArtifactResolver()));
-      ResolvedArtifactsBuilder artifactsBuilder=new DefaultResolvedArtifactsBuilder();
-      DependencyGraphVisitor artifactsVisitor=new ResolvedArtifactsGraphVisitor(artifactsBuilder,artifactResolver);
       ResolvedLocalComponentsResultBuilder localComponentsResultBuilder=new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
       DependencyGraphVisitor projectModelVisitor=new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
-      DependencyGraphBuilder builder=createDependencyGraphBuilder(componentSource,resolutionStrategy,metadataHandler);
-      builder.resolve(resolveContext,artifactsVisitor,oldModelVisitor,newModelVisitor,projectModelVisitor);
+      DependencyGraphVisitor graphVisitor=new CompositeDependencyGraphVisitor(oldModelVisitor,newModelVisitor,projectModelVisitor);
+      ResolvedArtifactsBuilder artifactsBuilder=new DefaultResolvedArtifactsBuilder();
+      resolve(resolveContext,repositories,metadataHandler,graphVisitor,artifactsBuilder);
       DefaultResolverResults defaultResolverResults=(DefaultResolverResults)results;
       defaultResolverResults.resolved(newModelBuilder.complete(),localComponentsResultBuilder.complete());
       ResolvedGraphResults graphResults=oldModelBuilder.complete();
