@@ -1,7 +1,13 @@
 {
   putDelegateFieldValueOnStack(methodVisitor,generatedType,delegateTypeClass);
-  for (int paramNo=0; paramNo < method.getParameterCount(); paramNo++) {
-    putMethodArgumentOnStack(methodVisitor,paramNo + 1);
+  Class<?>[] parameterTypes=method.getParameterTypes();
+  for (int paramNo=0; paramNo < parameterTypes.length; paramNo++) {
+    if (parameterTypes[paramNo] == Boolean.TYPE) {
+      putBooleanMethodArgumentOnStack(methodVisitor,paramNo + 1);
+    }
+ else {
+      putMethodArgumentOnStack(methodVisitor,paramNo + 1);
+    }
   }
   methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,Type.getInternalName(delegateTypeClass),method.getName(),Type.getMethodDescriptor(method),true);
 }
