@@ -1,9 +1,8 @@
 {
-  Set<String> resolveDimensions=variantsMetaData.getNonNullDimensions();
   if (resolveDimensions.size() == 1) {
     List<String> availablePlatforms=Lists.transform(Lists.newArrayList(allBinaries),new Function<BinarySpec,String>(){
       @Override public String apply(      BinarySpec input){
-        return input instanceof JvmBinarySpec ? ((JvmBinarySpec)input).getTargetPlatform().toString() : input.toString();
+        return input instanceof JarBinarySpec ? ((JarBinarySpec)input).getTargetPlatform().toString() : input.toString();
       }
     }
 );
@@ -13,8 +12,8 @@
     final boolean moreThanOneBinary=allBinaries.size() > 1;
     Set<String> availablePlatforms=new TreeSet<String>(Lists.transform(Lists.newArrayList(allBinaries),new Function<BinarySpec,String>(){
       @Override public String apply(      BinarySpec input){
-        if (input instanceof JvmBinarySpec) {
-          JavaPlatform targetPlatform=((JvmBinarySpec)input).getTargetPlatform();
+        if (input instanceof JarBinarySpec) {
+          JavaPlatform targetPlatform=((JarBinarySpec)input).getTargetPlatform();
           if (moreThanOneBinary) {
             return String.format("'%s' on %s",targetPlatform.getName(),input.getDisplayName());
           }
@@ -32,15 +31,21 @@
     HashMultimap<String,String> variants=HashMultimap.create();
     for (    BinarySpec spec : allBinaries) {
       VariantsMetaData md=DefaultVariantsMetaData.extractFrom(spec);
+      Set<String> incompatibleDimensionTypes=incompatibleDimensionTypes(resolveDimensions,md);
       for (      String dimension : resolveDimensions) {
         String value=md.getValueAsString(dimension);
         if (value != null) {
+          String message;
           if (moreThanOneBinary) {
-            variants.put(dimension,String.format("'%s' on %s",value,spec.getDisplayName()));
+            message=String.format("'%s' on %s",value,spec.getDisplayName());
           }
  else {
-            variants.put(dimension,String.format("'%s'",value,spec.getDisplayName()));
+            message=String.format("'%s'",value);
           }
+          if (incompatibleDimensionTypes.contains(dimension)) {
+            message=String.format("%s but with an incompatible type (expected '%s' was '%s')",message,variantsMetaData.getDimensionType(dimension).getName(),md.getDimensionType(dimension).getName());
+          }
+          variants.put(dimension,message);
         }
       }
     }

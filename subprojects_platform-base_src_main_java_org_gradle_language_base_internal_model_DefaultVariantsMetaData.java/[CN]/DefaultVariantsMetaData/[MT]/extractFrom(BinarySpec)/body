@@ -1,5 +1,6 @@
 {
   Map<String,Object> variants=Maps.newHashMap();
+  Map<String,Class<?>> dimensionTypes=Maps.newHashMap();
   Class<? extends BinarySpec> specClass=spec.getClass();
   Set<Class<?>> interfaces=ClassInspector.inspect(specClass).getSuperTypes();
   for (  Class<?> intf : interfaces) {
@@ -10,9 +11,10 @@
       for (      Method getter : getters) {
         if (getter.getAnnotation(Variant.class) != null) {
           extractVariant(variants,spec,property.getName(),getter);
+          dimensionTypes.put(property.getName(),getter.getReturnType());
         }
       }
     }
   }
-  return new DefaultVariantsMetaData(Collections.unmodifiableMap(variants));
+  return new DefaultVariantsMetaData(Collections.unmodifiableMap(variants),ImmutableMap.copyOf(dimensionTypes));
 }
