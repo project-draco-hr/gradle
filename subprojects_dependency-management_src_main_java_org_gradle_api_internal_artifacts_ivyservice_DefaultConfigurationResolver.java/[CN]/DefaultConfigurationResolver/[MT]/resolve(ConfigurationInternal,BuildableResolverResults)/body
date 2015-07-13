@@ -1,4 +1,22 @@
 {
   List<ResolutionAwareRepository> resolutionAwareRepositories=CollectionUtils.collect(repositories,Transformers.cast(ResolutionAwareRepository.class));
-  resolver.resolve(configuration,resolutionAwareRepositories,metadataHandler,results);
+  StoreSet stores=storeFactory.createStoreSet();
+  BinaryStore oldModelStore=stores.nextBinaryStore();
+  Store<TransientConfigurationResults> oldModelCache=stores.oldModelCache();
+  TransientConfigurationResultsBuilder oldTransientModelBuilder=new TransientConfigurationResultsBuilder(oldModelStore,oldModelCache);
+  DefaultResolvedConfigurationBuilder oldModelBuilder=new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
+  DependencyGraphVisitor oldModelVisitor=new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
+  BinaryStore newModelStore=stores.nextBinaryStore();
+  Store<ResolvedComponentResult> newModelCache=stores.newModelCache();
+  ResolutionResultBuilder newModelBuilder=new StreamingResolutionResultBuilder(newModelStore,newModelCache);
+  DependencyGraphVisitor newModelVisitor=new ResolutionResultDependencyGraphVisitor(newModelBuilder);
+  ResolvedLocalComponentsResultBuilder localComponentsResultBuilder=new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
+  DependencyGraphVisitor projectModelVisitor=new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
+  DependencyGraphVisitor graphVisitor=new CompositeDependencyGraphVisitor(oldModelVisitor,newModelVisitor,projectModelVisitor);
+  ResolvedArtifactsBuilder artifactsBuilder=new DefaultResolvedArtifactsBuilder();
+  resolver.resolve(configuration,resolutionAwareRepositories,metadataHandler,graphVisitor,artifactsBuilder);
+  DefaultResolverResults defaultResolverResults=(DefaultResolverResults)results;
+  defaultResolverResults.resolved(newModelBuilder.complete(),localComponentsResultBuilder.complete());
+  ResolvedGraphResults graphResults=oldModelBuilder.complete();
+  defaultResolverResults.retainState(graphResults,artifactsBuilder,oldTransientModelBuilder);
 }
