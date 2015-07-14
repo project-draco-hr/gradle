@@ -1,8 +1,7 @@
 {
   final ByteArrayOutputStream standardOutput=new ByteArrayOutputStream();
   final ByteArrayOutputStream standardError=new ByteArrayOutputStream();
-  final List<String> executedTasks=new ArrayList<String>();
-  final List<String> skippedTasks=new ArrayList<String>();
+  final List<BuildTask> tasks=new ArrayList<BuildTask>();
   GradleConnector gradleConnector=buildConnector(gradleHome,gradleUserHome,workDir);
   ProjectConnection connection=null;
   try {
@@ -10,18 +9,18 @@
     BuildLauncher launcher=connection.newBuild();
     launcher.setStandardOutput(standardOutput);
     launcher.setStandardError(standardError);
-    launcher.addProgressListener(new TaskExecutionProgressListener(executedTasks,skippedTasks));
+    launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
     launcher.withArguments(buildArgs.toArray(new String[buildArgs.size()]));
     launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
     launcher.run();
   }
  catch (  RuntimeException t) {
-    return new GradleExecutionResult(standardOutput,standardError,executedTasks,skippedTasks,t);
+    return new GradleExecutionResult(standardOutput,standardError,tasks,t);
   }
  finally {
     if (connection != null) {
       connection.close();
     }
   }
-  return new GradleExecutionResult(standardOutput,standardError,executedTasks,skippedTasks);
+  return new GradleExecutionResult(standardOutput,standardError,tasks);
 }
