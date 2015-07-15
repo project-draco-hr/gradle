@@ -31,7 +31,7 @@
     HashMultimap<String,String> variants=HashMultimap.create();
     for (    BinarySpec spec : allBinaries) {
       VariantsMetaData md=DefaultVariantsMetaData.extractFrom(spec);
-      Set<String> incompatibleDimensionTypes=incompatibleDimensionTypes(resolveDimensions,md);
+      Set<String> incompatibleDimensionTypes=VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData,md,resolveDimensions);
       for (      String dimension : resolveDimensions) {
         String value=md.getValueAsString(dimension);
         if (value != null) {
@@ -43,7 +43,7 @@
             message=String.format("'%s'",value);
           }
           if (incompatibleDimensionTypes.contains(dimension)) {
-            message=String.format("%s but with an incompatible type (expected '%s' was '%s')",message,variantsMetaData.getDimensionType(dimension).getName(),md.getDimensionType(dimension).getName());
+            message=String.format("%s but with an incompatible type (expected '%s' was '%s')",message,variantsMetaData.getDimensionType(dimension).getType().getTypeName(),md.getDimensionType(dimension).getType().getTypeName());
           }
           variants.put(dimension,message);
         }
