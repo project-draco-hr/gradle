@@ -1,0 +1,47 @@
+{
+  if (binaries.isEmpty()) {
+    return binaries;
+  }
+  Set<String> resolveDimensions=variantsMetaData.getNonNullDimensions();
+  TreeMultimap<String,VariantValue> selectedVariants=TreeMultimap.create(String.CASE_INSENSITIVE_ORDER,SPEC_COMPARATOR);
+  Set<BinarySpec> removedSpecs=Sets.newHashSet();
+  for (  BinarySpec binarySpec : binaries) {
+    if (binarySpec instanceof JarBinarySpec) {
+      JarBinarySpec jvmSpec=(JarBinarySpec)binarySpec;
+      VariantsMetaData binaryVariants=DefaultVariantsMetaData.extractFrom(jvmSpec);
+      Set<String> commonsDimensions=Sets.intersection(resolveDimensions,binaryVariants.getNonNullDimensions());
+      Set<String> incompatibleDimensionTypes=VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData,binaryVariants,commonsDimensions);
+      if (incompatibleDimensionTypes.isEmpty()) {
+        for (        String dimension : commonsDimensions) {
+          Class<?> dimensionType=variantsMetaData.getDimensionType(dimension).getConcreteClass();
+          boolean isStringType=String.class == dimensionType;
+          Object requestedValue=isStringType ? variantsMetaData.getValueAsString(dimension) : variantsMetaData.getValueAsType(Cast.<Class<? extends Named>>uncheckedCast(dimensionType),dimension);
+          Object binaryValue=isStringType ? binaryVariants.getValueAsString(dimension) : binaryVariants.getValueAsType(Cast.<Class<? extends Named>>uncheckedCast(dimensionType),dimension);
+          VariantDimensionSelector<Object> selector=createSelector(requestedValue);
+          if (selector.isCompatibleWithRequirement(requestedValue,binaryValue)) {
+            VariantValue value=new VariantValue(binaryValue,jvmSpec);
+            SortedSet<VariantValue> variantValues=selectedVariants.get(dimension);
+            for (            VariantValue variantValue : variantValues) {
+              if (selector.betterFit(requestedValue,variantValue.value,binaryValue)) {
+                removedSpecs.add(variantValue.spec);
+              }
+ else               if (selector.betterFit(requestedValue,binaryValue,variantValue.value)) {
+                removedSpecs.add(value.spec);
+              }
+            }
+            selectedVariants.put(dimension,value);
+          }
+ else {
+            removedSpecs.add(binarySpec);
+          }
+        }
+      }
+    }
+  }
+  Set<BinarySpec> union=null;
+  for (  String dimension : selectedVariants.keySet()) {
+    Set<BinarySpec> variantValues=ImmutableSet.copyOf(Iterables.transform(selectedVariants.get(dimension),VariantValue.SPEC_FUNCTION));
+    union=union == null ? variantValues : Sets.union(union,variantValues);
+  }
+  return union == null ? Collections.<BinarySpec>emptySet() : Sets.difference(union,removedSpecs);
+}
