@@ -1,9 +1,11 @@
 {
   BaseSerializerFactory factory=new BaseSerializerFactory();
+  Serializer<LogLevel> logLevelSerializer=factory.getSerializerFor(LogLevel.class);
+  Serializer<Throwable> throwableSerializer=factory.getSerializerFor(Throwable.class);
   DefaultSerializerRegistry<Object> registry=new DefaultSerializerRegistry<Object>();
   registry.register(BuildEvent.class,new BuildEventSerializer());
-  Serializer<LogLevel> logLevelSerializer=factory.getSerializerFor(LogLevel.class);
-  registry.register(LogEvent.class,new LogEventSerializer(logLevelSerializer,factory.getSerializerFor(Throwable.class)));
+  registry.register(Failure.class,new FailureSerializer(throwableSerializer));
+  registry.register(LogEvent.class,new LogEventSerializer(logLevelSerializer,throwableSerializer));
   registry.register(StyledTextOutputEvent.class,new StyledTextOutputEventSerializer(logLevelSerializer,new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
   registry.register(ProgressStartEvent.class,new ProgressStartEventSerializer());
   registry.register(ProgressCompleteEvent.class,new ProgressCompleteEventSerializer());
