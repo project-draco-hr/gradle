@@ -1,8 +1,17 @@
 {
+  if (event instanceof TaskStartEvent) {
+    TaskStartEvent taskStartEvent=(TaskStartEvent)event;
+    order.put(taskStartEvent.getDescriptor().getTaskPath(),tasks.size());
+    tasks.add(null);
+  }
   if (event instanceof TaskFinishEvent) {
     TaskFinishEvent taskFinishEvent=(TaskFinishEvent)event;
     String taskPath=taskFinishEvent.getDescriptor().getTaskPath();
     TaskOperationResult result=taskFinishEvent.getResult();
-    tasks.add(determineBuildTask(result,taskPath));
+    final Integer index=order.get(taskPath);
+    if (index == null) {
+      throw new IllegalStateException("Received task finish event for task " + taskPath + " without first receiving task start event");
+    }
+    tasks.set(index,determineBuildTask(result,taskPath));
   }
 }
