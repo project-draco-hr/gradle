@@ -7,19 +7,15 @@
         return projectPath;
       }
  else       if (method.getName().equals("reload")) {
-        closePreviousClassLoader();
-        Object result=reloadObject.getAndSet(null);
-        if (result == null) {
-          return null;
-        }
- else         if (result == Boolean.TRUE) {
+        closeOldLoaders();
+        if (reload.getAndSet(false)) {
           ClassPath classpath=new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
           URLClassLoader currentClassLoader=new URLClassLoader(classpath.getAsURLArray(),assetsClassLoader);
           storeClassLoader(currentClassLoader);
           return currentClassLoader;
         }
  else {
-          throw new IllegalStateException();
+          return null;
         }
       }
  else       if (method.getName().equals("settings")) {
