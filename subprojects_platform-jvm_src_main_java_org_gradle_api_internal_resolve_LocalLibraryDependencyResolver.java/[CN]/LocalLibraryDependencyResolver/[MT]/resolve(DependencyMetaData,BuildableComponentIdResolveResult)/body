@@ -3,16 +3,16 @@
     LibraryComponentSelector selector=(LibraryComponentSelector)dependency.getSelector();
     final String selectorProjectPath=selector.getProjectPath();
     final String libraryName=selector.getLibraryName();
-    LibraryResolutionResult resolutionResult=doResolve(selectorProjectPath,libraryName);
+    LibraryResolutionErrorMessageBuilder.LibraryResolutionResult resolutionResult=doResolve(selectorProjectPath,libraryName);
     LibrarySpec selectedLibrary=resolutionResult.getSelectedLibrary();
     if (selectedLibrary != null) {
       Collection<BinarySpec> allBinaries=selectedLibrary.getBinaries().values();
       Collection<? extends BinarySpec> compatibleBinaries=matcher.filterBinaries(variantsMetaData,allBinaries);
       if (!allBinaries.isEmpty() && compatibleBinaries.isEmpty()) {
-        result.failed(new ModuleVersionResolveException(selector,noCompatiblePlatformErrorMessage(libraryName,allBinaries)));
+        result.failed(new ModuleVersionResolveException(selector,errorMessageBuilder.noCompatibleBinaryErrorMessage(libraryName,allBinaries)));
       }
  else       if (compatibleBinaries.size() > 1) {
-        result.failed(new ModuleVersionResolveException(selector,multipleBinariesForSameVariantErrorMessage(libraryName,compatibleBinaries)));
+        result.failed(new ModuleVersionResolveException(selector,errorMessageBuilder.multipleBinariesForSameVariantErrorMessage(libraryName,compatibleBinaries)));
       }
  else {
         JarBinarySpec jarBinary=(JarBinarySpec)compatibleBinaries.iterator().next();
@@ -24,7 +24,7 @@
       }
     }
     if (!result.hasResult()) {
-      String message=prettyResolutionErrorMessage(selector,resolutionResult);
+      String message=resolutionResult.toResolutionErrorMessage(selector);
       ModuleVersionResolveException failure=new ModuleVersionResolveException(selector,new LibraryResolveException(message));
       result.failed(failure);
     }
