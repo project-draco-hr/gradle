@@ -4,8 +4,16 @@
   }
   final GradleInternal gradle=buildController.getGradle();
   final TestExecutionRequestAction testExecutionRequestAction=(TestExecutionRequestAction)action;
-  configureForTestDescriptors(gradle,testExecutionRequestAction);
-  configureForTestClasses(gradle,testExecutionRequestAction);
+  buildController.registerBuildConfigurationAction(new BuildConfigurationAction(){
+    @Override public void configure(    BuildExecutionContext context){
+      final Set<Task> allTasksToRun=new HashSet<Task>();
+      final GradleInternal gradleInternal=context.getGradle();
+      allTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal,testExecutionRequestAction));
+      allTasksToRun.addAll(configureBuildForTestClasses(gradleInternal,testExecutionRequestAction));
+      gradle.getTaskGraph().addTasks(allTasksToRun);
+    }
+  }
+);
   PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
   Throwable failure=null;
   try {
