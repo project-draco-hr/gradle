@@ -6,9 +6,8 @@
   TreeMultimap<String,VariantValue> selectedVariants=TreeMultimap.create(String.CASE_INSENSITIVE_ORDER,SPEC_COMPARATOR);
   Set<BinarySpec> removedSpecs=Sets.newHashSet();
   for (  BinarySpec binarySpec : binaries) {
-    if (binarySpec instanceof JarBinarySpec) {
-      JarBinarySpec jvmSpec=(JarBinarySpec)binarySpec;
-      VariantsMetaData binaryVariants=DefaultVariantsMetaData.extractFrom(jvmSpec);
+    if (binarySpecType.isAssignableFrom(binarySpec.getClass())) {
+      VariantsMetaData binaryVariants=DefaultVariantsMetaData.extractFrom(binarySpec);
       Set<String> commonsDimensions=Sets.intersection(resolveDimensions,binaryVariants.getNonNullDimensions());
       Set<String> incompatibleDimensionTypes=VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData,binaryVariants,commonsDimensions);
       if (incompatibleDimensionTypes.isEmpty()) {
@@ -19,7 +18,7 @@
           Object binaryValue=isStringType ? binaryVariants.getValueAsString(dimension) : binaryVariants.getValueAsType(Cast.<Class<? extends Named>>uncheckedCast(dimensionType),dimension);
           VariantDimensionSelector<Object> selector=createSelector(requestedValue);
           if (selector.isCompatibleWithRequirement(requestedValue,binaryValue)) {
-            VariantValue value=new VariantValue(binaryValue,jvmSpec);
+            VariantValue value=new VariantValue(binaryValue,binarySpec);
             SortedSet<VariantValue> variantValues=selectedVariants.get(dimension);
             for (            VariantValue variantValue : variantValues) {
               if (selector.betterFit(requestedValue,variantValue.value,binaryValue)) {
