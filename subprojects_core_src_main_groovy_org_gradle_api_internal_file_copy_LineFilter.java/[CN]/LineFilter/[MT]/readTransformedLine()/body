@@ -18,12 +18,19 @@
     }
   }
   if (line.length() == 0 && !eol) {
-    return null;
+    state=State.EOF;
+    return;
   }
-  StringBuilder result=new StringBuilder();
-  result.append(closure.call(line.toString()).toString());
+  Object result=closure.call(line.toString());
+  if (result == null) {
+    state=State.SKIP_LINE;
+    return;
+  }
+  StringBuilder builder=new StringBuilder();
+  builder.append(result.toString());
   if (eol) {
-    result.append(SystemProperties.getInstance().getLineSeparator());
+    builder.append(SystemProperties.getInstance().getLineSeparator());
   }
-  return result.toString();
+  state=State.NORMAL;
+  transformedLine=builder.toString();
 }
