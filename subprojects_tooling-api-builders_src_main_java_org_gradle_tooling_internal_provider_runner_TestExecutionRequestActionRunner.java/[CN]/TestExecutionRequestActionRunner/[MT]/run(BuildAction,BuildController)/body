@@ -2,18 +2,11 @@
   if (!(action instanceof TestExecutionRequestAction)) {
     return;
   }
-  final GradleInternal gradle=buildController.getGradle();
-  final TestExecutionRequestAction testExecutionRequestAction=(TestExecutionRequestAction)action;
-  buildController.registerBuildConfigurationAction(new BuildConfigurationAction(){
-    @Override public void configure(    BuildExecutionContext context){
-      final Set<Task> allTasksToRun=new HashSet<Task>();
-      final GradleInternal gradleInternal=context.getGradle();
-      allTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal,testExecutionRequestAction));
-      allTasksToRun.addAll(configureBuildForTestClasses(gradleInternal,testExecutionRequestAction));
-      gradle.getTaskGraph().addTasks(allTasksToRun);
-    }
-  }
-);
+  GradleInternal gradle=buildController.getGradle();
+  TestExecutionRequestAction testExecutionRequestAction=(TestExecutionRequestAction)action;
+  TestExecutionBuildConfigurationAction testTasksConfigurationAction=new TestExecutionBuildConfigurationAction(testExecutionRequestAction.getTestExecutionRequest(),gradle);
+  @SuppressWarnings("unchecked") ReplaceBuildConfigurationTransformer replaceBuildConfigurationTransformer=new ReplaceBuildConfigurationTransformer(testTasksConfigurationAction,Lists.newArrayList(TaskNameResolvingBuildConfigurationAction.class,DefaultTasksBuildExecutionAction.class));
+  buildController.registerBuildConfigurationTransformer(replaceBuildConfigurationTransformer);
   PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
   Throwable failure=null;
   try {
