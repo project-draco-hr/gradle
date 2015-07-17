@@ -1,0 +1,27 @@
+{
+  BuildScopeServices serviceRegistry=new BuildScopeServices(parentRegistry,startParameter);
+  serviceRegistry.add(BuildRequestMetaData.class,requestMetaData);
+  serviceRegistry.add(BuildClientMetaData.class,requestMetaData.getClient());
+  serviceRegistry.add(BuildEventConsumer.class,buildEventConsumer);
+  serviceRegistry.add(BuildCancellationToken.class,cancellationToken);
+  ListenerManager listenerManager=serviceRegistry.get(ListenerManager.class);
+  LoggingManagerInternal loggingManager=serviceRegistry.newInstance(LoggingManagerInternal.class);
+  loggingManager.setLevel(startParameter.getLogLevel());
+  loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
+  loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
+  LoggerProvider loggerProvider=(tracker.getCurrentBuild() == null) ? buildProgressLogger : LoggerProvider.NO_OP;
+  listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class),loggerProvider));
+  if (tracker.getCurrentBuild() == null) {
+    listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class),serviceRegistry.get(StyledTextOutputFactory.class),startParameter,requestMetaData));
+  }
+  listenerManager.addListener(tracker);
+  listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
+  if (startParameter.isProfile()) {
+    listenerManager.addListener(new ReportGeneratingProfileListener());
+  }
+  ScriptUsageLocationReporter usageLocationReporter=new ScriptUsageLocationReporter();
+  listenerManager.addListener(usageLocationReporter);
+  DeprecationLogger.useLocationReporter(usageLocationReporter);
+  GradleInternal gradle=serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class,tracker.getCurrentBuild(),startParameter,serviceRegistry.get(ServiceRegistryFactory.class));
+  return new DefaultGradleLauncher(gradle,serviceRegistry.get(InitScriptHandler.class),serviceRegistry.get(SettingsLoader.class),serviceRegistry.get(BuildConfigurer.class),serviceRegistry.get(ExceptionAnalyser.class),loggingManager,gradle.getBuildListenerBroadcaster(),listenerManager.getBroadcaster(ModelConfigurationListener.class),listenerManager.getBroadcaster(BuildCompletionListener.class),serviceRegistry.get(BuildOperationExecutor.class),gradle.getServices().get(BuildConfigurationActionExecuter.class),gradle.getServices().get(BuildExecuter.class),serviceRegistry);
+}
