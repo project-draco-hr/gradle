@@ -6,13 +6,13 @@
     inputForwarder.start();
     int objectsReceived=0;
     while (true) {
-      Object object=connection.receive();
+      Message object=connection.receive();
       LOGGER.trace("Received object #{}, type: {}",objectsReceived++,object == null ? null : object.getClass().getName());
       if (object == null) {
         return handleDaemonDisappearance(build,diagnostics);
       }
- else       if (object instanceof OutputEvent) {
-        outputEventListener.onOutput((OutputEvent)object);
+ else       if (object instanceof OutputMessage) {
+        outputEventListener.onOutput(((OutputMessage)object).getEvent());
       }
  else       if (object instanceof BuildEvent) {
         buildEventConsumer.dispatch(((BuildEvent)object).getPayload());

@@ -2,17 +2,19 @@
   BaseSerializerFactory factory=new BaseSerializerFactory();
   Serializer<LogLevel> logLevelSerializer=factory.getSerializerFor(LogLevel.class);
   Serializer<Throwable> throwableSerializer=factory.getSerializerFor(Throwable.class);
-  DefaultSerializerRegistry<Object> registry=new DefaultSerializerRegistry<Object>();
+  DefaultSerializerRegistry<Message> registry=new DefaultSerializerRegistry<Message>();
   registry.register(BuildEvent.class,new BuildEventSerializer());
   registry.register(Failure.class,new FailureSerializer(throwableSerializer));
   registry.register(ForwardInput.class,new ForwardInputSerializer());
   registry.register(CloseInput.class,new CloseInputSerializer());
-  registry.register(LogEvent.class,new LogEventSerializer(logLevelSerializer,throwableSerializer));
-  registry.register(StyledTextOutputEvent.class,new StyledTextOutputEventSerializer(logLevelSerializer,new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
-  registry.register(ProgressStartEvent.class,new ProgressStartEventSerializer());
-  registry.register(ProgressCompleteEvent.class,new ProgressCompleteEventSerializer());
-  registry.register(ProgressEvent.class,new ProgressEventSerializer());
-  registry.register(LogLevelChangeEvent.class,new LogLevelChangeEventSerializer(logLevelSerializer));
+  DefaultSerializerRegistry<OutputEvent> outputEventRegistry=new DefaultSerializerRegistry<OutputEvent>();
+  outputEventRegistry.register(LogEvent.class,new LogEventSerializer(logLevelSerializer,throwableSerializer));
+  outputEventRegistry.register(StyledTextOutputEvent.class,new StyledTextOutputEventSerializer(logLevelSerializer,new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
+  outputEventRegistry.register(ProgressStartEvent.class,new ProgressStartEventSerializer());
+  outputEventRegistry.register(ProgressCompleteEvent.class,new ProgressCompleteEventSerializer());
+  outputEventRegistry.register(ProgressEvent.class,new ProgressEventSerializer());
+  outputEventRegistry.register(LogLevelChangeEvent.class,new LogLevelChangeEventSerializer(logLevelSerializer));
+  registry.register(OutputMessage.class,new OutputMessageSerializer(outputEventRegistry.build()));
   registry.useJavaSerialization(Message.class);
   return registry.build();
 }
