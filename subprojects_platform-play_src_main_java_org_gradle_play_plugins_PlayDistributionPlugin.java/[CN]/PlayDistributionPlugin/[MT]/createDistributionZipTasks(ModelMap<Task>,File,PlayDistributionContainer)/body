@@ -5,8 +5,7 @@
     final String baseName=StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName();
     tasks.create(stageTaskName,Copy.class,new Action<Copy>(){
       @Override public void execute(      Copy copy){
-        copy.setDescription("Copies the binary distribution to a staging directory.");
-        copy.setGroup(DISTRIBUTION_GROUP);
+        copy.setDescription("Copies the '" + distribution.getName() + "' distribution to a staging directory.");
         copy.setDestinationDir(stageDir);
         CopySpecInternal baseSpec=copy.getRootSpec().addChild();
         baseSpec.into(baseName);
@@ -24,8 +23,7 @@
     final String distributionTaskName=String.format("create%sDist",StringUtils.capitalize(distribution.getName()));
     tasks.create(distributionTaskName,Zip.class,new Action<Zip>(){
       @Override public void execute(      final Zip zip){
-        zip.setDescription("Bundles the Play binary as a distribution.");
-        zip.setGroup(DISTRIBUTION_GROUP);
+        zip.setDescription("Packages the '" + distribution.getName() + "' distribution as a zip file.");
         zip.setArchiveName(String.format("%s.zip",baseName));
         zip.setDestinationDir(new File(buildDir,"distributions"));
         zip.from(stageTask);
