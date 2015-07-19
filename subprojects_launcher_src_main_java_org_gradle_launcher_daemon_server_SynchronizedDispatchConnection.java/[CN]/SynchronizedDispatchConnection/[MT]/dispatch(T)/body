@@ -1,11 +1,17 @@
 {
-  if (!(message instanceof OutputMessage)) {
-    LOGGER.debug("thread {}: dispatching {}",Thread.currentThread().getId(),message.getClass());
-  }
-  sync.synchronize(new Runnable(){
-    public void run(){
+synchronized (lock) {
+    if (dispatching) {
+      throw new IllegalStateException("This thread is already dispatching a message.");
+    }
+    dispatching=true;
+    try {
+      if (!(message instanceof OutputMessage)) {
+        LOGGER.debug("thread {}: dispatching {}",Thread.currentThread().getId(),message.getClass());
+      }
       delegate.dispatch(message);
     }
+  finally {
+      dispatching=false;
+    }
   }
-);
 }
