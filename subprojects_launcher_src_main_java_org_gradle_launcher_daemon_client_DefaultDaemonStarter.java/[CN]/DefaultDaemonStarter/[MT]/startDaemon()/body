@@ -1,13 +1,21 @@
 {
   ModuleRegistry registry=new DefaultModuleRegistry();
-  ClassPath classpath=new DefaultClassPath();
-  for (  Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
-    classpath=classpath.plus(module.getClasspath());
+  ClassPath classpath;
+  List<File> searchClassPath;
+  if (new DefaultGradleDistributionLocator().getGradleHome() != null) {
+    classpath=registry.getModule("gradle-launcher").getImplementationClasspath();
+    searchClassPath=Collections.emptyList();
+  }
+ else {
+    classpath=new DefaultClassPath();
+    for (    Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
+      classpath=classpath.plus(module.getClasspath());
+    }
+    searchClassPath=registry.getAdditionalClassPath().getAsFiles();
   }
   if (classpath.isEmpty()) {
     throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
   }
-  List<File> additionalClassPath=registry.getAdditionalClassPath().getAsFiles();
   versionValidator.validate(daemonParameters);
   List<String> daemonArgs=new ArrayList<String>();
   daemonArgs.add(daemonParameters.getEffectiveJavaExecutable().getAbsolutePath());
@@ -33,8 +41,8 @@
     for (    String daemonOpt : daemonOpts) {
       encoder.writeString(daemonOpt);
     }
-    encoder.writeSmallInt(additionalClassPath.size());
-    for (    File file : additionalClassPath) {
+    encoder.writeSmallInt(searchClassPath.size());
+    for (    File file : searchClassPath) {
       encoder.writeString(file.getAbsolutePath());
     }
     encoder.flush();
