@@ -2,4 +2,13 @@
   for (  ModelProperty<?> property : modelSchema.getProperties().values()) {
     addPropertyLink(modelNode,property);
   }
+  if (Named.class.isAssignableFrom(modelSchema.getType().getRawClass())) {
+    if (modelSchema.getProperties().containsKey("name")) {
+      MutableModelNode nameLink=modelNode.getLink("name");
+      if (nameLink == null) {
+        throw new IllegalStateException("expected name node for " + modelNode.getPath());
+      }
+      nameLink.setPrivateData(ModelType.of(String.class),modelNode.getPath().getName());
+    }
+  }
 }
