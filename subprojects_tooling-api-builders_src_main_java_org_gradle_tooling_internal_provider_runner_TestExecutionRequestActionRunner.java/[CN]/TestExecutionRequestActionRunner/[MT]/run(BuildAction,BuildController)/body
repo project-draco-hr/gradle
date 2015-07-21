@@ -2,28 +2,23 @@
   if (!(action instanceof TestExecutionRequestAction)) {
     return;
   }
-  GradleInternal gradle=buildController.getGradle();
-  TestExecutionRequestAction testExecutionRequestAction=(TestExecutionRequestAction)action;
-  TestExecutionBuildConfigurationAction testTasksConfigurationAction=new TestExecutionBuildConfigurationAction(testExecutionRequestAction.getTestExecutionRequest(),gradle);
-  @SuppressWarnings("unchecked") ReplaceBuildConfigurationTransformer replaceBuildConfigurationTransformer=new ReplaceBuildConfigurationTransformer(testTasksConfigurationAction,Lists.newArrayList(TaskNameResolvingBuildConfigurationAction.class,DefaultTasksBuildExecutionAction.class));
-  buildController.registerBuildConfigurationTransformer(replaceBuildConfigurationTransformer);
-  PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
+  TestCountListener testCountListener=new TestCountListener();
+  final GradleInternal gradle=buildController.getGradle();
   Throwable failure=null;
   try {
-    buildController.run();
+    doRun((TestExecutionRequestAction)action,buildController,testCountListener);
+    evaluateTestCount(testCountListener);
   }
  catch (  RuntimeException rex) {
     Throwable throwable=findRootCause(rex);
-    if (throwable instanceof InternalTestExecutionException) {
-      failure=throwable;
-    }
- else     if (throwable instanceof TestExecutionException) {
+    if (throwable instanceof TestExecutionException) {
       failure=new InternalTestExecutionException("Error while running test(s)",throwable);
     }
  else {
       throw rex;
     }
   }
+  PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
   BuildActionResult buildActionResult;
   if (failure != null) {
     buildActionResult=new BuildActionResult(null,payloadSerializer.serialize(failure));
