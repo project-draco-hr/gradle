@@ -2,21 +2,22 @@
   for (  UnboundRuleInput input : inputs) {
     item();
     List<String> parts=Lists.newArrayList();
-    parts.add("");
-    parts.add(String.format("Found:%s",input.isBound()));
-    String path=input.getPath() == null ? "<unspecified>" : input.getPath();
-    parts.add("Path:" + path);
-    parts.add("Type:" + input.getType());
+    String path=input.getPath() == null ? "<no path>" : input.getPath();
+    parts.add(path);
+    parts.add(input.getType());
     if (input.getDescription() != null) {
-      parts.add("Description:" + input.getDescription());
+      parts.add(String.format("(%s)",input.getDescription()));
     }
     if (input.getPath() == null && input.getScope() != null) {
-      parts.add(String.format("Scope:'%s'",input.getScope()));
+      parts.add(String.format("scope:'%s'",input.getScope()));
     }
     if (input.getSuggestedPaths().size() > 0) {
       String join=Joiner.on(", ").join(input.getSuggestedPaths());
       parts.add(String.format("Suggestions:%s",join.trim()));
     }
-    writer.print(Joiner.on(" | ").join(parts) + "|");
+    if (!input.isBound()) {
+      parts.add("[UNBOUND]");
+    }
+    writer.print(Joiner.on(" ").join(parts));
   }
 }
