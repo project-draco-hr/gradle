@@ -1,13 +1,12 @@
 {
-  return new ChildNodeCreatorStrategy<T>(){
-    @Override public <S extends T>ModelCreator creator(    final MutableModelNode parentNode,    ModelRuleDescriptor sourceDescriptor,    final ModelType<S> type,    final String name){
-      ModelPath path=parentNode.getPath().child(name);
+  return new ChildNodeInitializerStrategy<T>(){
+    @Override public <S extends T>NodeInitializer initalizer(    final ModelType<S> type){
       ModelSchema<S> schema=schemaStore.getSchema(type);
       if (schema.getKind().isManaged()) {
-        return ModelCreators.of(path,schema.getNodeInitializer()).descriptor(sourceDescriptor).build();
+        return schema.getNodeInitializer();
       }
  else {
-        return creatorUsingFactory(sourceDescriptor,path,type,name,factoryReference);
+        return new FactoryBasedNodeInitializer<T,S>(factoryReference,type);
       }
     }
   }

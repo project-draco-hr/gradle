@@ -1,14 +1,20 @@
 {
-  return new ChildNodeCreatorStrategy<T>(){
-    @Override public <S extends T>ModelCreator creator(    final MutableModelNode parentNode,    ModelRuleDescriptor sourceDescriptor,    final ModelType<S> type,    final String name){
-      return ModelCreators.of(parentNode.getPath().child(name),new BiAction<MutableModelNode,List<ModelView<?>>>(){
-        @Override public void execute(        MutableModelNode modelNode,        List<ModelView<?>> modelViews){
-          NamedEntityInstantiator<T> instantiator=instantiatorTransform.transform(parentNode);
-          S item=instantiator.create(name,type.getConcreteClass());
+  return new ChildNodeInitializerStrategy<T>(){
+    @Override public <S extends T>NodeInitializer initalizer(    final ModelType<S> type){
+      return new NodeInitializer(){
+        @Override public List<? extends ModelReference<?>> getInputs(){
+          return Collections.emptyList();
+        }
+        @Override public void execute(        MutableModelNode modelNode,        List<ModelView<?>> inputs){
+          NamedEntityInstantiator<T> instantiator=instantiatorTransform.transform(modelNode.getParent());
+          S item=instantiator.create(modelNode.getPath().getName(),type.getConcreteClass());
           modelNode.setPrivateData(type,item);
         }
+        @Override public List<? extends ModelProjection> getProjections(){
+          return Collections.singletonList(UnmanagedModelProjection.of(type));
+        }
       }
-).withProjection(UnmanagedModelProjection.of(type)).descriptor(NestedModelRuleDescriptor.append(sourceDescriptor,"create(%s)",name)).build();
+;
     }
   }
 ;
