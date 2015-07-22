@@ -2,8 +2,13 @@
   XRef xref=new MetadataExtracter().extractMetadata(grammarFiles);
   List<GenerationPlan> generationPlans=new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
   for (  GenerationPlan generationPlan : generationPlans) {
-    String[] argArr=arguments.toArray(new String[arguments.size() + 1]);
-    argArr[arguments.size()]=generationPlan.getSource().getAbsolutePath();
+    String[] argArr=arguments.toArray(new String[arguments.size() + 3]);
+    argArr[arguments.size()]="-o";
+    argArr[arguments.size() + 1]=generationPlan.getGenerationDirectory().getAbsolutePath();
+    argArr[arguments.size() + 2]=generationPlan.getSource().getAbsolutePath();
+    for (    String s : argArr) {
+      System.out.println("s = " + s);
+    }
     JavaReflectionUtil.method(tool,Integer.class,"doEverything",String[].class).invoke(tool,new Object[]{argArr});
   }
   return new AntlrResult(0);
