@@ -1,0 +1,19 @@
+{
+  return CollectionUtils.collect(operationDescriptors,new Transformer<InternalJvmTestExecutionDescriptor,OperationDescriptor>(){
+    @Override public InternalJvmTestExecutionDescriptor transform(    OperationDescriptor operationDescriptor){
+      final InternalOperationDescriptor internalOperationDescriptor=((OperationDescriptorInternal)operationDescriptor).getInternalOperationDescriptor();
+      if (internalOperationDescriptor instanceof InternalJvmTestDescriptor) {
+        InternalJvmTestDescriptor jvmTestOperationDescriptor=(InternalJvmTestDescriptor)internalOperationDescriptor;
+        return new DefaultInternalJvmTestExecutionDescriptor(jvmTestOperationDescriptor.getClassName(),jvmTestOperationDescriptor.getMethodName(),jvmTestOperationDescriptor.getTaskPath());
+      }
+ else       if (internalOperationDescriptor instanceof InternalTaskDescriptor) {
+        final InternalTaskDescriptor taskOperationDescriptor=(InternalTaskDescriptor)internalOperationDescriptor;
+        return new DefaultInternalJvmTestExecutionDescriptor(null,null,taskOperationDescriptor.getTaskPath());
+      }
+ else {
+        throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
+      }
+    }
+  }
+);
+}
