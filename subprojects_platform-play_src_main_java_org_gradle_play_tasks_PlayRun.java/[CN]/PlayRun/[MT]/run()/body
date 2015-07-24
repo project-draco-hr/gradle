@@ -1,15 +1,12 @@
 {
   ProgressLoggerFactory progressLoggerFactory=getServices().get(ProgressLoggerFactory.class);
-  String deploymentId=getPath();
-  PlayApplicationDeploymentHandle deploymentHandle=getDeploymentRegistry().get(PlayApplicationDeploymentHandle.class,deploymentId);
-  if (deploymentHandle == null) {
+  if (!deploymentHandle.isRunning()) {
     ProgressLogger progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start("Start Play server","Starting Play");
     try {
       int httpPort=getHttpPort();
       PlayRunSpec spec=new DefaultPlayRunSpec(runtimeClasspath,changingClasspath,applicationJar,assetsJar,assetsDirs,getProject().getProjectDir(),getForkOptions(),httpPort);
       PlayApplicationRunnerToken runnerToken=playToolProvider.get(PlayApplicationRunner.class).start(spec);
-      deploymentHandle=new PlayApplicationDeploymentHandle(deploymentId,runnerToken);
-      getDeploymentRegistry().register(deploymentId,deploymentHandle);
+      deploymentHandle.start(runnerToken);
     }
   finally {
       progressLogger.completed();

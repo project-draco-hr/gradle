@@ -1,6 +1,6 @@
 {
   final ClassLoader assetsClassLoader=createAssetsClassLoader(assetsJar,assetsDirs,classLoader);
-  forceReloadNextTime();
+  forceReloadNextTime(new RebuildReason());
   return Proxy.newProxyInstance(classLoader,new Class<?>[]{getBuildLinkClass(classLoader)},new InvocationHandler(){
     public Object invoke(    Object proxy,    Method method,    Object[] args) throws Throwable {
       if (method.getName().equals("projectPath")) {
@@ -8,14 +8,19 @@
       }
  else       if (method.getName().equals("reload")) {
         closeOldLoaders();
-        if (reload.getAndSet(false)) {
+        RebuildReason reason=reload.get();
+        if (reason == null) {
+          return null;
+        }
+ else         if (reason.isSuccessful()) {
+          reload.compareAndSet(reason,null);
           ClassPath classpath=new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
           URLClassLoader currentClassLoader=new URLClassLoader(classpath.getAsURLArray(),assetsClassLoader);
           storeClassLoader(currentClassLoader);
           return currentClassLoader;
         }
  else {
-          return null;
+          return reason.getFailure();
         }
       }
  else       if (method.getName().equals("settings")) {
