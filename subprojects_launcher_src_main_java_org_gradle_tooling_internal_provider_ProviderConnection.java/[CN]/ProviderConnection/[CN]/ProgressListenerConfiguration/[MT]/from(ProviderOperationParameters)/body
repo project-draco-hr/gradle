@@ -6,5 +6,8 @@
   BuildClientSubscriptions clientSubscriptions=new BuildClientSubscriptions(listenToTestProgress,listenToTaskProgress,listenToBuildProgress);
   FailsafeBuildProgressListenerAdapter wrapper=new FailsafeBuildProgressListenerAdapter(buildProgressListener);
   BuildEventConsumer buildEventConsumer=clientSubscriptions.isSendAnyProgressEvents() ? new BuildProgressListenerInvokingBuildEventConsumer(wrapper) : new NoOpBuildEventConsumer();
+  if (Boolean.TRUE.equals(providerParameters.isEmbedded())) {
+    buildEventConsumer=new SynchronizedConsumer(buildEventConsumer);
+  }
   return new ProgressListenerConfiguration(clientSubscriptions,buildEventConsumer,wrapper);
 }
