@@ -1,14 +1,15 @@
 {
 synchronized (lock) {
-    ListenerBroadcast<T> broadcaster=broadcasters.get(listenerClass);
+    EventBroadcast<T> broadcaster=broadcasters.get(listenerClass);
     if (broadcaster == null) {
-      broadcaster=new ListenerBroadcast<T>(listenerClass);
-      broadcaster.add(getLogger(listenerClass));
-      broadcaster.add(getDispatcher(listenerClass));
-      if (parent != null) {
-        broadcaster.add(parent.getDispatcher(listenerClass));
-      }
+      broadcaster=new EventBroadcast<T>(listenerClass);
       broadcasters.put(listenerClass,broadcaster);
+      for (      ListenerDetails listener : allListeners.values()) {
+        broadcaster.maybeAdd(listener);
+      }
+      for (      ListenerDetails logger : allLoggers.values()) {
+        broadcaster.maybeSetLogger(logger);
+      }
     }
     return broadcaster;
   }

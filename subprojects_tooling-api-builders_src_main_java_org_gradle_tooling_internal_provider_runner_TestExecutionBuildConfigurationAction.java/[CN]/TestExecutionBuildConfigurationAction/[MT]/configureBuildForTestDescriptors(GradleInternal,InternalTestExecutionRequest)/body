@@ -2,11 +2,11 @@
   final Collection<InternalJvmTestExecutionDescriptor> testDescriptors=testExecutionRequestAction.getTestExecutionDescriptors();
   final List<String> testTaskPaths=org.gradle.util.CollectionUtils.collect(testDescriptors,new Transformer<String,InternalJvmTestExecutionDescriptor>(){
     @Override public String transform(    InternalJvmTestExecutionDescriptor internalJvmTestDescriptor){
-      return internalJvmTestDescriptor.getTaskPath();
+      return ((DefaultTestDescriptor)internalJvmTestDescriptor.getDescriptor()).getTaskPath();
     }
   }
 );
-  List<Task> testTasksToRun=new ArrayList<Task>();
+  List<Test> testTasksToRun=new ArrayList<Test>();
   for (  final String testTaskPath : testTaskPaths) {
     final Task task=gradle.getRootProject().getTasks().findByPath(testTaskPath);
     if (task == null) {
@@ -18,7 +18,7 @@
  else {
       Test testTask=(Test)task;
       for (      InternalJvmTestExecutionDescriptor testDescriptor : testDescriptors) {
-        if (testDescriptor.getTaskPath().equals(testTaskPath)) {
+        if (((DefaultTestDescriptor)testDescriptor.getDescriptor()).getTaskPath().equals(testTaskPath)) {
           final String className=testDescriptor.getClassName();
           final String methodName=testDescriptor.getMethodName();
           if (className == null && methodName == null) {
@@ -29,7 +29,7 @@
           }
         }
       }
-      testTasksToRun.add(task);
+      testTasksToRun.add(testTask);
     }
   }
   return testTasksToRun;

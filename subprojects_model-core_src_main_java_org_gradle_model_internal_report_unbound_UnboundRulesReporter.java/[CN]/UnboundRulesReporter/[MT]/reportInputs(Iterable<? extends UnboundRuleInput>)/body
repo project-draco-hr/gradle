@@ -1,23 +1,30 @@
 {
   for (  UnboundRuleInput input : inputs) {
-    item();
-    List<String> parts=Lists.newArrayList();
-    String path=input.getPath() == null ? "<no path>" : input.getPath();
-    parts.add(path);
-    parts.add(input.getType());
+    writer.print(indent(2));
+    writer.write("- ");
+    writer.write(input.getPath() == null ? "<no path>" : input.getPath());
+    writer.write(" ");
+    writer.write(input.getType() == null ? "<untyped>" : input.getType());
     if (input.getDescription() != null) {
-      parts.add(String.format("(%s)",input.getDescription()));
-    }
-    if (input.getPath() == null && input.getScope() != null) {
-      parts.add(String.format("scope:'%s'",input.getScope()));
-    }
-    if (input.getSuggestedPaths().size() > 0) {
-      String join=Joiner.on(", ").join(input.getSuggestedPaths());
-      parts.add(String.format("Suggestions:%s",join.trim()));
+      writer.write(" ");
+      writer.write("(");
+      writer.write(input.getDescription());
+      writer.write(")");
     }
     if (!input.isBound()) {
-      parts.add("[UNBOUND]");
+      writer.write(" ");
+      writer.write("[*]");
     }
-    writer.print(Joiner.on(" ").join(parts));
+    writer.println();
+    if (input.getPath() == null && input.getScope() != null) {
+      writer.write(indent(4));
+      writer.write("scope: ");
+      writer.println(input.getScope());
+    }
+    if (input.getSuggestedPaths().size() > 0) {
+      writer.write(indent(4));
+      writer.write("suggestions: ");
+      writer.println(Joiner.on(", ").join(input.getSuggestedPaths()));
+    }
   }
 }
