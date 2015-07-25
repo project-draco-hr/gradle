@@ -3,22 +3,14 @@
   TaskOperationInternal taskOperation=new TaskOperationInternal(id,parentOperationId,task);
   TaskStateInternal state=task.getState();
   long startTime=timeProvider.getCurrentTime();
-synchronized (eventNotificationLock) {
-    internalTaskListeners.getSource().beforeExecute(taskOperation,new OperationStartEvent(startTime));
-  }
+  internalTaskListeners.getSource().beforeExecute(taskOperation,new OperationStartEvent(startTime));
   try {
-synchronized (eventNotificationLock) {
-      taskListeners.getSource().beforeExecute(task);
-    }
+    taskListeners.getSource().beforeExecute(task);
     taskExecuter.execute(task,task.getState(),new DefaultTaskExecutionContext());
-synchronized (eventNotificationLock) {
-      taskListeners.getSource().afterExecute(task,state);
-    }
+    taskListeners.getSource().afterExecute(task,state);
   }
   finally {
-synchronized (eventNotificationLock) {
-      long endTime=timeProvider.getCurrentTime();
-      internalTaskListeners.getSource().afterExecute(taskOperation,new OperationResult(startTime,endTime,task.getState().getFailure()));
-    }
+    long endTime=timeProvider.getCurrentTime();
+    internalTaskListeners.getSource().afterExecute(taskOperation,new OperationResult(startTime,endTime,task.getState().getFailure()));
   }
 }
