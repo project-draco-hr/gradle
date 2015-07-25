@@ -2,10 +2,11 @@
 synchronized (lock) {
     ListenerDetails details=allListeners.remove(listener);
     if (details != null) {
-      details.remove();
+      details.disconnect();
       for (      EventBroadcast<?> broadcaster : broadcasters.values()) {
         broadcaster.maybeRemove(details);
       }
+      details.untilNotInUse(Thread.currentThread());
     }
   }
 }
