@@ -1,0 +1,25 @@
+{
+synchronized (lock) {
+    while (owner != null) {
+      if (owner == Thread.currentThread()) {
+        throw new IllegalStateException(String.format("Cannot notify listeners of type %s as these listeners are already being notified.",type.getSimpleName()));
+      }
+      try {
+        lock.wait();
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+    owner=Thread.currentThread();
+    List<Dispatch<MethodInvocation>> dispatchers=new ArrayList<Dispatch<MethodInvocation>>(listeners.size() + 2);
+    if (includeLogger && logger != null) {
+      dispatchers.add(logger);
+    }
+    if (parentDispatch != null) {
+      dispatchers.add(parentDispatch);
+    }
+    dispatchers.addAll(listeners);
+    return dispatchers.iterator();
+  }
+}
