@@ -1,8 +1,8 @@
 {
-  final Collection<InternalJvmTestExecutionDescriptor> testDescriptors=testExecutionRequestAction.getTestExecutionDescriptors();
-  final List<String> testTaskPaths=org.gradle.util.CollectionUtils.collect(testDescriptors,new Transformer<String,InternalJvmTestExecutionDescriptor>(){
-    @Override public String transform(    InternalJvmTestExecutionDescriptor internalJvmTestDescriptor){
-      return ((DefaultTestDescriptor)internalJvmTestDescriptor.getDescriptor()).getTaskPath();
+  final Collection<InternalTestDescriptor> testDescriptors=testExecutionRequestAction.getTestExecutionDescriptors();
+  final List<String> testTaskPaths=org.gradle.util.CollectionUtils.collect(testDescriptors,new Transformer<String,InternalTestDescriptor>(){
+    @Override public String transform(    InternalTestDescriptor testDescriptor){
+      return ((DefaultTestDescriptor)testDescriptor).getTaskPath();
     }
   }
 );
@@ -17,10 +17,11 @@
     }
  else {
       Test testTask=(Test)task;
-      for (      InternalJvmTestExecutionDescriptor testDescriptor : testDescriptors) {
-        if (((DefaultTestDescriptor)testDescriptor.getDescriptor()).getTaskPath().equals(testTaskPath)) {
-          final String className=testDescriptor.getClassName();
-          final String methodName=testDescriptor.getMethodName();
+      for (      InternalTestDescriptor testDescriptor : testDescriptors) {
+        DefaultTestDescriptor defaultTestDescriptor=(DefaultTestDescriptor)testDescriptor;
+        if (defaultTestDescriptor.getTaskPath().equals(testTaskPath)) {
+          String className=defaultTestDescriptor.getClassName();
+          String methodName=defaultTestDescriptor.getMethodName();
           if (className == null && methodName == null) {
             testTask.getFilter().includeTestsMatching("*");
           }
