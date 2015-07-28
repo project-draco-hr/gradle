@@ -1,0 +1,10 @@
+{
+  Credentials basicCredentials=new UsernamePasswordCredentials(credentials.getUsername(),credentials.getPassword());
+  for (  String scheme : authSchemes) {
+    httpClient.getCredentialsProvider().setCredentials(new AuthScope(host,port,AuthScope.ANY_REALM,scheme),basicCredentials);
+  }
+  NTLMCredentials ntlmCredentials=new NTLMCredentials(credentials);
+  Credentials ntCredentials=new NTCredentials(ntlmCredentials.getUsername(),ntlmCredentials.getPassword(),ntlmCredentials.getWorkstation(),ntlmCredentials.getDomain());
+  httpClient.getCredentialsProvider().setCredentials(new AuthScope(host,port,AuthScope.ANY_REALM,AuthPolicy.NTLM),ntCredentials);
+  LOGGER.debug("Using {} and {} for authenticating against '{}:{}'",new Object[]{credentials,ntlmCredentials,host,port});
+}
