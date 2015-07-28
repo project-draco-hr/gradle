@@ -1,6 +1,7 @@
 {
   final ClassLoader assetsClassLoader=createAssetsClassLoader(assetsJar,assetsDirs,classLoader);
   forceReloadNextTime(new RebuildReason());
+  final ExceptionAdapter exceptionAdapter=new DefaultExceptionAdapter(classLoader);
   return Proxy.newProxyInstance(classLoader,new Class<?>[]{getBuildLinkClass(classLoader)},new InvocationHandler(){
     public Object invoke(    Object proxy,    Method method,    Object[] args) throws Throwable {
       if (method.getName().equals("projectPath")) {
@@ -20,7 +21,8 @@
           return currentClassLoader;
         }
  else {
-          return reason.getFailure();
+          Throwable failure=reason.getFailure();
+          return exceptionAdapter.adapt("Gradle Build Failure",failure.getMessage(),failure);
         }
       }
  else       if (method.getName().equals("settings")) {
