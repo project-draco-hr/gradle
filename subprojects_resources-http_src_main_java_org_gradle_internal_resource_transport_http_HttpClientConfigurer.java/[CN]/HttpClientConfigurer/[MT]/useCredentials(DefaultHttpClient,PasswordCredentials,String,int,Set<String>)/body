@@ -1,7 +1,12 @@
 {
   Credentials httpCredentials;
-  for (  String scheme : authSchemes) {
-    if (scheme.equals(AuthPolicy.NTLM)) {
+  Set<String> effectiveSchemes=authSchemes;
+  if (authSchemes.size() == 1 && authSchemes.iterator().next() == null) {
+    effectiveSchemes=Sets.newHashSet(authSchemes);
+    effectiveSchemes.add(AuthPolicy.NTLM);
+  }
+  for (  String scheme : effectiveSchemes) {
+    if (scheme != null && scheme.equals(AuthPolicy.NTLM)) {
       NTLMCredentials ntlmCredentials=new NTLMCredentials(credentials);
       httpCredentials=new NTCredentials(ntlmCredentials.getUsername(),ntlmCredentials.getPassword(),ntlmCredentials.getWorkstation(),ntlmCredentials.getDomain());
       LOGGER.debug("Using {} and {} for authenticating against '{}:{}'",new Object[]{credentials,ntlmCredentials,host,port});
