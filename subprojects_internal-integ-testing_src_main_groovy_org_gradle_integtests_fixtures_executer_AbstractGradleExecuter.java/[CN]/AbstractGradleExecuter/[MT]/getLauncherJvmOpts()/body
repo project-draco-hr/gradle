@@ -1,0 +1,22 @@
+{
+  List<String> jvmOpts=new ArrayList<String>();
+  if (requireDaemon) {
+    String quotedArgs=join(" ",collect(getBuildJvmOpts(),new Transformer<String,String>(){
+      public String transform(      String input){
+        return String.format("'%s'",input);
+      }
+    }
+));
+    jvmOpts.add("-Dorg.gradle.jvmargs=" + quotedArgs);
+  }
+ else {
+    jvmOpts.addAll(getBuildJvmOpts());
+  }
+  for (  Map.Entry<String,String> entry : getImplicitJvmSystemProperties().entrySet()) {
+    String key=entry.getKey();
+    String value=entry.getValue();
+    jvmOpts.add(String.format("-D%s=%s",key,value));
+  }
+  jvmOpts.add("-ea");
+  return jvmOpts;
+}
