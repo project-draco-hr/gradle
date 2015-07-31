@@ -1,6 +1,6 @@
 {
   List<String> jvmOpts=new ArrayList<String>();
-  if (requireDaemon) {
+  if (isUseDaemon() && !defaultJvmArgs) {
     String quotedArgs=join(" ",collect(getBuildJvmOpts(),new Transformer<String,String>(){
       public String transform(      String input){
         return String.format("'%s'",input);
@@ -9,7 +9,7 @@
 ));
     jvmOpts.add("-Dorg.gradle.jvmargs=" + quotedArgs);
   }
- else {
+ else   if (!defaultJvmArgs) {
     jvmOpts.addAll(getBuildJvmOpts());
   }
   for (  Map.Entry<String,String> entry : getImplicitJvmSystemProperties().entrySet()) {
