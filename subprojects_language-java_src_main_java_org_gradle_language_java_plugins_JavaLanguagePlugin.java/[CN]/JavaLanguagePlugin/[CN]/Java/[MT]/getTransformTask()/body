@@ -11,12 +11,14 @@
       JavaSourceSet javaSourceSet=(JavaSourceSet)sourceSet;
       JarBinarySpec binary=(JarBinarySpec)binarySpec;
       ArtifactDependencyResolver dependencyResolver=serviceRegistry.get(ArtifactDependencyResolver.class);
+      RepositoryHandler repositories=serviceRegistry.get(RepositoryHandler.class);
+      List<ResolutionAwareRepository> resolutionAwareRepositories=CollectionUtils.collect(repositories,Transformers.cast(ResolutionAwareRepository.class));
       compile.setDescription(String.format("Compiles %s.",javaSourceSet));
       compile.setDestinationDir(binary.getClassesDir());
       compile.setToolChain(binary.getToolChain());
       compile.setPlatform(binary.getTargetPlatform());
       compile.setSource(javaSourceSet.getSource());
-      DependencyResolvingClasspath classpath=new DependencyResolvingClasspath(binary,(DependentSourceSetInternal)javaSourceSet,dependencyResolver,schemaStore);
+      DependencyResolvingClasspath classpath=new DependencyResolvingClasspath(binary,(DependentSourceSetInternal)javaSourceSet,dependencyResolver,schemaStore,resolutionAwareRepositories);
       compile.setClasspath(classpath);
       compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
       compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
