@@ -1,0 +1,34 @@
+{
+  if (getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
+    invocation.launcherJvmArgs.addAll(invocation.implicitLauncherJvmArgs);
+  }
+ else {
+    for (    String jvmArg : invocation.implicitLauncherJvmArgs) {
+      if (!jvmArg.contains(" ")) {
+        invocation.launcherJvmArgs.add(jvmArg);
+      }
+ else       if (jvmArg.startsWith("-D")) {
+        invocation.args.add(jvmArg);
+      }
+ else {
+        throw new UnsupportedOperationException(String.format("Cannot handle launcher JVM arg '%s' as it contains whitespace. This is not supported by Gradle %s.",jvmArg,getDistribution().getVersion().getVersion()));
+      }
+    }
+  }
+  invocation.implicitLauncherJvmArgs.clear();
+  Map<String,String> environmentVars=invocation.environmentVars;
+  String jvmOptsEnvVar;
+  if (!environmentVars.containsKey("GRADLE_OPTS")) {
+    jvmOptsEnvVar="GRADLE_OPTS";
+  }
+ else   if (!environmentVars.containsKey("JAVA_OPTS")) {
+    jvmOptsEnvVar="JAVA_OPTS";
+  }
+ else {
+    throw new UnsupportedOperationException(String.format("Both GRADLE_OPTS and JAVA_OPTS environment variables are being used. Cannot provide JVM args %s to Gradle command.",invocation.launcherJvmArgs));
+  }
+  environmentVars.put(jvmOptsEnvVar,toJvmArgsString(invocation.launcherJvmArgs));
+  if (!environmentVars.containsKey("JAVA_HOME")) {
+    environmentVars.put("JAVA_HOME",getJavaHome().getAbsolutePath());
+  }
+}

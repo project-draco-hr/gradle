@@ -1,13 +1,14 @@
 {
   return new ForkingGradleHandle(getResultAssertion(),getDefaultCharacterEncoding(),new Factory<JavaExecHandleBuilder>(){
     public JavaExecHandleBuilder create(){
+      GradleInvocation invocation=buildInvocation();
       JavaExecHandleBuilder builder=new JavaExecHandleBuilder(TestFiles.resolver());
       builder.workingDir(getWorkingDir());
       Collection<File> classpath=GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles();
       builder.classpath(classpath);
-      builder.jvmArgs(getLauncherJvmOpts());
+      builder.jvmArgs(invocation.launcherJvmArgs);
       builder.setMain(Main.class.getName());
-      builder.args(getAllArgs());
+      builder.args(invocation.args);
       builder.setStandardInput(getStdin());
       return builder;
     }
