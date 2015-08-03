@@ -1,10 +1,6 @@
 {
   for (  final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
     String runTaskName=String.format("run%s",StringUtils.capitalize(binary.getName()));
-    String deploymentId=String.format("deployment%s @ %s",StringUtils.capitalize(binary.getName()),projectIdentifier.getPath());
-    DeploymentRegistry deploymentRegistry=serviceRegistry.get(DeploymentRegistry.class);
-    final PlayApplicationDeploymentHandle deploymentHandle=registerOrFindDeploymentHandle(deploymentRegistry,deploymentId);
-    deploymentHandle.registerBuildListener(serviceRegistry.get(Gradle.class));
     tasks.create(runTaskName,PlayRun.class,new Action<PlayRun>(){
       public void execute(      PlayRun playRun){
         playRun.setDescription("Runs the Play application for local development.");
@@ -16,8 +12,10 @@
         playRun.setAssetsDirs(binary.getAssets().getAssetDirs());
         playRun.setRuntimeClasspath(configurations.getPlayRun().getNonChangingArtifacts());
         playRun.setChangingClasspath(configurations.getPlayRun().getChangingArtifacts());
-        playRun.setDeployment(deploymentHandle);
         playRun.dependsOn(binary.getBuildTask());
+        DeploymentRegistry deploymentRegistry=serviceRegistry.get(DeploymentRegistry.class);
+        PlayApplicationDeploymentHandle deploymentHandle=deploymentRegistry.get(PlayApplicationDeploymentHandle.class,playRun.getPath());
+        deploymentHandle.registerBuildListener(serviceRegistry.get(Gradle.class));
       }
     }
 );
