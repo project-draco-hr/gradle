@@ -1,5 +1,4 @@
 {
-  boolean nullCredentials=true;
   for (  Authentication authentication : authentications) {
     boolean isAuthenticationSupported=false;
     Credentials credentials=((AuthenticationInternal)authentication).getCredentials();
@@ -13,15 +12,12 @@
       throw new InvalidUserDataException(String.format("Authentication scheme of '%s' is not supported by protocols %s",authentication.getClass().getSimpleName(),factory.getSupportedProtocols()));
     }
     if (credentials != null) {
-      for (      Class<? extends Credentials> credentialsType : ((AuthenticationInternal)authentication).getSupportedCredentials()) {
-        if (!credentialsType.isAssignableFrom(credentials.getClass())) {
-          throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme '%s'",credentials.getClass().getSimpleName(),authentication.getClass().getSimpleName()));
-        }
+      if (!((AuthenticationInternal)authentication).supports(credentials)) {
+        throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme '%s'",credentials.getClass().getSimpleName(),authentication.getClass().getSimpleName()));
       }
-      nullCredentials=false;
     }
-  }
-  if (nullCredentials && authentications.size() > 0) {
-    throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
+ else {
+      throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
+    }
   }
 }
