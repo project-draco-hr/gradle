@@ -1,31 +1,18 @@
 {
-  List<Method> methods=Lists.newArrayList();
-  Set<Class<?>> seenInterfaces=Sets.newHashSet();
-  Deque<Class<?>> queue=new ArrayDeque<Class<?>>();
-  queue.add(clazz);
-  while (!queue.isEmpty()) {
-    Class<?> type=queue.removeFirst();
-    if (type.equals(Object.class) || type.equals(GroovyObject.class)) {
-      continue;
-    }
-    for (    Method method : type.getDeclaredMethods()) {
-      if (method.isSynthetic()) {
-        continue;
-      }
-      if (IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method))) {
-        continue;
-      }
-      methods.add(method);
-    }
-    Class<?> superclass=type.getSuperclass();
-    if (superclass != null) {
-      queue.addLast(superclass);
-    }
-    for (    Class<?> iface : type.getInterfaces()) {
-      if (seenInterfaces.add(iface)) {
-        queue.addLast(iface);
+  final List<Method> methods=Lists.newArrayList();
+  walkTypeHierarchy(clazz,new TypeVisitor(){
+    @Override public void visitType(    Class<?> type){
+      for (      Method method : type.getDeclaredMethods()) {
+        if (method.isSynthetic()) {
+          continue;
+        }
+        if (IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method))) {
+          continue;
+        }
+        methods.add(method);
       }
     }
   }
+);
   return methods;
 }

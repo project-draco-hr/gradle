@@ -1,0 +1,21 @@
+{
+  Set<Class<?>> seenInterfaces=Sets.newHashSet();
+  Deque<Class<?>> queue=new ArrayDeque<Class<?>>();
+  queue.add(clazz);
+  while (!queue.isEmpty()) {
+    Class<?> type=queue.removeFirst();
+    if (type.equals(Object.class) || type.equals(GroovyObject.class)) {
+      continue;
+    }
+    visitor.visitType(type);
+    Class<?> superclass=type.getSuperclass();
+    if (superclass != null) {
+      queue.addLast(superclass);
+    }
+    for (    Class<?> iface : type.getInterfaces()) {
+      if (seenInterfaces.add(iface)) {
+        queue.addLast(iface);
+      }
+    }
+  }
+}
