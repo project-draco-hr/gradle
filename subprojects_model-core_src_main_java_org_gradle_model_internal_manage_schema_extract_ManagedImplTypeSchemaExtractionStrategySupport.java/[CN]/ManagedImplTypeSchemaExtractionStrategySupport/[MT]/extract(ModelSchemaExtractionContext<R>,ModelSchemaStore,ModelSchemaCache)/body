@@ -47,13 +47,15 @@
             }
           }
 ));
-          boolean unmanaged=Iterables.any(getterMethods,new Predicate<Method>(){
-            public boolean apply(            Method input){
-              return input.getAnnotation(Unmanaged.class) != null;
+          Map<Class<? extends Annotation>,Annotation> annotations=Maps.newLinkedHashMap();
+          for (          Method getterMethod : getterMethods) {
+            for (            Annotation annotation : getterMethod.getDeclaredAnnotations()) {
+              if (!annotations.containsKey(annotation.annotationType())) {
+                annotations.put(annotation.annotationType(),annotation);
+              }
             }
           }
-);
-          properties.add(ModelProperty.of(returnType,propertyName,isWritable,declaringClasses,unmanaged));
+          properties.add(ModelProperty.of(returnType,propertyName,isWritable,declaringClasses,annotations));
         }
         handled.addAll(getterMethods);
       }
