@@ -1,4 +1,5 @@
 {
+  Multiset duplicatedAuthentications=HashMultiset.create();
   for (  Authentication authentication : authentications) {
     boolean isAuthenticationSupported=false;
     Credentials credentials=((AuthenticationInternal)authentication).getCredentials();
@@ -18,6 +19,10 @@
     }
  else {
       throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
+    }
+    int count=duplicatedAuthentications.add(authentication.getClass(),1);
+    if (count > 0) {
+      throw new InvalidUserDataException(String.format("You cannot configure multiple authentication schemes of the same type '%s'.",authentication.getClass().getSimpleName()));
     }
   }
 }
