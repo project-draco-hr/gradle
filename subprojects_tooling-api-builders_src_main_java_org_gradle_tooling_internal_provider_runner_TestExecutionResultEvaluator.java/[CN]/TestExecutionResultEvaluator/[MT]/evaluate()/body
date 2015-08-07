@@ -4,6 +4,12 @@
     throw new TestExecutionException("No matching tests found in any candidate test task.\n" + formattedTestRequest);
   }
   if (hasFailedTests()) {
-    throw new TestExecutionException("Test(s) failed!");
+    StringBuffer failedTestsMessage=new StringBuffer("Test failed.\n").append(INDENT).append("Failed tests:");
+    List<Throwable> causes=Lists.newArrayList();
+    for (    FailedTest failedTest : failedTests) {
+      failedTestsMessage.append("\n").append(Strings.repeat(INDENT,2)).append(failedTest.getDescription());
+      causes.addAll(failedTest.testResult.getExceptions());
+    }
+    throw new TestExecutionException(failedTestsMessage.toString(),causes);
   }
 }
