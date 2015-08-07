@@ -1,0 +1,23 @@
+{
+  if (delegateType != null && !delegateType.isInterface()) {
+    throw new IllegalArgumentException("Delegate type must be null or an interface");
+  }
+  ClassWriter visitor=new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+  String generatedTypeName=managedTypeClass.getName() + "_Impl";
+  Type generatedType=Type.getType("L" + generatedTypeName.replaceAll("\\.","/") + ";");
+  Class<?> superclass;
+  ImmutableSet.Builder<String> interfaceInternalNames=ImmutableSet.builder();
+  interfaceInternalNames.add(MANAGED_INSTANCE_TYPE);
+  if (managedTypeClass.isInterface()) {
+    superclass=Object.class;
+    interfaceInternalNames=interfaceInternalNames.add(Type.getInternalName(managedTypeClass));
+  }
+ else {
+    superclass=managedTypeClass;
+  }
+  if (delegateType != null) {
+    interfaceInternalNames.add(Type.getInternalName(delegateType));
+  }
+  generateProxyClass(visitor,managedTypeClass,delegateType,interfaceInternalNames.build(),generatedType,Type.getType(superclass),properties);
+  return defineClass(visitor,managedTypeClass.getClassLoader(),generatedTypeName);
+}

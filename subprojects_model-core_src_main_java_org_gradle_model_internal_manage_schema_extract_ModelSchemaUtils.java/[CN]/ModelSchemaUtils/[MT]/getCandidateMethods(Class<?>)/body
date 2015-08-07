@@ -1,5 +1,5 @@
 {
-  final List<Method> methods=Lists.newArrayList();
+  final ImmutableListMultimap.Builder<String,Method> methodsBuilder=ImmutableListMultimap.builder();
   walkTypeHierarchy(clazz,new TypeVisitor(){
     @Override public void visitType(    Class<?> type){
       for (      Method method : type.getDeclaredMethods()) {
@@ -9,10 +9,10 @@
         if (IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method))) {
           continue;
         }
-        methods.add(method);
+        methodsBuilder.put(method.getName(),method);
       }
     }
   }
 );
-  return methods;
+  return methodsBuilder.build();
 }

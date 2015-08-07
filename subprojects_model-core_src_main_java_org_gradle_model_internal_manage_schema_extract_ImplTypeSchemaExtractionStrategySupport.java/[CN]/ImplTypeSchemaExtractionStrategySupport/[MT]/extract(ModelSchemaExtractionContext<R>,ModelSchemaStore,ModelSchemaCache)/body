@@ -1,0 +1,40 @@
+{
+  ModelType<R> type=extractionContext.getType();
+  if (!isTarget(type)) {
+    return null;
+  }
+  validateTypeHierarchy(extractionContext,type);
+  Multimap<String,Method> methodsByName=ModelSchemaUtils.getCandidateMethods(type.getRawClass());
+  List<ModelProperty<?>> properties=Lists.newArrayList();
+  final Set<Method> handledMethods=Sets.newHashSet();
+  for (  String methodName : methodsByName.keySet()) {
+    Collection<Method> methods=methodsByName.get(methodName);
+    if (hasOverloadedMethods(extractionContext,methodName,methods)) {
+      continue;
+    }
+    if (methodName.startsWith("get") && !methodName.equals("get")) {
+      Character getterPropertyNameFirstChar=methodName.charAt(3);
+      if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
+        invalidGetterNoUppercase(extractionContext,methods.iterator().next());
+        return null;
+      }
+      String propertyNameCapitalized=methodName.substring(3);
+      String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
+      String setterName="set" + propertyNameCapitalized;
+      Collection<Method> setterMethods=methodsByName.get(setterName);
+      ModelProperty<?> property=createProperty(extractionContext,propertyName,methodName,methods,setterMethods,handledMethods);
+      if (property != null) {
+        properties.add(property);
+      }
+    }
+  }
+  validateAllNecessaryMethodsHandled(extractionContext,methodsByName.values(),handledMethods);
+  final ModelSchema<R> schema=createSchema(extractionContext,store,type,properties,type.getConcreteClass());
+  Iterable<ModelSchemaExtractionContext<?>> propertyDependencies=Iterables.transform(properties,new Function<ModelProperty<?>,ModelSchemaExtractionContext<?>>(){
+    public ModelSchemaExtractionContext<?> apply(    final ModelProperty<?> property){
+      return toPropertyExtractionContext(extractionContext,property,cache);
+    }
+  }
+);
+  return new ModelSchemaExtractionResult<R>(schema,propertyDependencies);
+}

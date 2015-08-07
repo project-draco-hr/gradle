@@ -1,0 +1,35 @@
+{
+  Set<String> delegatePropertyNames;
+  if (delegateTypeClass != null) {
+    delegatePropertyNames=ClassInspector.inspect(delegateTypeClass).getPropertyNames();
+  }
+ else {
+    delegatePropertyNames=Collections.emptySet();
+  }
+  for (  ModelProperty<?> property : properties) {
+    if (delegatePropertyNames.contains(property.getName())) {
+      continue;
+    }
+    String propertyName=property.getName();
+    Class<?> propertyTypeClass=property.getType().getConcreteClass();
+    if (property.isManaged()) {
+      writeGetter(visitor,generatedType,propertyName,propertyTypeClass);
+      if (property.isWritable()) {
+        writeSetter(visitor,generatedType,propertyName,propertyTypeClass);
+      }
+    }
+ else {
+      String getterName=getGetterName(propertyName);
+      Method getterMethod;
+      try {
+        getterMethod=managedTypeClass.getMethod(getterName);
+      }
+ catch (      NoSuchMethodException e) {
+        throw new IllegalStateException("Cannot find getter '" + getterName + "' on type "+ managedTypeClass.getName(),e);
+      }
+      if (!Modifier.isFinal(getterMethod.getModifiers()) && !property.getName().equals("metaClass")) {
+        writeNonAbstractMethodWrapper(visitor,generatedType,managedTypeClass,getterMethod);
+      }
+    }
+  }
+}
