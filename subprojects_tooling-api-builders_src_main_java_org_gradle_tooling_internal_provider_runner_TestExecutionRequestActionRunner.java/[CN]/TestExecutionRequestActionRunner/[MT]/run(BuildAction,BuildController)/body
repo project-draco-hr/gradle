@@ -2,13 +2,13 @@
   if (!(action instanceof TestExecutionRequestAction)) {
     return;
   }
-  TestCountListener testCountListener=new TestCountListener();
   final GradleInternal gradle=buildController.getGradle();
   Throwable failure=null;
   try {
     final TestExecutionRequestAction testExecutionRequestAction=(TestExecutionRequestAction)action;
-    doRun(testExecutionRequestAction,buildController,testCountListener);
-    evaluateTestCount(testExecutionRequestAction,testCountListener);
+    final TestExecutionResultEvaluator testExecutionResultEvaluator=new TestExecutionResultEvaluator(testExecutionRequestAction);
+    doRun(testExecutionRequestAction,buildController,testExecutionResultEvaluator);
+    testExecutionResultEvaluator.evaluate();
   }
  catch (  RuntimeException rex) {
     Throwable throwable=findRootCause(rex);
