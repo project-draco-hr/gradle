@@ -1,0 +1,32 @@
+{
+  Method mostSpecificGetter=getterContext.getMostSpecificDeclaration();
+  if (mostSpecificGetter.getParameterTypes().length != 0) {
+    handleInvalidGetter(extractionContext,getterContext,"getter methods cannot take parameters");
+    return null;
+  }
+  if (!getterContext.isDeclaredInManagedType() && mostSpecificGetter.getReturnType().isPrimitive()) {
+    handleInvalidGetter(extractionContext,getterContext,"managed properties cannot have primitive types");
+    return null;
+  }
+  boolean managedProperty=getterContext.isDeclaredInManagedType() && getterContext.isDeclaredAsAbstract();
+  ModelType<?> returnType=ModelType.returnType(mostSpecificGetter);
+  boolean writable=setterContext != null;
+  if (writable) {
+    validateSetter(extractionContext,returnType,getterContext,setterContext);
+  }
+  Map<Class<? extends Annotation>,Annotation> annotations=Maps.newLinkedHashMap();
+  for (  Method getterMethod : getterContext.getDeclaringMethods()) {
+    for (    Annotation annotation : getterMethod.getDeclaredAnnotations()) {
+      if (!annotations.containsKey(annotation.annotationType())) {
+        annotations.put(annotation.annotationType(),annotation);
+      }
+    }
+  }
+  ImmutableSet<ModelType<?>> declaringClasses=ImmutableSet.copyOf(Iterables.transform(getterContext.getDeclaringMethods(),new Function<Method,ModelType<?>>(){
+    public ModelType<?> apply(    Method input){
+      return ModelType.of(input.getDeclaringClass());
+    }
+  }
+));
+  return ModelProperty.of(returnType,propertyName,managedProperty,writable,declaringClasses,annotations);
+}

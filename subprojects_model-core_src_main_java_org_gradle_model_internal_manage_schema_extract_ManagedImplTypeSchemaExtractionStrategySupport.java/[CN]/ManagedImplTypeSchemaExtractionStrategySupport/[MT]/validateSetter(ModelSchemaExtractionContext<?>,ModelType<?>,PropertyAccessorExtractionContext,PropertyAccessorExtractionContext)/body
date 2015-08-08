@@ -1,0 +1,30 @@
+{
+  Method mostSpecificSetter=setterContext.getMostSpecificDeclaration();
+  if (!getterContext.isDeclaredAsAbstract() && setterContext.isDeclaredAsAbstract()) {
+    throw invalidMethod(extractionContext,"setters are not allowed for non-abstract getters",mostSpecificSetter);
+  }
+  if (getterContext.isDeclaredInManagedType() && !setterContext.isDeclaredInManagedType()) {
+    throw invalidMethods(extractionContext,"unmanaged setter for managed getter",Iterables.concat(getterContext.getDeclaringMethods(),setterContext.getDeclaringMethods()));
+  }
+ else   if (!getterContext.isDeclaredInManagedType() && setterContext.isDeclaredInManagedType()) {
+    throw invalidMethods(extractionContext,"managed setter for unmanaged getter",Iterables.concat(getterContext.getDeclaringMethods(),setterContext.getDeclaringMethods()));
+  }
+  if (!setterContext.isDeclaredInManagedType()) {
+    return;
+  }
+  if (!Modifier.isAbstract(mostSpecificSetter.getModifiers())) {
+    throw invalidMethod(extractionContext,"non-abstract setters are not allowed",mostSpecificSetter);
+  }
+  if (!mostSpecificSetter.getReturnType().equals(void.class)) {
+    throw invalidMethod(extractionContext,"setter method must have void return type",mostSpecificSetter);
+  }
+  Type[] setterParameterTypes=mostSpecificSetter.getGenericParameterTypes();
+  if (setterParameterTypes.length != 1) {
+    throw invalidMethod(extractionContext,"setter method must have exactly one parameter",mostSpecificSetter);
+  }
+  ModelType<?> setterType=ModelType.paramType(mostSpecificSetter,0);
+  if (!setterType.equals(propertyType)) {
+    String message="setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: "+ setterType+ ")";
+    throw invalidMethod(extractionContext,message,mostSpecificSetter);
+  }
+}
