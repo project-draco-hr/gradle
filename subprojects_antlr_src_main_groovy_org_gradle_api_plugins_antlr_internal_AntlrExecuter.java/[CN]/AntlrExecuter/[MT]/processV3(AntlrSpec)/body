@@ -1,0 +1,19 @@
+{
+  int numErrors=0;
+  if (spec.getInputDirectories().size() == 0) {
+    numErrors+=invokeV3ToolingAndReturnErrorNumber(spec.asArgumentsWithFiles(),null);
+  }
+ else {
+    for (    File inputDirectory : spec.getInputDirectories()) {
+      final List<String> arguments=spec.getArguments();
+      arguments.add("-o");
+      arguments.add(spec.getOutputDirectory().getAbsolutePath());
+      for (      File grammarFile : spec.getGrammarFiles()) {
+        final String relativeGrammarFilePath=GFileUtils.relativePath(inputDirectory,grammarFile);
+        arguments.add(relativeGrammarFilePath);
+      }
+      numErrors+=invokeV3ToolingAndReturnErrorNumber(arguments,inputDirectory);
+    }
+  }
+  return new AntlrResult(numErrors);
+}
