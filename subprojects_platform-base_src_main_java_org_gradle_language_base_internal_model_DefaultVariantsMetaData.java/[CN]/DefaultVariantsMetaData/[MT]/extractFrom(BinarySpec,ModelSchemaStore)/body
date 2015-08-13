@@ -1,0 +1,17 @@
+{
+  Map<String,Object> variants=Maps.newLinkedHashMap();
+  ImmutableMap.Builder<String,ModelType<?>> dimensionTypesBuilder=ImmutableMap.builder();
+  Class<?> specType=new DslObject(spec).getDeclaredType();
+  ModelSchema<?> schema=schemaStore.getSchema(specType);
+  if (schema instanceof ModelImplTypeSchema) {
+    VariantAspect variantAspect=((ModelImplTypeSchema<?>)schema).getAspect(VariantAspect.class);
+    if (variantAspect != null) {
+      for (      ModelProperty<?> property : variantAspect.getDimensions()) {
+        Object value=property.getPropertyValue(spec);
+        variants.put(property.getName(),value);
+        dimensionTypesBuilder.put(property.getName(),property.getType());
+      }
+    }
+  }
+  return new DefaultVariantsMetaData(Collections.unmodifiableMap(variants),dimensionTypesBuilder.build());
+}
