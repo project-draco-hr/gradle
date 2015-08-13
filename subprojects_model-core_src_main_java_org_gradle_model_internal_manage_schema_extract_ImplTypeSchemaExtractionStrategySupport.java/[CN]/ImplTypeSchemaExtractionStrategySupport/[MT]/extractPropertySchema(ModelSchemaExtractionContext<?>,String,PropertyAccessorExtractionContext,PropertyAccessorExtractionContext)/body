@@ -9,7 +9,7 @@
     return null;
   }
   boolean managedProperty=getterContext.isDeclaredInManagedType() && getterContext.isDeclaredAsAbstract();
-  ModelType<?> returnType=ModelType.returnType(mostSpecificGetter);
+  ModelType<R> returnType=ModelType.returnType(mostSpecificGetter);
   boolean writable=setterContext != null;
   if (writable) {
     validateSetter(extractionContext,returnType,getterContext,setterContext);
@@ -28,5 +28,6 @@
     }
   }
 ));
-  return ModelProperty.of(returnType,propertyName,managedProperty,writable,declaringClasses,annotations,setterAnnotations);
+  WeaklyTypeReferencingMethod<?,R> getterRef=WeaklyTypeReferencingMethod.of(extractionContext.getType(),returnType,getterContext.getMostSpecificDeclaration());
+  return ModelProperty.of(returnType,propertyName,managedProperty,writable,declaringClasses,getterRef,annotations,setterAnnotations);
 }
