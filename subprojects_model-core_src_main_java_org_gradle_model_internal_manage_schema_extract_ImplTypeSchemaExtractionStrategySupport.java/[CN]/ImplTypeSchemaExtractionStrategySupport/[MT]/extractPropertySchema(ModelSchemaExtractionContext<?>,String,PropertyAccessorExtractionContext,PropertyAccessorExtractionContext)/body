@@ -14,13 +14,13 @@
   if (writable) {
     validateSetter(extractionContext,returnType,getterContext,setterContext);
   }
-  Map<Class<? extends Annotation>,Annotation> annotations=Maps.newLinkedHashMap();
-  for (  Method getterMethod : getterContext.getDeclaringMethods()) {
-    for (    Annotation annotation : getterMethod.getDeclaredAnnotations()) {
-      if (!annotations.containsKey(annotation.annotationType())) {
-        annotations.put(annotation.annotationType(),annotation);
-      }
-    }
+  Map<Class<? extends Annotation>,Annotation> annotations=getAnnotations(getterContext.getDeclaringMethods());
+  Map<Class<? extends Annotation>,Annotation> setterAnnotations;
+  if (setterContext != null) {
+    setterAnnotations=getAnnotations(setterContext.getDeclaringMethods());
+  }
+ else {
+    setterAnnotations=Collections.emptyMap();
   }
   ImmutableSet<ModelType<?>> declaringClasses=ImmutableSet.copyOf(Iterables.transform(getterContext.getDeclaringMethods(),new Function<Method,ModelType<?>>(){
     public ModelType<?> apply(    Method input){
@@ -28,5 +28,5 @@
     }
   }
 ));
-  return ModelProperty.of(returnType,propertyName,managedProperty,writable,declaringClasses,annotations);
+  return ModelProperty.of(returnType,propertyName,managedProperty,writable,declaringClasses,annotations,setterAnnotations);
 }
