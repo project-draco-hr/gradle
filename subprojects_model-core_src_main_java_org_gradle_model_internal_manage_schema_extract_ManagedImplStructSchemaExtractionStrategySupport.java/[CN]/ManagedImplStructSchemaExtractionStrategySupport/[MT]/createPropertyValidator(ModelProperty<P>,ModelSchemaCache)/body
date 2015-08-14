@@ -25,7 +25,7 @@
         if (isDeclaredAsHavingUnmanagedType) {
           throw new InvalidManagedModelElementTypeException(parentContext,String.format("unmanaged property '%s' cannot be read only, unmanaged properties must have setters",property.getName()));
         }
-        if (!propertySchema.isInstantiationManaged()) {
+        if (!(propertySchema instanceof ManagedImplModelSchema)) {
           throw new InvalidManagedModelElementTypeException(parentContext,String.format("read only property '%s' has non managed type %s, only managed types can be used",property.getName(),property.getType()));
         }
       }
@@ -36,7 +36,7 @@
         ModelCollectionSchema<P,?> propertyCollectionsSchema=(ModelCollectionSchema<P,?>)propertySchema;
         ModelType<?> elementType=propertyCollectionsSchema.getElementType();
         ModelSchema<?> elementTypeSchema=modelSchemaCache.get(elementType);
-        if (!elementTypeSchema.isInstantiationManaged()) {
+        if (!(elementTypeSchema instanceof ManagedImplModelSchema)) {
           throw new InvalidManagedModelElementTypeException(parentContext,String.format("property '%s' cannot be a model map of type %s as it is not a %s type.",property.getName(),elementType,Managed.class.getName()));
         }
       }

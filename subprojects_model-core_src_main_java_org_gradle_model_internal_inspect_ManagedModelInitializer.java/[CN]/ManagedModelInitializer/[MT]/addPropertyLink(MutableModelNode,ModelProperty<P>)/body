@@ -5,9 +5,10 @@
   ModelType<P> propertyType=property.getType();
   ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
   final ModelRuleDescriptor descriptor=modelNode.getDescriptor();
-  if (propertySchema.isInstantiationManaged()) {
+  if (propertySchema instanceof ManagedImplModelSchema) {
     if (!property.isWritable()) {
-      ModelCreator creator=ModelCreators.of(modelNode.getPath().child(property.getName()),propertySchema.getNodeInitializer()).descriptor(descriptor).build();
+      ManagedImplModelSchema<P> managedPropertySchema=(ManagedImplModelSchema<P>)propertySchema;
+      ModelCreator creator=ModelCreators.of(modelNode.getPath().child(property.getName()),managedPropertySchema.getNodeInitializer()).descriptor(descriptor).build();
       modelNode.addLink(creator);
     }
  else {
