@@ -1,0 +1,30 @@
+{
+  if (getterContext.getMostSpecificDeclaration().getName().equals("getName") && Named.class.isAssignableFrom(extractionContext.getType().getRawClass())) {
+    if (delegateType == null) {
+      return ModelProperty.StateManagementType.MANAGED;
+    }
+    boolean delegateHasGetNameMethod=Iterables.any(Arrays.asList(delegateType.getMethods()),new Predicate<Method>(){
+      @Override public boolean apply(      Method method){
+        return method.getName().equals("getName");
+      }
+    }
+);
+    if (delegateHasGetNameMethod) {
+      return ModelProperty.StateManagementType.DELEGATED;
+    }
+ else {
+      return ModelProperty.StateManagementType.MANAGED;
+    }
+  }
+  if (getterContext.isDeclaredInManagedType()) {
+    if (getterContext.isDeclaredAsAbstract()) {
+      return ModelProperty.StateManagementType.MANAGED;
+    }
+ else {
+      return ModelProperty.StateManagementType.UNMANAGED;
+    }
+  }
+ else {
+    return ModelProperty.StateManagementType.DELEGATED;
+  }
+}
