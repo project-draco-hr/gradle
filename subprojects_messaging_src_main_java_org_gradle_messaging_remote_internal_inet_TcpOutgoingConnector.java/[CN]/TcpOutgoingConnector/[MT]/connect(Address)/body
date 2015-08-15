@@ -11,10 +11,16 @@
       LOGGER.debug("Trying to connect to address {}.",candidate);
       SocketChannel socketChannel;
       try {
-        socketChannel=SocketChannel.open(new InetSocketAddress(candidate,address.getPort()));
+        socketChannel=SocketChannel.open();
+        socketChannel.socket().connect(new InetSocketAddress(candidate,address.getPort()),CONNECT_TIMEOUT);
       }
  catch (      SocketException e) {
         LOGGER.debug("Cannot connect to address {}, skipping.",candidate);
+        lastFailure=e;
+        continue;
+      }
+catch (      SocketTimeoutException e) {
+        LOGGER.debug("Timeout connecting to address {}, skipping.",candidate);
         lastFailure=e;
         continue;
       }
