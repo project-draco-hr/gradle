@@ -1,0 +1,18 @@
+{
+  ModelPath childPath=child.getPath();
+  if (!getPath().isDirectChild(childPath)) {
+    throw new IllegalArgumentException(String.format("Element creator has a path (%s) which is not a child of this node (%s).",childPath,getPath()));
+  }
+  ModelNodeInternal currentChild=links.get(childPath.getName());
+  if (currentChild != null && !reset) {
+    if (currentChild.getState() == Known) {
+      throw new DuplicateModelException(String.format("Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",childPath,describe(creator.getDescriptor()),describe(currentChild.getDescriptor())));
+    }
+    throw new DuplicateModelException(String.format("Cannot create '%s' using creation rule '%s' as the rule '%s' has already been used to create this model element.",childPath,describe(creator.getDescriptor()),describe(currentChild.getDescriptor())));
+  }
+  if (!isMutable()) {
+    throw new IllegalStateException(String.format("Cannot create '%s' using creation rule '%s' as model element '%s' is no longer mutable.",childPath,describe(creator.getDescriptor()),getPath()));
+  }
+  links.put(child.getPath().getName(),child);
+  registerNode(child);
+}
