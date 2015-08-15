@@ -1,5 +1,5 @@
 {
-  List<ModelProperty<?>> properties=Lists.newArrayList();
+  List<ModelPropertyExtractionResult<?>> results=Lists.newArrayList();
   Set<Method> handledMethods=Sets.newHashSet();
   List<String> methodNames=Lists.newArrayList(methodsByName.keySet());
   Collections.sort(methodNames);
@@ -22,9 +22,9 @@
       String setterName="set" + propertyNameCapitalized;
       Collection<Method> setterMethods=methodsByName.get(setterName);
       PropertyAccessorExtractionContext setterContext=!setterMethods.isEmpty() ? new PropertyAccessorExtractionContext(setterMethods) : null;
-      ModelProperty<?> property=extractPropertySchema(extractionContext,propertyName,getterContext,setterContext);
-      if (property != null) {
-        properties.add(property);
+      ModelPropertyExtractionResult<?> result=extractPropertySchema(extractionContext,propertyName,getterContext,setterContext);
+      if (result != null) {
+        results.add(result);
         handledMethods.addAll(getterContext.getDeclaringMethods());
         if (setterContext != null) {
           handledMethods.addAll(setterContext.getDeclaringMethods());
@@ -33,5 +33,5 @@
     }
   }
   validateAllNecessaryMethodsHandled(extractionContext,methodsByName.values(),handledMethods);
-  return properties;
+  return results;
 }

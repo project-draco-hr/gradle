@@ -4,12 +4,18 @@
     return null;
   }
   validateTypeHierarchy(extractionContext,type);
-  List<ModelProperty<?>> properties=extractPropertySchemas(extractionContext,ModelSchemaUtils.getCandidateMethods(type.getRawClass()));
-  List<ModelSchemaAspect> aspects=aspectExtractor.extract(extractionContext,properties);
+  List<ModelPropertyExtractionResult<?>> propertyExtractionResults=extractPropertySchemas(extractionContext,ModelSchemaUtils.getCandidateMethods(type.getRawClass()));
+  Iterable<ModelProperty<?>> properties=Iterables.transform(propertyExtractionResults,new Function<ModelPropertyExtractionResult<?>,ModelProperty<?>>(){
+    @Override public ModelProperty<?> apply(    ModelPropertyExtractionResult<?> propertyResult){
+      return propertyResult.getProperty();
+    }
+  }
+);
+  List<ModelSchemaAspect> aspects=aspectExtractor.extract(extractionContext,propertyExtractionResults);
   ModelSchema<R> schema=createSchema(extractionContext,store,type,properties,aspects);
-  Iterable<ModelSchemaExtractionContext<?>> propertyDependencies=Iterables.transform(properties,new Function<ModelProperty<?>,ModelSchemaExtractionContext<?>>(){
-    public ModelSchemaExtractionContext<?> apply(    final ModelProperty<?> property){
-      return toPropertyExtractionContext(extractionContext,property,cache);
+  Iterable<ModelSchemaExtractionContext<?>> propertyDependencies=Iterables.transform(propertyExtractionResults,new Function<ModelPropertyExtractionResult<?>,ModelSchemaExtractionContext<?>>(){
+    public ModelSchemaExtractionContext<?> apply(    ModelPropertyExtractionResult<?> propertyResult){
+      return toPropertyExtractionContext(extractionContext,propertyResult,cache);
     }
   }
 );

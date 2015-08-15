@@ -3,11 +3,16 @@
   if (!getterContext.isDeclaredAsAbstract() && setterContext.isDeclaredAsAbstract()) {
     throw invalidMethod(extractionContext,"setters are not allowed for non-abstract getters",mostSpecificSetter);
   }
-  if (getterContext.isDeclaredInManagedType() && !setterContext.isDeclaredInManagedType()) {
-    throw invalidMethods(extractionContext,"unmanaged setter for managed getter",Iterables.concat(getterContext.getDeclaringMethods(),setterContext.getDeclaringMethods()));
+  if (mostSpecificSetter.getName().equals("setName") && Named.class.isAssignableFrom(extractionContext.getType().getRawClass())) {
+    throw new InvalidManagedModelElementTypeException(extractionContext,String.format("@Managed types implementing %s must not declare a setter for the name property",Named.class.getName()));
   }
- else   if (!getterContext.isDeclaredInManagedType() && setterContext.isDeclaredInManagedType()) {
-    throw invalidMethods(extractionContext,"managed setter for unmanaged getter",Iterables.concat(getterContext.getDeclaringMethods(),setterContext.getDeclaringMethods()));
+ else {
+    if (getterContext.isDeclaredInManagedType() && !setterContext.isDeclaredInManagedType()) {
+      throw invalidMethods(extractionContext,"unmanaged setter for managed getter",Iterables.concat(getterContext.getDeclaringMethods(),setterContext.getDeclaringMethods()));
+    }
+ else     if (!getterContext.isDeclaredInManagedType() && setterContext.isDeclaredInManagedType()) {
+      throw invalidMethods(extractionContext,"managed setter for unmanaged getter",Iterables.concat(getterContext.getDeclaringMethods(),setterContext.getDeclaringMethods()));
+    }
   }
   if (!setterContext.isDeclaredInManagedType()) {
     return;
