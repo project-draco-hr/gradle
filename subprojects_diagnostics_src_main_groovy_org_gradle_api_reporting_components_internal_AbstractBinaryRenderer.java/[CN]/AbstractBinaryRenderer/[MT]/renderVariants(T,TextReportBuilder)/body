@@ -1,0 +1,17 @@
+{
+  ModelSchema<?> schema=schemaStore.getSchema(new DslObject(binary).getDeclaredType());
+  if (!(schema instanceof ModelStructSchema)) {
+    return;
+  }
+  Map<String,Object> variants=Maps.newTreeMap();
+  VariantAspect variantAspect=((ModelStructSchema<?>)schema).getAspect(VariantAspect.class);
+  if (variantAspect != null) {
+    for (    ModelProperty<?> property : variantAspect.getDimensions()) {
+      variants.put(property.getName(),property.getPropertyValue(binary));
+    }
+  }
+  for (  Map.Entry<String,Object> variant : variants.entrySet()) {
+    String variantName=variant.getKey();
+    builder.item(variantName,RendererUtils.displayValueOf(variant.getValue()));
+  }
+}
