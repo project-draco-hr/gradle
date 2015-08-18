@@ -1,0 +1,17 @@
+{
+  final Transformer<String,InternalTestMethod> transformer=new Transformer<String,InternalTestMethod>(){
+    @Override public String transform(    InternalTestMethod internalTestMethod){
+      return internalTestMethod.getClassName();
+    }
+  }
+;
+  final Set<String> testClassesInMethods=CollectionUtils.toSet(CollectionUtils.collect(testExecutionRequest.getTestMethods(),transformer));
+  final List<String> testClassNames=Lists.newArrayList(testExecutionRequest.getTestClassNames());
+  final List<String> testClassesToRunCompletely=CollectionUtils.filter(testClassNames,new Spec<String>(){
+    @Override public boolean isSatisfiedBy(    String className){
+      return !testClassesInMethods.contains(className);
+    }
+  }
+);
+  return ImmutableSet.copyOf(testClassesToRunCompletely);
+}
