@@ -2,7 +2,25 @@
   Dependency mavenDependency=new Dependency();
   mavenDependency.setGroupId(dependency.getGroup());
   if (dependency instanceof ProjectDependency) {
-    mavenDependency.setArtifactId(determineProjectDependencyArtifactId((ProjectDependency)dependency));
+    ProjectDependency projectDependency=(ProjectDependency)dependency;
+    mavenDependency.setArtifactId(determineProjectDependencyArtifactId(projectDependency));
+    final String artifactId=determineProjectDependencyArtifactId((ProjectDependency)dependency);
+    PublishArtifactSet configurationArtifacts=projectDependency.getProjectConfiguration().getArtifacts();
+    if (configurationArtifacts.size() > 0) {
+      Object[] matchingArtifacts=configurationArtifacts.matching(new Spec<PublishArtifact>(){
+        public boolean isSatisfiedBy(        PublishArtifact element){
+          return element.getName().equals(artifactId);
+        }
+      }
+).toArray();
+      PublishArtifact artifactToPublish;
+      if (matchingArtifacts.length > 0) {
+        artifactToPublish=(PublishArtifact)matchingArtifacts[0];
+        if (artifactToPublish.getClassifier() != null) {
+          classifier=artifactToPublish.getClassifier();
+        }
+      }
+    }
   }
  else {
     mavenDependency.setArtifactId(name);
