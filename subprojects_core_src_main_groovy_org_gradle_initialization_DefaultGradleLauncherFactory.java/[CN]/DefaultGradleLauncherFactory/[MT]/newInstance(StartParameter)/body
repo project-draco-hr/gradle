@@ -13,6 +13,13 @@
     cancellationToken=new DefaultBuildCancellationToken();
     buildEventConsumer=new NoOpBuildEventConsumer();
   }
-  BuildSessionScopeServices sessionScopeServices=new BuildSessionScopeServices(sharedServices,startParameter);
-  return doNewInstance(startParameter,cancellationToken,requestMetaData,buildEventConsumer,sessionScopeServices);
+  final BuildSessionScopeServices sessionScopeServices=new BuildSessionScopeServices(sharedServices,startParameter);
+  final BuildScopeServices serviceRegistry=new BuildScopeServices(sessionScopeServices);
+  Closeable servicesToStop=new Closeable(){
+    @Override public void close() throws IOException {
+      CompositeStoppable.stoppable(serviceRegistry,sessionScopeServices).stop();
+    }
+  }
+;
+  return doNewInstance(startParameter,cancellationToken,requestMetaData,buildEventConsumer,serviceRegistry,servicesToStop);
 }
