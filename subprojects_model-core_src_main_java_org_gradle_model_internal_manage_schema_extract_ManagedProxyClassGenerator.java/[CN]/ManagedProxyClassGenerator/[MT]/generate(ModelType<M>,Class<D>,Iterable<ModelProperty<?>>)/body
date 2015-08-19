@@ -3,6 +3,7 @@
     throw new IllegalArgumentException("Delegate type must be null or an interface");
   }
   ClassWriter visitor=new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+  Class<M> managedTypeClass=managedType.getConcreteClass();
   String generatedTypeName=managedTypeClass.getName() + "_Impl";
   Type generatedType=Type.getType("L" + generatedTypeName.replaceAll("\\.","/") + ";");
   Class<?> superclass;
@@ -18,6 +19,8 @@
   if (delegateType != null) {
     interfaceInternalNames.add(Type.getInternalName(delegateType));
   }
-  generateProxyClass(visitor,managedTypeClass,delegateType,interfaceInternalNames.build(),generatedType,Type.getType(superclass),properties);
-  return defineClass(visitor,managedTypeClass.getClassLoader(),generatedTypeName);
+  generateProxyClass(visitor,managedType,delegateType,interfaceInternalNames.build(),generatedType,Type.getType(superclass),properties);
+  Class<? extends M> generatedClass=defineClass(visitor,managedTypeClass.getClassLoader(),generatedTypeName);
+  setManagedTypeField(generatedClass,managedType);
+  return generatedClass;
 }
