@@ -1,14 +1,27 @@
 {
-  for (  Method method : currentTarget.getDeclaredMethods()) {
-    if (method.getName().equals(name) && Arrays.equals(paramTypes,method.getParameterTypes())) {
-      return method;
+  Set<Class<?>> seenInterfaces=null;
+  Queue<Class<?>> queue=null;
+  Class<?> type=clazz;
+  while (type != null) {
+    for (    Method method : type.getDeclaredMethods()) {
+      if (method.getName().equals(name) && Arrays.equals(paramTypes,method.getParameterTypes())) {
+        return method;
+      }
     }
+    if (queue == null) {
+      queue=new ArrayDeque<Class<?>>();
+      seenInterfaces=Sets.newHashSet();
+    }
+    Class<?> superclass=type.getSuperclass();
+    if (superclass != null) {
+      queue.add(superclass);
+    }
+    for (    Class<?> iface : type.getInterfaces()) {
+      if (seenInterfaces.add(iface)) {
+        queue.add(iface);
+      }
+    }
+    type=queue.poll();
   }
-  Class<?> parent=currentTarget.getSuperclass();
-  if (parent == null) {
-    throw new org.gradle.internal.reflect.NoSuchMethodException(String.format("Could not find method %s(%s) on %s.",name,Joiner.on(", ").join(paramTypes),target.getRawClass().getSimpleName()));
-  }
- else {
-    return findMethod(parent,paramTypes);
-  }
+  throw new org.gradle.internal.reflect.NoSuchMethodException(String.format("Could not find method %s(%s) on %s.",name,Joiner.on(", ").join(paramTypes),this.target.getRawClass().getSimpleName()));
 }
