@@ -1,15 +1,20 @@
 {
+  Set<String> writtenProperties=Sets.newHashSet();
   for (  ModelProperty<?> property : properties) {
+    String propertyName=property.getName();
 switch (property.getStateManagementType()) {
 case MANAGED:
       Class<?> propertyTypeClass=property.getType().getConcreteClass();
-    writeGetter(visitor,generatedType,property.getName(),propertyTypeClass);
-  if (property.isWritable()) {
-    writeSetter(visitor,generatedType,property.getName(),propertyTypeClass);
-  }
-break;
+    if (!(writtenProperties.contains(propertyName))) {
+      writeGetter(visitor,generatedType,propertyName,propertyTypeClass);
+      if (property.isWritable()) {
+        writeSetter(visitor,generatedType,propertyName,propertyTypeClass);
+      }
+      writtenProperties.add(propertyName);
+    }
+  break;
 case UNMANAGED:
-String getterName=getGetterName(property.getName());
+String getterName=getGetterName(propertyName);
 Method getterMethod;
 try {
 getterMethod=managedTypeClass.getMethod(getterName);
@@ -17,7 +22,7 @@ getterMethod=managedTypeClass.getMethod(getterName);
  catch (NoSuchMethodException e) {
 throw new IllegalStateException("Cannot find getter '" + getterName + "' on type "+ managedTypeClass.getName(),e);
 }
-if (!Modifier.isFinal(getterMethod.getModifiers()) && !property.getName().equals("metaClass")) {
+if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
 writeNonAbstractMethodWrapper(visitor,generatedType,managedTypeClass,getterMethod);
 }
 break;
