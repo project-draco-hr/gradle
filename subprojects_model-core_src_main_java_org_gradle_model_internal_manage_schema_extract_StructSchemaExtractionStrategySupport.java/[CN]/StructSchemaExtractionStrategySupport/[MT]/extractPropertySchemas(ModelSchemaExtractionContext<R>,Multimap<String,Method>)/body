@@ -10,19 +10,20 @@
       handleOverloadedMethods(extractionContext,overloadedMethods);
       continue;
     }
-    if (methodName.startsWith("get") && !methodName.equals("get")) {
+    int getterPrefixLen=getterPrefixLength(methodName);
+    if (getterPrefixLen >= 0) {
       PropertyAccessorExtractionContext getterContext=new PropertyAccessorExtractionContext(methods);
-      Character getterPropertyNameFirstChar=methodName.charAt(3);
+      Character getterPropertyNameFirstChar=methodName.charAt(getterPrefixLen);
       if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
-        handleInvalidGetter(extractionContext,getterContext,"the 4th character of the getter method name must be an uppercase character");
+        handleInvalidGetter(extractionContext,getterContext,String.format("the %s character of the getter method name must be an uppercase character",getterPrefixLen == 2 ? "3rd" : "4th"));
         continue;
       }
-      String propertyNameCapitalized=methodName.substring(3);
+      String propertyNameCapitalized=methodName.substring(getterPrefixLen);
       String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
       String setterName="set" + propertyNameCapitalized;
       Collection<Method> setterMethods=methodsByName.get(setterName);
       PropertyAccessorExtractionContext setterContext=!setterMethods.isEmpty() ? new PropertyAccessorExtractionContext(setterMethods) : null;
-      ModelPropertyExtractionResult<?> result=extractPropertySchema(extractionContext,propertyName,getterContext,setterContext);
+      ModelPropertyExtractionResult<?> result=extractPropertySchema(extractionContext,propertyName,getterContext,setterContext,getterPrefixLen);
       if (result != null) {
         results.add(result);
         handledMethods.addAll(getterContext.getDeclaringMethods());

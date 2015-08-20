@@ -2,8 +2,9 @@
   if (operationDescriptors.isEmpty() && testClassNames.isEmpty() && testMethods.isEmpty()) {
     throw new TestExecutionException("No test declared for execution.");
   }
-  final ConsumerOperationParameters operationParameters=operationParamsBuilder.setParameters(connectionParameters).build();
-  final TestExecutionRequest testExecutionRequest=new TestExecutionRequest(operationDescriptors,ImmutableList.copyOf(testClassNames),ImmutableMultimap.copyOf(testMethods));
+  final ConsumerOperationParameters operationParameters=getConsumerOperationParameters();
+  final List<String> allTestClasses=CollectionUtils.flattenCollections(String.class,this.testClassNames,testMethods.keySet());
+  final TestExecutionRequest testExecutionRequest=new TestExecutionRequest(operationDescriptors,ImmutableList.copyOf(allTestClasses),testClassNames,ImmutableMultimap.copyOf(testMethods));
   connection.run(new ConsumerAction<Void>(){
     public ConsumerOperationParameters getParameters(){
       return operationParameters;

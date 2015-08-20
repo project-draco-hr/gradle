@@ -1,0 +1,15 @@
+{
+  if (testExecutionRequest.getTestClassNames().isEmpty()) {
+    return Collections.emptyList();
+  }
+  List<Test> tasksToExecute=new ArrayList<Test>();
+  final Set<Project> allprojects=gradle.getRootProject().getAllprojects();
+  for (  Project project : allprojects) {
+    final TaskCollection<Test> testTasks=project.getTasks().withType(Test.class);
+    for (    Test testTask : testTasks) {
+      configureTestClassFilter(testTask,testExecutionRequest.getTestClassNames());
+    }
+    tasksToExecute.addAll(testTasks);
+  }
+  return tasksToExecute;
+}
