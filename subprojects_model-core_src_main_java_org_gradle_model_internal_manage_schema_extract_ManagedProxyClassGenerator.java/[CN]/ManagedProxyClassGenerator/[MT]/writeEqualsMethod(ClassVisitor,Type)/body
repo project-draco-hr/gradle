@@ -1,0 +1,27 @@
+{
+  MethodVisitor methodVisitor=cw.visitMethod(Opcodes.ACC_PUBLIC,"equals",EQUALS_METHOD_DESCRIPTOR,null,null);
+  methodVisitor.visitCode();
+  methodVisitor.visitVarInsn(ALOAD,0);
+  methodVisitor.visitVarInsn(ALOAD,1);
+  Label notSameLabel=new Label();
+  methodVisitor.visitJumpInsn(IF_ACMPNE,notSameLabel);
+  methodVisitor.visitInsn(ICONST_1);
+  methodVisitor.visitInsn(IRETURN);
+  methodVisitor.visitLabel(notSameLabel);
+  methodVisitor.visitFrame(Opcodes.F_SAME,0,null,0,null);
+  methodVisitor.visitVarInsn(ALOAD,1);
+  methodVisitor.visitTypeInsn(INSTANCEOF,MANAGED_INSTANCE_TYPE);
+  Label notManagedInstanceLabel=new Label();
+  methodVisitor.visitJumpInsn(IFNE,notManagedInstanceLabel);
+  methodVisitor.visitInsn(ICONST_0);
+  methodVisitor.visitInsn(IRETURN);
+  methodVisitor.visitLabel(notManagedInstanceLabel);
+  methodVisitor.visitFrame(Opcodes.F_SAME,0,null,0,null);
+  methodVisitor.visitVarInsn(ALOAD,0);
+  methodVisitor.visitMethodInsn(INVOKEVIRTUAL,generatedType.getInternalName(),"getBackingNode",GET_BACKING_NODE_METHOD_DESCRIPTOR,false);
+  methodVisitor.visitVarInsn(ALOAD,1);
+  methodVisitor.visitTypeInsn(CHECKCAST,MANAGED_INSTANCE_TYPE);
+  methodVisitor.visitMethodInsn(INVOKEINTERFACE,MANAGED_INSTANCE_TYPE,"getBackingNode",GET_BACKING_NODE_METHOD_DESCRIPTOR,true);
+  methodVisitor.visitMethodInsn(INVOKEINTERFACE,MUTABLE_MODEL_NODE_TYPE,"contentEquals",EQUALS_METHOD_DESCRIPTOR,true);
+  finishVisitingMethod(methodVisitor,Opcodes.IRETURN);
+}
