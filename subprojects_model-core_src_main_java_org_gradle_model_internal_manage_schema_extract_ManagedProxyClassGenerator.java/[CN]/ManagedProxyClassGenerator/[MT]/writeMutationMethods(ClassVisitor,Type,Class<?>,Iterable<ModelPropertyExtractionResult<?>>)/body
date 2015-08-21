@@ -1,12 +1,13 @@
 {
-  for (  ModelProperty<?> property : properties) {
+  for (  ModelPropertyExtractionResult<?> propertyResult : propertyResults) {
+    ModelProperty<?> property=propertyResult.getProperty();
     String propertyName=property.getName();
 switch (property.getStateManagementType()) {
 case MANAGED:
       Class<?> propertyTypeClass=property.getType().getConcreteClass();
-    writeGetter(visitor,generatedType,propertyName,propertyTypeClass);
-  if (property.isWritable()) {
-    writeSetter(visitor,generatedType,propertyName,propertyTypeClass);
+    writeGetter(visitor,generatedType,propertyName,propertyTypeClass,propertyResult.getGetter().getMostSpecificSignature());
+  if (propertyResult.getSetter() != null) {
+    writeSetter(visitor,generatedType,propertyName,propertyTypeClass,propertyResult.getSetter().getMostSpecificSignature());
   }
 break;
 case UNMANAGED:
