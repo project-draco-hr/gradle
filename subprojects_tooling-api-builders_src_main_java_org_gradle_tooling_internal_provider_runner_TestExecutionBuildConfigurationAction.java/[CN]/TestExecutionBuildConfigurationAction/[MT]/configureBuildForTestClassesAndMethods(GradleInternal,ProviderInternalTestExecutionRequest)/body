@@ -1,6 +1,7 @@
 {
   final Collection<String> explicitRequestedTestClassNames=testExecutionRequest.getExplicitRequestedTestClassNames(Collections.<String>emptyList());
-  if (explicitRequestedTestClassNames.isEmpty()) {
+  final Collection<InternalTestMethod> testMethods=testExecutionRequest.getTestMethods(Collections.<InternalTestMethod>emptyList());
+  if (explicitRequestedTestClassNames.isEmpty() && testMethods.isEmpty()) {
     return Collections.emptyList();
   }
   List<Test> tasksToExecute=new ArrayList<Test>();
@@ -9,6 +10,7 @@
     final Collection<Test> testTasks=project.getTasks().withType(Test.class);
     for (    Test testTask : testTasks) {
       configureTestClassFilter(testTask,explicitRequestedTestClassNames);
+      configureTestMethodFilter(testTask,testMethods);
     }
     tasksToExecute.addAll(testTasks);
   }
