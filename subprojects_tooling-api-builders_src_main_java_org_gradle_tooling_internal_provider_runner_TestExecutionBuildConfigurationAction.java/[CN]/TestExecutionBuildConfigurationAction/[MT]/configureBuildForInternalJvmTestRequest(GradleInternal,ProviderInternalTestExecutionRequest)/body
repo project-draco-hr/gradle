@@ -1,0 +1,19 @@
+{
+  final Collection<InternalJvmTestRequest> internalJvmTestRequests=testExecutionRequest.getInternalJvmTestRequests(Collections.<InternalJvmTestRequest>emptyList());
+  if (internalJvmTestRequests.isEmpty()) {
+    return Collections.emptyList();
+  }
+  List<Test> tasksToExecute=new ArrayList<Test>();
+  final Set<Project> allprojects=gradle.getRootProject().getAllprojects();
+  for (  Project project : allprojects) {
+    final Collection<Test> testTasks=project.getTasks().withType(Test.class);
+    for (    Test testTask : testTasks) {
+      for (      InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
+        final TestFilter filter=testTask.getFilter();
+        filter.includeTest(jvmTestRequest.getClassName(),jvmTestRequest.getMethodName());
+      }
+    }
+    tasksToExecute.addAll(testTasks);
+  }
+  return tasksToExecute;
+}
