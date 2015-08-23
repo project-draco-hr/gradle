@@ -1,6 +1,27 @@
 {
   validateCanRun();
-  final ProviderInternalTestExecutionRequest testExecutionRequestVersion2=protocolToModelAdapter.adapt(ProviderInternalTestExecutionRequest.class,testExecutionRequest);
+  final ProviderInternalTestExecutionRequest testExecutionRequestVersion2=protocolToModelAdapter.adapt(ProviderInternalTestExecutionRequest.class,testExecutionRequest,new Action<SourceObjectMapping>(){
+    @Override public void execute(    SourceObjectMapping sourceObjectMapping){
+      sourceObjectMapping.mixIn(new MethodInvoker(){
+        @Override public void invoke(        MethodInvocation invocation) throws Throwable {
+          if (invocation.getName().equals("getTestMethods")) {
+            final Collection<InternalTestMethod> consumerTestMethods=(Collection<InternalTestMethod>)invocation.getResult();
+            final Object delegate=invocation.getDelegate();
+            if (invocation.found()) {
+              invocation.setResult(CollectionUtils.collect(consumerTestMethods,new Transformer<InternalTestMethod,InternalTestMethod>(){
+                @Override public InternalTestMethod transform(                InternalTestMethod internalTestMethod){
+                  return new ProviderInternalTestMethod(internalTestMethod.getClassName(),internalTestMethod.getMethodName());
+                }
+              }
+));
+            }
+          }
+        }
+      }
+);
+    }
+  }
+);
   ProviderOperationParameters providerParameters=toProviderParameters(operationParameters);
   BuildCancellationToken buildCancellationToken=new InternalCancellationTokenAdapter(cancellationToken);
   Object results=connection.runTests(testExecutionRequestVersion2,buildCancellationToken,providerParameters);
