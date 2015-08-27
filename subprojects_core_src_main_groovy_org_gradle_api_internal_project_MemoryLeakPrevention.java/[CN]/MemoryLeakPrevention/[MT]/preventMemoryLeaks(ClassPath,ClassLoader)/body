@@ -1,0 +1,21 @@
+{
+  ArrayList<Throwable> disposeErrors=new ArrayList<Throwable>();
+  for (  Strategy strategy : STRATEGIES) {
+    if (strategy.appliesTo(classpath)) {
+      try {
+        strategy.cleanup(classLoader);
+      }
+ catch (      Exception e) {
+        disposeErrors.add(e);
+      }
+    }
+  }
+  if (!disposeErrors.isEmpty()) {
+    if (disposeErrors.size() == 1) {
+      throw new RuntimeException(disposeErrors.get(0));
+    }
+ else {
+      throw new DefaultMultiCauseException("Unable to dispose runtime",disposeErrors);
+    }
+  }
+}

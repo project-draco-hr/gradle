@@ -1,0 +1,25 @@
+{
+  if (LOG.isDebugEnabled()) {
+    LOG.debug("Applying Groovy runtime memory leak prevention strategy");
+  }
+  Class classInfoClass=classLoader.loadClass("org.codehaus.groovy.reflection.ClassInfo");
+  Field globalClassValueField=classInfoClass.getDeclaredField("globalClassValue");
+  globalClassValueField.setAccessible(true);
+  final Object globalClassValue=globalClassValueField.get(null);
+  final Method removeFromGlobalClassValue=globalClassValueField.getType().getDeclaredMethod("remove",Class.class);
+  removeFromGlobalClassValue.setAccessible(true);
+  Field globalClassSetField=classInfoClass.getDeclaredField("globalClassSet");
+  globalClassSetField.setAccessible(true);
+  Object globalClassSet=globalClassSetField.get(null);
+  globalClassSetField=globalClassSet.getClass().getDeclaredField("items");
+  globalClassSetField.setAccessible(true);
+  Object globalClassSetItems=globalClassSetField.get(globalClassSet);
+  Field clazzField=classInfoClass.getDeclaredField("klazz");
+  clazzField.setAccessible(true);
+  Iterator it=(Iterator)globalClassSetItems.getClass().getDeclaredMethod("iterator").invoke(globalClassSetItems);
+  while (it.hasNext()) {
+    Object classInfo=it.next();
+    Object clazz=clazzField.get(classInfo);
+    removeFromGlobalClassValue.invoke(globalClassValue,clazz);
+  }
+}
