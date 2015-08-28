@@ -6,12 +6,13 @@
   ProjectConnection connection=null;
   try {
     connection=gradleConnector.connect();
-    BuildLauncher launcher=connection.newBuild();
+    DefaultBuildLauncherInternal launcher=(DefaultBuildLauncherInternal)connection.newBuild();
     launcher.setStandardOutput(standardOutput);
     launcher.setStandardError(standardError);
     launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
     launcher.withArguments(buildArgs.toArray(new String[buildArgs.size()]));
     launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
+    launcher.withClasspath(classpath);
     launcher.run();
   }
  catch (  BuildException t) {
