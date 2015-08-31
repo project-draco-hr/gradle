@@ -1,0 +1,27 @@
+{
+  String key=Joiner.on(':').join(libClasspath.getAsURIs());
+  ClassPathToClassLoader cached=getCachedLoader(key);
+  ClassLoader classLoader=(cached == null ? null : cached.getClassLoader());
+  boolean cacheLoader=classLoader == null;
+  if (cacheLoader) {
+    classLoader=new URLClassLoader(libClasspath.getAsURLArray(),baseAntLoader);
+    cached=new ClassPathToClassLoader(libClasspath,classLoader,gradleToIsolatedLeakPrevention,antToGradleLeakPrevention);
+  }
+  Object antBuilder=newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
+  Object antLogger=newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
+  ClassLoader originalLoader=Thread.currentThread().getContextClassLoader();
+  Thread.currentThread().setContextClassLoader(classLoader);
+  try {
+    configureAntBuilder(antBuilder,antLogger);
+    Object delegate=new AntBuilderDelegate(antBuilder,classLoader);
+    ConfigureUtil.configure(antClosure,delegate);
+  }
+  finally {
+    Thread.currentThread().setContextClassLoader(originalLoader);
+    disposeBuilder(antBuilder,antLogger);
+    cached.getClassLoaderLeakPrevention().afterUse();
+    if (cacheLoader) {
+      classLoaderCache.put(finalizerThread.referenceOf(key),cached);
+    }
+  }
+}
