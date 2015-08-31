@@ -8,16 +8,11 @@
   if (parent == null) {
     return true;
   }
-  dependencies.add(graph.nodeAtState(new NodeAtState(getPath().getParent(),SelfClosed)));
   if (parent instanceof ModelReferenceNode) {
-    ModelReferenceNode parentReference=(ModelReferenceNode)parent;
-    ModelCreator creator=ModelCreators.of(getPath()).descriptor(parent.getDescriptor()).withProjection(UnmanagedModelProjection.of(Object.class)).build();
-    ModelReferenceNode childNode=new ModelReferenceNode(toCreatorBinder(creator,ModelPath.ROOT),parentReference);
-    ModelNodeInternal parentTarget=parentReference.getTarget();
-    if (parentTarget != null) {
-      childNode.setTarget(parentTarget.getLink(getPath().getName()));
-    }
-    registerNode(childNode);
+    dependencies.add(new TryResolveReference((ModelReferenceNode)parent,getPath()));
+  }
+ else {
+    dependencies.add(graph.nodeAtState(new NodeAtState(getPath().getParent(),SelfClosed)));
   }
   return true;
 }
