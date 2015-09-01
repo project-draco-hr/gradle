@@ -1,8 +1,8 @@
 {
   this.classPathRegistry=classPathRegistry;
   this.classLoaderFactory=classLoaderFactory;
-  this.classLoaderCache=Maps.newConcurrentMap();
   this.libClasspath=new DefaultClassPath();
+  this.classLoaderCache=new ClassPathToClassLoaderCache();
   List<File> antClasspath=Lists.newArrayList(classPathRegistry.getClassPath("ANT").getAsFiles());
   File toolsJar=Jvm.current().getToolsJar();
   if (toolsJar != null) {
@@ -20,8 +20,6 @@
   gradleCoreUrls=gradleCoreUrls.plus(classPathRegistry.getClassPath("GROOVY"));
   gradleCoreUrls=gradleCoreUrls.plus(classPathRegistry.getClassPath("GRADLE_BASE_SERVICES"));
   this.gradleLoader=new URLClassLoader(gradleCoreUrls.getAsURLArray(),baseAntLoader);
-  finalizerThread=new FinalizerThread(classLoaderCache);
-  finalizerThread.start();
   this.gradleToIsolatedLeakPrevention=new MemoryLeakPrevention(CORE_GRADLE_LOADER,this.getClass().getClassLoader(),null);
   this.antToGradleLeakPrevention=new MemoryLeakPrevention(ANT_GRADLE_LOADER,gradleLoader,gradleCoreUrls);
   this.gradleToIsolatedLeakPrevention.prepare();

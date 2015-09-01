@@ -1,10 +1,10 @@
 {
-  ClassPathToClassLoader cached=getCachedLoader(libClasspath);
+  CachedClassLoader cached=classLoaderCache.get(libClasspath);
   ClassLoader classLoader=cached == null ? null : cached.getClassLoader();
   boolean cacheLoader=classLoader == null;
   if (cacheLoader) {
     classLoader=new URLClassLoader(libClasspath.getAsURLArray(),baseAntLoader);
-    cached=new ClassPathToClassLoader(libClasspath,classLoader,gradleToIsolatedLeakPrevention,antToGradleLeakPrevention);
+    cached=classLoaderCache.cache(libClasspath,classLoader,gradleToIsolatedLeakPrevention,antToGradleLeakPrevention);
   }
   Object antBuilder=newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
   Object antLogger=newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
@@ -18,9 +18,5 @@
   finally {
     Thread.currentThread().setContextClassLoader(originalLoader);
     disposeBuilder(antBuilder,antLogger);
-    cached.getClassLoaderLeakPrevention().afterUse();
-    if (cacheLoader) {
-      classLoaderCache.put(finalizerThread.referenceOf(libClasspath),cached);
-    }
   }
 }

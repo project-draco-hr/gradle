@@ -1,9 +1,12 @@
 {
   try {
     while (!stopped) {
-      Reference<? extends ClassPath> key=referenceQueue.remove();
-      ClassPathToClassLoader cached=classLoaderCache.remove(key);
-      cached.cleanup();
+      Cleanup entry=(Cleanup)referenceQueue.remove();
+      String key=entry.getKey();
+      cacheEntries.remove(key);
+      cleanups.remove(key);
+      entry.cleanup();
+      entry.clear();
     }
   }
  catch (  InterruptedException e) {
