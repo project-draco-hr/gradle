@@ -1,18 +1,9 @@
 {
   try {
-    while (!stopping || !cacheEntries.isEmpty()) {
+    while (!stopped) {
       Cleanup entry=(Cleanup)referenceQueue.remove();
-      String key=entry.getKey();
-      lock.writeLock().lock();
-      try {
-        cacheEntries.remove(key);
-        cleanups.remove(key);
-        entry.cleanup();
-        entry.clear();
-      }
-  finally {
-        lock.writeLock().unlock();
-      }
+      ClassPath key=entry.getKey();
+      removeCacheEntry(key,entry);
     }
   }
  catch (  InterruptedException ex) {
