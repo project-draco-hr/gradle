@@ -1,9 +1,12 @@
 {
-  stopped=true;
-  interrupt();
-  for (  Cleanup cleanup : cleanups.values()) {
-    cleanup.cleanup();
+  lock.writeLock().lock();
+  try {
+    stopping=true;
+    interrupt();
+    run();
+    LOG.debug("Completed shutdown");
   }
-  cacheEntries.clear();
-  cleanups.clear();
+  finally {
+    lock.writeLock().unlock();
+  }
 }

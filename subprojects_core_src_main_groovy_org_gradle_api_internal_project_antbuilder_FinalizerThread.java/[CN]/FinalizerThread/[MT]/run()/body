@@ -1,14 +1,21 @@
 {
   try {
-    while (!stopped) {
+    while (!stopping || !cacheEntries.isEmpty()) {
       Cleanup entry=(Cleanup)referenceQueue.remove();
       String key=entry.getKey();
-      cacheEntries.remove(key);
-      cleanups.remove(key);
-      entry.cleanup();
-      entry.clear();
+      lock.writeLock().lock();
+      try {
+        cacheEntries.remove(key);
+        cleanups.remove(key);
+        entry.cleanup();
+        entry.clear();
+      }
+  finally {
+        lock.writeLock().unlock();
+      }
     }
   }
- catch (  InterruptedException e) {
+ catch (  InterruptedException ex) {
+    LOG.debug("Shutdown of classloader cache in progress");
   }
 }
