@@ -1,0 +1,13 @@
+{
+  ModelType<T> type=extractionContext.getType();
+  Class<? super T> rawClass=type.getRawClass();
+  ModelType<? super T> rawCollectionType=ModelType.of(rawClass);
+  if (TYPES.contains(rawCollectionType)) {
+    ModelType<?> elementType=type.getTypeVariables().get(0);
+    if (ScalarTypes.isScalarType(elementType)) {
+      validateType(rawCollectionType,extractionContext,type);
+      return new ModelSchemaExtractionResult<T>(createSchema(store,type,elementType));
+    }
+  }
+  return null;
+}
