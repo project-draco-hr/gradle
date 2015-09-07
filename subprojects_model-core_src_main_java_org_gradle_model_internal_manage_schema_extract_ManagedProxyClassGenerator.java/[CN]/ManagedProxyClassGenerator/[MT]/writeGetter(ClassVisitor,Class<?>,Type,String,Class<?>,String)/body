@@ -1,0 +1,24 @@
+{
+  List<String> getters=new ArrayList<String>(2);
+  getters.add(getGetterName(propertyName));
+  if (propertyTypeClass == boolean.class) {
+    getters.add(getIsGetterName(propertyName));
+  }
+  for (  String getter : getters) {
+    Method declaredMethod;
+    try {
+      declaredMethod=managedTypeClass.getMethod(getter);
+    }
+ catch (    NoSuchMethodException e) {
+      continue;
+    }
+    if (declaredMethod.getReturnType().isAssignableFrom(propertyTypeClass)) {
+      MethodVisitor methodVisitor=declareMethod(visitor,getter,Type.getMethodDescriptor(Type.getType(propertyTypeClass)),signature);
+      putStateFieldValueOnStack(methodVisitor,generatedType);
+      putConstantOnStack(methodVisitor,propertyName);
+      invokeStateGetMethod(methodVisitor);
+      castFirstStackElement(methodVisitor,propertyTypeClass);
+      finishVisitingMethod(methodVisitor,returnCode(propertyTypeClass));
+    }
+  }
+}
