@@ -1,7 +1,12 @@
 {
   return new Function<ModelCollectionSchema<T,E>,NodeInitializer>(){
     @Override public NodeInitializer apply(    ModelCollectionSchema<T,E> schema){
-      return new ProjectionOnlyNodeInitializer(ScalarCollectionModelProjection.get(ModelTypes.list(schema.getElementType()),new ListViewFactory<E>(schema.getElementType())));
+      if (schema.getType().getRawClass() == List.class) {
+        return new ProjectionOnlyNodeInitializer(ScalarCollectionModelProjection.get(ModelTypes.list(schema.getElementType()),new ListViewFactory<E>(schema.getElementType())));
+      }
+ else {
+        return new ProjectionOnlyNodeInitializer(ScalarCollectionModelProjection.get(ModelTypes.set(schema.getElementType()),new SetViewFactory<E>(schema.getElementType())));
+      }
     }
   }
 ;
