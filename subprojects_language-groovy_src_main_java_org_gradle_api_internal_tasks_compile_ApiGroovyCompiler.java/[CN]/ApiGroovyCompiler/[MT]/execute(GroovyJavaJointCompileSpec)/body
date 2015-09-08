@@ -1,4 +1,7 @@
 {
+  ClassLoader apiCompilerClassLoader=this.getClass().getClassLoader();
+  MemoryLeakPrevention prevention=new MemoryLeakPrevention("API Groovy Compiler",apiCompilerClassLoader,null);
+  prevention.prepare();
   CompilerConfiguration configuration=new CompilerConfiguration();
   configuration.setVerbose(spec.getGroovyCompileOptions().isVerbose());
   configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
@@ -42,6 +45,10 @@
   for (  File file : spec.getClasspath()) {
     astTransformClassLoader.addClasspath(file.getPath());
   }
+  MemoryLeakPrevention groovyCompilerLeakPrevention=new MemoryLeakPrevention("Groovy compile classpath classloader",compileClasspathClassLoader,null);
+  MemoryLeakPrevention astxformsLeakPrevention=new MemoryLeakPrevention("Groovy AST xforms classloader",astTransformClassLoader,null);
+  groovyCompilerLeakPrevention.prepare();
+  astxformsLeakPrevention.prepare();
   JavaAwareCompilationUnit unit=new JavaAwareCompilationUnit(configuration,compileClasspathClassLoader){
     @Override public GroovyClassLoader getTransformLoader(){
       return astTransformClassLoader;
@@ -91,6 +98,11 @@
  catch (  org.codehaus.groovy.control.CompilationFailedException e) {
     System.err.println(e.getMessage());
     throw new CompilationFailedException();
+  }
+ finally {
+    prevention.dispose(getExtClassLoader(),astTransformClassLoader,compileClasspathClassLoader);
+    groovyCompilerLeakPrevention.dispose(getExtClassLoader(),apiCompilerClassLoader,astTransformClassLoader);
+    astxformsLeakPrevention.dispose(getExtClassLoader(),apiCompilerClassLoader,compileClasspathClassLoader);
   }
   return new SimpleWorkResult(true);
 }
