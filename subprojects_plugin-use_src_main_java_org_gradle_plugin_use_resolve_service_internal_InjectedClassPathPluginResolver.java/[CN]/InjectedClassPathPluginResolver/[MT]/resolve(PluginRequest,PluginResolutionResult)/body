@@ -1,13 +1,10 @@
 {
-  if (!classpath.isEmpty()) {
-    List<File> classpathFiles=CollectionUtils.collect(classpath,new Transformer<File,URI>(){
-      public File transform(      URI uri){
-        return new File(uri);
-      }
-    }
-);
-    ClassPath classPath=new DefaultClassPath(classpathFiles);
-    PluginResolution resolution=new InjectedClassPathPluginResolution(pluginRequest.getId(),parentScope,Factories.constant(classPath),pluginInspector);
+  PluginImplementation<?> plugin=pluginRegistry.lookup(pluginRequest.getId());
+  if (plugin != null) {
+    PluginResolution resolution=new InjectedClassPathPluginResolution(plugin);
     result.found(getDescription(),resolution);
+  }
+ else {
+    throw new UnknownPluginException("Plugin with id '" + pluginRequest.getId() + "' not found. Searched classpath: "+ classPath.getAsFiles());
   }
 }
