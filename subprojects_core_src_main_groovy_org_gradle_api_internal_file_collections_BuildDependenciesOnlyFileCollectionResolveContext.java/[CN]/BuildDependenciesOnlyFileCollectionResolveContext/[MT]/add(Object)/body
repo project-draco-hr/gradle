@@ -1,0 +1,49 @@
+{
+  if (element instanceof FileCollection) {
+    taskContext.add(element);
+  }
+ else   if (element instanceof MinimalFileCollection && element instanceof Buildable) {
+    taskContext.add(element);
+  }
+ else   if (element instanceof Task) {
+    Task task=(Task)element;
+    taskContext.add(task);
+  }
+ else   if (element instanceof TaskOutputs) {
+    TaskOutputs outputs=(TaskOutputs)element;
+    taskContext.add(outputs.getFiles());
+  }
+ else   if (element instanceof Closure) {
+    Closure closure=(Closure)element;
+    Object closureResult=closure.call();
+    if (closureResult != null) {
+      add(closureResult);
+    }
+  }
+ else   if (element instanceof Callable) {
+    Callable callable=(Callable)element;
+    Object callableResult;
+    try {
+      callableResult=callable.call();
+    }
+ catch (    Exception e) {
+      throw UncheckedException.throwAsUncheckedException(e);
+    }
+    if (callableResult != null) {
+      add(callableResult);
+    }
+  }
+ else   if (element instanceof Iterable) {
+    Iterable<?> iterable=(Iterable)element;
+    for (    Object value : iterable) {
+      add(value);
+    }
+  }
+ else   if (element instanceof Object[]) {
+    Object[] array=(Object[])element;
+    for (    Object value : array) {
+      add(value);
+    }
+  }
+  return this;
+}
