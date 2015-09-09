@@ -9,7 +9,7 @@
     return null;
   }
   ModelProperty.StateManagementType stateManagementType=determineStateManagementType(extractionContext,getterContext);
-  ModelType<R> returnType=ModelType.returnType(mostSpecificGetter);
+  final ModelType<R> returnType=ModelType.returnType(mostSpecificGetter);
   boolean writable=setterContext != null;
   if (writable) {
     validateSetter(extractionContext,returnType,getterContext,setterContext);
@@ -20,6 +20,11 @@
     }
   }
 ));
-  WeaklyTypeReferencingMethod<?,R> getterRef=WeaklyTypeReferencingMethod.of(extractionContext.getType(),returnType,getterContext.getMostSpecificDeclaration());
-  return new ModelPropertyExtractionResult<R>(ModelProperty.of(returnType,propertyName,stateManagementType,writable,declaringClasses,getterRef),getterContext,setterContext);
+  List<WeaklyTypeReferencingMethod<?,R>> getterRefs=Lists.newArrayList(Iterables.transform(getterContext.getGetters(),new Function<Method,WeaklyTypeReferencingMethod<?,R>>(){
+    @Override public WeaklyTypeReferencingMethod<?,R> apply(    @Nullable Method getter){
+      return WeaklyTypeReferencingMethod.of(extractionContext.getType(),returnType,getter);
+    }
+  }
+));
+  return new ModelPropertyExtractionResult<R>(ModelProperty.of(returnType,propertyName,stateManagementType,writable,declaringClasses,getterRefs),getterContext,setterContext);
 }
