@@ -13,8 +13,7 @@
     cancellationToken=new DefaultBuildCancellationToken();
     buildEventConsumer=new NoOpBuildEventConsumer();
   }
-  final BuildSessionScopeServices sessionScopeServices=new BuildSessionScopeServices(sharedServices,startParameter);
-  final BuildScopeServices buildScopeServices=new BuildScopeServices(sessionScopeServices);
-  Stoppable servicesToStop=CompositeStoppable.stoppable(buildScopeServices,sessionScopeServices);
-  return doNewInstance(startParameter,cancellationToken,requestMetaData,buildEventConsumer,buildScopeServices,servicesToStop);
+  BuildScopeServicesFactory buildScopeServicesFactory=sharedServices.get(BuildScopeServicesFactory.class);
+  final BuildScopeServices buildScopeServices=buildScopeServicesFactory.create(startParameter);
+  return doNewInstance(startParameter,cancellationToken,requestMetaData,buildEventConsumer,buildScopeServices);
 }
