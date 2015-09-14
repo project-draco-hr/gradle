@@ -1,24 +1,24 @@
 {
   Type type=extractionContext.getType().getType();
   if (!(type instanceof Class)) {
-    return null;
+    return;
   }
   Class<?> contractType=(Class<?>)type;
   if (!contractType.isInterface()) {
-    return null;
+    return;
   }
   if (contractType.getGenericInterfaces().length != 1) {
-    return null;
+    return;
   }
   Type superType=contractType.getGenericInterfaces()[0];
   if (!(superType instanceof ParameterizedType)) {
-    return null;
+    return;
   }
   ParameterizedType parameterizedSuperType=(ParameterizedType)superType;
   if (!parameterizedSuperType.getRawType().equals(ModelMap.class)) {
-    return null;
+    return;
   }
   ModelType<?> elementType=ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);
   Class<?> proxyImpl=generator.generate(ModelMapGroovyDecorator.class,contractType);
-  return new ModelSchemaExtractionResult<T>(new SpecializedMapSchema<T>(extractionContext.getType(),elementType,proxyImpl));
+  extractionContext.found(new SpecializedMapSchema<T>(extractionContext.getType(),elementType,proxyImpl));
 }
