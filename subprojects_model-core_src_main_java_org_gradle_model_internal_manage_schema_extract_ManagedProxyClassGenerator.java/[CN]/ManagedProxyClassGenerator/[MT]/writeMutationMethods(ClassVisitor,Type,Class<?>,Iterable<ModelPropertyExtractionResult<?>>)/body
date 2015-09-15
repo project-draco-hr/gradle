@@ -1,0 +1,30 @@
+{
+  for (  ModelPropertyExtractionResult<?> propertyResult : propertyResults) {
+    ModelProperty<?> property=propertyResult.getProperty();
+    String propertyName=property.getName();
+switch (property.getStateManagementType()) {
+case MANAGED:
+      Class<?> propertyTypeClass=property.getType().getConcreteClass();
+    writeGetter(visitor,generatedType,propertyName,propertyTypeClass,propertyResult.getGetter());
+  if (propertyResult.getSetter() != null) {
+    writeSetter(visitor,generatedType,propertyName,propertyTypeClass,propertyResult.getSetter().getMostSpecificSignature());
+  }
+break;
+case UNMANAGED:
+String getterName=getGetterName(propertyName);
+Method getterMethod;
+try {
+getterMethod=managedTypeClass.getMethod(getterName);
+}
+ catch (NoSuchMethodException e) {
+throw new IllegalStateException("Cannot find getter '" + getterName + "' on type "+ managedTypeClass.getName(),e);
+}
+if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
+writeNonAbstractMethodWrapper(visitor,generatedType,managedTypeClass,getterMethod);
+}
+break;
+case DELEGATED:
+break;
+}
+}
+}

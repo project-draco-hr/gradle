@@ -1,6 +1,7 @@
 {
   Object buildId=idGenerator.generateId();
   Build build=new Build(buildId,action,requestContext.getClient(),requestContext.getBuildTimeClock().getStartTime(),parameters);
+  List<DaemonInitialConnectException> accumulatedExceptions=Lists.newArrayList();
   int saneNumberOfAttempts=100;
   for (int i=1; i < saneNumberOfAttempts; i++) {
     final DaemonClientConnection connection=connector.connect(compatibilitySpec);
@@ -8,11 +9,12 @@
       return executeBuild(build,connection,requestContext.getCancellationToken(),requestContext.getEventConsumer());
     }
  catch (    DaemonInitialConnectException e) {
-      LOGGER.info(e.getMessage() + " Trying a different daemon...");
+      LOGGER.debug("{}, Trying a different daemon...",e.getMessage());
+      accumulatedExceptions.add(e);
     }
  finally {
       connection.stop();
     }
   }
-  throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to " + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: "+ build+ ".");
+  throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to " + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: "+ build+ ".  BuildActionParameters were "+ parameters+ ".",accumulatedExceptions);
 }

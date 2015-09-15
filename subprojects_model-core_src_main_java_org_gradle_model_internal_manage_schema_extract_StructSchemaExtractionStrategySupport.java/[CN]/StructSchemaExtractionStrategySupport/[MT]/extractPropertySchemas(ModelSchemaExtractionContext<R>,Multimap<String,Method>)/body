@@ -3,26 +3,52 @@
   Set<Method> handledMethods=Sets.newHashSet();
   List<String> methodNames=Lists.newArrayList(methodsByName.keySet());
   Collections.sort(methodNames);
+  Set<String> skippedMethodNames=Sets.newHashSet();
   for (  String methodName : methodNames) {
+    if (skippedMethodNames.contains(methodName)) {
+      continue;
+    }
     Collection<Method> methods=methodsByName.get(methodName);
     List<Method> overloadedMethods=getOverloadedMethods(methods);
     if (overloadedMethods != null) {
       handleOverloadedMethods(extractionContext,overloadedMethods);
       continue;
     }
-    if (methodName.startsWith("get") && !methodName.equals("get")) {
-      PropertyAccessorExtractionContext getterContext=new PropertyAccessorExtractionContext(methods);
-      Character getterPropertyNameFirstChar=methodName.charAt(3);
+    int getterPrefixLen=getterPrefixLength(methodName);
+    if (getterPrefixLen >= 0) {
+      Method mostSpecificGetter=ModelSchemaUtils.findMostSpecificMethod(methods);
+      char getterPropertyNameFirstChar=methodName.charAt(getterPrefixLen);
       if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
-        handleInvalidGetter(extractionContext,getterContext,"the 4th character of the getter method name must be an uppercase character");
+        handleInvalidGetter(extractionContext,mostSpecificGetter,String.format("the %s character of the getter method name must be an uppercase character",getterPrefixLen == 2 ? "3rd" : "4th"));
         continue;
       }
-      String propertyNameCapitalized=methodName.substring(3);
+      String propertyNameCapitalized=methodName.substring(getterPrefixLen);
       String propertyName=StringUtils.uncapitalize(propertyNameCapitalized);
       String setterName="set" + propertyNameCapitalized;
       Collection<Method> setterMethods=methodsByName.get(setterName);
       PropertyAccessorExtractionContext setterContext=!setterMethods.isEmpty() ? new PropertyAccessorExtractionContext(setterMethods) : null;
-      ModelPropertyExtractionResult<?> result=extractPropertySchema(extractionContext,propertyName,getterContext,setterContext);
+      String prefix=methodName.substring(0,getterPrefixLen);
+      Iterable<Method> getterMethods=methods;
+      if (prefix.equals("get")) {
+        String isGetterName="is" + propertyNameCapitalized;
+        Collection<Method> isGetterMethods=methodsByName.get(isGetterName);
+        if (!isGetterMethods.isEmpty()) {
+          List<Method> overloadedIsGetterMethods=getOverloadedMethods(isGetterMethods);
+          if (overloadedIsGetterMethods != null) {
+            handleOverloadedMethods(extractionContext,overloadedIsGetterMethods);
+            continue;
+          }
+          Method mostSpecificIsGetter=ModelSchemaUtils.findMostSpecificMethod(isGetterMethods);
+          if (mostSpecificGetter.getReturnType() != boolean.class || mostSpecificIsGetter.getReturnType() != boolean.class) {
+            handleInvalidGetter(extractionContext,mostSpecificIsGetter,String.format("property '%s' has both '%s()' and '%s()' getters, but they don't both return a boolean",propertyName,isGetterName,methodName));
+            continue;
+          }
+          getterMethods=Iterables.concat(getterMethods,isGetterMethods);
+          skippedMethodNames.add(isGetterName);
+        }
+      }
+      PropertyAccessorExtractionContext getterContext=new PropertyAccessorExtractionContext(getterMethods);
+      ModelPropertyExtractionResult<?> result=extractPropertySchema(extractionContext,propertyName,getterContext,setterContext,getterPrefixLen);
       if (result != null) {
         results.add(result);
         handledMethods.addAll(getterContext.getDeclaringMethods());

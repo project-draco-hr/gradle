@@ -1,6 +1,6 @@
 {
   if (requests.isEmpty()) {
-    defineScriptHandlerClassScope(scriptHandler,classLoaderScope);
+    defineScriptHandlerClassScope(scriptHandler,classLoaderScope,Collections.unmodifiableSet(Collections.<ClassPath>emptySet()));
     return;
   }
   if (target == null) {
@@ -15,6 +15,7 @@
 );
   final Map<Result,PluginId> legacyActualPluginIds=Maps.newLinkedHashMap();
   final Map<Result,PluginImplementation<?>> pluginImpls=Maps.newLinkedHashMap();
+  final Set<ClassPath> pluginClassPaths=Sets.newHashSet();
   if (!results.isEmpty()) {
     final RepositoryHandler repositories=scriptHandler.getRepositories();
     final List<MavenArtifactRepository> mavenRepos=repositories.withType(MavenArtifactRepository.class);
@@ -30,6 +31,9 @@
             }
             @Override public void add(            PluginImplementation<?> plugin){
               pluginImpls.put(result,plugin);
+            }
+            public void addClassPath(            ClassPath classPath){
+              pluginClassPaths.add(classPath);
             }
           }
 );
@@ -54,7 +58,7 @@
       }
     }
   }
-  defineScriptHandlerClassScope(scriptHandler,classLoaderScope);
+  defineScriptHandlerClassScope(scriptHandler,classLoaderScope,pluginClassPaths);
   for (  final Map.Entry<Result,PluginId> entry : legacyActualPluginIds.entrySet()) {
     final PluginRequest request=entry.getKey().request;
     final PluginId id=entry.getValue();

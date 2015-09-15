@@ -1,0 +1,18 @@
+{
+  for (int i=0; i < MAXIMUM_RETRIES; i++) {
+    SocketChannel socketChannel=SocketChannel.open();
+    try {
+      socketChannel.socket().connect(new InetSocketAddress(candidate,address.getPort()),CONNECT_TIMEOUT);
+    }
+ catch (    IOException e) {
+      socketChannel.close();
+      throw e;
+    }
+    if (!detectSelfConnect(socketChannel)) {
+      return socketChannel;
+    }
+    LOGGER.debug("Retrying connection... {}/{}",i,MAXIMUM_RETRIES);
+    socketChannel.close();
+  }
+  throw new SocketException("Exceeded retries after detecting TCP self-connect.");
+}

@@ -1,0 +1,30 @@
+{
+  Method mostSpecificGetter=getterContext.getMostSpecificDeclaration();
+  if (mostSpecificGetter.getParameterTypes().length != 0) {
+    handleInvalidGetter(extractionContext,mostSpecificGetter,"getter methods cannot take parameters");
+    return null;
+  }
+  if (mostSpecificGetter.getReturnType() != boolean.class && getterPrefixLen == 2) {
+    handleInvalidGetter(extractionContext,mostSpecificGetter,"getter method name must start with 'get'");
+    return null;
+  }
+  ModelProperty.StateManagementType stateManagementType=determineStateManagementType(extractionContext,getterContext);
+  final ModelType<R> returnType=ModelType.returnType(mostSpecificGetter);
+  boolean writable=setterContext != null;
+  if (writable) {
+    validateSetter(extractionContext,returnType,getterContext,setterContext);
+  }
+  ImmutableSet<ModelType<?>> declaringClasses=ImmutableSet.copyOf(Iterables.transform(getterContext.getDeclaringMethods(),new Function<Method,ModelType<?>>(){
+    public ModelType<?> apply(    Method input){
+      return ModelType.of(input.getDeclaringClass());
+    }
+  }
+));
+  List<WeaklyTypeReferencingMethod<?,R>> getterRefs=Lists.newArrayList(Iterables.transform(getterContext.getGetters(),new Function<Method,WeaklyTypeReferencingMethod<?,R>>(){
+    @Override public WeaklyTypeReferencingMethod<?,R> apply(    @Nullable Method getter){
+      return WeaklyTypeReferencingMethod.of(extractionContext.getType(),returnType,getter);
+    }
+  }
+));
+  return new ModelPropertyExtractionResult<R>(ModelProperty.of(returnType,propertyName,stateManagementType,writable,declaringClasses,getterRefs),getterContext,setterContext);
+}

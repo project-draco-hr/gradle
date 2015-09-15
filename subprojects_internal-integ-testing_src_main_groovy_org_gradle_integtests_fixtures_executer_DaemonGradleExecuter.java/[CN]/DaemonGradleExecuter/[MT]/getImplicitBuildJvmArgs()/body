@@ -3,7 +3,9 @@
     return super.getImplicitBuildJvmArgs();
   }
   List<String> buildJvmOpts=new ArrayList<String>(super.getImplicitBuildJvmArgs());
-  buildJvmOpts.add("-XX:MaxPermSize=320m");
+  if (new JvmVersionDetector().getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_9) < 0) {
+    buildJvmOpts.add("-XX:MaxPermSize=320m");
+  }
   buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
   buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir().getAbsolutePath());
   return buildJvmOpts;

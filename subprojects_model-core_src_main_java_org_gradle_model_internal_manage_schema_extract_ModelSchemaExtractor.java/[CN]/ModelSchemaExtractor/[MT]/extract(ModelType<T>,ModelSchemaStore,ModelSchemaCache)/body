@@ -5,14 +5,14 @@
   ModelSchemaExtractionContext<?> extractionContext=context;
   validations.add(extractionContext);
   while (extractionContext != null) {
-    ModelSchemaExtractionResult<?> nextSchema=extractSchema(extractionContext,store,cache);
-    Iterable<? extends ModelSchemaExtractionContext<?>> dependencies=nextSchema.getDependencies();
+    extractSchema(extractionContext,store,cache);
+    Iterable<? extends ModelSchemaExtractionContext<?>> dependencies=extractionContext.getChildren();
     Iterables.addAll(validations,dependencies);
     pushUnsatisfiedDependencies(dependencies,unsatisfiedDependencies,cache);
     extractionContext=unsatisfiedDependencies.poll();
   }
   for (  ModelSchemaExtractionContext<?> validationContext : Lists.reverse(validations)) {
-    validationContext.validate();
+    validate(validationContext,cache);
   }
-  return cache.get(context.getType());
+  return context.getResult();
 }

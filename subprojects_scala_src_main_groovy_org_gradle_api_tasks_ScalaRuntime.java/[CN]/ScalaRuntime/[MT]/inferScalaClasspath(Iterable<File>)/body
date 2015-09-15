@@ -1,6 +1,9 @@
 {
   return new LazilyInitializedFileCollection(){
-    @Override public FileCollectionInternal createDelegate(){
+    @Override public String getDisplayName(){
+      return "Scala runtime classpath";
+    }
+    @Override public FileCollection createDelegate(){
       if (project.getRepositories().isEmpty()) {
         throw new GradleException(String.format("Cannot infer Scala class path because no repository is declared in %s",project));
       }
@@ -12,18 +15,12 @@
       if (scalaVersion == null) {
         throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s",scalaLibraryJar,project));
       }
-      return Cast.cast(FileCollectionInternal.class,project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang","scala-compiler",scalaVersion)));
+      return project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang","scala-compiler",scalaVersion));
     }
-    @Override public TaskDependency getBuildDependencies(){
+    @Override public void visitDependencies(    TaskDependencyResolveContext context){
       if (classpath instanceof Buildable) {
-        return ((Buildable)classpath).getBuildDependencies();
+        context.add(classpath);
       }
-      return new TaskDependency(){
-        public Set<? extends Task> getDependencies(        Task task){
-          return Collections.emptySet();
-        }
-      }
-;
     }
   }
 ;

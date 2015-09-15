@@ -1,0 +1,23 @@
+{
+  int numErrors=0;
+  if (spec.getInputDirectories().size() == 0) {
+    numErrors+=invoke(spec.asArgumentsWithFiles(),null);
+  }
+ else {
+    boolean onWindows=OperatingSystem.current().isWindows();
+    for (    File inputDirectory : spec.getInputDirectories()) {
+      final List<String> arguments=spec.getArguments();
+      arguments.add("-o");
+      arguments.add(spec.getOutputDirectory().getAbsolutePath());
+      for (      File grammarFile : spec.getGrammarFiles()) {
+        String relativeGrammarFilePath=GFileUtils.relativePath(inputDirectory,grammarFile);
+        if (onWindows) {
+          relativeGrammarFilePath=relativeGrammarFilePath.replace('/',File.separatorChar);
+        }
+        arguments.add(relativeGrammarFilePath);
+      }
+      numErrors+=invoke(arguments,inputDirectory);
+    }
+  }
+  return new AntlrResult(numErrors);
+}
