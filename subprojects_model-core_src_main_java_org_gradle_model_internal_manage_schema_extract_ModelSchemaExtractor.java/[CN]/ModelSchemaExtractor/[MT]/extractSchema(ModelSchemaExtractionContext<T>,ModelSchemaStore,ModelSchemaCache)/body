@@ -1,0 +1,16 @@
+{
+  final ModelType<T> type=extractionContext.getType();
+  ModelSchema<T> cached=cache.get(type);
+  if (cached != null) {
+    extractionContext.found(cached);
+    return;
+  }
+  for (  ModelSchemaExtractionStrategy strategy : strategies) {
+    strategy.extract(extractionContext,store);
+    if (extractionContext.getResult() != null) {
+      cache.set(type,extractionContext.getResult());
+      return;
+    }
+  }
+  throw new IllegalStateException("No extraction strategy found for type: " + type);
+}
