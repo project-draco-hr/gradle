@@ -1,10 +1,8 @@
 {
   if (realized.compareAndSet(false,true)) {
-    ModelNode modelNode=modelRegistry.atStateOrLater(nodePath,ModelNode.State.SelfClosed);
-    MutableModelNode taskContainerNode=(MutableModelNode)modelNode;
-    Iterable<? extends MutableModelNode> links=taskContainerNode.getLinks(ModelType.of(type));
-    for (    MutableModelNode node : links) {
-      modelRegistry.realizeNode(node.getPath());
+    modelNode.ensureAtLeast(ModelNode.State.SelfClosed);
+    for (    MutableModelNode node : modelNode.getLinks(ModelType.of(type))) {
+      node.ensureAtLeast(ModelNode.State.GraphClosed);
     }
   }
 }
