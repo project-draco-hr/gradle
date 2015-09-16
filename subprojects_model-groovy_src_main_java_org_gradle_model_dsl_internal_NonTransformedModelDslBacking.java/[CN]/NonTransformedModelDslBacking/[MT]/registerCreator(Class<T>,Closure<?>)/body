@@ -1,9 +1,6 @@
 {
   ModelRuleDescriptor descriptor=new SimpleModelRuleDescriptor("model." + modelPath);
   ModelSchema<T> schema=modelSchemaStore.getSchema(ModelType.of(type));
-  if (!(schema instanceof ManagedImplModelSchema)) {
-    throw new InvalidModelRuleDeclarationException(descriptor,"Cannot create an element of type " + type.getName() + " as it is not a managed type");
-  }
-  NodeInitializer nodeInitializer=nodeInitializerRegistry.getNodeInitializer((ManagedImplModelSchema<?>)schema);
+  NodeInitializer nodeInitializer=nodeInitializerRegistry.getNodeInitializer(schema);
   modelRegistry.create(ModelCreators.of(modelPath,nodeInitializer).descriptor(descriptor).action(ModelActionRole.Initialize,NoInputsModelAction.of(ModelReference.of(modelPath,type),descriptor,new ClosureBackedAction<T>(closure))).build());
 }

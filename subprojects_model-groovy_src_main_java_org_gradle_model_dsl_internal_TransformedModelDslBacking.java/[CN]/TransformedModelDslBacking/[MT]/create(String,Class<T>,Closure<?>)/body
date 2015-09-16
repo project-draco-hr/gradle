@@ -3,10 +3,13 @@
   ModelPath modelPath=ModelPath.path(modelPathString);
   ModelSchema<T> schema=schemaStore.getSchema(ModelType.of(type));
   ModelRuleDescriptor descriptor=toDescriptor(sourceLocation,modelPath);
-  if (!(schema instanceof ManagedImplModelSchema)) {
-    throw new InvalidModelRuleDeclarationException(descriptor,"Cannot create an element of type " + type.getName() + " as it is not a managed type");
+  NodeInitializer nodeInitializer=null;
+  try {
+    nodeInitializer=nodeInitializerRegistry.getNodeInitializer(schema);
   }
-  NodeInitializer nodeInitializer=nodeInitializerRegistry.getNodeInitializer((ManagedImplModelSchema<?>)schema);
+ catch (  ModelTypeInitializationException e) {
+    throw new InvalidModelRuleDeclarationException(descriptor,e);
+  }
   modelRegistry.create(ModelCreators.of(modelPath,nodeInitializer).descriptor(descriptor).build());
   registerAction(modelPath,type,descriptor,ModelActionRole.Initialize,closure);
 }
