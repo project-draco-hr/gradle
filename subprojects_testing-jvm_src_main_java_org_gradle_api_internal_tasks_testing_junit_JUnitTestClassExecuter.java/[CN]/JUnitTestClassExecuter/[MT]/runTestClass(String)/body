@@ -16,7 +16,10 @@
     filters.add(new CategoryFilter(CollectionUtils.collect(options.getIncludeCategories(),transformer),CollectionUtils.collect(options.getExcludeCategories(),transformer)));
   }
   if (!options.getIncludedTests().isEmpty()) {
-    filters.add(new MethodNameFilter(options.getIncludedTests()));
+    TestSelectionMatcher matcher=new TestSelectionMatcher(options.getIncludedTests());
+    if (!matcher.matchesTest(testClassName,null)) {
+      filters.add(new MethodNameFilter(matcher));
+    }
   }
   Request request=Request.aClass(testClass);
   Runner runner=request.getRunner();
