@@ -1,0 +1,21 @@
+{
+  JavaCompile compileTask=target.getTasks().create(sourceSet.getCompileJavaTaskName(),JavaCompile.class);
+  compileTask.setDescription(String.format("Compiles %s.",javaSourceSet));
+  compileTask.setSource(javaSourceSet.getSource());
+  compileTask.dependsOn(javaSourceSet);
+  ConventionMapping conventionMapping=compileTask.getConventionMapping();
+  conventionMapping.map("classpath",new Callable<Object>(){
+    public Object call() throws Exception {
+      return javaSourceSet.getCompileClasspath().getFiles();
+    }
+  }
+);
+  conventionMapping.map("destinationDir",new Callable<Object>(){
+    public Object call() throws Exception {
+      return binary.getClassesDir();
+    }
+  }
+);
+  binary.getTasks().add(compileTask);
+  binary.builtBy(compileTask);
+}
