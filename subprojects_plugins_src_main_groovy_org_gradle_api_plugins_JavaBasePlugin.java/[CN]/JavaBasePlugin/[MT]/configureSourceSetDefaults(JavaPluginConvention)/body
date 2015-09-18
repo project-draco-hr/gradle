@@ -13,7 +13,9 @@
       projectSourceSet.add(javaSourceSet);
       JvmResourceSet resourceSet=instantiator.newInstance(DefaultJvmResourceSet.class,"resources",sourceSet.getName(),sourceSet.getResources());
       projectSourceSet.add(resourceSet);
-      BinaryContainer binaryContainer=project.getExtensions().getByType(BinaryContainer.class);
+      createProcessResourcesTaskForBinary(sourceSet,resourceSet,project);
+      createCompileJavaTaskForBinary(sourceSet,javaSourceSet,project);
+      createBinaryLifecycleTask(sourceSet,project);
       ClassDirectoryBinarySpecInternal binary=instantiator.newInstance(DefaultClassDirectoryBinarySpec.class,String.format("%sClasses",sourceSet.getName()),javaToolChain,DefaultJavaPlatform.current(),instantiator,taskFactory);
       ConventionMapping conventionMapping=new DslObject(binary).getConventionMapping();
       conventionMapping.map("classesDir",new Callable<File>(){
@@ -22,7 +24,6 @@
         }
       }
 );
-      binaryContainer.add(binary);
       conventionMapping.map("resourcesDir",new Callable<File>(){
         public File call() throws Exception {
           return sourceSet.getOutput().getResourcesDir();
@@ -31,10 +32,9 @@
 );
       binary.addSourceSet(javaSourceSet);
       binary.addSourceSet(resourceSet);
-      binary.builtBy(sourceSet.getOutput().getDirs());
-      createBinaryLifecycleTask(sourceSet,binary,project);
-      createProcessResourcesTaskForBinary(sourceSet,resourceSet,binary,project);
-      createCompileJavaTaskForBinary(sourceSet,javaSourceSet,binary,project);
+      BinaryContainer binaryContainer=project.getExtensions().getByType(BinaryContainer.class);
+      binaryContainer.add(binary);
+      attachTasksToBinary(binary,sourceSet,project);
     }
   }
 );
