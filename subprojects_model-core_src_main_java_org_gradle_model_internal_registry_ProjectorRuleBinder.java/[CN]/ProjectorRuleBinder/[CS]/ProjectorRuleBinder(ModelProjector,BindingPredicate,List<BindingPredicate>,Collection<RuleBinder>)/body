@@ -1,0 +1,14 @@
+{
+  super(subject,inputs,projector.getDescriptor(),binders);
+  this.projector=projector;
+  this.subjectBinding=binding(subject,true,new Action<ModelBinding>(){
+    @Override public void execute(    ModelBinding modelBinding){
+      ModelNodeInternal node=modelBinding.getNode();
+      if (node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
+        throw new IllegalStateException(String.format("Cannot add projector '%s' for model element '%s' as this element is already at state %s.",modelBinding.referrer,node.getPath(),node.getState()));
+      }
+      maybeFire();
+    }
+  }
+);
+}
