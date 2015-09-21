@@ -3,6 +3,10 @@
   ModelPath childPath=modelNode.getPath().child(name);
   ModelRuleDescriptor descriptor=NestedModelRuleDescriptor.append(sourceDescriptor,"create(%s)",name);
   NodeInitializer nodeInitializer=creatorStrategy.initializer(type);
+  ModelProjector projector=nodeInitializer.getProjector(childPath,descriptor,type);
+  if (projector != null) {
+    modelNode.projectLink(projector);
+  }
   ModelCreator creator=ModelCreators.of(childPath,nodeInitializer).descriptor(descriptor).action(ModelActionRole.Initialize,NoInputsModelAction.of(ModelReference.of(childPath,type),descriptor,initAction)).build();
   modelNode.addLink(creator);
   if (eager) {
