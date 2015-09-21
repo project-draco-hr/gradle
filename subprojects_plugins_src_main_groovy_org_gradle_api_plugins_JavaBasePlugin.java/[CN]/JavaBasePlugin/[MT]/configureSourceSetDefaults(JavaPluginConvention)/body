@@ -1,6 +1,6 @@
 {
   final Project project=pluginConvention.getProject();
-  final ProjectSourceSet projectSourceSet=project.getExtensions().getByType(ProjectSourceSet.class);
+  final List<ClassDirectoryBinarySpecInternal> binaries=Lists.newArrayList();
   pluginConvention.getSourceSets().all(new Action<SourceSet>(){
     public void execute(    final SourceSet sourceSet){
       ConventionMapping outputConventionMapping=((IConventionAware)sourceSet.getOutput()).getConventionMapping();
@@ -13,15 +13,13 @@
       ClassDirectoryBinarySpecInternal binary=instantiator.newInstance(DefaultClassDirectoryBinarySpec.class,String.format("%sClasses",sourceSet.getName()),sourceSet,javaToolChain,DefaultJavaPlatform.current(),instantiator,taskFactory);
       Classpath compileClasspath=new SourceSetCompileClasspath(sourceSet);
       DefaultJavaSourceSet javaSourceSet=instantiator.newInstance(DefaultJavaSourceSet.class,"java",sourceSet.getName(),sourceSet.getJava(),compileClasspath);
-      projectSourceSet.add(javaSourceSet);
       JvmResourceSet resourceSet=instantiator.newInstance(DefaultJvmResourceSet.class,"resources",sourceSet.getName(),sourceSet.getResources());
-      projectSourceSet.add(resourceSet);
       binary.addSourceSet(javaSourceSet);
       binary.addSourceSet(resourceSet);
-      BinaryContainer binaryContainer=project.getExtensions().getByType(BinaryContainer.class);
-      binaryContainer.add(binary);
       attachTasksToBinary(binary,sourceSet,project);
+      binaries.add(binary);
     }
   }
 );
+  return new BridgedBinaries(binaries);
 }
