@@ -1,15 +1,15 @@
 {
   long pos=getPos().getPos();
   file.seek(pos);
-  Crc32OutputStream checkSumOutputStream=new Crc32OutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(file)));
-  DataOutputStream outputStream=new DataOutputStream(checkSumOutputStream);
+  CountingOutputStream countingOutputStream=new CountingOutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(file)));
+  DataOutputStream outputStream=new DataOutputStream(countingOutputStream);
   BlockPayload payload=getPayload();
   outputStream.writeByte(BLOCK_MARKER);
   outputStream.writeByte(payload.getType());
   outputStream.writeInt(payloadSize);
   long finalSize=pos + HEADER_SIZE + TAIL_SIZE+ payloadSize;
   payload.write(outputStream);
-  outputStream.writeLong(checkSumOutputStream.checksum.getValue());
+  outputStream.writeLong(countingOutputStream.getCount());
   outputStream.close();
   if (currentFileSize < finalSize) {
     file.setLength(finalSize);
