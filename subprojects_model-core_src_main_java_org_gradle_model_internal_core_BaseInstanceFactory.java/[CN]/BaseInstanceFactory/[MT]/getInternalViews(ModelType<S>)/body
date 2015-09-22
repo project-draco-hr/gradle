@@ -1,7 +1,12 @@
 {
-  Set<ModelType<?>> registeredViews=internalViews.get(type.getConcreteClass());
-  if (registeredViews == null) {
+  List<InternalViewRegistration> internalViewRegistrations=internalViews.get(type.getConcreteClass());
+  if (internalViewRegistrations == null) {
     return ImmutableSet.of();
   }
-  return ImmutableSet.copyOf(registeredViews);
+  return ImmutableSet.copyOf(Iterables.transform(internalViewRegistrations,new Function<InternalViewRegistration,ModelType<? extends T>>(){
+    @Override public ModelType<? extends T> apply(    InternalViewRegistration registration){
+      return registration.internalView;
+    }
+  }
+));
 }

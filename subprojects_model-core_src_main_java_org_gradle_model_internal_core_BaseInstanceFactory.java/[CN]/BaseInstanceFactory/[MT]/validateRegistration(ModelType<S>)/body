@@ -1,0 +1,26 @@
+{
+  ImplementationTypeRegistration<S> implementationTypeRegistration=getImplementationTypeRegistration(publicType);
+  List<InternalViewRegistration> internalViewRegistrations=getInternalViewRegistrations(publicType);
+  if (internalViewRegistrations == null) {
+    return;
+  }
+  ModelType<? extends S> implementation=implementationTypeRegistration.implementationType;
+  for (  InternalViewRegistration internalViewRegistration : internalViewRegistrations) {
+    ModelType<? extends T> internalView=internalViewRegistration.internalView;
+    ModelType<? extends T> asSubclass=internalView.asSubclass(implementation);
+    if (asSubclass == null) {
+      StringBuilder builder=new StringBuilder();
+      builder.append(String.format("Factory registration for '%s' is invalid because the implementation type '%s' does not extend internal view '%s'",publicType.getSimpleName(),implementation,internalView));
+      if (implementationTypeRegistration.source != null) {
+        builder.append(". Implementation type was registered by ");
+        implementationTypeRegistration.source.describeTo(builder);
+      }
+      if (internalViewRegistration.source != null) {
+        builder.append(". Internal view was registered by ");
+        internalViewRegistration.source.describeTo(builder);
+      }
+      builder.append(".");
+      throw new GradleException(builder.toString());
+    }
+  }
+}

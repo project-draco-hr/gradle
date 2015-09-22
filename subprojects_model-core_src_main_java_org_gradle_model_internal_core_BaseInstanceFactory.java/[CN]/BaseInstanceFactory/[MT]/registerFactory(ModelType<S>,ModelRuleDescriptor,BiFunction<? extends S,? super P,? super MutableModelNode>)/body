@@ -1,13 +1,7 @@
 {
-  Registration<S> registration=getRegistration(type);
-  if (registration != null) {
-    StringBuilder builder=new StringBuilder("Cannot register a factory for type ").append(type.getSimpleName()).append(" because a factory for this type was already registered");
-    if (registration.source != null) {
-      builder.append(" by ");
-      registration.source.describeTo(builder);
-    }
-    builder.append(".");
-    throw new GradleException(builder.toString());
+  FactoryRegistration<S> factoryRegistration=getFactoryRegistration(type);
+  if (factoryRegistration != null) {
+    throw new GradleException(getDuplicateRegistrationMessage("a factory",type,factoryRegistration.source));
   }
-  factories.put(type.getConcreteClass(),new Registration<S>(sourceRule,factory));
+  factories.put(type.getConcreteClass(),new FactoryRegistration<S>(sourceRule,factory));
 }
