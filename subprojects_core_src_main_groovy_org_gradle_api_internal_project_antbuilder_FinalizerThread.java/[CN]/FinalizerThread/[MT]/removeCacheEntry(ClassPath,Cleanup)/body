@@ -1,0 +1,20 @@
+{
+  if (LOG.isDebugEnabled()) {
+    LOG.debug(String.format("Removing classloader from cache, classpath = %s",key.getAsURIs()));
+  }
+  lock.writeLock().lock();
+  try {
+    cacheEntries.remove(key);
+    cleanups.remove(key);
+  }
+  finally {
+    lock.writeLock().unlock();
+  }
+  try {
+    entry.clear();
+    entry.cleanup();
+  }
+ catch (  Exception ex) {
+    LOG.error("Unable to perform cleanup of classloader for classpath: " + key,ex);
+  }
+}

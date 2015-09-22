@@ -1,0 +1,16 @@
+{
+  try {
+    Object project=getProject(antBuilder);
+    Class<?> projectClass=project.getClass();
+    ClassLoader cl=projectClass.getClassLoader();
+    Class<?> buildListenerClass=cl.loadClass("org.apache.tools.ant.BuildListener");
+    Method addBuildListener=projectClass.getDeclaredMethod("addBuildListener",buildListenerClass);
+    Method removeBuildListener=projectClass.getDeclaredMethod("removeBuildListener",buildListenerClass);
+    Method getBuildListeners=projectClass.getDeclaredMethod("getBuildListeners");
+    Vector listeners=(Vector)getBuildListeners.invoke(project);
+    removeBuildListener.invoke(project,listeners.get(0));
+    addBuildListener.invoke(project,antLogger);
+  }
+ catch (  Exception ex) {
+  }
+}

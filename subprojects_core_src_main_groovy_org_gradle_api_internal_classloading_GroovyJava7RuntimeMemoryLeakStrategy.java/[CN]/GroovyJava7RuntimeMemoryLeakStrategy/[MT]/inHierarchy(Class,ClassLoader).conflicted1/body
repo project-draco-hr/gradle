@@ -1,0 +1,21 @@
+{
+  ClassLoader classLoader=clazz.getClassLoader();
+  if (loader == null) {
+    return false;
+  }
+  if (classLoader == null || classLoader == gradleClassInfoClassLoader) {
+    return gradleClassInfoClass != classInfoClass;
+  }
+  if (isLoadedInSameHierarchy(loader,classLoader)) {
+    return true;
+  }
+  if (loader instanceof MultiParentClassLoader) {
+    List<ClassLoader> parents=((MultiParentClassLoader)loader).getParents();
+    for (    ClassLoader parent : parents) {
+      if (inHierarchy(clazz,parent)) {
+        return true;
+      }
+    }
+  }
+  return inHierarchy(clazz,loader.getParent());
+}
