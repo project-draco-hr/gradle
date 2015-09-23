@@ -1,0 +1,16 @@
+{
+  ModelType<T> type=getSubject().getType();
+  ModelView<? extends T> view=node.asWritable(type,getDescriptor(),inputs);
+  if (view == null) {
+    throw new IllegalArgumentException(String.format("Cannot project model element %s to writable type '%s' for rule %s",node.getPath(),type,getDescriptor()));
+  }
+  try {
+    execute(node,view.getInstance(),inputs);
+  }
+ catch (  Exception e) {
+    throw new ModelRuleExecutionException(getDescriptor(),e);
+  }
+ finally {
+    view.close();
+  }
+}
