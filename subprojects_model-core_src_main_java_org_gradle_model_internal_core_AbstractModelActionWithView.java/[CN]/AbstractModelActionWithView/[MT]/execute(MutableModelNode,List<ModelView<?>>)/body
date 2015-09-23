@@ -1,4 +1,7 @@
 {
+  if (!node.isAtLeast(ModelNode.State.Created)) {
+    throw new IllegalStateException("Cannot get view for node " + node.getPath() + " in state "+ node.getState());
+  }
   ModelType<T> type=getSubject().getType();
   ModelView<? extends T> view=node.asWritable(type,getDescriptor(),inputs);
   if (view == null) {
@@ -7,10 +10,7 @@
   try {
     execute(node,view.getInstance(),inputs);
   }
- catch (  Exception e) {
-    throw new ModelRuleExecutionException(getDescriptor(),e);
-  }
- finally {
+  finally {
     view.close();
   }
 }

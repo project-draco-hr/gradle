@@ -1,9 +1,15 @@
 {
+  boolean noActionsAdded=true;
   for (  RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
     if (seenRules.add(binder)) {
-      MutatorRuleBinder mutator=Cast.uncheckedCast(binder);
-      dependencies.add(new RunModelAction(getPath(),mutator));
+      noActionsAdded=false;
+      if (binder instanceof ModelActionBinder) {
+        dependencies.add(new RunModelAction(getPath(),(ModelActionBinder)binder));
+      }
+ else       if (binder instanceof CreatorRuleBinder) {
+        dependencies.add(new RunCreatorAction(getPath(),(CreatorRuleBinder)binder));
+      }
     }
   }
-  return false;
+  return noActionsAdded;
 }
