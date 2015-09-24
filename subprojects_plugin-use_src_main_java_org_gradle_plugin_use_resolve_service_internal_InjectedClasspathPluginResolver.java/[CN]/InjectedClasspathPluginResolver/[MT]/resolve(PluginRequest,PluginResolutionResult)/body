@@ -1,10 +1,15 @@
 {
   PluginImplementation<?> plugin=pluginRegistry.lookup(pluginRequest.getId());
-  if (plugin != null) {
-    PluginResolution resolution=new InjectedClasspathPluginResolution(plugin);
-    result.found(getDescription(),resolution);
+  if (plugin == null) {
+    String classpathStr=Joiner.on(File.pathSeparator).join(Iterables.transform(injectedClasspath.getAsFiles(),new Function<File,String>(){
+      @Override public String apply(      File input){
+        return input.getAbsolutePath();
+      }
+    }
+));
+    result.notFound(getDescription(),"classpath: " + classpathStr);
   }
  else {
-    throw new UnknownPluginException("Plugin with id '" + pluginRequest.getId() + "' not found. Searched classpath: "+ injectedClasspath.getAsFiles());
+    result.found(getDescription(),new InjectedClasspathPluginResolution(plugin));
   }
 }
