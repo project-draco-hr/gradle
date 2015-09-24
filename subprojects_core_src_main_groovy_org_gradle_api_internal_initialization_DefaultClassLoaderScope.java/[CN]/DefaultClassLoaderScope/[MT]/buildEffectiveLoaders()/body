@@ -1,37 +1,40 @@
 {
   if (effectiveLocalClassLoader == null) {
+    boolean hasExports=!export.isEmpty() || exportLoaders != null;
+    boolean hasLocals=!local.isEmpty();
     if (locked) {
-      if (local.isEmpty() && export.isEmpty()) {
-        classLoaderCache.remove(id.localId());
-        classLoaderCache.remove(id.exportId());
-        effectiveLocalClassLoader=parent.getExportClassLoader();
-        effectiveExportClassLoader=parent.getExportClassLoader();
+      if (hasExports && hasLocals) {
+        effectiveExportClassLoader=buildLockedLoader(id.exportId(),export,exportLoaders);
+        effectiveLocalClassLoader=buildLockedLoader(id.localId(),effectiveExportClassLoader,local);
       }
- else       if (export.isEmpty()) {
+ else       if (hasLocals) {
         classLoaderCache.remove(id.exportId());
         effectiveLocalClassLoader=buildLockedLoader(id.localId(),local);
         effectiveExportClassLoader=parent.getExportClassLoader();
       }
- else       if (local.isEmpty()) {
+ else       if (hasExports) {
         classLoaderCache.remove(id.localId());
-        effectiveLocalClassLoader=buildLockedLoader(id.exportId(),export);
+        effectiveLocalClassLoader=buildLockedLoader(id.exportId(),export,exportLoaders);
         effectiveExportClassLoader=effectiveLocalClassLoader;
       }
  else {
-        effectiveExportClassLoader=buildLockedLoader(id.exportId(),export);
-        effectiveLocalClassLoader=buildLockedLoader(id.localId(),effectiveExportClassLoader,local);
+        classLoaderCache.remove(id.localId());
+        classLoaderCache.remove(id.exportId());
+        effectiveLocalClassLoader=parent.getExportClassLoader();
+        effectiveExportClassLoader=parent.getExportClassLoader();
       }
     }
  else {
       if (Boolean.getBoolean(STRICT_MODE_PROPERTY)) {
         throw new IllegalStateException("Attempt to define scope class loader before scope is locked");
       }
-      exportingClassLoader=new MultiParentClassLoader(parent.getExportClassLoader(),loader(id.exportId(),export));
+      exportingClassLoader=buildMultiLoader(id.exportId(),export,exportLoaders);
       effectiveExportClassLoader=new CachingClassLoader(exportingClassLoader);
       localClassLoader=new MultiParentClassLoader(effectiveExportClassLoader,loader(id.localId(),local));
       effectiveLocalClassLoader=new CachingClassLoader(localClassLoader);
     }
     export=null;
+    exportLoaders=null;
     local=null;
   }
 }
