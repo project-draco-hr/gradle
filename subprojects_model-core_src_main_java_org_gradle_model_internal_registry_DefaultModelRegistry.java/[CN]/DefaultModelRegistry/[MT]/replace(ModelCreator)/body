@@ -3,7 +3,20 @@
   if (node == null) {
     throw new IllegalStateException("can not replace node " + newCreator.getPath() + " as it does not exist");
   }
-  node.replaceCreatorRuleBinder(toCreatorBinder(newCreator,ModelPath.ROOT));
-  ruleBindings.add(node.getCreatorBinder());
+  replace=true;
+  try {
+    node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
+    ruleBindings.remove(node,node.getCreatorBinder());
+    for (    RuleBinder ruleBinder : node.getInitializerRuleBinders()) {
+      ruleBindings.remove(node,ruleBinder);
+    }
+    node.getInitializerRuleBinders().clear();
+    node.setState(ModelNode.State.Known);
+    addRuleBindings(node);
+    transition(node,ModelNode.State.ProjectionsDefined,false);
+  }
+  finally {
+    replace=false;
+  }
   return this;
 }
