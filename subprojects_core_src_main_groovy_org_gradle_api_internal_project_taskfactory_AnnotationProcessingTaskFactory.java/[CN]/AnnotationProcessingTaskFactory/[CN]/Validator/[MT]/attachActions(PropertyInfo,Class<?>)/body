@@ -3,7 +3,7 @@
   if (!(superclass == null || superclass.equals(ConventionTask.class) || superclass.equals(DefaultTask.class) || superclass.equals(AbstractTask.class) || superclass.equals(Object.class))) {
     attachActions(parent,superclass);
   }
-  Field[] fields=type.getDeclaredFields();
+  Map<String,Field> fields=getFields(type);
   for (  Method method : type.getDeclaredMethods()) {
     if (!isGetter(method)) {
       continue;
@@ -15,7 +15,7 @@
     if (parent != null) {
       propertyName=parent.getName() + '.' + propertyName;
     }
-    Field field=findField(fields,fieldName);
+    Field field=fields.get(fieldName);
     PropertyInfo propertyInfo=new PropertyInfo(type,this,parent,propertyName,method,field);
     attachValidationActions(propertyInfo,fieldName,field);
     if (propertyInfo.required) {
