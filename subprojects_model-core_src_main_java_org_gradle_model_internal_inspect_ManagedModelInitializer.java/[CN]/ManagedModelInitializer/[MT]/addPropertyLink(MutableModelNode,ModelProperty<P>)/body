@@ -6,7 +6,19 @@
   ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
   final ModelRuleDescriptor descriptor=modelNode.getDescriptor();
   if (propertySchema instanceof ManagedImplModelSchema) {
+    if (propertySchema instanceof ModelCollectionSchema) {
+      ModelCollectionSchema<P,?> propertyCollectionsSchema=(ModelCollectionSchema<P,?>)propertySchema;
+      ModelType<?> elementType=propertyCollectionsSchema.getElementType();
+      if (!(propertySchema instanceof ScalarCollectionSchema)) {
+        if (!property.isWritable()) {
+          nodeInitializerRegistry.getNodeInitializer(elementType);
+        }
+      }
+    }
     if (!property.isWritable()) {
+      if (property.isDeclaredAsHavingUnmanagedType()) {
+        throw new UnmanagedPropertyMissingSetterException(property);
+      }
       ManagedImplModelSchema<P> managedPropertySchema=(ManagedImplModelSchema<P>)propertySchema;
       ModelCreator creator=ModelCreators.of(modelNode.getPath().child(property.getName()),nodeInitializerRegistry.getNodeInitializer(managedPropertySchema)).descriptor(descriptor).build();
       modelNode.addLink(creator);
@@ -27,7 +39,13 @@
   }
  else {
     ModelProjection projection=new UnmanagedModelProjection<P>(propertyType,true,true);
-    ModelCreator creator=ModelCreators.of(modelNode.getPath().child(property.getName())).withProjection(projection).descriptor(descriptor).build();
-    modelNode.addLink(creator);
+    ModelCreators.Builder creatorBuilder=ModelCreators.of(modelNode.getPath().child(property.getName())).withProjection(projection).descriptor(descriptor);
+    if (shouldHaveANodeInitializer(property,propertySchema)) {
+      creatorBuilder.action(ModelActionRole.Create,nodeInitializerRegistry.getNodeInitializer(propertyType));
+    }
+ else     if (isAModelValueSchema(propertySchema) && !property.isWritable() && !isNamePropertyOfANamedType(property)) {
+      throw new ReadonlyImmutableManagedPropertyException(modelSchema.getType(),property.getName(),property.getType());
+    }
+    modelNode.addLink(creatorBuilder.build());
   }
 }
