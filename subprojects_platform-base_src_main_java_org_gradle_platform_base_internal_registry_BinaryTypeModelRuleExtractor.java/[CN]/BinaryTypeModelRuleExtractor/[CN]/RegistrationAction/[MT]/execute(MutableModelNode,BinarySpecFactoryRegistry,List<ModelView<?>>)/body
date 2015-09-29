@@ -1,13 +1,22 @@
 {
-  final Class<BinarySpec> publicClass=uncheckedCast(publicType.getConcreteClass());
-  ServiceRegistry serviceRegistry=ModelViews.assertType(inputs.get(0),ModelType.of(ServiceRegistry.class)).getInstance();
-  final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
-  final ITaskFactory taskFactory=ModelViews.assertType(inputs.get(1),ModelType.of(ITaskFactory.class)).getInstance();
-  NamedDomainObjectFactory<BaseBinarySpec> factory=new NamedDomainObjectFactory<BaseBinarySpec>(){
-    public BaseBinarySpec create(    String name){
-      return BaseBinarySpec.create(publicClass,implementationType.getConcreteClass(),name,instantiator,taskFactory);
+  if (implementationType != null) {
+    final Class<BinarySpec> publicClass=uncheckedCast(publicType.getConcreteClass());
+    ServiceRegistry serviceRegistry=ModelViews.assertType(inputs.get(0),ModelType.of(ServiceRegistry.class)).getInstance();
+    final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
+    final ITaskFactory taskFactory=ModelViews.assertType(inputs.get(1),ModelType.of(ITaskFactory.class)).getInstance();
+    NamedDomainObjectFactory<BaseBinarySpec> factory=new NamedDomainObjectFactory<BaseBinarySpec>(){
+      public BaseBinarySpec create(      String name){
+        return BaseBinarySpec.create(publicClass,implementationType.getConcreteClass(),name,instantiator,taskFactory);
+      }
+    }
+;
+    factories.registerFactory(publicClass,factory,descriptor);
+    factories.registerImplementation(publicType,implementationType);
+    if (BINARY_SPEC_INTERNAL_MODEL_TYPE.isAssignableFrom(implementationType)) {
+      factories.registerInternalView(publicType,BINARY_SPEC_INTERNAL_MODEL_TYPE);
     }
   }
-;
-  factories.registerFactory(publicClass,factory,descriptor);
+  for (  Class<?> internalView : internalViews) {
+    factories.registerInternalView(publicType,ModelType.of(internalView));
+  }
 }

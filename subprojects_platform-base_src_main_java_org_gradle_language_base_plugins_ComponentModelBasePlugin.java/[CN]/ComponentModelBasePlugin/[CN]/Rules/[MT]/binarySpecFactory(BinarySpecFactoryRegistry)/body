@@ -16,5 +16,17 @@
     }
   }
 );
+  for (  Map.Entry<Class<? extends BinarySpec>,ModelType<? extends BinarySpec>> entry : binaryFactoryRegistry.getImplementationTypes().entrySet()) {
+    ModelType<BinarySpec> publicType=Cast.uncheckedCast(ModelType.of(entry.getKey()));
+    ModelType<BinarySpec> implementationType=Cast.uncheckedCast(entry.getValue());
+    binarySpecFactory.registerImplementation(publicType,null,implementationType);
+  }
+  Map<Class<? extends BinarySpec>,List<ModelType<?>>> internalViews=binaryFactoryRegistry.getInternalViews();
+  for (  Map.Entry<Class<? extends BinarySpec>,List<ModelType<?>>> entry : internalViews.entrySet()) {
+    ModelType<? extends BinarySpec> publicType=ModelType.of(entry.getKey());
+    for (    ModelType<?> internalView : entry.getValue()) {
+      binarySpecFactory.registerInternalView(publicType,null,internalView);
+    }
+  }
   return binarySpecFactory;
 }
