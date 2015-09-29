@@ -1,0 +1,21 @@
+{
+  if (propertySchema instanceof ManagedImplModelSchema) {
+    if (propertySchema instanceof ModelCollectionSchema) {
+      ModelCollectionSchema<P,?> propertyCollectionsSchema=(ModelCollectionSchema<P,?>)propertySchema;
+      ModelType<?> elementType=propertyCollectionsSchema.getElementType();
+      if (!(propertySchema instanceof ScalarCollectionSchema)) {
+        if (!property.isWritable()) {
+          nodeInitializerRegistry.getNodeInitializer(elementType);
+        }
+      }
+    }
+    if (!property.isWritable()) {
+      if (property.isDeclaredAsHavingUnmanagedType()) {
+        throw new UnmanagedPropertyMissingSetterException(property);
+      }
+    }
+  }
+ else   if (!shouldHaveANodeInitializer(property,propertySchema) && isAModelValueSchema(propertySchema) && !property.isWritable()&& !isNamePropertyOfANamedType(property)) {
+    throw new ReadonlyImmutableManagedPropertyException(modelSchema.getType(),property.getName(),property.getType());
+  }
+}
