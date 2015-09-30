@@ -1,0 +1,23 @@
+{
+  ServiceRegistry serviceRegistry=ModelViews.assertType(inputs.get(0),ModelType.of(ServiceRegistry.class)).getInstance();
+  final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
+  final ITaskFactory taskFactory=ModelViews.assertType(inputs.get(1),ModelType.of(ITaskFactory.class)).getInstance();
+  factory.registerFactory(publicType,descriptor,new BiFunction<S,String,MutableModelNode>(){
+    @Override public S apply(    String name,    MutableModelNode modelNode){
+      S binarySpec=Cast.uncheckedCast(createBinarySpec(name,instantiator,taskFactory));
+      final Object parentObject=modelNode.getParent().getParent().getPrivateData();
+      if (parentObject instanceof ComponentSpec && binarySpec instanceof ComponentSpecAware) {
+        ((ComponentSpecAware)binarySpec).setComponent((ComponentSpec)parentObject);
+      }
+      return binarySpec;
+    }
+  }
+);
+  factory.registerDomainObjectFactory(publicType.getConcreteClass(),descriptor,new NamedDomainObjectFactory<S>(){
+    public S create(    String name){
+      return Cast.uncheckedCast(createBinarySpec(name,instantiator,taskFactory));
+    }
+  }
+);
+  factory.registerImplementation(publicType,descriptor,Cast.<ModelType<? extends S>>uncheckedCast(implementationType));
+}
