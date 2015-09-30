@@ -1,4 +1,12 @@
 {
   ModelNodeInternal node=modelGraph.find(scope);
-  return node != null && node.getState().compareTo(SelfClosed) >= 0;
+  if (node == null || !node.isAtLeast(SelfClosed)) {
+    return false;
+  }
+  for (  ModelNodeInternal child : node.getLinks()) {
+    if (!child.isAtLeast(ProjectionsDefined)) {
+      return false;
+    }
+  }
+  return true;
 }
