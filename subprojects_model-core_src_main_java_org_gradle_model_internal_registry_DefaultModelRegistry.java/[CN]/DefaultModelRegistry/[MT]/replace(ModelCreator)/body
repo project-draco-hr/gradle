@@ -5,18 +5,15 @@
   }
   replace=true;
   try {
-    boolean wasProjectionsDefined=node.isAtLeast(ProjectionsDefined);
+    node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
     ruleBindings.remove(node,node.getCreatorBinder());
     for (    RuleBinder ruleBinder : node.getInitializerRuleBinders()) {
       ruleBindings.remove(node,ruleBinder);
     }
     node.getInitializerRuleBinders().clear();
-    node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
-    node.setState(Known);
+    node.setState(ModelNode.State.Known);
     addRuleBindings(node);
-    if (wasProjectionsDefined) {
-      transition(node,ProjectionsDefined,false);
-    }
+    transition(node,ModelNode.State.ProjectionsDefined,false);
   }
   finally {
     replace=false;
