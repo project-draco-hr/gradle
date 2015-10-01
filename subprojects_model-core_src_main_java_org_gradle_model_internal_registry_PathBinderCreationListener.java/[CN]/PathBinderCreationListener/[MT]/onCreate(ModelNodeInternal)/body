@@ -2,12 +2,11 @@
   if (boundTo != null) {
     throw new IllegalStateException(String.format("Reference %s for %s is already bound to %s.",predicate.getReference(),referrer,boundTo));
   }
-  ModelPromise promise=node.getPromiseRegardlessOfState();
-  if (isTypeCompatible(promise)) {
+  if (predicate.isUntyped() || isTypeCompatible(node.getPromise())) {
     boundTo=node;
     bindAction.execute(this);
   }
  else {
-    throw new InvalidModelRuleException(referrer,new ModelRuleBindingException(IncompatibleTypeReferenceReporter.of(node,promise,predicate.getReference(),writable).asString()));
+    throw new InvalidModelRuleException(referrer,new ModelRuleBindingException(IncompatibleTypeReferenceReporter.of(node,node.getPromise(),predicate.getReference(),writable).asString()));
   }
 }
