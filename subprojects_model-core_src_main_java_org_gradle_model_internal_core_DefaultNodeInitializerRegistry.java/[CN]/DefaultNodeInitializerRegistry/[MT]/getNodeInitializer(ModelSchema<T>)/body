@@ -5,9 +5,11 @@
       return nodeInitializer;
     }
   }
-  List<ModelType<?>> supportedTypes=newArrayList();
-  for (  NodeInitializerExtractionStrategy extractor : strategies) {
-    Iterables.addAll(supportedTypes,extractor.supportedTypes());
+  Iterable<ModelType<?>> scalars=Iterables.concat(ScalarTypes.TYPES,ScalarTypes.NON_FINAL_TYPES);
+  Iterable<ModelType<?>> managedCollectionTypes=Iterables.concat(modelMapNodeInitializerExtractionStrategy.supportedTypes(),managedSetNodeInitializerExtractionStrategy.supportedTypes(),modelSetNodeInitializerExtractionStrategy.supportedTypes());
+  HashSet<ModelType<?>> otherManagedTypes=Sets.newHashSet();
+  for (  NodeInitializerExtractionStrategy extractor : variableStrategies) {
+    Iterables.addAll(otherManagedTypes,extractor.supportedTypes());
   }
-  throw new ModelTypeInitializationException(schema.getType(),supportedTypes);
+  throw new ModelTypeInitializationException(schema.getType(),scalars,scalarCollectionNodeInitializerExtractionStrategy.supportedTypes(),managedCollectionTypes,otherManagedTypes);
 }
