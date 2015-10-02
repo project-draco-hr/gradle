@@ -1,29 +1,24 @@
 {
+  loggingManager.captureSystemSources();
   final LoggingSystem.Snapshot stdOutSnapshot=context.mock(LoggingSystem.Snapshot.class);
   final LoggingSystem.Snapshot stdErrSnapshot=context.mock(LoggingSystem.Snapshot.class);
+  final LoggingSystem.Snapshot javaUtilSnapshot=context.mock(LoggingSystem.Snapshot.class);
   context.checking(new Expectations(){
 {
       ignoring(loggingSystem);
-      ignoring(javaUtilLoggingSystem);
-      one(stdOutLoggingSystem).on(LogLevel.DEBUG,LogLevel.DEBUG);
+      one(javaUtilLoggingSystem).on(LogLevel.DEBUG,LogLevel.DEBUG);
+      will(returnValue(javaUtilSnapshot));
+      one(stdOutLoggingSystem).on(LogLevel.QUIET,LogLevel.QUIET);
       will(returnValue(stdOutSnapshot));
-      one(stdErrLoggingSystem).on(LogLevel.DEBUG,LogLevel.DEBUG);
+      one(stdErrLoggingSystem).on(LogLevel.ERROR,LogLevel.ERROR);
       will(returnValue(stdErrSnapshot));
     }
   }
 );
-  loggingManager.captureStandardOutput(LogLevel.DEBUG);
-  loggingManager.captureStandardError(LogLevel.DEBUG);
   loggingManager.start();
   context.checking(new Expectations(){
 {
-      one(stdOutLoggingSystem).on(LogLevel.WARN,LogLevel.WARN);
-    }
-  }
-);
-  loggingManager.captureStandardOutput(LogLevel.WARN);
-  context.checking(new Expectations(){
-{
+      one(javaUtilLoggingSystem).restore(javaUtilSnapshot);
       one(stdOutLoggingSystem).restore(stdOutSnapshot);
       one(stdErrLoggingSystem).restore(stdErrSnapshot);
     }
