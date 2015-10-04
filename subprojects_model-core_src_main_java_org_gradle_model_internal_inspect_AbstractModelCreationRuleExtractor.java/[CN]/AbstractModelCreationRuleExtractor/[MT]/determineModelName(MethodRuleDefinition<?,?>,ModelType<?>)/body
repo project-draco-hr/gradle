@@ -1,0 +1,24 @@
+{
+  String annotationValue=ruleDefinition.getAnnotation(Model.class).value();
+  ModelPath servicePath=ModelReference.findServicePath(type);
+  String modelName;
+  boolean hasAnnotationValue=annotationValue == null || annotationValue.isEmpty();
+  if (servicePath != null) {
+    if (!hasAnnotationValue) {
+      if (!servicePath.toString().equals(annotationValue)) {
+        throw new InvalidModelRuleDeclarationException(String.format("Service '%s' must be registered under path '%s' instead of '%s'",type,servicePath,annotationValue));
+      }
+    }
+    modelName=servicePath.getName();
+  }
+ else {
+    modelName=hasAnnotationValue ? ruleDefinition.getMethodName() : annotationValue;
+  }
+  try {
+    ModelPath.validatePath(modelName);
+  }
+ catch (  Exception e) {
+    throw new InvalidModelRuleDeclarationException(String.format("Path of declared model element created by rule %s is invalid.",ruleDefinition.getDescriptor()),e);
+  }
+  return modelName;
+}
