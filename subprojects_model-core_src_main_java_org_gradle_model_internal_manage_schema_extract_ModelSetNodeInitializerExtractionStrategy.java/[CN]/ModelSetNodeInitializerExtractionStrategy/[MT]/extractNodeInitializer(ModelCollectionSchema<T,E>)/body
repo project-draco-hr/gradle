@@ -1,0 +1,22 @@
+{
+  if (MODEL_SET_MODEL_TYPE.isAssignableFrom(schema.getType())) {
+    return new NodeInitializer(){
+      @Override public List<? extends ModelReference<?>> getInputs(){
+        return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
+      }
+      @Override public void execute(      MutableModelNode modelNode,      List<ModelView<?>> inputs){
+        NodeInitializerRegistry nodeInitializerRegistry=ModelViews.assertType(inputs.get(0),NodeInitializerRegistry.class).getInstance();
+        ChildNodeInitializerStrategy<T> childCreator=new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
+        modelNode.setPrivateData(ChildNodeInitializerStrategy.class,childCreator);
+      }
+      @Override public List<? extends ModelProjection> getProjections(){
+        return Collections.singletonList(TypedModelProjection.of(ModelTypes.modelSet(schema.getElementType()),new ModelSetModelViewFactory<E>(schema.getElementType())));
+      }
+      @Nullable @Override public ModelAction getProjector(      ModelPath path,      ModelRuleDescriptor descriptor){
+        return null;
+      }
+    }
+;
+  }
+  return null;
+}
