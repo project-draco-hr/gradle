@@ -1,3 +1,19 @@
 {
+  if (nodeInitializer != null) {
+    this.action(ModelActionRole.Create,new BuilderModelAction(){
+      @Override public void execute(      MutableModelNode modelNode,      List<ModelView<?>> inputs){
+        nodeInitializer.execute(modelNode,inputs);
+      }
+      @Override public List<? extends ModelReference<?>> getInputs(){
+        return nodeInitializer.getInputs();
+      }
+    }
+);
+    this.projections.addAll(nodeInitializer.getProjections());
+    ModelAction projector=nodeInitializer.getProjector(path,modelRuleDescriptor);
+    if (projector != null) {
+      action(ModelActionRole.DefineProjections,projector);
+    }
+  }
   return new ProjectionBackedModelCreator(path,modelRuleDescriptor,ephemeral,hidden,projections,actions);
 }
