@@ -1,15 +1,9 @@
 {
-  for (  NodeInitializerExtractionStrategy extractor : strategies) {
+  for (  NodeInitializerExtractionStrategy extractor : allStrategies) {
     NodeInitializer nodeInitializer=extractor.extractNodeInitializer(schema);
     if (nodeInitializer != null) {
       return nodeInitializer;
     }
   }
-  Iterable<ModelType<?>> scalars=Iterables.concat(ScalarTypes.TYPES,ScalarTypes.NON_FINAL_TYPES);
-  Iterable<ModelType<?>> managedCollectionTypes=Iterables.concat(modelMapNodeInitializerExtractionStrategy.supportedTypes(),managedSetNodeInitializerExtractionStrategy.supportedTypes(),modelSetNodeInitializerExtractionStrategy.supportedTypes());
-  HashSet<ModelType<?>> otherManagedTypes=Sets.newHashSet();
-  for (  NodeInitializerExtractionStrategy extractor : variableStrategies) {
-    Iterables.addAll(otherManagedTypes,extractor.supportedTypes());
-  }
-  throw new ModelTypeInitializationException(schema.getType(),scalars,scalarCollectionNodeInitializerExtractionStrategy.supportedTypes(),managedCollectionTypes,otherManagedTypes);
+  throw canNotConstructTypeException(schema.getType());
 }
