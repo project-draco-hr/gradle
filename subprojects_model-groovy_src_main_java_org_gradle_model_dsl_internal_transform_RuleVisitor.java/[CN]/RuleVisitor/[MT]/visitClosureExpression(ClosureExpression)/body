@@ -2,22 +2,28 @@
   if (inputs == null) {
     inputs=new InputReferences();
     try {
-      accessVariable=new VariableExpression(ACCESS_HOLDER_FIELD,ACCESS_API_TYPE);
+      inputsVariable=new VariableExpression(ACCESS_HOLDER_FIELD,POTENTIAL_INPUTS);
       super.visitClosureExpression(expression);
       BlockStatement code=(BlockStatement)expression.getCode();
       code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY,inputs);
-      accessVariable.setClosureSharedVariable(true);
-      StaticMethodCallExpression getAccessCall=new StaticMethodCallExpression(CONTEXTUAL_INPUT_TYPE,GET_ACCESS,ArgumentListExpression.EMPTY_ARGUMENTS);
-      DeclarationExpression variableDeclaration=new DeclarationExpression(accessVariable,new Token(Types.ASSIGN,"=",-1,-1),getAccessCall);
+      inputsVariable.setClosureSharedVariable(true);
+      StaticMethodCallExpression getAccessCall=new StaticMethodCallExpression(POTENTIAL_INPUTS_ACCESS,GET,ArgumentListExpression.EMPTY_ARGUMENTS);
+      DeclarationExpression variableDeclaration=new DeclarationExpression(inputsVariable,new Token(Types.ASSIGN,"=",-1,-1),getAccessCall);
       code.getStatements().add(0,new ExpressionStatement(variableDeclaration));
-      code.getVariableScope().putDeclaredVariable(accessVariable);
+      code.getVariableScope().putDeclaredVariable(inputsVariable);
     }
   finally {
       inputs=null;
     }
   }
  else {
-    expression.getVariableScope().putReferencedLocalVariable(accessVariable);
-    super.visitClosureExpression(expression);
+    ++closureDepth;
+    try {
+      expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
+      super.visitClosureExpression(expression);
+    }
+  finally {
+      --closureDepth;
+    }
   }
 }

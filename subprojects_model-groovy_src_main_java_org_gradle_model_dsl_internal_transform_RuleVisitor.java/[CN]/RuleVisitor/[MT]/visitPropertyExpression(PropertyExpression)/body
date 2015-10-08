@@ -1,17 +1,19 @@
 {
-  ArrayList<String> names=Lists.newArrayList();
-  boolean propertyNameIsPart=extractPropertyPath(expression,names);
-  if (names.isEmpty() || !names.get(0).equals("thing")) {
-    super.visitPropertyExpression(expression);
+  if (atTopLevel()) {
+    ArrayList<String> names=Lists.newArrayList();
+    boolean propertyNameIsPart=extractPropertyPath(expression,names);
+    if (!names.isEmpty()) {
+      String modelPath=ModelPath.pathString(names);
+      inputs.relativePath(modelPath,expression.getLineNumber());
+      if (propertyNameIsPart) {
+        replaceVisitedExpressionWith(conditionalInputGet(modelPath,expression));
+      }
+ else {
+        expression.setObjectExpression(conditionalInputGet(modelPath,expression.getObjectExpression()));
+      }
+    }
   }
  else {
-    String modelPath=ModelPath.pathString(names);
-    inputs.relativePath(modelPath,expression.getLineNumber());
-    if (propertyNameIsPart) {
-      replaceVisitedExpressionWith(conditionalInputGet(modelPath,expression));
-    }
- else {
-      expression.setObjectExpression(conditionalInputGet(modelPath,expression.getObjectExpression()));
-    }
+    super.visitPropertyExpression(expression);
   }
 }

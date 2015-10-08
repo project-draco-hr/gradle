@@ -1,15 +1,10 @@
 {
-  if (expression.isThisExpression() || expression.isSuperExpression()) {
+  if (!atTopLevel() || isLeftSideOfAssignment || isNonReferenceKeyword(expression)|| !(expression.getAccessedVariable() instanceof DynamicVariable)) {
     super.visitVariableExpression(expression);
   }
  else {
     String modelPath=expression.getText();
-    if (modelPath.equals("thing")) {
-      inputs.relativePath(modelPath,expression.getLineNumber());
-      replaceVisitedExpressionWith(conditionalInputGet(modelPath,expression));
-    }
- else {
-      super.visitVariableExpression(expression);
-    }
+    inputs.relativePath(modelPath,expression.getLineNumber());
+    replaceVisitedExpressionWith(conditionalInputGet(modelPath,expression));
   }
 }

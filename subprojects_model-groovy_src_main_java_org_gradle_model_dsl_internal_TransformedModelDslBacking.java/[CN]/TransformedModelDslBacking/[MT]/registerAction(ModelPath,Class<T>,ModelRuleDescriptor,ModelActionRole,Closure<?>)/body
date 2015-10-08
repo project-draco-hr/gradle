@@ -1,23 +1,42 @@
 {
   final ModelReference<T> reference=ModelReference.of(modelPath,viewType);
-  ModelAction action=DirectNodeNoInputsModelAction.of(reference,descriptor,new Action<MutableModelNode>(){
-    @Override public void execute(    MutableModelNode modelNode){
+  ModelAction action=NoInputsModelAction.of(reference,descriptor,new Action<T>(){
+    @Override public void execute(    T subject){
       InputReferences inputs=inputPathsExtractor.transform(closure);
       List<String> absolutePaths=inputs.getAbsolutePaths();
       List<Integer> absolutePathLineNumbers=inputs.getAbsolutePathLineNumbers();
       List<String> relativePaths=inputs.getRelativePaths();
       List<Integer> relativePathLineNumbers=inputs.getRelativePathLineNumbers();
-      List<ModelReference<?>> references=Lists.newArrayListWithCapacity(absolutePaths.size() + inputs.getRelativePaths().size());
+      final List<PotentialInput> potentialInputs=Lists.newArrayListWithCapacity(absolutePaths.size() + relativePaths.size());
+      List<ModelReference<?>> actualInputs=Lists.newArrayListWithCapacity(potentialInputs.size());
       for (int i=0; i < absolutePaths.size(); i++) {
         String description=String.format("@ line %d",absolutePathLineNumbers.get(i));
-        references.add(ModelReference.untyped(ModelPath.path(absolutePaths.get(i)),description));
+        String path=absolutePaths.get(i);
+        potentialInputs.add(PotentialInput.absoluteInput(path,actualInputs.size()));
+        actualInputs.add(ModelReference.untyped(ModelPath.path(path),description));
       }
       for (int i=0; i < relativePaths.size(); i++) {
-        String description=String.format("@ line %d",relativePathLineNumbers.get(i));
-        references.add(ModelReference.untyped(ModelPath.path(relativePaths.get(i)),description));
+        String pathString=relativePaths.get(i);
+        ModelPath path=ModelPath.path(pathString);
+        String rootName=path.getComponents().get(0);
+        boolean subjectHasProperty=GroovySystem.getMetaClassRegistry().getMetaClass(subject.getClass()).hasProperty(subject,rootName) != null;
+        if (!subjectHasProperty) {
+          String description=String.format("@ line %d",relativePathLineNumbers.get(i));
+          potentialInputs.add(PotentialInput.relativeInput(path,actualInputs.size()));
+          actualInputs.add(ModelReference.untyped(ModelPath.path(rootName),description));
+        }
       }
-      ModelAction runClosureAction=InputUsingModelAction.of(reference,descriptor,references,new ExecuteClosure<T>(closure));
-      modelRegistry.configure(role,runClosureAction);
+      modelRegistry.configure(role,InputUsingModelAction.of(reference,descriptor,actualInputs,new BiAction<T,List<ModelView<?>>>(){
+        @Override public void execute(        final T t,        List<ModelView<?>> modelViews){
+          PotentialInputsAccess.with(new PotentialInputs(modelViews,potentialInputs),new Runnable(){
+            @Override public void run(){
+              ClosureBackedAction.execute(t,closure.rehydrate(null,new Object(),null));
+            }
+          }
+);
+        }
+      }
+));
     }
   }
 );
