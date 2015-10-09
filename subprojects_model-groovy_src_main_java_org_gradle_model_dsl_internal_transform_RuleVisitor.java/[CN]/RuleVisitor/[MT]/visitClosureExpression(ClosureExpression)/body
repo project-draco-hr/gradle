@@ -7,23 +7,23 @@
       BlockStatement code=(BlockStatement)expression.getCode();
       code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY,inputs);
       inputsVariable.setClosureSharedVariable(true);
+      code.getVariableScope().putDeclaredVariable(inputsVariable);
       StaticMethodCallExpression getAccessCall=new StaticMethodCallExpression(POTENTIAL_INPUTS_ACCESS,GET,ArgumentListExpression.EMPTY_ARGUMENTS);
       DeclarationExpression variableDeclaration=new DeclarationExpression(inputsVariable,new Token(Types.ASSIGN,"=",-1,-1),getAccessCall);
       code.getStatements().add(0,new ExpressionStatement(variableDeclaration));
-      code.getVariableScope().putDeclaredVariable(inputsVariable);
+      for (      Parameter parameter : expression.getParameters()) {
+        if (parameter.hasInitialExpression()) {
+          code.getStatements().add(1,new ExpressionStatement(new BinaryExpression(new VariableExpression(parameter.getName()),new Token(Types.ASSIGN,"=",-1,-1),parameter.getInitialExpression())));
+          parameter.setInitialExpression(ConstantExpression.NULL);
+        }
+      }
     }
   finally {
       inputs=null;
     }
   }
  else {
-    ++closureDepth;
-    try {
-      expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
-      super.visitClosureExpression(expression);
-    }
-  finally {
-      --closureDepth;
-    }
+    expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
+    super.visitClosureExpression(expression);
   }
 }
