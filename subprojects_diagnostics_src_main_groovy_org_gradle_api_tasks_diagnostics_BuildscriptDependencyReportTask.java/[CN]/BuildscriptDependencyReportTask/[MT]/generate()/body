@@ -1,0 +1,21 @@
+{
+  ProjectReportGenerator projectReportGenerator=new ProjectReportGenerator(){
+    @Override public void generateReport(    Project project) throws IOException {
+      SortedSet<Configuration> sortedConfigurations=new TreeSet<Configuration>(new Comparator<Configuration>(){
+        public int compare(        Configuration conf1,        Configuration conf2){
+          return conf1.getName().compareTo(conf2.getName());
+        }
+      }
+);
+      sortedConfigurations.addAll(getProject().getBuildscript().getConfigurations());
+      for (      Configuration configuration : sortedConfigurations) {
+        renderer.startConfiguration(configuration);
+        renderer.render(configuration);
+        renderer.completeConfiguration(configuration);
+      }
+    }
+  }
+;
+  ReportGenerator reportGenerator=new ReportGenerator(getRenderer(),getClientMetaData(),getOutputFile(),getTextOutputFactory(),projectReportGenerator);
+  reportGenerator.generateReport(new TreeSet<Project>(getProjects()));
+}

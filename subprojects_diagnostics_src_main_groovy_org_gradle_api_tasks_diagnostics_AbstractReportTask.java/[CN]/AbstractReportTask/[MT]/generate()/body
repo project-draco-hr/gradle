@@ -1,23 +1,10 @@
 {
-  try {
-    ReportRenderer renderer=getRenderer();
-    renderer.setClientMetaData(getClientMetaData());
-    File outputFile=getOutputFile();
-    if (outputFile != null) {
-      renderer.setOutputFile(outputFile);
-    }
- else {
-      renderer.setOutput(getTextOutputFactory().create(getClass()));
-    }
-    Set<Project> projects=new TreeSet<Project>(getProjects());
-    for (    Project project : projects) {
-      renderer.startProject(project);
+  ProjectReportGenerator projectReportGenerator=new ProjectReportGenerator(){
+    @Override public void generateReport(    Project project) throws IOException {
       generate(project);
-      renderer.completeProject(project);
     }
-    renderer.complete();
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
-  }
+;
+  ReportGenerator reportGenerator=new ReportGenerator(getRenderer(),getClientMetaData(),getOutputFile(),getTextOutputFactory(),projectReportGenerator);
+  reportGenerator.generateReport(new TreeSet<Project>(getProjects()));
 }

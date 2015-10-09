@@ -1,0 +1,22 @@
+{
+  try {
+    ReportRenderer renderer=getRenderer();
+    renderer.setClientMetaData(getClientMetaData());
+    File outputFile=getOutputFile();
+    if (outputFile != null) {
+      renderer.setOutputFile(outputFile);
+    }
+ else {
+      renderer.setOutput(getTextOutputFactory().create(getClass()));
+    }
+    for (    Project project : projects) {
+      renderer.startProject(project);
+      projectReportGenerator.generateReport(project);
+      renderer.completeProject(project);
+    }
+    renderer.complete();
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+}
