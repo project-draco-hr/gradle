@@ -1,0 +1,26 @@
+{
+  final List<FileVisitDetails> allFileVisitDetails=new LinkedList<FileVisitDetails>();
+  DefaultFileCollectionResolveContext context=new DefaultFileCollectionResolveContext();
+  context.add(input);
+  List<FileTreeInternal> fileTrees=context.resolveAsFileTrees();
+  for (  FileTreeInternal fileTree : fileTrees) {
+    Set<File> fileTreeSourceFiles=unwrapFileTreeSourceFilesIfAvailable(fileTree);
+    if (fileTreeSourceFiles != null) {
+      for (      File fileTreeSourceFile : fileTreeSourceFiles) {
+        allFileVisitDetails.add(new CachingFileVisitDetails(fileTreeSourceFile));
+      }
+    }
+ else {
+      fileTree.visit(new FileVisitor(){
+        @Override public void visitDir(        FileVisitDetails dirDetails){
+          allFileVisitDetails.add(dirDetails);
+        }
+        @Override public void visitFile(        FileVisitDetails fileDetails){
+          allFileVisitDetails.add(fileDetails);
+        }
+      }
+);
+    }
+  }
+  return allFileVisitDetails;
+}
