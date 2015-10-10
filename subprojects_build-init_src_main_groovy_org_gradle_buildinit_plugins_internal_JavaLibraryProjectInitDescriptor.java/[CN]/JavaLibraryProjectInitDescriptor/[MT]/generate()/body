@@ -1,0 +1,17 @@
+{
+  register(delegate);
+  TemplateOperation javalibraryTemplateOperation=fromClazzTemplate("javalibrary/Library.java.template","main");
+  TemplateOperation javalibraryTestTemplateOperation;
+  String gradleBuildTemplate;
+  if (initModifiers.get("spock") != null) {
+    gradleBuildTemplate="javalibrary/spock-build.gradle.template";
+    javalibraryTestTemplateOperation=fromClazzTemplate("groovylibrary/LibraryTest.groovy.template","test","groovy");
+  }
+ else {
+    gradleBuildTemplate="javalibrary/build.gradle.template";
+    javalibraryTestTemplateOperation=fromClazzTemplate("javalibrary/LibraryTest.java.template","test");
+  }
+  register(templateOperationFactory.newTemplateOperation().withTemplate(gradleBuildTemplate).withTarget("build.gradle").withDocumentationBindings(GUtil.map("ref_userguide_java_tutorial","tutorial_java_projects")).withBindings(GUtil.map("junitVersion",libraryVersionProvider.getVersion("junit"))).withBindings(GUtil.map("slf4jVersion",libraryVersionProvider.getVersion("slf4j"))).withBindings(GUtil.map("groovyVersion",libraryVersionProvider.getVersion("groovy"))).withBindings(GUtil.map("spockVersion",libraryVersionProvider.getVersion("spock"))).create());
+  register(whenNoSourcesAvailable(javalibraryTemplateOperation,javalibraryTestTemplateOperation));
+  super.generate();
+}
