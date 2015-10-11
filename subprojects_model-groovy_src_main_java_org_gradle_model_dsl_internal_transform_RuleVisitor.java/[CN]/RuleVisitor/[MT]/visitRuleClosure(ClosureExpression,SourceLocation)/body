@@ -4,19 +4,18 @@
   }
   inputs=new InputReferences();
   try {
-    inputsVariable=new VariableExpression(ACCESS_HOLDER_FIELD,POTENTIAL_INPUTS);
+    inputsVariable=new VariableExpression(INPUTS_LVAR_NAME,POTENTIAL_INPUTS);
     super.visitClosureExpression(expression);
     BlockStatement code=(BlockStatement)expression.getCode();
     code.setNodeMetaData(AST_NODE_METADATA_LOCATION_KEY,sourceLocation);
     code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY,inputs);
     inputsVariable.setClosureSharedVariable(true);
     code.getVariableScope().putDeclaredVariable(inputsVariable);
-    StaticMethodCallExpression getAccessCall=new StaticMethodCallExpression(POTENTIAL_INPUTS_ACCESS,GET,ArgumentListExpression.EMPTY_ARGUMENTS);
-    DeclarationExpression variableDeclaration=new DeclarationExpression(inputsVariable,new Token(Types.ASSIGN,"=",-1,-1),getAccessCall);
+    DeclarationExpression variableDeclaration=new DeclarationExpression(inputsVariable,ASSIGN,new VariableExpression(INPUTS_FIELD_NAME));
     code.getStatements().add(0,new ExpressionStatement(variableDeclaration));
     for (    Parameter parameter : expression.getParameters()) {
       if (parameter.hasInitialExpression()) {
-        code.getStatements().add(1,new ExpressionStatement(new BinaryExpression(new VariableExpression(parameter.getName()),new Token(Types.ASSIGN,"=",-1,-1),parameter.getInitialExpression())));
+        code.getStatements().add(1,new ExpressionStatement(new BinaryExpression(new VariableExpression(parameter.getName()),ASSIGN,parameter.getInitialExpression())));
         parameter.setInitialExpression(ConstantExpression.NULL);
       }
     }

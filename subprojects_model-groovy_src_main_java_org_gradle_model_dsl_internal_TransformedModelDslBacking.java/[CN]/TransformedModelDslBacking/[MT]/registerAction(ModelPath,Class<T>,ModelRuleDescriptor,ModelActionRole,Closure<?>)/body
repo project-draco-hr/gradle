@@ -1,24 +1,25 @@
 {
   final ModelReference<T> reference=ModelReference.of(modelPath,viewType);
-  InputReferences inputs=inputPathsExtractor.transform(closure);
-  List<String> absolutePaths=inputs.getAbsolutePaths();
-  List<Integer> absolutePathLineNumbers=inputs.getAbsolutePathLineNumbers();
-  final List<PotentialInput> potentialInputs=Lists.newArrayListWithCapacity(absolutePaths.size());
-  List<ModelReference<?>> actualInputs=Lists.newArrayListWithCapacity(potentialInputs.size());
-  for (int i=0; i < absolutePaths.size(); i++) {
-    String description=String.format("@ line %d",absolutePathLineNumbers.get(i));
-    String path=absolutePaths.get(i);
-    potentialInputs.add(PotentialInput.absoluteInput(path,actualInputs.size()));
-    actualInputs.add(ModelReference.untyped(ModelPath.path(path),description));
-  }
-  modelRegistry.configure(role,InputUsingModelAction.of(reference,descriptor,actualInputs,new BiAction<T,List<ModelView<?>>>(){
-    @Override public void execute(    final T t,    List<ModelView<?>> modelViews){
-      PotentialInputsAccess.with(new PotentialInputs(modelViews,potentialInputs),new Runnable(){
-        @Override public void run(){
+  modelRegistry.configure(ModelActionRole.DefineRules,DirectNodeNoInputsModelAction.of(reference,descriptor,new Action<MutableModelNode>(){
+    @Override public void execute(    MutableModelNode mutableModelNode){
+      InputReferences inputs=inputPathsExtractor.transform(closure);
+      List<String> absolutePaths=inputs.getAbsolutePaths();
+      List<Integer> absolutePathLineNumbers=inputs.getAbsolutePathLineNumbers();
+      final List<PotentialInput> potentialInputs=Lists.newArrayListWithCapacity(absolutePaths.size());
+      List<ModelReference<?>> actualInputs=Lists.newArrayListWithCapacity(potentialInputs.size());
+      for (int i=0; i < absolutePaths.size(); i++) {
+        String description=String.format("@ line %d",absolutePathLineNumbers.get(i));
+        String path=absolutePaths.get(i);
+        potentialInputs.add(PotentialInput.absoluteInput(path,actualInputs.size()));
+        actualInputs.add(ModelReference.untyped(ModelPath.path(path),description));
+      }
+      mutableModelNode.applyToSelf(role,InputUsingModelAction.of(reference,descriptor,actualInputs,new BiAction<T,List<ModelView<?>>>(){
+        @Override public void execute(        final T t,        List<ModelView<?>> modelViews){
+          ((TransformedClosure)closure).applyRuleInputs(new PotentialInputs(modelViews,potentialInputs));
           ClosureBackedAction.execute(t,closure.rehydrate(null,closure.getThisObject(),closure.getThisObject()));
         }
       }
-);
+));
     }
   }
 ));
