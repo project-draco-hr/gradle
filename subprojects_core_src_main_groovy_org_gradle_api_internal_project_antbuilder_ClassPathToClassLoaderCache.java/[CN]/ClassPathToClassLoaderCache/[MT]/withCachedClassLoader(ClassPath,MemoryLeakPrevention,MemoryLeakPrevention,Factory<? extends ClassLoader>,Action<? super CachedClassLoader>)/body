@@ -1,51 +1,40 @@
 {
-  lock.readLock().lock();
-  CacheEntry cacheEntry=cacheEntries.get(libClasspath);
-  CachedClassLoader cachedClassLoader=maybeGet(cacheEntry);
-  if (cachedClassLoader == null) {
-    lock.readLock().unlock();
-    lock.writeLock().lock();
-    try {
-      cacheEntry=cacheEntries.get(libClasspath);
-      cachedClassLoader=maybeGet(cacheEntry);
-      if (cachedClassLoader == null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("Classloader cache miss for classpath : %s. Creating classloader.",libClasspath.getAsURIs()));
-        }
-        ClassLoader classLoader=factory.create();
-        cachedClassLoader=new CachedClassLoader(libClasspath,classLoader);
-        cacheEntry=new CacheEntry(libClasspath,cachedClassLoader);
-        Cleanup cleanup=new Cleanup(libClasspath,cachedClassLoader,finalizerThread.getReferenceQueue(),classLoader,gradleToIsolatedLeakPrevention,antToGradleLeakPrevention);
-        finalizerThread.putCleanup(libClasspath,cleanup);
-        cacheEntries.put(libClasspath,cacheEntry);
+  CachedClassLoader cachedClassLoader;
+  lock.lock();
+  try {
+    CacheEntry cacheEntry=cacheEntries.get(libClasspath);
+    cachedClassLoader=maybeGet(cacheEntry);
+    if (cachedClassLoader == null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(String.format("Classloader cache miss for classpath : %s. Creating classloader.",libClasspath.getAsURIs()));
       }
-      lock.readLock().lock();
+      ClassLoader classLoader=factory.create();
+      cachedClassLoader=new CachedClassLoader(libClasspath,classLoader);
+      cacheEntry=new CacheEntry(libClasspath,cachedClassLoader);
+      Cleanup cleanup=new Cleanup(libClasspath,cachedClassLoader,finalizerThread.getReferenceQueue(),classLoader,gradleToIsolatedLeakPrevention,antToGradleLeakPrevention);
+      finalizerThread.putCleanup(libClasspath,cleanup);
+      cacheEntries.put(libClasspath,cacheEntry);
     }
-  finally {
-      lock.writeLock().unlock();
-    }
-  }
  else {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("Classloader found in cache: %s",libClasspath.getAsURIs()));
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(String.format("Classloader found in cache: %s",libClasspath.getAsURIs()));
+      }
     }
+    inUseClassLoaders.add(cachedClassLoader);
   }
-  lock.readLock().unlock();
-  if (LOG.isDebugEnabled()) {
-    LOG.debug(String.format("Consumer %s uses cached classloader: %s",action.toString(),libClasspath.getAsURIs()));
+  finally {
+    lock.unlock();
   }
-  lock.writeLock().lock();
-  inUseClassLoaders.add(cachedClassLoader);
-  lock.writeLock().unlock();
   try {
     action.execute(cachedClassLoader);
   }
   finally {
-    lock.writeLock().lock();
-    inUseClassLoaders.remove(cachedClassLoader);
-    lock.writeLock().unlock();
-  }
-  if (LOG.isDebugEnabled()) {
-    LOG.debug(String.format("End of usage of cached classloader: %s by consumer %s",libClasspath.getAsURIs(),action.toString()));
+    lock.lock();
+    try {
+      inUseClassLoaders.remove(cachedClassLoader);
+    }
+  finally {
+      lock.unlock();
+    }
   }
 }
