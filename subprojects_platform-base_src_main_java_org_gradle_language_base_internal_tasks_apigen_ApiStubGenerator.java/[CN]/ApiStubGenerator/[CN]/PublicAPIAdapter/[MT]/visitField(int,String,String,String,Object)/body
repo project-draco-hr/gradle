@@ -1,6 +1,12 @@
 {
   if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
-    return cv.visitField(access,name,desc,signature,value);
+    return new FieldVisitor(Opcodes.ASM5,cv.visitField(access,name,desc,signature,value)){
+      @Override public AnnotationVisitor visitAnnotation(      String annotationDesc,      boolean visible){
+        checkAnnotation(prettifyFieldDescriptor(access,name,desc),annotationDesc);
+        return super.visitAnnotation(annotationDesc,visible);
+      }
+    }
+;
   }
   return null;
 }
