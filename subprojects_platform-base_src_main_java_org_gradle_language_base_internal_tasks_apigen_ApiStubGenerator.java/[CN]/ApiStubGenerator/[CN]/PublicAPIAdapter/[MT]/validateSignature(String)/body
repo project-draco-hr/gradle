@@ -2,10 +2,12 @@
   if (allowedPackages.isEmpty()) {
     return;
   }
-  Type returnType=Type.getReturnType(desc);
-  validateType(returnType);
-  Type[] argumentTypes=Type.getArgumentTypes(desc);
-  for (  Type argumentType : argumentTypes) {
-    validateType(argumentType);
+  SignatureReader sr=new SignatureReader(signature);
+  sr.accept(new SignatureVisitor(Opcodes.ASM5){
+    @Override public void visitClassType(    String name){
+      super.visitClassType(name);
+      validateType(name);
+    }
   }
+);
 }
