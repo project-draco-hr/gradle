@@ -3,14 +3,44 @@
     return null;
   }
   if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
-    validateSignature(signature == null ? desc : signature);
-    MethodVisitor mv=cv.visitMethod(access,name,desc,signature,exceptions);
-    if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
-      mv.visitCode();
-      mv.visitMethodInsn(INVOKESTATIC,className,UOE_METHOD,"()Ljava/lang/UnsupportedOperationException;",false);
-      mv.visitInsn(ATHROW);
-      mv.visitMaxs(1,0);
-      mv.visitEnd();
+    Set<String> invalidReferencedTypes=invalidReferencedTypes(signature == null ? desc : signature);
+    if (invalidReferencedTypes.isEmpty()) {
+      MethodVisitor mv=cv.visitMethod(access,name,desc,signature,exceptions);
+      if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
+        mv.visitCode();
+        mv.visitMethodInsn(INVOKESTATIC,className,UOE_METHOD,"()Ljava/lang/UnsupportedOperationException;",false);
+        mv.visitInsn(ATHROW);
+        mv.visitMaxs(1,0);
+        mv.visitEnd();
+      }
+    }
+ else {
+      StringBuilder methodDesc=new StringBuilder();
+      methodDesc.append(Modifier.toString(access)).append(" ");
+      methodDesc.append(Type.getReturnType(desc).getClassName()).append(" ");
+      methodDesc.append(name);
+      methodDesc.append("(");
+      Type[] argumentTypes=Type.getArgumentTypes(desc);
+      for (int i=0, argumentTypesLength=argumentTypes.length; i < argumentTypesLength; i++) {
+        Type type=argumentTypes[i];
+        methodDesc.append(type.getClassName());
+        if (i < argumentTypesLength - 1) {
+          methodDesc.append(", ");
+        }
+      }
+      methodDesc.append(")");
+      if (invalidReferencedTypes.size() == 1) {
+        throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but doesn't belong to the allowed packages.",methodDesc,invalidReferencedTypes.iterator().next()));
+      }
+ else {
+        StringBuilder sb=new StringBuilder("The following types are referenced in ");
+        sb.append(methodDesc);
+        sb.append(" but don't belong to the allowed packages:\n");
+        for (        String invalidReferencedType : invalidReferencedTypes) {
+          sb.append("   - ").append(invalidReferencedType).append("\n");
+        }
+        throw new InvalidPublicAPIException(sb.toString());
+      }
     }
   }
   return null;

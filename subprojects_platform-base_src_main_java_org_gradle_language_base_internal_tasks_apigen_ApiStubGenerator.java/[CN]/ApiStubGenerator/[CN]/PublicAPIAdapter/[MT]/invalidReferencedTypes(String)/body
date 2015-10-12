@@ -1,13 +1,18 @@
 {
   if (allowedPackages.isEmpty()) {
-    return;
+    return Collections.emptySet();
   }
   SignatureReader sr=new SignatureReader(signature);
+  final Set<String> result=Sets.newLinkedHashSet();
   sr.accept(new SignatureVisitor(Opcodes.ASM5){
     @Override public void visitClassType(    String name){
       super.visitClassType(name);
-      validateType(name);
+      String className=name.replace('/','.');
+      if (!validateType(className)) {
+        result.add(className);
+      }
     }
   }
 );
+  return result;
 }
