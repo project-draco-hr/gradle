@@ -1,0 +1,26 @@
+{
+  if (allowedPackages.isEmpty()) {
+    return;
+  }
+  String className=type.getClassName();
+  if (isPrimitiveType(className)) {
+    return;
+  }
+  if (type.getElementType() != null) {
+    validateType(type.getElementType());
+    return;
+  }
+  if (className.startsWith("java")) {
+    return;
+  }
+  boolean allowed=false;
+  for (  String allowedPackage : allowedPackages) {
+    if (className.startsWith(allowedPackage + ".")) {
+      allowed=true;
+      break;
+    }
+  }
+  if (!allowed) {
+    throw new InvalidPublicAPIException("Type " + className + " is exposed in the public API but doesn't belong to the allowed packages");
+  }
+}
