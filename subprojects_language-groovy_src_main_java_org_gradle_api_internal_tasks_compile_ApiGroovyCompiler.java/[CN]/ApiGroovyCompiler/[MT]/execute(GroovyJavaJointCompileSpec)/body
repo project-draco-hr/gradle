@@ -1,7 +1,7 @@
 {
-  ClassLoader apiCompilerClassLoader=this.getClass().getClassLoader();
-  MemoryLeakPrevention prevention=new MemoryLeakPrevention("API Groovy Compiler",apiCompilerClassLoader,null);
-  prevention.prepare();
+  GroovySystemLoaderFactory groovySystemLoaderFactory=new GroovySystemLoaderFactory();
+  ClassLoader compilerClassLoader=this.getClass().getClassLoader();
+  GroovySystemLoader compilerGroovyLoader=groovySystemLoaderFactory.forClassLoader(compilerClassLoader);
   CompilerConfiguration configuration=new CompilerConfiguration();
   configuration.setVerbose(spec.getGroovyCompileOptions().isVerbose());
   configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
@@ -28,14 +28,10 @@
     classPathLoader=new GroovyCompileTransformingClassLoader(getExtClassLoader(),new DefaultClassPath(spec.getClasspath()));
   }
  else {
-    classPathLoader=new DefaultClassLoaderFactory().createIsolatedClassLoader(Iterables.transform(spec.getClasspath(),new Function<File,URI>(){
-      @Override public URI apply(      File input){
-        return input.toURI();
-      }
-    }
-));
+    classPathLoader=new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(spec.getClasspath()));
   }
   GroovyClassLoader compileClasspathClassLoader=new GroovyClassLoader(classPathLoader,null);
+  GroovySystemLoader compileClasspathLoader=groovySystemLoaderFactory.forClassLoader(classPathLoader);
   FilteringClassLoader groovyCompilerClassLoader=new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
   groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
   groovyCompilerClassLoader.allowPackage("groovy");
@@ -45,10 +41,6 @@
   for (  File file : spec.getClasspath()) {
     astTransformClassLoader.addClasspath(file.getPath());
   }
-  MemoryLeakPrevention groovyCompilerLeakPrevention=new MemoryLeakPrevention("Groovy compile classpath classloader",compileClasspathClassLoader,null);
-  MemoryLeakPrevention astxformsLeakPrevention=new MemoryLeakPrevention("Groovy AST xforms classloader",astTransformClassLoader,null);
-  groovyCompilerLeakPrevention.prepare();
-  astxformsLeakPrevention.prepare();
   JavaAwareCompilationUnit unit=new JavaAwareCompilationUnit(configuration,compileClasspathClassLoader){
     @Override public GroovyClassLoader getTransformLoader(){
       return astTransformClassLoader;
@@ -100,9 +92,9 @@
     throw new CompilationFailedException();
   }
  finally {
-    prevention.dispose(getExtClassLoader(),astTransformClassLoader,compileClasspathClassLoader);
-    groovyCompilerLeakPrevention.dispose(getExtClassLoader(),apiCompilerClassLoader,astTransformClassLoader);
-    astxformsLeakPrevention.dispose(getExtClassLoader(),apiCompilerClassLoader,compileClasspathClassLoader);
+    compilerGroovyLoader.discardTypesFrom(classPathLoader);
+    compilerGroovyLoader.discardTypesFrom(astTransformClassLoader);
+    compileClasspathLoader.shutdown();
   }
   return new SimpleWorkResult(true);
 }
