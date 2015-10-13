@@ -9,14 +9,12 @@
   ModelPath childPath=modelNode.getPath().child(property.getName());
   if (propertySchema instanceof ManagedImplModelSchema) {
     if (!property.isWritable()) {
-      ManagedImplModelSchema<P> managedPropertySchema=(ManagedImplModelSchema<P>)propertySchema;
-      ModelCreator creator=ModelCreators.of(childPath,nodeInitializerRegistry.getNodeInitializer(managedPropertySchema)).descriptor(descriptor).build();
+      ModelCreator creator=ModelCreators.of(childPath,nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(),property.getName()))).descriptor(descriptor).build();
       modelNode.addLink(creator);
     }
  else {
       if (propertySchema instanceof ScalarCollectionSchema) {
-        ManagedImplModelSchema<P> managedPropertySchema=(ManagedImplModelSchema<P>)propertySchema;
-        ModelCreator creator=ModelCreators.of(childPath,nodeInitializerRegistry.getNodeInitializer(managedPropertySchema)).descriptor(descriptor).build();
+        ModelCreator creator=ModelCreators.of(childPath,nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(),property.getName()))).descriptor(descriptor).build();
         modelNode.addLink(creator);
       }
  else {
@@ -31,7 +29,7 @@
     ModelProjection projection=new UnmanagedModelProjection<P>(propertyType,true,true);
     ModelCreators.Builder creatorBuilder;
     if (shouldHaveANodeInitializer(property,propertySchema)) {
-      creatorBuilder=ModelCreators.of(childPath,nodeInitializerRegistry.getNodeInitializer(propertyType));
+      creatorBuilder=ModelCreators.of(childPath,nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertyType,property.getName())));
     }
  else {
       creatorBuilder=ModelCreators.of(childPath);
