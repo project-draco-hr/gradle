@@ -1,0 +1,34 @@
+{
+  Optional<ModelProperty<?>> modelPropertyOptional=context.getModelProperty();
+  StringBuffer s=new StringBuffer();
+  if (modelPropertyOptional.isPresent()) {
+    s.append(String.format("A model element of type: '%s' can not be constructed.%n",context.getContainingType().get().getName()));
+    ModelProperty<?> modelProperty=modelPropertyOptional.get();
+    if (isManagedCollection(modelProperty.getType())) {
+      s.append(String.format("It's property '%s %s' is not a valid managed collection%n",modelProperty.getType().getName(),modelProperty.getName()));
+      ModelCollectionSchema<?,?> schema=(ModelCollectionSchema)schemaStore.getSchema(modelProperty.getType());
+      s.append(String.format("A managed collection can not contain '%s's%n",schema.getElementType()));
+      explainManagedCollections(s,1,constructableTypes);
+    }
+ else     if (isScalarCollection(modelProperty.getType(),schemaStore)) {
+      ModelCollectionSchema<?,?> schema=(ModelCollectionSchema)schemaStore.getSchema(modelProperty.getType());
+      s.append(String.format("It's property '%s %s' is not a valid scalar collection%n",modelProperty.getType().getName(),modelProperty.getName()));
+      s.append(String.format("A scalar collection can not contain '%s's%n",schema.getElementType()));
+      s.append(explainScalarCollections(scalarTypes));
+    }
+ else {
+      s.append(String.format("It's property '%s %s' can not be constructed%n",modelProperty.getType().getName(),modelProperty.getName()));
+      s.append(String.format("It must be one of:%n"));
+      s.append("    - A managed collection. ");
+      explainManagedCollections(s,1,constructableTypes);
+      s.append(String.format("%n    - A scalar collection. %s%n    - %s",explainScalarCollections(scalarTypes),describeUnmanagedProperties()));
+      maybeAppendConstructables(s,constructableTypes,1);
+    }
+  }
+ else {
+    s.append(String.format("A model element of type: '%s' can not be constructed.%n",context.getModelType()));
+    s.append(String.format("It must be one the following:\n" + "  - A supported scalar type (%s)\n" + "  - An enumerated type (Enum)\n"+ "  - An explicitly managed type (i.e. annotated with @Managed)\n"+ "  - An explicitly unmanaged property (i.e. annotated with @Unmanaged)\n"+ "  - A scalar collection type (%s)\n"+ "  - A managed collection type (%s)\n",context.getModelType(),describe(scalarTypes),describe(scalarCollectionTypes),describe(managedCollectionTypes)));
+    maybeAppendConstructables(s,constructableTypes,2);
+  }
+  return s.toString();
+}
