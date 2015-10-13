@@ -1,0 +1,31 @@
+{
+  if (!HAS_CLASS_VALUE) {
+    return NOT_BROKEN;
+  }
+  try {
+    Class<?> groovySystem=null;
+    try {
+      groovySystem=classLoader.loadClass("groovy.lang.GroovySystem");
+    }
+ catch (    ClassNotFoundException e) {
+      return NOT_BROKEN;
+    }
+    if (groovySystem.getClassLoader() != classLoader) {
+      return NOT_BROKEN;
+    }
+    String versionString;
+    try {
+      Method getVersion=groovySystem.getDeclaredMethod("getVersion");
+      versionString=(String)getVersion.invoke(null);
+    }
+ catch (    NoSuchMethodException ex) {
+      return NOT_BROKEN;
+    }
+    VersionNumber groovyVersion=VersionNumber.parse(versionString);
+    boolean isFaultyGroovy=groovyVersion.getMajor() == 2 && groovyVersion.getMinor() == 4 && groovyVersion.getMicro() < 5;
+    return isFaultyGroovy ? new LeakyOnJava7GroovySystemLoader(classLoader) : NOT_BROKEN;
+  }
+ catch (  Exception e) {
+    throw new GradleException("Could not inspect the Groovy system for ClassLoader " + classLoader,e);
+  }
+}

@@ -2,13 +2,14 @@
   this.classPathRegistry=classPathRegistry;
   this.classLoaderFactory=classLoaderFactory;
   this.libClasspath=new DefaultClassPath();
-  this.classLoaderCache=new ClassPathToClassLoaderCache();
+  GroovySystemLoaderFactory groovySystemLoaderFactory=new GroovySystemLoaderFactory();
+  this.classLoaderCache=new ClassPathToClassLoaderCache(groovySystemLoaderFactory);
   List<File> antClasspath=Lists.newArrayList(classPathRegistry.getClassPath("ANT").getAsFiles());
   File toolsJar=Jvm.current().getToolsJar();
   if (toolsJar != null) {
     antClasspath.add(toolsJar);
   }
-  ClassLoader antLoader=classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath));
+  antLoader=classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath));
   FilteringClassLoader loggingLoader=new FilteringClassLoader(getClass().getClassLoader());
   loggingLoader.allowPackage("org.slf4j");
   loggingLoader.allowPackage("org.apache.commons.logging");
@@ -19,10 +20,8 @@
   ClassPath gradleCoreUrls=classPathRegistry.getClassPath("GRADLE_CORE");
   gradleCoreUrls=gradleCoreUrls.plus(classPathRegistry.getClassPath("GROOVY"));
   gradleCoreUrls=gradleCoreUrls.plus(classPathRegistry.getClassPath("GRADLE_BASE_SERVICES"));
-  this.gradleLoader=new URLClassLoader(gradleCoreUrls.getAsURLArray(),baseAntLoader);
-  this.gradleToIsolatedLeakPrevention=new MemoryLeakPrevention(CORE_GRADLE_LOADER,this.getClass().getClassLoader(),null);
-  this.antToGradleLeakPrevention=new MemoryLeakPrevention(ANT_GRADLE_LOADER,gradleLoader,gradleCoreUrls);
-  this.gradleToIsolatedLeakPrevention.prepare();
-  this.antToGradleLeakPrevention.prepare();
+  this.antAdapterLoader=new URLClassLoader(gradleCoreUrls.getAsURLArray(),baseAntLoader);
+  gradleApiGroovyLoader=groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
+  antAdapterGroovyLoader=groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
   FINALIZERS.add(new Finalizer(this,FINALIZER_REFQUEUE));
 }

@@ -1,0 +1,20 @@
+{
+  try {
+    Iterator<?> it=globalClassSetIterator();
+    while (it.hasNext()) {
+      Object classInfo=it.next();
+      if (classInfo != null) {
+        Class clazz=(Class)clazzField.get(classInfo);
+        if (clazz.getClassLoader() == classLoader) {
+          removeFromGlobalClassValue.invoke(globalClassValue,clazz);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Removed ClassInfo from %s loaded by %s",clazz.getName(),clazz.getClassLoader()));
+          }
+        }
+      }
+    }
+  }
+ catch (  Exception e) {
+    throw new GradleException("Could not remove types for ClassLoader " + classLoader + " from the Groovy system "+ leakingLoader,e);
+  }
+}
