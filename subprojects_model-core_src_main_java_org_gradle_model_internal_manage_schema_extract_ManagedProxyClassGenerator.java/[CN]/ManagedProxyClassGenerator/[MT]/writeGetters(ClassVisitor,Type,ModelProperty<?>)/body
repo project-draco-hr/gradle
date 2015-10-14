@@ -1,0 +1,16 @@
+{
+  Class<?> propertyTypeClass=property.getType().getConcreteClass();
+  Set<String> processedNames=Sets.newHashSet();
+  for (  WeaklyTypeReferencingMethod<?,?> weakGetter : property.getGetters()) {
+    Method getter=weakGetter.getMethod();
+    if (!processedNames.add(getter.getName())) {
+      continue;
+    }
+    MethodVisitor methodVisitor=declareMethod(visitor,getter.getName(),Type.getMethodDescriptor(Type.getType(propertyTypeClass)),AsmClassGeneratorUtils.signature(getter));
+    putStateFieldValueOnStack(methodVisitor,generatedType);
+    putConstantOnStack(methodVisitor,property.getName());
+    invokeStateGetMethod(methodVisitor);
+    castFirstStackElement(methodVisitor,propertyTypeClass);
+    finishVisitingMethod(methodVisitor,returnCode(propertyTypeClass));
+  }
+}

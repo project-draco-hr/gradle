@@ -1,0 +1,26 @@
+{
+  final Set<DelegationInfo<? extends T>> delegates=Sets.newLinkedHashSet();
+  ModelSchemaUtils.walkTypeHierarchy(type.getConcreteClass(),new ModelSchemaUtils.TypeVisitor<S>(){
+    @Override public void visitType(    Class<? super S> superTypeClass){
+      ModelType<? super S> superType=ModelType.of(superTypeClass);
+      ModelType<? extends T> superTypeAsBaseType=baseType.asSubclass(superType);
+      if (superTypeAsBaseType == null) {
+        return;
+      }
+      ImplementationTypeRegistration<? extends T> registration=implementationTypes.get(superTypeAsBaseType.getConcreteClass());
+      if (registration != null) {
+        ModelType<? extends T> implementationType=registration.implementationType;
+        delegates.add(new DelegationInfo<T>(superTypeAsBaseType,implementationType));
+      }
+    }
+  }
+);
+switch (delegates.size()) {
+case 0:
+    return null;
+case 1:
+  return delegates.iterator().next();
+default :
+throw new IllegalStateException(String.format("More than one implementation type registered for %s, super-types that registered an implementation are: %s",type,Joiner.on(", ").join(delegates)));
+}
+}
