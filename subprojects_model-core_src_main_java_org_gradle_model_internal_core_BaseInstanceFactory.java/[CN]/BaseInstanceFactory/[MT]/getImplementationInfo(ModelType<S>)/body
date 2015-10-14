@@ -1,0 +1,25 @@
+{
+  final Set<ImplementationInfo<? extends T>> delegates=Sets.newLinkedHashSet();
+  ModelSchemaUtils.walkTypeHierarchy(type.getConcreteClass(),new ModelSchemaUtils.TypeVisitor<S>(){
+    @Override public void visitType(    Class<? super S> superTypeClass){
+      if (!baseInterface.getConcreteClass().isAssignableFrom(superTypeClass)) {
+        return;
+      }
+      Class<? extends T> superTypeClassAsBaseType=superTypeClass.asSubclass(baseInterface.getConcreteClass());
+      ImplementationTypeRegistration<? extends T> registration=implementationTypes.get(superTypeClassAsBaseType);
+      if (registration != null) {
+        ModelType<? extends T> implementationType=registration.implementationType;
+        delegates.add(new ImplementationInfo<T>(ModelType.of(superTypeClassAsBaseType),implementationType));
+      }
+    }
+  }
+);
+switch (delegates.size()) {
+case 0:
+    throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation",type));
+case 1:
+  return delegates.iterator().next();
+default :
+throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it has multiple default implementations registered, super-types that registered an implementation are: %s",type,Joiner.on(", ").join(delegates)));
+}
+}

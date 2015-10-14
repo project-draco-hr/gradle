@@ -1,7 +1,19 @@
 {
   ImplementationTypeRegistration<S> implementationTypeRegistration=getImplementationTypeRegistration(type);
   if (implementationTypeRegistration != null) {
-    throw new GradleException(getDuplicateRegistrationMessage("an implementation type",type,implementationTypeRegistration.source));
+    throw new IllegalStateException(getDuplicateRegistrationMessage("an implementation type",type,implementationTypeRegistration.source));
+  }
+  if (!baseInterface.isAssignableFrom(implementationType)) {
+    throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must extend '%s'",implementationType,type,baseImplementation));
+  }
+  if (Modifier.isAbstract(implementationType.getConcreteClass().getModifiers())) {
+    throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must not be abstract",implementationType,type));
+  }
+  try {
+    implementationType.getConcreteClass().getConstructor();
+  }
+ catch (  NoSuchMethodException e) {
+    throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must have a public default constructor",implementationType,type));
   }
   implementationTypes.put(type.getConcreteClass(),new ImplementationTypeRegistration<S>(sourceRule,implementationType));
 }
