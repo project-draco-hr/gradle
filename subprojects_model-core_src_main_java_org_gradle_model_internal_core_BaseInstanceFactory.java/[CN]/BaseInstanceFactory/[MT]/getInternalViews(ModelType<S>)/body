@@ -1,12 +1,12 @@
 {
-  TypeRegistration<S> registration=getRegistration(type);
-  if (registration == null) {
-    return ImmutableSet.of();
-  }
-  return ImmutableSet.copyOf(Iterables.transform(registration.internalViewRegistrations,new Function<InternalViewRegistration,ModelType<?>>(){
-    @Override public ModelType<?> apply(    InternalViewRegistration registration){
-      return registration.getInternalView();
+  final ImmutableSet.Builder<ModelType<?>> builder=ImmutableSet.builder();
+  ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(),new RegistrationHierarchyVisitor<S>(){
+    @Override protected void visitRegistration(    TypeRegistration<? extends T> registration){
+      for (      InternalViewRegistration<?> internalViewRegistration : registration.internalViewRegistrations) {
+        builder.add(internalViewRegistration.getInternalView());
+      }
     }
   }
-));
+);
+  return builder.build();
 }

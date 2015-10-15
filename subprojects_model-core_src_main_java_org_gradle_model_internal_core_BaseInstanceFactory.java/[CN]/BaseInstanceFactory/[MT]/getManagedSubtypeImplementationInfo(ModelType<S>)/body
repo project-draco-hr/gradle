@@ -3,17 +3,11 @@
     throw new IllegalArgumentException(String.format("Type '%s' is not managed",managedType));
   }
   final List<ManagedSubtypeImplementationInfo<? extends T>> implementationInfos=Lists.newArrayListWithCapacity(1);
-  ModelSchemaUtils.walkTypeHierarchy(managedType.getConcreteClass(),new ModelSchemaUtils.TypeVisitor<S>(){
-    @Override public void visitType(    Class<? super S> superTypeClass){
-      if (!baseInterface.getConcreteClass().isAssignableFrom(superTypeClass)) {
-        return;
-      }
-      Class<? extends T> superTypeClassAsBaseType=superTypeClass.asSubclass(baseInterface.getConcreteClass());
-      ModelType<? extends T> superTypeAsBaseType=ModelType.of(superTypeClassAsBaseType);
-      TypeRegistration<? extends T> registration=getRegistration(superTypeAsBaseType);
+  ModelSchemaUtils.walkTypeHierarchy(managedType.getConcreteClass(),new RegistrationHierarchyVisitor<S>(){
+    @Override protected void visitRegistration(    TypeRegistration<? extends T> registration){
       if (registration != null && registration.implementationRegistration != null) {
         ModelType<? extends T> implementationType=registration.implementationRegistration.getImplementationType();
-        implementationInfos.add(new ManagedSubtypeImplementationInfoImpl<T>(superTypeAsBaseType,implementationType));
+        implementationInfos.add(new ManagedSubtypeImplementationInfoImpl<T>(registration.publicType,implementationType));
       }
     }
   }
