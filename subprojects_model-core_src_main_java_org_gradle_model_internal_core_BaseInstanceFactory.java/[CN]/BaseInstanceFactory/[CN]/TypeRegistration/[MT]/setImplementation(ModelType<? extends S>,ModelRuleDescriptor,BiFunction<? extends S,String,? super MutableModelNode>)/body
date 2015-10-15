@@ -1,0 +1,18 @@
+{
+  if (implementationRegistration != null) {
+    throw new IllegalStateException(String.format("Cannot register implementation for type '%s' because an implementation for this type was already registered by %s",publicType,implementationRegistration.getSource()));
+  }
+  if (!baseInterface.isAssignableFrom(implementationType)) {
+    throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must extend '%s'",implementationType,publicType,baseImplementation));
+  }
+  if (Modifier.isAbstract(implementationType.getConcreteClass().getModifiers())) {
+    throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must not be abstract",implementationType,publicType));
+  }
+  try {
+    implementationType.getConcreteClass().getConstructor();
+  }
+ catch (  NoSuchMethodException e) {
+    throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must have a public default constructor",implementationType,publicType));
+  }
+  this.implementationRegistration=new ImplementationRegistration<S>(source,implementationType,factory);
+}

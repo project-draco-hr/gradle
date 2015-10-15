@@ -1,12 +1,31 @@
 {
-  factory.registerPublicType(publicType);
+  InstanceFactory.TypeRegistrationBuilder<S> registration=binaries.register(publicType,descriptor);
   if (implementationType != null) {
-    registerImplementation(publicType,factory,inputs);
+    ServiceRegistry serviceRegistry=ModelViews.assertType(inputs.get(0),ModelType.of(ServiceRegistry.class)).getInstance();
+    final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
+    final ITaskFactory taskFactory=ModelViews.assertType(inputs.get(1),ModelType.of(ITaskFactory.class)).getInstance();
+    registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType),new BiFunction<S,String,MutableModelNode>(){
+      @Override public S apply(      String name,      MutableModelNode modelNode1){
+        S binarySpec=Cast.uncheckedCast(BaseBinarySpec.create(publicType.getConcreteClass(),implementationType.getConcreteClass(),name,instantiator,taskFactory));
+        final Object parentObject=modelNode1.getParent().getParent().getPrivateData();
+        if (parentObject instanceof ComponentSpec && binarySpec instanceof ComponentSpecAware) {
+          ((ComponentSpecAware)binarySpec).setComponent((ComponentSpec)parentObject);
+        }
+        return binarySpec;
+      }
+    }
+);
+    binaries.registerDomainObjectFactory(publicType.getConcreteClass(),descriptor,new NamedDomainObjectFactory<S>(){
+      public S create(      String name){
+        return Cast.uncheckedCast(BaseBinarySpec.create(publicType.getConcreteClass(),implementationType.getConcreteClass(),name,instantiator,taskFactory));
+      }
+    }
+);
     if (BINARY_SPEC_INTERNAL_MODEL_TYPE.isAssignableFrom(implementationType)) {
-      factory.registerInternalView(publicType,descriptor,BINARY_SPEC_INTERNAL_MODEL_TYPE);
+      registration.withInternalView(BINARY_SPEC_INTERNAL_MODEL_TYPE);
     }
   }
   for (  ModelType<?> internalView : internalViews) {
-    factory.registerInternalView(publicType,descriptor,internalView);
+    registration.withInternalView(internalView);
   }
 }

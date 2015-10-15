@@ -1,25 +1,26 @@
 {
-  final Set<ImplementationInfo<? extends T>> delegates=Sets.newLinkedHashSet();
+  final List<ImplementationInfo<? extends T>> implementationInfos=Lists.newArrayListWithCapacity(1);
   ModelSchemaUtils.walkTypeHierarchy(type.getConcreteClass(),new ModelSchemaUtils.TypeVisitor<S>(){
     @Override public void visitType(    Class<? super S> superTypeClass){
       if (!baseInterface.getConcreteClass().isAssignableFrom(superTypeClass)) {
         return;
       }
       Class<? extends T> superTypeClassAsBaseType=superTypeClass.asSubclass(baseInterface.getConcreteClass());
-      ImplementationTypeRegistration<? extends T> registration=implementationTypes.get(superTypeClassAsBaseType);
-      if (registration != null) {
-        ModelType<? extends T> implementationType=registration.implementationType;
-        delegates.add(new ImplementationInfo<T>(ModelType.of(superTypeClassAsBaseType),implementationType));
+      ModelType<? extends T> superTypeAsBaseType=ModelType.of(superTypeClassAsBaseType);
+      TypeRegistration<? extends T> registration=getRegistration(superTypeAsBaseType);
+      if (registration != null && registration.implementationRegistration != null) {
+        ModelType<? extends T> implementationType=registration.implementationRegistration.getImplementationType();
+        implementationInfos.add(new ImplementationInfoImpl<T>(superTypeAsBaseType,implementationType));
       }
     }
   }
 );
-switch (delegates.size()) {
-case 0:
-    throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation",type));
+switch (implementationInfos.size()) {
 case 1:
-  return delegates.iterator().next();
+    return implementationInfos.get(0);
+case 0:
+  throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation",type));
 default :
-throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it has multiple default implementations registered, super-types that registered an implementation are: %s",type,Joiner.on(", ").join(delegates)));
+throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it has multiple default implementations registered, super-types that registered an implementation are: %s",type,Joiner.on(", ").join(implementationInfos)));
 }
 }
