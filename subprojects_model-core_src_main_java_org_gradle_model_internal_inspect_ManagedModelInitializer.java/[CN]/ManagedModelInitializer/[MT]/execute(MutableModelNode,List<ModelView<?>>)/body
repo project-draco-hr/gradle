@@ -1,15 +1,4 @@
 {
-  for (  ModelProperty<?> property : modelSchema.getProperties()) {
-    addPropertyLink(modelNode,property);
-  }
-  if (Named.class.isAssignableFrom(modelSchema.getType().getRawClass())) {
-    ModelProperty<?> nameProperty=modelSchema.getProperty("name");
-    if (nameProperty != null && nameProperty.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
-      MutableModelNode nameLink=modelNode.getLink("name");
-      if (nameLink == null) {
-        throw new IllegalStateException("expected name node for " + modelNode.getPath());
-      }
-      nameLink.setPrivateData(ModelType.of(String.class),modelNode.getPath().getName());
-    }
-  }
+  NodeInitializerRegistry nodeInitializerRegistry=ModelViews.assertType(inputs.get(0),NodeInitializerRegistry.class).getInstance();
+  addPropertyLinks(modelNode,nodeInitializerRegistry,schema.getProperties());
 }

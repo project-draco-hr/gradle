@@ -1,10 +1,14 @@
 {
   if (reset) {
     unboundRules.remove(node.getCreatorBinder());
+    unboundRules.removeAll(node.getInitializerRuleBinders());
     return node;
   }
-  ruleBindings.add(node);
+  addRuleBindings(node);
   modelGraph.add(node);
-  ruleBindings.add(node.getCreatorBinder());
+  ruleBindings.nodeCreated(node);
+  if (node.getCreatorBinder().getCreator().isService()) {
+    node.ensureAtLeast(ProjectionsDefined);
+  }
   return node;
 }

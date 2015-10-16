@@ -1,0 +1,45 @@
+{
+  if ("<clinit>".equals(name)) {
+    return null;
+  }
+  if (isPublicAPI(access) || ("<init>".equals(name) && isInnerClass)) {
+    Set<String> invalidReferencedTypes=invalidReferencedTypes(signature == null ? desc : signature);
+    if (invalidReferencedTypes.isEmpty()) {
+      MethodVisitor mv=new MethodVisitor(Opcodes.ASM5,cv.visitMethod(access,name,desc,signature,exceptions)){
+        @Override public AnnotationVisitor visitAnnotation(        String annDesc,        boolean visible){
+          checkAnnotation(prettifyMethodDescriptor(access,name,desc),annDesc);
+          return super.visitAnnotation(desc,visible);
+        }
+        @Override public AnnotationVisitor visitParameterAnnotation(        int parameter,        String annDesc,        boolean visible){
+          checkAnnotation(prettifyMethodDescriptor(access,name,desc),annDesc);
+          return super.visitParameterAnnotation(parameter,desc,visible);
+        }
+      }
+;
+      if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
+        mv.visitCode();
+        mv.visitMethodInsn(INVOKESTATIC,internalClassName,UOE_METHOD,"()Ljava/lang/UnsupportedOperationException;",false);
+        mv.visitInsn(ATHROW);
+        mv.visitMaxs(1,0);
+        mv.visitEnd();
+      }
+      return mv;
+    }
+ else {
+      String methodDesc=prettifyMethodDescriptor(access,name,desc);
+      if (invalidReferencedTypes.size() == 1) {
+        throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but its package is not one of the allowed packages.",methodDesc,invalidReferencedTypes.iterator().next()));
+      }
+ else {
+        StringBuilder sb=new StringBuilder("The following types are referenced in ");
+        sb.append(methodDesc);
+        sb.append(" but their package is not one of the allowed packages:\n");
+        for (        String invalidReferencedType : invalidReferencedTypes) {
+          sb.append("   - ").append(invalidReferencedType).append("\n");
+        }
+        throw new InvalidPublicAPIException(sb.toString());
+      }
+    }
+  }
+  return null;
+}

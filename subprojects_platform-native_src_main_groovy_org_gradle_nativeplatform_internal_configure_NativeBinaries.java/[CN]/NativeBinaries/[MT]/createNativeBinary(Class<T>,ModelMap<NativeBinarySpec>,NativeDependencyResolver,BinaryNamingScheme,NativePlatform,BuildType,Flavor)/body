@@ -1,13 +1,13 @@
 {
   final String name=namingScheme.getLifecycleTaskName();
   binaries.create(name,type);
-  binaries.beforeEach(NativeBinarySpec.class,new Action<NativeBinarySpec>(){
-    @Override public void execute(    NativeBinarySpec nativeBinarySpec){
-      if (nativeBinarySpec.getName().equals(name)) {
-        initialize(nativeBinarySpec,namingScheme,resolver,platform,buildType,flavor);
-      }
+  MutableModelNode backingNode=((ManagedInstance)binaries).getBackingNode();
+  ModelPath binaryPath=backingNode.getPath().child(name);
+  backingNode.applyToLink(ModelActionRole.Defaults,DirectNodeNoInputsModelAction.of(ModelReference.of(binaryPath,NativeBinarySpec.class),new SimpleModelRuleDescriptor("initialize binary " + binaryPath),new BiAction<MutableModelNode,NativeBinarySpec>(){
+    @Override public void execute(    MutableModelNode mutableModelNode,    NativeBinarySpec nativeBinarySpec){
+      initialize(nativeBinarySpec,namingScheme,resolver,platform,buildType,flavor);
     }
   }
-);
+));
   binaries.named(name,NativeBinaryRules.class);
 }

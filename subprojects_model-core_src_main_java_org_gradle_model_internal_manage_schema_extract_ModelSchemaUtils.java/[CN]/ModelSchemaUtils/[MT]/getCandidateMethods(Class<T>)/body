@@ -1,0 +1,19 @@
+{
+  final ImmutableListMultimap.Builder<String,Method> methodsBuilder=ImmutableListMultimap.builder();
+  walkTypeHierarchy(clazz,new TypeVisitor<T>(){
+    @Override public void visitType(    Class<? super T> type){
+      for (      Method method : type.getDeclaredMethods()) {
+        int modifiers=method.getModifiers();
+        if (method.isSynthetic() || Modifier.isStatic(modifiers) || !Modifier.isPublic(modifiers)) {
+          continue;
+        }
+        if (IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method))) {
+          continue;
+        }
+        methodsBuilder.put(method.getName(),method);
+      }
+    }
+  }
+);
+  return methodsBuilder.build();
+}

@@ -1,4 +1,7 @@
 {
+  GroovySystemLoaderFactory groovySystemLoaderFactory=new GroovySystemLoaderFactory();
+  ClassLoader compilerClassLoader=this.getClass().getClassLoader();
+  GroovySystemLoader compilerGroovyLoader=groovySystemLoaderFactory.forClassLoader(compilerClassLoader);
   CompilerConfiguration configuration=new CompilerConfiguration();
   configuration.setVerbose(spec.getGroovyCompileOptions().isVerbose());
   configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
@@ -19,8 +22,16 @@
   jointCompilationOptions.put("stubDir",stubDir);
   jointCompilationOptions.put("keepStubs",spec.getGroovyCompileOptions().isKeepStubs());
   configuration.setJointCompilationOptions(jointCompilationOptions);
-  URLClassLoader classPathLoader=new GroovyCompileTransformingClassLoader(getExtClassLoader(),new DefaultClassPath(spec.getClasspath()));
+  ClassLoader classPathLoader;
+  VersionNumber version=parseGroovyVersion();
+  if (version.compareTo(VersionNumber.parse("2.0")) < 0) {
+    classPathLoader=new GroovyCompileTransformingClassLoader(getExtClassLoader(),new DefaultClassPath(spec.getClasspath()));
+  }
+ else {
+    classPathLoader=new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(spec.getClasspath()));
+  }
   GroovyClassLoader compileClasspathClassLoader=new GroovyClassLoader(classPathLoader,null);
+  GroovySystemLoader compileClasspathLoader=groovySystemLoaderFactory.forClassLoader(classPathLoader);
   FilteringClassLoader groovyCompilerClassLoader=new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
   groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
   groovyCompilerClassLoader.allowPackage("groovy");
@@ -79,6 +90,11 @@
  catch (  org.codehaus.groovy.control.CompilationFailedException e) {
     System.err.println(e.getMessage());
     throw new CompilationFailedException();
+  }
+ finally {
+    compilerGroovyLoader.discardTypesFrom(classPathLoader);
+    compilerGroovyLoader.discardTypesFrom(astTransformClassLoader);
+    compileClasspathLoader.shutdown();
   }
   return new SimpleWorkResult(true);
 }

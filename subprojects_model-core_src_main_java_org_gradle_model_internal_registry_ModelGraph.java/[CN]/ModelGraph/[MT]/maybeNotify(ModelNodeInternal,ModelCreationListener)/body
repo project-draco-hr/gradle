@@ -1,6 +1,11 @@
 {
-  if (listener.getType() != null && !node.getPromise().canBeViewedAsWritable(listener.getType()) && !node.getPromise().canBeViewedAsReadOnly(listener.getType())) {
-    return false;
+  if (listener.getType() != null) {
+    if (!node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
+      return false;
+    }
+    if (!node.getPromise().canBeViewedAsMutable(listener.getType()) && !node.getPromise().canBeViewedAsImmutable(listener.getType())) {
+      return false;
+    }
   }
   return listener.onCreate(node);
 }

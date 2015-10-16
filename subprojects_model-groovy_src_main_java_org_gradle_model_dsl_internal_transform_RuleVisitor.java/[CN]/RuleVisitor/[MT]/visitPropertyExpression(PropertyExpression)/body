@@ -1,17 +1,10 @@
 {
-  ArrayList<String> names=Lists.newArrayList();
-  boolean propertyNameIsPart=extractPropertyPath(expression,names);
-  if (names.isEmpty() || !names.get(0).equals("thing")) {
-    super.visitPropertyExpression(expression);
+  String modelPath=isDollarPathExpression(expr);
+  if (modelPath != null) {
+    inputs.absolutePath(modelPath,expr.getLineNumber());
+    replaceVisitedExpressionWith(inputReferenceExpression(modelPath));
   }
  else {
-    String modelPath=ModelPath.pathString(names);
-    inputs.relativePath(modelPath,expression.getLineNumber());
-    if (propertyNameIsPart) {
-      replaceVisitedExpressionWith(conditionalInputGet(modelPath,expression));
-    }
- else {
-      expression.setObjectExpression(conditionalInputGet(modelPath,expression.getObjectExpression()));
-    }
+    super.visitPropertyExpression(expr);
   }
 }

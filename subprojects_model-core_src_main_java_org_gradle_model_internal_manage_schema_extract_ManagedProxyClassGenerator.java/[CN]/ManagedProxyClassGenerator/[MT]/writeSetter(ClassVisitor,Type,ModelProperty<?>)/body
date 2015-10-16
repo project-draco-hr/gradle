@@ -1,0 +1,23 @@
+{
+  WeaklyTypeReferencingMethod<?,Void> weakSetter=property.getSetter();
+  if (weakSetter == null) {
+    return;
+  }
+  String propertyName=property.getName();
+  Class<?> propertyTypeClass=property.getType().getConcreteClass();
+  Label calledOutsideOfConstructor=new Label();
+  Method setter=weakSetter.getMethod();
+  MethodVisitor methodVisitor=declareMethod(visitor,setter.getName(),Type.getMethodDescriptor(Type.VOID_TYPE,Type.getType(propertyTypeClass)),AsmClassGeneratorUtils.signature(setter));
+  putCanCallSettersFieldValueOnStack(methodVisitor,generatedType);
+  jumpToLabelIfStackEvaluatesToTrue(methodVisitor,calledOutsideOfConstructor);
+  throwExceptionBecauseCalledOnItself(methodVisitor);
+  methodVisitor.visitLabel(calledOutsideOfConstructor);
+  putStateFieldValueOnStack(methodVisitor,generatedType);
+  putConstantOnStack(methodVisitor,propertyName);
+  putFirstMethodArgumentOnStack(methodVisitor,propertyTypeClass);
+  if (propertyTypeClass.isPrimitive()) {
+    boxType(methodVisitor,propertyTypeClass);
+  }
+  invokeStateSetMethod(methodVisitor);
+  finishVisitingMethod(methodVisitor);
+}

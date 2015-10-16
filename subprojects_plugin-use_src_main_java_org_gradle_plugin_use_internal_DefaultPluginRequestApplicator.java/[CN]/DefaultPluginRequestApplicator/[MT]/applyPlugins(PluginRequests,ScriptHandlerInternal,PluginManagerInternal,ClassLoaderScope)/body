@@ -1,6 +1,6 @@
 {
   if (requests.isEmpty()) {
-    defineScriptHandlerClassScope(scriptHandler,classLoaderScope,Collections.unmodifiableSet(Collections.<ClassPath>emptySet()));
+    defineScriptHandlerClassScope(scriptHandler,classLoaderScope,Collections.<PluginImplementation<?>>emptyList());
     return;
   }
   if (target == null) {
@@ -15,7 +15,7 @@
 );
   final Map<Result,PluginId> legacyActualPluginIds=Maps.newLinkedHashMap();
   final Map<Result,PluginImplementation<?>> pluginImpls=Maps.newLinkedHashMap();
-  final Set<ClassPath> pluginClassPaths=Sets.newHashSet();
+  final Map<Result,PluginImplementation<?>> pluginImplsFromOtherLoaders=Maps.newLinkedHashMap();
   if (!results.isEmpty()) {
     final RepositoryHandler repositories=scriptHandler.getRepositories();
     final List<MavenArtifactRepository> mavenRepos=repositories.withType(MavenArtifactRepository.class);
@@ -32,8 +32,8 @@
             @Override public void add(            PluginImplementation<?> plugin){
               pluginImpls.put(result,plugin);
             }
-            public void addClassPath(            ClassPath classPath){
-              pluginClassPaths.add(classPath);
+            @Override public void addFromDifferentLoader(            PluginImplementation<?> plugin){
+              pluginImplsFromOtherLoaders.put(result,plugin);
             }
           }
 );
@@ -58,7 +58,7 @@
       }
     }
   }
-  defineScriptHandlerClassScope(scriptHandler,classLoaderScope,pluginClassPaths);
+  defineScriptHandlerClassScope(scriptHandler,classLoaderScope,pluginImplsFromOtherLoaders.values());
   for (  final Map.Entry<Result,PluginId> entry : legacyActualPluginIds.entrySet()) {
     final PluginRequest request=entry.getKey().request;
     final PluginId id=entry.getValue();
@@ -69,7 +69,7 @@
     }
 );
   }
-  for (  final Map.Entry<Result,PluginImplementation<?>> entry : pluginImpls.entrySet()) {
+  for (  final Map.Entry<Result,PluginImplementation<?>> entry : Iterables.concat(pluginImpls.entrySet(),pluginImplsFromOtherLoaders.entrySet())) {
     final Result result=entry.getKey();
     applyPlugin(result.request,result.found.getPluginId(),new Runnable(){
       public void run(){

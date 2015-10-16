@@ -1,11 +1,12 @@
 {
   project.getPluginManager().apply(BasePlugin.class);
   project.getPluginManager().apply(ReportingBasePlugin.class);
-  project.getPluginManager().apply(LegacyJavaComponentPlugin.class);
+  project.getPluginManager().apply(LanguageBasePlugin.class);
   JavaPluginConvention javaConvention=new JavaPluginConvention(project,instantiator);
   project.getConvention().getPlugins().put("java",javaConvention);
   configureCompileDefaults(project,javaConvention);
-  configureSourceSetDefaults(javaConvention);
+  BridgedBinaries binaries=configureSourceSetDefaults(javaConvention);
+  modelRegistry.createOrReplace(ModelCreators.bridgedInstance(ModelReference.of("bridgedBinaries",BridgedBinaries.class),binaries).descriptor("JavaBasePlugin.apply()").ephemeral(true).hidden(true).build());
   configureJavaDoc(project,javaConvention);
   configureTest(project,javaConvention);
   configureBuildNeeded(project);

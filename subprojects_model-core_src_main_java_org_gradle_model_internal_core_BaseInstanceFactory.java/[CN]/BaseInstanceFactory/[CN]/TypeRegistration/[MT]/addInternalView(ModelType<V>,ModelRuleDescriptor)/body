@@ -1,0 +1,13 @@
+{
+  if (!internalView.getConcreteClass().isInterface()) {
+    throw new IllegalArgumentException(String.format("Internal view '%s' registered for '%s' must be an interface",internalView,publicType));
+  }
+  boolean managedInternalView=internalView.getConcreteClass().isAnnotationPresent(Managed.class);
+  if (managedPublicType && !managedInternalView) {
+    throw new IllegalArgumentException(String.format("Internal view '%s' registered for managed type '%s' must be managed",internalView,publicType));
+  }
+  if (!managedPublicType && managedInternalView) {
+    throw new IllegalArgumentException(String.format("Internal view '%s' registered for unmanaged type '%s' must be unmanaged",internalView,publicType));
+  }
+  internalViewRegistrations.add(new InternalViewRegistration<V>(source,internalView));
+}

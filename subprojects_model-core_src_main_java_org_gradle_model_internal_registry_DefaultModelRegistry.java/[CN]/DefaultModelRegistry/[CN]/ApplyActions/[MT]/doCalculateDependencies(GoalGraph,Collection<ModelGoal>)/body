@@ -1,17 +1,12 @@
 {
-  if (seenRules.isEmpty() && getTargetState().equals(DefaultsApplied)) {
-    for (    RuleBinder binder : ruleBindings.getRulesWithSubject(getPath())) {
-      if (seenRules.add(binder)) {
-        MutatorRuleBinder<?> mutator=Cast.uncheckedCast(binder);
-        dependencies.add(new RunModelAction(getPath(),mutator));
+  boolean noActionsAdded=true;
+  for (  RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
+    if (seenRules.add(binder)) {
+      noActionsAdded=false;
+      if (binder instanceof ModelActionBinder) {
+        dependencies.add(new RunModelAction(getPath(),(ModelActionBinder)binder));
       }
     }
   }
-  for (  RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
-    if (seenRules.add(binder)) {
-      MutatorRuleBinder<?> mutator=Cast.uncheckedCast(binder);
-      dependencies.add(new RunModelAction(getPath(),mutator));
-    }
-  }
-  return false;
+  return noActionsAdded;
 }

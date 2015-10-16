@@ -1,12 +1,14 @@
 {
   SourceLocation sourceLocation=ruleLocationExtractor.transform(closure);
   ModelPath modelPath=ModelPath.path(modelPathString);
-  ModelSchema<T> schema=schemaStore.getSchema(ModelType.of(type));
   ModelRuleDescriptor descriptor=toDescriptor(sourceLocation,modelPath);
-  if (!(schema instanceof ManagedImplModelSchema)) {
-    throw new InvalidModelRuleDeclarationException(descriptor,"Cannot create an element of type " + type.getName() + " as it is not a managed type");
+  try {
+    NodeInitializerRegistry nodeInitializerRegistry=modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(),DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
+    NodeInitializer nodeInitializer=nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)));
+    modelRegistry.create(ModelCreators.of(modelPath,nodeInitializer).descriptor(descriptor).build());
   }
-  NodeInitializer nodeInitializer=nodeInitializerRegistry.getNodeInitializer((ManagedImplModelSchema<?>)schema);
-  modelRegistry.create(ModelCreators.of(modelPath,nodeInitializer).descriptor(descriptor).build());
+ catch (  ModelTypeInitializationException e) {
+    throw new InvalidModelRuleDeclarationException(descriptor,e);
+  }
   registerAction(modelPath,type,descriptor,ModelActionRole.Initialize,closure);
 }

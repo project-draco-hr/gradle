@@ -6,13 +6,16 @@
       throw new UnsupportedOperationException("Currently not implemented");
     }
     ModelNodeInternal node=modelGraph.find(predicate.getPath());
-    if (node != null) {
+    if (node != null && reference.binding.canBindInState(node.getState())) {
       bound(reference,node);
     }
     pathReferences.put(predicate.getPath(),reference);
   }
  else   if (predicate.getScope() != null) {
     for (    ModelNodeInternal node : modelGraph.findAllInScope(predicate.getScope())) {
+      if (!node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
+        continue;
+      }
       if (binding.isTypeCompatible(node.getPromise())) {
         bound(reference,node);
       }

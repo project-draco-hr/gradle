@@ -3,13 +3,20 @@
     return unwrap().getName();
   }
  else {
-    StringBuffer sb=new StringBuffer();
     Class<?> clazz=unwrap();
-    sb.append(clazz.getSimpleName());
-    for (Class<?> c=clazz.getEnclosingClass(); c != null; c=c.getEnclosingClass()) {
-      sb.insert(0,'.');
-      sb.insert(0,c.getSimpleName());
+    try {
+      StringBuilder sb=new StringBuilder();
+      sb.append(clazz.getSimpleName());
+      for (Class<?> c=clazz.getEnclosingClass(); c != null; c=c.getEnclosingClass()) {
+        sb.insert(0,'.');
+        sb.insert(0,c.getSimpleName());
+      }
+      return sb.toString();
     }
-    return sb.toString();
+ catch (    NoClassDefFoundError ignore) {
+      Package pkg=clazz.getPackage();
+      int pkgPrefixLength=pkg == null ? 0 : pkg.getName().length() + 1;
+      return clazz.getName().substring(pkgPrefixLength).replace('$','.');
+    }
   }
 }

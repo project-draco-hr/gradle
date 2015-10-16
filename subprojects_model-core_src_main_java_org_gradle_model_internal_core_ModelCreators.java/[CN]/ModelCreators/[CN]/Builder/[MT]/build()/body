@@ -1,15 +1,19 @@
 {
-  ModelProjection projection=projections.size() == 1 ? projections.get(0) : new ChainingModelProjection(projections);
-  BiAction<? super MutableModelNode,? super List<ModelView<?>>> effectiveInitializer=initializer;
-  if (!actions.isEmpty()) {
-    effectiveInitializer=BiActions.composite(initializer,new BiAction<MutableModelNode,List<ModelView<?>>>(){
-      @Override public void execute(      MutableModelNode modelNode,      List<ModelView<?>> modelViews){
-        for (        Pair<? extends ModelActionRole,? extends ModelAction<?>> action : actions) {
-          modelNode.applyToSelf(action.getLeft(),action.getRight());
-        }
+  if (nodeInitializer != null) {
+    this.action(ModelActionRole.Create,new BuilderModelAction(){
+      @Override public void execute(      MutableModelNode modelNode,      List<ModelView<?>> inputs){
+        nodeInitializer.execute(modelNode,inputs);
+      }
+      @Override public List<? extends ModelReference<?>> getInputs(){
+        return nodeInitializer.getInputs();
       }
     }
 );
+    this.projections.addAll(nodeInitializer.getProjections());
+    ModelAction projector=nodeInitializer.getProjector(path,modelRuleDescriptor);
+    if (projector != null) {
+      action(ModelActionRole.DefineProjections,projector);
+    }
   }
-  return new ProjectionBackedModelCreator(path,modelRuleDescriptor,ephemeral,hidden,inputs,projection,effectiveInitializer);
+  return new ProjectionBackedModelCreator(path,modelRuleDescriptor,service,ephemeral,hidden || service,projections,actions);
 }

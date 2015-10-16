@@ -1,25 +1,26 @@
 {
   final ModelReference<T> reference=ModelReference.of(modelPath,viewType);
-  ModelAction<T> action=DirectNodeNoInputsModelAction.of(reference,descriptor,new Action<MutableModelNode>(){
-    @Override public void execute(    MutableModelNode modelNode){
+  modelRegistry.configure(ModelActionRole.DefineRules,DirectNodeNoInputsModelAction.of(reference,descriptor,new Action<MutableModelNode>(){
+    @Override public void execute(    MutableModelNode mutableModelNode){
       InputReferences inputs=inputPathsExtractor.transform(closure);
       List<String> absolutePaths=inputs.getAbsolutePaths();
       List<Integer> absolutePathLineNumbers=inputs.getAbsolutePathLineNumbers();
-      List<String> relativePaths=inputs.getRelativePaths();
-      List<Integer> relativePathLineNumbers=inputs.getRelativePathLineNumbers();
-      List<ModelReference<?>> references=Lists.newArrayListWithCapacity(absolutePaths.size() + inputs.getRelativePaths().size());
+      final List<PotentialInput> potentialInputs=Lists.newArrayListWithCapacity(absolutePaths.size());
+      List<ModelReference<?>> actualInputs=Lists.newArrayListWithCapacity(potentialInputs.size());
       for (int i=0; i < absolutePaths.size(); i++) {
         String description=String.format("@ line %d",absolutePathLineNumbers.get(i));
-        references.add(ModelReference.untyped(ModelPath.path(absolutePaths.get(i)),description));
+        String path=absolutePaths.get(i);
+        potentialInputs.add(PotentialInput.absoluteInput(path,actualInputs.size()));
+        actualInputs.add(ModelReference.untyped(ModelPath.path(path),description));
       }
-      for (int i=0; i < relativePaths.size(); i++) {
-        String description=String.format("@ line %d",relativePathLineNumbers.get(i));
-        references.add(ModelReference.untyped(ModelPath.path(relativePaths.get(i)),description));
+      mutableModelNode.applyToSelf(role,InputUsingModelAction.of(reference,descriptor,actualInputs,new BiAction<T,List<ModelView<?>>>(){
+        @Override public void execute(        final T t,        List<ModelView<?>> modelViews){
+          ((TransformedClosure)closure).applyRuleInputs(new PotentialInputs(modelViews,potentialInputs));
+          ClosureBackedAction.execute(t,closure.rehydrate(null,closure.getThisObject(),closure.getThisObject()));
+        }
       }
-      ModelAction<T> runClosureAction=InputUsingModelAction.of(reference,descriptor,references,new ExecuteClosure<T>(closure));
-      modelRegistry.configure(role,runClosureAction);
+));
     }
   }
-);
-  modelRegistry.configure(ModelActionRole.DefineRules,action);
+));
 }

@@ -1,0 +1,22 @@
+{
+  final List<ModelView<?>> inputs=toViews(boundMutator.getInputBindings(),boundMutator.getAction().getDescriptor());
+  ModelBinding subjectBinding=boundMutator.getSubjectBinding();
+  if (subjectBinding == null) {
+    throw new IllegalStateException("Subject binding must not be null");
+  }
+  final ModelNodeInternal node=subjectBinding.getNode();
+  final ModelAction mutator=boundMutator.getAction();
+  ModelRuleDescriptor descriptor=mutator.getDescriptor();
+  LOGGER.debug("Mutating {} using {}",node.getPath(),descriptor);
+  try {
+    RuleContext.run(descriptor,new Runnable(){
+      @Override public void run(){
+        mutator.execute(node,inputs);
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new ModelRuleExecutionException(descriptor,e);
+  }
+}

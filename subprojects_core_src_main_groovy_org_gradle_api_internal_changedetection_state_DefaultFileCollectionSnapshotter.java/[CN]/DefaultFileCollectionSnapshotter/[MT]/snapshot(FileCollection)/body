@@ -1,20 +1,20 @@
 {
-  final Set<File> files=input.getAsFileTree().getFiles();
-  if (files.isEmpty()) {
+  final List<FileVisitDetails> allFileVisitDetails=visitFiles(input);
+  if (allFileVisitDetails.isEmpty()) {
     return new FileCollectionSnapshotImpl(Collections.<String,IncrementalFileSnapshot>emptyMap());
   }
   final Map<String,IncrementalFileSnapshot> snapshots=new HashMap<String,IncrementalFileSnapshot>();
   cacheAccess.useCache("Create file snapshot",new Runnable(){
     public void run(){
-      for (      File file : files) {
-        if (file.isFile()) {
-          snapshots.put(file.getAbsolutePath(),new FileHashSnapshot(snapshotter.snapshot(file).getHash()));
-        }
- else         if (file.isDirectory()) {
-          snapshots.put(file.getAbsolutePath(),new DirSnapshot());
-        }
+      for (      FileVisitDetails fileDetails : allFileVisitDetails) {
+        final String absolutePath=fileDetails.getFile().getAbsolutePath();
+        if (!snapshots.containsKey(absolutePath)) {
+          if (fileDetails.isDirectory()) {
+            snapshots.put(absolutePath,new DirSnapshot());
+          }
  else {
-          snapshots.put(file.getAbsolutePath(),new MissingFileSnapshot());
+            snapshots.put(absolutePath,new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash()));
+          }
         }
       }
     }

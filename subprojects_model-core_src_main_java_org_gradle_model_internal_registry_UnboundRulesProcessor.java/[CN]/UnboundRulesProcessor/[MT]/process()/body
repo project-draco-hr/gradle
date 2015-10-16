@@ -2,10 +2,12 @@
   List<UnboundRule> unboundRules=new ArrayList<UnboundRule>();
   for (  RuleBinder binder : binders) {
     UnboundRule.Builder builder=UnboundRule.descriptor(binder.getDescriptor().toString());
-    if (binder.getSubjectBinding() != null) {
-      ModelBinding binding=binder.getSubjectBinding();
-      UnboundRuleInput.Builder inputBuilder=toInputBuilder(binding);
-      builder.mutableInput(inputBuilder);
+    ModelBinding subjectBinding=binder.getSubjectBinding();
+    if (subjectBinding != null) {
+      if (subjectBinding.getPredicate().getState().compareTo(ModelNode.State.Created) > 0) {
+        UnboundRuleInput.Builder inputBuilder=toInputBuilder(subjectBinding);
+        builder.mutableInput(inputBuilder);
+      }
     }
     for (int i=0; i < binder.getInputBindings().size(); ++i) {
       ModelBinding binding=binder.getInputBindings().get(i);
