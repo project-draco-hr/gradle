@@ -1,18 +1,28 @@
 {
-  if (inputs != null) {
-    throw new IllegalStateException("Already visiting a rule closure");
-  }
-  inputs=new InputReferences();
+  InputReferences parentInputs=inputs;
+  VariableExpression parentInputsVariable=inputsVariable;
   try {
-    inputsVariable=new VariableExpression(INPUTS_LVAR_NAME,POTENTIAL_INPUTS);
+    if (inputs == null) {
+      inputs=new InputReferences();
+    }
+    inputsVariable=new VariableExpression("__rule_inputs_var_" + (counter++),POTENTIAL_INPUTS);
+    inputsVariable.setClosureSharedVariable(true);
     super.visitClosureExpression(expression);
     BlockStatement code=(BlockStatement)expression.getCode();
     code.setNodeMetaData(AST_NODE_METADATA_LOCATION_KEY,sourceLocation);
     code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY,inputs);
-    inputsVariable.setClosureSharedVariable(true);
+    if (parentInputsVariable != null) {
+      expression.getVariableScope().putReferencedLocalVariable(parentInputsVariable);
+    }
     code.getVariableScope().putDeclaredVariable(inputsVariable);
-    DeclarationExpression variableDeclaration=new DeclarationExpression(inputsVariable,ASSIGN,new VariableExpression(INPUTS_FIELD_NAME));
-    code.getStatements().add(0,new ExpressionStatement(variableDeclaration));
+    if (parentInputsVariable == null) {
+      DeclarationExpression variableDeclaration=new DeclarationExpression(inputsVariable,ASSIGN,new VariableExpression(INPUTS_FIELD_NAME));
+      code.getStatements().add(0,new ExpressionStatement(variableDeclaration));
+    }
+ else {
+      DeclarationExpression variableDeclaration=new DeclarationExpression(inputsVariable,ASSIGN,new ElvisOperatorExpression(new VariableExpression(INPUTS_FIELD_NAME),parentInputsVariable));
+      code.getStatements().add(0,new ExpressionStatement(variableDeclaration));
+    }
     for (    Parameter parameter : expression.getParameters()) {
       if (parameter.hasInitialExpression()) {
         code.getStatements().add(1,new ExpressionStatement(new BinaryExpression(new VariableExpression(parameter.getName()),ASSIGN,parameter.getInitialExpression())));
@@ -21,6 +31,7 @@
     }
   }
   finally {
-    inputs=null;
+    inputs=parentInputs;
+    inputsVariable=parentInputsVariable;
   }
 }
