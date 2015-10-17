@@ -1,0 +1,11 @@
+{
+  ModelType<S> type=schema.getType();
+  InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo=instanceFactory.getManagedSubtypeImplementationInfo(type);
+  T instance=instanceFactory.create(implementationInfo.getPublicType(),modelNode,modelNode.getPath().getName());
+  configureAction.execute(instance);
+  ModelType<T> delegateType=Cast.uncheckedCast(implementationInfo.getDelegateType());
+  modelNode.setPrivateData(delegateType,instance);
+  NodeInitializerRegistry nodeInitializerRegistry=ModelViews.assertType(inputs.get(0),NodeInitializerRegistry.class).getInstance();
+  ModelStructSchema<T> delegateSchema=Cast.uncheckedCast(schemaStore.getSchema(delegateType));
+  addPropertyLinks(modelNode,nodeInitializerRegistry,getProperties(delegateSchema));
+}

@@ -1,0 +1,42 @@
+{
+  if (delegateSchema != null && Modifier.isAbstract(delegateSchema.getType().getConcreteClass().getModifiers())) {
+    throw new IllegalArgumentException("Delegate type must be null or a non-abstract type");
+  }
+  ClassWriter visitor=new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+  ModelType<M> managedType=managedSchema.getType();
+  StringBuilder generatedTypeNameBuilder=new StringBuilder(managedType.getName());
+  if (delegateSchema != null) {
+    generatedTypeNameBuilder.append("$BackedBy_").append(delegateSchema.getType().getName().replaceAll("\\.","_"));
+  }
+ else {
+    generatedTypeNameBuilder.append("$Impl");
+  }
+  String generatedTypeName=generatedTypeNameBuilder.toString();
+  Type generatedType=Type.getType("L" + generatedTypeName.replaceAll("\\.","/") + ";");
+  Class<M> managedTypeClass=managedType.getConcreteClass();
+  Class<?> superclass;
+  final ImmutableSet.Builder<String> interfaceInternalNames=ImmutableSet.builder();
+  final ImmutableSet.Builder<Class<?>> typesToDelegate=ImmutableSet.builder();
+  typesToDelegate.add(managedTypeClass);
+  interfaceInternalNames.add(MANAGED_INSTANCE_TYPE);
+  if (managedTypeClass.isInterface()) {
+    superclass=Object.class;
+    interfaceInternalNames.add(Type.getInternalName(managedTypeClass));
+  }
+ else {
+    superclass=managedTypeClass;
+  }
+  if (delegateSchema != null) {
+    ModelSchemaUtils.walkTypeHierarchy(delegateSchema.getType().getConcreteClass(),new ModelSchemaUtils.TypeVisitor<D>(){
+      @Override public void visitType(      Class<? super D> type){
+        if (type.isInterface()) {
+          typesToDelegate.add(type);
+          interfaceInternalNames.add(Type.getInternalName(type));
+        }
+      }
+    }
+);
+  }
+  generateProxyClass(visitor,managedSchema,delegateSchema,interfaceInternalNames.build(),typesToDelegate.build(),generatedType,Type.getType(superclass));
+  return defineClass(visitor,managedTypeClass.getClassLoader(),generatedTypeName);
+}

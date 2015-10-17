@@ -1,0 +1,40 @@
+{
+  if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
+    return;
+  }
+  ModelType<P> propertyType=property.getType();
+  ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
+  validateProperty(propertySchema,property,nodeInitializerRegistry);
+  ModelRuleDescriptor descriptor=modelNode.getDescriptor();
+  ModelPath childPath=modelNode.getPath().child(property.getName());
+  if (propertySchema instanceof ManagedImplModelSchema) {
+    if (!property.isWritable()) {
+      ModelCreator creator=ModelCreators.of(childPath,nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(),property,schema.getType()))).descriptor(descriptor).build();
+      modelNode.addLink(creator);
+    }
+ else {
+      if (propertySchema instanceof ScalarCollectionSchema) {
+        ModelCreator creator=ModelCreators.of(childPath,nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(),property,schema.getType()))).descriptor(descriptor).build();
+        modelNode.addLink(creator);
+      }
+ else {
+        ModelManagedImplStructSchema<P> structSchema=(ModelManagedImplStructSchema<P>)propertySchema;
+        ModelProjection projection=new ManagedModelProjection<P>(structSchema,null,schemaStore,proxyFactory);
+        ModelCreator creator=ModelCreators.of(childPath).withProjection(projection).descriptor(descriptor).build();
+        modelNode.addReference(creator);
+      }
+    }
+  }
+ else {
+    ModelProjection projection=new UnmanagedModelProjection<P>(propertyType,true,true);
+    ModelCreators.Builder creatorBuilder;
+    if (shouldHaveANodeInitializer(property,propertySchema)) {
+      creatorBuilder=ModelCreators.of(childPath,nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertyType,property,schema.getType())));
+    }
+ else {
+      creatorBuilder=ModelCreators.of(childPath);
+    }
+    creatorBuilder.withProjection(projection).descriptor(descriptor);
+    modelNode.addLink(creatorBuilder.build());
+  }
+}
