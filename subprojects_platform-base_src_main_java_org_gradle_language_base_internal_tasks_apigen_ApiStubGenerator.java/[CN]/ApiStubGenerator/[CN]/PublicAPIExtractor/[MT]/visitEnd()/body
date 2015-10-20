@@ -1,10 +1,11 @@
 {
   super.visitEnd();
   adapter.visit(classSig.getVersion(),classSig.getAccess(),classSig.getName(),classSig.getSignature(),classSig.getSuperName(),classSig.getInterfaces());
-  TreeSet<AnnotationSig> annotationSigs=Sets.newTreeSet(classSig.getAnnotations());
-  visitAnnotationSigs(annotationSigs);
+  visitAnnotationSigs(Sets.newTreeSet(classSig.getAnnotations()));
   for (  MethodSig method : Sets.newTreeSet(methods)) {
-    adapter.visitMethod(method.getAccess(),method.getName(),method.getDesc(),method.getSignature(),method.getExceptions().toArray(new String[method.getExceptions().size()]));
+    MethodVisitor mv=adapter.visitMethod(method.getAccess(),method.getName(),method.getDesc(),method.getSignature(),method.getExceptions().toArray(new String[method.getExceptions().size()]));
+    visitAnnotationSigs(mv,Sets.newTreeSet(method.getAnnotations()));
+    mv.visitEnd();
   }
   for (  FieldSig field : Sets.newTreeSet(fields)) {
     adapter.visitField(field.getAccess(),field.getName(),field.getDesc(),field.getSignature(),null);
