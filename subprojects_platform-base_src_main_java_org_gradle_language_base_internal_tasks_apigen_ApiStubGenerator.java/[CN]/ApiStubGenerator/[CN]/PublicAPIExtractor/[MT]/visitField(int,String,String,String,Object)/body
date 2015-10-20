@@ -16,11 +16,13 @@
         throw new InvalidPublicAPIException(sb.toString());
       }
     }
-    fields.add(new FieldSig(access,name,desc,signature));
+    final FieldSig fieldSig=new FieldSig(access,name,desc,signature);
+    fields.add(fieldSig);
     return new FieldVisitor(Opcodes.ASM5){
       @Override public AnnotationVisitor visitAnnotation(      String annotationDesc,      boolean visible){
         checkAnnotation(fieldDescriptor,annotationDesc);
-        return super.visitAnnotation(annotationDesc,visible);
+        AnnotationSig sig=fieldSig.addAnnotation(annotationDesc,visible);
+        return new SortingAnnotationVisitor(sig,super.visitAnnotation(annotationDesc,visible));
       }
     }
 ;
