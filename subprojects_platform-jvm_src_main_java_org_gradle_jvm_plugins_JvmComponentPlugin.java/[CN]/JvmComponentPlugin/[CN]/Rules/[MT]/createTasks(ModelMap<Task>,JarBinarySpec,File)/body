@@ -19,30 +19,35 @@
   }
   String libName=binaryName.substring(0,binaryName.lastIndexOf("Jar"));
   String createApiJar="create" + capitalize(libName + "ApiJar");
-  if (binary.getExportedPackages().isEmpty()) {
-    tasks.create(createApiJar,Copy.class,new Action<Copy>(){
-      @Override public void execute(      Copy copy){
-        copy.setDescription(String.format("Creates the API binary file for %s.",binary));
-        copy.from(new File(runtimeJarDestDir,runtimeJarArchiveName));
-        copy.setDestinationDir(binary.getApiJarFile().getParentFile());
-        copy.dependsOn(createRuntimeJar);
-      }
-    }
-);
-  }
- else {
-    tasks.create(createApiJar,Jar.class,new Action<Jar>(){
-      @Override public void execute(      Jar jar){
-        jar.setDescription(String.format("Creates the API binary file for %s.",binary));
-        jar.from(runtimeClassesDir);
-        for (        String packageName : binary.getExportedPackages()) {
-          jar.include(packageName.replace('.','/') + "/*");
+  final ApiStubGenerator stubGenerator=new ApiStubGenerator(ImmutableList.copyOf(binary.getExportedPackages()));
+  tasks.create(createApiJar,StubbedJar.class,new Action<StubbedJar>(){
+    @Override public void execute(    StubbedJar jar){
+      jar.setDescription(String.format("Creates the API binary file for %s.",binary));
+      jar.from(runtimeClassesDir);
+      jar.include(new Spec<FileTreeElement>(){
+        @Override public boolean isSatisfiedBy(        FileTreeElement element){
+          if (element.isDirectory()) {
+            return true;
+          }
+          File file=element.getFile();
+          if (!file.getName().endsWith(".class")) {
+            return false;
+          }
+          try {
+            FileInputStream stream=new FileInputStream(file);
+            return stubGenerator.belongsToAPI(stream);
+          }
+ catch (          IOException e) {
+            return false;
+          }
         }
-        jar.setDestinationDir(binary.getApiJarFile().getParentFile());
-        jar.setArchiveName(binary.getApiJarFile().getName());
-        jar.dependsOn(createRuntimeJar);
       }
-    }
 );
+      jar.setExportedPackages(binary.getExportedPackages());
+      jar.setDestinationDir(binary.getApiJarFile().getParentFile());
+      jar.setArchiveName(binary.getApiJarFile().getName());
+      jar.dependsOn(createRuntimeJar);
+    }
   }
+);
 }

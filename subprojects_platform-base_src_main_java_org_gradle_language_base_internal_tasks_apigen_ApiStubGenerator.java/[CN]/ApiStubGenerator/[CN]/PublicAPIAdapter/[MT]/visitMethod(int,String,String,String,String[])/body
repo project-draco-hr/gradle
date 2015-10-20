@@ -5,23 +5,14 @@
   if (isPublicAPI(access) || ("<init>".equals(name) && isInnerClass)) {
     Set<String> invalidReferencedTypes=invalidReferencedTypes(signature == null ? desc : signature);
     if (invalidReferencedTypes.isEmpty()) {
-      MethodVisitor mv=new MethodVisitor(Opcodes.ASM5,cv.visitMethod(access,name,desc,signature,exceptions)){
-        @Override public AnnotationVisitor visitAnnotation(        String annDesc,        boolean visible){
-          checkAnnotation(prettifyMethodDescriptor(access,name,desc),annDesc);
-          return super.visitAnnotation(desc,visible);
-        }
-        @Override public AnnotationVisitor visitParameterAnnotation(        int parameter,        String annDesc,        boolean visible){
-          checkAnnotation(prettifyMethodDescriptor(access,name,desc),annDesc);
-          return super.visitParameterAnnotation(parameter,desc,visible);
-        }
-      }
-;
+      MethodVisitor mv=createAnnotationVisitor(access,name,desc,signature,exceptions,true);
       if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
         mv.visitCode();
         mv.visitMethodInsn(INVOKESTATIC,internalClassName,UOE_METHOD,"()Ljava/lang/UnsupportedOperationException;",false);
         mv.visitInsn(ATHROW);
         mv.visitMaxs(1,0);
         mv.visitEnd();
+        return createAnnotationVisitor(access,name,desc,signature,exceptions,false);
       }
       return mv;
     }
