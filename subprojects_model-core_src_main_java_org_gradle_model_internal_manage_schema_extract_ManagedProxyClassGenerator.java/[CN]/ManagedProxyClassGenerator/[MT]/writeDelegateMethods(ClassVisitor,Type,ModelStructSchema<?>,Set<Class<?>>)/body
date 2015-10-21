@@ -1,16 +1,34 @@
 {
   Class<?> delegateTypeClass=delegateSchema.getType().getConcreteClass();
-  Set<Method> methodsToDelegate=Sets.newLinkedHashSet();
+  Map<Equivalence.Wrapper<Method>,Map<Class<?>,Method>> methodsToDelegate=Maps.newHashMap();
   for (  Class<?> typeToDelegate : typesToDelegate) {
-    methodsToDelegate.addAll(Arrays.asList(typeToDelegate.getMethods()));
-  }
-  for (  Method methodToDelegate : methodsToDelegate) {
-    try {
-      delegateTypeClass.getMethod(methodToDelegate.getName(),methodToDelegate.getParameterTypes());
+    for (    Method methodToDelegate : typeToDelegate.getMethods()) {
+      if (ModelSchemaUtils.isIgnoredMethod(methodToDelegate)) {
+        continue;
+      }
+      Equivalence.Wrapper<Method> methodKey=METHOD_EQUIVALENCE.wrap(methodToDelegate);
+      Map<Class<?>,Method> methodsByReturnType=methodsToDelegate.get(methodKey);
+      if (methodsByReturnType == null) {
+        methodsByReturnType=Maps.newHashMap();
+        methodsToDelegate.put(methodKey,methodsByReturnType);
+      }
+      methodsByReturnType.put(methodToDelegate.getReturnType(),methodToDelegate);
     }
- catch (    NoSuchMethodException e) {
+  }
+  Set<Equivalence.Wrapper<Method>> delegateMethodKeys=ImmutableSet.copyOf(Iterables.transform(Arrays.asList(delegateTypeClass.getMethods()),new Function<Method,Equivalence.Wrapper<Method>>(){
+    @Override public Equivalence.Wrapper<Method> apply(    Method method){
+      return METHOD_EQUIVALENCE.wrap(method);
+    }
+  }
+));
+  for (  Map.Entry<Equivalence.Wrapper<Method>,Map<Class<?>,Method>> entry : methodsToDelegate.entrySet()) {
+    Equivalence.Wrapper<Method> methodKey=entry.getKey();
+    if (!delegateMethodKeys.contains(methodKey)) {
       continue;
     }
-    writeDelegatedMethod(visitor,generatedType,delegateTypeClass,methodToDelegate);
+    Map<Class<?>,Method> methodsByReturnType=entry.getValue();
+    for (    Method methodToDelegate : methodsByReturnType.values()) {
+      writeDelegatedMethod(visitor,generatedType,delegateTypeClass,methodToDelegate);
+    }
   }
 }
