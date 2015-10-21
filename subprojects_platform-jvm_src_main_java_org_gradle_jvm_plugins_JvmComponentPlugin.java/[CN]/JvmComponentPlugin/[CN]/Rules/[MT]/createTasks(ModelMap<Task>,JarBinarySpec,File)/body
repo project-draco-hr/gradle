@@ -19,7 +19,8 @@
   }
   String libName=binaryName.substring(0,binaryName.lastIndexOf("Jar"));
   String createApiJar="create" + capitalize(libName + "ApiJar");
-  final ApiStubGenerator stubGenerator=new ApiStubGenerator(ImmutableList.copyOf(binary.getExportedPackages()));
+  final ImmutableList<String> allowedPackages=ImmutableList.copyOf(binary.getExportedPackages());
+  final ApiStubGenerator stubGenerator=new ApiStubGenerator(allowedPackages);
   tasks.create(createApiJar,StubbedJar.class,new Action<StubbedJar>(){
     @Override public void execute(    StubbedJar jar){
       jar.setDescription(String.format("Creates the API binary file for %s.",binary));
@@ -34,8 +35,7 @@
             return false;
           }
           try {
-            FileInputStream stream=new FileInputStream(file);
-            return stubGenerator.belongsToAPI(stream);
+            return stubGenerator.belongsToAPI(element.open());
           }
  catch (          IOException e) {
             return false;
@@ -43,7 +43,7 @@
         }
       }
 );
-      jar.setExportedPackages(binary.getExportedPackages());
+      jar.setExportedPackages(allowedPackages);
       jar.setDestinationDir(binary.getApiJarFile().getParentFile());
       jar.setArchiveName(binary.getApiJarFile().getName());
       jar.dependsOn(createRuntimeJar);
