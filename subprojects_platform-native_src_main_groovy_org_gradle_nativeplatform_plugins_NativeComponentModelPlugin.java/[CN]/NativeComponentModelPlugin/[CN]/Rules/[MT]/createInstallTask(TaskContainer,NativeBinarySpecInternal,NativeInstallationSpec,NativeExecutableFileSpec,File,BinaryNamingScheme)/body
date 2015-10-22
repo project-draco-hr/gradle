@@ -1,0 +1,19 @@
+{
+  return tasks.create(namingScheme.getTaskName("install"),InstallExecutable.class,new Action<InstallExecutable>(){
+    @Override public void execute(    InstallExecutable installTask){
+      installTask.setDescription("Installs a development image of " + namingScheme.getBaseName());
+      installTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+      installTask.setToolChain(executable.getToolChain());
+      installTask.setExecutable(executable.getFile());
+      installTask.setDestinationDir(installation.getDirectory());
+      installTask.lib(new BinaryLibs(binary){
+        @Override protected FileCollection getFiles(        NativeDependencySet nativeDependencySet){
+          return nativeDependencySet.getRuntimeFiles();
+        }
+      }
+);
+      installTask.dependsOn(binary);
+    }
+  }
+);
+}
