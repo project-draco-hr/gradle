@@ -1,0 +1,21 @@
+{
+  Set<String> invalidReferencedTypes=invalidReferencedTypes(methodSig.getSignature() == null ? methodSig.getDesc() : methodSig.getSignature());
+  for (  String exception : methodSig.getExceptions()) {
+    invalidReferencedTypes=Sets.union(invalidReferencedTypes,invalidReferencedTypes(exception));
+  }
+  if (invalidReferencedTypes.isEmpty()) {
+    return onValidate.create();
+  }
+  if (invalidReferencedTypes.size() == 1) {
+    throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but its package is not one of the allowed packages.",methodSig,invalidReferencedTypes.iterator().next()));
+  }
+ else {
+    StringBuilder sb=new StringBuilder("The following types are referenced in ");
+    sb.append(methodSig);
+    sb.append(" but their package is not one of the allowed packages:\n");
+    for (    String invalidReferencedType : invalidReferencedTypes) {
+      sb.append("   - ").append(invalidReferencedType).append("\n");
+    }
+    throw new InvalidPublicAPIException(sb.toString());
+  }
+}

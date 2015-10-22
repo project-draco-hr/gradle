@@ -1,0 +1,26 @@
+{
+  return new MethodVisitor(Opcodes.ASM5){
+    private AnnotationVisitor superVisitParameterAnnotation(    int parameter,    String annDesc,    boolean visible){
+      return super.visitParameterAnnotation(parameter,annDesc,visible);
+    }
+    @Override public AnnotationVisitor visitAnnotation(    final String annDesc,    final boolean visible){
+      return apiValidator.validateAnnotation(methodSig.toString(),annDesc,new Factory<AnnotationVisitor>(){
+        @Override public AnnotationVisitor create(){
+          AnnotationSig sig=methodSig.addAnnotation(annDesc,visible);
+          return new SortingAnnotationVisitor(sig,PublicAPIExtractor.super.visitAnnotation(annDesc,visible));
+        }
+      }
+);
+    }
+    @Override public AnnotationVisitor visitParameterAnnotation(    final int parameter,    final String annDesc,    final boolean visible){
+      return apiValidator.validateAnnotation(methodSig.toString(),annDesc,new Factory<AnnotationVisitor>(){
+        @Override public AnnotationVisitor create(){
+          ParameterAnnotationSig pSig=methodSig.addParameterAnnotation(parameter,annDesc,visible);
+          return new SortingAnnotationVisitor(pSig,superVisitParameterAnnotation(parameter,annDesc,visible));
+        }
+      }
+);
+    }
+  }
+;
+}

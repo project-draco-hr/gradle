@@ -1,5 +1,9 @@
 {
-  checkAnnotation(toClassName(internalClassName),desc);
-  final AnnotationSig sig=classSig.addAnnotation(desc,visible);
-  return new SortingAnnotationVisitor(sig,super.visitAnnotation(desc,visible));
+  return apiValidator.validateAnnotation(toClassName(internalClassName),desc,new Factory<AnnotationVisitor>(){
+    @Override public AnnotationVisitor create(){
+      final AnnotationSig sig=classSig.addAnnotation(desc,visible);
+      return new SortingAnnotationVisitor(sig,PublicAPIExtractor.super.visitAnnotation(desc,visible));
+    }
+  }
+);
 }

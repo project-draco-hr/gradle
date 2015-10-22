@@ -1,0 +1,18 @@
+{
+  Set<String> invalidReferencedTypes=invalidReferencedTypes(fieldSig.getSignature());
+  if (invalidReferencedTypes.isEmpty()) {
+    return onValidate.create();
+  }
+  if (invalidReferencedTypes.size() == 1) {
+    throw new InvalidPublicAPIException(String.format("Field '%s' references disallowed API type '%s'",fieldSig,invalidReferencedTypes.iterator().next()));
+  }
+ else {
+    StringBuilder sb=new StringBuilder("The following types are referenced in ");
+    sb.append(fieldSig);
+    sb.append(" but their package is not one of the allowed packages:\n");
+    for (    String invalidReferencedType : invalidReferencedTypes) {
+      sb.append("   - ").append(invalidReferencedType).append("\n");
+    }
+    throw new InvalidPublicAPIException(sb.toString());
+  }
+}

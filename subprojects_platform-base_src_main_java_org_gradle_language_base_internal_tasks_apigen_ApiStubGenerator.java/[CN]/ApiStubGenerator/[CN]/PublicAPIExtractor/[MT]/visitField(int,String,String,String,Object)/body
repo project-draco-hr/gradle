@@ -1,31 +1,27 @@
 {
   if (isPublicAPI(access)) {
-    final String fieldDescriptor=prettifyFieldDescriptor(access,name,desc);
-    Set<String> invalidReferencedTypes=invalidReferencedTypes(signature);
-    if (!invalidReferencedTypes.isEmpty()) {
-      if (invalidReferencedTypes.size() == 1) {
-        throw new InvalidPublicAPIException(String.format("Field '%s' references disallowed API type '%s'",fieldDescriptor,invalidReferencedTypes.iterator().next()));
-      }
- else {
-        StringBuilder sb=new StringBuilder("The following types are referenced in ");
-        sb.append(fieldDescriptor);
-        sb.append(" but their package is not one of the allowed packages:\n");
-        for (        String invalidReferencedType : invalidReferencedTypes) {
-          sb.append("   - ").append(invalidReferencedType).append("\n");
-        }
-        throw new InvalidPublicAPIException(sb.toString());
-      }
-    }
     final FieldSig fieldSig=new FieldSig(access,name,desc,signature);
-    fields.add(fieldSig);
-    return new FieldVisitor(Opcodes.ASM5){
-      @Override public AnnotationVisitor visitAnnotation(      String annotationDesc,      boolean visible){
-        checkAnnotation(fieldDescriptor,annotationDesc);
-        AnnotationSig sig=fieldSig.addAnnotation(annotationDesc,visible);
-        return new SortingAnnotationVisitor(sig,super.visitAnnotation(annotationDesc,visible));
+    return apiValidator.validateField(fieldSig,new Factory<FieldVisitor>(){
+      @Override public FieldVisitor create(){
+        fields.add(fieldSig);
+        return new FieldVisitor(Opcodes.ASM5){
+          private AnnotationVisitor superVisitAnnotation(          String desc,          boolean visible){
+            return super.visitAnnotation(desc,visible);
+          }
+          @Override public AnnotationVisitor visitAnnotation(          final String annotationDesc,          final boolean visible){
+            return apiValidator.validateAnnotation(fieldSig.toString(),annotationDesc,new Factory<AnnotationVisitor>(){
+              @Override public AnnotationVisitor create(){
+                AnnotationSig sig=fieldSig.addAnnotation(annotationDesc,visible);
+                return new SortingAnnotationVisitor(sig,superVisitAnnotation(annotationDesc,visible));
+              }
+            }
+);
+          }
+        }
+;
       }
     }
-;
+);
   }
   return null;
 }

@@ -3,27 +3,14 @@
     return null;
   }
   if (isPublicAPI(access) || ("<init>".equals(name) && isInnerClass)) {
-    Set<String> invalidReferencedTypes=invalidReferencedTypes(signature == null ? desc : signature);
-    if (invalidReferencedTypes.isEmpty()) {
-      MethodSig methodSig=new MethodSig(access,name,desc,signature,exceptions);
-      methods.add(methodSig);
-      return createMethodAnnotationChecker(access,name,desc,methodSig);
-    }
- else {
-      String methodDesc=prettifyMethodDescriptor(access,name,desc);
-      if (invalidReferencedTypes.size() == 1) {
-        throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but its package is not one of the allowed packages.",methodDesc,invalidReferencedTypes.iterator().next()));
-      }
- else {
-        StringBuilder sb=new StringBuilder("The following types are referenced in ");
-        sb.append(methodDesc);
-        sb.append(" but their package is not one of the allowed packages:\n");
-        for (        String invalidReferencedType : invalidReferencedTypes) {
-          sb.append("   - ").append(invalidReferencedType).append("\n");
-        }
-        throw new InvalidPublicAPIException(sb.toString());
+    final MethodSig methodSig=new MethodSig(access,name,desc,signature,exceptions);
+    return apiValidator.validateMethod(methodSig,new Factory<MethodVisitor>(){
+      @Override public MethodVisitor create(){
+        methods.add(methodSig);
+        return createMethodAnnotationChecker(methodSig);
       }
     }
+);
   }
   return null;
 }
