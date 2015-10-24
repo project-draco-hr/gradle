@@ -5,19 +5,16 @@
     final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
     final ITaskFactory taskFactory=ModelViews.assertType(inputs.get(1),ModelType.of(ITaskFactory.class)).getInstance();
     registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType),new BiFunction<S,String,MutableModelNode>(){
-      @Override public S apply(      String name,      MutableModelNode modelNode1){
-        S binarySpec=Cast.uncheckedCast(BaseBinarySpec.create(publicType.getConcreteClass(),implementationType.getConcreteClass(),name,instantiator,taskFactory));
-        final Object parentObject=modelNode1.getParent().getParent().getPrivateData();
-        if (parentObject instanceof ComponentSpec && binarySpec instanceof ComponentSpecAware) {
-          ((ComponentSpecAware)binarySpec).setComponent((ComponentSpec)parentObject);
-        }
-        return binarySpec;
+      @Override public S apply(      String name,      MutableModelNode binaryNode){
+        MutableModelNode parentNode=binaryNode.getParent().getParent();
+        ComponentSpecInternal owner=parentNode.getPrivateData() instanceof ComponentSpecInternal ? (ComponentSpecInternal)parentNode.getPrivateData() : null;
+        return Cast.uncheckedCast(BaseBinarySpec.create(publicType.getConcreteClass(),implementationType.getConcreteClass(),name,owner,instantiator,taskFactory));
       }
     }
 );
     binaries.registerDomainObjectFactory(publicType.getConcreteClass(),descriptor,new NamedDomainObjectFactory<S>(){
       public S create(      String name){
-        return Cast.uncheckedCast(BaseBinarySpec.create(publicType.getConcreteClass(),implementationType.getConcreteClass(),name,instantiator,taskFactory));
+        return Cast.uncheckedCast(BaseBinarySpec.create(publicType.getConcreteClass(),implementationType.getConcreteClass(),name,null,instantiator,taskFactory));
       }
     }
 );
