@@ -1,63 +1,31 @@
 {
-  if (resolveDimensions.size() == 1) {
-    List<String> availablePlatforms=Lists.transform(Lists.newArrayList(allBinaries),new Function<BinarySpec,String>(){
-      @Override public String apply(      BinarySpec input){
-        return getPlatformDisplayName(input);
-      }
-    }
-);
-    return String.format("Cannot find a compatible binary for library '%s' (%s). Available platforms: %s",libraryName,platform,availablePlatforms);
-  }
- else {
-    final boolean moreThanOneBinary=allBinaries.size() > 1;
-    Set<String> availablePlatforms=new TreeSet<String>(Lists.transform(Lists.newArrayList(allBinaries),new Function<BinarySpec,String>(){
-      @Override public String apply(      BinarySpec input){
-        String platformName=getPlatformDisplayName(input);
-        if (moreThanOneBinary) {
-          return String.format("'%s' on %s",platformName,input.getDisplayName());
-        }
-        return String.format("'%s'",platformName);
-      }
-    }
-));
-    StringBuilder error=new StringBuilder(String.format("Cannot find a compatible binary for library '%s' (%s).\n",libraryName,platform));
-    Joiner joiner=Joiner.on(",").skipNulls();
-    error.append("    Required platform '").append(platform.getName()).append("', ");
-    error.append("available: ").append(joiner.join(availablePlatforms));
-    error.append("\n");
-    HashMultimap<String,String> variants=HashMultimap.create();
-    for (    BinarySpec spec : allBinaries) {
-      VariantsMetaData md=DefaultVariantsMetaData.extractFrom(spec,schemaStore);
-      Set<String> incompatibleDimensionTypes=VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData,md,resolveDimensions);
-      for (      String dimension : resolveDimensions) {
-        String value=md.getValueAsString(dimension);
-        if (value != null) {
-          String message;
-          if (moreThanOneBinary) {
-            message=String.format("'%s' on %s",value,spec.getDisplayName());
-          }
- else {
-            message=String.format("'%s'",value);
-          }
-          if (incompatibleDimensionTypes.contains(dimension)) {
-            message=String.format("%s but with an incompatible type (expected '%s' was '%s')",message,variantsMetaData.getDimensionType(dimension).getConcreteClass().getName(),md.getDimensionType(dimension).getConcreteClass().getName());
-          }
-          variants.put(dimension,message);
-        }
-      }
-    }
+  HashMultimap<String,String> variants=HashMultimap.create();
+  for (  BinarySpec spec : allBinaries) {
+    VariantsMetaData md=DefaultVariantsMetaData.extractFrom(spec,schemaStore);
+    Set<String> incompatibleDimensionTypes=VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData,md,resolveDimensions);
     for (    String dimension : resolveDimensions) {
-      if (!isPlatformDimension(dimension)) {
-        error.append("    Required ").append(dimension).append(" '").append(variantsMetaData.getValueAsString(dimension)).append("'");
-        Set<String> available=new TreeSet<String>(variants.get(dimension));
-        if (!available.isEmpty()) {
-          error.append(", available: ").append(joiner.join(available)).append("\n");
+      String value=md.getValueAsString(dimension);
+      if (value != null) {
+        String message=String.format("'%s'",value);
+        if (incompatibleDimensionTypes.contains(dimension)) {
+          message=String.format("%s but with an incompatible type (expected '%s' was '%s')",message,variantsMetaData.getDimensionType(dimension).getConcreteClass().getName(),md.getDimensionType(dimension).getConcreteClass().getName());
         }
- else {
-          error.append(" but no compatible binary was found\n");
-        }
+        variants.put(dimension,message);
       }
     }
-    return error.toString();
   }
+  Joiner joiner=Joiner.on(", ").skipNulls();
+  StringBuilder error=new StringBuilder(String.format("Cannot find a compatible variant for library '%s'.\n",libraryName));
+  for (  String dimension : resolveDimensions) {
+    String dimensionName=isPlatformDimension(dimension) ? "platform" : dimension;
+    error.append("    Required ").append(dimensionName).append(" '").append(variantsMetaData.getValueAsString(dimension)).append("'");
+    Set<String> available=new TreeSet<String>(variants.get(dimension));
+    if (!available.isEmpty()) {
+      error.append(", available: ").append(joiner.join(available)).append("\n");
+    }
+ else {
+      error.append(" but no compatible variant was found\n");
+    }
+  }
+  return error.toString();
 }
