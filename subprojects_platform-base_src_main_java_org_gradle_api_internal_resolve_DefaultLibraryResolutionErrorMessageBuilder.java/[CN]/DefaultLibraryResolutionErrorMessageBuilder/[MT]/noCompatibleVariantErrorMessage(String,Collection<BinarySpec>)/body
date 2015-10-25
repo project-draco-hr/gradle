@@ -1,0 +1,31 @@
+{
+  HashMultimap<String,String> variantAxisMessages=HashMultimap.create();
+  for (  BinarySpec spec : allBinaries) {
+    VariantsMetaData md=DefaultVariantsMetaData.extractFrom(spec,schemaStore);
+    Set<String> variantAxesWithIncompatibleTypes=VariantsMetaDataHelper.determineAxesWithIncompatibleTypes(variantsMetaData,md,variantAxesToResolve);
+    for (    String variantAxis : variantAxesToResolve) {
+      String value=md.getValueAsString(variantAxis);
+      if (value != null) {
+        String message=String.format("'%s'",value);
+        if (variantAxesWithIncompatibleTypes.contains(variantAxis)) {
+          message=String.format("%s but with an incompatible type (expected '%s' was '%s')",message,variantsMetaData.getVariantAxisType(variantAxis).getConcreteClass().getName(),md.getVariantAxisType(variantAxis).getConcreteClass().getName());
+        }
+        variantAxisMessages.put(variantAxis,message);
+      }
+    }
+  }
+  Joiner joiner=Joiner.on(", ").skipNulls();
+  StringBuilder error=new StringBuilder(String.format("Cannot find a compatible variant for library '%s'.\n",libraryName));
+  for (  String variantAxis : variantAxesToResolve) {
+    String axisName=renderAxisName(variantAxis);
+    error.append("    Required ").append(axisName).append(" '").append(variantsMetaData.getValueAsString(variantAxis)).append("'");
+    Set<String> available=new TreeSet<String>(variantAxisMessages.get(variantAxis));
+    if (!available.isEmpty()) {
+      error.append(", available: ").append(joiner.join(available)).append("\n");
+    }
+ else {
+      error.append(" but no compatible variant was found\n");
+    }
+  }
+  return error.toString();
+}

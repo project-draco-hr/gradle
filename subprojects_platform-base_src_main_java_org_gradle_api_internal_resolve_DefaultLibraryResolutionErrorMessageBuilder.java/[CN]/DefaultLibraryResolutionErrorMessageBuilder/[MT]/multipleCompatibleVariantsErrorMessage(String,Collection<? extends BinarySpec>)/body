@@ -5,13 +5,11 @@
     variantDescriptor.setLength(0);
     variantDescriptor.append("   - ").append(variant.getDisplayName()).append(":\n");
     VariantsMetaData metaData=DefaultVariantsMetaData.extractFrom(variant,schemaStore);
-    Set<String> dimensions=new TreeSet<String>(metaData.getNonNullDimensions());
-    if (dimensions.size() > 1) {
-      for (      String dimension : dimensions) {
-        variantDescriptor.append("       * ").append(dimension).append(" '").append(metaData.getValueAsString(dimension)).append("'\n");
-      }
-      variantDescriptors.add(variantDescriptor.toString());
+    Set<String> nonNullAxesForVariant=new TreeSet<String>(metaData.getNonNullVariantAxes());
+    for (    String axis : nonNullAxesForVariant) {
+      variantDescriptor.append("       * ").append(renderAxisName(axis)).append(" '").append(metaData.getValueAsString(axis)).append("'\n");
     }
+    variantDescriptors.add(variantDescriptor.toString());
   }
   StringBuilder sb=new StringBuilder(String.format("Multiple compatible variants found for library '%s':\n",libraryName));
   for (  String descriptor : variantDescriptors) {
