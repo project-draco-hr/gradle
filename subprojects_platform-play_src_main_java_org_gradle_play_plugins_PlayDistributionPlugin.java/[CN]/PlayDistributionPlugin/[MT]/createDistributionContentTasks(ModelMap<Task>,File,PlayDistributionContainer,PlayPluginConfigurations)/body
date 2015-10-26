@@ -1,5 +1,5 @@
 {
-  for (  PlayDistribution distribution : distributions.withType(PlayDistribution.class)) {
+  for (  final PlayDistribution distribution : distributions.withType(PlayDistribution.class)) {
     final PlayApplicationBinarySpec binary=distribution.getBinary();
     if (binary == null) {
       throw new InvalidUserCodeException(String.format("Play Distribution '%s' does not have a configured Play binary.",distribution.getName()));
@@ -8,7 +8,7 @@
     final String jarTaskName=String.format("create%sDistributionJar",StringUtils.capitalize(distribution.getName()));
     tasks.create(jarTaskName,Jar.class,new Action<Jar>(){
       @Override public void execute(      Jar jar){
-        jar.setDescription("Assembles an application jar suitable for deployment for the '" + binary.getName() + "' binary.");
+        jar.setDescription("Assembles an application jar suitable for deployment for the " + binary + ".");
         jar.dependsOn(binary.getTasks().withType(Jar.class));
         jar.from(jar.getProject().zipTree(binary.getJarFile()));
         jar.setDestinationDir(distJarDir);
@@ -24,10 +24,10 @@
     String createStartScriptsTaskName=String.format("create%sStartScripts",StringUtils.capitalize(distribution.getName()));
     tasks.create(createStartScriptsTaskName,CreateStartScripts.class,new Action<CreateStartScripts>(){
       @Override public void execute(      CreateStartScripts createStartScripts){
-        createStartScripts.setDescription("Creates OS specific scripts to run the '" + binary.getName() + "' application.");
+        createStartScripts.setDescription("Creates OS specific scripts to run the " + binary + ".");
         createStartScripts.setClasspath(distributionJar.getOutputs().getFiles());
         createStartScripts.setMainClassName("play.core.server.NettyServer");
-        createStartScripts.setApplicationName(binary.getName());
+        createStartScripts.setApplicationName(distribution.getName());
         createStartScripts.setOutputDir(scriptsDir);
       }
     }
