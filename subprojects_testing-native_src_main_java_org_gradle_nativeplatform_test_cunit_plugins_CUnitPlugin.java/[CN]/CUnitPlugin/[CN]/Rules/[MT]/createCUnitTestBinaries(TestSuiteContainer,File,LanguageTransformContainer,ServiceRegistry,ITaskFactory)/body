@@ -1,26 +1,3 @@
 {
-  testSuites.withType(CUnitTestSuiteSpec.class).afterEach(new Action<CUnitTestSuiteSpec>(){
-    @Override public void execute(    final CUnitTestSuiteSpec cUnitTestSuite){
-      for (      final NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
-        if (testedBinary instanceof SharedLibraryBinary) {
-          continue;
-        }
-        final BinaryNamingScheme namingScheme=new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal)testedBinary).getNamingScheme()).withComponentName(cUnitTestSuite.getBaseName()).withTypeString("CUnitExe").build();
-        final NativeDependencyResolver resolver=serviceRegistry.get(NativeDependencyResolver.class);
-        cUnitTestSuite.getBinaries().create(namingScheme.getBinaryName(),CUnitTestSuiteBinarySpec.class,new Action<CUnitTestSuiteBinarySpec>(){
-          @Override public void execute(          CUnitTestSuiteBinarySpec binary){
-            NativeTestSuiteBinarySpecInternal testBinary=(NativeTestSuiteBinarySpecInternal)binary;
-            testBinary.setTestedBinary((NativeBinarySpecInternal)testedBinary);
-            testBinary.setNamingScheme(namingScheme);
-            testBinary.setResolver(resolver);
-            testBinary.setToolChain(testedBinary.getToolChain());
-            testBinary.getExecutable().setToolChain(testedBinary.getToolChain());
-            configure(testBinary,buildDir);
-          }
-        }
-);
-      }
-    }
-  }
-);
+  createNativeTestSuiteBinaries(testSuites,CUnitTestSuiteSpec.class,CUnitTestSuiteBinarySpec.class,"CUnitExe",buildDir,serviceRegistry);
 }
