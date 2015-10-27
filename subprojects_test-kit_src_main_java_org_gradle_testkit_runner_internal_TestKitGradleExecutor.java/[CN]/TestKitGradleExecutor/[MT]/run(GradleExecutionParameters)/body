@@ -1,27 +1,44 @@
 {
-  final ByteArrayOutputStream standardOutput=new ByteArrayOutputStream();
-  final ByteArrayOutputStream standardError=new ByteArrayOutputStream();
+  final ByteArrayOutputStream output=new ByteArrayOutputStream();
+  final OutputStream syncOutput=new SynchronizedOutputStream(output);
   final List<BuildTask> tasks=new ArrayList<BuildTask>();
   GradleConnector gradleConnector=buildConnector(parameters.getGradleUserHome(),parameters.getProjectDir(),parameters.isEmbedded());
   ProjectConnection connection=null;
   try {
     connection=gradleConnector.connect();
     DefaultBuildLauncher launcher=(DefaultBuildLauncher)connection.newBuild();
-    launcher.setStandardOutput(determineLauncherOutputStream(standardOutput,parameters.getStandardOutput()));
-    launcher.setStandardError(determineLauncherOutputStream(standardError,parameters.getStandardError()));
+    launcher.setStandardOutput(new NoCloseOutputStream(teeOutput(syncOutput,parameters.getStandardOutput())));
+    launcher.setStandardError(new NoCloseOutputStream(teeOutput(syncOutput,parameters.getStandardError())));
     launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
     launcher.withArguments(parameters.getBuildArgs().toArray(new String[parameters.getBuildArgs().size()]));
     launcher.setJvmArguments(parameters.getJvmArgs().toArray(new String[parameters.getJvmArgs().size()]));
     launcher.withInjectedClassPath(parameters.getInjectedClassPath());
     launcher.run();
   }
- catch (  Throwable t) {
-    return new GradleExecutionResult(standardOutput,standardError,tasks,t);
+ catch (  BuildException t) {
+    return new GradleExecutionResult(output.toString(),tasks,t);
+  }
+catch (  GradleConnectionException t) {
+    StringBuilder message=new StringBuilder("An error occurred executing build with ");
+    if (parameters.getBuildArgs().isEmpty()) {
+      message.append("no args");
+    }
+ else {
+      message.append("args '");
+      Joiner.on(" ").appendTo(message,parameters.getBuildArgs());
+      message.append("'");
+    }
+    message.append(" in directory '").append(parameters.getProjectDir().getAbsolutePath()).append("'");
+    String capturedOutput=output.toString();
+    if (!capturedOutput.isEmpty()) {
+      message.append(". Output before error:").append(SystemProperties.getInstance().getLineSeparator()).append(capturedOutput);
+    }
+    throw new IllegalStateException(message.toString(),t);
   }
  finally {
     if (connection != null) {
       connection.close();
     }
   }
-  return new GradleExecutionResult(standardOutput,standardError,tasks);
+  return new GradleExecutionResult(output.toString(),tasks);
 }
