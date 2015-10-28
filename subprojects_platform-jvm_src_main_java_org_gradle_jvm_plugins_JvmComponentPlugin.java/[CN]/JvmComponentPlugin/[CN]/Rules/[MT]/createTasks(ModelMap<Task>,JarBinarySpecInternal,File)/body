@@ -35,27 +35,11 @@
     final ApiStubGenerator stubGenerator=new ApiStubGenerator(allowedPackages);
     tasks.create(createApiJar,StubbedJar.class,new Action<StubbedJar>(){
       @Override public void execute(      StubbedJar jar){
+        final File apiClassesDir=new File(new File(buildDir,"apiClasses"),runtimeClassesDir.getName());
         jar.setDescription(String.format("Creates the API binary file for %s.",binary));
-        jar.from(runtimeClassesDir);
-        jar.include(new Spec<FileTreeElement>(){
-          @Override public boolean isSatisfiedBy(          FileTreeElement element){
-            if (element.isDirectory()) {
-              return true;
-            }
-            File file=element.getFile();
-            if (!file.getName().endsWith(".class")) {
-              return false;
-            }
-            try {
-              return stubGenerator.belongsToAPI(element.open());
-            }
- catch (            IOException e) {
-              return false;
-            }
-          }
-        }
-);
+        jar.setRuntimeClassesDir(runtimeClassesDir);
         jar.setExportedPackages(allowedPackages);
+        jar.setApiClassesDir(apiClassesDir);
         jar.setDestinationDir(binary.getApiJarFile().getParentFile());
         jar.setArchiveName(binary.getApiJarFile().getName());
         jar.dependsOn(createRuntimeJar);

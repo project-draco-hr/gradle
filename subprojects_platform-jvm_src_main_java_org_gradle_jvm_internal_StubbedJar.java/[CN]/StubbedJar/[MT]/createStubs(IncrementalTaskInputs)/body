@@ -1,0 +1,78 @@
+{
+  final File archivePath=new File(destinationDir,archiveName);
+  if (!inputs.isIncremental()) {
+    FileUtils.deleteQuietly(archivePath);
+    FileUtils.deleteDirectory(apiClassesDir);
+  }
+  destinationDir.mkdirs();
+  apiClassesDir.mkdirs();
+  final ApiStubGenerator stubGenerator=new ApiStubGenerator(ImmutableList.copyOf(getExportedPackages()));
+  final AtomicBoolean updated=new AtomicBoolean();
+  final Map<File,byte[]> convertedFiles=Maps.newHashMap();
+  inputs.outOfDate(new ErroringAction<InputFileDetails>(){
+    @Override protected void doExecute(    InputFileDetails inputFileDetails) throws Exception {
+      updated.set(true);
+      File file=inputFileDetails.getFile();
+      File stubFile=getStubFileFor(file);
+      if (!isClass(file) || !stubGenerator.belongsToAPI(new FileInputStream(file))) {
+        deleteStub(stubFile);
+        return;
+      }
+      final byte[] bytes=stubGenerator.convertToApi(new FileInputStream(file));
+      convertedFiles.put(file,bytes);
+      stubFile.getParentFile().mkdirs();
+      IoActions.withResource(new FileOutputStream(stubFile),new ErroringAction<FileOutputStream>(){
+        @Override protected void doExecute(        FileOutputStream fos) throws Exception {
+          fos.write(bytes);
+        }
+      }
+);
+    }
+  }
+);
+  inputs.removed(new ErroringAction<InputFileDetails>(){
+    @Override protected void doExecute(    InputFileDetails input) throws Exception {
+      updated.set(true);
+      deleteStub(getStubFileFor(input.getFile()));
+    }
+  }
+);
+  if (updated.get()) {
+    IoActions.withResource(new JarOutputStream(new BufferedOutputStream(new FileOutputStream(archivePath),65536)),new ErroringAction<JarOutputStream>(){
+      private final SortedMap<String,File> sortedFiles=Maps.newTreeMap();
+      private void writeEntries(      JarOutputStream jos) throws Exception {
+        for (        Map.Entry<String,File> entry : sortedFiles.entrySet()) {
+          JarEntry ze=new JarEntry(entry.getKey());
+          ze.setTime(0);
+          File stubFile=entry.getValue();
+          byte[] stub=convertedFiles.get(stubFile);
+          if (stub == null) {
+            stub=FileUtils.readFileToByteArray(stubFile);
+          }
+          ze.setSize(stub.length);
+          jos.putNextEntry(ze);
+          jos.write(stub);
+          jos.closeEntry();
+        }
+      }
+      private void collectFiles(      String relativePath,      File f) throws Exception {
+        String path="".equals(relativePath) ? f.getName() : relativePath + "/" + f.getName();
+        if (f.isFile()) {
+          sortedFiles.put(path,f);
+        }
+ else         if (f.isDirectory()) {
+          for (          File file : f.listFiles()) {
+            String root=relativePath == null ? "" : path;
+            collectFiles(root,file);
+          }
+        }
+      }
+      @Override protected void doExecute(      final JarOutputStream jos) throws Exception {
+        collectFiles(null,apiClassesDir);
+        writeEntries(jos);
+        jos.close();
+      }
+    }
+);
+  }
+}
