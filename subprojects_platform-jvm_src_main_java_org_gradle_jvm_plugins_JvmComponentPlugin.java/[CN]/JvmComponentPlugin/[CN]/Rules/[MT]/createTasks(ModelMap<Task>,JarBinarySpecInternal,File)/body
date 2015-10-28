@@ -1,0 +1,50 @@
+{
+  final File runtimeClassesDir=binary.getClassesDir();
+  final File runtimeJarDestDir=binary.getJarFile().getParentFile();
+  final String runtimeJarArchiveName=binary.getJarFile().getName();
+  final String createRuntimeJar="create" + capitalize(binary.getName());
+  tasks.create(createRuntimeJar,Jar.class,new Action<Jar>(){
+    @Override public void execute(    Jar jar){
+      jar.setDescription(String.format("Creates the binary file for %s.",binary));
+      jar.from(runtimeClassesDir);
+      jar.from(binary.getResourcesDir());
+      jar.setDestinationDir(runtimeJarDestDir);
+      jar.setArchiveName(runtimeJarArchiveName);
+    }
+  }
+);
+  String binaryName=binary.getName();
+  if (!binaryName.endsWith("Jar")) {
+    return;
+  }
+  String libName=binaryName.substring(0,binaryName.lastIndexOf("Jar"));
+  String createApiJar="create" + capitalize(libName + "ApiJar");
+  final ImmutableList<String> allowedPackages=ImmutableList.copyOf(binary.getExportedPackages());
+  if (allowedPackages.isEmpty()) {
+    tasks.create(createApiJar,Copy.class,new Action<Copy>(){
+      @Override public void execute(      Copy copy){
+        copy.setDescription(String.format("Creates the API binary file for %s.",binary));
+        copy.from(new File(runtimeJarDestDir,runtimeJarArchiveName));
+        copy.setDestinationDir(binary.getApiJarFile().getParentFile());
+        copy.dependsOn(createRuntimeJar);
+      }
+    }
+);
+  }
+ else {
+    final ApiStubGenerator stubGenerator=new ApiStubGenerator(allowedPackages);
+    tasks.create(createApiJar,StubbedJar.class,new Action<StubbedJar>(){
+      @Override public void execute(      StubbedJar jar){
+        final File apiClassesDir=new File(new File(buildDir,"apiClasses"),runtimeClassesDir.getName());
+        jar.setDescription(String.format("Creates the API binary file for %s.",binary));
+        jar.setRuntimeClassesDir(runtimeClassesDir);
+        jar.setExportedPackages(allowedPackages);
+        jar.setApiClassesDir(apiClassesDir);
+        jar.setDestinationDir(binary.getApiJarFile().getParentFile());
+        jar.setArchiveName(binary.getApiJarFile().getName());
+        jar.dependsOn(createRuntimeJar);
+      }
+    }
+);
+  }
+}
