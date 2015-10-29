@@ -1,5 +1,6 @@
 {
-  Type type=extractionContext.getType().getType();
+  ModelType<T> modelType=extractionContext.getType();
+  Type type=modelType.getType();
   if (!(type instanceof Class)) {
     return;
   }
@@ -19,6 +20,12 @@
     return;
   }
   ModelType<?> elementType=ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);
-  Class<?> proxyImpl=generator.generate(ModelMapGroovyDecorator.Managed.class,contractType);
-  extractionContext.found(new SpecializedMapSchema<T>(extractionContext.getType(),elementType,proxyImpl));
+  Class<?> proxyImpl;
+  try {
+    proxyImpl=generatedImplementationTypes.get(modelType);
+  }
+ catch (  ExecutionException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+  extractionContext.found(new SpecializedMapSchema<T>(modelType,elementType,proxyImpl));
 }
