@@ -1,12 +1,12 @@
 {
   ModelReference<DefaultTaskContainer> containerReference=ModelReference.of(TaskContainerInternal.MODEL_PATH,DefaultTaskContainer.class);
-  ModelCreators.Builder creatorBuilder=BridgedCollections.creator(containerReference,new Transformer<DefaultTaskContainer,MutableModelNode>(){
+  ModelRegistrations.Builder creatorBuilder=BridgedCollections.registration(containerReference,new Transformer<DefaultTaskContainer,MutableModelNode>(){
     @Override public DefaultTaskContainer transform(    MutableModelNode mutableModelNode){
       return instantiator.newInstance(DefaultTaskContainer.class,mutableModelNode,project,instantiator,taskFactory,projectAccessListener);
     }
   }
 ,new Task.Namer(),"Project.<init>.tasks()",new Namer());
-  modelRegistry.createOrReplace(creatorBuilder.withProjection(ModelMapModelProjection.unmanaged(Task.class,ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>,MutableModelNode>(){
+  modelRegistry.registerOrReplace(creatorBuilder.withProjection(ModelMapModelProjection.unmanaged(Task.class,ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>,MutableModelNode>(){
     @Override public NamedEntityInstantiator<Task> transform(    MutableModelNode modelNode){
       return modelNode.getPrivateData(ModelType.of(DefaultTaskContainer.class)).getEntityInstantiator();
     }
