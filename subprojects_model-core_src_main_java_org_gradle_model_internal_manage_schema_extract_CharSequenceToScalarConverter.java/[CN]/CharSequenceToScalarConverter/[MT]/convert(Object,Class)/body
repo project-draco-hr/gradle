@@ -1,0 +1,62 @@
+{
+  if (notation == null) {
+    if (type.isPrimitive()) {
+      throw new UnsupportedNotationException("Cannot convert null to a primitive type.");
+    }
+    return null;
+  }
+  if (notation instanceof CharSequence) {
+    String s=notation.toString();
+    if (String.class.equals(type)) {
+      return s;
+    }
+    s=s.trim();
+    if (type.isEnum()) {
+      try {
+        return Enum.valueOf(type,s);
+      }
+ catch (      IllegalArgumentException e) {
+        throw new TypeConversionException(String.format("Cannot coerce string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",s,type.getName(),CollectionUtils.toStringList(Arrays.asList(type.getEnumConstants()))));
+      }
+    }
+    try {
+      if (double.class.equals(type) || Double.class.equals(type)) {
+        return Double.valueOf(s);
+      }
+      if (float.class.equals(type) || Float.class.equals(type)) {
+        return Float.valueOf(s);
+      }
+      if (int.class.equals(type) || Integer.class.equals(type)) {
+        return Integer.valueOf(s);
+      }
+      if (long.class.equals(type) || Long.class.equals(type)) {
+        return Long.valueOf(s);
+      }
+      if (short.class.equals(type) || Short.class.equals(type)) {
+        return Short.valueOf(s);
+      }
+      if (byte.class.equals(type) || Byte.class.equals(type)) {
+        return Byte.valueOf(s);
+      }
+      if (BigDecimal.class.equals(type)) {
+        return new BigDecimal(s);
+      }
+      if (BigInteger.class.equals(type)) {
+        return new BigInteger(s);
+      }
+    }
+ catch (    NumberFormatException e) {
+      throw new TypeConversionException(String.format("Cannot coerce string value '%s' to type %s",s,type.getSimpleName()));
+    }
+    if (char.class.equals(type) || Character.class.equals(type)) {
+      if (s.length() != 1) {
+        throw new TypeConversionException(String.format("Cannot coerce string value '%s' with length %d to type %s",s,s.length(),type.getSimpleName()));
+      }
+      return s.charAt(0);
+    }
+    if (boolean.class.equals(type) || Boolean.class.equals(type)) {
+      return "true".equals(s);
+    }
+  }
+  throw new UnsupportedNotationException("Unsupported type");
+}
