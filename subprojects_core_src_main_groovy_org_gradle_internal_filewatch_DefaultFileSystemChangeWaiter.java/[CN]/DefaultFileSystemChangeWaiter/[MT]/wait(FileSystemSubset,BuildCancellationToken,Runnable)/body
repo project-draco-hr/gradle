@@ -24,7 +24,7 @@
       if (!(event.getType() == FileWatcherEvent.Type.MODIFY && event.getFile().isDirectory())) {
         signal(lock,condition,new Runnable(){
           @Override public void run(){
-            lastChangeAt.set(System.currentTimeMillis());
+            lastChangeAt.set(monotonicClockMillis());
           }
         }
 );
@@ -38,7 +38,7 @@
     lock.lock();
     try {
       long lastChangeAtValue=lastChangeAt.get();
-      while (!cancellationToken.isCancellationRequested() && error.get() == null && (lastChangeAtValue == 0 || System.currentTimeMillis() - lastChangeAtValue < quietPeriodMillis)) {
+      while (!cancellationToken.isCancellationRequested() && error.get() == null && (lastChangeAtValue == 0 || monotonicClockMillis() - lastChangeAtValue < quietPeriodMillis)) {
         condition.await(quietPeriodMillis,TimeUnit.MILLISECONDS);
         lastChangeAtValue=lastChangeAt.get();
       }
