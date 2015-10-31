@@ -1,8 +1,13 @@
 {
-  String parentName=modelNode.getParent().getPath().getName();
   MutableModelNode grandparentNode=modelNode.getParent().getParent();
-  if (grandparentNode != null && grandparentNode.getPrivateData() instanceof ComponentSpecInternal) {
-    parentName=((ComponentSpecInternal)grandparentNode.getPrivateData()).getName();
+  if (grandparentNode != null) {
+    if (grandparentNode.getPrivateData() instanceof BaseBinarySpec) {
+      BaseBinarySpec binarySpecInternal=(BaseBinarySpec)grandparentNode.getPrivateData();
+      return binarySpecInternal.getComponent() == null ? binarySpecInternal.getName() : binarySpecInternal.getComponent().getName();
+    }
+    if (grandparentNode.getPrivateData() instanceof ComponentSpecInternal) {
+      return ((ComponentSpecInternal)grandparentNode.getPrivateData()).getName();
+    }
   }
-  return parentName;
+  return modelNode.getParent().getPath().getName();
 }
