@@ -1,0 +1,22 @@
+{
+  final ImmutableSet.Builder<ModelProperty<?>> pubPropsBuilder=ImmutableSet.builder();
+  final ImmutableSet.Builder<ModelProperty<?>> intPropsBuilder=ImmutableSet.builder();
+  ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(),new RegistrationHierarchyVisitor<S>(){
+    @Override protected void visitRegistration(    TypeRegistration<? extends T> registration){
+      addAllPropertiesOf(schemaStore.getSchema(registration.publicType),pubPropsBuilder);
+      for (      InternalViewRegistration<?> intViewReg : registration.internalViewRegistrations) {
+        addAllPropertiesOf(schemaStore.getSchema(intViewReg.internalView),intPropsBuilder);
+      }
+    }
+    private void addAllPropertiesOf(    ModelSchema<?> schema,    ImmutableSet.Builder<ModelProperty<?>> builder){
+      if (StructSchema.class.isAssignableFrom(schema.getClass())) {
+        StructSchema<?> structSchema=(StructSchema)schema;
+        for (        ModelProperty<?> property : structSchema.getProperties()) {
+          builder.add(property);
+        }
+      }
+    }
+  }
+);
+  return Sets.difference(intPropsBuilder.build(),pubPropsBuilder.build());
+}
