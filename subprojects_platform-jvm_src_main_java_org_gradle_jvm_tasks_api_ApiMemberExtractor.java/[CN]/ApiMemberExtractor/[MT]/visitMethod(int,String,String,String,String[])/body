@@ -4,13 +4,18 @@
   }
   if (isApiMember(access) || ("<init>".equals(name) && isInnerClass)) {
     final MethodSig methodSig=new MethodSig(access,name,desc,signature,exceptions);
-    return apiValidator.validateMethod(methodSig,new Factory<MethodVisitor>(){
-      @Override public MethodVisitor create(){
-        methods.add(methodSig);
-        return createMethodAnnotationChecker(methodSig);
+    methods.add(methodSig);
+    return new MethodVisitor(Opcodes.ASM5){
+      @Override public AnnotationVisitor visitAnnotation(      final String annDesc,      final boolean visible){
+        AnnotationSig sig=methodSig.addAnnotation(annDesc,visible);
+        return new SortingAnnotationVisitor(sig,super.visitAnnotation(annDesc,visible));
+      }
+      @Override public AnnotationVisitor visitParameterAnnotation(      final int parameter,      final String annDesc,      final boolean visible){
+        ParameterAnnotationSig pSig=methodSig.addParameterAnnotation(parameter,annDesc,visible);
+        return new SortingAnnotationVisitor(pSig,super.visitParameterAnnotation(parameter,annDesc,visible));
       }
     }
-);
+;
   }
   return null;
 }

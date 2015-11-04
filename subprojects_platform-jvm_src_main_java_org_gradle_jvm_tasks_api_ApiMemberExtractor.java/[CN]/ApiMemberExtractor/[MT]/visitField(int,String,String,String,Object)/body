@@ -1,27 +1,14 @@
 {
   if (isApiMember(access)) {
     final FieldSig fieldSig=new FieldSig(access,name,desc,signature);
-    return apiValidator.validateField(fieldSig,new Factory<FieldVisitor>(){
-      @Override public FieldVisitor create(){
-        fields.add(fieldSig);
-        return new FieldVisitor(Opcodes.ASM5){
-          private AnnotationVisitor superVisitAnnotation(          String desc,          boolean visible){
-            return super.visitAnnotation(desc,visible);
-          }
-          @Override public AnnotationVisitor visitAnnotation(          final String annotationDesc,          final boolean visible){
-            return apiValidator.validateAnnotation(fieldSig.toString(),annotationDesc,new Factory<AnnotationVisitor>(){
-              @Override public AnnotationVisitor create(){
-                AnnotationSig sig=fieldSig.addAnnotation(annotationDesc,visible);
-                return new SortingAnnotationVisitor(sig,superVisitAnnotation(annotationDesc,visible));
-              }
-            }
-);
-          }
-        }
-;
+    fields.add(fieldSig);
+    return new FieldVisitor(Opcodes.ASM5){
+      @Override public AnnotationVisitor visitAnnotation(      String annotationDesc,      final boolean visible){
+        AnnotationSig sig=fieldSig.addAnnotation(annotationDesc,visible);
+        return new SortingAnnotationVisitor(sig,super.visitAnnotation(annotationDesc,visible));
       }
     }
-);
+;
   }
   return null;
 }
