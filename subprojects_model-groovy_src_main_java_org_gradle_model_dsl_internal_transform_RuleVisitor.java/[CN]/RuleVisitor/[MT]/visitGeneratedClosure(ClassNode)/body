@@ -1,6 +1,6 @@
 {
-  MethodNode method=AstUtils.getGeneratedClosureImplMethod(node);
-  Statement closureCode=method.getCode();
+  MethodNode closureCallMethod=AstUtils.getGeneratedClosureImplMethod(node);
+  Statement closureCode=closureCallMethod.getCode();
   SourceLocation sourceLocation=closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
   if (sourceLocation != null) {
     AnnotationNode metadataAnnotation=new AnnotationNode(RULE_METADATA);
@@ -8,17 +8,25 @@
     metadataAnnotation.addMember("lineNumber",new ConstantExpression(sourceLocation.getLineNumber()));
     metadataAnnotation.addMember("columnNumber",new ConstantExpression(sourceLocation.getColumnNumber()));
     InputReferences inputs=closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
-    if (!inputs.isEmpty()) {
-      metadataAnnotation.addMember("ownInputPaths",new ListExpression(constants(inputs.getOwnPaths())));
-      metadataAnnotation.addMember("ownInputLineNumbers",new ListExpression(constants(inputs.getOwnPathLineNumbers())));
-      metadataAnnotation.addMember("nestedInputPaths",new ListExpression(constants(inputs.getNestedPaths())));
-      metadataAnnotation.addMember("nestedInputLineNumbers",new ListExpression(constants(inputs.getNestedPathLineNumbers())));
-    }
     node.addAnnotation(metadataAnnotation);
     node.addInterface(TRANSFORMED_CLOSURE);
     node.addField(new FieldNode(INPUTS_FIELD_NAME,Modifier.PUBLIC,POTENTIAL_INPUTS,node,null));
     List<Statement> statements=new ArrayList<Statement>();
     statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(INPUTS_FIELD_NAME),ASSIGN,new VariableExpression("inputs"))));
     node.addMethod(new MethodNode("applyRuleInputs",Modifier.PUBLIC,ClassHelper.VOID_TYPE,new Parameter[]{new Parameter(POTENTIAL_INPUTS,"inputs")},new ClassNode[0],new BlockStatement(statements,new VariableScope())));
+    VariableExpression inputsVar=new VariableExpression("inputs",INPUT_REFERENCES);
+    VariableScope methodVarScope=new VariableScope();
+    methodVarScope.putDeclaredVariable(inputsVar);
+    statements=new ArrayList<Statement>();
+    statements.add(new ExpressionStatement(new DeclarationExpression(inputsVar,ASSIGN,new ConstructorCallExpression(INPUT_REFERENCES,new ArgumentListExpression()))));
+    for (    InputReference inputReference : inputs.getOwnReferences()) {
+      statements.add(new ExpressionStatement(new MethodCallExpression(inputsVar,"ownReference",new ArgumentListExpression(new ConstantExpression(inputReference.getPath()),new ConstantExpression(inputReference.getLineNumber())))));
+    }
+    for (    InputReference inputReference : inputs.getNestedReferences()) {
+      statements.add(new ExpressionStatement(new MethodCallExpression(inputsVar,"nestedReference",new ArgumentListExpression(new ConstantExpression(inputReference.getPath()),new ConstantExpression(inputReference.getLineNumber())))));
+    }
+    statements.add(new ReturnStatement(inputsVar));
+    MethodNode method=new MethodNode("getInputReferences",Modifier.PUBLIC,INPUT_REFERENCES,new Parameter[0],new ClassNode[0],new BlockStatement(statements,methodVarScope));
+    node.addMethod(method);
   }
 }
