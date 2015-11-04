@@ -1,11 +1,11 @@
 {
-  final AtomicBoolean belongsToApi=new AtomicBoolean();
-  cr.accept(new ClassVisitor(Opcodes.ASM5){
+  final AtomicBoolean shouldExtract=new AtomicBoolean();
+  classReader.accept(new ClassVisitor(Opcodes.ASM5){
     @Override public void visit(    int version,    int access,    String name,    String signature,    String superName,    String[] interfaces){
       String className=AsmUtils.convertInternalNameToClassName(name);
-      belongsToApi.set(memberOfApiChecker.belongsToApi(className) && isApiMember(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
+      shouldExtract.set(memberOfApiChecker.belongsToApi(className) && isApiMember(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
     }
   }
 ,ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
-  return belongsToApi.get();
+  return shouldExtract.get();
 }
