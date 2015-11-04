@@ -1,4 +1,20 @@
 {
-  S item=instanceFactory.create(type,modelNode,modelNode.getPath().getName());
-  modelNode.setPrivateData(type,item);
+  ModelType<S> type=schema.getType();
+  ModelType<? extends T> publicType;
+  ModelType<T> delegateType;
+  if (schema instanceof ManagedImplSchema) {
+    InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo=instanceFactory.getManagedSubtypeImplementationInfo(type);
+    publicType=implementationInfo.getPublicType();
+    delegateType=Cast.uncheckedCast(implementationInfo.getDelegateType());
+  }
+ else {
+    publicType=type;
+    delegateType=Cast.uncheckedCast(instanceFactory.getImplementationType(publicType));
+  }
+  T instance=instanceFactory.create(publicType,modelNode,modelNode.getPath().getName());
+  configureAction.execute(instance);
+  modelNode.setPrivateData(delegateType,instance);
+  NodeInitializerRegistry nodeInitializerRegistry=ModelViews.assertType(inputs.get(0),NodeInitializerRegistry.class).getInstance();
+  StructSchema<T> delegateSchema=Cast.uncheckedCast(schemaStore.getSchema(delegateType));
+  addPropertyLinks(modelNode,nodeInitializerRegistry,getProperties(delegateSchema));
 }
