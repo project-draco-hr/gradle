@@ -9,12 +9,16 @@
       return ManagedModelProjection.this.getType();
     }
     public M getInstance(){
-      return proxyFactory.createProxy(new State(),schema,delegateSchema);
+      return proxyFactory.createProxy(new State(services),schema,delegateSchema);
     }
     public void close(){
       closed=true;
     }
 class State implements ModelElementState {
+      private final ServiceRegistry services;
+      State(      ServiceRegistry services){
+        this.services=services;
+      }
       @Override public MutableModelNode getBackingNode(){
         return modelNode;
       }
@@ -61,6 +65,9 @@ class State implements ModelElementState {
         ModelType<?> propertyType=property.getType();
         value=doSet(name,value,propertyType);
         propertyViews.put(name,value);
+      }
+      public ServiceRegistry getServices(){
+        return services;
       }
       private <T>Object doSet(      String name,      Object value,      ModelType<T> propertyType){
         ModelSchema<T> propertySchema=schemaStore.getSchema(propertyType);
