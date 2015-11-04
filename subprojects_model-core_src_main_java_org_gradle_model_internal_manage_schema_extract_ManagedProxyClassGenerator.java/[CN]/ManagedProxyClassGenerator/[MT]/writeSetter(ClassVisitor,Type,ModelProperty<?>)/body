@@ -21,32 +21,4 @@
   }
   invokeStateSetMethod(methodVisitor);
   finishVisitingMethod(methodVisitor);
-  if (!propertyTypeClass.isPrimitive() && !BOXED_TYPES.values().contains(propertyTypeClass) && !propertyTypeClass.isEnum()&& !BigDecimal.class.equals(propertyTypeClass)&& !BigInteger.class.equals(propertyTypeClass)&& !String.class.equals(propertyTypeClass)) {
-    return;
-  }
-  methodVisitor=declareMethod(visitor,setter.getName(),SET_OBJECT_PROPERTY_DESCRIPTOR,SET_OBJECT_PROPERTY_DESCRIPTOR);
-  Class<?> objectType=propertyTypeClass.isPrimitive() ? BOXED_TYPES.get(propertyTypeClass) : propertyTypeClass;
-  String propertyType=Type.getInternalName(objectType);
-  putStateFieldValueOnStack(methodVisitor,generatedType);
-  methodVisitor.visitMethodInsn(INVOKEINTERFACE,MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME,"getServices",GET_SERVICES_METHOD_DESCRIPTOR,true);
-  methodVisitor.visitVarInsn(ASTORE,2);
-  methodVisitor.visitVarInsn(ALOAD,2);
-  methodVisitor.visitLdcInsn(TYPE_CONVERTERS_TYPE);
-  methodVisitor.visitMethodInsn(INVOKEINTERFACE,SERVICE_REGISTRY_TYPE.getInternalName(),"get",SERVICES_GET_METHOD_DESCRIPTOR,true);
-  methodVisitor.visitTypeInsn(CHECKCAST,TYPE_CONVERTERS_TYPE.getInternalName());
-  methodVisitor.visitVarInsn(ASTORE,3);
-  methodVisitor.visitVarInsn(ALOAD,3);
-  methodVisitor.visitVarInsn(ALOAD,1);
-  methodVisitor.visitLdcInsn(Type.getType(objectType));
-  methodVisitor.visitInsn(propertyTypeClass.isPrimitive() ? ICONST_1 : ICONST_0);
-  methodVisitor.visitMethodInsn(INVOKEINTERFACE,TYPE_CONVERTERS_TYPE.getInternalName(),"convert",COERCE_TO_SCALAR_DESCRIPTOR,true);
-  methodVisitor.visitVarInsn(ASTORE,4);
-  methodVisitor.visitVarInsn(ALOAD,0);
-  methodVisitor.visitVarInsn(ALOAD,4);
-  methodVisitor.visitTypeInsn(CHECKCAST,propertyType);
-  if (propertyTypeClass.isPrimitive()) {
-    unboxType(methodVisitor,propertyTypeClass);
-  }
-  methodVisitor.visitMethodInsn(INVOKEVIRTUAL,generatedType.getInternalName(),setter.getName(),methodDescriptor,false);
-  finishVisitingMethod(methodVisitor);
 }
