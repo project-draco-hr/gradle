@@ -1,14 +1,9 @@
 {
   MethodNode closureCallMethod=AstUtils.getGeneratedClosureImplMethod(node);
   Statement closureCode=closureCallMethod.getCode();
-  SourceLocation sourceLocation=closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
-  if (sourceLocation != null) {
-    AnnotationNode metadataAnnotation=new AnnotationNode(RULE_METADATA);
-    metadataAnnotation.addMember("absoluteScriptSourceLocation",new ConstantExpression(sourceLocation.getUri().toString()));
-    metadataAnnotation.addMember("lineNumber",new ConstantExpression(sourceLocation.getLineNumber()));
-    metadataAnnotation.addMember("columnNumber",new ConstantExpression(sourceLocation.getColumnNumber()));
-    InputReferences inputs=closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
-    node.addAnnotation(metadataAnnotation);
+  InputReferences inputs=closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
+  if (inputs != null) {
+    SourceLocation sourceLocation=closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
     node.addInterface(TRANSFORMED_CLOSURE);
     node.addField(new FieldNode(INPUTS_FIELD_NAME,Modifier.PUBLIC,POTENTIAL_INPUTS,node,null));
     List<Statement> statements=new ArrayList<Statement>();
@@ -27,5 +22,8 @@
     }
     statements.add(new ReturnStatement(inputsVar));
     node.addMethod(new MethodNode("inputReferences",Modifier.PUBLIC,INPUT_REFERENCES,new Parameter[0],new ClassNode[0],new BlockStatement(statements,methodVarScope)));
+    statements=new ArrayList<Statement>();
+    statements.add(new ReturnStatement(new ConstructorCallExpression(SOURCE_LOCATION,new ArgumentListExpression(Arrays.<Expression>asList(new ConstantExpression(sourceLocation.getUri().toString()),new ConstantExpression(sourceLocation.toString()),new ConstantExpression(sourceLocation.getExpression()),new ConstantExpression(sourceLocation.getLineNumber()),new ConstantExpression(sourceLocation.getColumnNumber()))))));
+    node.addMethod(new MethodNode("sourceLocation",Modifier.PUBLIC,SOURCE_LOCATION,new Parameter[0],new ClassNode[0],new BlockStatement(statements,new VariableScope())));
   }
 }

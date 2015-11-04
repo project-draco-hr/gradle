@@ -1,12 +1,14 @@
 {
   ClosureExpression closureExpression=AstUtils.getSingleClosureArg(call);
   if (closureExpression != null) {
-    rewriteAction(call,extractModelPathFromMethodTarget(call),closureExpression);
+    String modelPath=extractModelPathFromMethodTarget(call);
+    rewriteAction(call,modelPath,closureExpression,modelPath + " { ... }");
     return;
   }
   Pair<ClassExpression,ClosureExpression> args=AstUtils.getClassAndClosureArgs(call);
   if (args != null) {
-    rewriteCreator(call,extractModelPathFromMethodTarget(call),args.getRight(),args.getLeft());
+    String modelPath=extractModelPathFromMethodTarget(call);
+    rewriteCreator(call,modelPath,args.getRight(),args.getLeft(),modelPath + "(" + args.getLeft().getText()+ ") { ... }");
     return;
   }
   ClassExpression classArg=AstUtils.getClassArg(call);
@@ -16,7 +18,8 @@
     BlockStatement block=new BlockStatement(statements,new VariableScope());
     closureExpression=new ClosureExpression(Parameter.EMPTY_ARRAY,block);
     closureExpression.setVariableScope(block.getVariableScope());
-    rewriteCreator(call,extractModelPathFromMethodTarget(call),closureExpression,classArg);
+    String modelPath=extractModelPathFromMethodTarget(call);
+    rewriteCreator(call,modelPath,closureExpression,classArg,modelPath + "(" + classArg.getText()+ ")");
     return;
   }
   restrict(call,INVALID_RULE_SIGNATURE);

@@ -1,12 +1,12 @@
 {
-  SourceLocation sourceLocation=ruleLocationExtractor.transform(closure);
-  final ModelRuleDescriptor descriptor=sourceLocation.asDescriptor("model." + subjectPath);
+  final TransformedClosure transformedClosure=(TransformedClosure)closure;
+  SourceLocation sourceLocation=ruleLocationExtractor.transform(transformedClosure);
+  final ModelRuleDescriptor descriptor=sourceLocation.asDescriptor();
   return new DeferredModelAction(){
     @Override public ModelRuleDescriptor getDescriptor(){
       return descriptor;
     }
     @Override public void execute(    MutableModelNode node,    ModelActionRole role){
-      TransformedClosure transformedClosure=(TransformedClosure)closure;
       final boolean supportsNestedRules=node.canBeViewedAs(ModelType.of(ManagedInstance.class));
       InputReferences inputs=transformedClosure.inputReferences();
       List<InputReference> inputReferences=supportsNestedRules ? inputs.getOwnReferences() : inputs.getAllReferences();
@@ -20,7 +20,7 @@
           inputModelReferences.add(ModelReference.untyped(ModelPath.path(path),description));
         }
       }
-      node.applyToSelf(role,InputUsingModelAction.of(ModelReference.of(subjectPath,subjectType),descriptor,inputModelReferences,new BiAction<T,List<ModelView<?>>>(){
+      node.applyToSelf(role,InputUsingModelAction.of(ModelReference.of(node.getPath(),subjectType),descriptor,inputModelReferences,new BiAction<T,List<ModelView<?>>>(){
         @Override public void execute(        T t,        List<ModelView<?>> modelViews){
           Closure<?> cloned=closure.rehydrate(null,closure.getThisObject(),closure.getThisObject());
           ((TransformedClosure)cloned).makeRule(new PotentialInputs(modelViews,inputValues),supportsNestedRules);
