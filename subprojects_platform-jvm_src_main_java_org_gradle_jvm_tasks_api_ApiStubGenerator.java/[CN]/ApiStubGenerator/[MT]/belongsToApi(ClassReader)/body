@@ -1,11 +1,11 @@
 {
-  final AtomicBoolean isAPI=new AtomicBoolean();
+  final AtomicBoolean belongsToApi=new AtomicBoolean();
   cr.accept(new ClassVisitor(Opcodes.ASM5){
     @Override public void visit(    int version,    int access,    String name,    String signature,    String superName,    String[] interfaces){
       String className=AsmUtils.convertInternalNameToClassName(name);
-      isAPI.set(memberOfApiChecker.belongsToApi(className) && isPublicAPI(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
+      belongsToApi.set(memberOfApiChecker.belongsToApi(className) && isApiMember(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
     }
   }
 ,ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
-  return isAPI.get();
+  return belongsToApi.get();
 }
