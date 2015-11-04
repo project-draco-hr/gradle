@@ -1,7 +1,7 @@
 {
-  SourceLocation sourceLocation=ruleLocationExtractor.transform(closure);
   ModelPath modelPath=ModelPath.path(modelPathString);
-  ModelRuleDescriptor descriptor=toDescriptor(sourceLocation,modelPath);
+  DeferredModelAction modelAction=ruleFactory.toAction(modelPath,type,closure);
+  ModelRuleDescriptor descriptor=modelAction.getDescriptor();
   try {
     NodeInitializerRegistry nodeInitializerRegistry=modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(),DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
     NodeInitializer nodeInitializer=nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)));
@@ -10,5 +10,5 @@
  catch (  ModelTypeInitializationException e) {
     throw new InvalidModelRuleDeclarationException(descriptor,e);
   }
-  registerAction(modelPath,type,descriptor,ModelActionRole.Initialize,closure);
+  registerAction(modelPath,type,ModelActionRole.Initialize,modelAction);
 }

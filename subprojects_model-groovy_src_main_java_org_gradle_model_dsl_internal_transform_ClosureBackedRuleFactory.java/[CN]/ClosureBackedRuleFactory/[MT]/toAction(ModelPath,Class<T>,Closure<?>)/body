@@ -1,9 +1,13 @@
 {
-  final ModelReference<T> reference=ModelReference.of(modelPath,viewType);
-  modelRegistry.configure(ModelActionRole.Initialize,DirectNodeNoInputsModelAction.of(reference,descriptor,new Action<MutableModelNode>(){
-    @Override public void execute(    MutableModelNode mutableModelNode){
+  SourceLocation sourceLocation=ruleLocationExtractor.transform(closure);
+  final ModelRuleDescriptor descriptor=sourceLocation.asDescriptor("model." + subjectPath);
+  return new DeferredModelAction(){
+    @Override public ModelRuleDescriptor getDescriptor(){
+      return descriptor;
+    }
+    @Override public void execute(    MutableModelNode node,    ModelActionRole role){
       TransformedClosure transformedClosure=(TransformedClosure)closure;
-      final boolean supportsNestedRules=mutableModelNode.canBeViewedAs(ModelType.of(ManagedInstance.class));
+      final boolean supportsNestedRules=node.canBeViewedAs(ModelType.of(ManagedInstance.class));
       InputReferences inputs=transformedClosure.inputReferences();
       List<InputReference> inputReferences=supportsNestedRules ? inputs.getOwnReferences() : inputs.getAllReferences();
       final Map<String,PotentialInput> inputValues=Maps.newLinkedHashMap();
@@ -16,8 +20,8 @@
           inputModelReferences.add(ModelReference.untyped(ModelPath.path(path),description));
         }
       }
-      mutableModelNode.applyToSelf(role,InputUsingModelAction.of(reference,descriptor,inputModelReferences,new BiAction<T,List<ModelView<?>>>(){
-        @Override public void execute(        final T t,        List<ModelView<?>> modelViews){
+      node.applyToSelf(role,InputUsingModelAction.of(ModelReference.of(subjectPath,subjectType),descriptor,inputModelReferences,new BiAction<T,List<ModelView<?>>>(){
+        @Override public void execute(        T t,        List<ModelView<?>> modelViews){
           Closure<?> cloned=closure.rehydrate(null,closure.getThisObject(),closure.getThisObject());
           ((TransformedClosure)cloned).makeRule(new PotentialInputs(modelViews,inputValues),supportsNestedRules);
           ClosureBackedAction.execute(t,cloned);
@@ -26,5 +30,5 @@
 ));
     }
   }
-));
+;
 }
