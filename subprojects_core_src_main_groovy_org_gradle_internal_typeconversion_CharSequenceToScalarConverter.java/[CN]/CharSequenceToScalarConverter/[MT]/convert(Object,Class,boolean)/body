@@ -1,0 +1,16 @@
+{
+  if (notation == null) {
+    if (primitive) {
+      throw new UnsupportedNotationException(notation,"Cannot convert null to a primitive type.",null,CANDIDATES);
+    }
+    return null;
+  }
+  if (type.isEnum()) {
+    return NotationParserBuilder.toType(type).noImplicitConverters().converter(new EnumConverter(type)).toComposite().parseNotation(notation);
+  }
+  NotationParser<Object,?> parser=PARSERS.get(primitive ? UNBOXED_TYPES.get(type) : type);
+  if (parser == null) {
+    throw new UnsupportedNotationException(notation,"Unsupported type",null,CANDIDATES);
+  }
+  return parser.parseNotation(notation);
+}
