@@ -1,0 +1,30 @@
+{
+  StringBuilder builder=new StringBuilder();
+  if (!expression.isImplicitThis()) {
+    builder.append(expression.getObjectExpression().getText());
+    builder.append('.');
+  }
+  builder.append(expression.getMethodAsString());
+  if (expression.getArguments() instanceof ArgumentListExpression) {
+    ArgumentListExpression arguments=(ArgumentListExpression)expression.getArguments();
+    boolean hasTrailingClosure=!arguments.getExpressions().isEmpty() && arguments.getExpression(arguments.getExpressions().size() - 1) instanceof ClosureExpression;
+    List<Expression> otherArgs=hasTrailingClosure ? arguments.getExpressions().subList(0,arguments.getExpressions().size() - 1) : arguments.getExpressions();
+    if (!otherArgs.isEmpty() || !hasTrailingClosure) {
+      builder.append("(");
+      builder.append(Joiner.on(", ").join(CollectionUtils.collect(otherArgs,new Transformer<Object,Expression>(){
+        @Override public Object transform(        Expression expression){
+          return expression.getText();
+        }
+      }
+)));
+      builder.append(")");
+    }
+    if (hasTrailingClosure) {
+      builder.append(" { ... }");
+    }
+  }
+ else {
+    builder.append("()");
+  }
+  return builder.toString();
+}
