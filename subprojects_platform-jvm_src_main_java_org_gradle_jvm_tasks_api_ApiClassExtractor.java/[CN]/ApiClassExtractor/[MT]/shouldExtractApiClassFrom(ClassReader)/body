@@ -1,0 +1,11 @@
+{
+  final AtomicBoolean shouldExtract=new AtomicBoolean();
+  originalClassReader.accept(new ClassVisitor(Opcodes.ASM5){
+    @Override public void visit(    int version,    int access,    String name,    String signature,    String superName,    String[] interfaces){
+      String originalClassName=AsmUtils.convertInternalNameToClassName(name);
+      shouldExtract.set(isApiClassExtractionCandidate(access,originalClassName));
+    }
+  }
+,ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
+  return shouldExtract.get();
+}
