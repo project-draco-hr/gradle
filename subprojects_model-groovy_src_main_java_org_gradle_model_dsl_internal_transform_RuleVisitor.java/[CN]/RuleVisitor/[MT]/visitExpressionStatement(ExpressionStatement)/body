@@ -6,7 +6,10 @@
       if (!arguments.getExpressions().isEmpty()) {
         Expression lastArg=arguments.getExpression(arguments.getExpressions().size() - 1);
         if (lastArg instanceof ClosureExpression) {
-          visitRuleClosure((ClosureExpression)lastArg,call,call.getText());
+          ClosureExpression closureExpression=(ClosureExpression)lastArg;
+          visitRuleClosure(closureExpression,call,call.getText());
+          Expression replaced=new StaticMethodCallExpression(RULE_FACTORY,"decorate",new ArgumentListExpression(new VariableExpression(RULE_FACTORY_FIELD_NAME),closureExpression));
+          arguments.getExpressions().set(arguments.getExpressions().size() - 1,replaced);
           return;
         }
       }

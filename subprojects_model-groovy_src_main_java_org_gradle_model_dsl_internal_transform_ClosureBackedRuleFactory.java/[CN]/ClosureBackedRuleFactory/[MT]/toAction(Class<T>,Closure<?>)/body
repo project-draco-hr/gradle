@@ -7,7 +7,7 @@
       return descriptor;
     }
     @Override public void execute(    MutableModelNode node,    ModelActionRole role){
-      final boolean supportsNestedRules=node.canBeViewedAs(ModelType.of(ManagedInstance.class));
+      final boolean supportsNestedRules=node.canBeViewedAs(MANAGED_INSTANCE_TYPE);
       InputReferences inputs=transformedClosure.inputReferences();
       List<InputReference> inputReferences=supportsNestedRules ? inputs.getOwnReferences() : inputs.getAllReferences();
       final Map<String,PotentialInput> inputValues=Maps.newLinkedHashMap();
@@ -23,7 +23,7 @@
       node.applyToSelf(role,InputUsingModelAction.of(ModelReference.of(node.getPath(),subjectType),descriptor,inputModelReferences,new BiAction<T,List<ModelView<?>>>(){
         @Override public void execute(        T t,        List<ModelView<?>> modelViews){
           Closure<?> cloned=closure.rehydrate(null,closure.getThisObject(),closure.getThisObject());
-          ((TransformedClosure)cloned).makeRule(new PotentialInputs(modelViews,inputValues),supportsNestedRules);
+          ((TransformedClosure)cloned).makeRule(new PotentialInputs(modelViews,inputValues),supportsNestedRules ? ClosureBackedRuleFactory.this : null);
           ClosureBackedAction.execute(t,cloned);
         }
       }
