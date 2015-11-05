@@ -1,0 +1,57 @@
+{
+  return ImmutableSetMultimap.<ModelActionRole,ModelAction>builder().put(ModelActionRole.Discover,DirectNodeInputUsingModelAction.of(subject,descriptor,Arrays.<ModelReference<?>>asList(ModelReference.of(ModelSchemaStore.class),ModelReference.of(ManagedProxyFactory.class),ModelReference.of(ServiceRegistry.class)),new BiAction<MutableModelNode,List<ModelView<?>>>(){
+    @Override public void execute(    MutableModelNode modelNode,    List<ModelView<?>> modelViews){
+      ModelSchemaStore schemaStore=ModelViews.getInstance(modelViews,0,ModelSchemaStore.class);
+      ManagedProxyFactory proxyFactory=ModelViews.getInstance(modelViews,1,ManagedProxyFactory.class);
+      ServiceRegistry serviceRegistry=ModelViews.getInstance(modelViews,2,ServiceRegistry.class);
+      ModelType<S> publicType=schema.getType();
+      ModelType<? extends T> delegateType;
+      if (schema instanceof ManagedImplSchema) {
+        InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo=instanceFactory.getManagedSubtypeImplementationInfo(publicType);
+        if (implementationInfo == null) {
+          throw new IllegalStateException(String.format("No default implementation registered for managed type '%s'",publicType));
+        }
+        delegateType=implementationInfo.getDelegateType();
+      }
+ else {
+        delegateType=instanceFactory.getImplementationType(publicType);
+      }
+      ModelSchema<? extends T> delegateSchema=schemaStore.getSchema(delegateType);
+      if (!(delegateSchema instanceof StructSchema)) {
+        throw new IllegalStateException(String.format("Default implementation '%s' registered for managed type '%s' must be a struct",delegateType,publicType));
+      }
+      StructSchema<? extends T> delegateStructSchema=Cast.uncheckedCast(delegateSchema);
+      addProjection(modelNode,publicType,delegateStructSchema,schemaStore,proxyFactory,serviceRegistry);
+      for (      ModelType<?> internalView : instanceFactory.getInternalViews(publicType)) {
+        addProjection(modelNode,internalView,delegateStructSchema,schemaStore,proxyFactory,serviceRegistry);
+      }
+    }
+  }
+)).put(ModelActionRole.Create,DirectNodeInputUsingModelAction.of(subject,descriptor,Arrays.<ModelReference<?>>asList(ModelReference.of(NodeInitializerRegistry.class),ModelReference.of(ModelSchemaStore.class),ModelReference.of(ManagedProxyFactory.class),ModelReference.of(ServiceRegistry.class)),new BiAction<MutableModelNode,List<ModelView<?>>>(){
+    @Override public void execute(    MutableModelNode modelNode,    List<ModelView<?>> modelViews){
+      NodeInitializerRegistry nodeInitializerRegistry=ModelViews.getInstance(modelViews,0,NodeInitializerRegistry.class);
+      ModelSchemaStore schemaStore=ModelViews.getInstance(modelViews,1,ModelSchemaStore.class);
+      ManagedProxyFactory proxyFactory=ModelViews.getInstance(modelViews,2,ManagedProxyFactory.class);
+      ServiceRegistry serviceRegistry=ModelViews.getInstance(modelViews,3,ServiceRegistry.class);
+      ModelType<S> type=schema.getType();
+      ModelType<? extends T> publicType;
+      ModelType<T> delegateType;
+      if (schema instanceof ManagedImplSchema) {
+        InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo=instanceFactory.getManagedSubtypeImplementationInfo(type);
+        publicType=implementationInfo.getPublicType();
+        delegateType=Cast.uncheckedCast(implementationInfo.getDelegateType());
+      }
+ else {
+        publicType=type;
+        delegateType=Cast.uncheckedCast(instanceFactory.getImplementationType(publicType));
+      }
+      T instance=instanceFactory.create(publicType,modelNode,modelNode.getPath().getName());
+      configureAction.execute(instance);
+      modelNode.setPrivateData(delegateType,instance);
+      StructSchema<T> delegateSchema=Cast.uncheckedCast(schemaStore.getSchema(delegateType));
+      addPropertyLinks(modelNode,nodeInitializerRegistry,schemaStore,proxyFactory,serviceRegistry,getProperties(delegateSchema,schemaStore));
+      hideNodesOfHiddenProperties(modelNode,getHiddenProperties(delegateSchema,schemaStore));
+    }
+  }
+)).build();
+}

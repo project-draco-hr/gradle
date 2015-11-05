@@ -1,0 +1,15 @@
+{
+  ModelSchema<?> schema=schemaStore.getSchema(type);
+  if (!(schema instanceof StructSchema)) {
+    throw new IllegalStateException("View type must be a struct: " + type);
+  }
+  StructSchema<D> structSchema=Cast.uncheckedCast(schema);
+  ModelProjection projection;
+  if (structSchema instanceof ManagedImplSchema) {
+    projection=new ManagedModelProjection<D>(structSchema,delegateSchema,schemaStore,proxyFactory,services);
+  }
+ else {
+    projection=UnmanagedModelProjection.of(structSchema.getType());
+  }
+  modelNode.addProjection(projection);
+}
