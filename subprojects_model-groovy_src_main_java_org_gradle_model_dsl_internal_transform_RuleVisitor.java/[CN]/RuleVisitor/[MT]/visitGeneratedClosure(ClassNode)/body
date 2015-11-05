@@ -5,11 +5,13 @@
   if (inputs != null) {
     SourceLocation sourceLocation=closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
     node.addInterface(TRANSFORMED_CLOSURE);
-    node.addField(new FieldNode(INPUTS_FIELD_NAME,Modifier.PRIVATE,POTENTIAL_INPUTS,node,null));
-    node.addField(new FieldNode(RULE_FACTORY_FIELD_NAME,Modifier.PRIVATE,RULE_FACTORY,node,null));
+    FieldNode inputsField=new FieldNode(INPUTS_FIELD_NAME,Modifier.PRIVATE,POTENTIAL_INPUTS,node,null);
+    FieldNode ruleFactoryField=new FieldNode(RULE_FACTORY_FIELD_NAME,Modifier.PRIVATE,RULE_FACTORY,node,null);
+    node.addField(inputsField);
+    node.addField(ruleFactoryField);
     List<Statement> statements=new ArrayList<Statement>();
-    statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(INPUTS_FIELD_NAME),ASSIGN,new VariableExpression("inputs"))));
-    statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(RULE_FACTORY_FIELD_NAME),ASSIGN,new VariableExpression("ruleFactory"))));
+    statements.add(new ExpressionStatement(new BinaryExpression(new FieldExpression(inputsField),ASSIGN,new VariableExpression("inputs"))));
+    statements.add(new ExpressionStatement(new BinaryExpression(new FieldExpression(ruleFactoryField),ASSIGN,new VariableExpression("ruleFactory"))));
     node.addMethod(new MethodNode("makeRule",Modifier.PUBLIC,ClassHelper.VOID_TYPE,new Parameter[]{new Parameter(POTENTIAL_INPUTS,"inputs"),new Parameter(RULE_FACTORY,"ruleFactory")},new ClassNode[0],new BlockStatement(statements,new VariableScope())));
     VariableExpression inputsVar=new VariableExpression("inputs",INPUT_REFERENCES);
     VariableScope methodVarScope=new VariableScope();
