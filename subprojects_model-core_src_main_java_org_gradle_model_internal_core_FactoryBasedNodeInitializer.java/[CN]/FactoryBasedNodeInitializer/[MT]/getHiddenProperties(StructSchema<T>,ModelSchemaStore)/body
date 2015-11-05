@@ -2,12 +2,6 @@
   final ImmutableSet.Builder<ModelProperty<?>> pubPropsBuilder=ImmutableSet.builder();
   final ImmutableSet.Builder<ModelProperty<?>> intPropsBuilder=ImmutableSet.builder();
   addNonDelegatedManagedProperties(schema,delegateSchema,pubPropsBuilder);
-  for (  ModelType<?> internalView : instanceFactory.getInternalViews(schema.getType())) {
-    ModelSchema<?> internalViewSchema=schemaStore.getSchema(internalView);
-    if (!(internalViewSchema instanceof StructSchema)) {
-      continue;
-    }
-    addNonDelegatedManagedProperties((StructSchema<?>)internalViewSchema,delegateSchema,intPropsBuilder);
-  }
+  addInternalViewsProperties(delegateSchema,schemaStore,intPropsBuilder);
   return Sets.difference(intPropsBuilder.build(),pubPropsBuilder.build());
 }
