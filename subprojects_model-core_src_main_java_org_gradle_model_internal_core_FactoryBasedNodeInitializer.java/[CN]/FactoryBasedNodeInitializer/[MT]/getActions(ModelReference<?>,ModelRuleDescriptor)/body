@@ -5,26 +5,14 @@
       ManagedProxyFactory proxyFactory=ModelViews.getInstance(modelViews,1,ManagedProxyFactory.class);
       ServiceRegistry serviceRegistry=ModelViews.getInstance(modelViews,2,ServiceRegistry.class);
       ModelType<S> publicType=schema.getType();
-      ModelType<? extends T> delegateType;
-      if (schema instanceof ManagedImplSchema) {
-        InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo=instanceFactory.getManagedSubtypeImplementationInfo(publicType);
-        if (implementationInfo == null) {
-          throw new IllegalStateException(String.format("No default implementation registered for managed type '%s'",publicType));
-        }
-        delegateType=implementationInfo.getDelegateType();
-      }
- else {
-        delegateType=instanceFactory.getImplementationType(publicType);
-      }
+      ModelType<? extends T> delegateType=delegateTypeFor(publicType);
       ModelSchema<? extends T> delegateSchema=schemaStore.getSchema(delegateType);
       if (!(delegateSchema instanceof StructSchema)) {
         throw new IllegalStateException(String.format("Default implementation '%s' registered for managed type '%s' must be a struct",delegateType,publicType));
       }
       StructSchema<? extends T> delegateStructSchema=Cast.uncheckedCast(delegateSchema);
       addProjection(modelNode,publicType,delegateStructSchema,schemaStore,proxyFactory,serviceRegistry);
-      for (      ModelType<?> internalView : instanceFactory.getInternalViews(publicType)) {
-        addProjection(modelNode,internalView,delegateStructSchema,schemaStore,proxyFactory,serviceRegistry);
-      }
+      addInternalViewProjections(modelNode,schemaStore,proxyFactory,serviceRegistry,publicType,delegateStructSchema);
     }
   }
 )).put(ModelActionRole.Create,DirectNodeInputUsingModelAction.of(subject,descriptor,Arrays.<ModelReference<?>>asList(ModelReference.of(NodeInitializerRegistry.class),ModelReference.of(ModelSchemaStore.class),ModelReference.of(ManagedProxyFactory.class),ModelReference.of(ServiceRegistry.class)),new BiAction<MutableModelNode,List<ModelView<?>>>(){
