@@ -1,0 +1,84 @@
+{
+  final File archivePath=new File(destinationDir,archiveName);
+  if (!inputs.isIncremental()) {
+    FileUtils.deleteQuietly(archivePath);
+    FileUtils.deleteDirectory(apiClassesDir);
+  }
+  destinationDir.mkdirs();
+  apiClassesDir.mkdirs();
+  final ApiClassExtractor apiClassExtractor=new ApiClassExtractor(exportedPackages);
+  final AtomicBoolean updated=new AtomicBoolean();
+  final Map<File,byte[]> apiClasses=Maps.newHashMap();
+  inputs.outOfDate(new ErroringAction<InputFileDetails>(){
+    @Override protected void doExecute(    InputFileDetails inputFileDetails) throws Exception {
+      updated.set(true);
+      File originalClassFile=inputFileDetails.getFile();
+      if (apiClassExtractor.shouldExtractApiClassFrom(originalClassFile)) {
+        final byte[] apiClassBytes=apiClassExtractor.extractApiClassFrom(originalClassFile);
+        apiClasses.put(originalClassFile,apiClassBytes);
+        File apiClassFile=apiClassFileFor(originalClassFile);
+        apiClassFile.getParentFile().mkdirs();
+        IoActions.withResource(new FileOutputStream(apiClassFile),new ErroringAction<OutputStream>(){
+          @Override protected void doExecute(          OutputStream outputStream) throws Exception {
+            outputStream.write(apiClassBytes);
+          }
+        }
+);
+      }
+    }
+  }
+);
+  inputs.removed(new ErroringAction<InputFileDetails>(){
+    @Override protected void doExecute(    InputFileDetails removedOriginalClassFile) throws Exception {
+      updated.set(true);
+      deleteApiClassFileFor(removedOriginalClassFile.getFile());
+    }
+  }
+);
+  if (updated.get()) {
+    IoActions.withResource(new JarOutputStream(new BufferedOutputStream(new FileOutputStream(archivePath),65536)),new ErroringAction<JarOutputStream>(){
+      private final SortedMap<String,File> sortedFiles=Maps.newTreeMap();
+      private void writeEntries(      JarOutputStream jos) throws Exception {
+        for (        Map.Entry<String,File> entry : sortedFiles.entrySet()) {
+          JarEntry je=new JarEntry(entry.getKey());
+          je.setTime(0);
+          File originalClassFile=entry.getValue();
+          byte[] apiClassBytes=apiClasses.get(originalClassFile);
+          if (apiClassBytes == null) {
+            apiClassBytes=FileUtils.readFileToByteArray(originalClassFile);
+          }
+          je.setSize(apiClassBytes.length);
+          jos.putNextEntry(je);
+          jos.write(apiClassBytes);
+          jos.closeEntry();
+        }
+      }
+      private void collectFiles(      String relativePath,      File f) throws Exception {
+        String path="".equals(relativePath) ? f.getName() : relativePath + "/" + f.getName();
+        if (f.isFile()) {
+          sortedFiles.put(path,f);
+        }
+ else         if (f.isDirectory()) {
+          for (          File file : f.listFiles()) {
+            String root=relativePath == null ? "" : path;
+            collectFiles(root,file);
+          }
+        }
+      }
+      @Override protected void doExecute(      final JarOutputStream jos) throws Exception {
+        writeManifest(jos);
+        collectFiles(null,apiClassesDir);
+        writeEntries(jos);
+        jos.close();
+      }
+      private void writeManifest(      JarOutputStream jos) throws IOException {
+        JarEntry je=new JarEntry("META-INF/MANIFEST.MF");
+        je.setTime(0);
+        jos.putNextEntry(je);
+        jos.write("Manifest-Version: 1.0\n".getBytes());
+        jos.closeEntry();
+      }
+    }
+);
+  }
+}

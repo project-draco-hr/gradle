@@ -19,8 +19,8 @@
   }
   String libName=binaryName.substring(0,binaryName.lastIndexOf("Jar"));
   String createApiJar="create" + capitalize(libName + "ApiJar");
-  final ImmutableList<String> allowedPackages=ImmutableList.copyOf(binary.getExportedPackages());
-  if (allowedPackages.isEmpty()) {
+  final Set<String> exportedPackages=binary.getExportedPackages();
+  if (exportedPackages.isEmpty()) {
     tasks.create(createApiJar,Copy.class,new Action<Copy>(){
       @Override public void execute(      Copy copy){
         copy.setDescription(String.format("Creates the API binary file for %s.",binary));
@@ -32,12 +32,12 @@
 );
   }
  else {
-    tasks.create(createApiJar,StubbedJar.class,new Action<StubbedJar>(){
-      @Override public void execute(      StubbedJar jar){
+    tasks.create(createApiJar,ApiJar.class,new Action<ApiJar>(){
+      @Override public void execute(      ApiJar jar){
         final File apiClassesDir=new File(new File(buildDir,"apiClasses"),runtimeClassesDir.getName());
         jar.setDescription(String.format("Creates the API binary file for %s.",binary));
         jar.setRuntimeClassesDir(runtimeClassesDir);
-        jar.setExportedPackages(allowedPackages);
+        jar.setExportedPackages(exportedPackages);
         jar.setApiClassesDir(apiClassesDir);
         jar.setDestinationDir(binary.getApiJarFile().getParentFile());
         jar.setArchiveName(binary.getApiJarFile().getName());
