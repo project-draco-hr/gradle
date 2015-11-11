@@ -1,9 +1,8 @@
 {
-  final String descriptor=LanguageBasePlugin.class.getSimpleName() + ".apply()";
-  final ModelRuleDescriptor ruleDescriptor=new SimpleModelRuleDescriptor(descriptor);
-  modelRegistry.configure(ModelActionRole.Defaults,DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"),ruleDescriptor,new Action<MutableModelNode>(){
+  final String baseDescriptor=LanguageBasePlugin.class.getSimpleName() + "#";
+  modelRegistry.configure(ModelActionRole.Defaults,DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"),new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTasks"),new Action<MutableModelNode>(){
     @Override public void execute(    MutableModelNode binariesNode){
-      binariesNode.applyToAllLinks(ModelActionRole.Finalize,InputUsingModelAction.single(ModelReference.of(BinarySpec.class),ruleDescriptor,ModelReference.of(ITaskFactory.class),new BiAction<BinarySpec,ITaskFactory>(){
+      binariesNode.applyToAllLinks(ModelActionRole.Finalize,InputUsingModelAction.single(ModelReference.of(BinarySpec.class),new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTask"),ModelReference.of(ITaskFactory.class),new BiAction<BinarySpec,ITaskFactory>(){
         @Override public void execute(        BinarySpec binary,        ITaskFactory taskFactory){
           BinarySpecInternal binarySpecInternal=(BinarySpecInternal)binary;
           if (!binarySpecInternal.isLegacyBinary()) {
@@ -18,5 +17,5 @@
     }
   }
 ));
-  modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,DirectNodeNoInputsModelAction.of(ModelReference.of(BinarySpec.class),new SimpleModelRuleDescriptor(descriptor),ComponentSpecInitializer.binaryAction()));
+  modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,DirectNodeNoInputsModelAction.of(ModelReference.of(BinarySpec.class),new SimpleModelRuleDescriptor(baseDescriptor + ComponentSpecInitializer.class.getSimpleName() + ".binaryAction()"),ComponentSpecInitializer.binaryAction()));
 }
