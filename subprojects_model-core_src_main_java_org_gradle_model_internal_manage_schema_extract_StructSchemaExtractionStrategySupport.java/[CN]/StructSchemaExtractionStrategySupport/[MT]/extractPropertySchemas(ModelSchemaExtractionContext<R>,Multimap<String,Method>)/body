@@ -12,7 +12,10 @@
     List<Method> overloadedMethods=getOverloadedMethods(methods);
     if (overloadedMethods != null) {
       handleOverloadedMethods(extractionContext,overloadedMethods);
-      continue;
+      methods=filterGetterMethods(methods);
+      if (methods.isEmpty()) {
+        continue;
+      }
     }
     int getterPrefixLen=getterPrefixLength(methodName);
     if (getterPrefixLen >= 0) {
@@ -36,15 +39,17 @@
           List<Method> overloadedIsGetterMethods=getOverloadedMethods(isGetterMethods);
           if (overloadedIsGetterMethods != null) {
             handleOverloadedMethods(extractionContext,overloadedIsGetterMethods);
-            continue;
+            isGetterMethods=filterGetterMethods(isGetterMethods);
           }
-          Method mostSpecificIsGetter=ModelSchemaUtils.findMostSpecificMethod(isGetterMethods);
-          if (mostSpecificGetter.getReturnType() != boolean.class || mostSpecificIsGetter.getReturnType() != boolean.class) {
-            handleInvalidGetter(extractionContext,mostSpecificIsGetter,String.format("property '%s' has both '%s()' and '%s()' getters, but they don't both return a boolean",propertyName,isGetterName,methodName));
-            continue;
+          if (!isGetterMethods.isEmpty()) {
+            Method mostSpecificIsGetter=ModelSchemaUtils.findMostSpecificMethod(isGetterMethods);
+            if (mostSpecificGetter.getReturnType() != boolean.class || mostSpecificIsGetter.getReturnType() != boolean.class) {
+              handleInvalidGetter(extractionContext,mostSpecificIsGetter,String.format("property '%s' has both '%s()' and '%s()' getters, but they don't both return a boolean",propertyName,isGetterName,methodName));
+              continue;
+            }
+            getterMethods=Iterables.concat(getterMethods,isGetterMethods);
+            skippedMethodNames.add(isGetterName);
           }
-          getterMethods=Iterables.concat(getterMethods,isGetterMethods);
-          skippedMethodNames.add(isGetterName);
         }
       }
       PropertyAccessorExtractionContext getterContext=new PropertyAccessorExtractionContext(getterMethods);

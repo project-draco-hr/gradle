@@ -1,0 +1,38 @@
+{
+  InputReferences parentInputs=inputs;
+  VariableExpression parentInputsVariable=inputsVariable;
+  try {
+    inputs=new InputReferences();
+    inputsVariable=new VariableExpression("__rule_inputs_var_" + (counter++),POTENTIAL_INPUTS);
+    inputsVariable.setClosureSharedVariable(true);
+    super.visitClosureExpression(expression);
+    BlockStatement code=(BlockStatement)expression.getCode();
+    code.setNodeMetaData(AST_NODE_METADATA_LOCATION_KEY,new SourceLocation(location,scriptSourceDescription,invocationDisplayName,invocation.getLineNumber(),invocation.getColumnNumber()));
+    code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY,inputs);
+    if (parentInputsVariable != null) {
+      expression.getVariableScope().putReferencedLocalVariable(parentInputsVariable);
+    }
+    code.getVariableScope().putDeclaredVariable(inputsVariable);
+    if (parentInputsVariable == null) {
+      DeclarationExpression variableDeclaration=new DeclarationExpression(inputsVariable,ASSIGN,new VariableExpression(INPUTS_FIELD_NAME));
+      code.getStatements().add(0,new ExpressionStatement(variableDeclaration));
+    }
+ else {
+      DeclarationExpression variableDeclaration=new DeclarationExpression(inputsVariable,ASSIGN,new ElvisOperatorExpression(new VariableExpression(INPUTS_FIELD_NAME),parentInputsVariable));
+      code.getStatements().add(0,new ExpressionStatement(variableDeclaration));
+    }
+    for (    Parameter parameter : expression.getParameters()) {
+      if (parameter.hasInitialExpression()) {
+        code.getStatements().add(1,new ExpressionStatement(new BinaryExpression(new VariableExpression(parameter.getName()),ASSIGN,parameter.getInitialExpression())));
+        parameter.setInitialExpression(ConstantExpression.NULL);
+      }
+    }
+  }
+  finally {
+    if (parentInputs != null) {
+      parentInputs.addNestedReferences(inputs);
+    }
+    inputs=parentInputs;
+    inputsVariable=parentInputsVariable;
+  }
+}

@@ -1,0 +1,51 @@
+{
+  if (delegateSchema != null && Modifier.isAbstract(delegateSchema.getType().getConcreteClass().getModifiers())) {
+    throw new IllegalArgumentException("Delegate type must be null or a non-abstract type");
+  }
+  ClassWriter visitor=new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+  ModelType<M> managedType=managedSchema.getType();
+  StringBuilder generatedTypeNameBuilder=new StringBuilder(managedType.getName());
+  if (delegateSchema != null) {
+    generatedTypeNameBuilder.append("$BackedBy_").append(delegateSchema.getType().getName().replaceAll("\\.","_"));
+  }
+ else {
+    generatedTypeNameBuilder.append("$Impl");
+  }
+  String generatedTypeName=generatedTypeNameBuilder.toString();
+  Type generatedType=Type.getType("L" + generatedTypeName.replaceAll("\\.","/") + ";");
+  Class<M> managedTypeClass=managedType.getConcreteClass();
+  Class<?> superclass;
+  final ImmutableSet.Builder<String> interfacesToImplement=ImmutableSet.builder();
+  final ImmutableSet.Builder<Class<?>> typesToDelegate=ImmutableSet.builder();
+  typesToDelegate.add(managedTypeClass);
+  interfacesToImplement.add(MANAGED_INSTANCE_TYPE);
+  if (managedTypeClass.isInterface()) {
+    superclass=Object.class;
+    interfacesToImplement.add(Type.getInternalName(managedTypeClass));
+  }
+ else {
+    superclass=managedTypeClass;
+  }
+  if (delegateSchema != null) {
+    ModelSchemaUtils.walkTypeHierarchy(delegateSchema.getType().getConcreteClass(),new ModelSchemaUtils.TypeVisitor<D>(){
+      @Override public void visitType(      Class<? super D> type){
+        if (type.isInterface()) {
+          typesToDelegate.add(type);
+          interfacesToImplement.add(Type.getInternalName(type));
+        }
+      }
+    }
+);
+  }
+  generateProxyClass(visitor,managedSchema,delegateSchema,interfacesToImplement.build(),typesToDelegate.build(),generatedType,Type.getType(superclass));
+  ClassLoader targetClassLoader=managedTypeClass.getClassLoader();
+  if (delegateSchema != null) {
+    try {
+      managedTypeClass.getClassLoader().loadClass(delegateSchema.getType().getConcreteClass().getName());
+    }
+ catch (    ClassNotFoundException e) {
+      targetClassLoader=delegateSchema.getType().getConcreteClass().getClassLoader();
+    }
+  }
+  return defineClass(visitor,targetClassLoader,generatedTypeName);
+}

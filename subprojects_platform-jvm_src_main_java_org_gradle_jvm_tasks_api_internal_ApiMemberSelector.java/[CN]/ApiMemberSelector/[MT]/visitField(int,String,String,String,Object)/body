@@ -1,0 +1,15 @@
+{
+  if (isCandidateApiMember(access,apiIncludesPackagePrivateMembers)) {
+    final FieldMember fieldMember=new FieldMember(access,name,signature,desc);
+    fields.add(fieldMember);
+    return new FieldVisitor(ASM5){
+      @Override public AnnotationVisitor visitAnnotation(      String desc,      boolean visible){
+        AnnotationMember ann=new AnnotationMember(desc,visible);
+        fieldMember.addAnnotation(ann);
+        return new SortingAnnotationVisitor(ann,super.visitAnnotation(desc,visible));
+      }
+    }
+;
+  }
+  return null;
+}

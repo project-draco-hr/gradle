@@ -1,0 +1,18 @@
+{
+  if (fileTree instanceof FileTreeWithBackingFile) {
+    File backingFile=((FileTreeWithBackingFile)fileTree).getBackingFile();
+    if (backingFile != null) {
+      return Collections.singleton(backingFile);
+    }
+    if (fileTree instanceof FileSystemMirroringFileTree) {
+      return new FileTreeAdapter((FileSystemMirroringFileTree)fileTree).getFiles();
+    }
+  }
+ else   if (fileTree instanceof FileTreeAdapter) {
+    return unwrapFileTreeBackingFilesIfAvailable(((FileTreeAdapter)fileTree).getTree());
+  }
+ else   if (fileTree instanceof FilteredFileTree) {
+    return unwrapFileTreeBackingFilesIfAvailable(((FilteredFileTree)fileTree).getOriginalFileTree());
+  }
+  return null;
+}

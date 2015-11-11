@@ -1,0 +1,17 @@
+{
+  final BinaryNamingScheme namingScheme=namingSchemeFor(testSuite,(NativeBinarySpecInternal)testedBinary,typeString);
+  final NativeDependencyResolver resolver=serviceRegistry.get(NativeDependencyResolver.class);
+  testSuite.getBinaries().create(namingScheme.getBinaryName(),testSuiteBinaryClass,new Action<NativeTestSuiteBinarySpec>(){
+    @Override public void execute(    NativeTestSuiteBinarySpec binary){
+      NativeTestSuiteBinarySpecInternal testBinary=(NativeTestSuiteBinarySpecInternal)binary;
+      testBinary.setTestedBinary((NativeBinarySpecInternal)testedBinary);
+      testBinary.setNamingScheme(namingScheme);
+      testBinary.setResolver(resolver);
+      testBinary.setToolChain(testedBinary.getToolChain());
+      testBinary.getExecutable().setToolChain(testedBinary.getToolChain());
+      testBinary.getExecutable().setFile(executableFileFor(testBinary,buildDir,namingScheme));
+      testBinary.getInstallation().setDirectory(installDir(buildDir,namingScheme));
+    }
+  }
+);
+}

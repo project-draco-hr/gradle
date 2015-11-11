@@ -39,6 +39,24 @@
     tasks.add(new DefaultEclipseTask(eclipseProject,t.getPath(),t.getName(),t.getDescription()));
   }
   eclipseProject.setTasks(tasks);
+  List<DefaultEclipseProjectNature> natures=new ArrayList<DefaultEclipseProjectNature>();
+  for (  String n : eclipseModel.getProject().getNatures()) {
+    natures.add(new DefaultEclipseProjectNature(n));
+  }
+  eclipseProject.setProjectNatures(natures);
+  List<DefaultEclipseBuildCommand> buildCommands=new ArrayList<DefaultEclipseBuildCommand>();
+  for (  BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
+    buildCommands.add(new DefaultEclipseBuildCommand(b.getName(),b.getArguments()));
+  }
+  eclipseProject.setBuildCommands(buildCommands);
+  if (project.getPlugins().hasPlugin(JavaBasePlugin.class)) {
+    JavaVersion sourceCompatibility=eclipseModel.getJdt().getSourceCompatibility();
+    if (sourceCompatibility != null) {
+      DefaultJavaSourceLevel languageLevel=new DefaultJavaSourceLevel(sourceCompatibility.toString());
+      DefaultJavaSourceSettings sourceSettings=new DefaultJavaSourceSettings(languageLevel);
+      eclipseProject.setJavaSourceSettings(sourceSettings);
+    }
+  }
   for (  Project childProject : project.getChildProjects().values()) {
     populate(childProject);
   }
