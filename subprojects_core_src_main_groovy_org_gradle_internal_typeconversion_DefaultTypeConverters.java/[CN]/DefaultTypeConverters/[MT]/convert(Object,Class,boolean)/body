@@ -8,9 +8,15 @@
   if (type.isEnum()) {
     return NotationParserBuilder.toType(type).noImplicitConverters().converter(new EnumConverter(type)).toComposite().parseNotation(notation);
   }
-  NotationParser<Object,?> parser=PARSERS.get(primitive ? UNBOXED_TYPES.get(type) : type);
-  if (parser == null) {
-    throw new UnsupportedNotationException(notation,"Unsupported type",null,CANDIDATES);
+  NotationParser<Object,?> parser;
+  if (File.class.equals(type)) {
+    parser=fileParser;
+  }
+ else {
+    parser=PARSERS.get(primitive ? UNBOXED_TYPES.get(type) : type);
+    if (parser == null) {
+      throw new UnsupportedNotationException(notation,"Unsupported type",null,CANDIDATES);
+    }
   }
   return parser.parseNotation(notation);
 }
