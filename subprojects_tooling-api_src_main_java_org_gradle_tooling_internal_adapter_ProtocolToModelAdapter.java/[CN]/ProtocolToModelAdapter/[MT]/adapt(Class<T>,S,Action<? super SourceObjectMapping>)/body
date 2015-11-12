@@ -15,6 +15,9 @@
     mixInMethodInvoker=new MixInMethodInvoker(mapping.mixInType,new AdaptingMethodInvoker(mapper,new ReflectionMethodInvoker()));
     overrideMethodInvoker=mixInMethodInvoker;
   }
+  if (targetType.isEnum()) {
+    return adaptToEnum(targetType,sourceObject);
+  }
   Object proxy=Proxy.newProxyInstance(wrapperType.getClassLoader(),new Class<?>[]{wrapperType},new InvocationHandlerImpl(sourceObject,overrideMethodInvoker,mapper));
   if (mixInMethodInvoker != null) {
     mixInMethodInvoker.setProxy(proxy);
