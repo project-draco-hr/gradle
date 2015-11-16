@@ -4,10 +4,11 @@
     return;
   }
   String propertyName=property.getName();
-  Class<?> propertyTypeClass=property.getType().getConcreteClass();
+  Class<?> propertyClass=property.getType().getConcreteClass();
+  Type propertyType=Type.getType(propertyClass);
   Label calledOutsideOfConstructor=new Label();
   Method setter=weakSetter.getMethod();
-  String methodDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,Type.getType(propertyTypeClass));
+  String methodDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,propertyType);
   MethodVisitor methodVisitor=declareMethod(visitor,setter.getName(),methodDescriptor,AsmClassGeneratorUtils.signature(setter));
   putCanCallSettersFieldValueOnStack(methodVisitor,generatedType);
   jumpToLabelIfStackEvaluatesToTrue(methodVisitor,calledOutsideOfConstructor);
@@ -15,13 +16,13 @@
   methodVisitor.visitLabel(calledOutsideOfConstructor);
   putStateFieldValueOnStack(methodVisitor,generatedType);
   putConstantOnStack(methodVisitor,propertyName);
-  putFirstMethodArgumentOnStack(methodVisitor,propertyTypeClass);
-  if (propertyTypeClass.isPrimitive()) {
-    boxType(methodVisitor,propertyTypeClass);
+  putFirstMethodArgumentOnStack(methodVisitor,propertyType);
+  if (propertyClass.isPrimitive()) {
+    boxType(methodVisitor,propertyClass);
   }
   invokeStateSetMethod(methodVisitor);
   finishVisitingMethod(methodVisitor);
-  if (propertyTypeClass.isPrimitive() || BOXED_TYPES.values().contains(propertyTypeClass) || propertyTypeClass.isEnum()|| BigDecimal.class.equals(propertyTypeClass)|| BigInteger.class.equals(propertyTypeClass)|| String.class.equals(propertyTypeClass)|| File.class.equals(propertyTypeClass)) {
-    createScalarConvertingSetter(visitor,generatedType,propertyTypeClass,setter,methodDescriptor);
+  if (propertyClass.isPrimitive() || BOXED_TYPES.values().contains(propertyClass) || propertyClass.isEnum()|| BigDecimal.class.equals(propertyClass)|| BigInteger.class.equals(propertyClass)|| String.class.equals(propertyClass)|| File.class.equals(propertyClass)) {
+    createScalarConvertingSetter(visitor,generatedType,propertyClass,setter,methodDescriptor);
   }
 }
