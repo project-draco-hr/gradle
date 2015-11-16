@@ -1,6 +1,6 @@
 {
   final Class<?> testClass=Class.forName(testClassName,false,applicationClassLoader);
-  Request request=Request.aClass(testClass);
+  List<Filter> filters=new ArrayList<Filter>();
   if (options.hasCategoryConfiguration()) {
     Transformer<Class<?>,String> transformer=new Transformer<Class<?>,String>(){
       public Class<?> transform(      final String original){
@@ -13,15 +13,28 @@
       }
     }
 ;
-    request=request.filterWith(new CategoryFilter(CollectionUtils.collect(options.getIncludeCategories(),transformer),CollectionUtils.collect(options.getExcludeCategories(),transformer)));
+    filters.add(new CategoryFilter(CollectionUtils.collect(options.getIncludeCategories(),transformer),CollectionUtils.collect(options.getExcludeCategories(),transformer)));
   }
   if (!options.getIncludedTests().isEmpty()) {
-    request=request.filterWith(new MethodNameFilter(options.getIncludedTests()));
+    filters.add(new MethodNameFilter(options.getIncludedTests()));
   }
+  Request request=Request.aClass(testClass);
   Runner runner=request.getRunner();
-  if (!org.junit.runner.manipulation.Filter.class.getName().equals(runner.getDescription().getDisplayName())) {
-    RunNotifier notifier=new RunNotifier();
-    notifier.addListener(listener);
-    runner.run(notifier);
+  if (runner instanceof Filterable) {
+    Filterable filterable=(Filterable)runner;
+    for (    Filter filter : filters) {
+      try {
+        filterable.filter(filter);
+      }
+ catch (      NoTestsRemainException e) {
+        return;
+      }
+    }
   }
+ else   if (allTestsFiltered(runner,filters)) {
+    return;
+  }
+  RunNotifier notifier=new RunNotifier();
+  notifier.addListener(listener);
+  runner.run(notifier);
 }

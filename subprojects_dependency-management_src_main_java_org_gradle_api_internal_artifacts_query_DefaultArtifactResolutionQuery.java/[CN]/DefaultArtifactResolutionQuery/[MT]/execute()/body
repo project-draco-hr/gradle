@@ -3,16 +3,17 @@
     throw new IllegalStateException("Must specify component type and artifacts to query.");
   }
   List<ResolutionAwareRepository> repositories=CollectionUtils.collect(repositoryHandler,Transformers.cast(ResolutionAwareRepository.class));
-  ConfigurationInternal configuration=configurationContainer.detachedConfiguration();
-  final RepositoryChain repositoryChain=ivyFactory.create(configuration,repositories,metadataHandler.getComponentMetadataProcessor());
-  final ArtifactResolver artifactResolver=new ErrorHandlingArtifactResolver(repositoryChain.getArtifactResolver());
+  ResolutionStrategyInternal resolutionStrategy=configurationContainer.detachedConfiguration().getResolutionStrategy();
+  final ComponentResolvers componentResolvers=ivyFactory.create(resolutionStrategy,repositories,metadataHandler.getComponentMetadataProcessor());
+  final ComponentMetaDataResolver componentMetaDataResolver=componentResolvers.getComponentResolver();
+  final ArtifactResolver artifactResolver=new ErrorHandlingArtifactResolver(componentResolvers.getArtifactResolver());
   return lockingManager.useCache("resolve artifacts",new Factory<ArtifactResolutionResult>(){
     public ArtifactResolutionResult create(){
       Set<ComponentResult> componentResults=Sets.newHashSet();
       for (      ComponentIdentifier componentId : componentIds) {
         try {
           ComponentIdentifier validId=validateComponentIdentifier(componentId);
-          componentResults.add(buildComponentResult(validId,repositoryChain,artifactResolver));
+          componentResults.add(buildComponentResult(validId,componentMetaDataResolver,artifactResolver));
         }
  catch (        Throwable t) {
           componentResults.add(new DefaultUnresolvedComponentResult(componentId,t));

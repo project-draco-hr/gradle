@@ -1,0 +1,24 @@
+{
+  if (!(action instanceof TestExecutionRequestAction)) {
+    return;
+  }
+  GradleInternal gradle=buildController.getGradle();
+  try {
+    TestExecutionRequestAction testExecutionRequestAction=(TestExecutionRequestAction)action;
+    TestExecutionResultEvaluator testExecutionResultEvaluator=new TestExecutionResultEvaluator(testExecutionRequestAction);
+    gradle.addListener(testExecutionResultEvaluator);
+    doRun(testExecutionRequestAction,buildController);
+    testExecutionResultEvaluator.evaluate();
+  }
+ catch (  RuntimeException rex) {
+    Throwable throwable=findRootCause(rex);
+    if (throwable instanceof TestExecutionException) {
+      throw new InternalTestExecutionException("Error while running test(s)",throwable);
+    }
+ else {
+      throw rex;
+    }
+  }
+  PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
+  buildController.setResult(new BuildActionResult(payloadSerializer.serialize(null),null));
+}

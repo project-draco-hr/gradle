@@ -5,20 +5,20 @@
   renderer.setOutput(textOutput);
   renderer.startProject(project);
   Collection<ComponentSpec> components=new ArrayList<ComponentSpec>();
-  CollectionBuilder<ComponentSpec> componentSpecs=getModelRegistry().find(ModelPath.path("components"),DefaultCollectionBuilder.typeOf(ComponentSpec.class));
+  ComponentSpecContainer componentSpecs=find("components",ComponentSpecContainer.class);
   if (componentSpecs != null) {
-    Iterables.addAll(components,componentSpecs);
+    components.addAll(componentSpecs.values());
   }
-  CollectionBuilder<TestSuiteSpec> testSuites=getModelRegistry().find(ModelPath.path("testSuites"),DefaultCollectionBuilder.typeOf(TestSuiteSpec.class));
+  TestSuiteContainer testSuites=find("testSuites",TestSuiteContainer.class);
   if (testSuites != null) {
-    Iterables.addAll(components,testSuites);
+    components.addAll(testSuites.values());
   }
   renderer.renderComponents(components);
-  ProjectSourceSet sourceSets=getModelRegistry().find(ModelPath.path("sources"),ModelType.of(ProjectSourceSet.class));
+  ProjectSourceSet sourceSets=find("sources",ProjectSourceSet.class);
   if (sourceSets != null) {
     renderer.renderSourceSets(sourceSets);
   }
-  BinaryContainer binaries=getModelRegistry().find(ModelPath.path("binaries"),ModelType.of(BinaryContainer.class));
+  ModelMap<BinarySpec> binaries=find("binaries",ModelTypes.modelMap(BinarySpec.class));
   if (binaries != null) {
     renderer.renderBinaries(binaries);
   }

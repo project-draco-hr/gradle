@@ -1,4 +1,9 @@
 {
-  List<ResolutionAwareRepository> resolutionAwareRepositories=CollectionUtils.collect(repositories,Transformers.cast(ResolutionAwareRepository.class));
-  resolver.resolveArtifacts(configuration,resolutionAwareRepositories,metadataHandler,results);
+  DefaultResolverResults defaultResolverResults=(DefaultResolverResults)results;
+  ResolvedGraphResults graphResults=defaultResolverResults.getGraphResults();
+  ResolvedArtifactResults artifactResults=defaultResolverResults.getResolvedArtifacts();
+  TransientConfigurationResultsBuilder transientConfigurationResultsBuilder=defaultResolverResults.getTransientConfigurationResultsBuilder();
+  Factory<TransientConfigurationResults> transientConfigurationResultsFactory=new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder,graphResults,artifactResults);
+  DefaultLenientConfiguration result=new DefaultLenientConfiguration(configuration,cacheLockingManager,graphResults.getUnresolvedDependencies(),artifactResults,transientConfigurationResultsFactory);
+  results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
 }

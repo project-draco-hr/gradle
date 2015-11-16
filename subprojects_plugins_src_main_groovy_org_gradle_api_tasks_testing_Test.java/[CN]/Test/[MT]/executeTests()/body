@@ -5,7 +5,7 @@
   TestEventLogger eventLogger=new TestEventLogger(getTextOutputFactory(),currentLevel,levelLogging,exceptionFormatter);
   addTestListener(eventLogger);
   addTestOutputListener(eventLogger);
-  if (!getFilter().getIncludePatterns().isEmpty()) {
+  if (getFilter().isFailOnNoMatchingTests() && !getFilter().getIncludePatterns().isEmpty()) {
     addTestListener(new NoMatchingTestsReporter("No tests found for given includes: " + getFilter().getIncludePatterns()));
   }
   File binaryResultsDir=getBinResultsDir();
@@ -19,7 +19,8 @@
   addTestOutputListener(testReportDataCollector);
   TestCountLogger testCountLogger=new TestCountLogger(getProgressLoggerFactory());
   addTestListener(testCountLogger);
-  TestResultProcessor resultProcessor=new TestListenerAdapter(getTestListenerBroadcaster().getSource(),testOutputListenerBroadcaster.getSource());
+  testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerBroadcaster.getSource(),testOutputListenerBroadcaster.getSource()));
+  TestResultProcessor resultProcessor=new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
   if (testExecuter == null) {
     testExecuter=new DefaultTestExecuter(getProcessBuilderFactory(),getActorFactory());
   }
@@ -30,6 +31,7 @@
     testExecuter=null;
     testListenerBroadcaster.removeAll();
     testOutputListenerBroadcaster.removeAll();
+    testListenerInternalBroadcaster.removeAll();
     outputWriter.close();
   }
   new TestResultSerializer(binaryResultsDir).write(results.values());

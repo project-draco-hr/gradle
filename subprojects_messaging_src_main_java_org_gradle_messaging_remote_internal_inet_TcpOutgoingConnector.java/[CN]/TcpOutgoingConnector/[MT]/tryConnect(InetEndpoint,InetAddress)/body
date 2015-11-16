@@ -1,0 +1,19 @@
+{
+  SocketChannel socketChannel=SocketChannel.open();
+  try {
+    socketChannel.socket().connect(new InetSocketAddress(candidate,address.getPort()),CONNECT_TIMEOUT);
+    if (!detectSelfConnect(socketChannel)) {
+      return socketChannel;
+    }
+    socketChannel.close();
+  }
+ catch (  IOException e) {
+    socketChannel.close();
+    throw e;
+  }
+catch (  Throwable e) {
+    socketChannel.close();
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+  throw new java.net.ConnectException(String.format("Socket connected to itself on %s port %s.",candidate,address.getPort()));
+}

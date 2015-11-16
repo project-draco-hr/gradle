@@ -6,9 +6,12 @@
       will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
       one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
       will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
+      one(listenerManager).createAnonymousBroadcaster(InternalTaskExecutionListener.class);
+      will(returnValue(new ListenerBroadcast<InternalTaskExecutionListener>(InternalTaskExecutionListener.class)));
       allowing(cancellationToken).isCancellationRequested();
+      allowing(buildOperationExecutor).getCurrentOperationId();
     }
   }
 );
-  taskExecuter=new DefaultTaskGraphExecuter(listenerManager,new DefaultTaskPlanExecutor(),cancellationToken);
+  taskExecuter=new DefaultTaskGraphExecuter(listenerManager,new DefaultTaskPlanExecutor(),Factories.constant(executer),cancellationToken,new TrueTimeProvider(),buildOperationExecutor);
 }

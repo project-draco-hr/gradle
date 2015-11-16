@@ -1,0 +1,39 @@
+{
+  if (started.compareAndSet(false,true)) {
+    final ListenableFuture<?> runLoopFuture=executorService.submit(new Runnable(){
+      @Override public void run(){
+        if (!stopped.get()) {
+          running.set(true);
+          try {
+            try {
+              pumpEvents();
+            }
+ catch (            InterruptedException e) {
+            }
+catch (            Throwable t) {
+              stop();
+              onError.execute(t);
+            }
+          }
+  finally {
+            stop();
+          }
+        }
+      }
+    }
+);
+    Futures.addCallback(runLoopFuture,new FutureCallback<Object>(){
+      @Override public void onSuccess(      Object result){
+        running.set(false);
+      }
+      @Override public void onFailure(      Throwable t){
+        running.set(false);
+      }
+    }
+);
+    return fileWatcher;
+  }
+ else {
+    throw new IllegalStateException("file watcher is started");
+  }
+}

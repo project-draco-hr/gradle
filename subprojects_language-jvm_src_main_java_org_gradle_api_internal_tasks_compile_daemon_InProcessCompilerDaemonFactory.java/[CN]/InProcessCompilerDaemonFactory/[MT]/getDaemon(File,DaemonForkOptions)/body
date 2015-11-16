@@ -2,6 +2,7 @@
   return new CompilerDaemon(){
     public <T extends CompileSpec>CompileResult execute(    Compiler<T> compiler,    T spec){
       ClassLoader groovyClassLoader=classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(forkOptions.getClasspath()));
+      GroovySystemLoader groovyLoader=groovySystemLoaderFactory.forClassLoader(groovyClassLoader);
       FilteringClassLoader filteredGroovy=classLoaderFactory.createFilteringClassLoader(groovyClassLoader);
       for (      String packageName : forkOptions.getSharedPackages()) {
         filteredGroovy.allowPackage(packageName);
@@ -23,6 +24,9 @@
       }
  catch (      Exception e) {
         throw UncheckedException.throwAsUncheckedException(e);
+      }
+ finally {
+        groovyLoader.shutdown();
       }
     }
   }

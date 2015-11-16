@@ -1,28 +1,18 @@
 {
-  String[] commandLine=toArray(spec.asCommandLineWithFiles());
-  try {
-    Object toolObj=loadTool("org.antlr.v4.Tool",commandLine);
+  AntlrTool antlrTool=new Antlr4Tool();
+  if (antlrTool.available()) {
     LOGGER.info("Processing with ANTLR 4");
-    return processV4(toolObj);
+    return antlrTool.process(spec);
   }
- catch (  ClassNotFoundException e) {
-    LOGGER.debug("ANTLR 4 not found on classpath");
-  }
-  try {
-    Object toolObj=loadTool("org.antlr.Tool",commandLine);
+  antlrTool=new Antlr3Tool();
+  if (antlrTool.available()) {
     LOGGER.info("Processing with ANTLR 3");
-    return processV3(toolObj);
+    return antlrTool.process(spec);
   }
- catch (  ClassNotFoundException e) {
-    LOGGER.debug("ANTLR 3 not found on classpath");
-  }
-  try {
-    Object toolObj=loadTool("antlr.Tool",null);
+  antlrTool=new Antlr2Tool();
+  if (antlrTool.available()) {
     LOGGER.info("Processing with ANTLR 2");
-    return processV2(toolObj,spec.asCommandLineWithoutFiles(),spec.getGrammarFiles(),spec.getOutputDirectory());
-  }
- catch (  ClassNotFoundException e) {
-    LOGGER.debug("ANTLR 2 not found on classpath");
+    return antlrTool.process(spec);
   }
   throw new IllegalStateException("No Antlr implementation available");
 }

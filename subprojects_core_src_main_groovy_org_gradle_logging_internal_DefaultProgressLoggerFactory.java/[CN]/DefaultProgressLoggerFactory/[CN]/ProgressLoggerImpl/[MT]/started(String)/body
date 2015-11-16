@@ -2,11 +2,14 @@
   if (!GUtil.isTrue(description)) {
     throw new IllegalStateException("A description must be specified before this operation is started.");
   }
-  if (state == State.started) {
-    throw new IllegalStateException("This operation has already been started.");
-  }
-  assertNotCompleted();
+  assertNotStarted();
   state=State.started;
-  OperationIdentifier id=hierarchy.start();
-  listener.started(new ProgressStartEvent(id.getId(),id.getParentId(),timeProvider.getCurrentTime(),category,description,shortDescription,loggingHeader,toStatus(status)));
+  if (parent == null) {
+    parent=current.get();
+  }
+ else {
+    parent.assertRunning();
+  }
+  current.set(this);
+  listener.started(new ProgressStartEvent(id,parent == null ? null : parent.id,timeProvider.getCurrentTime(),category,description,shortDescription,loggingHeader,toStatus(status)));
 }

@@ -1,0 +1,39 @@
+{
+  LinkedList<ModelGoal> queue=new LinkedList<ModelGoal>();
+  queue.add(targetGoal);
+  while (!queue.isEmpty()) {
+    ModelGoal goal=queue.getFirst();
+    if (goal.state == ModelGoal.State.Achieved) {
+      queue.removeFirst();
+      continue;
+    }
+    if (goal.state == ModelGoal.State.NotSeen) {
+      if (goal.isAchieved()) {
+        goal.state=ModelGoal.State.Achieved;
+        queue.removeFirst();
+        continue;
+      }
+    }
+    if (goal.state == ModelGoal.State.VisitingDependencies) {
+      goal.apply();
+      goal.state=ModelGoal.State.Achieved;
+      queue.removeFirst();
+      continue;
+    }
+    List<ModelGoal> newDependencies=new ArrayList<ModelGoal>();
+    goal.attachNode();
+    boolean done=goal.calculateDependencies(goalGraph,newDependencies);
+    goal.state=done || newDependencies.isEmpty() ? ModelGoal.State.VisitingDependencies : ModelGoal.State.DiscoveringDependencies;
+    for (int i=newDependencies.size() - 1; i >= 0; i--) {
+      ModelGoal dependency=newDependencies.get(i);
+      if (dependency.state == ModelGoal.State.Achieved) {
+        continue;
+      }
+      if (dependency.state == ModelGoal.State.NotSeen) {
+        queue.addFirst(dependency);
+        continue;
+      }
+      throw ruleCycle(dependency,queue);
+    }
+  }
+}

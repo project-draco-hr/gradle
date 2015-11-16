@@ -1,0 +1,22 @@
+{
+  final RuntimeException failure=new RuntimeException();
+  final RuntimeException transformedException=new RuntimeException();
+  expectLoggingStarted();
+  context.checking(new Expectations(){
+{
+      one(buildBroadcaster).buildStarted(gradleMock);
+      will(throwException(failure));
+      one(exceptionAnalyserMock).transform(failure);
+      will(returnValue(transformedException));
+      one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
+    }
+  }
+);
+  try {
+    gradleLauncher.run();
+    fail();
+  }
+ catch (  ReportedException e) {
+    assertThat((RuntimeException)e.getCause(),sameInstance(transformedException));
+  }
+}

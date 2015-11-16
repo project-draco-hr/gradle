@@ -1,10 +1,15 @@
 {
   final RuntimeException failure=new RuntimeException();
   ScriptRunner<?,Void> scriptRunner=factory.create(compiledScriptMock,scriptSourceDummy,classLoaderDummy);
+  expectScriptInstantiated();
   context.checking(new Expectations(){
 {
       Sequence sequence=context.sequence("seq");
-      one(scriptExecutionListenerMock).beforeScript(scriptMock);
+      allowing(compiledScriptMock).getRunDoesSomething();
+      will(returnValue(true));
+      one(scriptExecutionListenerMock).scriptClassLoaded(scriptSourceDummy,Script.class);
+      inSequence(sequence);
+      one(scriptMock).init(target,scriptServices);
       inSequence(sequence);
       one(standardOutputCaptureMock).start();
       inSequence(sequence);
@@ -13,15 +18,13 @@
       will(throwException(failure));
       one(standardOutputCaptureMock).stop();
       inSequence(sequence);
-      one(scriptExecutionListenerMock).afterScript(with(sameInstance(scriptMock)),with(notNullValue(Throwable.class)));
-      inSequence(sequence);
     }
   }
 );
   ClassLoader originalClassLoader=Thread.currentThread().getContextClassLoader();
   assertThat(originalClassLoader,not(sameInstance(classLoaderDummy)));
   try {
-    scriptRunner.run();
+    scriptRunner.run(target,scriptServices);
     fail();
   }
  catch (  GradleScriptException e) {

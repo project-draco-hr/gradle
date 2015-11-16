@@ -9,7 +9,6 @@
   context.checking(new Expectations(){
 {
       one(buildBroadcaster).buildStarted(gradleMock);
-      one(buildBroadcaster).projectsLoaded(gradleMock);
       one(buildBroadcaster).projectsEvaluated(gradleMock);
       one(modelListenerMock).onConfigure(gradleMock);
       one(exceptionAnalyserMock).transform(failure);
@@ -18,6 +17,11 @@
     }
   }
 );
-  BuildResult buildResult=gradleLauncher.run();
-  assertThat(buildResult.getFailure(),sameInstance((Throwable)transformedException));
+  try {
+    gradleLauncher.run();
+    fail();
+  }
+ catch (  ReportedException e) {
+    assertThat((RuntimeException)e.getCause(),sameInstance(transformedException));
+  }
 }

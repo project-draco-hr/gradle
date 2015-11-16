@@ -9,7 +9,8 @@
     }
     Action<ConnectCompletion> connectEvent=new Action<ConnectCompletion>(){
       public void execute(      ConnectCompletion completion){
-        handler.handle(new SynchronizedDispatchConnection<Object>(completion.create(getClass().getClassLoader())));
+        MessageSerializer<Message> serializer=new KryoBackedMessageSerializer<Message>(Serializers.stateful(DaemonMessageSerializer.create()));
+        handler.handle(new SynchronizedDispatchConnection<Message>(completion.create(serializer)));
       }
     }
 ;

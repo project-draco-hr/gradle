@@ -1,0 +1,14 @@
+{
+  if (!typeClass.isInterface() && !Modifier.isAbstract(typeClass.getModifiers())) {
+    throw new InvalidManagedModelElementTypeException(extractionContext,"must be defined as an interface or an abstract class.");
+  }
+  if (typeClass.getTypeParameters().length > 0) {
+    throw new InvalidManagedModelElementTypeException(extractionContext,"cannot be a parameterized type.");
+  }
+  Constructor<?> customConstructor=findCustomConstructor(typeClass);
+  if (customConstructor != null) {
+    throw invalidMethod(extractionContext,"custom constructors are not allowed",customConstructor);
+  }
+  ensureNoInstanceScopedFields(extractionContext,typeClass);
+  ensureNoProtectedOrPrivateMethods(extractionContext,typeClass);
+}

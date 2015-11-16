@@ -1,0 +1,31 @@
+{
+  ModelType<T> modelType=extractionContext.getType();
+  Type type=modelType.getType();
+  if (!(type instanceof Class)) {
+    return;
+  }
+  Class<?> contractType=(Class<?>)type;
+  if (!contractType.isInterface()) {
+    return;
+  }
+  if (contractType.getGenericInterfaces().length != 1) {
+    return;
+  }
+  Type superType=contractType.getGenericInterfaces()[0];
+  if (!(superType instanceof ParameterizedType)) {
+    return;
+  }
+  ParameterizedType parameterizedSuperType=(ParameterizedType)superType;
+  if (!parameterizedSuperType.getRawType().equals(ModelMap.class)) {
+    return;
+  }
+  ModelType<?> elementType=ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);
+  Class<?> proxyImpl;
+  try {
+    proxyImpl=generatedImplementationTypes.get(modelType);
+  }
+ catch (  ExecutionException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+  extractionContext.found(getModelSchema(extractionContext,elementType,proxyImpl));
+}

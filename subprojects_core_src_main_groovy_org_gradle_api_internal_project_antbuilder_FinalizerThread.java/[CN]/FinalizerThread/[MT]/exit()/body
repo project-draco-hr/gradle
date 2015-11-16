@@ -1,0 +1,15 @@
+{
+  stopped.set(true);
+  interrupt();
+  lock.lock();
+  try {
+    while (!cleanups.isEmpty()) {
+      Map.Entry<ClassPath,Cleanup> entry=cleanups.entrySet().iterator().next();
+      removeCacheEntry(entry.getKey(),entry.getValue());
+    }
+    LOG.debug("Completed shutdown");
+  }
+  finally {
+    lock.unlock();
+  }
+}

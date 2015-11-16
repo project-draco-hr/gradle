@@ -1,0 +1,16 @@
+{
+  if (!node.isAtLeast(ModelNode.State.Created)) {
+    throw new IllegalStateException("Cannot get view for node " + node.getPath() + " in state "+ node.getState());
+  }
+  ModelType<T> type=getSubject().getType();
+  ModelView<? extends T> view=node.asMutable(type,getDescriptor(),inputs);
+  if (view == null) {
+    throw new IllegalArgumentException(String.format("Cannot project model element %s to writable type '%s' for rule %s",node.getPath(),type,getDescriptor()));
+  }
+  try {
+    execute(node,view.getInstance(),inputs);
+  }
+  finally {
+    view.close();
+  }
+}

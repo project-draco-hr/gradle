@@ -1,0 +1,29 @@
+{
+  final DynamicObject dynamicObject=new BeanDynamicObject(node);
+  final Iterable<DirectoryFileTree> existing=Lists.newLinkedList(FluentIterable.from(fileTrees).filter(new Predicate<DirectoryFileTree>(){
+    @Override public boolean apply(    DirectoryFileTree input){
+      return input.getDir().exists();
+    }
+  }
+));
+  for (  DirectoryFileTree fileTree : existing) {
+    dynamicObject.invokeMethod(childNodeName,Collections.singletonMap("location",fileTree.getDir()));
+  }
+  dynamicObject.invokeMethod("or",new Closure<Void>(this){
+    public Object doCall(    Object ignore){
+      for (      final DirectoryFileTree fileTree : existing) {
+        dynamicObject.invokeMethod("and",new Closure<Void>(this){
+          public Object doCall(          Object ignore){
+            dynamicObject.invokeMethod("gradleBaseDirSelector",Collections.singletonMap("baseDir",fileTree.getDir()));
+            fileTree.getPatterns().addToAntBuilder(node,null);
+            return null;
+          }
+        }
+);
+      }
+      return null;
+    }
+  }
+);
+  return node;
+}

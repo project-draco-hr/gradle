@@ -1,5 +1,8 @@
 {
-  ProgressListenerAdapter progressListenerAdapter=new ProgressListenerAdapter(this.progressListeners);
-  BuildProgressListenerAdapter testProgressListenerAdapter=new BuildProgressListenerAdapter(this.testProgressListeners);
-  return new ConsumerOperationParameters(parameters,stdout,stderr,colorOutput,stdin,javaHome,jvmArguments,arguments,tasks,launchables,progressListenerAdapter,testProgressListenerAdapter,cancellationToken);
+  if (entryPoint == null) {
+    throw new IllegalStateException("No entry point specified.");
+  }
+  ProgressListenerAdapter progressListenerAdapter=new ProgressListenerAdapter(this.legacyProgressListeners);
+  FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter=new FailsafeBuildProgressListenerAdapter(new BuildProgressListenerAdapter(this.testProgressListeners,this.taskProgressListeners,this.buildOperationProgressListeners));
+  return new ConsumerOperationParameters(entryPoint,parameters,stdout,stderr,colorOutput,stdin,javaHome,jvmArguments,arguments,tasks,launchables,injectedPluginClasspath,progressListenerAdapter,buildProgressListenerAdapter,cancellationToken);
 }

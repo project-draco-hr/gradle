@@ -1,0 +1,15 @@
+{
+  org.sonatype.aether.repository.RemoteRepository repo=new org.sonatype.aether.repository.RemoteRepository("remote",gradleRepo.getLayout(),gradleRepo.getUrl());
+  org.apache.maven.artifact.ant.Authentication auth=gradleRepo.getAuthentication();
+  if (auth != null) {
+    repo.setAuthentication(new Authentication(auth.getUserName(),auth.getPassword(),auth.getPrivateKey(),auth.getPassphrase()));
+  }
+  org.apache.maven.artifact.ant.Proxy proxy=gradleRepo.getProxy();
+  if (proxy != null) {
+    DefaultProxySelector proxySelector=new DefaultProxySelector();
+    Authentication proxyAuth=new Authentication(proxy.getUserName(),proxy.getPassword());
+    proxySelector.add(new Proxy(proxy.getType(),proxy.getHost(),proxy.getPort(),proxyAuth),proxy.getNonProxyHosts());
+    repo.setProxy(proxySelector.getProxy(repo));
+  }
+  return repo;
+}

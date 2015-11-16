@@ -1,0 +1,39 @@
+{
+  Collection<String> delegatePropertyNames;
+  if (delegateSchema != null) {
+    ImmutableSet.Builder<String> builder=ImmutableSet.builder();
+    for (    ModelProperty<?> delegateProperty : delegateSchema.getProperties()) {
+      builder.add(delegateProperty.getName());
+    }
+    delegatePropertyNames=builder.build();
+  }
+ else {
+    delegatePropertyNames=Collections.emptySet();
+  }
+  Class<?> managedTypeClass=managedSchema.getType().getConcreteClass();
+  for (  ModelProperty<?> property : managedSchema.getProperties()) {
+    String propertyName=property.getName();
+    if (delegatePropertyNames.contains(propertyName)) {
+      continue;
+    }
+switch (property.getStateManagementType()) {
+case MANAGED:
+      writeGetters(visitor,generatedType,property);
+    writeSetter(visitor,generatedType,property);
+  break;
+case UNMANAGED:
+String getterName=getGetterName(propertyName);
+Method getterMethod;
+try {
+getterMethod=managedTypeClass.getMethod(getterName);
+}
+ catch (NoSuchMethodException e) {
+throw new IllegalStateException(String.format("Cannot find getter '%s' on type %s",getterName,managedTypeClass.getName()),e);
+}
+if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
+writeNonAbstractMethodWrapper(visitor,generatedType,managedTypeClass,getterMethod);
+}
+break;
+}
+}
+}

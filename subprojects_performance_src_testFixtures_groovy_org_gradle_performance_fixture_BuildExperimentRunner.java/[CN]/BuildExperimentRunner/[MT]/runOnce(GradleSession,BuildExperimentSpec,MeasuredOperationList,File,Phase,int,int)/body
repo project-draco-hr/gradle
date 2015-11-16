@@ -1,0 +1,57 @@
+{
+  final BuildExperimentInvocationInfo invocationInfo=new BuildExperimentInvocationInfo(){
+    @Override public BuildExperimentSpec getBuildExperimentSpec(){
+      return experiment;
+    }
+    @Override public File getProjectDir(){
+      return projectDir;
+    }
+    @Override public Phase getPhase(){
+      return phase;
+    }
+    @Override public int getIterationNumber(){
+      return iterationNumber;
+    }
+    @Override public int getIterationMax(){
+      return iterationMax;
+    }
+  }
+;
+  final Runnable runner=session.runner(new GradleInvocationCustomizer(){
+    @Override public GradleInvocationSpec customize(    GradleInvocationSpec invocationSpec){
+      GradleInvocationSpec customizedInvocation=invocationSpec.withAdditionalArgs(createIterationInfoArguments(phase,iterationNumber,iterationMax));
+      if (experiment.getListener() != null) {
+        GradleInvocationCustomizer customizer=experiment.getListener().createInvocationCustomizer(invocationInfo);
+        if (customizer != null) {
+          customizedInvocation=customizer.customize(customizedInvocation);
+        }
+      }
+      return customizedInvocation;
+    }
+  }
+);
+  if (experiment.getListener() != null) {
+    experiment.getListener().beforeInvocation(invocationInfo);
+  }
+  MeasuredOperation operation=timer.measure(new Action<MeasuredOperation>(){
+    @Override public void execute(    MeasuredOperation measuredOperation){
+      runner.run();
+    }
+  }
+);
+  final AtomicBoolean omitMeasurement=new AtomicBoolean();
+  if (experiment.getListener() != null) {
+    experiment.getListener().afterInvocation(invocationInfo,operation,new BuildExperimentListener.MeasurementCallback(){
+      @Override public void omitMeasurement(){
+        omitMeasurement.set(true);
+      }
+    }
+);
+  }
+  if (!omitMeasurement.get()) {
+    if (operation.getException() == null) {
+      dataCollector.collect(invocationInfo,operation);
+    }
+    results.add(operation);
+  }
+}

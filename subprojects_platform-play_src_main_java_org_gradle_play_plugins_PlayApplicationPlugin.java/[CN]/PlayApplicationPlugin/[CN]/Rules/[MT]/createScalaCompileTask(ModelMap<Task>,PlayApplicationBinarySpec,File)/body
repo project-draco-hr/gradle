@@ -1,0 +1,30 @@
+{
+  final String scalaCompileTaskName=binary.getTasks().taskName("compile","Scala");
+  tasks.create(scalaCompileTaskName,PlatformScalaCompile.class,new Action<PlatformScalaCompile>(){
+    public void execute(    PlatformScalaCompile scalaCompile){
+      scalaCompile.setDescription("Compiles all scala and java source sets for the " + binary.getDisplayName() + ".");
+      scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
+      scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
+      String targetCompatibility=binary.getTargetPlatform().getJavaPlatform().getTargetCompatibility().getMajorVersion();
+      scalaCompile.setSourceCompatibility(targetCompatibility);
+      scalaCompile.setTargetCompatibility(targetCompatibility);
+      IncrementalCompileOptions incrementalOptions=scalaCompile.getScalaCompileOptions().getIncrementalOptions();
+      incrementalOptions.setAnalysisFile(new File(buildDir,String.format("tmp/scala/compilerAnalysis/%s.analysis",scalaCompileTaskName)));
+      for (      LanguageSourceSet appSources : binary.getInputs().withType(ScalaLanguageSourceSet.class)) {
+        scalaCompile.source(appSources.getSource());
+        scalaCompile.dependsOn(appSources);
+      }
+      for (      LanguageSourceSet appSources : binary.getInputs().withType(JavaSourceSet.class)) {
+        scalaCompile.source(appSources.getSource());
+        scalaCompile.dependsOn(appSources);
+      }
+      for (      LanguageSourceSet generatedSourceSet : binary.getGeneratedScala().values()) {
+        scalaCompile.source(generatedSourceSet.getSource());
+        scalaCompile.dependsOn(generatedSourceSet);
+      }
+      scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal)binary).getClasspath());
+      binary.getClasses().builtBy(scalaCompile);
+    }
+  }
+);
+}

@@ -1,0 +1,59 @@
+{
+  if (!javaVersion.isJava7Compatible()) {
+    throw new IllegalStateException("Continuous build requires Java 7 or later.");
+  }
+  SingleMessageLogger.incubatingFeatureUsed("Continuous build");
+  BuildCancellationToken cancellationToken=requestContext.getCancellationToken();
+  final CancellableOperationManager cancellableOperationManager;
+  if (actionParameters.isInteractive()) {
+    if (!(System.in instanceof DisconnectableInputStream)) {
+      System.setIn(new DisconnectableInputStream(System.in));
+    }
+    DisconnectableInputStream inputStream=(DisconnectableInputStream)System.in;
+    cancellableOperationManager=new DefaultCancellableOperationManager(executorFactory.create("cancel signal monitor"),inputStream,cancellationToken);
+  }
+ else {
+    cancellableOperationManager=new PassThruCancellableOperationManager(cancellationToken);
+  }
+  Object lastResult=null;
+  int counter=0;
+  while (!cancellationToken.isCancellationRequested()) {
+    if (++counter != 1) {
+      requestContext.getBuildTimeClock().reset();
+      logger.println("Change detected, executing build...").println();
+    }
+    FileSystemSubset.Builder fileSystemSubsetBuilder=FileSystemSubset.builder();
+    try {
+      lastResult=executeBuildAndAccumulateInputs(action,requestContext,actionParameters,fileSystemSubsetBuilder,buildSessionScopeServices);
+    }
+ catch (    ReportedException t) {
+      lastResult=t;
+    }
+    final FileSystemSubset toWatch=fileSystemSubsetBuilder.build();
+    if (toWatch.isEmpty()) {
+      logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
+      if (lastResult instanceof ReportedException) {
+        throw (ReportedException)lastResult;
+      }
+      return lastResult;
+    }
+ else {
+      cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>(){
+        @Override public void execute(        BuildCancellationToken cancellationToken){
+          waiter.wait(toWatch,cancellationToken,new Runnable(){
+            @Override public void run(){
+              logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(actionParameters));
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+  logger.println("Build cancelled.");
+  if (lastResult instanceof ReportedException) {
+    throw (ReportedException)lastResult;
+  }
+  return lastResult;
+}

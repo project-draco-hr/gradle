@@ -1,0 +1,19 @@
+{
+  if (nodeInitializer != null) {
+    actions.putAll(nodeInitializer.getActions(ModelReference.of(path),modelRuleDescriptor));
+  }
+  if (!projections.isEmpty()) {
+    action(ModelActionRole.Discover,new BuilderModelAction(){
+      @Override public void execute(      MutableModelNode modelNode,      List<ModelView<?>> inputs){
+        for (        ModelProjection projection : projections) {
+          modelNode.addProjection(projection);
+        }
+      }
+      @Override public List<? extends ModelReference<?>> getInputs(){
+        return Collections.emptyList();
+      }
+    }
+);
+  }
+  return new DefaultModelRegistration(path,modelRuleDescriptor,service,ephemeral,hidden || service,actions);
+}

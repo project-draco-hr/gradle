@@ -1,14 +1,14 @@
 {
-  DefaultCollectionBuilder<TaskInternal> collectionBuilder=new DefaultCollectionBuilder<TaskInternal>(ModelType.of(TaskInternal.class),getDescriptor(),modelNode,DefaultCollectionBuilder.createAndStoreVia(ModelReference.of(ITaskFactory.class),ModelReference.of(modelNode.getPath().child("__tasks"),ModelTypes.collectionOf(Task.class)))){
-    @Override protected <S extends TaskInternal>void onCreate(    final String name,    ModelType<S> type){
-      Task task=get(name);
+  NamedEntityInstantiator<Task> taskFactory=Cast.uncheckedCast(ModelViews.getInstance(inputs.get(0),ITaskFactory.class));
+  ModelMap<Task> cast=DomainObjectCollectionBackedModelMap.wrap(Task.class,binary.getTasks(),taskFactory,new Task.Namer(),new Action<Task>(){
+    @Override public void execute(    Task task){
+      binary.getTasks().add(task);
       binary.builtBy(task);
     }
   }
-;
-  CollectionBuilder<Task> cast=Cast.uncheckedCast(collectionBuilder);
-  List<ModelView<?>> inputsWithBinary=new ArrayList<ModelView<?>>(inputs.size() + 1);
-  inputsWithBinary.addAll(inputs);
-  inputsWithBinary.add(new InstanceModelView<T>(getSubject().getPath(),getSubject().getType(),binary));
+);
+  List<ModelView<?>> inputsWithBinary=new ArrayList<ModelView<?>>(inputs.size());
+  inputsWithBinary.addAll(inputs.subList(1,inputs.size()));
+  inputsWithBinary.add(InstanceModelView.of(getSubject().getPath(),getSubject().getType(),binary));
   invoke(inputsWithBinary,cast,binary,binary);
 }

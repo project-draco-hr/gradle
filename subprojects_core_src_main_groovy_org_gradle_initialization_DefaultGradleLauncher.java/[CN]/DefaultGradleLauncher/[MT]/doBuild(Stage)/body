@@ -1,14 +1,22 @@
 {
   loggingManager.start();
-  buildListener.buildStarted(gradle);
-  Throwable failure=null;
-  try {
-    doBuildStages(upTo);
+  return buildOperationExecutor.run("Run build",new Factory<BuildResult>(){
+    @Override public BuildResult create(){
+      Throwable failure=null;
+      try {
+        buildListener.buildStarted(gradle);
+        doBuildStages(upTo);
+      }
+ catch (      Throwable t) {
+        failure=exceptionAnalyser.transform(t);
+      }
+      BuildResult buildResult=new BuildResult(gradle,failure);
+      buildListener.buildFinished(buildResult);
+      if (failure != null) {
+        throw new ReportedException(failure);
+      }
+      return buildResult;
+    }
   }
- catch (  Throwable t) {
-    failure=exceptionAnalyser.transform(t);
-  }
-  BuildResult buildResult=new BuildResult(gradle,failure);
-  buildListener.buildFinished(buildResult);
-  return buildResult;
+);
 }

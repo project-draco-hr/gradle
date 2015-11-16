@@ -12,16 +12,17 @@
       final File file=library.getLibrary().getFile();
       final File source=library.getSourcePath() == null ? null : library.getSourcePath().getFile();
       final File javadoc=library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
-      externalDependencies.add(new DefaultEclipseExternalDependency(file,javadoc,source,library.getModuleVersion()));
+      externalDependencies.add(new DefaultEclipseExternalDependency(file,javadoc,source,library.getModuleVersion(),library.isExported()));
     }
  else     if (entry instanceof ProjectDependency) {
       final ProjectDependency projectDependency=(ProjectDependency)entry;
       final String path=StringUtils.removeStart(projectDependency.getPath(),"/");
-      projectDependencies.add(new DefaultEclipseProjectDependency(path,projectMapping.get(projectDependency.getGradlePath())));
+      projectDependencies.add(new DefaultEclipseProjectDependency(path,projectMapping.get(projectDependency.getGradlePath()),projectDependency.isExported()));
     }
  else     if (entry instanceof SourceFolder) {
-      String path=((SourceFolder)entry).getPath();
-      sourceDirectories.add(new DefaultEclipseSourceDirectory(path,project.file(path)));
+      final SourceFolder sourceFolder=(SourceFolder)entry;
+      String path=sourceFolder.getPath();
+      sourceDirectories.add(new DefaultEclipseSourceDirectory(path,sourceFolder.getDir()));
     }
   }
   DefaultEclipseProject eclipseProject=projectMapping.get(project.getPath());
@@ -38,6 +39,25 @@
     tasks.add(new DefaultEclipseTask(eclipseProject,t.getPath(),t.getName(),t.getDescription()));
   }
   eclipseProject.setTasks(tasks);
+  List<DefaultEclipseProjectNature> natures=new ArrayList<DefaultEclipseProjectNature>();
+  for (  String n : eclipseModel.getProject().getNatures()) {
+    natures.add(new DefaultEclipseProjectNature(n));
+  }
+  eclipseProject.setProjectNatures(natures);
+  List<DefaultEclipseBuildCommand> buildCommands=new ArrayList<DefaultEclipseBuildCommand>();
+  for (  BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
+    buildCommands.add(new DefaultEclipseBuildCommand(b.getName(),b.getArguments()));
+  }
+  eclipseProject.setBuildCommands(buildCommands);
+  if (project.getPlugins().hasPlugin(JavaBasePlugin.class)) {
+    org.gradle.api.JavaVersion sourceCompatibility=eclipseModel.getJdt().getSourceCompatibility();
+    if (sourceCompatibility != null) {
+      JavaVersion version=JavaVersion.from(sourceCompatibility.toString());
+      DefaultJavaLanguageLevel languageLevel=new DefaultJavaLanguageLevel(version);
+      DefaultJavaSourceSettings sourceSettings=new DefaultJavaSourceSettings(languageLevel);
+      eclipseProject.setJavaSourceSettings(sourceSettings);
+    }
+  }
   for (  Project childProject : project.getChildProjects().values()) {
     populate(childProject);
   }

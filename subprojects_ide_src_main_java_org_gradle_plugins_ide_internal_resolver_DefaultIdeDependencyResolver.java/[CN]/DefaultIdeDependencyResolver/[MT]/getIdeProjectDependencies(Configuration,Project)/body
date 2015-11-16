@@ -1,10 +1,17 @@
 {
   ResolutionResult result=getIncomingResolutionResult(configuration);
-  List<ResolvedComponentResult> projectComponents=findAllResolvedDependencyResults(result.getRoot().getDependencies(),ProjectComponentIdentifier.class);
+  final Set<ResolvedComponentResult> projectComponents=CollectionUtils.filter(result.getAllComponents(),new Spec<ResolvedComponentResult>(){
+    @Override public boolean isSatisfiedBy(    ResolvedComponentResult element){
+      return element.getId() instanceof ProjectComponentIdentifier;
+    }
+  }
+);
   List<IdeProjectDependency> ideProjectDependencies=new ArrayList<IdeProjectDependency>();
   for (  ResolvedComponentResult projectComponent : projectComponents) {
     Project resolvedProject=project.project(((ProjectComponentIdentifier)projectComponent.getId()).getProjectPath());
-    ideProjectDependencies.add(new IdeProjectDependency(configuration,resolvedProject));
+    if (!resolvedProject.equals(project)) {
+      ideProjectDependencies.add(new IdeProjectDependency(configuration,resolvedProject));
+    }
   }
   return ideProjectDependencies;
 }

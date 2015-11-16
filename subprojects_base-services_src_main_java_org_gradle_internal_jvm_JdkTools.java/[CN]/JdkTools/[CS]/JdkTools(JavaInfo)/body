@@ -1,7 +1,17 @@
 {
-  File toolsJar=javaInfo.getToolsJar();
-  if (toolsJar == null) {
-    throw new IllegalStateException("Could not find tools.jar");
+  DefaultClassLoaderFactory defaultClassLoaderFactory=new DefaultClassLoaderFactory();
+  JavaVersion javaVersion=Jvm.current().getJavaVersion();
+  FilteringClassLoader filteringClassLoader=defaultClassLoaderFactory.createSystemFilteringClassLoader();
+  if (!javaVersion.isJava9Compatible()) {
+    File toolsJar=javaInfo.getToolsJar();
+    if (toolsJar == null) {
+      throw new IllegalStateException("Could not find tools.jar");
+    }
+    DefaultClassPath defaultClassPath=new DefaultClassPath(toolsJar);
+    isolatedToolsLoader=new MutableURLClassLoader(filteringClassLoader,defaultClassPath.getAsURLs());
   }
-  isolatedToolsLoader=new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(toolsJar));
+ else {
+    filteringClassLoader.allowPackage("com.sun.tools");
+    isolatedToolsLoader=filteringClassLoader;
+  }
 }
