@@ -1,22 +1,16 @@
 {
-  lock.lock();
-  try {
-    if (event.getType().equals(FileWatcherEvent.Type.UNDEFINED) || event.getFile() == null) {
-      delegate.onChange(watcher,event);
-      return;
-    }
-    File file=event.getFile();
-    maybeFire(watcher,event);
-    if (watcher.isRunning() && file.isDirectory() && event.getType().equals(FileWatcherEvent.Type.CREATE)) {
-      try {
-        newDirectory(watcher,file);
-      }
- catch (      IOException e) {
-        throw UncheckedException.throwAsUncheckedException(e);
-      }
-    }
+  if (event.getType().equals(FileWatcherEvent.Type.UNDEFINED) || event.getFile() == null) {
+    delegate.onChange(watcher,event);
+    return;
   }
-  finally {
-    lock.unlock();
+  File file=event.getFile();
+  maybeFire(watcher,event);
+  if (watcher.isRunning() && file.isDirectory() && event.getType().equals(FileWatcherEvent.Type.CREATE)) {
+    try {
+      newDirectory(watcher,file);
+    }
+ catch (    IOException e) {
+      throw UncheckedException.throwAsUncheckedException(e);
+    }
   }
 }

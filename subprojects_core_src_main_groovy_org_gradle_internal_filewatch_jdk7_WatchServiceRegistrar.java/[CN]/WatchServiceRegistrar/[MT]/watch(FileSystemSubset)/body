@@ -1,46 +1,37 @@
 {
-  lock.lock();
-  try {
-    final Iterable<? extends File> roots=fileSystemSubset.getRoots();
-    final FileSystemSubset unfiltered=fileSystemSubset.unfiltered();
-    Iterable<? extends File> startingWatchPoints=calculateStartingWatchPoints(roots,unfiltered);
-    if (currentRoots != null) {
-      final ImmutableSet.Builder<File> newStartingPoints=ImmutableSet.builder();
-      Iterable<? extends File> combinedRoots=FileUtils.calculateRoots(Iterables.concat(currentRoots,startingWatchPoints));
-      for (      File file : combinedRoots) {
-        if (!currentRoots.contains(file)) {
-          newStartingPoints.add(file);
-        }
+  this.fileSystemSubset=fileSystemSubset;
+  this.unfilteredFileSystemSubset=fileSystemSubset.unfiltered();
+  this.roots=fileSystemSubset.getRoots();
+  Iterable<File> enclosingDirsThatExist=Iterables.transform(roots,new Function<File,File>(){
+    @Override public File apply(    File input){
+      File target=input;
+      while (!target.isDirectory()) {
+        target=target.getParentFile();
       }
-      startingWatchPoints=newStartingPoints.build();
-      currentRoots=ImmutableSet.copyOf(combinedRoots);
-      combinedFileSystemSubset=FileSystemSubset.builder().add(combinedFileSystemSubset).add(fileSystemSubset).build();
-    }
- else {
-      currentRoots=ImmutableSet.copyOf(startingWatchPoints);
-      combinedFileSystemSubset=fileSystemSubset;
-    }
-    for (    File dir : startingWatchPoints) {
-      if (FILE_TREE_WATCHING_SUPPORTED) {
-        watchDir(dir.toPath());
-      }
- else {
-        Files.walkFileTree(dir.toPath(),new SimpleFileVisitor<Path>(){
-          @Override public FileVisitResult preVisitDirectory(          Path path,          BasicFileAttributes attrs) throws IOException {
-            if (inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile(),roots,unfiltered)) {
-              watchDir(path);
-              return FileVisitResult.CONTINUE;
-            }
- else {
-              return FileVisitResult.SKIP_SUBTREE;
-            }
-          }
-        }
-);
-      }
+      return target;
     }
   }
-  finally {
-    lock.unlock();
+);
+  Iterable<? extends File> startingWatchPoints=FileUtils.calculateRoots(enclosingDirsThatExist);
+  for (  File dir : startingWatchPoints) {
+    if (FILE_TREE_WATCHING_SUPPORTED) {
+      if (inUnfilteredSubsetOrAncestorOfAnyRoot(dir)) {
+        watchDir(dir.toPath());
+      }
+    }
+ else {
+      Files.walkFileTree(dir.toPath(),new SimpleFileVisitor<Path>(){
+        @Override public FileVisitResult preVisitDirectory(        Path path,        BasicFileAttributes attrs) throws IOException {
+          if (inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile())) {
+            watchDir(path);
+            return FileVisitResult.CONTINUE;
+          }
+ else {
+            return FileVisitResult.SKIP_SUBTREE;
+          }
+        }
+      }
+);
+    }
   }
 }
