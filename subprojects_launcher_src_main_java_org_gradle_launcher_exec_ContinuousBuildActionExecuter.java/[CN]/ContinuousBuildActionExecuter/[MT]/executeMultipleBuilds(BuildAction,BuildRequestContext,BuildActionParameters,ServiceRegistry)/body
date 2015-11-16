@@ -40,7 +40,9 @@
  else {
       cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>(){
         @Override public void execute(        BuildCancellationToken cancellationToken){
-          waiter.wait(toWatch,cancellationToken,new Runnable(){
+          FileSystemChangeWaiter waiter=changeWaiterFactory.createChangeWaiter(cancellationToken);
+          waiter.watch(toWatch);
+          waiter.wait(new Runnable(){
             @Override public void run(){
               logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(actionParameters));
             }
