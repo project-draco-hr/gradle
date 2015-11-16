@@ -2,21 +2,21 @@
   LOGGER.debug("parsing maven-metadata: {}",metadataResource);
   metadataResource.withContent(new ErroringAction<InputStream>(){
     public void doExecute(    InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
-      XMLParsers.createNonValidatingSaxParser().parse(inputStream,new OptimizedContextualSAXHandler(){
+      XMLHelper.parse(inputStream,null,new ContextualSAXHandler(){
         public void endElement(        String uri,        String localName,        String qName) throws SAXException {
-          if (isInContext("metadata","versioning","snapshot","timestamp")) {
+          if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
             mavenMetadata.timestamp=getText();
           }
- else           if (isInContext("metadata","versioning","snapshot","buildNumber")) {
+          if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
             mavenMetadata.buildNumber=getText();
           }
- else           if (isInContext("metadata","versioning","versions","version")) {
+          if ("metadata/versioning/versions/version".equals(getContext())) {
             mavenMetadata.versions.add(getText().trim());
           }
           super.endElement(uri,localName,qName);
         }
       }
-);
+,null);
     }
   }
 );
