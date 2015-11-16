@@ -1,12 +1,14 @@
 {
-  ModelType<Class<?>> classType=new ModelType<Class<?>>(){
-  }
-;
   Class<?>[] paramTypesArray=Iterables.toArray(Iterables.transform(paramTypes,new Function<ModelType<?>,Class<?>>(){
     public Class<?> apply(    ModelType<?> modelType){
       return modelType.getRawClass();
     }
   }
-),classType.getConcreteClass());
-  return findMethod(target.getRawClass(),paramTypesArray);
+),Class.class);
+  try {
+    return target.getRawClass().getDeclaredMethod(name,paramTypesArray);
+  }
+ catch (  NoSuchMethodException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
 }
