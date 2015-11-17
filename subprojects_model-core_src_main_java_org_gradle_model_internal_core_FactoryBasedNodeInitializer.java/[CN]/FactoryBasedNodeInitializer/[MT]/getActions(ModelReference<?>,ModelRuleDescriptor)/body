@@ -22,18 +22,16 @@
       ManagedProxyFactory proxyFactory=ModelViews.getInstance(modelViews,2,ManagedProxyFactory.class);
       ServiceRegistry serviceRegistry=ModelViews.getInstance(modelViews,3,ServiceRegistry.class);
       ModelType<S> type=schema.getType();
-      ModelType<? extends T> publicType;
       ModelType<T> delegateType;
+      InstanceFactory.ImplementationInfo<? extends T> implementationInfo;
       if (schema instanceof ManagedImplSchema) {
-        InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo=instanceFactory.getManagedSubtypeImplementationInfo(type);
-        publicType=implementationInfo.getPublicType();
-        delegateType=Cast.uncheckedCast(implementationInfo.getDelegateType());
+        implementationInfo=instanceFactory.getManagedSubtypeImplementationInfo(type);
       }
  else {
-        publicType=type;
-        delegateType=Cast.uncheckedCast(instanceFactory.getImplementationType(publicType));
+        implementationInfo=instanceFactory.getImplementationInfo(type);
       }
-      T instance=instanceFactory.create(publicType,modelNode,modelNode.getPath().getName());
+      delegateType=Cast.uncheckedCast(implementationInfo.getDelegateType());
+      T instance=implementationInfo.create(modelNode);
       configureAction.execute(instance);
       modelNode.setPrivateData(delegateType,instance);
       StructSchema<T> delegateSchema=Cast.uncheckedCast(schemaStore.getSchema(delegateType));
