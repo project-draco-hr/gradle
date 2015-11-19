@@ -1,9 +1,6 @@
 {
-  InstanceFactory.TypeRegistrationBuilder<S> registration=binaries.register(publicType,descriptor);
+  InstanceFactory.TypeRegistrationBuilder<S> registration=register(publicType,descriptor);
   if (implementationType != null) {
-    ServiceRegistry serviceRegistry=ModelViews.assertType(inputs.get(0),ModelType.of(ServiceRegistry.class)).getInstance();
-    final Instantiator instantiator=serviceRegistry.get(Instantiator.class);
-    final ITaskFactory taskFactory=ModelViews.assertType(inputs.get(1),ModelType.of(ITaskFactory.class)).getInstance();
     registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType),new InstanceFactory.ImplementationFactory<S>(){
       @Override public S create(      ModelType<? extends S> publicType,      String name,      MutableModelNode binaryNode){
         MutableModelNode parentNode=binaryNode.getParent().getParent();
@@ -13,7 +10,7 @@
     }
 );
   }
-  for (  ModelType<?> internalView : internalViews) {
-    registration.withInternalView(internalView);
+  for (  Class<?> internalView : internalViews) {
+    registration.withInternalView(ModelType.of(internalView));
   }
 }
