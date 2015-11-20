@@ -1,0 +1,13 @@
+{
+  if (!property.isWritable()) {
+    return;
+  }
+  if (property.getSchema() instanceof ScalarValueSchema) {
+    Type propertyType=Type.getType(property.getType().getConcreteClass());
+    MethodVisitor methodVisitor=declareMethod(visitor,property.getName(),Type.getMethodDescriptor(Type.VOID_TYPE,propertyType),null);
+    putThisOnStack(methodVisitor);
+    putFirstMethodArgumentOnStack(methodVisitor,propertyType);
+    methodVisitor.visitMethodInsn(INVOKEVIRTUAL,generatedType.getInternalName(),property.getSetter().getName(),Type.getMethodDescriptor(Type.VOID_TYPE,propertyType),false);
+    finishVisitingMethod(methodVisitor);
+  }
+}
