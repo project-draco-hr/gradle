@@ -1,8 +1,5 @@
 {
-  if (property.isWritable()) {
-    return;
-  }
-  if (property.getSchema() instanceof CompositeSchema) {
+  if (!property.isWritable() && property.getSchema() instanceof CompositeSchema) {
     MethodVisitor methodVisitor=declareMethod(visitor,property.getName(),Type.getMethodDescriptor(Type.VOID_TYPE,CLOSURE_TYPE),null);
     putStateFieldValueOnStack(methodVisitor,generatedType);
     putConstantOnStack(methodVisitor,property.getName());
@@ -11,7 +8,7 @@
     finishVisitingMethod(methodVisitor);
     return;
   }
-  if (property.getSchema() instanceof UnmanagedImplStructSchema) {
+  if (!property.isWritable() && property.getSchema() instanceof UnmanagedImplStructSchema) {
     UnmanagedImplStructSchema<?> structSchema=(UnmanagedImplStructSchema<?>)property.getSchema();
     if (!structSchema.isAnnotated()) {
       return;
@@ -22,5 +19,17 @@
     putFirstMethodArgumentOnStack(methodVisitor);
     methodVisitor.visitMethodInsn(INVOKESTATIC,Type.getInternalName(ClosureBackedAction.class),"execute",Type.getMethodDescriptor(Type.VOID_TYPE,OBJECT_TYPE,CLOSURE_TYPE),false);
     finishVisitingMethod(methodVisitor);
+    return;
   }
+  MethodVisitor methodVisitor=declareMethod(visitor,property.getName(),Type.getMethodDescriptor(Type.VOID_TYPE,CLOSURE_TYPE),null);
+  putThisOnStack(methodVisitor);
+  putConstantOnStack(methodVisitor,property.getName());
+  methodVisitor.visitInsn(Opcodes.ICONST_1);
+  methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY,OBJECT_TYPE.getInternalName());
+  methodVisitor.visitInsn(Opcodes.DUP);
+  methodVisitor.visitInsn(Opcodes.ICONST_0);
+  putFirstMethodArgumentOnStack(methodVisitor);
+  methodVisitor.visitInsn(Opcodes.AASTORE);
+  methodVisitor.visitMethodInsn(INVOKEVIRTUAL,generatedType.getInternalName(),"methodMissing",METHOD_MISSING_METHOD_DESCRIPTOR,false);
+  finishVisitingMethod(methodVisitor);
 }
