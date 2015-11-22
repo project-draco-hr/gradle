@@ -5,15 +5,18 @@
     }
     return null;
   }
+  if (type.isInstance(notation)) {
+    return notation;
+  }
   if (type.isEnum()) {
-    return NotationParserBuilder.toType(type).noImplicitConverters().converter(new EnumConverter(type)).toComposite().parseNotation(notation);
+    return NotationParserBuilder.toType(type).noImplicitConverters().converter(new CharSequenceNotationConverter(new EnumConverter(type))).toComposite().parseNotation(notation);
   }
   NotationParser<Object,?> parser;
   if (File.class.equals(type)) {
     parser=fileParser;
   }
  else {
-    parser=PARSERS.get(primitive ? UNBOXED_TYPES.get(type) : type);
+    parser=parsers.get(primitive ? UNBOXED_TYPES.get(type) : type);
     if (parser == null) {
       throw new UnsupportedNotationException(notation,"Unsupported type",null,CANDIDATES);
     }
