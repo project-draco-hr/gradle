@@ -3,10 +3,12 @@
   if (node == null) {
     return;
   }
-  if (!Iterables.isEmpty(node.getDependents())) {
-    throw new IllegalStateException(String.format("Tried to remove model '%s' but it is depended on by: '%s'",path,Joiner.on(", ").join(node.getDependents())));
+  List<ModelNodeInternal> nodesToRemove=Lists.newArrayList();
+  ensureCanRemove(node,nodesToRemove);
+  Collections.reverse(nodesToRemove);
+  for (  ModelNodeInternal nodeToRemove : nodesToRemove) {
+    modelGraph.remove(nodeToRemove);
+    ruleBindings.remove(nodeToRemove);
+    unboundRules.removeAll(nodeToRemove.getInitializerRuleBinders());
   }
-  modelGraph.remove(node);
-  ruleBindings.remove(node);
-  unboundRules.removeAll(node.getInitializerRuleBinders());
 }
