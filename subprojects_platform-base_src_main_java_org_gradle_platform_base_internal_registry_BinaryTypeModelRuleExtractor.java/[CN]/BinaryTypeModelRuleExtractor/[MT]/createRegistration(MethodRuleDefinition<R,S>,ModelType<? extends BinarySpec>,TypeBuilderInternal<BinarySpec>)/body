@@ -1,12 +1,6 @@
 {
   ImmutableList<Class<?>> dependencies=ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
   ModelType<? extends BaseBinarySpec> implementation=determineImplementationType(type,builder);
-  ImmutableSet<ModelType<?>> internalViews=ImmutableSet.copyOf(Iterables.transform(builder.getInternalViews(),new Function<Class<?>,ModelType<?>>(){
-    @Override public ModelType<?> apply(    Class<?> type){
-      return ModelType.of(type);
-    }
-  }
-));
-  ModelAction mutator=RegistrationAction.create(type,implementation,internalViews,ruleDefinition.getDescriptor());
-  return new ExtractedModelAction(ModelActionRole.Defaults,dependencies,mutator);
+  ModelAction registrationAction=createRegistrationAction(type,implementation,builder.getInternalViews(),ruleDefinition.getDescriptor());
+  return new ExtractedModelAction(ModelActionRole.Defaults,dependencies,registrationAction);
 }

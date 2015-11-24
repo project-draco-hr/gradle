@@ -1,0 +1,24 @@
+{
+  this.quietPeriodMillis=quietPeriodMillis;
+  this.cancellationToken=cancellationToken;
+  this.onError=new Action<Throwable>(){
+    @Override public void execute(    Throwable throwable){
+      error.set(throwable);
+      signal(lock,condition);
+    }
+  }
+;
+  watcher=fileWatcherFactory.watch(onError,new FileWatcherListener(){
+    @Override public void onChange(    final FileWatcher watcher,    FileWatcherEvent event){
+      if (!(event.getType() == FileWatcherEvent.Type.MODIFY && event.getFile().isDirectory())) {
+        signal(lock,condition,new Runnable(){
+          @Override public void run(){
+            lastChangeAt.set(monotonicClockMillis());
+          }
+        }
+);
+      }
+    }
+  }
+);
+}

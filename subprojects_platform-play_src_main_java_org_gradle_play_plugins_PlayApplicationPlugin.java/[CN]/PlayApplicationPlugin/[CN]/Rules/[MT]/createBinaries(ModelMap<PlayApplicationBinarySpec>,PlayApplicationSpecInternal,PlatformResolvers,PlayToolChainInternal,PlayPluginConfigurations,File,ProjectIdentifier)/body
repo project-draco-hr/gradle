@@ -1,0 +1,30 @@
+{
+  binaries.create("binary",new Action<PlayApplicationBinarySpec>(){
+    public void execute(    PlayApplicationBinarySpec playBinary){
+      PlayApplicationBinarySpecInternal playBinaryInternal=(PlayApplicationBinarySpecInternal)playBinary;
+      final File binaryBuildDir=new File(buildDir,playBinaryInternal.getProjectScopedName());
+      final PlayPlatform chosenPlatform=resolveTargetPlatform(componentSpec,platforms);
+      initialiseConfigurations(configurations,chosenPlatform);
+      playBinaryInternal.setTargetPlatform(chosenPlatform);
+      playBinaryInternal.setToolChain(playToolChainInternal);
+      File mainJar=new File(binaryBuildDir,String.format("lib/%s.jar",projectIdentifier.getName()));
+      File assetsJar=new File(binaryBuildDir,String.format("lib/%s-assets.jar",projectIdentifier.getName()));
+      playBinaryInternal.setJarFile(mainJar);
+      playBinaryInternal.setAssetsJarFile(assetsJar);
+      configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar",null,new Date(),mainJar,playBinaryInternal));
+      configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar","assets",new Date(),assetsJar,playBinaryInternal));
+      JvmClasses classes=playBinary.getClasses();
+      classes.setClassesDir(new File(binaryBuildDir,"classes"));
+      ModelMap<JvmResourceSet> jvmResourceSets=componentSpec.getSources().withType(JvmResourceSet.class);
+      for (      JvmResourceSet jvmResourceSet : jvmResourceSets.values()) {
+        for (        File resourceDir : jvmResourceSet.getSource().getSrcDirs()) {
+          classes.addResourceDir(resourceDir);
+        }
+      }
+      PublicAssets assets=playBinary.getAssets();
+      assets.addAssetDir(new File(projectIdentifier.getProjectDir(),"public"));
+      playBinaryInternal.setClasspath(configurations.getPlay().getAllArtifacts());
+    }
+  }
+);
+}

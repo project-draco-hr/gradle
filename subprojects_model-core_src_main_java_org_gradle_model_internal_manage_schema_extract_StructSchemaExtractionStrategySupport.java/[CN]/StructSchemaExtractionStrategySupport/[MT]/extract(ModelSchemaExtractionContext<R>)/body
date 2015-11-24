@@ -4,10 +4,14 @@
     return;
   }
   validateTypeHierarchy(extractionContext,type);
-  List<ModelPropertyExtractionResult<?>> propertyExtractionResults=extractPropertySchemas(extractionContext,ModelSchemaUtils.getCandidateMethods(type.getRawClass()));
-  List<ModelSchemaAspect> aspects=aspectExtractor.extract(extractionContext,propertyExtractionResults);
-  ModelSchema<R> schema=createSchema(extractionContext,propertyExtractionResults,aspects);
-  for (  ModelPropertyExtractionResult<?> propertyResult : propertyExtractionResults) {
+  CandidateMethods candidateMethods=ModelSchemaUtils.getCandidateMethods(type.getRawClass());
+  validateMethodDeclarationHierarchy(extractionContext,candidateMethods);
+  Iterable<ModelPropertyExtractionContext> candidateProperties=selectProperties(extractionContext,candidateMethods);
+  validateProperties(extractionContext,candidateProperties);
+  List<ModelPropertyExtractionResult<?>> extractedProperties=extractProperties(extractionContext,candidateProperties);
+  List<ModelSchemaAspect> aspects=aspectExtractor.extract(extractionContext,extractedProperties);
+  ModelSchema<R> schema=createSchema(extractionContext,extractedProperties,aspects);
+  for (  ModelPropertyExtractionResult<?> propertyResult : extractedProperties) {
     toPropertyExtractionContext(extractionContext,propertyResult);
   }
   extractionContext.found(schema);

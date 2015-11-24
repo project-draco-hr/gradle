@@ -2,19 +2,15 @@
   return new ChildNodeInitializerStrategy<T>(){
     @Override public <S extends T>NodeInitializer initializer(    final ModelType<S> type){
       return new NodeInitializer(){
-        @Override public List<? extends ModelReference<?>> getInputs(){
-          return Collections.emptyList();
-        }
-        @Override public void execute(        MutableModelNode modelNode,        List<ModelView<?>> inputs){
-          NamedEntityInstantiator<T> instantiator=instantiatorTransform.transform(modelNode.getParent());
-          S item=instantiator.create(modelNode.getPath().getName(),type.getConcreteClass());
-          modelNode.setPrivateData(type,item);
-        }
-        @Override public List<? extends ModelProjection> getProjections(){
-          return Collections.singletonList(UnmanagedModelProjection.of(type));
-        }
-        @Nullable @Override public ModelAction getProjector(        ModelPath path,        ModelRuleDescriptor descriptor){
-          return null;
+        @Override public Multimap<ModelActionRole,ModelAction> getActions(        ModelReference<?> subject,        ModelRuleDescriptor descriptor){
+          return ImmutableSetMultimap.<ModelActionRole,ModelAction>builder().put(ModelActionRole.Discover,AddProjectionsAction.of(subject,descriptor,UnmanagedModelProjection.of(type))).put(ModelActionRole.Create,DirectNodeNoInputsModelAction.of(subject,descriptor,new Action<MutableModelNode>(){
+            @Override public void execute(            MutableModelNode modelNode){
+              NamedEntityInstantiator<T> instantiator=instantiatorTransform.transform(modelNode.getParent());
+              S item=instantiator.create(modelNode.getPath().getName(),type.getConcreteClass());
+              modelNode.setPrivateData(type,item);
+            }
+          }
+)).build();
         }
       }
 ;

@@ -1,0 +1,23 @@
+{
+  if (!property.isWritable() || !(property.getSchema() instanceof ScalarValueSchema)) {
+    return;
+  }
+  Class<?> propertyClass=property.getType().getConcreteClass();
+  Type propertyType=Type.getType(propertyClass);
+  Class<?> boxedClass=propertyClass.isPrimitive() ? BOXED_TYPES.get(propertyClass) : propertyClass;
+  Type boxedType=Type.getType(boxedClass);
+  Method setter=property.getSetter().getMethod();
+  MethodVisitor methodVisitor=declareMethod(visitor,setter.getName(),SET_OBJECT_PROPERTY_DESCRIPTOR,SET_OBJECT_PROPERTY_DESCRIPTOR);
+  putThisOnStack(methodVisitor);
+  putTypeConverterFieldValueOnStack(methodVisitor,generatedType);
+  methodVisitor.visitVarInsn(ALOAD,1);
+  methodVisitor.visitLdcInsn(boxedType);
+  methodVisitor.visitInsn(propertyClass.isPrimitive() ? ICONST_1 : ICONST_0);
+  methodVisitor.visitMethodInsn(INVOKEINTERFACE,TYPE_CONVERTER_TYPE.getInternalName(),"convert",COERCE_TO_SCALAR_DESCRIPTOR,true);
+  methodVisitor.visitTypeInsn(CHECKCAST,boxedType.getInternalName());
+  if (propertyClass.isPrimitive()) {
+    unboxType(methodVisitor,propertyClass);
+  }
+  methodVisitor.visitMethodInsn(INVOKEVIRTUAL,generatedType.getInternalName(),setter.getName(),Type.getMethodDescriptor(Type.VOID_TYPE,propertyType),false);
+  finishVisitingMethod(methodVisitor);
+}

@@ -1,0 +1,33 @@
+{
+  Collection<String> delegatePropertyNames;
+  if (delegateSchema != null) {
+    delegatePropertyNames=delegateSchema.getPropertyNames();
+  }
+ else {
+    delegatePropertyNames=Collections.emptySet();
+  }
+  Class<?> viewClass=viewSchema.getType().getConcreteClass();
+  for (  ModelProperty<?> property : viewSchema.getProperties()) {
+    String propertyName=property.getName();
+    writeConfigureMethod(visitor,generatedType,property);
+    writeSetMethod(visitor,generatedType,property);
+    createTypeConvertingSetter(visitor,generatedType,property);
+    if (delegatePropertyNames.contains(propertyName)) {
+      continue;
+    }
+switch (property.getStateManagementType()) {
+case MANAGED:
+      writeGetters(visitor,generatedType,property);
+    writeSetter(visitor,generatedType,property);
+  break;
+case UNMANAGED:
+for (WeaklyTypeReferencingMethod<?,?> getter : property.getGetters()) {
+  Method getterMethod=getter.getMethod();
+  if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
+    writeNonAbstractMethodWrapper(visitor,generatedType,viewClass,getterMethod);
+  }
+}
+break;
+}
+}
+}

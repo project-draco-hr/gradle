@@ -1,0 +1,22 @@
+{
+  String name=value.getName();
+  if (value instanceof EnumAnnotationValue) {
+    annotationVisitor.visitEnum(name,((EnumAnnotationValue)value).getTypeDesc(),(String)value.getValue());
+  }
+ else   if (value instanceof SimpleAnnotationValue) {
+    annotationVisitor.visit(name,value.getValue());
+  }
+ else   if (value instanceof ArrayAnnotationValue) {
+    AnnotationVisitor arrayVisitor=annotationVisitor.visitArray(name);
+    AnnotationValue<?>[] values=((ArrayAnnotationValue)value).getValue();
+    for (    AnnotationValue<?> annotationValue : values) {
+      visitAnnotationValue(arrayVisitor,annotationValue);
+    }
+    arrayVisitor.visitEnd();
+  }
+ else   if (value instanceof AnnotationAnnotationValue) {
+    AnnotationMember annotation=((AnnotationAnnotationValue)value).getValue();
+    AnnotationVisitor annVisitor=annotationVisitor.visitAnnotation(name,annotation.getName());
+    visitAnnotationValues(annotation,annVisitor);
+  }
+}

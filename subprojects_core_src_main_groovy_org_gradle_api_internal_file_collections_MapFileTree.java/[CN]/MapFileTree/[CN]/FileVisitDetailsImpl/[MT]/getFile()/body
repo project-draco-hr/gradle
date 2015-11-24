@@ -1,7 +1,38 @@
 {
   if (file == null) {
     file=createFileInstance(path);
-    copyTo(file);
+    if (!file.exists()) {
+      copyTo(file);
+    }
+ else     if (!isDirectory()) {
+      ByteArrayOutputStream buffer=new ByteArrayOutputStream(Math.max(((int)file.length()) + 64,256));
+      copyTo(buffer);
+      byte[] newContent=buffer.toByteArray();
+      boolean changed=false;
+      if (newContent.length == file.length()) {
+        try {
+          byte[] oldContent=Files.toByteArray(file);
+          if (!Arrays.equals(newContent,oldContent)) {
+            changed=true;
+          }
+        }
+ catch (        IOException e) {
+          changed=true;
+        }
+      }
+ else {
+        changed=true;
+      }
+      if (changed) {
+        try {
+          Files.write(newContent,file);
+        }
+ catch (        IOException e) {
+          throw new org.gradle.api.UncheckedIOException(e);
+        }
+      }
+    }
+    lastModified=file.lastModified() / 1000 * 1000;
   }
   return file;
 }

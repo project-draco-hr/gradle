@@ -1,0 +1,19 @@
+{
+  if (nestingDepth == 0 && stat.getExpression() instanceof MethodCallExpression) {
+    MethodCallExpression call=(MethodCallExpression)stat.getExpression();
+    if (call.isImplicitThis() && call.getArguments() instanceof ArgumentListExpression) {
+      ArgumentListExpression arguments=(ArgumentListExpression)call.getArguments();
+      if (!arguments.getExpressions().isEmpty()) {
+        Expression lastArg=arguments.getExpression(arguments.getExpressions().size() - 1);
+        if (lastArg instanceof ClosureExpression) {
+          ClosureExpression closureExpression=(ClosureExpression)lastArg;
+          visitRuleClosure(closureExpression,call,displayName(call));
+          Expression replaced=new StaticMethodCallExpression(RULE_FACTORY,"decorate",new ArgumentListExpression(new VariableExpression(RULE_FACTORY_FIELD_NAME),closureExpression));
+          arguments.getExpressions().set(arguments.getExpressions().size() - 1,replaced);
+          return;
+        }
+      }
+    }
+  }
+  super.visitExpressionStatement(stat);
+}
