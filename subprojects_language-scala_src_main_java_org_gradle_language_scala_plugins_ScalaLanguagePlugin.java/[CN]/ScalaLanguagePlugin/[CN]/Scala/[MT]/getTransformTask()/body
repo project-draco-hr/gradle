@@ -9,7 +9,7 @@
     public void configureTask(    Task task,    BinarySpec binarySpec,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
       PlatformScalaCompile compile=(PlatformScalaCompile)task;
       ScalaLanguageSourceSet scalaSourceSet=(ScalaLanguageSourceSet)sourceSet;
-      JvmBinarySpec binary=(JvmBinarySpec)binarySpec;
+      JarBinarySpecInternal binary=(JarBinarySpecInternal)binarySpec;
       JavaPlatform javaPlatform=binary.getTargetPlatform();
       compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
       File analysisFile=new File(task.getTemporaryDir(),String.format("compilerAnalysis/%s.analysis",task.getName()));
@@ -22,10 +22,7 @@
       compile.setSourceCompatibility(javaPlatform.getTargetCompatibility().toString());
       compile.dependsOn(scalaSourceSet);
       binary.getTasks().getJar().dependsOn(compile);
-      ApiJar apiJar=binary.getTasks().getApiJar();
-      if (apiJar != null) {
-        apiJar.dependsOn(compile);
-      }
+      binary.getApiJar().builtBy(compile);
     }
   }
 ;
