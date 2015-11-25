@@ -1,0 +1,32 @@
+{
+  System.setIn(connectStdIn());
+  processEnvironment.maybeSetProcessDir(getWorkingDir());
+  for (  Map.Entry<String,String> entry : invocation.environmentVars.entrySet()) {
+    processEnvironment.maybeSetEnvironmentVariable(entry.getKey(),entry.getValue());
+  }
+  Map<String,String> implicitJvmSystemProperties=getImplicitJvmSystemProperties();
+  System.getProperties().putAll(implicitJvmSystemProperties);
+  StartParameter startParameter=new StartParameter();
+  startParameter.setCurrentDir(getWorkingDir());
+  startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
+  CommandLineParser parser=new CommandLineParser();
+  ParametersConverter parametersConverter=new ParametersConverter();
+  parametersConverter.configure(parser);
+  parametersConverter.convert(parser.parse(getAllArgs()),new Parameters(startParameter));
+  BuildActionExecuter<BuildActionParameters> actionExecuter=GLOBAL_SERVICES.get(BuildActionExecuter.class);
+  ListenerManager listenerManager=GLOBAL_SERVICES.get(ListenerManager.class);
+  listenerManager.addListener(listener);
+  try {
+    BuildAction action=new ExecuteBuildAction(startParameter);
+    BuildActionParameters buildActionParameters=new DefaultBuildActionParameters(System.getProperties(),System.getenv(),SystemProperties.getInstance().getCurrentDir(),startParameter.getLogLevel(),DaemonUsage.EXPLICITLY_DISABLED,startParameter.isContinuous(),interactive,ClassPath.EMPTY);
+    BuildRequestContext buildRequestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),System.currentTimeMillis()),new DefaultBuildCancellationToken(),new NoOpBuildEventConsumer(),outputListener,errorListener);
+    actionExecuter.execute(action,buildRequestContext,buildActionParameters,GLOBAL_SERVICES);
+    return new BuildResult(null,null);
+  }
+ catch (  ReportedException e) {
+    return new BuildResult(null,e.getCause());
+  }
+ finally {
+    listenerManager.removeListener(listener);
+  }
+}
