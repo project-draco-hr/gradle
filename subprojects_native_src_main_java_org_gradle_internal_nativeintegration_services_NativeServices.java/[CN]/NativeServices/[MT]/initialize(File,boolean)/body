@@ -8,7 +8,17 @@
     nativeDir=new File(overrideProperty);
   }
   if (useNativePlatform) {
-    net.rubygrapefruit.platform.Native.init(nativeDir);
+    try {
+      net.rubygrapefruit.platform.Native.init(nativeDir);
+    }
+ catch (    NativeIntegrationUnavailableException ex) {
+      LOGGER.debug("Native-platform is not available.");
+      useNativePlatform=false;
+    }
+catch (    NativeException ex) {
+      LOGGER.debug("Unable to initialize native-platform. Failure: {}",format(ex));
+      useNativePlatform=false;
+    }
   }
   if (OperatingSystem.current().isWindows() && initializeJNA) {
     new JnaBootPathConfigurer().configure(nativeDir);
