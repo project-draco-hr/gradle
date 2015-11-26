@@ -1,0 +1,25 @@
+{
+  if (notation == null) {
+    if (primitive) {
+      throw new UnsupportedNotationException(notation,String.format("Cannot assign null value to primitive type %s.",UNBOXED_TYPES.get(type).getSimpleName()),null,CANDIDATES);
+    }
+    return null;
+  }
+  if (type.isInstance(notation)) {
+    return notation;
+  }
+  if (type.isEnum()) {
+    return NotationParserBuilder.toType(type).noImplicitConverters().converter(new CharSequenceNotationConverter(new EnumConverter(type))).toComposite().parseNotation(notation);
+  }
+  NotationParser<Object,?> parser;
+  if (File.class.equals(type)) {
+    parser=fileParser;
+  }
+ else {
+    parser=parsers.get(primitive ? UNBOXED_TYPES.get(type) : type);
+    if (parser == null) {
+      throw new UnsupportedNotationException(notation,"Unsupported type",null,CANDIDATES);
+    }
+  }
+  return parser.parseNotation(notation);
+}

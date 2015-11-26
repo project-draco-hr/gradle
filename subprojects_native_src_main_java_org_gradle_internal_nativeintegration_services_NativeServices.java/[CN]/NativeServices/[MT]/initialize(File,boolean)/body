@@ -1,27 +1,55 @@
 {
-  String overrideProperty=System.getProperty(NATIVE_DIR_OVERRIDE);
-  File nativeDir;
-  if (overrideProperty == null) {
-    nativeDir=new File(userHomeDir,"native");
-  }
+  if (!initialized) {
+    String overrideProperty=System.getProperty(NATIVE_DIR_OVERRIDE);
+    File nativeDir;
+    if (overrideProperty == null) {
+      nativeDir=new File(userHomeDir,"native");
+    }
  else {
-    nativeDir=new File(overrideProperty);
-  }
-  if (useNativePlatform) {
-    try {
-      net.rubygrapefruit.platform.Native.init(nativeDir);
+      nativeDir=new File(overrideProperty);
     }
- catch (    NativeIntegrationUnavailableException ex) {
-      LOGGER.debug("Native-platform is not available.");
-      useNativePlatform=false;
+    if (useNativePlatform) {
+      try {
+        net.rubygrapefruit.platform.Native.init(nativeDir);
+      }
+ catch (      NativeIntegrationUnavailableException ex) {
+        LOGGER.debug("Native-platform is not available.");
+        useNativePlatform=false;
+      }
+catch (      NativeException ex) {
+        if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
+          LOGGER.debug("Unable to initialize native-platform. Failure: {}",format(ex));
+          useNativePlatform=false;
+        }
+ else {
+          Platform platform=Platform.current();
+          try {
+            File lib=new NativeLibraryLocator(nativeDir).find(new LibraryDef(platform.getLibraryName(),platform.getId()));
+            HashValue libHash=HashUtil.createHash(lib,"md5");
+            File copy=new NativeLibraryLocator(null).find(new LibraryDef(platform.getLibraryName(),platform.getId()));
+            HashValue copyHash=HashUtil.createHash(copy,"md5");
+            String resourceName=String.format("net/rubygrapefruit/platform/%s/%s",platform.getId(),platform.getLibraryName());
+            URL resource=NativeServices.class.getClassLoader().getResource(resourceName);
+            InputStream inputStream=resource.openConnection().getInputStream();
+            HashValue resourceHash;
+            try {
+              resourceHash=HashUtil.createHash(inputStream,"md5");
+            }
+  finally {
+              inputStream.close();
+            }
+            throw new RuntimeException(String.format("Could not load native integration.%nlib: %s (%s)%ncopy: %s (%s)%nresources: %s (%s)",lib,libHash.asHexString(),copy,copyHash.asHexString(),resource,resourceHash.asHexString()));
+          }
+ catch (          IOException e) {
+            e.printStackTrace();
+          }
+          throw ex;
+        }
+      }
     }
-catch (    NativeException ex) {
-      LOGGER.debug("Unable to initialize native-platform. Failure: {}",format(ex));
-      useNativePlatform=false;
+    if (OperatingSystem.current().isWindows() && initializeJNA) {
+      new JnaBootPathConfigurer().configure(nativeDir);
     }
+    initialized=true;
   }
-  if (OperatingSystem.current().isWindows() && initializeJNA) {
-    new JnaBootPathConfigurer().configure(nativeDir);
-  }
-  initialized=true;
 }

@@ -1,19 +1,18 @@
 {
-  if (!managedType.getConcreteClass().isAnnotationPresent(Managed.class)) {
-    throw new IllegalArgumentException(String.format("Type '%s' is not managed",managedType));
+  if (!publicType.getConcreteClass().isAnnotationPresent(Managed.class)) {
+    throw new IllegalArgumentException(String.format("Type '%s' is not managed",publicType));
   }
-  final List<ManagedSubtypeImplementationInfo<? extends T>> implementationInfos=Lists.newArrayListWithCapacity(1);
-  ModelSchemaUtils.walkTypeHierarchy(managedType.getConcreteClass(),new RegistrationHierarchyVisitor<S>(){
+  final List<ImplementationInfo<T>> implementationInfos=Lists.newArrayListWithCapacity(1);
+  ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(),new RegistrationHierarchyVisitor<S>(){
     @Override protected void visitRegistration(    TypeRegistration<? extends T> registration){
       if (registration != null && registration.implementationRegistration != null) {
-        ModelType<? extends T> implementationType=registration.implementationRegistration.getImplementationType();
-        implementationInfos.add(new ManagedSubtypeImplementationInfoImpl<T>(registration.publicType,implementationType));
+        implementationInfos.add(new ImplementationInfoImpl<T>(publicType,registration.implementationRegistration));
       }
     }
   }
 );
   if (implementationInfos.isEmpty()) {
-    throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation",managedType));
+    throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation",publicType));
   }
   return implementationInfos.get(0);
 }

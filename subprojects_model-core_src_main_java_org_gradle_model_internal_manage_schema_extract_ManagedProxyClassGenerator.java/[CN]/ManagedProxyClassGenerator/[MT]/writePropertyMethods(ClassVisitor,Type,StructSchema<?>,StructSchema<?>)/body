@@ -1,18 +1,17 @@
 {
   Collection<String> delegatePropertyNames;
   if (delegateSchema != null) {
-    ImmutableSet.Builder<String> builder=ImmutableSet.builder();
-    for (    ModelProperty<?> delegateProperty : delegateSchema.getProperties()) {
-      builder.add(delegateProperty.getName());
-    }
-    delegatePropertyNames=builder.build();
+    delegatePropertyNames=delegateSchema.getPropertyNames();
   }
  else {
     delegatePropertyNames=Collections.emptySet();
   }
-  Class<?> managedTypeClass=managedSchema.getType().getConcreteClass();
-  for (  ModelProperty<?> property : managedSchema.getProperties()) {
+  Class<?> viewClass=viewSchema.getType().getConcreteClass();
+  for (  ModelProperty<?> property : viewSchema.getProperties()) {
     String propertyName=property.getName();
+    writeConfigureMethod(visitor,generatedType,property);
+    writeSetMethod(visitor,generatedType,property);
+    createTypeConvertingSetter(visitor,generatedType,property);
     if (delegatePropertyNames.contains(propertyName)) {
       continue;
     }
@@ -22,16 +21,11 @@ case MANAGED:
     writeSetter(visitor,generatedType,property);
   break;
 case UNMANAGED:
-String getterName=getGetterName(propertyName);
-Method getterMethod;
-try {
-getterMethod=managedTypeClass.getMethod(getterName);
-}
- catch (NoSuchMethodException e) {
-throw new IllegalStateException(String.format("Cannot find getter '%s' on type %s",getterName,managedTypeClass.getName()),e);
-}
-if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
-writeNonAbstractMethodWrapper(visitor,generatedType,managedTypeClass,getterMethod);
+for (WeaklyTypeReferencingMethod<?,?> getter : property.getGetters()) {
+  Method getterMethod=getter.getMethod();
+  if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
+    writeNonAbstractMethodWrapper(visitor,generatedType,viewClass,getterMethod);
+  }
 }
 break;
 }

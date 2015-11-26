@@ -49,14 +49,12 @@
     buildCommands.add(new DefaultEclipseBuildCommand(b.getName(),b.getArguments()));
   }
   eclipseProject.setBuildCommands(buildCommands);
-  if (project.getPlugins().hasPlugin(JavaBasePlugin.class)) {
-    org.gradle.api.JavaVersion sourceCompatibility=eclipseModel.getJdt().getSourceCompatibility();
-    if (sourceCompatibility != null) {
-      JavaVersion version=JavaVersion.from(sourceCompatibility.toString());
-      DefaultJavaLanguageLevel languageLevel=new DefaultJavaLanguageLevel(version);
-      DefaultJavaSourceSettings sourceSettings=new DefaultJavaSourceSettings(languageLevel);
-      eclipseProject.setJavaSourceSettings(sourceSettings);
-    }
+  EclipseJdt jdt=eclipseModel.getJdt();
+  if (jdt != null) {
+    JavaVersion sourceCompatibility=jdt.getSourceCompatibility();
+    JavaVersion targetCompatibility=jdt.getTargetCompatibility();
+    DefaultJavaSourceSettings sourceSettings=new DefaultJavaSourceSettings(sourceCompatibility,targetCompatibility,new DefaultJavaRuntime());
+    eclipseProject.setJavaSourceSettings(sourceSettings);
   }
   for (  Project childProject : project.getChildProjects().values()) {
     populate(childProject);

@@ -18,15 +18,14 @@
       compile.setToolChain(binary.getToolChain());
       compile.setPlatform(binary.getTargetPlatform());
       compile.setSource(javaSourceSet.getSource());
-      DependencyResolvingClasspath classpath=new DependencyResolvingClasspath(binary,(DependentSourceSetInternal)javaSourceSet,dependencyResolver,schemaStore,resolutionAwareRepositories);
+      DependencyResolvingClasspath classpath=new DependencyResolvingClasspath(binary,javaSourceSet,dependencyResolver,schemaStore,resolutionAwareRepositories);
       compile.setClasspath(classpath);
       compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
       compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
       compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(),"jvm-dep-cache"));
       compile.dependsOn(javaSourceSet);
-      for (      Task jarTask : binary.getTasks().withType(Jar.class)) {
-        jarTask.dependsOn(compile);
-      }
+      binary.getTasks().getJar().dependsOn(compile);
+      binary.getApiJar().builtBy(compile);
     }
   }
 ;

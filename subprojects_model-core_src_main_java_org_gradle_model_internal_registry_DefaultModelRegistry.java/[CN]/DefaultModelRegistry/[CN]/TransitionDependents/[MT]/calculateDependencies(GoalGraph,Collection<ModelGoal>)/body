@@ -1,12 +1,15 @@
 {
   for (  RuleBinder rule : ruleBindings.getRulesWithInput(input)) {
-    if (rule.getSubjectBinding() == null || !rule.getSubjectBinding().isBound() || rule.getSubjectReference().getState() == null) {
+    ModelBinding subjectBinding=rule.getSubjectBinding();
+    if (!subjectBinding.isBound()) {
       continue;
     }
-    if (rule.getSubjectBinding().getNode().getPath().equals(input.path)) {
+    ModelPath targetPath=subjectBinding.getNode().getPath();
+    if (targetPath.equals(input.path)) {
       continue;
     }
-    dependencies.add(graph.nodeAtState(new NodeAtState(rule.getSubjectBinding().getNode().getPath(),rule.getSubjectReference().getState())));
+    ModelNode.State targetState=subjectBinding.getPredicate().getState();
+    dependencies.add(graph.nodeAtState(new NodeAtState(targetPath,targetState)));
   }
   return true;
 }

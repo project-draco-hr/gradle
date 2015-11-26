@@ -1,17 +1,4 @@
 {
-  String projectPath=dependency.getProjectPath();
-  String libraryName=dependency.getLibraryName();
-  if (projectPath == null && libraryName != null && libraryName.contains(":")) {
-    ModuleVersionSelector requested=moduleVersionSelectorFrom(libraryName);
-    ModuleComponentSelector selector=DefaultModuleComponentSelector.newSelector(requested);
-    addDependency(dependencyMetadataFor(selector,requested,CONFIGURATION_COMPILE));
-  }
- else {
-    if (Strings.isNullOrEmpty(projectPath)) {
-      projectPath=defaultProject;
-    }
-    ComponentSelector selector=new DefaultLibraryComponentSelector(projectPath,libraryName);
-    DefaultModuleVersionSelector requested=new DefaultModuleVersionSelector(nullToEmpty(projectPath),nullToEmpty(libraryName),getId().getVersion());
-    addDependency(dependencyMetadataFor(selector,requested,CONFIGURATION_API));
-  }
+  DependencyMetaData metadata=dependency instanceof ModuleDependencySpec ? moduleDependencyMetadata((ModuleDependencySpec)dependency) : projectDependencyMetadata((ProjectDependencySpec)dependency,defaultProject);
+  addDependency(metadata);
 }
