@@ -22,7 +22,17 @@ catch (      NativeException ex) {
           useNativePlatform=false;
         }
  else {
-          throw ex;
+          Platform platform=Platform.current();
+          try {
+            File lib=new NativeLibraryLocator(nativeDir).find(new LibraryDef(platform.getLibraryName(),platform.getId()));
+            HashValue libHash=HashUtil.createHash(lib,"md5");
+            File copy=new NativeLibraryLocator(null).find(new LibraryDef(platform.getLibraryName(),platform.getId()));
+            HashValue copyHash=HashUtil.createHash(copy,"md5");
+            throw new RuntimeException(String.format("Could not load native integration.%nlib: %s (%s)%ncopy: %s (%s)",lib,libHash.asHexString(),copy,copyHash.asHexString()),ex);
+          }
+ catch (          IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+          }
         }
       }
     }
