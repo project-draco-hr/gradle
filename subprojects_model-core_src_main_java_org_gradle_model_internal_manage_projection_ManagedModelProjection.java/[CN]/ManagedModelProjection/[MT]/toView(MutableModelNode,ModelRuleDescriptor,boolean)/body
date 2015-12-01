@@ -9,15 +9,13 @@
       return ManagedModelProjection.this.getType();
     }
     public M getInstance(){
-      return proxyFactory.createProxy(new State(services),schema,delegateSchema);
+      return proxyFactory.createProxy(new State(),schema,delegateSchema,typeConverter);
     }
     public void close(){
       closed=true;
     }
 class State implements ModelElementState {
-      private final ServiceRegistry services;
-      State(      ServiceRegistry services){
-        this.services=services;
+      State(){
       }
       @Override public MutableModelNode getBackingNode(){
         return modelNode;
@@ -39,7 +37,7 @@ class State implements ModelElementState {
         MutableModelNode propertyNode=modelNode.getLink(propertyName);
         propertyNode.ensureUsable();
         ModelView<? extends T> modelView;
-        ModelSchema<T> propertySchema=schemaStore.getSchema(propertyType);
+        ModelSchema<T> propertySchema=property.getSchema();
         if (property.isWritable() && propertySchema instanceof ScalarCollectionSchema) {
           Collection<?> instance=ScalarCollectionSchema.get(propertyNode);
           if (instance == null) {
@@ -47,7 +45,7 @@ class State implements ModelElementState {
           }
         }
         if (writable) {
-          modelView=propertyNode.asMutable(propertyType,ruleDescriptor,null);
+          modelView=propertyNode.asMutable(propertyType,ruleDescriptor);
           if (closed) {
             modelView.close();
           }
@@ -57,20 +55,19 @@ class State implements ModelElementState {
         }
         return modelView.getInstance();
       }
+      @Override public void apply(      String name,      Closure<?> action){
+        ClosureBackedAction.execute(get(name),action);
+      }
       public void set(      String name,      Object value){
         if (!writable || closed) {
           throw new ModelViewClosedException(getType(),ruleDescriptor);
         }
         ModelProperty<?> property=schema.getProperty(name);
-        ModelType<?> propertyType=property.getType();
-        value=doSet(name,value,propertyType);
+        value=doSet(name,value,property);
         propertyViews.put(name,value);
       }
-      public ServiceRegistry getServices(){
-        return services;
-      }
-      private <T>Object doSet(      String name,      Object value,      ModelType<T> propertyType){
-        ModelSchema<T> propertySchema=schemaStore.getSchema(propertyType);
+      private <T>Object doSet(      String name,      Object value,      ModelProperty<T> property){
+        ModelSchema<T> propertySchema=property.getSchema();
         MutableModelNode propertyNode=modelNode.getLink(name);
         propertyNode.ensureUsable();
         if (propertySchema instanceof ManagedImplSchema) {
@@ -88,7 +85,7 @@ class State implements ModelElementState {
             propertyNode.setTarget(targetNode);
           }
  else           if (propertySchema instanceof ScalarCollectionSchema && value instanceof Collection) {
-            ModelView<? extends Collection<?>> modelView=propertyNode.asMutable(COLLECTION_MODEL_TYPE,ruleDescriptor,Collections.<ModelView<?>>emptyList());
+            ModelView<? extends Collection<?>> modelView=propertyNode.asMutable(COLLECTION_MODEL_TYPE,ruleDescriptor);
             Collection<Object> instance=Cast.uncheckedCast(modelView.getInstance());
             Collection<Object> values=Cast.uncheckedCast(value);
             instance.clear();
@@ -101,7 +98,7 @@ class State implements ModelElementState {
         }
  else {
           T castValue=Cast.uncheckedCast(value);
-          propertyNode.setPrivateData(propertyType,castValue);
+          propertyNode.setPrivateData(property.getType(),castValue);
         }
         return value;
       }

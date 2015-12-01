@@ -1,0 +1,20 @@
+{
+  List<JavaPlatform> selectedPlatforms=resolvePlatforms(platforms,jvmLibrary);
+  final Set<String> exportedPackages=exportedPackagesOf(jvmLibrary);
+  final Collection<DependencySpec> apiDependencies=apiDependenciesOf(jvmLibrary);
+  final Collection<DependencySpec> dependencies=componentDependenciesOf(jvmLibrary);
+  for (  final JavaPlatform platform : selectedPlatforms) {
+    final BinaryNamingScheme namingScheme=namingSchemeFor(jvmLibrary,selectedPlatforms,platform);
+    binaries.create(namingScheme.getBinaryName(),new Action<JarBinarySpec>(){
+      @Override public void execute(      JarBinarySpec jarBinarySpec){
+        JarBinarySpecInternal jarBinary=(JarBinarySpecInternal)jarBinarySpec;
+        jarBinary.setNamingScheme(namingScheme);
+        jarBinary.setTargetPlatform(platform);
+        jarBinary.setExportedPackages(exportedPackages);
+        jarBinary.setApiDependencies(apiDependencies);
+        jarBinary.setDependencies(dependencies);
+      }
+    }
+);
+  }
+}
