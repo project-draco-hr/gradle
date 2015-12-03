@@ -1,0 +1,27 @@
+{
+  String taskName=binary.getName() + "Test";
+  tasks.create(taskName,Test.class,new Action<Test>(){
+    @Override public void execute(    final Test test){
+      test.setTestClassesDir(binary.getClassesDir());
+      File reportsDirectory=new File(buildDir,"reports");
+      configureReports(test,reportsDirectory);
+      test.setBinResultsDir(reportsDirectory);
+      configureTaskDependencies(test);
+    }
+    private void configureTaskDependencies(    final Test test){
+      binary.getTasks().withType(PlatformJavaCompile.class).all(new Action<PlatformJavaCompile>(){
+        @Override public void execute(        PlatformJavaCompile platformJavaCompile){
+          test.dependsOn(platformJavaCompile);
+        }
+      }
+);
+    }
+    private File configureReports(    Test test,    File reportsDirectory){
+      TestTaskReports reports=test.getReports();
+      reports.getHtml().setDestination(reportsDirectory);
+      reports.getJunitXml().setDestination(reportsDirectory);
+      return reportsDirectory;
+    }
+  }
+);
+}
