@@ -1,10 +1,11 @@
 {
   IdeaModel ideaModel=project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
   IdeaProject projectModel=ideaModel.getProject();
-  DefaultIdeaProject out=new DefaultIdeaProject().setName(projectModel.getName()).setJdkName(projectModel.getJdkName()).setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()));
+  JavaVersion projectSourceLanguageLevel=convertIdeaLanguageLevelToJavaVersion(projectModel.getLanguageLevel());
+  DefaultIdeaProject out=new DefaultIdeaProject().setName(projectModel.getName()).setJdkName(projectModel.getJdkName()).setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel())).setJavaSourceSettings(new DefaultIdeaProjectJavaSourceSettings(projectSourceLanguageLevel));
   Map<String,DefaultIdeaModule> modules=new HashMap<String,DefaultIdeaModule>();
   for (  IdeaModule module : projectModel.getModules()) {
-    appendModule(modules,module,out,rootGradleProject);
+    appendModule(modules,module,out,rootGradleProject,projectSourceLanguageLevel);
   }
   for (  IdeaModule module : projectModel.getModules()) {
     buildDependencies(modules,module);
