@@ -2,6 +2,9 @@
   ImmutableList<Class<?>> dependencies=ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
   ModelType<? extends BaseLanguageSourceSet> implementation=determineImplementationType(type,builder);
   String languageName=((LanguageTypeBuilderInternal)builder).getLanguageName();
+  if (StringUtils.isEmpty(languageName)) {
+    throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.",type));
+  }
   ModelAction mutator=createRegistrationAction(languageName,type,builder.getInternalViews(),implementation,ruleDefinition.getDescriptor());
   return new ExtractedModelAction(ModelActionRole.Defaults,dependencies,mutator);
 }
