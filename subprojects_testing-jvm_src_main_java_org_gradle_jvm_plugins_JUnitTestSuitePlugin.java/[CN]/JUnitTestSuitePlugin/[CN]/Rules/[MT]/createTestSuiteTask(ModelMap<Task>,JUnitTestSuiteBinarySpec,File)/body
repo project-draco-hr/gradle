@@ -3,9 +3,7 @@
   tasks.create(taskName,Test.class,new Action<Test>(){
     @Override public void execute(    final Test test){
       test.setTestClassesDir(binary.getClassesDir());
-      File reportsDirectory=new File(buildDir,"reports");
-      configureReports(test,reportsDirectory);
-      test.setBinResultsDir(reportsDirectory);
+      configureReports(test);
       configureTaskDependencies(test);
     }
     private void configureTaskDependencies(    final Test test){
@@ -16,10 +14,15 @@
       }
 );
     }
-    private File configureReports(    Test test,    File reportsDirectory){
+    private File configureReports(    Test test){
       TestTaskReports reports=test.getReports();
-      reports.getHtml().setDestination(reportsDirectory);
-      reports.getJunitXml().setDestination(reportsDirectory);
+      File reportsDirectory=new File(buildDir,"reports");
+      File htmlDir=new File(reportsDirectory,"tests");
+      File xmlDir=new File(buildDir,"test-results");
+      File binDir=new File(xmlDir,"binary");
+      reports.getHtml().setDestination(htmlDir);
+      reports.getJunitXml().setDestination(xmlDir);
+      test.setBinResultsDir(binDir);
       return reportsDirectory;
     }
   }
