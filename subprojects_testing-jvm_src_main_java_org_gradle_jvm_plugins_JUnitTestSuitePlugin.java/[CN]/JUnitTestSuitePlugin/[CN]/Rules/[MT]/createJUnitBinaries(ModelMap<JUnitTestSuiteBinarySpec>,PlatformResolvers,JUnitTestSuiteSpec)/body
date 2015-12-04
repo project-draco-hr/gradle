@@ -1,10 +1,17 @@
 {
   testBinaries.create(testSuite.getName(),JUnitTestSuiteBinarySpec.class,new Action<JUnitTestSuiteBinarySpec>(){
     @Override public void execute(    JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec){
-      jUnitTestSuiteBinarySpec.setJUnitVersion(testSuite.getJUnitVersion());
-      DefaultModuleDependencySpec junitDep=new DefaultModuleDependencySpec("junit","junit",jUnitTestSuiteBinarySpec.getJUnitVersion());
-      jUnitTestSuiteBinarySpec.setDependencies(Collections.<DependencySpec>singleton(junitDep));
+      final String jUnitVersion=testSuite.getJUnitVersion();
+      jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
       jUnitTestSuiteBinarySpec.setTargetPlatform(resolvePlatforms(platformResolver).get(0));
+      testSuite.getSources().all(new Action<LanguageSourceSet>(){
+        @Override public void execute(        LanguageSourceSet languageSourceSet){
+          if (languageSourceSet instanceof DependentSourceSet) {
+            ((DependentSourceSet)languageSourceSet).getDependencies().group("junit").module("junit").version(jUnitVersion);
+          }
+        }
+      }
+);
     }
   }
 );
