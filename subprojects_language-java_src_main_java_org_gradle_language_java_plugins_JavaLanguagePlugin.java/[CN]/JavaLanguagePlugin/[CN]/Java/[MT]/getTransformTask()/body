@@ -6,26 +6,18 @@
     public Class<? extends DefaultTask> getTaskType(){
       return PlatformJavaCompile.class;
     }
-    public void configureTask(    Task task,    BinarySpec binarySpec,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
+    public void configureTask(    Task task,    BinarySpec binary,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
       PlatformJavaCompile compile=(PlatformJavaCompile)task;
       JavaSourceSet javaSourceSet=(JavaSourceSet)sourceSet;
-      JarBinarySpecInternal binary=(JarBinarySpecInternal)binarySpec;
-      ArtifactDependencyResolver dependencyResolver=serviceRegistry.get(ArtifactDependencyResolver.class);
-      RepositoryHandler repositories=serviceRegistry.get(RepositoryHandler.class);
-      List<ResolutionAwareRepository> resolutionAwareRepositories=CollectionUtils.collect(repositories,Transformers.cast(ResolutionAwareRepository.class));
+      JvmAssembly assembly=((WithJvmAssembly)binary).getAssembly();
+      assembly.builtBy(compile);
       compile.setDescription(String.format("Compiles %s.",javaSourceSet));
-      compile.setDestinationDir(binary.getClassesDir());
-      compile.setToolChain(binary.getToolChain());
-      compile.setPlatform(binary.getTargetPlatform());
-      compile.setSource(javaSourceSet.getSource());
-      DependencyResolvingClasspath classpath=new DependencyResolvingClasspath(binary,javaSourceSet,dependencyResolver,schemaStore,resolutionAwareRepositories);
-      compile.setClasspath(classpath);
-      compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
-      compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
+      compile.setDestinationDir(single(assembly.getClassDirectories()));
       compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(),"jvm-dep-cache"));
       compile.dependsOn(javaSourceSet);
-      binary.getTasks().getJar().dependsOn(compile);
-      binary.getApiJar().builtBy(compile);
+      compile.setSource(javaSourceSet.getSource());
+      DependencyResolvingClasspath classpath=classpathFor(binary,javaSourceSet,serviceRegistry);
+      configureCompileTaskFor(assembly,compile,classpath);
     }
   }
 ;

@@ -1,0 +1,18 @@
+{
+  testBinaries.create(testSuite.getName(),JUnitTestSuiteBinarySpec.class,new Action<JUnitTestSuiteBinarySpec>(){
+    @Override public void execute(    JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec){
+      final String jUnitVersion=testSuite.getJUnitVersion();
+      jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
+      jUnitTestSuiteBinarySpec.setTargetPlatform(resolvePlatforms(platformResolver).get(0));
+      testSuite.getSources().all(new Action<LanguageSourceSet>(){
+        @Override public void execute(        LanguageSourceSet languageSourceSet){
+          if (languageSourceSet instanceof DependentSourceSet) {
+            ((DependentSourceSet)languageSourceSet).getDependencies().group("junit").module("junit").version(jUnitVersion);
+          }
+        }
+      }
+);
+    }
+  }
+);
+}
