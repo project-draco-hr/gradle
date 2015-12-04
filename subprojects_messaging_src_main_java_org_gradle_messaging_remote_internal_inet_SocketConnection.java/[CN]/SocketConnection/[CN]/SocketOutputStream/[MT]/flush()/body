@@ -1,11 +1,10 @@
 {
-  buffer.flip();
-  while (buffer.remaining() > 0) {
-    selector.select();
-    if (!selector.isOpen()) {
-      throw new EOFException();
+  while (buffer.position() > 0) {
+    buffer.flip();
+    int count=writeWithNonBlockingRetry();
+    if (count == 0) {
+      waitForWriteBufferToDrain();
     }
-    socket.write(buffer);
+    buffer.compact();
   }
-  buffer.clear();
 }
