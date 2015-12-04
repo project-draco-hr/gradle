@@ -2,15 +2,33 @@
   IdeaModel ideaModel=project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
   IdeaProject projectModel=ideaModel.getProject();
   JavaVersion projectSourceLanguageLevel=convertIdeaLanguageLevelToJavaVersion(projectModel.getLanguageLevel());
-  DefaultIdeaProject out=new DefaultIdeaProject().setName(projectModel.getName()).setJdkName(projectModel.getJdkName()).setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel())).setJavaSourceSettings(new DefaultIdeaProjectJavaSourceSettings(projectSourceLanguageLevel));
-  final DefaultJavaRuntime defaultJavaRuntime=new DefaultJavaRuntime(Jvm.current().getJavaHome());
+  final Jvm currentJvm=Jvm.current();
+  final DefaultJavaRuntime javaRuntime=new DefaultJavaRuntime(currentJvm.getJavaHome(),currentJvm.getJavaVersion());
+  DefaultIdeaProject out=new DefaultIdeaProject().setName(projectModel.getName()).setJdkName(projectModel.getJdkName()).setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel())).setJavaSourceSettings(new DefaultJavaSourceSettings().setSourceLanguageLevel(projectSourceLanguageLevel).setJavaRuntime(javaRuntime));
   Map<String,DefaultIdeaModule> modules=new HashMap<String,DefaultIdeaModule>();
   for (  IdeaModule module : projectModel.getModules()) {
-    appendModule(modules,module,out,rootGradleProject,projectSourceLanguageLevel,defaultJavaRuntime);
+    appendModule(modules,module,out,rootGradleProject,projectSourceLanguageLevel,javaRuntime);
   }
   for (  IdeaModule module : projectModel.getModules()) {
     buildDependencies(modules,module);
   }
-  out.setChildren(new LinkedList<DefaultIdeaModule>(modules.values()));
+  final Collection<DefaultIdeaModule> ideaModules=modules.values();
+  final Set<JavaVersion> moduleBytecodeVersions=toSet(compact(collect(ideaModules,new Transformer<JavaVersion,DefaultIdeaModule>(){
+    @Override public JavaVersion transform(    DefaultIdeaModule defaultIdeaModule){
+      return defaultIdeaModule.getJavaSourceSettings().getTargetBytecodeLevel();
+    }
+  }
+)));
+  if (moduleBytecodeVersions.size() == 1) {
+    for (    DefaultIdeaModule ideaModule : ideaModules) {
+      ideaModule.getJavaSourceSettings().setTargetBytecodeLevelInherited(true);
+    }
+    out.getJavaSourceSettings().setTargetBytecodeLevel(single(moduleBytecodeVersions));
+  }
+ else {
+    final JavaVersion maxBytecodeLevel=Collections.max(moduleBytecodeVersions);
+    out.getJavaSourceSettings().setTargetBytecodeLevel(maxBytecodeLevel);
+  }
+  out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
   return out;
 }
