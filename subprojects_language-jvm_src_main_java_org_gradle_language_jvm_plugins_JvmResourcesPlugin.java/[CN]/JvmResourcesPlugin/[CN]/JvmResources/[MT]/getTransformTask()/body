@@ -9,10 +9,10 @@
     public void configureTask(    Task task,    BinarySpec binary,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
       ProcessResources resourcesTask=(ProcessResources)task;
       JvmResourceSet resourceSet=(JvmResourceSet)sourceSet;
-      JvmBinarySpec jvmBinary=(JvmBinarySpec)binary;
       resourcesTask.from(resourceSet.getSource());
-      resourcesTask.setDestinationDir(jvmBinary.getResourcesDir());
-      jvmBinary.getTasks().getJar().dependsOn(resourcesTask);
+      JvmAssembly assembly=((WithJvmAssembly)binary).getAssembly();
+      resourcesTask.setDestinationDir(single(assembly.getResourceDirectories()));
+      assembly.builtBy(resourcesTask);
     }
   }
 ;
