@@ -4,15 +4,23 @@
     attemptedPath=true;
     return false;
   }
-  if (modelGraph.find(scope) != null) {
-    if (!attemptedCloseScope) {
-      dependencies.add(graph.nodeAtState(new NodeAtState(scope,SelfClosed)));
-      attemptedCloseScope=true;
-      return false;
-    }
- else {
-      dependencies.add(new TransitionChildrenOrReference(scope,Discovered));
-    }
+  ModelNodeInternal scopeNode=modelGraph.find(scope);
+  if (scopeNode == null) {
+    return true;
   }
+  if (!attemptedSelfDiscoveringChildren) {
+    dependencies.add(new TryDiscoverSelfDiscoveringInScope(scopeNode));
+    attemptedSelfDiscoveringChildren=true;
+    return false;
+  }
+  if (isAchieved()) {
+    return true;
+  }
+  if (!attemptedCloseScope) {
+    dependencies.add(graph.nodeAtState(new NodeAtState(scope,SelfClosed)));
+    attemptedCloseScope=true;
+    return false;
+  }
+  dependencies.add(new TransitionChildrenOrReference(scope,Discovered));
   return true;
 }
