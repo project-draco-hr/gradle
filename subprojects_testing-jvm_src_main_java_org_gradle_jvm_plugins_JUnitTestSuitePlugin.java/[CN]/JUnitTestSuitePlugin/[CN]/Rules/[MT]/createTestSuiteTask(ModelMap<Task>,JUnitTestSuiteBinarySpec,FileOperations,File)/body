@@ -1,13 +1,13 @@
 {
   String taskName=binary.getName() + "Test";
+  final JvmAssembly jvmAssembly=((WithJvmAssembly)binary).getAssembly();
   tasks.create(taskName,Test.class,new Action<Test>(){
     @Override public void execute(    final Test test){
+      test.dependsOn(jvmAssembly);
       test.setTestClassesDir(binary.getClassesDir());
+      FileCollection jvmAssemblyOutput=fileOperations.files(jvmAssembly.getClassDirectories(),jvmAssembly.getResourceDirectories());
+      test.setClasspath(jvmAssemblyOutput);
       configureReports(test);
-      configureTaskDependencies(test);
-    }
-    private void configureTaskDependencies(    final Test test){
-      test.dependsOn(((WithJvmAssembly)binary).getAssembly());
     }
     private File configureReports(    Test test){
       TestTaskReports reports=test.getReports();

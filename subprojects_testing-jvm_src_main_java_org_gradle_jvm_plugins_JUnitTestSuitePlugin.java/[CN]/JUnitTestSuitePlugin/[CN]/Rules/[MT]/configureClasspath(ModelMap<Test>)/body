@@ -1,18 +1,17 @@
 {
   testTasks.all(new Action<Test>(){
     @Override public void execute(    Test test){
+      UnionFileCollection testClasspath=new UnionFileCollection(test.getClasspath());
       Set<? extends Task> tasks=test.getTaskDependencies().getDependencies(test);
-      List<Object> classpath=new LinkedList<Object>();
       for (      Task task : tasks) {
         if (task instanceof PlatformJavaCompile) {
           FileCollection cp=((PlatformJavaCompile)task).getClasspath();
           if (cp != null) {
-            classpath.add(cp);
+            testClasspath.add(cp);
           }
         }
       }
-      classpath.add(test.getTestClassesDir());
-      test.setClasspath(fileOperations.files(classpath.toArray(new Object[classpath.size()])));
+      test.setClasspath(testClasspath);
     }
   }
 );
