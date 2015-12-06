@@ -9,20 +9,21 @@
     public void configureTask(    Task task,    BinarySpec binarySpec,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
       PlatformScalaCompile compile=(PlatformScalaCompile)task;
       ScalaLanguageSourceSet scalaSourceSet=(ScalaLanguageSourceSet)sourceSet;
-      JarBinarySpecInternal binary=(JarBinarySpecInternal)binarySpec;
-      JavaPlatform javaPlatform=binary.getTargetPlatform();
-      compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
+      JvmAssembly assembly=((WithJvmAssembly)binarySpec).getAssembly();
+      assembly.builtBy(compile);
+      compile.setDescription(String.format("Compiles %s.",scalaSourceSet));
+      compile.setDestinationDir(single(assembly.getClassDirectories()));
       File analysisFile=new File(task.getTemporaryDir(),String.format("compilerAnalysis/%s.analysis",task.getName()));
       compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
-      compile.setDescription(String.format("Compiles %s.",scalaSourceSet));
-      compile.setDestinationDir(binary.getClassesDir());
-      compile.setSource(scalaSourceSet.getSource());
-      compile.setClasspath(scalaSourceSet.getCompileClasspath().getFiles());
-      compile.setTargetCompatibility(javaPlatform.getTargetCompatibility().toString());
-      compile.setSourceCompatibility(javaPlatform.getTargetCompatibility().toString());
       compile.dependsOn(scalaSourceSet);
-      binary.getTasks().getJar().dependsOn(compile);
-      binary.getApiJar().builtBy(compile);
+      compile.setSource(scalaSourceSet.getSource());
+      JavaPlatform javaPlatform=assembly.getTargetPlatform();
+      String targetCompatibility=javaPlatform.getTargetCompatibility().toString();
+      compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
+      compile.setTargetCompatibility(targetCompatibility);
+      compile.setSourceCompatibility(targetCompatibility);
+      FileCollection classpath=scalaSourceSet.getCompileClasspath().getFiles();
+      compile.setClasspath(classpath);
     }
   }
 ;
