@@ -13,12 +13,12 @@
       playBinaryInternal.setAssetsJarFile(assetsJar);
       configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar",null,new Date(),mainJar,playBinaryInternal));
       configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(),"jar","jar","assets",new Date(),assetsJar,playBinaryInternal));
-      JvmClasses classes=playBinary.getClasses();
-      classes.setClassesDir(new File(binaryBuildDir,"classes"));
+      JvmAssembly jvmAssembly=((PlayApplicationBinarySpecInternal)playBinary).getAssembly();
+      jvmAssembly.getClassDirectories().add(new File(binaryBuildDir,"classes"));
       ModelMap<JvmResourceSet> jvmResourceSets=componentSpec.getSources().withType(JvmResourceSet.class);
       for (      JvmResourceSet jvmResourceSet : jvmResourceSets.values()) {
         for (        File resourceDir : jvmResourceSet.getSource().getSrcDirs()) {
-          classes.addResourceDir(resourceDir);
+          jvmAssembly.getResourceDirectories().add(resourceDir);
         }
       }
       PublicAssets assets=playBinary.getAssets();
