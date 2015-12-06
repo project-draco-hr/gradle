@@ -8,22 +8,9 @@
     }
     public void configureTask(    Task task,    BinarySpec binarySpec,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
       PlatformScalaCompile compile=(PlatformScalaCompile)task;
-      ScalaLanguageSourceSet scalaSourceSet=(ScalaLanguageSourceSet)sourceSet;
-      JvmAssembly assembly=((WithJvmAssembly)binarySpec).getAssembly();
-      assembly.builtBy(compile);
-      compile.setDescription(String.format("Compiles %s.",scalaSourceSet));
-      compile.setDestinationDir(single(assembly.getClassDirectories()));
-      File analysisFile=new File(task.getTemporaryDir(),String.format("compilerAnalysis/%s.analysis",task.getName()));
-      compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
-      compile.dependsOn(scalaSourceSet);
-      compile.setSource(scalaSourceSet.getSource());
-      JavaPlatform javaPlatform=assembly.getTargetPlatform();
-      String targetCompatibility=javaPlatform.getTargetCompatibility().toString();
-      compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
-      compile.setTargetCompatibility(targetCompatibility);
-      compile.setSourceCompatibility(targetCompatibility);
-      FileCollection classpath=scalaSourceSet.getCompileClasspath().getFiles();
-      compile.setClasspath(classpath);
+      configureScalaTask(compile,((WithJvmAssembly)binarySpec).getAssembly(),String.format("Compiles %s.",sourceSet));
+      addSourceSetToCompile(compile,sourceSet);
+      addSourceSetClasspath(compile,(ScalaLanguageSourceSet)sourceSet);
     }
   }
 ;
