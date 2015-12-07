@@ -1,15 +1,6 @@
 {
-  final String scalaCompileTaskName=binary.getTasks().taskName("compile","Scala");
-  final ScalaJvmAssembly assembly=((PlayApplicationBinarySpecInternal)binary).getAssembly();
-  tasks.create(scalaCompileTaskName,PlatformScalaCompile.class,new Action<PlatformScalaCompile>(){
-    public void execute(    PlatformScalaCompile scalaCompile){
-      ScalaLanguagePlugin.configureScalaTask(scalaCompile,assembly,"Compiles all scala and java source sets for the " + binary.getDisplayName() + ".");
-      for (      LanguageSourceSet appSources : binary.getInputs().withType(ScalaLanguageSourceSet.class)) {
-        ScalaLanguagePlugin.addSourceSetToCompile(scalaCompile,appSources);
-      }
-      for (      LanguageSourceSet appSources : binary.getInputs().withType(JavaSourceSet.class)) {
-        ScalaLanguagePlugin.addSourceSetToCompile(scalaCompile,appSources);
-      }
+  tasks.withType(PlatformScalaCompile.class).afterEach(new Action<PlatformScalaCompile>(){
+    @Override public void execute(    PlatformScalaCompile scalaCompile){
       scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal)binary).getClasspath());
     }
   }

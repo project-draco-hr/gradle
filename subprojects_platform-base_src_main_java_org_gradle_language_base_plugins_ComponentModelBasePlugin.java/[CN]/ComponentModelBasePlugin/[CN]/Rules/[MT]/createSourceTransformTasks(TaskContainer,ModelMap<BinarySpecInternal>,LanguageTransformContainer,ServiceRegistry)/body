@@ -1,22 +1,9 @@
 {
+  BinarySourceTransformations transformations=new BinarySourceTransformations(tasks,languageTransforms,serviceRegistry);
   for (  BinarySpecInternal binary : binaries) {
     if (binary.isLegacyBinary()) {
       continue;
     }
-    for (    LanguageSourceSetInternal sourceSet : binary.getInputs().withType(LanguageSourceSetInternal.class)) {
-      if (!sourceSet.getMayHaveSources()) {
-        continue;
-      }
-      LanguageTransform<?,?> language=findLanguageTransform(binary,sourceSet,languageTransforms);
-      if (language == null) {
-        continue;
-      }
-      final SourceTransformTaskConfig taskConfig=language.getTransformTask();
-      String taskName=taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSet.getProjectScopedName());
-      Task task=tasks.create(taskName,taskConfig.getTaskType());
-      taskConfig.configureTask(task,binary,sourceSet,serviceRegistry);
-      task.dependsOn(sourceSet);
-      binary.getTasks().add(task);
-    }
+    transformations.createTasksFor(binary);
   }
 }
