@@ -1,0 +1,22 @@
+{
+  List<File> suites=new ArrayList<File>();
+  suites.addAll(suiteXmlFiles);
+  if (suiteXmlBuilder != null) {
+    File buildSuiteXml=new File(testSuitesDir.getAbsolutePath(),"build-suite.xml");
+    if (buildSuiteXml.exists()) {
+      if (!buildSuiteXml.delete()) {
+        throw new RuntimeException("failed to remove already existing build-suite.xml file");
+      }
+    }
+    IoActions.writeTextFile(buildSuiteXml,new ErroringAction<BufferedWriter>(){
+      @Override protected void doExecute(      BufferedWriter writer) throws Exception {
+        writer.write("<!DOCTYPE suite SYSTEM \"http://testng.org/testng-1.0.dtd\">");
+        writer.newLine();
+        writer.write(suiteXmlWriter.toString());
+      }
+    }
+);
+    suites.add(buildSuiteXml);
+  }
+  return suites;
+}
