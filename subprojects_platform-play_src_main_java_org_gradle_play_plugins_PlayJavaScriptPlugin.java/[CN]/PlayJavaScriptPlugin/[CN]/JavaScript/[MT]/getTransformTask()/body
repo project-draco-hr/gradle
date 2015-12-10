@@ -1,0 +1,25 @@
+{
+  return new SourceTransformTaskConfig(){
+    public String getTaskPrefix(){
+      return "minify";
+    }
+    public Class<? extends DefaultTask> getTaskType(){
+      return JavaScriptMinify.class;
+    }
+    public void configureTask(    Task task,    BinarySpec binarySpec,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
+      PlayApplicationBinarySpecInternal binary=(PlayApplicationBinarySpecInternal)binarySpec;
+      JavaScriptSourceSet javaScriptSourceSet=(JavaScriptSourceSet)sourceSet;
+      JavaScriptMinify javaScriptMinify=(JavaScriptMinify)task;
+      javaScriptMinify.setDescription("Minifies javascript for the " + javaScriptSourceSet.getDisplayName() + ".");
+      File generatedSourceDir=binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(),"src");
+      File outputDirectory=new File(generatedSourceDir,javaScriptMinify.getName());
+      javaScriptMinify.setDestinationDir(outputDirectory);
+      javaScriptMinify.setSource(javaScriptSourceSet.getSource());
+      javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());
+      javaScriptMinify.dependsOn(javaScriptSourceSet);
+      binary.getAssets().addAssetDir(outputDirectory);
+      binary.getAssets().builtBy(javaScriptMinify);
+    }
+  }
+;
+}
