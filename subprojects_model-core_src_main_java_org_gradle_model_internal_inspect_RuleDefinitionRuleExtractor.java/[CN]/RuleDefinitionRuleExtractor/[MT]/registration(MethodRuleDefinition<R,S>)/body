@@ -1,0 +1,23 @@
+{
+  final ModelType<? extends RuleSource> type=ruleDefinition.getSubjectReference().getType().asSubtype(ModelType.of(RuleSource.class));
+  return new ExtractedModelRule(){
+    @Override public void apply(    ModelRegistry modelRegistry,    ModelPath scope){
+      modelRegistry.configure(ModelActionRole.Initialize,DirectNodeInputUsingModelAction.of(ModelReference.of(scope),ruleDefinition.getDescriptor(),ruleDefinition.getTailReferences(),new BiAction<MutableModelNode,List<ModelView<?>>>(){
+        @Override public void execute(        MutableModelNode subjectNode,        List<ModelView<?>> modelViews){
+          Object[] parameters=new Object[1 + modelViews.size()];
+          parameters[0]=DirectInstantiator.INSTANCE.newInstance(type.getConcreteClass());
+          for (int i=1; i < parameters.length; i++) {
+            parameters[i]=modelViews.get(i + 1).getInstance();
+          }
+          ruleDefinition.getRuleInvoker().invoke(parameters);
+          subjectNode.applyToSelf(type.getConcreteClass());
+        }
+      }
+));
+    }
+    @Override public List<? extends Class<?>> getRuleDependencies(){
+      return Collections.emptyList();
+    }
+  }
+;
+}
