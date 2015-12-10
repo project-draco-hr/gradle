@@ -1,5 +1,6 @@
 {
-  validate(source);
+  ValidationProblemCollector problems=new ValidationProblemCollector(ModelType.of(source));
+  validate(source,problems);
   final Method[] methods=source.getDeclaredMethods();
   Arrays.sort(methods,new Comparator<Method>(){
     public int compare(    Method o1,    Method o2){
@@ -12,15 +13,18 @@
     MethodRuleDefinition<?,?> ruleDefinition=DefaultMethodRuleDefinition.create(source,method);
     MethodModelRuleExtractor handler=getMethodHandler(ruleDefinition);
     if (handler != null) {
-      validateRuleMethod(method);
-      ExtractedModelRule registration=handler.registration(ruleDefinition);
-      if (registration != null) {
+      validateRuleMethod(method,problems);
+      if (!problems.hasProblems()) {
+        ExtractedModelRule registration=handler.registration(ruleDefinition);
         registrations.add(registration);
       }
     }
  else {
-      validateNonRuleMethod(method);
+      validateNonRuleMethod(method,problems);
     }
+  }
+  if (problems.hasProblems()) {
+    throw new InvalidModelRuleDeclarationException(problems.format());
   }
   return registrations.build();
 }
