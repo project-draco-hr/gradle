@@ -11,16 +11,9 @@
   ImmutableList.Builder<ExtractedModelRule> registrations=ImmutableList.builder();
   for (  Method method : methods) {
     MethodRuleDefinition<?,?> ruleDefinition=DefaultMethodRuleDefinition.create(source,method);
-    MethodModelRuleExtractor handler=getMethodHandler(ruleDefinition);
-    if (handler != null) {
-      validateRuleMethod(method,problems);
-      if (!problems.hasProblems()) {
-        ExtractedModelRule registration=handler.registration(ruleDefinition);
-        registrations.add(registration);
-      }
-    }
- else {
-      validateNonRuleMethod(method,problems);
+    ExtractedModelRule registration=getMethodHandler(ruleDefinition,method,problems);
+    if (registration != null) {
+      registrations.add(registration);
     }
   }
   if (problems.hasProblems()) {

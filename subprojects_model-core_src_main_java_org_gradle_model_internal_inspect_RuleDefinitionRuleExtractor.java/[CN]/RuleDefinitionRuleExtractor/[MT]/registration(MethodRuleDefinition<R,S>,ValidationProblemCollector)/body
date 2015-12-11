@@ -1,16 +1,21 @@
 {
-  final ModelType<? extends RuleSource> type=ruleDefinition.getSubjectReference().getType().asSubtype(ModelType.of(RuleSource.class));
+  ModelType<?> subjectType=ruleDefinition.getReferences().get(0).getType();
+  if (!RULE_SOURCE_MODEL_TYPE.isAssignableFrom(subjectType)) {
+    problems.add(ruleDefinition,"first parameter must be a RuleSource subtype");
+    return null;
+  }
+  final ModelType<? extends RuleSource> ruleSourceType=subjectType.asSubtype(RULE_SOURCE_MODEL_TYPE);
   return new ExtractedModelRule(){
     @Override public void apply(    ModelRegistry modelRegistry,    ModelPath scope){
       modelRegistry.configure(ModelActionRole.Initialize,DirectNodeInputUsingModelAction.of(ModelReference.of(scope),ruleDefinition.getDescriptor(),ruleDefinition.getTailReferences(),new BiAction<MutableModelNode,List<ModelView<?>>>(){
         @Override public void execute(        MutableModelNode subjectNode,        List<ModelView<?>> modelViews){
           Object[] parameters=new Object[1 + modelViews.size()];
-          parameters[0]=DirectInstantiator.INSTANCE.newInstance(type.getConcreteClass());
+          parameters[0]=DirectInstantiator.INSTANCE.newInstance(ruleSourceType.getConcreteClass());
           for (int i=1; i < parameters.length; i++) {
             parameters[i]=modelViews.get(i + 1).getInstance();
           }
           ruleDefinition.getRuleInvoker().invoke(parameters);
-          subjectNode.applyToSelf(type.getConcreteClass());
+          subjectNode.applyToSelf(ruleSourceType.getConcreteClass());
         }
       }
 ));
