@@ -1,0 +1,21 @@
+{
+  if (ruleDefinition.getReferences().isEmpty() && problems.hasProblems()) {
+    return;
+  }
+  List<ModelReference<?>> references=ruleDefinition.getReferences();
+  ModelType<? extends S> dependency=null;
+  for (  ModelReference<?> reference : references) {
+    if (expectedDependency.isAssignableFrom(reference.getType())) {
+      if (dependency != null) {
+        problems.add(ruleDefinition,String.format("A method %s must have one parameter extending %s. Found multiple parameter extending %s.",getDescription(),expectedDependency.getDisplayName(),expectedDependency.getDisplayName()));
+        return;
+      }
+      dependency=reference.getType().asSubtype(expectedDependency);
+    }
+  }
+  if (dependency == null) {
+    problems.add(ruleDefinition,String.format("A method %s must have one parameter extending %s. Found no parameter extending %s.",getDescription(),expectedDependency.getDisplayName(),expectedDependency.getDisplayName()));
+    return;
+  }
+  dataCollector.put(expectedDependency.getConcreteClass(),dependency.getConcreteClass());
+}
