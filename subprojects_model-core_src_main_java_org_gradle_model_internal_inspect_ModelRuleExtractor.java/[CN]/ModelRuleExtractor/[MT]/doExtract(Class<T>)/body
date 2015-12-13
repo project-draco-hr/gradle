@@ -1,18 +1,18 @@
 {
-  FormattingValidationProblemCollector problems=new FormattingValidationProblemCollector(ModelType.of(source));
-  validateClass(source,problems);
+  DefaultMethodModelRuleExtractionContext context=new DefaultMethodModelRuleExtractionContext(source,this);
+  validateClass(source,context);
   final Method[] methods=source.getDeclaredMethods();
   Arrays.sort(methods,Ordering.usingToString());
   ImmutableList.Builder<ExtractedModelRule> registrations=ImmutableList.builder();
   for (  Method method : methods) {
     MethodRuleDefinition<?,?> ruleDefinition=DefaultMethodRuleDefinition.create(source,method);
-    ExtractedModelRule registration=getMethodHandler(ruleDefinition,method,problems);
+    ExtractedModelRule registration=getMethodHandler(ruleDefinition,method,context);
     if (registration != null) {
       registrations.add(registration);
     }
   }
-  if (problems.hasProblems()) {
-    throw new InvalidModelRuleDeclarationException(problems.format());
+  if (context.hasProblems()) {
+    throw new InvalidModelRuleDeclarationException(context.problems.format());
   }
   return new RuleSourceSchema<T>(ModelType.of(source),registrations.build());
 }
