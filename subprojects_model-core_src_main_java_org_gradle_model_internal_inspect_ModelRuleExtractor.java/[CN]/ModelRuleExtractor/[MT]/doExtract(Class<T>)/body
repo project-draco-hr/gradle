@@ -2,7 +2,7 @@
   final ModelType<T> type=ModelType.of(source);
   DefaultMethodModelRuleExtractionContext context=new DefaultMethodModelRuleExtractionContext(type,this);
   validateClass(source,context);
-  Factory<T> factory=new RuleSourceFactory<T>(type);
+  Factory<T> factory=Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(new RuleSourceSchema<T>(type,Collections.<ExtractedModelRule>emptyList(),null),proxyFactory) : new ConcreteRuleSourceFactory<T>(type);
   final Method[] methods=source.getDeclaredMethods();
   Arrays.sort(methods,Ordering.usingToString());
   ImmutableList.Builder<ExtractedModelRule> registrations=ImmutableList.builder();
