@@ -1,11 +1,13 @@
 {
-  DefaultMethodModelRuleExtractionContext context=new DefaultMethodModelRuleExtractionContext(source,this);
+  final ModelType<T> type=ModelType.of(source);
+  DefaultMethodModelRuleExtractionContext context=new DefaultMethodModelRuleExtractionContext(type,this);
   validateClass(source,context);
+  Factory<T> factory=new RuleSourceFactory<T>(type);
   final Method[] methods=source.getDeclaredMethods();
   Arrays.sort(methods,Ordering.usingToString());
   ImmutableList.Builder<ExtractedModelRule> registrations=ImmutableList.builder();
   for (  Method method : methods) {
-    MethodRuleDefinition<?,?> ruleDefinition=DefaultMethodRuleDefinition.create(source,method);
+    MethodRuleDefinition<?,?> ruleDefinition=DefaultMethodRuleDefinition.create(source,method,factory);
     ExtractedModelRule registration=getMethodHandler(ruleDefinition,method,context);
     if (registration != null) {
       registrations.add(registration);
@@ -14,5 +16,5 @@
   if (context.hasProblems()) {
     throw new InvalidModelRuleDeclarationException(context.problems.format());
   }
-  return new RuleSourceSchema<T>(ModelType.of(source),registrations.build());
+  return new RuleSourceSchema<T>(type,registrations.build(),factory);
 }
