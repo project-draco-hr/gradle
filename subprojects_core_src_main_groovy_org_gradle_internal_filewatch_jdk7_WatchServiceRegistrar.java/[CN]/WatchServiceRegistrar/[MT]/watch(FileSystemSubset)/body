@@ -1,37 +1,29 @@
 {
-  this.fileSystemSubset=fileSystemSubset;
-  this.unfilteredFileSystemSubset=fileSystemSubset.unfiltered();
-  this.roots=fileSystemSubset.getRoots();
-  Iterable<File> enclosingDirsThatExist=Iterables.transform(roots,new Function<File,File>(){
-    @Override public File apply(    File input){
-      File target=input;
-      while (!target.isDirectory()) {
-        target=target.getParentFile();
-      }
-      return target;
-    }
-  }
-);
-  Iterable<? extends File> startingWatchPoints=FileUtils.calculateRoots(enclosingDirsThatExist);
-  for (  File dir : startingWatchPoints) {
-    if (FILE_TREE_WATCHING_SUPPORTED) {
-      if (inUnfilteredSubsetOrAncestorOfAnyRoot(dir)) {
+  lock.lock();
+  try {
+    final WatchPointsRegistry.Delta delta=watchPointsRegistry.appendFileSystemSubset(fileSystemSubset);
+    Iterable<? extends File> startingWatchPoints=delta.getStartingWatchPoints();
+    for (    File dir : startingWatchPoints) {
+      if (FILE_TREE_WATCHING_SUPPORTED) {
         watchDir(dir.toPath());
       }
-    }
  else {
-      Files.walkFileTree(dir.toPath(),new SimpleFileVisitor<Path>(){
-        @Override public FileVisitResult preVisitDirectory(        Path path,        BasicFileAttributes attrs) throws IOException {
-          if (inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile())) {
-            watchDir(path);
-            return FileVisitResult.CONTINUE;
-          }
+        Files.walkFileTree(dir.toPath(),new SimpleFileVisitor<Path>(){
+          @Override public FileVisitResult preVisitDirectory(          Path path,          BasicFileAttributes attrs) throws IOException {
+            if (delta.inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile())) {
+              watchDir(path);
+              return FileVisitResult.CONTINUE;
+            }
  else {
-            return FileVisitResult.SKIP_SUBTREE;
+              return FileVisitResult.SKIP_SUBTREE;
+            }
           }
         }
-      }
 );
+      }
     }
+  }
+  finally {
+    lock.unlock();
   }
 }
