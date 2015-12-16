@@ -1,0 +1,23 @@
+{
+  ImmutableSet.Builder<ModelProperty<?>> dimensionsBuilder=ImmutableSet.builder();
+  for (  ModelProperty<?> property : properties) {
+    for (    WeaklyTypeReferencingMethod<?,?> getter : property.getGetters()) {
+      if (getter.getMethod().isAnnotationPresent(Variant.class)) {
+        Class<?> propertyType=property.getType().getRawClass();
+        if (!String.class.equals(propertyType) && !Named.class.isAssignableFrom(propertyType)) {
+          throw invalidProperty(extractionContext,property,String.format("@Variant annotation only allowed for property of type String and %s, but property has type %s",Named.class.getName(),propertyType.getName()));
+        }
+        dimensionsBuilder.add(property);
+      }
+    }
+    WeaklyTypeReferencingMethod<?,Void> setter=property.getSetter();
+    if (setter != null && setter.getMethod().isAnnotationPresent(Variant.class)) {
+      throw invalidProperty(extractionContext,property,"@Variant annotation is only allowed on getter methods");
+    }
+  }
+  ImmutableSet<ModelProperty<?>> dimensions=dimensionsBuilder.build();
+  if (dimensions.isEmpty()) {
+    return null;
+  }
+  return new ModelSchemaAspectExtractionResult(new VariantAspect(dimensions));
+}
