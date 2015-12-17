@@ -1,0 +1,12 @@
+{
+  if (!property.isWritable()) {
+    String setterName="set" + StringUtils.capitalize(property.getName());
+    MethodVisitor methodVisitor=declareMethod(visitor,setterName,SET_OBJECT_PROPERTY_DESCRIPTOR,null,ACC_PUBLIC | ACC_SYNTHETIC);
+    methodVisitor.visitTypeInsn(NEW,READ_ONLY_PROPERTY_EXCEPTION_TYPE);
+    methodVisitor.visitInsn(DUP);
+    putConstantOnStack(methodVisitor,property.getName());
+    putClassOnStack(methodVisitor,viewClass);
+    methodVisitor.visitMethodInsn(INVOKESPECIAL,READ_ONLY_PROPERTY_EXCEPTION_TYPE,"<init>",MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR,false);
+    finishVisitingMethod(methodVisitor,ATHROW);
+  }
+}
