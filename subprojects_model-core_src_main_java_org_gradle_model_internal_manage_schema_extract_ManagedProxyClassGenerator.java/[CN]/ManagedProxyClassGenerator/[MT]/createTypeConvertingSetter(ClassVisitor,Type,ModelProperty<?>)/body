@@ -13,11 +13,24 @@
   methodVisitor.visitVarInsn(ALOAD,1);
   methodVisitor.visitLdcInsn(boxedType);
   methodVisitor.visitInsn(propertyClass.isPrimitive() ? ICONST_1 : ICONST_0);
+  Label startTry=new Label();
+  methodVisitor.visitLabel(startTry);
   methodVisitor.visitMethodInsn(INVOKEINTERFACE,TYPE_CONVERTER_TYPE.getInternalName(),"convert",COERCE_TO_SCALAR_DESCRIPTOR,true);
+  Label endTry=new Label();
+  methodVisitor.visitLabel(endTry);
   methodVisitor.visitTypeInsn(CHECKCAST,boxedType.getInternalName());
   if (propertyClass.isPrimitive()) {
     unboxType(methodVisitor,propertyClass);
   }
   methodVisitor.visitMethodInsn(INVOKEVIRTUAL,generatedType.getInternalName(),setter.getName(),Type.getMethodDescriptor(Type.VOID_TYPE,propertyType),false);
+  methodVisitor.visitInsn(RETURN);
+  Label startCatch=new Label();
+  methodVisitor.visitLabel(startCatch);
+  methodVisitor.visitTryCatchBlock(startTry,endTry,startCatch,Type.getInternalName(TypeConversionException.class));
+  methodVisitor.visitVarInsn(ASTORE,2);
+  methodVisitor.visitLdcInsn(property.getName());
+  putFirstMethodArgumentOnStack(methodVisitor);
+  methodVisitor.visitVarInsn(ALOAD,2);
+  methodVisitor.visitMethodInsn(INVOKESTATIC,Type.getInternalName(ManagedProxyClassGenerator.class),"propertyValueConvertFailure",Type.getMethodDescriptor(Type.VOID_TYPE,STRING_TYPE,OBJECT_TYPE,Type.getType(TypeConversionException.class)),false);
   finishVisitingMethod(methodVisitor);
 }
