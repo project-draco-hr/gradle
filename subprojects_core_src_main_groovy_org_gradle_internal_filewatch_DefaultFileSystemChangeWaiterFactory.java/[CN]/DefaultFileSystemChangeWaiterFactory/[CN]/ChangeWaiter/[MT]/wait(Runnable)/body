@@ -1,7 +1,4 @@
 {
-  if (cancellationToken.isCancellationRequested()) {
-    return;
-  }
   Runnable cancellationHandler=new Runnable(){
     @Override public void run(){
       signal(lock,condition);
@@ -9,6 +6,9 @@
   }
 ;
   try {
+    if (cancellationToken.isCancellationRequested()) {
+      return;
+    }
     cancellationToken.addCallback(cancellationHandler);
     notifier.run();
     lock.lock();
@@ -32,6 +32,6 @@
   }
  finally {
     cancellationToken.removeCallback(cancellationHandler);
-    CompositeStoppable.stoppable(watcher).stop();
+    watcher.stop();
   }
 }
