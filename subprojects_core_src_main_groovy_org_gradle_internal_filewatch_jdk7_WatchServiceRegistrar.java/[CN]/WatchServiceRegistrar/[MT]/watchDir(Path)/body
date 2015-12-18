@@ -1,11 +1,24 @@
 {
   LOG.debug("Registering watch for {}",dir);
-  try {
-    dir.register(watchService,WATCH_KINDS,WATCH_MODIFIERS);
-  }
- catch (  IOException e) {
-    if (Files.exists(dir)) {
-      throw e;
+  int retryCount=0;
+  IOException lastException=null;
+  while (retryCount++ < 2) {
+    try {
+      dir.register(watchService,WATCH_KINDS,WATCH_MODIFIERS);
+      return;
+    }
+ catch (    IOException e) {
+      lastException=e;
+      if (e instanceof FileSystemException && e.getMessage() != null && e.getMessage().contains("Bad file descriptor")) {
+        continue;
+      }
+      if (!Files.exists(dir)) {
+        return;
+      }
+ else {
+        throw e;
+      }
     }
   }
+  throw lastException;
 }
