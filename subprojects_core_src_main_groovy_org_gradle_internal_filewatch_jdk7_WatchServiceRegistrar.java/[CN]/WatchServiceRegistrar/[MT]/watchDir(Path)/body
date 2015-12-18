@@ -8,11 +8,14 @@
       return;
     }
  catch (    IOException e) {
+      LOG.debug("Exception in registering for watching of " + dir,e);
       lastException=e;
       if (e instanceof FileSystemException && e.getMessage() != null && e.getMessage().contains("Bad file descriptor")) {
+        LOG.debug("Retrying after 'Bad file descriptor'");
         continue;
       }
       if (!Files.exists(dir)) {
+        LOG.debug("Return silently since directory doesn't exist.");
         return;
       }
  else {
@@ -20,5 +23,6 @@
       }
     }
   }
+  LOG.debug("Retry count exceeded, throwing last exception");
   throw lastException;
 }
