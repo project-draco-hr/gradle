@@ -1,18 +1,21 @@
 {
   if (notation instanceof CharSequence) {
     try {
-      convertStringToNumber(notation.toString().trim(),result);
+      convertNumberToNumber(new BigDecimal(notation.toString().trim()),result);
     }
- catch (    NumberFormatException e) {
-      throw new TypeConversionException(String.format("Cannot coerce string value '%s' to type %s",notation,type.getSimpleName()));
+ catch (    ArithmeticException e) {
+      throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",notation,type.getSimpleName()),e);
+    }
+catch (    NumberFormatException e) {
+      throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",notation,type.getSimpleName()),e);
     }
   }
  else   if (notation instanceof Number) {
     try {
-      convertNumberToNumber((Number)notation,result);
+      convertNumberToNumber(toBigDecimal(notation),result);
     }
- catch (    NumberFormatException e) {
-      throw new TypeConversionException(String.format("Cannot coerce numeric value '%s' to type %s",notation,type.getSimpleName()));
+ catch (    ArithmeticException e) {
+      throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",notation,type.getSimpleName()),e);
     }
   }
 }
