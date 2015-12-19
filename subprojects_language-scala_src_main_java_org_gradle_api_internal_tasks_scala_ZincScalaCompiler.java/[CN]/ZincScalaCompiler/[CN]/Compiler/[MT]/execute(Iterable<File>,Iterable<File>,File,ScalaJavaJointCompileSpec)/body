@@ -1,0 +1,31 @@
+{
+  LOGGER.info("Compiling with Zinc Scala compiler.");
+  final xsbti.Logger logger=new SbtLoggerAdapter();
+  CacheRepository cacheRepository=ZincCompilerServices.getInstance(gradleUserHome).get(CacheRepository.class);
+  PersistentCache zincCache=cacheRepository.cache("zinc").withDisplayName("Zinc compiler cache").withLockOptions(mode(FileLockManager.LockMode.Exclusive)).open();
+  final File cacheDir=zincCache.getBaseDir();
+  if (System.getProperty("zinc.dir") != null && !System.getProperty("zinc.dir").equals(cacheDir.getAbsolutePath())) {
+    LOGGER.warn("In order to ensure parallel-safe Zinc cache directories, setting a user-supplied cache directory is not supported and will be ignored.");
+  }
+  System.setProperty("zinc.dir",cacheDir.getAbsolutePath());
+  com.typesafe.zinc.Compiler compiler=zincCache.useCache("initialize",new Factory<com.typesafe.zinc.Compiler>(){
+    @Override public com.typesafe.zinc.Compiler create(){
+      return createCompiler(scalaClasspath,zincClasspath,logger,cacheDir);
+    }
+  }
+);
+  zincCache.close();
+  List<String> scalacOptions=new ZincScalaCompilerArgumentsGenerator().generate(spec);
+  List<String> javacOptions=new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
+  Inputs inputs=Inputs.create(ImmutableList.copyOf(spec.getClasspath()),ImmutableList.copyOf(spec.getSource()),spec.getDestinationDir(),scalacOptions,javacOptions,spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(),spec.getAnalysisMap(),"mixed",getIncOptions(),true);
+  if (LOGGER.isDebugEnabled()) {
+    Inputs.debug(inputs,logger);
+  }
+  try {
+    compiler.compile(inputs,logger);
+  }
+ catch (  xsbti.CompileFailed e) {
+    throw new CompilationFailedException(e);
+  }
+  return new SimpleWorkResult(true);
+}
