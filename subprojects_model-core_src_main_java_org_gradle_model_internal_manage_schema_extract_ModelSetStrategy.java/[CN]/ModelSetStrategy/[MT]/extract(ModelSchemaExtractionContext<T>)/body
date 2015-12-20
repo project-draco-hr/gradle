@@ -1,8 +1,20 @@
 {
   ModelType<T> type=extractionContext.getType();
   if (modelType.isAssignableFrom(type)) {
-    validateType(modelType,extractionContext,type);
-    ModelType<?> elementType=type.getTypeVariables().get(0);
+    if (!type.getRawClass().equals(ModelSet.class)) {
+      extractionContext.add(String.format("subtyping %s is not supported",ModelSet.class.getName()));
+      return;
+    }
+    if (type.isHasWildcardTypeVariables()) {
+      extractionContext.add(String.format("type parameter of %s cannot be a wildcard",ModelSet.class.getName()));
+      return;
+    }
+    List<ModelType<?>> typeVariables=type.getTypeVariables();
+    if (typeVariables.isEmpty()) {
+      extractionContext.add(String.format("type parameter of %s has to be specified",ModelSet.class.getName()));
+      return;
+    }
+    ModelType<?> elementType=typeVariables.get(0);
     extractionContext.found(getModelSchema(extractionContext,elementType));
   }
 }
