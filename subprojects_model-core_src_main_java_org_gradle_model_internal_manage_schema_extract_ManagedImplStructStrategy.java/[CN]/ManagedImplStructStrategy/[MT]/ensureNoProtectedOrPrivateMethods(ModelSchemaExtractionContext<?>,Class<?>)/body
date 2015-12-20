@@ -1,12 +1,10 @@
 {
-  Iterable<Method> protectedAndPrivateMethods=Iterables.filter(Arrays.asList(typeClass.getDeclaredMethods()),new Predicate<Method>(){
-    @Override public boolean apply(    Method method){
-      int modifiers=method.getModifiers();
-      return !method.isSynthetic() && (Modifier.isProtected(modifiers) || Modifier.isPrivate(modifiers));
+  Method[] methods=typeClass.getDeclaredMethods();
+  Arrays.sort(methods,Ordering.usingToString());
+  for (  Method method : methods) {
+    int modifiers=method.getModifiers();
+    if (!method.isSynthetic() && !Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)) {
+      extractionContext.add(method,"Protected and private methods are not supported.");
     }
-  }
-);
-  if (!Iterables.isEmpty(protectedAndPrivateMethods)) {
-    throw invalidMethods(extractionContext,"protected and private methods are not allowed",protectedAndPrivateMethods);
   }
 }
