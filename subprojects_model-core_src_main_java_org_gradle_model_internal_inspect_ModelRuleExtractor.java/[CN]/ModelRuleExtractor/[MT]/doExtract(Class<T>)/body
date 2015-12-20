@@ -1,8 +1,10 @@
 {
   final ModelType<T> type=ModelType.of(source);
   DefaultMethodModelRuleExtractionContext context=new DefaultMethodModelRuleExtractionContext(type,this);
-  validateClass(source,context);
-  StructSchema<T> schema=(StructSchema<T>)schemaStore.getSchema(source);
+  StructSchema<T> schema=getSchema(source,context);
+  if (schema == null) {
+    throw new InvalidModelRuleDeclarationException(context.problems.format());
+  }
   Factory<T> factory=Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema,proxyFactory) : new ConcreteRuleSourceFactory<T>(type);
   Set<Method> methods=new TreeSet<Method>(Ordering.usingToString());
   methods.addAll(Arrays.asList(source.getDeclaredMethods()));
