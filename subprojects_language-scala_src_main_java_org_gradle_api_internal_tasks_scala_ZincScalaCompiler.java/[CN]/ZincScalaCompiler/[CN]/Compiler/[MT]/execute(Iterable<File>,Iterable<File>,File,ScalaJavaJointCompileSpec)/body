@@ -4,8 +4,8 @@
   CacheRepository cacheRepository=ZincCompilerServices.getInstance(gradleUserHome).get(CacheRepository.class);
   PersistentCache zincCache=cacheRepository.cache("zinc").withDisplayName("Zinc compiler cache").withLockOptions(mode(FileLockManager.LockMode.Exclusive)).open();
   final File cacheDir=zincCache.getBaseDir();
-  String zincDir=System.setProperty("zinc.dir",cacheDir.getAbsolutePath());
-  if (zincDir != null && !zincDir.equals(cacheDir.getAbsolutePath())) {
+  String userSuppliedZincDir=System.setProperty("zinc.dir",cacheDir.getAbsolutePath());
+  if (userSuppliedZincDir != null && !userSuppliedZincDir.equals(cacheDir.getAbsolutePath())) {
     LOGGER.warn(ZINC_DIR_IGNORED_MESSAGE);
   }
   com.typesafe.zinc.Compiler compiler=zincCache.useCache("initialize",new Factory<com.typesafe.zinc.Compiler>(){
@@ -26,6 +26,9 @@
   }
  catch (  xsbti.CompileFailed e) {
     throw new CompilationFailedException(e);
+  }
+  if (userSuppliedZincDir != null) {
+    System.setProperty(ZINC_DIR_SYSTEM_PROPERTY,userSuppliedZincDir);
   }
   return new SimpleWorkResult(true);
 }
