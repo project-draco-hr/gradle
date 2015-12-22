@@ -13,21 +13,7 @@
     buildDependencies(modules,module);
   }
   final Collection<DefaultIdeaModule> ideaModules=modules.values();
-  final Set<JavaVersion> moduleBytecodeVersions=toSet(compact(collect(ideaModules,new Transformer<JavaVersion,DefaultIdeaModule>(){
-    @Override public JavaVersion transform(    DefaultIdeaModule defaultIdeaModule){
-      return defaultIdeaModule.getJavaSourceSettings().getTargetBytecodeLevel();
-    }
-  }
-)));
-  if (moduleBytecodeVersions.size() > 0) {
-    final JavaVersion maxBytecodeLevel=Collections.max(moduleBytecodeVersions);
-    out.getJavaSourceSettings().setTargetBytecodeLevel(maxBytecodeLevel);
-    for (    DefaultIdeaModule ideaModule : ideaModules) {
-      if (ideaModule.getJavaSourceSettings().getTargetBytecodeLevel() != null && ideaModule.getJavaSourceSettings().getTargetBytecodeLevel().equals(maxBytecodeLevel)) {
-        ideaModule.getJavaSourceSettings().setTargetBytecodeLevelInherited(true);
-      }
-    }
-  }
+  configureTargetBytecodeLevelInherited(out,ideaModules);
   out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
   return out;
 }

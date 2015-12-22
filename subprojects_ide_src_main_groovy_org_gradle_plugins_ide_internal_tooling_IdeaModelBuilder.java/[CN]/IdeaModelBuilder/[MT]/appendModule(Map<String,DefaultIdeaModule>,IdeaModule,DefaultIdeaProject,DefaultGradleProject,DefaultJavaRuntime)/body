@@ -3,9 +3,12 @@
   Project project=ideaModule.getProject();
   JavaPluginConvention javaPluginConvention=project.getConvention().findPlugin(JavaPluginConvention.class);
   JavaVersion projectSourceLanguageLevel=ideaProject.getJavaSourceSettings().getSourceLanguageLevel();
-  JavaVersion moduleSourceLanguageLevel=javaPluginConvention != null ? javaPluginConvention.getSourceCompatibility() : projectSourceLanguageLevel;
-  JavaVersion moduleTargetLanguageLevel=javaPluginConvention != null ? javaPluginConvention.getTargetCompatibility() : null;
-  boolean sourceLanguageLevelInherited=projectSourceLanguageLevel.equals(moduleSourceLanguageLevel);
-  DefaultIdeaModule defaultIdeaModule=new DefaultIdeaModule().setName(ideaModule.getName()).setParent(ideaProject).setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath())).setContentRoots(Collections.singletonList(contentRoot)).setCompilerOutput(new DefaultIdeaCompilerOutput().setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false).setOutputDir(ideaModule.getOutputDir()).setTestOutputDir(ideaModule.getTestOutputDir())).setJavaSourceSettings(new DefaultIdeaModuleJavaSourceSettings().setSourceLanguageLevelInherited(sourceLanguageLevelInherited).setSourceLanguageLevel(moduleSourceLanguageLevel).setTargetBytecodeLevel(moduleTargetLanguageLevel).setTargetRuntime(javaRuntime).setTargetRuntimeInherited(true));
+  DefaultIdeaModule defaultIdeaModule=new DefaultIdeaModule().setName(ideaModule.getName()).setParent(ideaProject).setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath())).setContentRoots(Collections.singletonList(contentRoot)).setCompilerOutput(new DefaultIdeaCompilerOutput().setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false).setOutputDir(ideaModule.getOutputDir()).setTestOutputDir(ideaModule.getTestOutputDir()));
+  if (javaPluginConvention != null) {
+    JavaVersion moduleSourceLanguageLevel=javaPluginConvention.getSourceCompatibility();
+    JavaVersion moduleTargetLanguageLevel=javaPluginConvention.getTargetCompatibility();
+    boolean sourceLanguageLevelInherited=projectSourceLanguageLevel.equals(moduleSourceLanguageLevel);
+    defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaModuleJavaSourceSettings().setSourceLanguageLevelInherited(sourceLanguageLevelInherited).setSourceLanguageLevel(moduleSourceLanguageLevel).setTargetBytecodeLevel(moduleTargetLanguageLevel).setTargetRuntime(javaRuntime).setTargetRuntimeInherited(true));
+  }
   modules.put(ideaModule.getName(),defaultIdeaModule);
 }
