@@ -34,12 +34,14 @@
     tasks.create(distributionTarTaskName,Tar.class,new Action<Tar>(){
       @Override public void execute(      final Tar tar){
         tar.setDescription("Packages the '" + distribution.getName() + "' distribution as a tar file.");
-        tar.setArchiveName(String.format("%s.tar",baseName));
+        tar.setBaseName(baseName);
+        tar.setArchiveName(String.format("%s.tar",tar.getBaseName()));
         tar.setDestinationDir(new File(buildDir,"distributions"));
         tar.from(stageTask);
       }
     }
 );
+    tasks.named(distributionTarTaskName,TarRules.class);
     tasks.named("dist",new Action<Task>(){
       @Override public void execute(      Task task){
         task.dependsOn(distributionZipTaskName,distributionTarTaskName);
