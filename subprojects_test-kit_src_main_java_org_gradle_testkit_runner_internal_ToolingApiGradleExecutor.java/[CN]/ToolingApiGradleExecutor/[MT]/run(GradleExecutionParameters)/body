@@ -5,8 +5,10 @@
   maybeRegisterCleanup();
   GradleConnector gradleConnector=buildConnector(parameters.getGradleUserHome(),parameters.getProjectDir(),parameters.isEmbedded(),parameters.getGradleDistribution());
   ProjectConnection connection=null;
+  GradleVersion targetGradleVersion=null;
   try {
     connection=gradleConnector.connect();
+    targetGradleVersion=determineTargetGradleVersion(connection);
     DefaultBuildLauncher launcher=(DefaultBuildLauncher)connection.newBuild();
     launcher.setStandardOutput(new NoCloseOutputStream(teeOutput(syncOutput,parameters.getStandardOutput())));
     launcher.setStandardError(new NoCloseOutputStream(teeOutput(syncOutput,parameters.getStandardError())));
@@ -20,7 +22,7 @@
     throw new InvalidRunnerConfigurationException("The build could not be executed due to a feature not being supported by the target Gradle version",e);
   }
 catch (  BuildException t) {
-    return new GradleExecutionResult(output.toString(),tasks,t);
+    return new GradleExecutionResult(targetGradleVersion,output.toString(),tasks,t);
   }
 catch (  GradleConnectionException t) {
     StringBuilder message=new StringBuilder("An error occurred executing build with ");
@@ -44,5 +46,5 @@ catch (  GradleConnectionException t) {
       connection.close();
     }
   }
-  return new GradleExecutionResult(output.toString(),tasks);
+  return new GradleExecutionResult(targetGradleVersion,output.toString(),tasks);
 }
