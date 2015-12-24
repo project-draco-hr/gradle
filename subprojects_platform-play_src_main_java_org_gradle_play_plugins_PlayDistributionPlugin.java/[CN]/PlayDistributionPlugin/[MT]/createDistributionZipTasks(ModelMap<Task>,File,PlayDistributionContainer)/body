@@ -13,7 +13,7 @@
       }
     }
 );
-    tasks.named("stage",new Action<Task>(){
+    tasks.named(STAGE_LIFECYCLE_TASK_NAME,new Action<Task>(){
       @Override public void execute(      Task task){
         task.dependsOn(stageTaskName);
       }
@@ -24,7 +24,7 @@
     tasks.create(distributionZipTaskName,Zip.class,new Action<Zip>(){
       @Override public void execute(      final Zip zip){
         zip.setDescription("Packages the '" + distribution.getName() + "' distribution as a zip file.");
-        zip.setArchiveName(String.format("%s.zip",baseName));
+        zip.setBaseName(baseName);
         zip.setDestinationDir(new File(buildDir,"distributions"));
         zip.from(stageTask);
       }
@@ -35,14 +35,14 @@
       @Override public void execute(      final Tar tar){
         tar.setDescription("Packages the '" + distribution.getName() + "' distribution as a tar file.");
         tar.setBaseName(baseName);
-        tar.setArchiveName(String.format("%s.tar",baseName));
         tar.setDestinationDir(new File(buildDir,"distributions"));
         tar.from(stageTask);
       }
     }
 );
-    tasks.named(distributionTarTaskName,TarRules.class);
-    tasks.named("dist",new Action<Task>(){
+    tasks.named(distributionTarTaskName,DistributionArchiveRules.class);
+    tasks.named(distributionZipTaskName,DistributionArchiveRules.class);
+    tasks.named(DIST_LIFECYCLE_TASK_NAME,new Action<Task>(){
       @Override public void execute(      Task task){
         task.dependsOn(distributionZipTaskName,distributionTarTaskName);
       }
