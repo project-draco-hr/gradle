@@ -1,17 +1,10 @@
 {
-  try {
-    RuleMethodDataCollector dataCollector=new RuleMethodDataCollector();
-    visitAndVerifyMethodSignature(dataCollector,ruleDefinition,problems);
-    if (problems.hasProblems()) {
-      return null;
-    }
-    Class<S> binaryType=dataCollector.getParameterType(BinarySpec.class);
-    Class<C> componentType=dataCollector.getParameterType(ComponentSpec.class);
-    ModelReference<ComponentSpecContainer> subject=ModelReference.of(ModelPath.path("components"),ModelType.of(ComponentSpecContainer.class));
-    ComponentBinariesRule<R,S,C> componentBinariesRule=new ComponentBinariesRule<R,S,C>(subject,componentType,binaryType,ruleDefinition);
-    return new ExtractedModelAction(ModelActionRole.Finalize,ImmutableList.of(ComponentModelBasePlugin.class),componentBinariesRule);
+  RuleMethodDataCollector dataCollector=new RuleMethodDataCollector();
+  visitAndVerifyMethodSignature(dataCollector,ruleDefinition,problems);
+  if (problems.hasProblems()) {
+    return null;
   }
- catch (  InvalidModelException e) {
-    throw invalidModelRule(ruleDefinition,e);
-  }
+  final Class<S> binaryType=dataCollector.getParameterType(BinarySpec.class);
+  final Class<C> componentType=dataCollector.getParameterType(ComponentSpec.class);
+  return new ExtractedComponentBinariesRule<R,S,C>(componentType,binaryType,ruleDefinition);
 }
