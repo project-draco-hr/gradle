@@ -9,15 +9,9 @@
       jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
       jUnitTestSuiteBinarySpec.setTargetPlatform(platform);
       jUnitTestSuiteBinarySpec.setToolChain(toolChains.getForPlatform(platform));
-      ((WithDependencies)jUnitTestSuiteBinarySpec).setDependencies(testSuite.getDependencies().getDependencies());
-      testSuite.getSources().all(new Action<LanguageSourceSet>(){
-        @Override public void execute(        LanguageSourceSet languageSourceSet){
-          if (languageSourceSet instanceof DependentSourceSet) {
-            ((DependentSourceSet)languageSourceSet).getDependencies().group("junit").module("junit").version(jUnitVersion);
-          }
-        }
-      }
-);
+      DependencySpecContainer dependencies=testSuite.getDependencies();
+      addJUnitDependencyTo(dependencies,jUnitVersion);
+      setDependenciesOf(jUnitTestSuiteBinarySpec,dependencies);
     }
   }
 );
