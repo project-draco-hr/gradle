@@ -1,0 +1,23 @@
+{
+  List<ModelReference<?>> bindings=ruleDefinition.getReferences();
+  List<ModelReference<?>> inputs=bindings.subList(1,bindings.size());
+  final ModelRuleDescriptor descriptor=ruleDefinition.getDescriptor();
+  if (modelSchema instanceof SpecializedMapSchema) {
+    registration.actions(SpecializedMapNodeInitializer.getActions(ModelReference.of(modelPath),descriptor,(SpecializedMapSchema<S,?>)modelSchema));
+  }
+ else {
+    registration.action(ModelActionRole.Discover,Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class)),new BiAction<MutableModelNode,List<ModelView<?>>>(){
+      @Override public void execute(      MutableModelNode node,      List<ModelView<?>> modelViews){
+        NodeInitializerRegistry nodeInitializerRegistry=(NodeInitializerRegistry)modelViews.get(0).getInstance();
+        NodeInitializer initializer=getNodeInitializer(descriptor,modelSchema,nodeInitializerRegistry);
+        for (        Map.Entry<ModelActionRole,ModelAction<?>> actionInRole : initializer.getActions(ModelReference.of(modelPath),descriptor).entries()) {
+          ModelActionRole role=actionInRole.getKey();
+          ModelAction<?> action=actionInRole.getValue();
+          node.applyToSelf(role,action);
+        }
+      }
+    }
+);
+  }
+  registration.action(ModelActionRole.Initialize,new MethodBackedModelAction<S>(context.invokerFor(ruleDefinition),descriptor,ModelReference.of(modelPath,modelSchema.getType()),inputs));
+}
