@@ -1,8 +1,8 @@
 {
   ModelType<R> modelType=ruleDefinition.getReturnType();
-  List<ModelReference<?>> references=ruleDefinition.getReferences();
+  List<ModelReference<?>> inputs=ruleDefinition.getReferences();
   ModelRuleDescriptor descriptor=ruleDefinition.getDescriptor();
-  BiAction<MutableModelNode,List<ModelView<?>>> transformer=new ModelRuleInvokerBackedTransformer<R>(modelType,context.invokerFor(ruleDefinition),descriptor);
-  registration.action(ModelActionRole.Create,references,transformer);
+  ModelReference<Object> subjectReference=ModelReference.of(modelPath);
+  registration.action(ModelActionRole.Create,context.contextualize(ruleDefinition,new UnmanagedElementCreationAction<R>(descriptor,subjectReference,inputs,modelType)));
   registration.withProjection(new UnmanagedModelProjection<R>(modelType,true,true));
 }

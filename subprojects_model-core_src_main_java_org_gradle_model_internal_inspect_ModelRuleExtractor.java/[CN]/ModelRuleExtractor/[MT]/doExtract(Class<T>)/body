@@ -7,7 +7,11 @@
   }
   Set<Method> methods=new TreeSet<Method>(Ordering.usingToString());
   methods.addAll(Arrays.asList(source.getDeclaredMethods()));
+  ImmutableList.Builder<ModelProperty<?>> implicitInputs=ImmutableList.builder();
   for (  ModelProperty<?> property : schema.getProperties()) {
+    if (!(property.getSchema() instanceof ScalarValueSchema)) {
+      implicitInputs.add(property);
+    }
     for (    WeaklyTypeReferencingMethod<?,?> method : property.getGetters()) {
       methods.remove(method.getMethod());
     }
@@ -15,21 +19,21 @@
       methods.remove(property.getSetter().getMethod());
     }
   }
-  ImmutableList.Builder<ExtractedModelRule> registrations=ImmutableList.builder();
+  ImmutableList.Builder<ExtractedRuleDetails> rules=ImmutableList.builder();
   for (  Method method : methods) {
     MethodRuleDefinition<?,?> ruleDefinition=DefaultMethodRuleDefinition.create(source,method);
-    ExtractedModelRule registration=getMethodHandler(ruleDefinition,method,context);
-    if (registration != null) {
-      registrations.add(registration);
+    ExtractedModelRule rule=getMethodHandler(ruleDefinition,method,context);
+    if (rule != null) {
+      rules.add(new ExtractedRuleDetails(ruleDefinition,rule));
     }
   }
   if (context.hasProblems()) {
     throw new InvalidModelRuleDeclarationException(context.problems.format());
   }
   if (schema.getProperties().isEmpty()) {
-    return new StatelessRuleSource(registrations.build(),Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema,proxyFactory) : new ConcreteRuleSourceFactory<T>(type));
+    return new StatelessRuleSource(rules.build(),Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema,proxyFactory) : new ConcreteRuleSourceFactory<T>(type));
   }
  else {
-    return new ParameterizedRuleSource(registrations.build(),schema,proxyFactory);
+    return new ParameterizedRuleSource(rules.build(),implicitInputs.build(),schema,proxyFactory);
   }
 }

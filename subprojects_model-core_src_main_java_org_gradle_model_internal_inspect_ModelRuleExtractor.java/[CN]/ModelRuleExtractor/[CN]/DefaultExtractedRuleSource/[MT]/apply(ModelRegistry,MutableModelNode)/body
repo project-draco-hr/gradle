@@ -1,12 +1,27 @@
 {
-  for (  ExtractedModelRule rule : rules) {
-    rule.apply(new MethodModelRuleApplicationContext(){
+  for (  final ExtractedRuleDetails details : rules) {
+    details.rule.apply(new MethodModelRuleApplicationContext(){
       @Override public ModelRegistry getRegistry(){
         return modelRegistry;
       }
-      @Override public <R>ModelRuleInvoker<R> invokerFor(      MethodRuleDefinition<R,?> definition){
-        WeaklyTypeReferencingMethod<T,R> method=Cast.uncheckedCast(definition.getMethod());
-        return new DefaultModelRuleInvoker<T,R>(method,factory);
+      @Override public ModelAction<?> contextualize(      MethodRuleDefinition<?,?> ruleDefinition,      final MethodRuleAction action){
+        return new ModelAction<Object>(){
+          @Override public ModelRuleDescriptor getDescriptor(){
+            return details.method.getDescriptor();
+          }
+          @Override public ModelReference<Object> getSubject(){
+            return Cast.uncheckedCast(action.getSubject());
+          }
+          @Override public List<? extends ModelReference<?>> getInputs(){
+            return action.getInputs();
+          }
+          @Override public void execute(          MutableModelNode modelNode,          List<ModelView<?>> inputs){
+            WeaklyTypeReferencingMethod<Object,Object> method=Cast.uncheckedCast(details.method.getMethod());
+            ModelRuleInvoker<Object> invoker=new DefaultModelRuleInvoker<Object,Object>(method,factory);
+            action.execute(invoker,modelNode,inputs);
+          }
+        }
+;
       }
     }
 ,target);
