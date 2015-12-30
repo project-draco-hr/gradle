@@ -1,11 +1,11 @@
 {
   try {
     TrustManagerFactory tmFactory;
-    String trustAlgorithm=System.getProperty("ssl.TrustManagerFactory.algorithm");
+    String trustAlgorithm=props.get("ssl.TrustManagerFactory.algorithm");
     if (trustAlgorithm == null) {
       trustAlgorithm=TrustManagerFactory.getDefaultAlgorithm();
     }
-    String trustStoreType=System.getProperty("javax.net.ssl.trustStoreType");
+    String trustStoreType=props.get("javax.net.ssl.trustStoreType");
     if (trustStoreType == null) {
       trustStoreType=KeyStore.getDefaultType();
     }
@@ -14,11 +14,11 @@
     }
  else {
       File trustStoreFile;
-      String s=System.getProperty("javax.net.ssl.trustStore");
+      String s=props.get("javax.net.ssl.trustStore");
       if (s != null) {
         trustStoreFile=new File(s);
         tmFactory=TrustManagerFactory.getInstance(trustAlgorithm);
-        String trustStoreProvider=System.getProperty("javax.net.ssl.trustStoreProvider");
+        String trustStoreProvider=props.get("javax.net.ssl.trustStoreProvider");
         KeyStore trustStore;
         if (trustStoreProvider != null) {
           trustStore=KeyStore.getInstance(trustStoreType,trustStoreProvider);
@@ -26,7 +26,7 @@
  else {
           trustStore=KeyStore.getInstance(trustStoreType);
         }
-        String trustStorePassword=System.getProperty("javax.net.ssl.trustStorePassword");
+        String trustStorePassword=props.get("javax.net.ssl.trustStorePassword");
         FileInputStream instream=new FileInputStream(trustStoreFile);
         try {
           trustStore.load(instream,trustStorePassword != null ? trustStorePassword.toCharArray() : EMPTY_PASSWORD);
@@ -37,7 +37,7 @@
         tmFactory.init(trustStore);
       }
  else {
-        File javaHome=SystemProperties.getInstance().getJavaHomeDir();
+        File javaHome=new File(props.get("java.home"));
         File file=new File(javaHome,"lib/security/jssecacerts");
         if (!file.exists()) {
           file=new File(javaHome,"lib/security/cacerts");
@@ -48,7 +48,7 @@
         }
         tmFactory=TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         KeyStore trustStore=KeyStore.getInstance(KeyStore.getDefaultType());
-        String trustStorePassword=System.getProperty("javax.net.ssl.trustStorePassword");
+        String trustStorePassword=props.get("javax.net.ssl.trustStorePassword");
         FileInputStream instream=new FileInputStream(trustStoreFile);
         try {
           trustStore.load(instream,trustStorePassword != null ? trustStorePassword.toCharArray() : null);
@@ -60,11 +60,11 @@
       }
     }
     KeyManagerFactory kmFactory=null;
-    String keyAlgorithm=System.getProperty("ssl.KeyManagerFactory.algorithm");
+    String keyAlgorithm=props.get("ssl.KeyManagerFactory.algorithm");
     if (keyAlgorithm == null) {
       keyAlgorithm=KeyManagerFactory.getDefaultAlgorithm();
     }
-    String keyStoreType=System.getProperty("javax.net.ssl.keyStoreType");
+    String keyStoreType=props.get("javax.net.ssl.keyStoreType");
     if (keyStoreType == null) {
       keyStoreType=KeyStore.getDefaultType();
     }
@@ -73,13 +73,13 @@
     }
  else {
       File keyStoreFile=null;
-      String s=System.getProperty("javax.net.ssl.keyStore");
+      String s=props.get("javax.net.ssl.keyStore");
       if (s != null) {
         keyStoreFile=new File(s);
       }
       if (keyStoreFile != null) {
         kmFactory=KeyManagerFactory.getInstance(keyAlgorithm);
-        String keyStoreProvider=System.getProperty("javax.net.ssl.keyStoreProvider");
+        String keyStoreProvider=props.get("javax.net.ssl.keyStoreProvider");
         KeyStore keyStore;
         if (keyStoreProvider != null) {
           keyStore=KeyStore.getInstance(keyStoreType,keyStoreProvider);
@@ -87,7 +87,7 @@
  else {
           keyStore=KeyStore.getInstance(keyStoreType);
         }
-        String keyStorePassword=System.getProperty("javax.net.ssl.keyStorePassword");
+        String keyStorePassword=props.get("javax.net.ssl.keyStorePassword");
         FileInputStream instream=new FileInputStream(keyStoreFile);
         try {
           keyStore.load(instream,keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD);
