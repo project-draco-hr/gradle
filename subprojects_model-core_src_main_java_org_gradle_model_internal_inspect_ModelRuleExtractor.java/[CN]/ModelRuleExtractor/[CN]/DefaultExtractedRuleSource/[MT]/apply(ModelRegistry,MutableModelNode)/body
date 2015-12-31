@@ -1,24 +1,28 @@
 {
+  final ModelPath targetPath=target.getPath();
   for (  final ExtractedRuleDetails details : rules) {
     details.rule.apply(new MethodModelRuleApplicationContext(){
       @Override public ModelRegistry getRegistry(){
         return modelRegistry;
       }
       @Override public ModelAction<?> contextualize(      MethodRuleDefinition<?,?> ruleDefinition,      final MethodRuleAction action){
+        final List<ModelReference<?>> inputs=withImplicitInputs(action.getInputs());
+        final ModelReference<?> mappedSubject=mapSubject(action.getSubject(),targetPath);
+        mapInputs(inputs.subList(0,action.getInputs().size()),targetPath);
         return new ModelAction<Object>(){
           @Override public ModelRuleDescriptor getDescriptor(){
             return details.method.getDescriptor();
           }
           @Override public ModelReference<Object> getSubject(){
-            return Cast.uncheckedCast(action.getSubject());
+            return Cast.uncheckedCast(mappedSubject);
           }
           @Override public List<? extends ModelReference<?>> getInputs(){
-            return action.getInputs();
+            return inputs;
           }
           @Override public void execute(          MutableModelNode modelNode,          List<ModelView<?>> inputs){
             WeaklyTypeReferencingMethod<Object,Object> method=Cast.uncheckedCast(details.method.getMethod());
-            ModelRuleInvoker<Object> invoker=new DefaultModelRuleInvoker<Object,Object>(method,factory);
-            action.execute(invoker,modelNode,inputs);
+            ModelRuleInvoker<Object> invoker=new DefaultModelRuleInvoker<Object,Object>(method,getFactory());
+            action.execute(invoker,modelNode,inputs.subList(0,action.getInputs().size()));
           }
         }
 ;
