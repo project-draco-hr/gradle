@@ -1,12 +1,16 @@
 {
-  if (!property.isWritable() || !(property.getSchema() instanceof ScalarValueSchema)) {
+  WeaklyTypeReferencingMethod<?,?> weakSetter=property.getAccessor(SETTER);
+  if (weakSetter == null) {
+    return;
+  }
+  if (!(property.getSchema() instanceof ScalarValueSchema)) {
     return;
   }
   Class<?> propertyClass=property.getType().getConcreteClass();
   Type propertyType=Type.getType(propertyClass);
   Class<?> boxedClass=propertyClass.isPrimitive() ? BOXED_TYPES.get(propertyClass) : propertyClass;
   Type boxedType=Type.getType(boxedClass);
-  Method setter=property.getSetter().getMethod();
+  Method setter=weakSetter.getMethod();
   MethodVisitor methodVisitor=declareMethod(visitor,setter.getName(),SET_OBJECT_PROPERTY_DESCRIPTOR,SET_OBJECT_PROPERTY_DESCRIPTOR);
   putThisOnStack(methodVisitor);
   putTypeConverterFieldValueOnStack(methodVisitor,generatedType);
