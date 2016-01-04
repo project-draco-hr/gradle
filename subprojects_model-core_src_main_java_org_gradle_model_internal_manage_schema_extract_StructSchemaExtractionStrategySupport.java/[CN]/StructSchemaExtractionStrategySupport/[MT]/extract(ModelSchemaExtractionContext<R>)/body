@@ -13,7 +13,14 @@
   validateProperties(extractionContext,candidateProperties);
   List<ModelPropertyExtractionResult<?>> extractedProperties=extractProperties(extractionContext,candidateProperties);
   List<ModelSchemaAspect> aspects=aspectExtractor.extract(extractionContext,extractedProperties);
-  ModelSchema<R> schema=createSchema(extractionContext,extractedProperties,aspects);
+  Set<WeaklyTypeReferencingMethod<?,?>> nonPropertyMethods=getNonPropertyMethods(candidateMethods,extractedProperties);
+  Iterable<ModelProperty<?>> properties=Iterables.transform(extractedProperties,new Function<ModelPropertyExtractionResult<?>,ModelProperty<?>>(){
+    @Override public ModelProperty<?> apply(    ModelPropertyExtractionResult<?> propertyResult){
+      return propertyResult.getProperty();
+    }
+  }
+);
+  ModelSchema<R> schema=createSchema(extractionContext,properties,nonPropertyMethods,aspects);
   for (  ModelPropertyExtractionResult<?> propertyResult : extractedProperties) {
     toPropertyExtractionContext(extractionContext,propertyResult);
   }
