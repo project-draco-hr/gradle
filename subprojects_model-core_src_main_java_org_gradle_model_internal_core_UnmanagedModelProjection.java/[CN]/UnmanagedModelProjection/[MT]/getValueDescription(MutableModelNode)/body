@@ -1,16 +1,16 @@
 {
-  ModelView<?> modelView=this.asImmutable(ModelType.untyped(),modelNodeInternal,null);
-  Object instance=modelView.getInstance();
+  Object instance=instanceFrom(modelNode);
   if (instance == null) {
-    if (PrimitiveTypes.isPrimitiveType(getType())) {
-      return Optional.of(String.valueOf(PrimitiveTypes.defaultValueOf(getType())));
+    if (isPrimitiveType(getType())) {
+      return Optional.of(String.valueOf(defaultValueOf(getType())));
     }
-    if (ScalarTypes.isScalarType(getType())) {
+    if (isScalarType(getType())) {
       return Optional.of("null");
     }
+    return Optional.absent();
   }
- else   if (!JavaReflectionUtil.hasDefaultToString(instance)) {
-    return Optional.fromNullable(instance.toString());
+  if (hasDefaultToString(instance)) {
+    return Optional.absent();
   }
-  return Optional.absent();
+  return Optional.fromNullable(instance.toString());
 }
