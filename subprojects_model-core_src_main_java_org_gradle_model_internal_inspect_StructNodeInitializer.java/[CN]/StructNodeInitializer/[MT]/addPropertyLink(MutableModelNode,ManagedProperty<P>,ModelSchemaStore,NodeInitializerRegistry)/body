@@ -1,0 +1,35 @@
+{
+  ModelType<P> propertyType=property.getType();
+  ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
+  ModelType<T> publicType=bindings.getPublicSchema().getType();
+  validateProperty(propertySchema,property,nodeInitializerRegistry);
+  ModelRuleDescriptor descriptor=modelNode.getDescriptor();
+  ModelPath childPath=modelNode.getPath().child(property.getName());
+  if (propertySchema instanceof ManagedImplSchema) {
+    if (!property.isWritable()) {
+      ModelRegistration registration=ModelRegistrations.of(childPath,nodeInitializerRegistry.getNodeInitializer(forProperty(propertyType,property,publicType))).descriptor(descriptor).build();
+      modelNode.addLink(registration);
+    }
+ else {
+      if (propertySchema instanceof ScalarCollectionSchema) {
+        ModelRegistration registration=ModelRegistrations.of(childPath,nodeInitializerRegistry.getNodeInitializer(forProperty(propertyType,property,publicType))).descriptor(descriptor).build();
+        modelNode.addLink(registration);
+      }
+ else {
+        modelNode.addReference(property.getName(),propertyType,descriptor);
+      }
+    }
+  }
+ else {
+    ModelProjection projection=new UnmanagedModelProjection<P>(propertyType);
+    ModelRegistrations.Builder registrationBuilder;
+    if (shouldHaveANodeInitializer(property,propertySchema)) {
+      registrationBuilder=ModelRegistrations.of(childPath,nodeInitializerRegistry.getNodeInitializer(forProperty(propertyType,property,publicType)));
+    }
+ else {
+      registrationBuilder=ModelRegistrations.of(childPath);
+    }
+    registrationBuilder.withProjection(projection).descriptor(descriptor);
+    modelNode.addLink(registrationBuilder.build());
+  }
+}

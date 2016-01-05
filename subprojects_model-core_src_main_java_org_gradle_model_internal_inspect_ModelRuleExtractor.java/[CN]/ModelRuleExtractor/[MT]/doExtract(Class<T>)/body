@@ -31,10 +31,11 @@
   if (context.hasProblems()) {
     throw new InvalidModelRuleDeclarationException(context.problems.format());
   }
+  StructBindings<T> bindings=structBindingsStore.getBindings(schema);
   if (schema.getProperties().isEmpty()) {
-    return new StatelessRuleSource(rules.build(),Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema,proxyFactory) : new ConcreteRuleSourceFactory<T>(type));
+    return new StatelessRuleSource(rules.build(),Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema,bindings,proxyFactory) : new ConcreteRuleSourceFactory<T>(type));
   }
  else {
-    return new ParameterizedRuleSource(rules.build(),target,implicitInputs.build(),schema,proxyFactory);
+    return new ParameterizedRuleSource(rules.build(),target,implicitInputs.build(),schema,bindings,proxyFactory);
   }
 }

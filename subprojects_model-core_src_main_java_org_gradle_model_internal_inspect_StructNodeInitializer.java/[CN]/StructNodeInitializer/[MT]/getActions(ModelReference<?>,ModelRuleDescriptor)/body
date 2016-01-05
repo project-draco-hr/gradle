@@ -1,0 +1,20 @@
+{
+  return ImmutableSetMultimap.<ModelActionRole,ModelAction>builder().put(ModelActionRole.Discover,DirectNodeInputUsingModelAction.of(subject,descriptor,Arrays.<ModelReference<?>>asList(ModelReference.of(ManagedProxyFactory.class),ModelReference.of(TypeConverter.class)),new BiAction<MutableModelNode,List<ModelView<?>>>(){
+    @Override public void execute(    MutableModelNode modelNode,    List<ModelView<?>> modelViews){
+      ManagedProxyFactory proxyFactory=getInstance(modelViews.get(0),ManagedProxyFactory.class);
+      TypeConverter typeConverter=getInstance(modelViews,1,TypeConverter.class);
+      for (      StructSchema<?> viewSchema : bindings.getAllViewSchemas()) {
+        addProjection(modelNode,viewSchema,proxyFactory,typeConverter);
+      }
+    }
+  }
+)).put(ModelActionRole.Create,DirectNodeInputUsingModelAction.of(subject,descriptor,Arrays.<ModelReference<?>>asList(ModelReference.of(ModelSchemaStore.class),ModelReference.of(NodeInitializerRegistry.class)),new BiAction<MutableModelNode,List<ModelView<?>>>(){
+    @Override public void execute(    MutableModelNode modelNode,    List<ModelView<?>> modelViews){
+      ModelSchemaStore schemaStore=getInstance(modelViews,0,ModelSchemaStore.class);
+      NodeInitializerRegistry nodeInitializerRegistry=getInstance(modelViews,1,NodeInitializerRegistry.class);
+      addPropertyLinks(modelNode,schemaStore,nodeInitializerRegistry);
+      initializePrivateData(modelNode);
+    }
+  }
+)).build();
+}
