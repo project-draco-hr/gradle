@@ -1,0 +1,37 @@
+{
+  final File[] sourceFiles=sortedSourceFiles();
+  final ApiClassExtractor apiClassExtractor=new ApiClassExtractor(getExportedPackages());
+  withResource(new JarOutputStream(new BufferedOutputStream(new FileOutputStream(getOutputFile()),65536)),new ErroringAction<JarOutputStream>(){
+    @Override protected void doExecute(    final JarOutputStream jos) throws Exception {
+      writeManifest(jos);
+      writeClasses(jos);
+    }
+    private void writeManifest(    JarOutputStream jos) throws IOException {
+      writeEntry(jos,"META-INF/MANIFEST.MF","Manifest-Version: 1.0\n".getBytes());
+    }
+    private void writeClasses(    JarOutputStream jos) throws Exception {
+      for (      File sourceFile : sourceFiles) {
+        if (!isClassFile(sourceFile)) {
+          continue;
+        }
+        ClassReader classReader=new ClassReader(readFileToByteArray(sourceFile));
+        if (!apiClassExtractor.shouldExtractApiClassFrom(classReader)) {
+          continue;
+        }
+        byte[] apiClassBytes=apiClassExtractor.extractApiClassFrom(classReader);
+        String internalClassName=classReader.getClassName();
+        String entryPath=internalClassName + ".class";
+        writeEntry(jos,entryPath,apiClassBytes);
+      }
+    }
+    private void writeEntry(    JarOutputStream jos,    String name,    byte[] bytes) throws IOException {
+      JarEntry je=new JarEntry(name);
+      je.setTime(0);
+      je.setSize(bytes.length);
+      jos.putNextEntry(je);
+      jos.write(bytes);
+      jos.closeEntry();
+    }
+  }
+);
+}
