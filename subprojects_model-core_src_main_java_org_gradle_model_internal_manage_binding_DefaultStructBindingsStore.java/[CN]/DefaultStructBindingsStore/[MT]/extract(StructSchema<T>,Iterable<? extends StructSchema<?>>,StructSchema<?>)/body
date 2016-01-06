@@ -72,7 +72,7 @@
       boolean foundGetter=false;
       boolean foundSetter=false;
       EnumMap<PropertyAccessorType,WeaklyTypeReferencingMethod<?,?>> accessors=Maps.newEnumMap(PropertyAccessorType.class);
-      ModelType<?> propertyType=null;
+      Set<ModelType<?>> potentialPropertyTypes=Sets.newLinkedHashSet();
       for (      AbstractStructMethodBinding binding : bindings) {
         ManagedPropertyMethodBinding propertyBinding=(ManagedPropertyMethodBinding)binding;
         PropertyAccessorType accessorType=propertyBinding.getAccessorType();
@@ -84,16 +84,16 @@
         }
         WeaklyTypeReferencingMethod<?,?> accessor=propertyBinding.getSource();
         accessors.put(accessorType,accessor);
-        if (propertyType == null) {
-          propertyType=accessorType.propertyTypeFor(accessor.getMethod());
-        }
- else         if (!propertyType.equals(accessorType.propertyTypeFor(accessor.getMethod()))) {
-          throw new IllegalStateException(String.format("Managed property '%s' must have a consistent type.",propertyName));
-        }
+        potentialPropertyTypes.add(accessorType.propertyTypeFor(accessor.getMethod()));
       }
       if (foundSetter && !foundGetter) {
         throw new IllegalArgumentException(String.format("Managed property '%s' must both have an abstract getter as well as a setter.",propertyName));
       }
+      Collection<ModelType<?>> convergingPropertyTypes=findConvergingTypes(potentialPropertyTypes);
+      if (convergingPropertyTypes.size() != 1) {
+        throw new IllegalArgumentException(String.format("Managed property '%s' must have a consistent type, but it's defined as %s.",propertyName,Joiner.on(", ").join(ModelType.getDisplayNames(convergingPropertyTypes))));
+      }
+      ModelType<?> propertyType=Iterables.getOnlyElement(convergingPropertyTypes);
       ManagedProperty<?> managedProperty=createProperty(propertyName,propertyType,!publicSchema.hasProperty(propertyName),accessors);
       generatedPropertiesBuilder.put(propertyName,managedProperty);
     }
