@@ -1,0 +1,37 @@
+{
+  ArtifactDependencyResolver dependencyResolver=serviceRegistry.get(ArtifactDependencyResolver.class);
+  RepositoryHandler repositories=serviceRegistry.get(RepositoryHandler.class);
+  List<ResolutionAwareRepository> resolutionAwareRepositories=CollectionUtils.collect(repositories,Transformers.cast(ResolutionAwareRepository.class));
+  return new JUnitDependencyResolvingClasspath(test,"test suite",dependencyResolver,resolutionAwareRepositories,new LocalLibraryResolveContext(){
+    @Override public VariantsMetaData getVariants(){
+      return DefaultVariantsMetaData.extractFrom(test,schemaStore);
+    }
+    private final ResolutionStrategyInternal resolutionStrategy=new DefaultResolutionStrategy();
+    @Override public String getName(){
+      return "API";
+    }
+    @Override public String getDisplayName(){
+      return test.getDisplayName();
+    }
+    @Override public ResolutionStrategyInternal getResolutionStrategy(){
+      return resolutionStrategy;
+    }
+    @Override public ComponentResolveMetaData toRootComponentMetaData(){
+      LibraryBinaryIdentifier binaryIdentifier=((BinarySpecInternal)test).getId();
+      DefaultTaskDependency buildDependencies=new DefaultTaskDependency();
+      return DefaultLibraryLocalComponentMetaData.newDefaultLibraryLocalComponentMetadata(binaryIdentifier,buildDependencies,collectDependencies(test),binaryIdentifier.getProjectPath());
+    }
+    private List<DependencySpec> collectDependencies(    JUnitTestSuiteBinarySpec binary){
+      final List<DependencySpec> dependencies=Lists.newArrayList();
+      Iterable<LanguageSourceSet> sourceSets=Iterables.concat(binary.getTestSuite().getSources().values(),binary.getSources().values());
+      for (      LanguageSourceSet sourceSet : sourceSets) {
+        if (sourceSet instanceof DependentSourceSet) {
+          dependencies.addAll(((DependentSourceSet)sourceSet).getDependencies().getDependencies());
+        }
+      }
+      dependencies.addAll(((WithDependencies)binary).getDependencies());
+      return dependencies;
+    }
+  }
+);
+}
