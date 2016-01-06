@@ -1,3 +1,9 @@
 {
-  return ImmutableSortedSet.copyOf(ModelTypes.<T>displayOrder(),registrations.keySet());
+  ImmutableSortedSet.Builder<ModelType<? extends T>> supportedTypes=ImmutableSortedSet.orderedBy(ModelTypes.<T>displayOrder());
+  for (  TypeRegistration<?> registration : registrations.values()) {
+    if (registration.isConstructible()) {
+      supportedTypes.add(registration.publicType);
+    }
+  }
+  return supportedTypes.build();
 }
