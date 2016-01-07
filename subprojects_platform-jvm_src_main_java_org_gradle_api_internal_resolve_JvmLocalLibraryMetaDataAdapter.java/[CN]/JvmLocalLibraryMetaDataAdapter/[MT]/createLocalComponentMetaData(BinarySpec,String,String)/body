@@ -2,20 +2,23 @@
   JarBinarySpecInternal jarBinarySpec=(JarBinarySpecInternal)selectedBinary;
   DefaultTaskDependency buildDependencies=new DefaultTaskDependency();
   LibraryPublishArtifact jarBinary;
+  Collection<DependencySpec> dependencies;
   if (CONFIGURATION_API.equals(usage)) {
     JarFile apiJar=jarBinarySpec.getApiJar();
     buildDependencies.add(apiJar);
     jarBinary=new LibraryPublishArtifact("jar",apiJar.getFile());
+    dependencies=jarBinarySpec.getApiDependencies();
   }
  else   if (CONFIGURATION_RUNTIME.equals(usage)) {
     JarFile runtimeJar=jarBinarySpec.getRuntimeJar();
     buildDependencies.add(runtimeJar);
     jarBinary=new LibraryPublishArtifact("jar",runtimeJar.getFile());
+    dependencies=collectDependencies(jarBinarySpec);
   }
  else {
     throw new GradleException("Unrecognized usage found: '" + usage + "'. Should be one of "+ Arrays.asList(CONFIGURATION_API,CONFIGURATION_RUNTIME));
   }
-  DefaultLibraryLocalComponentMetaData metadata=newResolvedLibraryMetadata(jarBinarySpec.getId(),usage,buildDependencies,jarBinarySpec.getApiDependencies(),projectPath);
+  DefaultLibraryLocalComponentMetaData metadata=newResolvedLibraryMetadata(jarBinarySpec.getId(),usage,buildDependencies,dependencies,projectPath);
   metadata.addArtifacts(usage,Collections.singleton(jarBinary));
   return metadata;
 }
