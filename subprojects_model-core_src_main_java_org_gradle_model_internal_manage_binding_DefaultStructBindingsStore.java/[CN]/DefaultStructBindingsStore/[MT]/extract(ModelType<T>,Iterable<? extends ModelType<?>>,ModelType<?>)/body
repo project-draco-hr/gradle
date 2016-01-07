@@ -1,7 +1,10 @@
 {
-  if (delegateSchema != null && Modifier.isAbstract(delegateSchema.getType().getConcreteClass().getModifiers())) {
-    throw new IllegalArgumentException(String.format("Delegate '%s' type must be null or a non-abstract type",delegateSchema.getType()));
+  if (delegateType != null && Modifier.isAbstract(delegateType.getConcreteClass().getModifiers())) {
+    throw new IllegalArgumentException(String.format("Delegate '%s' type must be null or a non-abstract type",delegateType));
   }
+  StructSchema<T> publicSchema=getStructSchema(publicType);
+  Iterable<StructSchema<?>> internalViewSchemas=getStructSchemas(internalViewTypes);
+  StructSchema<?> delegateSchema=delegateType == null ? null : getStructSchema(delegateType);
   ImmutableSet.Builder<WeaklyTypeReferencingMethod<?,?>> allViewMethodsBuilder=ImmutableSet.builder();
   StructSchema<T> publicStructSchema=Cast.uncheckedCast(publicSchema);
   allViewMethodsBuilder.addAll(publicStructSchema.getAllMethods());
