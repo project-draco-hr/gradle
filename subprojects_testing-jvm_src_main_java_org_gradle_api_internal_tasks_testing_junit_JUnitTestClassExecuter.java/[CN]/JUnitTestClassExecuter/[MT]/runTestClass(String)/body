@@ -15,14 +15,14 @@
 ;
     filters.add(new CategoryFilter(CollectionUtils.collect(options.getIncludeCategories(),transformer),CollectionUtils.collect(options.getExcludeCategories(),transformer)));
   }
+  Request request=Request.aClass(testClass);
+  Runner runner=request.getRunner();
   if (!options.getIncludedTests().isEmpty()) {
     TestSelectionMatcher matcher=new TestSelectionMatcher(options.getIncludedTests());
-    if (!matcher.matchesTest(testClassName,null)) {
+    if (runner.getDescription().isSuite() && !matcher.matchesTest(testClassName,null)) {
       filters.add(new MethodNameFilter(matcher));
     }
   }
-  Request request=Request.aClass(testClass);
-  Runner runner=request.getRunner();
   if (runner instanceof Filterable) {
     Filterable filterable=(Filterable)runner;
     for (    Filter filter : filters) {
