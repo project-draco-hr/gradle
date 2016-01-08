@@ -10,10 +10,8 @@
         throw new IllegalArgumentException(String.format("Managed property '%s' must both have an abstract getter as well as a setter.",propertyName));
       }
       ModelType<?> propertyType=determinePropertyType(propertyName,accessorBindings);
-      boolean writable=accessorBindings.containsKey(SETTER);
-      boolean declaredAsUnmanaged=isDeclaredAsHavingUnmanagedType(accessorBindings.get(GET_GETTER)) || isDeclaredAsHavingUnmanagedType(accessorBindings.get(IS_GETTER));
-      boolean internal=!publicSchema.hasProperty(propertyName);
-      managedPropertiesBuilder.put(propertyName,createProperty(propertyName,propertyType,writable,declaredAsUnmanaged,internal));
+      ModelSchema<?> propertySchema=schemaStore.getSchema(propertyType);
+      managedPropertiesBuilder.put(propertyName,createManagedProperty(publicSchema,propertyName,propertySchema,accessorBindings));
     }
   }
   return managedPropertiesBuilder.build();

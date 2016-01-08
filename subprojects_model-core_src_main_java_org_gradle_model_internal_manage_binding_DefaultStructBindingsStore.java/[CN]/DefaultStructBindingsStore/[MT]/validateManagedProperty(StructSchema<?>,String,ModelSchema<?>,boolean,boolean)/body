@@ -1,0 +1,21 @@
+{
+  ModelType<?> publicType=publicSchema.getType();
+  if (propertyName.equals("name") && Named.class.isAssignableFrom(publicType.getRawClass())) {
+    return;
+  }
+  boolean isAllowedPropertyTypeOfManagedType=propertySchema instanceof ManagedImplSchema || propertySchema instanceof ScalarValueSchema;
+  ModelType<?> propertyType=propertySchema.getType();
+  if (isAllowedPropertyTypeOfManagedType && isDeclaredAsHavingUnmanagedType) {
+    throw new InvalidManagedPropertyException(publicType,propertyName,String.format("is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation",propertyType.getDisplayName()));
+  }
+  if (!writable && isDeclaredAsHavingUnmanagedType) {
+    throw new InvalidManagedPropertyException(publicType,propertyName,"must not be read only, because it is marked as @Unmanaged");
+  }
+  if (!(publicSchema instanceof RuleSourceSchema)) {
+    if (propertySchema instanceof CollectionSchema) {
+      if (!(propertySchema instanceof ScalarCollectionSchema) && writable) {
+        throw new InvalidManagedPropertyException(publicType,propertyName,String.format("cannot have a setter (%s properties must be read only)",propertyType.getRawClass().getSimpleName()));
+      }
+    }
+  }
+}
