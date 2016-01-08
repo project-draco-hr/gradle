@@ -1,0 +1,14 @@
+{
+  final List<JavaPlatform> javaPlatforms=resolvePlatforms(platformResolver);
+  final JavaPlatform platform=javaPlatforms.get(0);
+  final BinaryNamingScheme namingScheme=namingSchemeFor(testSuite,testedBinary,javaPlatforms,platform);
+  testBinaries.create(namingScheme.getBinaryName(),testSuiteBinaryClass,new Action<T>(){
+    @Override public void execute(    T binary){
+      ((BinarySpecInternal)binary).setNamingScheme(namingScheme);
+      binary.setTargetPlatform(platform);
+      binary.setToolChain(toolChains.getForPlatform(platform));
+      configureAction.execute(binary);
+    }
+  }
+);
+}
