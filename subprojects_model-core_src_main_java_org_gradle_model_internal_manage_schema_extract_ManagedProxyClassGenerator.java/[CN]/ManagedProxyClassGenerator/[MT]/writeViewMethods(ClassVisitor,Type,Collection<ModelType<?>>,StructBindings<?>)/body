@@ -1,0 +1,77 @@
+{
+  Type delegateType;
+  StructSchema<?> delegateSchema=bindings.getDelegateSchema();
+  if (delegateSchema != null) {
+    Class<?> delegateClass=delegateSchema.getType().getRawClass();
+    declareDelegateField(visitor,delegateClass);
+    delegateType=Type.getType(delegateClass);
+  }
+ else {
+    delegateType=null;
+  }
+  Map<String,ModelProperty<?>> viewPropertiesByName=Maps.newLinkedHashMap();
+  Set<Wrapper<Method>> viewMethods=Sets.newLinkedHashSet();
+  for (  StructSchema<?> viewSchema : bindings.getImplementedViewSchemas()) {
+    for (    ModelType<?> viewType : viewTypes) {
+      if (viewType.equals(viewSchema.getType())) {
+        for (        ModelProperty<?> property : viewSchema.getProperties()) {
+          String propertyName=property.getName();
+          if (viewPropertiesByName.containsKey(propertyName)) {
+            continue;
+          }
+          viewPropertiesByName.put(propertyName,property);
+        }
+        for (        WeaklyTypeReferencingMethod<?,?> viewMethod : viewSchema.getAllMethods()) {
+          viewMethods.add(SIGNATURE_EQUIVALENCE.wrap(viewMethod.getMethod()));
+        }
+        break;
+      }
+    }
+  }
+  Collection<ModelProperty<?>> viewProperties=viewPropertiesByName.values();
+  Class<?> viewClass=bindings.getPublicSchema().getType().getConcreteClass();
+  for (  ModelProperty<?> viewProperty : viewProperties) {
+    writeViewPropertyDslMethods(visitor,generatedType,viewProperty,viewClass);
+  }
+  for (  StructMethodBinding methodBinding : bindings.getMethodBindings()) {
+    WeaklyTypeReferencingMethod<?,?> weakViewMethod=methodBinding.getSource();
+    Method viewMethod=weakViewMethod.getMethod();
+    Wrapper<Method> methodKey=SIGNATURE_EQUIVALENCE.wrap(viewMethod);
+    if (!viewMethods.contains(methodKey)) {
+      continue;
+    }
+    if (methodBinding instanceof DirectMethodBinding) {
+      boolean isGetterMethod=methodBinding.getAccessorType() == GET_GETTER || methodBinding.getAccessorType() == IS_GETTER;
+      if (isGetterMethod && !Modifier.isFinal(viewMethod.getModifiers()) && !viewMethod.getName().equals("getMetaClass")) {
+        writeNonAbstractMethodWrapper(visitor,generatedType,viewClass,viewMethod);
+      }
+    }
+ else     if (methodBinding instanceof BridgeMethodBinding) {
+      writeBridgeMethod(visitor,generatedType,viewMethod);
+    }
+ else     if (methodBinding instanceof DelegateMethodBinding) {
+      writeDelegatingMethod(visitor,generatedType,delegateType,viewMethod);
+    }
+ else     if (methodBinding instanceof ManagedPropertyMethodBinding) {
+      ManagedPropertyMethodBinding propertyBinding=(ManagedPropertyMethodBinding)methodBinding;
+      ManagedProperty<?> managedProperty=bindings.getManagedProperty(propertyBinding.getPropertyName());
+      String propertyName=managedProperty.getName();
+      Class<?> propertyClass=managedProperty.getType().getRawClass();
+      WeaklyTypeReferencingMethod<?,?> propertyAccessor=propertyBinding.getSource();
+switch (propertyBinding.getAccessorType()) {
+case GET_GETTER:
+case IS_GETTER:
+        writeGetter(visitor,generatedType,propertyName,propertyClass,propertyAccessor);
+      break;
+case SETTER:
+    writeSetter(visitor,generatedType,propertyName,propertyClass,propertyAccessor);
+  break;
+default :
+throw new AssertionError();
+}
+}
+ else {
+throw new AssertionError();
+}
+}
+}

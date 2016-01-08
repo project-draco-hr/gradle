@@ -1,0 +1,29 @@
+{
+  Queue<ModelType<?>> queue=new ArrayDeque<ModelType<?>>(Iterables.size(types) * 2);
+  Iterables.addAll(queue,types);
+  Set<ModelType<?>> seenTypes=Sets.newLinkedHashSet();
+  ModelType<?> type;
+  while ((type=queue.poll()) != null) {
+    Class<?> rawClass=type.getRawClass();
+    if (rawClass.equals(Object.class) || rawClass.equals(GroovyObject.class)) {
+      continue;
+    }
+    if (!seenTypes.add(type)) {
+      continue;
+    }
+    Class<?> superclass=rawClass.getSuperclass();
+    if (superclass != null) {
+      ModelType<?> superType=ModelType.of(superclass);
+      if (!seenTypes.contains(superType)) {
+        queue.add(superType);
+      }
+    }
+    for (    Class<?> iface : rawClass.getInterfaces()) {
+      ModelType<?> ifaceType=ModelType.of(iface);
+      if (!seenTypes.contains(ifaceType)) {
+        queue.add(ifaceType);
+      }
+    }
+  }
+  return seenTypes;
+}

@@ -1,0 +1,14 @@
+{
+  if (delegateType != null && Modifier.isAbstract(delegateType.getConcreteClass().getModifiers())) {
+    throw new IllegalArgumentException(String.format("Delegate '%s' type must be null or a non-abstract type",delegateType));
+  }
+  Set<ModelType<?>> implementedViews=collectImplementedViews(publicType,internalViewTypes,delegateType);
+  StructSchema<T> publicSchema=getStructSchema(publicType);
+  Iterable<StructSchema<?>> declaredViewSchemas=getStructSchemas(Iterables.concat(Collections.singleton(publicType),internalViewTypes));
+  Iterable<StructSchema<?>> implementedSchemas=getStructSchemas(implementedViews);
+  StructSchema<?> delegateSchema=delegateType == null ? null : getStructSchema(delegateType);
+  Map<String,Multimap<PropertyAccessorType,StructMethodBinding>> propertyBindings=Maps.newTreeMap();
+  Set<StructMethodBinding> methodBindings=collectMethodBindings(publicSchema,delegateSchema,implementedSchemas,propertyBindings);
+  ImmutableSortedMap<String,ManagedProperty<?>> managedProperties=collectManagedProperties(publicSchema,propertyBindings);
+  return new DefaultStructBindings<T>(publicSchema,declaredViewSchemas,implementedSchemas,delegateSchema,managedProperties,methodBindings);
+}

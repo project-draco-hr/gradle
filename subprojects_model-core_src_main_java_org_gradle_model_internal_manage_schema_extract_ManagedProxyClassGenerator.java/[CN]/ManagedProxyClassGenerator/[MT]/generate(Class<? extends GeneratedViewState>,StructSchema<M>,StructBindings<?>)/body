@@ -1,5 +1,5 @@
 {
-  if (!structBindings.getAllViewSchemas().contains(viewSchema)) {
+  if (!structBindings.getImplementedViewSchemas().contains(viewSchema)) {
     throw new IllegalArgumentException(String.format("View '%s' is not supported by struct '%s'",viewSchema.getType(),structBindings.getPublicSchema().getType()));
   }
   ClassWriter visitor=new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -17,15 +17,15 @@
   }
   String generatedTypeName=generatedTypeNameBuilder.toString();
   Type generatedType=Type.getType("L" + generatedTypeName.replaceAll("\\.","/") + ";");
-  Class<M> viewClass=viewType.getConcreteClass();
   Class<?> superclass;
   final ImmutableSet.Builder<String> interfacesToImplement=ImmutableSet.builder();
-  final ImmutableSet.Builder<Class<?>> typesToDelegate=ImmutableSet.builder();
-  typesToDelegate.add(viewClass);
+  final ImmutableSet.Builder<ModelType<?>> typesToDelegate=ImmutableSet.builder();
+  typesToDelegate.add(viewType);
   interfacesToImplement.add(GENERATED_VIEW_TYPE.getInternalName());
   if (backingStateType == ModelElementState.class) {
     interfacesToImplement.add(MANAGED_INSTANCE_TYPE);
   }
+  Class<M> viewClass=viewType.getConcreteClass();
   if (viewClass.isInterface()) {
     superclass=Object.class;
     interfacesToImplement.add(Type.getInternalName(viewClass));
@@ -37,14 +37,14 @@
     ModelSchemaUtils.walkTypeHierarchy(delegateSchema.getType().getConcreteClass(),new ModelSchemaUtils.TypeVisitor<D>(){
       @Override public void visitType(      Class<? super D> type){
         if (type.isInterface()) {
-          typesToDelegate.add(type);
+          typesToDelegate.add(ModelType.of(type));
           interfacesToImplement.add(Type.getInternalName(type));
         }
       }
     }
 );
   }
-  generateProxyClass(visitor,viewSchema,delegateSchema,interfacesToImplement.build(),typesToDelegate.build(),generatedType,Type.getType(superclass),backingStateType);
+  generateProxyClass(visitor,viewSchema,structBindings,interfacesToImplement.build(),typesToDelegate.build(),generatedType,Type.getType(superclass),backingStateType);
   ClassLoader targetClassLoader=viewClass.getClassLoader();
   if (delegateSchema != null) {
     try {
