@@ -1,0 +1,22 @@
+{
+  languages.withType(JavaLanguagePlugin.Java.class).all(new Action<JavaLanguagePlugin.Java>(){
+    @Override public void execute(    JavaLanguagePlugin.Java java){
+      java.registerPlatformJavaCompileConfig(new JavaLanguagePlugin.Java.PlatformJavaCompileConfig(){
+        @Override public void configureJavaCompile(        BinarySpec spec,        JavaSourceSet sourceSet,        PlatformJavaCompile javaCompile){
+          if (spec instanceof JUnitTestSuiteBinarySpec) {
+            JvmBinarySpec testedBinary=((JUnitTestSuiteBinarySpec)spec).getTestedBinary();
+            if (testedBinary instanceof WithJvmAssembly) {
+              FileCollection classpath=javaCompile.getClasspath();
+              JvmAssembly assembly=((WithJvmAssembly)testedBinary).getAssembly();
+              FileCollection fullClasspath=new UnionFileCollection(classpath,new SimpleFileCollection(assembly.getClassDirectories()),new SimpleFileCollection(assembly.getResourceDirectories()));
+              javaCompile.setClasspath(fullClasspath);
+              javaCompile.dependsOn(((WithJvmAssembly)testedBinary).getAssembly());
+            }
+          }
+        }
+      }
+);
+    }
+  }
+);
+}
