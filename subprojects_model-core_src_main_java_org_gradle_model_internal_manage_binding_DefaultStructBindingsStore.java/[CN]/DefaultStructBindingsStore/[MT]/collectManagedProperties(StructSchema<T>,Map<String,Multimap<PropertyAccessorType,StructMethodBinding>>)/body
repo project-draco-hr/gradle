@@ -3,13 +3,13 @@
   for (  Map.Entry<String,Multimap<PropertyAccessorType,StructMethodBinding>> propertyEntry : propertyBindings.entrySet()) {
     String propertyName=propertyEntry.getKey();
     Multimap<PropertyAccessorType,StructMethodBinding> accessorBindings=propertyEntry.getValue();
-    if (isManagedProperty(propertyName,accessorBindings)) {
+    if (isManagedProperty(publicSchema.getType(),propertyName,accessorBindings)) {
       boolean foundGetter=accessorBindings.containsKey(GET_GETTER) || accessorBindings.containsKey(IS_GETTER);
       boolean foundSetter=accessorBindings.containsKey(SETTER);
       if (foundSetter && !foundGetter) {
-        throw new IllegalArgumentException(String.format("Managed property '%s' must both have an abstract getter as well as a setter.",propertyName));
+        throw new InvalidManagedPropertyException(publicSchema.getType(),propertyName,"must both have an abstract getter as well as a setter");
       }
-      ModelType<?> propertyType=determinePropertyType(propertyName,accessorBindings);
+      ModelType<?> propertyType=determineManagedPropertyType(publicSchema.getType(),propertyName,accessorBindings);
       ModelSchema<?> propertySchema=schemaStore.getSchema(propertyType);
       managedPropertiesBuilder.put(propertyName,createManagedProperty(publicSchema,propertyName,propertySchema,accessorBindings));
     }

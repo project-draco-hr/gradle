@@ -1,0 +1,23 @@
+{
+  Set<ModelType<?>> potentialPropertyTypes=Sets.newLinkedHashSet();
+  for (  StructMethodBinding binding : accessorBindings.values()) {
+    if (binding.getAccessorType() == SETTER) {
+      continue;
+    }
+    ManagedPropertyMethodBinding propertyBinding=(ManagedPropertyMethodBinding)binding;
+    potentialPropertyTypes.add(propertyBinding.getDeclaredPropertyType());
+  }
+  Collection<ModelType<?>> convergingPropertyTypes=findConvergingTypes(potentialPropertyTypes);
+  if (convergingPropertyTypes.size() != 1) {
+    throw new InvalidManagedPropertyException(publicType,propertyName,String.format("must have a consistent type, but it's defined as %s.",Joiner.on(", ").join(ModelTypes.getDisplayNames(convergingPropertyTypes))));
+  }
+  ModelType<?> propertyType=Iterables.getOnlyElement(convergingPropertyTypes);
+  for (  StructMethodBinding setterBinding : accessorBindings.get(SETTER)) {
+    ManagedPropertyMethodBinding propertySetterBinding=(ManagedPropertyMethodBinding)setterBinding;
+    ModelType<?> declaredSetterType=propertySetterBinding.getDeclaredPropertyType();
+    if (!declaredSetterType.equals(propertyType)) {
+      throw new InvalidManagedPropertyException(publicType,propertyName,String.format("must have setter accepting parameter with type '%s' instead of '%s'",propertyType.getDisplayName(),declaredSetterType.getDisplayName()));
+    }
+  }
+  return propertyType;
+}

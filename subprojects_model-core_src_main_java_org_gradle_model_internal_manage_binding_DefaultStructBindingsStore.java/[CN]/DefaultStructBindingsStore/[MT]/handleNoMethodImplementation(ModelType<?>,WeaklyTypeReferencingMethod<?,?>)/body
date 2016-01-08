@@ -1,0 +1,26 @@
+{
+  String methodName=method.getName();
+  PropertyAccessorType accessorType=PropertyAccessorType.fromName(methodName);
+  if (accessorType != null) {
+    String propertyName=accessorType.propertyNameFor(methodName);
+switch (accessorType) {
+case GET_GETTER:
+case IS_GETTER:
+      if (!PropertyAccessorType.takesNoParameter(method.getMethod())) {
+        return new InvalidManagedPropertyException(publicType,propertyName,String.format("is invalid: getter method '%s' must not take parameters",method));
+      }
+    break;
+case SETTER:
+  if (!hasVoidReturnType(method.getMethod())) {
+    return new InvalidManagedPropertyException(publicType,propertyName,String.format("is invalid: setter method '%s' must have void return type",method));
+  }
+if (!takesSingleParameter(method.getMethod())) {
+  return new InvalidManagedPropertyException(publicType,propertyName,String.format("is invalid: setter method '%s' must have exactly one parameter",method));
+}
+break;
+default :
+throw new AssertionError();
+}
+}
+return new IllegalArgumentException(String.format("Abstract method '%s' is not a property accessor, and it has no implementation.",method));
+}

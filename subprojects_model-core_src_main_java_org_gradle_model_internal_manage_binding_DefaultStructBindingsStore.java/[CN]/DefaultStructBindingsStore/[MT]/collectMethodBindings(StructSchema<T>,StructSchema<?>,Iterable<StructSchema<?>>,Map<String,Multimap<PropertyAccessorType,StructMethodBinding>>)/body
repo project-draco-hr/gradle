@@ -3,36 +3,31 @@
   Map<Wrapper<Method>,WeaklyTypeReferencingMethod<?,?>> publicViewImplMethods=collectPublicViewImplMethods(publicSchema);
   Map<Wrapper<Method>,WeaklyTypeReferencingMethod<?,?>> delegateMethods=collectDelegateMethods(delegateSchema);
   ImmutableSet.Builder<StructMethodBinding> methodBindingsBuilder=ImmutableSet.builder();
-  for (  WeaklyTypeReferencingMethod<?,?> weakViewMethod : implementedMethods) {
-    Method implementedMethod=weakViewMethod.getMethod();
+  for (  WeaklyTypeReferencingMethod<?,?> weakImplementedMethod : implementedMethods) {
+    Method implementedMethod=weakImplementedMethod.getMethod();
     PropertyAccessorType accessorType=PropertyAccessorType.of(implementedMethod);
     Wrapper<Method> methodKey=SIGNATURE_EQUIVALENCE.wrap(implementedMethod);
     WeaklyTypeReferencingMethod<?,?> weakDelegateImplMethod=delegateMethods.get(methodKey);
     WeaklyTypeReferencingMethod<?,?> weakPublicImplMethod=publicViewImplMethods.get(methodKey);
     if (weakDelegateImplMethod != null && weakPublicImplMethod != null) {
-      throw new IllegalArgumentException(String.format("Method '%s' is both implemented by the view and the delegate type '%s'",weakViewMethod,weakDelegateImplMethod));
+      throw new IllegalArgumentException(String.format("Method '%s' is both implemented by the view and the delegate type '%s'",weakImplementedMethod,weakDelegateImplMethod));
     }
     String propertyName=accessorType == null ? null : accessorType.propertyNameFor(implementedMethod);
     StructMethodBinding binding;
     if (!Modifier.isAbstract(implementedMethod.getModifiers())) {
-      binding=new DirectMethodBinding(weakViewMethod,accessorType);
+      binding=new DirectMethodBinding(weakImplementedMethod,accessorType);
     }
  else     if (weakPublicImplMethod != null) {
-      binding=new BridgeMethodBinding(weakViewMethod,weakPublicImplMethod,accessorType);
+      binding=new BridgeMethodBinding(weakImplementedMethod,weakPublicImplMethod,accessorType);
     }
  else     if (weakDelegateImplMethod != null) {
-      binding=new DelegateMethodBinding(weakViewMethod,weakDelegateImplMethod,accessorType);
+      binding=new DelegateMethodBinding(weakImplementedMethod,weakDelegateImplMethod,accessorType);
     }
  else     if (propertyName != null) {
-      binding=new ManagedPropertyMethodBinding(weakViewMethod,propertyName,accessorType);
+      binding=new ManagedPropertyMethodBinding(weakImplementedMethod,propertyName,accessorType);
     }
  else {
-      if (delegateSchema == null) {
-        throw new IllegalArgumentException(String.format("Method '%s' is not a property accessor, and it has no implementation",implementedMethod.toGenericString()));
-      }
- else {
-        throw new IllegalArgumentException(String.format("Method '%s' is not a property accessor, and it has no implementation or a delegate in type '%s'",implementedMethod.toGenericString(),delegateSchema.getType().getDisplayName()));
-      }
+      throw handleNoMethodImplementation(publicSchema.getType(),weakImplementedMethod);
     }
     methodBindingsBuilder.add(binding);
     if (accessorType != null) {
