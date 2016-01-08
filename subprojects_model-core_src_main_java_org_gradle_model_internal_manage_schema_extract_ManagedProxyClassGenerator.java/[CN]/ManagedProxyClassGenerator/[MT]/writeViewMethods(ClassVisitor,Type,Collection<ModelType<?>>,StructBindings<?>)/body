@@ -9,17 +9,14 @@
  else {
     delegateType=null;
   }
-  Map<String,ModelProperty<?>> viewPropertiesByName=Maps.newLinkedHashMap();
+  Multimap<String,ModelProperty<?>> viewPropertiesByNameBuilder=ArrayListMultimap.create();
   Set<Wrapper<Method>> viewMethods=Sets.newLinkedHashSet();
   for (  StructSchema<?> viewSchema : bindings.getImplementedViewSchemas()) {
     for (    ModelType<?> viewType : viewTypes) {
       if (viewType.equals(viewSchema.getType())) {
         for (        ModelProperty<?> property : viewSchema.getProperties()) {
           String propertyName=property.getName();
-          if (viewPropertiesByName.containsKey(propertyName)) {
-            continue;
-          }
-          viewPropertiesByName.put(propertyName,property);
+          viewPropertiesByNameBuilder.put(propertyName,property);
         }
         for (        WeaklyTypeReferencingMethod<?,?> viewMethod : viewSchema.getAllMethods()) {
           viewMethods.add(SIGNATURE_EQUIVALENCE.wrap(viewMethod.getMethod()));
@@ -28,10 +25,9 @@
       }
     }
   }
-  Collection<ModelProperty<?>> viewProperties=viewPropertiesByName.values();
   Class<?> viewClass=bindings.getPublicSchema().getType().getConcreteClass();
-  for (  ModelProperty<?> viewProperty : viewProperties) {
-    writeViewPropertyDslMethods(visitor,generatedType,viewProperty,viewClass);
+  for (  Collection<ModelProperty<?>> viewProperties : viewPropertiesByNameBuilder.asMap().values()) {
+    writeViewPropertyDslMethods(visitor,generatedType,viewProperties,viewClass);
   }
   for (  StructMethodBinding methodBinding : bindings.getMethodBindings()) {
     WeaklyTypeReferencingMethod<?,?> weakViewMethod=methodBinding.getSource();
