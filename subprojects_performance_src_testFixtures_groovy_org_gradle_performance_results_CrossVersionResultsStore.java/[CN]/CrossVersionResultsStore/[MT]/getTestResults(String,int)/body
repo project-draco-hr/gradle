@@ -10,7 +10,7 @@
         }
 );
         Set<String> allBranches=new TreeSet<String>();
-        PreparedStatement executionsForName=connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
+        PreparedStatement executionsForName=connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
         PreparedStatement operationsForExecution=connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
         executionsForName.setInt(1,mostRecentN);
         executionsForName.setString(2,testName);
@@ -24,10 +24,12 @@
           performanceResults.setTestProject(testExecutions.getString(4));
           performanceResults.setTasks(toArray(testExecutions.getObject(5)));
           performanceResults.setArgs(toArray(testExecutions.getObject(6)));
-          performanceResults.setOperatingSystem(testExecutions.getString(7));
-          performanceResults.setJvm(testExecutions.getString(8));
-          performanceResults.setVcsBranch(testExecutions.getString(9).trim());
-          performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(10)));
+          performanceResults.setGradleOpts(toArray(testExecutions.getObject(7)));
+          performanceResults.setDaemon((Boolean)testExecutions.getObject(8));
+          performanceResults.setOperatingSystem(testExecutions.getString(9));
+          performanceResults.setJvm(testExecutions.getString(10));
+          performanceResults.setVcsBranch(testExecutions.getString(11).trim());
+          performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(12)));
           results.add(performanceResults);
           allBranches.add(performanceResults.getVcsBranch());
           operationsForExecution.setLong(1,id);
