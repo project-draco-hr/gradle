@@ -1,9 +1,10 @@
 {
   final ModelType<T> type=ModelType.of(source);
-  DefaultMethodModelRuleExtractionContext context=new DefaultMethodModelRuleExtractionContext(type,this);
+  FormattingValidationProblemCollector problems=new FormattingValidationProblemCollector("rule source",type);
+  DefaultMethodModelRuleExtractionContext context=new DefaultMethodModelRuleExtractionContext(this,problems);
   StructSchema<T> schema=getSchema(source,context);
   if (schema == null) {
-    throw new InvalidModelRuleDeclarationException(context.problems.format());
+    throw new InvalidModelRuleDeclarationException(problems.format());
   }
   Set<Method> methods=new TreeSet<Method>(Ordering.usingToString());
   methods.addAll(Arrays.asList(source.getDeclaredMethods()));
@@ -29,7 +30,7 @@
     }
   }
   if (context.hasProblems()) {
-    throw new InvalidModelRuleDeclarationException(context.problems.format());
+    throw new InvalidModelRuleDeclarationException(problems.format());
   }
   StructBindings<T> bindings=structBindingsStore.getBindings(schema.getType());
   if (schema.getProperties().isEmpty()) {

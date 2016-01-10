@@ -6,7 +6,8 @@
     }
   }
 );
-  FormattingValidationProblemCollector problems=new FormattingValidationProblemCollector("rule source",ruleSourceType);
+  FormattingValidationProblemCollector problemsFormatter=new FormattingValidationProblemCollector("rule source",ruleSourceType);
+  RuleSourceValidationProblemCollector problems=new DefaultRuleSourceValidationProblemCollector(problemsFormatter);
   if (mutateMethods.size() == 0) {
     problems.add("Must have at exactly one method annotated with @" + Mutate.class.getName());
   }
@@ -24,8 +25,8 @@
       }
     }
   }
-  if (problems.hasProblems()) {
-    throw new RuleActionValidationException(problems.format());
+  if (problemsFormatter.hasProblems()) {
+    throw new RuleActionValidationException(problemsFormatter.format());
   }
   return new RuleSourceBackedRuleAction<R,T>(ruleSourceInstance,new JavaMethod<R,T>(ruleSourceType.getConcreteClass(),subjectType.getConcreteClass(),mutateMethods.get(0)));
 }
