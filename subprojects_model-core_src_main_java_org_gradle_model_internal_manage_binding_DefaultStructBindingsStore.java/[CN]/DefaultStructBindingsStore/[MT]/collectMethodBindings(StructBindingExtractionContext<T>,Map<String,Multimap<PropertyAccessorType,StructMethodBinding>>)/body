@@ -1,0 +1,44 @@
+{
+  Collection<WeaklyTypeReferencingMethod<?,?>> implementedMethods=collectImplementedMethods(extractionContext.getImplementedSchemas());
+  Map<Wrapper<Method>,WeaklyTypeReferencingMethod<?,?>> publicViewImplMethods=collectPublicViewImplMethods(extractionContext.getPublicSchema());
+  Map<Wrapper<Method>,WeaklyTypeReferencingMethod<?,?>> delegateMethods=collectDelegateMethods(extractionContext.getDelegateSchema());
+  ImmutableSet.Builder<StructMethodBinding> methodBindingsBuilder=ImmutableSet.builder();
+  for (  WeaklyTypeReferencingMethod<?,?> weakImplementedMethod : implementedMethods) {
+    Method implementedMethod=weakImplementedMethod.getMethod();
+    PropertyAccessorType accessorType=PropertyAccessorType.of(implementedMethod);
+    Wrapper<Method> methodKey=SIGNATURE_EQUIVALENCE.wrap(implementedMethod);
+    WeaklyTypeReferencingMethod<?,?> weakDelegateImplMethod=delegateMethods.get(methodKey);
+    WeaklyTypeReferencingMethod<?,?> weakPublicImplMethod=publicViewImplMethods.get(methodKey);
+    if (weakDelegateImplMethod != null && weakPublicImplMethod != null) {
+      extractionContext.add(weakImplementedMethod,String.format("it is both implemented by the view '%s' and the delegate type '%s'",extractionContext.getPublicSchema().getType().getDisplayName(),extractionContext.getDelegateSchema().getType().getDisplayName()));
+    }
+    String propertyName=accessorType == null ? null : accessorType.propertyNameFor(implementedMethod);
+    StructMethodBinding binding;
+    if (!Modifier.isAbstract(implementedMethod.getModifiers())) {
+      binding=new DirectMethodBinding(weakImplementedMethod,accessorType);
+    }
+ else     if (weakPublicImplMethod != null) {
+      binding=new BridgeMethodBinding(weakImplementedMethod,weakPublicImplMethod,accessorType);
+    }
+ else     if (weakDelegateImplMethod != null) {
+      binding=new DelegateMethodBinding(weakImplementedMethod,weakDelegateImplMethod,accessorType);
+    }
+ else     if (propertyName != null) {
+      binding=new ManagedPropertyMethodBinding(weakImplementedMethod,propertyName,accessorType);
+    }
+ else {
+      handleNoMethodImplementation(extractionContext,weakImplementedMethod);
+      continue;
+    }
+    methodBindingsBuilder.add(binding);
+    if (accessorType != null) {
+      Multimap<PropertyAccessorType,StructMethodBinding> accessorBindings=propertyBindings.get(propertyName);
+      if (accessorBindings == null) {
+        accessorBindings=ArrayListMultimap.create();
+        propertyBindings.put(propertyName,accessorBindings);
+      }
+      accessorBindings.put(accessorType,binding);
+    }
+  }
+  return methodBindingsBuilder.build();
+}

@@ -1,0 +1,31 @@
+{
+  Collection<StructMethodBinding> isGetter=accessorBindings.get(IS_GETTER);
+  for (  StructMethodBinding isGetterBinding : isGetter) {
+    if (!((ManagedPropertyMethodBinding)isGetterBinding).getDeclaredPropertyType().equals(ModelType.of(Boolean.TYPE))) {
+      WeaklyTypeReferencingMethod<?,?> isGetterMethod=isGetterBinding.getSource();
+      extractionContext.add(isGetterMethod,String.format("it should either return 'boolean', or its name should be '%s()'","get" + isGetterMethod.getName().substring(2)));
+    }
+  }
+  Set<ModelType<?>> potentialPropertyTypes=Sets.newLinkedHashSet();
+  for (  StructMethodBinding binding : accessorBindings.values()) {
+    if (binding.getAccessorType() == SETTER) {
+      continue;
+    }
+    ManagedPropertyMethodBinding propertyBinding=(ManagedPropertyMethodBinding)binding;
+    potentialPropertyTypes.add(propertyBinding.getDeclaredPropertyType());
+  }
+  Collection<ModelType<?>> convergingPropertyTypes=findConvergingTypes(potentialPropertyTypes);
+  if (convergingPropertyTypes.size() != 1) {
+    extractionContext.add(propertyName,String.format("it must have a consistent type, but it's defined as %s",Joiner.on(", ").join(ModelTypes.getDisplayNames(convergingPropertyTypes))));
+    return convergingPropertyTypes.iterator().next();
+  }
+  ModelType<?> propertyType=Iterables.getOnlyElement(convergingPropertyTypes);
+  for (  StructMethodBinding setterBinding : accessorBindings.get(SETTER)) {
+    ManagedPropertyMethodBinding propertySetterBinding=(ManagedPropertyMethodBinding)setterBinding;
+    ModelType<?> declaredSetterType=propertySetterBinding.getDeclaredPropertyType();
+    if (!declaredSetterType.equals(propertyType)) {
+      extractionContext.add(setterBinding.getSource(),String.format("it should take parameter with type '%s'",propertyType.getDisplayName()));
+    }
+  }
+  return propertyType;
+}
