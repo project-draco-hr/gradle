@@ -1,15 +1,7 @@
 {
-  final S3Client s3Client;
-  for (  Authentication authentication : connectionDetails.getAuthentications()) {
-    if (authentication instanceof DefaultAwsImAuthentication) {
-      s3Client=S3Client.forInstanceMetaData();
-      return new S3ResourceConnector(s3Client);
-    }
-  }
   AwsCredentials awsCredentials=connectionDetails.getCredentials(AwsCredentials.class);
   if (awsCredentials == null) {
     throw new IllegalArgumentException("AwsCredentials must be set for S3 backed repository.");
   }
-  s3Client=S3Client.of(awsCredentials,new S3ConnectionProperties());
-  return new S3ResourceConnector(s3Client);
+  return new S3ResourceConnector(new S3Client(awsCredentials,new S3ConnectionProperties()));
 }
