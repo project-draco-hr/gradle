@@ -1,0 +1,15 @@
+{
+  Map<File,FileWatcherEvent.Type> aggregatedEvents=Maps.newLinkedHashMap();
+  for (  FileWatcherEvent event : fileWatchEvents) {
+    if (event.getType() == FileWatcherEvent.Type.UNDEFINED) {
+      continue;
+    }
+    File file=event.getFile();
+    FileWatcherEvent.Type existingType=aggregatedEvents.get(file);
+    if (existingType == event.getType() || existingType == FileWatcherEvent.Type.CREATE && event.getType() == FileWatcherEvent.Type.MODIFY) {
+      continue;
+    }
+    aggregatedEvents.put(file,event.getType());
+  }
+  return aggregatedEvents;
+}

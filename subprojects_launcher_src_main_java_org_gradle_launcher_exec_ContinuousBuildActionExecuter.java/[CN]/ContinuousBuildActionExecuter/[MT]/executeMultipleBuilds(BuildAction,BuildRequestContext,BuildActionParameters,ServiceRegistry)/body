@@ -40,12 +40,16 @@
  else {
         cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>(){
           @Override public void execute(          BuildCancellationToken cancellationToken){
-            waiter.wait(new Runnable(){
+            List<FileWatcherEvent> changeEvents=waiter.wait(new Runnable(){
               @Override public void run(){
                 logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(actionParameters));
               }
             }
 );
+            if (!cancellationToken.isCancellationRequested()) {
+              ChangeReporter reporter=new ChangeReporter(logger);
+              reporter.reportChanges(changeEvents);
+            }
           }
         }
 );
