@@ -1,24 +1,4 @@
 {
   final JvmAssembly jvmAssembly=((WithJvmAssembly)binary).getAssembly();
-  tasks.create(testTaskNameFor(binary),Test.class,new Action<Test>(){
-    @Override public void execute(    final Test test){
-      test.dependsOn(jvmAssembly);
-      test.setTestClassesDir(binary.getClassesDir());
-      String testedComponentName=binary.getTestSuite().getTestedComponent();
-      JvmComponentSpec testedComponent=testedComponentName != null ? JvmTestSuites.getTestedComponent(registry,testedComponentName) : null;
-      test.setClasspath(classpathFor(binary,testedComponent,registry,schemaStore));
-      configureReports(test);
-    }
-    private void configureReports(    Test test){
-      TestTaskReports reports=test.getReports();
-      File reportsDirectory=new File(buildDir,"reports");
-      File htmlDir=new File(reportsDirectory,"tests");
-      File xmlDir=new File(buildDir,"test-results");
-      File binDir=new File(xmlDir,"binary");
-      reports.getHtml().setDestination(htmlDir);
-      reports.getJunitXml().setDestination(xmlDir);
-      test.setBinResultsDir(binDir);
-    }
-  }
-);
+  JvmTestSuites.createJvmTestSuiteTasks(tasks,binary,jvmAssembly,registry,schemaStore,buildDir);
 }
