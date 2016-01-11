@@ -6,7 +6,7 @@
           if (spec instanceof JUnitTestSuiteBinarySpec) {
             JUnitTestSuiteBinarySpec testSuiteBinary=(JUnitTestSuiteBinarySpec)spec;
             JvmBinarySpec testedBinary=testSuiteBinary.getTestedBinary();
-            if (testedBinary instanceof WithJvmAssembly && testedBinary instanceof JarBinarySpec) {
+            if (testedBinary instanceof JarBinarySpecInternal) {
               FileCollection classpath=javaCompile.getClasspath();
               JvmAssembly assembly=((WithJvmAssembly)testedBinary).getAssembly();
               ArtifactDependencyResolver dependencyResolver=serviceRegistry.get(ArtifactDependencyResolver.class);
@@ -14,7 +14,7 @@
               List<ResolutionAwareRepository> resolutionAwareRepositories=CollectionUtils.collect(repositories,Transformers.cast(ResolutionAwareRepository.class));
               JvmComponentSpec testedComponent=JvmTestSuites.getTestedComponent(serviceRegistry,testSuiteBinary.getTestSuite().getTestedComponent());
               JvmLibrarySpec jvmLibrarySpec=(JvmLibrarySpec)testedComponent;
-              BaseDependencyResolvingClasspath transitiveCompileClasspath=new BaseDependencyResolvingClasspath((BinarySpecInternal)testedBinary,"test suite",dependencyResolver,resolutionAwareRepositories,new LocalComponentResolveContext(((BinarySpecInternal)testedBinary).getId(),DefaultVariantsMetaData.extractFrom(testedBinary,schemaStore),collectDependencies(testedBinary,testedComponent,((JarBinarySpecInternal)testedBinary).getApiDependencies()),DefaultLibraryBinaryIdentifier.CONFIGURATION_RUNTIME,testedBinary.getDisplayName()));
+              BaseDependencyResolvingClasspath transitiveCompileClasspath=new BaseDependencyResolvingClasspath((BinarySpecInternal)testedBinary,"test suite",dependencyResolver,resolutionAwareRepositories,new LocalComponentResolveContext(((BinarySpecInternal)testedBinary).getId(),DefaultVariantsMetaData.extractFrom(testedBinary,schemaStore),collectDependencies(testedBinary,testedComponent,((JarBinarySpecInternal)testedBinary).getApiDependencies()),UsageKind.RUNTIME,testedBinary.getDisplayName()));
               FileCollection fullClasspath=new UnionFileCollection(classpath,transitiveCompileClasspath,new SimpleFileCollection(assembly.getClassDirectories()),new SimpleFileCollection(assembly.getResourceDirectories()));
               javaCompile.setClasspath(fullClasspath);
               javaCompile.dependsOn(((WithJvmAssembly)testedBinary).getAssembly());
