@@ -14,7 +14,7 @@
     lock.lock();
     try {
       long lastChangeAtValue=lastChangeAt.get();
-      while (!cancellationToken.isCancellationRequested() && error.get() == null && (lastChangeAtValue == 0 || monotonicClockMillis() - lastChangeAtValue < quietPeriodMillis)) {
+      while (!cancellationToken.isCancellationRequested() && error.get() == null && shouldKeepWaitingForQuietPeriod(lastChangeAtValue)) {
         condition.await(quietPeriodMillis,TimeUnit.MILLISECONDS);
         lastChangeAtValue=lastChangeAt.get();
       }
