@@ -38,12 +38,12 @@ class State implements ModelElementState {
         if (propertyViews.containsKey(name)) {
           return propertyViews.get(name);
         }
-        ManagedProperty<?> property=bindings.getManagedProperty(name);
+        ModelProperty<?> property=schema.getProperty(name);
         Object value=doGet(property,name);
         propertyViews.put(name,value);
         return value;
       }
-      private <T>T doGet(      ManagedProperty<T> property,      String propertyName){
+      private <T>T doGet(      ModelProperty<T> property,      String propertyName){
         ModelType<T> propertyType=property.getType();
         MutableModelNode propertyNode=modelNode.getLink(propertyName);
         propertyNode.ensureUsable();
@@ -73,11 +73,11 @@ class State implements ModelElementState {
         if (!writable || closed) {
           throw new ModelViewClosedException(getType(),ruleDescriptor);
         }
-        ManagedProperty<?> property=bindings.getManagedProperty(name);
+        ModelProperty<?> property=schema.getProperty(name);
         value=doSet(name,value,property);
         propertyViews.put(name,value);
       }
-      private <T>Object doSet(      String name,      Object value,      ManagedProperty<T> property){
+      private <T>Object doSet(      String name,      Object value,      ModelProperty<T> property){
         ModelSchema<T> propertySchema=property.getSchema();
         MutableModelNode propertyNode=modelNode.getLink(name);
         propertyNode.ensureUsable();
