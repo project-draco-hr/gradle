@@ -1,0 +1,13 @@
+{
+  EnumMap<UsageKind,Iterable<DependencySpec>> dependenciesPerUsage=new EnumMap<UsageKind,Iterable<DependencySpec>>(UsageKind.class);
+  EnumMap<UsageKind,TaskDependency> buildDependenciesPerUsage=new EnumMap<UsageKind,TaskDependency>(UsageKind.class);
+  JarFile apiJar=jarBinarySpec.getApiJar();
+  populateUsageMetadata(UsageKind.API,apiJar,jarBinarySpec.getApiDependencies(),dependenciesPerUsage,buildDependenciesPerUsage);
+  JarFile runtimeJar=jarBinarySpec.getRuntimeJar();
+  JvmLibrarySpec library=jarBinarySpec.getLibrary();
+  populateUsageMetadata(UsageKind.RUNTIME,runtimeJar,library != null ? collectDependencies(jarBinarySpec,library,library.getDependencies().getDependencies(),jarBinarySpec.getApiDependencies()) : Collections.<DependencySpec>emptyList(),dependenciesPerUsage,buildDependenciesPerUsage);
+  DefaultLibraryLocalComponentMetaData metadata=newResolvedLibraryMetadata(jarBinarySpec.getId(),buildDependenciesPerUsage,dependenciesPerUsage,projectPath);
+  addArtifact(UsageKind.API,apiJar,metadata);
+  addArtifact(UsageKind.RUNTIME,runtimeJar,metadata);
+  return metadata;
+}

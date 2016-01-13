@@ -1,14 +1,11 @@
 {
   try {
     ModelRegistry projectModel=projectModelResolver.resolveProjectModel(projectPath);
-    ComponentSpecContainer components=projectModel.find("components",ComponentSpecContainer.class);
-    if (components != null) {
-      ModelMap<? extends LibrarySpec> libraries=components.withType(LibrarySpec.class);
-      return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.of(libraries.values(),libraryName,binarySpecPredicate);
+    LibraryResolutionErrorMessageBuilder.LibraryResolutionResult libraries=findLocalComponent(libraryName,projectModel);
+    if (libraries != null) {
+      return libraries;
     }
- else {
-      return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.emptyResolutionResult();
-    }
+    return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.emptyResolutionResult();
   }
  catch (  UnknownProjectException e) {
     return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.projectNotFound();
