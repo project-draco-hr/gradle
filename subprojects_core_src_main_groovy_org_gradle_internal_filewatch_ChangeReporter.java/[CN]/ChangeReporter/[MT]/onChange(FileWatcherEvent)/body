@@ -1,0 +1,16 @@
+{
+  if (event.getType() == UNDEFINED) {
+    return;
+  }
+  File file=event.getFile();
+  FileWatcherEvent.Type existingType=aggregatedEvents.get(file);
+  if (existingType == event.getType() || existingType == CREATE && event.getType() == MODIFY) {
+    return;
+  }
+  if (existingType != null || aggregatedEvents.size() < SHOW_INDIVIDUAL_CHANGES_LIMIT) {
+    aggregatedEvents.put(file,event.getType());
+  }
+ else   if (event.getType() != CREATE || event.getFile().isDirectory()) {
+    moreChangesCount++;
+  }
+}

@@ -1,0 +1,37 @@
+{
+  final List<JavaPlatform> javaPlatforms=resolvePlatforms(platformResolver);
+  final JavaPlatform platform=javaPlatforms.get(0);
+  final BinaryNamingScheme namingScheme=namingSchemeFor(testSuite,testedBinary,javaPlatforms,platform);
+  testBinaries.create(namingScheme.getBinaryName(),testSuiteBinaryClass,new Action<T>(){
+    @Override public void execute(    T binary){
+      JvmTestSuiteBinarySpecInternal testBinary=(JvmTestSuiteBinarySpecInternal)binary;
+      testBinary.setNamingScheme(namingScheme);
+      testBinary.setTargetPlatform(platform);
+      testBinary.setToolChain(toolChains.getForPlatform(platform));
+      testBinary.setTestedBinary(testedBinary);
+      injectDependencyResolutionServices(testBinary);
+      configureAction.execute(binary);
+      configureCompileClasspath(testBinary);
+    }
+    private void injectDependencyResolutionServices(    JvmTestSuiteBinarySpecInternal testBinary){
+      ArtifactDependencyResolver dependencyResolver=serviceRegistry.get(ArtifactDependencyResolver.class);
+      RepositoryHandler repositories=serviceRegistry.get(RepositoryHandler.class);
+      List<ResolutionAwareRepository> resolutionAwareRepositories=CollectionUtils.collect(repositories,Transformers.cast(ResolutionAwareRepository.class));
+      testBinary.setArtifactDependencyResolver(dependencyResolver);
+      testBinary.setRepositories(resolutionAwareRepositories);
+      testBinary.setModelSchemaStore(modelSchemaStore);
+    }
+    private void configureCompileClasspath(    JvmTestSuiteBinarySpecInternal testSuiteBinary){
+      Collection<DependencySpec> dependencies=testSuiteBinary.getDependencies();
+      if (testedBinary != null) {
+        BinarySpecInternal binary=(BinarySpecInternal)testedBinary;
+        LibraryBinaryIdentifier id=binary.getId();
+        dependencies.add(DefaultLibraryBinaryDependencySpec.of(id));
+        if (testedBinary instanceof JarBinarySpecInternal) {
+          dependencies.addAll(((JarBinarySpecInternal)testedBinary).getApiDependencies());
+        }
+      }
+    }
+  }
+);
+}

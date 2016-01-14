@@ -1,0 +1,39 @@
+{
+  Runnable cancellationHandler=new Runnable(){
+    @Override public void run(){
+      signal(lock,condition);
+    }
+  }
+;
+  try {
+    this.eventListener=eventListener;
+    if (cancellationToken.isCancellationRequested()) {
+      return;
+    }
+    cancellationToken.addCallback(cancellationHandler);
+    notifier.run();
+    lock.lock();
+    try {
+      long lastChangeAtValue=lastChangeAt.get();
+      while (!cancellationToken.isCancellationRequested() && error.get() == null && shouldKeepWaitingForQuietPeriod(lastChangeAtValue)) {
+        condition.await(quietPeriodMillis,TimeUnit.MILLISECONDS);
+        lastChangeAtValue=lastChangeAt.get();
+      }
+    }
+  finally {
+      lock.unlock();
+    }
+    Throwable throwable=error.get();
+    if (throwable != null) {
+      throw throwable;
+    }
+  }
+ catch (  Throwable e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+ finally {
+    this.eventListener=null;
+    cancellationToken.removeCallback(cancellationHandler);
+    watcher.stop();
+  }
+}

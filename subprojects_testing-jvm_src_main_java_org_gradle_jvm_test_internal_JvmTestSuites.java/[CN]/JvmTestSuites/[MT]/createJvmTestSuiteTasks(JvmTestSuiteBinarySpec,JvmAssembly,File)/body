@@ -1,0 +1,23 @@
+{
+  binary.getTasks().create(testTaskNameFor(binary),Test.class,new Action<Test>(){
+    @Override public void execute(    final Test test){
+      test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+      test.setDescription(String.format("Runs %s.",WordUtils.uncapitalize(binary.getDisplayName())));
+      test.dependsOn(jvmAssembly);
+      test.setTestClassesDir(binary.getClassesDir());
+      test.setClasspath(binary.getRuntimeClasspath());
+      configureReports(test);
+    }
+    private void configureReports(    Test test){
+      TestTaskReports reports=test.getReports();
+      File reportsDirectory=new File(buildDir,"reports");
+      File htmlDir=new File(reportsDirectory,"tests");
+      File xmlDir=new File(buildDir,"test-results");
+      File binDir=new File(xmlDir,"binary");
+      reports.getHtml().setDestination(htmlDir);
+      reports.getJunitXml().setDestination(xmlDir);
+      test.setBinResultsDir(binDir);
+    }
+  }
+);
+}
