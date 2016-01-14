@@ -11,6 +11,7 @@
       testBinary.setTestedBinary(testedBinary);
       injectDependencyResolutionServices(testBinary);
       configureAction.execute(binary);
+      configureCompileClasspath(testBinary);
     }
     private void injectDependencyResolutionServices(    JvmTestSuiteBinarySpecInternal testBinary){
       ArtifactDependencyResolver dependencyResolver=serviceRegistry.get(ArtifactDependencyResolver.class);
@@ -19,6 +20,17 @@
       testBinary.setArtifactDependencyResolver(dependencyResolver);
       testBinary.setRepositories(resolutionAwareRepositories);
       testBinary.setModelSchemaStore(modelSchemaStore);
+    }
+    private void configureCompileClasspath(    JvmTestSuiteBinarySpecInternal testSuiteBinary){
+      Collection<DependencySpec> dependencies=testSuiteBinary.getDependencies();
+      if (testedBinary != null) {
+        BinarySpecInternal binary=(BinarySpecInternal)testedBinary;
+        LibraryBinaryIdentifier id=binary.getId();
+        dependencies.add(DefaultLibraryBinaryDependencySpec.of(id));
+        if (testedBinary instanceof JarBinarySpecInternal) {
+          dependencies.addAll(((JarBinarySpecInternal)testedBinary).getApiDependencies());
+        }
+      }
     }
   }
 );
