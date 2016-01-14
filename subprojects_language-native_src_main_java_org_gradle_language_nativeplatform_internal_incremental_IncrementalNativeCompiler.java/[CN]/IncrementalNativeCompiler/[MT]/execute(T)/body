@@ -9,23 +9,8 @@
   }
 );
   spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(),compilation.getFinalState()));
-  for (  File includeFile : compilation.getIncludeCandidates()) {
-    ((IncrementalTaskInputsInternal)spec.getIncrementalInputs()).newInput(includeFile);
-  }
-  if (sourceFilesUseMacroIncludes(spec.getSourceFiles(),compilation.getFinalState())) {
-    logger.info("The path to some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs for {}.",task.getName());
-    for (    final File includeRoot : spec.getIncludeRoots()) {
-      logger.info("adding files in {} to discovered inputs for {}",includeRoot,task.getName());
-      new DirectoryFileTree(includeRoot).visit(new FileVisitor(){
-        @Override public void visitDir(        FileVisitDetails dirDetails){
-        }
-        @Override public void visitFile(        FileVisitDetails fileDetails){
-          ((IncrementalTaskInputsInternal)spec.getIncrementalInputs()).newInput(fileDetails.getFile());
-        }
-      }
-);
-    }
-  }
+  final IncrementalTaskInputsInternal taskInputs=(IncrementalTaskInputsInternal)spec.getIncrementalInputs();
+  handleDiscoveredInputs(spec,compilation,taskInputs);
   WorkResult workResult;
   if (spec.isIncrementalCompile()) {
     workResult=doIncrementalCompile(compilation,spec);
