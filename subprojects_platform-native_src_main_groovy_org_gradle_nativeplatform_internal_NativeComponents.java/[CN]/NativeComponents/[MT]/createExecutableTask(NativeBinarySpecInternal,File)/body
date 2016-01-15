@@ -1,19 +1,19 @@
 {
   String taskName=binary.getNamingScheme().getTaskName("link");
-  tasks.create(taskName,LinkSharedLibrary.class,new Action<LinkSharedLibrary>(){
-    @Override public void execute(    LinkSharedLibrary linkTask){
+  binary.getTasks().create(taskName,LinkExecutable.class,new Action<LinkExecutable>(){
+    @Override public void execute(    LinkExecutable linkTask){
       linkTask.setDescription("Links " + binary.getDisplayName());
       linkTask.setToolChain(binary.getToolChain());
       linkTask.setTargetPlatform(binary.getTargetPlatform());
-      linkTask.setOutputFile(binary.getSharedLibraryFile());
-      linkTask.setInstallName(binary.getSharedLibraryFile().getName());
+      linkTask.setOutputFile(executableFile);
       linkTask.setLinkerArgs(binary.getLinker().getArgs());
-      linkTask.lib(new NativeComponents.BinaryLibs(binary){
+      linkTask.lib(new BinaryLibs(binary){
         @Override protected FileCollection getFiles(        NativeDependencySet nativeDependencySet){
           return nativeDependencySet.getLinkFiles();
         }
       }
 );
+      binary.builtBy(linkTask);
     }
   }
 );
