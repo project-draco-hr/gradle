@@ -1,9 +1,10 @@
 {
   TaskExecution thisExecution=history.getCurrentExecution();
   TaskExecution lastExecution=history.getPreviousExecution();
-  noHistoryState=NoHistoryStateChangeRule.create(task,lastExecution);
-  taskTypeState=TaskTypeStateChangeRule.create(task,lastExecution,thisExecution);
-  inputPropertiesState=InputPropertiesStateChangeRule.create(task,lastExecution,thisExecution);
+  TaskStateChanges noHistoryState=NoHistoryStateChangeRule.create(task,lastExecution);
+  TaskStateChanges taskTypeState=TaskTypeStateChangeRule.create(task,lastExecution,thisExecution);
+  TaskStateChanges inputPropertiesState=InputPropertiesStateChangeRule.create(task,lastExecution,thisExecution);
+  TaskStateChanges outputFilesState;
   try {
     outputFilesState=caching(OutputFilesStateChangeRule.create(task,lastExecution,thisExecution,outputFilesSnapshotter));
   }
@@ -19,7 +20,7 @@
     throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.",task.getName()),e);
   }
   try {
-    discoveredInputFilesState=DiscoveredInputFilesStateChangeRule.create(lastExecution,thisExecution,discoveredFilesSnapshotter);
+    discoveredInputFilesState=discoveredInputFilesStateChangeRule.create(lastExecution,thisExecution);
   }
  catch (  UncheckedIOException e) {
     throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.",task.getName()),e);
