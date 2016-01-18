@@ -2,13 +2,12 @@
   DefaultIdeaContentRoot contentRoot=new DefaultIdeaContentRoot().setRootDirectory(ideaModule.getContentRoot()).setSourceDirectories(srcDirs(ideaModule.getSourceDirs(),ideaModule.getGeneratedSourceDirs())).setTestDirectories(srcDirs(ideaModule.getTestSourceDirs(),ideaModule.getGeneratedSourceDirs())).setExcludeDirectories(ideaModule.getExcludeDirs());
   Project project=ideaModule.getProject();
   JavaPluginConvention javaPluginConvention=project.getConvention().findPlugin(JavaPluginConvention.class);
-  JavaVersion projectSourceLanguageLevel=ideaProject.getJavaSourceSettings().getSourceLanguageLevel();
   DefaultIdeaModule defaultIdeaModule=new DefaultIdeaModule().setName(ideaModule.getName()).setParent(ideaProject).setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath())).setContentRoots(Collections.singletonList(contentRoot)).setCompilerOutput(new DefaultIdeaCompilerOutput().setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false).setOutputDir(ideaModule.getOutputDir()).setTestOutputDir(ideaModule.getTestOutputDir()));
   if (javaPluginConvention != null) {
     final IdeaLanguageLevel ideaModuleLanguageLevel=ideaModule.getLanguageLevel();
-    JavaVersion moduleSourceLanguageLevel=ideaModuleLanguageLevel == null ? projectSourceLanguageLevel : convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
+    JavaVersion moduleSourceLanguageLevel=convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
     JavaVersion moduleTargetLanguageLevel=javaPluginConvention.getTargetCompatibility();
-    defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaJavaSettings().setSourceLanguageLevelInherited(moduleSourceLanguageLevel.equals(projectSourceLanguageLevel)).setSourceLanguageLevel(moduleSourceLanguageLevel).setTargetBytecodeLevel(moduleTargetLanguageLevel).setTargetRuntime(javaRuntime).setTargetRuntimeInherited(true));
+    defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaJavaSettings().setSourceLanguageLevel(moduleSourceLanguageLevel).setTargetBytecodeLevel(moduleTargetLanguageLevel).setTargetRuntime(javaRuntime).setTargetRuntimeInherited(true));
   }
   modules.put(ideaModule.getName(),defaultIdeaModule);
 }
