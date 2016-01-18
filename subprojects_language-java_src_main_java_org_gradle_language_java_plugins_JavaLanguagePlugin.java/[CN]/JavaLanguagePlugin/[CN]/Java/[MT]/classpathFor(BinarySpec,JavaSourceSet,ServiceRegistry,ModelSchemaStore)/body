@@ -3,5 +3,7 @@
   ArtifactDependencyResolver dependencyResolver=serviceRegistry.get(ArtifactDependencyResolver.class);
   RepositoryHandler repositories=serviceRegistry.get(RepositoryHandler.class);
   List<ResolutionAwareRepository> resolutionAwareRepositories=CollectionUtils.collect(repositories,Transformers.cast(ResolutionAwareRepository.class));
-  return new SourceSetDependencyResolvingClasspath((BinarySpecInternal)binary,javaSourceSet,dependencies,dependencyResolver,schemaStore,resolutionAwareRepositories);
+  ModelSchema<? extends BinarySpec> schema=schemaStore.getSchema(((BinarySpecInternal)binary).getPublicType());
+  VariantsMetaData variantsMetaData=DefaultVariantsMetaData.extractFrom(binary,schema);
+  return new SourceSetDependencyResolvingClasspath((BinarySpecInternal)binary,javaSourceSet,dependencies,dependencyResolver,variantsMetaData,resolutionAwareRepositories);
 }
