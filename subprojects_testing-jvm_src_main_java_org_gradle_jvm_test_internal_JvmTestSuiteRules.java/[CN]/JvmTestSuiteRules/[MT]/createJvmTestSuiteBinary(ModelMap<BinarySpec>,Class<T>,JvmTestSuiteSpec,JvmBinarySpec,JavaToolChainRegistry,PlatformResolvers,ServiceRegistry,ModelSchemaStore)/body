@@ -1,0 +1,40 @@
+{
+  final List<JavaPlatform> javaPlatforms=resolvePlatforms(platformResolver);
+  final JavaPlatform platform=testedBinary != null ? testedBinary.getTargetPlatform() : javaPlatforms.get(0);
+  final BinaryNamingScheme namingScheme=namingSchemeFor(testSuite,testedBinary,javaPlatforms,platform);
+  testBinaries.create(namingScheme.getBinaryName(),testSuiteBinaryClass,new Action<T>(){
+    @Override public void execute(    T binary){
+      JvmTestSuiteBinarySpecInternal testBinary=(JvmTestSuiteBinarySpecInternal)binary;
+      testBinary.setNamingScheme(namingScheme);
+      testBinary.setTargetPlatform(platform);
+      testBinary.setToolChain(toolChains.getForPlatform(platform));
+      testBinary.setTestedBinary(testedBinary);
+      addTestSuiteDependencies(testBinary);
+      injectDependencyResolutionServices(testBinary);
+      configureCompileClasspath(testBinary);
+    }
+    private boolean addTestSuiteDependencies(    JvmTestSuiteBinarySpecInternal testBinary){
+      return testBinary.getDependencies().addAll(testSuite.getDependencies().getDependencies());
+    }
+    private void injectDependencyResolutionServices(    JvmTestSuiteBinarySpecInternal testBinary){
+      ArtifactDependencyResolver dependencyResolver=serviceRegistry.get(ArtifactDependencyResolver.class);
+      RepositoryHandler repositories=serviceRegistry.get(RepositoryHandler.class);
+      List<ResolutionAwareRepository> resolutionAwareRepositories=CollectionUtils.collect(repositories,Transformers.cast(ResolutionAwareRepository.class));
+      testBinary.setArtifactDependencyResolver(dependencyResolver);
+      testBinary.setRepositories(resolutionAwareRepositories);
+      testBinary.setModelSchemaStore(modelSchemaStore);
+    }
+    private void configureCompileClasspath(    JvmTestSuiteBinarySpecInternal testSuiteBinary){
+      if (testedBinary != null) {
+        Collection<DependencySpec> dependencies=testSuiteBinary.getDependencies();
+        BinarySpecInternal binary=(BinarySpecInternal)testedBinary;
+        LibraryBinaryIdentifier id=binary.getId();
+        dependencies.add(DefaultLibraryBinaryDependencySpec.of(id));
+        if (testedBinary instanceof JarBinarySpecInternal) {
+          dependencies.addAll(((JarBinarySpecInternal)testedBinary).getApiDependencies());
+        }
+      }
+    }
+  }
+);
+}
