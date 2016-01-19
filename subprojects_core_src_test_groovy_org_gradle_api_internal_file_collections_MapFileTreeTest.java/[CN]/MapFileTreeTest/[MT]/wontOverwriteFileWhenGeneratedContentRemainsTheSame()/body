@@ -1,0 +1,16 @@
+{
+  Action<OutputStream> action=getAction();
+  tree.add("path/file.txt",action);
+  assertVisits(tree,toList("path/file.txt"),toList("path"));
+  TestFile file=rootDir.file("path/file.txt");
+  file.assertContents(equalTo("content"));
+  TestFile.Snapshot snapshot=file.snapshot();
+  try {
+    Thread.sleep(1000L);
+  }
+ catch (  InterruptedException e) {
+  }
+  assertVisits(tree,toList("path/file.txt"),toList("path"));
+  file.assertContents(equalTo("content"));
+  file.assertHasNotChangedSince(snapshot);
+}

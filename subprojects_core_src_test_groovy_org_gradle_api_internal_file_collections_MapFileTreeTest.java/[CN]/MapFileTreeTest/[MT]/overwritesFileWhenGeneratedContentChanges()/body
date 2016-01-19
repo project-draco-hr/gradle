@@ -1,0 +1,22 @@
+{
+  final AtomicReference<String> currentContentReference=new AtomicReference<String>("content");
+  tree.add("path/file.txt",new Action<OutputStream>(){
+    @Override public void execute(    OutputStream outputStream){
+      try {
+        outputStream.write(currentContentReference.get().getBytes());
+      }
+ catch (      IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+);
+  assertVisits(tree,toList("path/file.txt"),toList("path"));
+  TestFile file=rootDir.file("path/file.txt");
+  file.assertContents(equalTo("content"));
+  TestFile.Snapshot snapshot=file.snapshot();
+  currentContentReference.set("updated content");
+  assertVisits(tree,toList("path/file.txt"),toList("path"));
+  file.assertContents(equalTo("updated content"));
+  file.assertHasChangedSince(snapshot);
+}
