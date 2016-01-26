@@ -1,21 +1,32 @@
 {
-  execSpec.setMain("jarjar." + GradleWorkerMain.class.getName());
-  execSpec.classpath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
-  Object requestedSecurityManager=execSpec.getSystemProperties().get("java.security.manager");
-  execSpec.systemProperty("java.security.manager","jarjar." + BootstrapSecurityManager.class.getName());
-  Collection<URL> workerClassPath=classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs();
-  ActionExecutionWorker worker=create();
   Collection<File> applicationClasspath=processBuilder.getApplicationClasspath();
+  Collection<URL> workerClassPath=classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs();
   LogLevel logLevel=processBuilder.getLogLevel();
   Set<String> sharedPackages=processBuilder.getSharedPackages();
+  Object requestedSecurityManager=execSpec.getSystemProperties().get("java.security.manager");
+  ClassPath workerMainClassPath=classPathRegistry.getClassPath("WORKER_MAIN");
+  execSpec.setMain("jarjar." + GradleWorkerMain.class.getName());
+  boolean useOptionsFile=Jvm.current().getJavaVersion().isJava9Compatible();
+  if (useOptionsFile) {
+    File optionsFile=temporaryFileProvider.createTemporaryFile("gradle-worker-classpath","txt");
+    writeOptionsFile(workerMainClassPath.getAsFiles(),applicationClasspath,optionsFile);
+    execSpec.jvmArgs("@" + optionsFile.getPath());
+  }
+ else {
+    execSpec.classpath(workerMainClassPath.getAsFiles());
+    execSpec.systemProperty("java.security.manager","jarjar." + BootstrapSecurityManager.class.getName());
+  }
+  ActionExecutionWorker worker=create();
   ByteArrayOutputStream bytes=new ByteArrayOutputStream();
   try {
     DataOutputStream outstr=new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
-    outstr.writeInt(applicationClasspath.size());
-    for (    File file : applicationClasspath) {
-      outstr.writeUTF(file.getAbsolutePath());
+    if (!useOptionsFile) {
+      outstr.writeInt(applicationClasspath.size());
+      for (      File file : applicationClasspath) {
+        outstr.writeUTF(file.getAbsolutePath());
+      }
+      outstr.writeUTF(requestedSecurityManager == null ? "" : requestedSecurityManager.toString());
     }
-    outstr.writeUTF(requestedSecurityManager == null ? "" : requestedSecurityManager.toString());
     outstr.writeInt(workerClassPath.size());
     for (    URL entry : workerClassPath) {
       outstr.writeUTF(entry.toString());
