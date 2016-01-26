@@ -7,22 +7,15 @@
     output.println();
     output.text("Options").println();
   }
-  final ListMultimap<String,OptionDescriptor> optionsByName=groupDescriptorsByName(allOptions);
-  Iterator<String> optionNames=sort(optionsByName.asMap().keySet()).iterator();
+  Map<String,Set<String>> optionToAvailableOptionsValues=optionToAvailableValues(allOptions);
+  Map<String,String> optionToDescription=optionToDescription(allOptions);
+  Iterator<String> optionNames=optionToAvailableOptionsValues.keySet().iterator();
   while (optionNames.hasNext()) {
-    final String currentOption=optionNames.next();
-    final List<OptionDescriptor> descriptorsForCurrentName=optionsByName.get(currentOption);
-    final String optionString=String.format("--%s",currentOption);
+    String currentOption=optionNames.next();
+    Set<String> availableValues=optionToAvailableOptionsValues.get(currentOption);
+    String optionString=String.format("--%s",currentOption);
     output.text(INDENT).withStyle(UserInput).text(optionString);
-    List<Set<String>> availableValuesByDescriptor=collect(descriptorsForCurrentName,new Transformer<Set<String>,OptionDescriptor>(){
-      public Set<String> transform(      OptionDescriptor original){
-        return original.getAvailableValues();
-      }
-    }
-);
-    List<String> commonAvailableValues=intersection(availableValuesByDescriptor);
-    Set<String> availableValues=new TreeSet<String>(commonAvailableValues);
-    output.text(INDENT).text(descriptorsForCurrentName.iterator().next().getDescription());
+    output.text(INDENT).text(optionToDescription.get(currentOption));
     if (!availableValues.isEmpty()) {
       final int optionDescriptionOffset=2 * INDENT.length() + optionString.length();
       final LinePrefixingStyledTextOutput prefixedOutput=createIndentedOutput(output,optionDescriptionOffset);
