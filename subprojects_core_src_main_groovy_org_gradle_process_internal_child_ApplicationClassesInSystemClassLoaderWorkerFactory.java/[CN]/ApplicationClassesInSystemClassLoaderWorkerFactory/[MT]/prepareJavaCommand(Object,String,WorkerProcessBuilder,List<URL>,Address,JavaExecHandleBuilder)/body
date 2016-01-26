@@ -9,14 +9,14 @@
   boolean useOptionsFile=Jvm.current().getJavaVersion().isJava9Compatible();
   if (useOptionsFile) {
     File optionsFile=temporaryFileProvider.createTemporaryFile("gradle-worker-classpath","txt");
-    writeOptionsFile(workerMainClassPath.getAsFiles(),applicationClasspath,optionsFile);
+    writeOptionsFile(displayName,workerMainClassPath.getAsFiles(),applicationClasspath,optionsFile);
     execSpec.jvmArgs("@" + optionsFile.getPath());
   }
  else {
     execSpec.classpath(workerMainClassPath.getAsFiles());
     execSpec.systemProperty("java.security.manager","jarjar." + BootstrapSecurityManager.class.getName());
   }
-  ActionExecutionWorker worker=create();
+  ActionExecutionWorker worker=new ActionExecutionWorker(processBuilder.getWorker(),workerId,displayName,serverAddress,processBuilder.getGradleUserHomeDir());
   ByteArrayOutputStream bytes=new ByteArrayOutputStream();
   try {
     DataOutputStream outstr=new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
