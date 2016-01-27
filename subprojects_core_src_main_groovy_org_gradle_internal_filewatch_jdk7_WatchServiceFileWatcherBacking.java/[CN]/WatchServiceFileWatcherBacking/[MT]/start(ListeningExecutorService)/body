@@ -2,20 +2,25 @@
   if (started.compareAndSet(false,true)) {
     final ListenableFuture<?> runLoopFuture=executorService.submit(new Runnable(){
       @Override public void run(){
-        running.set(true);
-        try {
+        if (!stopped.get()) {
+          pollerThreadReference.set(new SoftReference<Thread>(Thread.currentThread()));
+          running.set(true);
           try {
-            pumpEvents();
+            try {
+              pumpEvents();
+            }
+ catch (            InterruptedException e) {
+            }
+catch (            Throwable t) {
+              if (!(Throwables.getRootCause(t) instanceof InterruptedException)) {
+                stop();
+                onError.execute(t);
+              }
+            }
           }
- catch (          InterruptedException e) {
-          }
-catch (          Throwable t) {
-            stop();
-            onError.execute(t);
-          }
-        }
   finally {
-          stop();
+            stop();
+          }
         }
       }
     }

@@ -22,7 +22,7 @@
   }
   executer.withTasks(tasks);
   executer.withArguments(args);
-  executer.withEnvironmentVars(getMergedEnvironmentVars());
+  executer.withEnvironmentVars(environmentVars);
   executer.usingExecutable(executable);
   if (quiet) {
     executer.withQuietLogging();
@@ -36,8 +36,8 @@
   if (userHomeDir != null) {
     executer.withUserHomeDir(userHomeDir);
   }
-  if (stdin != null) {
-    executer.withStdIn(stdin);
+  if (stdinPipe != null) {
+    executer.withStdinPipe(stdinPipe);
   }
   if (defaultCharacterEncoding != null) {
     executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
@@ -48,9 +48,10 @@
   if (defaultLocale != null) {
     executer.withDefaultLocale(defaultLocale);
   }
-  executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
-  if (noDefaultJvmArgs) {
-    executer.withNoDefaultJvmArgs();
+  executer.withCommandLineGradleOpts(commandLineJvmOpts);
+  executer.withBuildJvmOpts(buildJvmOpts);
+  if (useOnlyRequestedJvmOpts) {
+    executer.useDefaultBuildJvmArgs();
   }
   executer.noExtraLogging();
   if (!deprecationChecksOn) {
@@ -68,6 +69,11 @@
   if (!daemonStartingMessageDisabled) {
     executer.withDaemonStartingMessageEnabled();
   }
+  if (requireDaemon) {
+    executer.requireDaemon();
+  }
   executer.withDebug(debug);
+  executer.withProfiler(profiler);
+  executer.withForceInteractive(interactive);
   return executer;
 }

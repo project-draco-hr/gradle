@@ -1,0 +1,33 @@
+{
+  ModelType<P> propertyType=property.getType();
+  ModelSchema<P> propertySchema=schemaStore.getSchema(propertyType);
+  ModelType<T> publicType=bindings.getPublicSchema().getType();
+  validateProperty(propertySchema,property,nodeInitializerRegistry);
+  ModelPath childPath=modelNode.getPath().child(property.getName());
+  if (propertySchema instanceof ManagedImplSchema) {
+    if (!property.isWritable()) {
+      ModelRegistrations.Builder builder=managedRegistrationBuilder(childPath,property,nodeInitializerRegistry,publicType);
+      addLink(modelNode,builder,property.isInternal());
+    }
+ else {
+      if (propertySchema instanceof ScalarCollectionSchema) {
+        ModelRegistrations.Builder builder=managedRegistrationBuilder(childPath,property,nodeInitializerRegistry,publicType);
+        addLink(modelNode,builder,property.isInternal());
+      }
+ else {
+        modelNode.addReference(property.getName(),propertyType,modelNode.getDescriptor());
+      }
+    }
+  }
+ else {
+    ModelRegistrations.Builder registrationBuilder;
+    if (shouldHaveANodeInitializer(property,propertySchema)) {
+      registrationBuilder=managedRegistrationBuilder(childPath,property,nodeInitializerRegistry,publicType);
+    }
+ else {
+      registrationBuilder=ModelRegistrations.of(childPath);
+    }
+    registrationBuilder.withProjection(new UnmanagedModelProjection<P>(propertyType));
+    addLink(modelNode,registrationBuilder,property.isInternal());
+  }
+}

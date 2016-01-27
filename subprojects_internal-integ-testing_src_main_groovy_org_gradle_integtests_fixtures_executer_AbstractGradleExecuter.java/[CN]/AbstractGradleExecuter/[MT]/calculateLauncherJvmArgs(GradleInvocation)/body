@@ -1,0 +1,21 @@
+{
+  gradleInvocation.launcherJvmArgs.addAll(commandLineJvmOpts);
+  if (isUseDaemon() && !gradleInvocation.buildJvmArgs.isEmpty()) {
+    String quotedArgs=join(" ",collect(gradleInvocation.buildJvmArgs,new Transformer<String,String>(){
+      public String transform(      String input){
+        return String.format("'%s'",input);
+      }
+    }
+));
+    gradleInvocation.implicitLauncherJvmArgs.add("-Dorg.gradle.jvmargs=" + quotedArgs);
+  }
+ else {
+    gradleInvocation.launcherJvmArgs.addAll(gradleInvocation.buildJvmArgs);
+  }
+  for (  Map.Entry<String,String> entry : getImplicitJvmSystemProperties().entrySet()) {
+    String key=entry.getKey();
+    String value=entry.getValue();
+    gradleInvocation.implicitLauncherJvmArgs.add(String.format("-D%s=%s",key,value));
+  }
+  gradleInvocation.implicitLauncherJvmArgs.add("-ea");
+}

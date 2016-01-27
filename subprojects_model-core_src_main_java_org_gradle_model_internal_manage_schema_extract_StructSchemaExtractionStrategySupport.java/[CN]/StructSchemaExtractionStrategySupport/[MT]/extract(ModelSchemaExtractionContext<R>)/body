@@ -1,0 +1,22 @@
+{
+  ModelType<R> type=extractionContext.getType();
+  if (!isTarget(type)) {
+    return;
+  }
+  CandidateMethods candidateMethods=ModelSchemaUtils.getCandidateMethods(type.getRawClass());
+  Iterable<ModelPropertyExtractionContext> candidateProperties=selectProperties(extractionContext,candidateMethods);
+  List<ModelPropertyExtractionResult<?>> extractedProperties=extractProperties(candidateProperties);
+  List<ModelSchemaAspect> aspects=aspectExtractor.extract(extractionContext,extractedProperties);
+  Set<WeaklyTypeReferencingMethod<?,?>> nonPropertyMethods=getNonPropertyMethods(candidateMethods,extractedProperties);
+  Iterable<ModelProperty<?>> properties=Iterables.transform(extractedProperties,new Function<ModelPropertyExtractionResult<?>,ModelProperty<?>>(){
+    @Override public ModelProperty<?> apply(    ModelPropertyExtractionResult<?> propertyResult){
+      return propertyResult.getProperty();
+    }
+  }
+);
+  ModelSchema<R> schema=createSchema(extractionContext,properties,nonPropertyMethods,aspects);
+  for (  ModelPropertyExtractionResult<?> propertyResult : extractedProperties) {
+    toPropertyExtractionContext(extractionContext,propertyResult);
+  }
+  extractionContext.found(schema);
+}

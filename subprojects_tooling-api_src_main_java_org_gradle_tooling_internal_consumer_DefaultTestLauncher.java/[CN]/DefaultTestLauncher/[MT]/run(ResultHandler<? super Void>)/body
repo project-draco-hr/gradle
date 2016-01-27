@@ -1,0 +1,17 @@
+{
+  if (operationDescriptors.isEmpty() && internalJvmTestRequests.isEmpty()) {
+    throw new TestExecutionException("No test declared for execution.");
+  }
+  final ConsumerOperationParameters operationParameters=getConsumerOperationParameters();
+  final TestExecutionRequest testExecutionRequest=new TestExecutionRequest(operationDescriptors,ImmutableList.copyOf(testClassNames),ImmutableSet.copyOf(internalJvmTestRequests));
+  connection.run(new ConsumerAction<Void>(){
+    public ConsumerOperationParameters getParameters(){
+      return operationParameters;
+    }
+    public Void run(    ConsumerConnection connection){
+      connection.runTests(testExecutionRequest,getParameters());
+      return null;
+    }
+  }
+,new ResultHandlerAdapter(handler));
+}

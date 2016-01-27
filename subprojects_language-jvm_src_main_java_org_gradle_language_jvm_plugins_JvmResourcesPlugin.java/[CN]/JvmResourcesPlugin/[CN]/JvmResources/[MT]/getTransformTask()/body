@@ -6,13 +6,13 @@
     public Class<? extends DefaultTask> getTaskType(){
       return ProcessResources.class;
     }
-    public void configureTask(    Task task,    BinarySpec binary,    LanguageSourceSet sourceSet){
+    public void configureTask(    Task task,    BinarySpec binary,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
       ProcessResources resourcesTask=(ProcessResources)task;
       JvmResourceSet resourceSet=(JvmResourceSet)sourceSet;
-      JvmBinarySpec jvmBinary=(JvmBinarySpec)binary;
       resourcesTask.from(resourceSet.getSource());
-      resourcesTask.setDestinationDir(jvmBinary.getResourcesDir());
-      jvmBinary.getTasks().getJar().dependsOn(resourcesTask);
+      JvmAssembly assembly=((WithJvmAssembly)binary).getAssembly();
+      resourcesTask.setDestinationDir(first(assembly.getResourceDirectories()));
+      assembly.builtBy(resourcesTask);
     }
   }
 ;

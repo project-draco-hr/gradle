@@ -1,18 +1,28 @@
 {
   ProgressLoggerFactory progressLoggerFactory=getServices().get(ProgressLoggerFactory.class);
-  ProgressLogger progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start("Start Play server","Starting Play");
-  int httpPort=getHttpPort();
-  FileCollection applicationJars=new SimpleFileCollection(applicationJar,assetsJar);
-  applicationJars=applicationJars.plus(runtimeClasspath);
-  PlayRunSpec spec=new DefaultPlayRunSpec(applicationJars,getProject().getProjectDir(),getForkOptions(),httpPort);
-  try {
-    runnerToken=playApplicationRunnerTool.get().start(spec);
-    progressLogger.completed();
-    progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start(String.format("Run Play App at http://localhost:%d/",httpPort),String.format("Running at http://localhost:%d/ (stop with ctrl+d)",httpPort));
-    waitForCtrlD();
-    runnerToken.stop();
-  }
+  PlayApplicationDeploymentHandle deploymentHandle=registerOrFindDeploymentHandle(getPath());
+  if (!deploymentHandle.isRunning()) {
+    ProgressLogger progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start("Start Play server","Starting Play");
+    try {
+      int httpPort=getHttpPort();
+      PlayRunSpec spec=new DefaultPlayRunSpec(runtimeClasspath,changingClasspath,applicationJar,assetsJar,assetsDirs,getProject().getProjectDir(),getForkOptions(),httpPort);
+      PlayApplicationRunnerToken runnerToken=playToolProvider.get(PlayApplicationRunner.class).start(spec);
+      deploymentHandle.start(runnerToken);
+    }
   finally {
-    progressLogger.completed();
+      progressLogger.completed();
+    }
+  }
+  if (!getProject().getGradle().getStartParameter().isContinuous()) {
+    ProgressLogger progressLogger=progressLoggerFactory.newOperation(PlayRun.class).start(String.format("Run Play App at http://localhost:%d/",httpPort),String.format("Running at http://localhost:%d/",httpPort));
+    try {
+      waitForCtrlD();
+    }
+  finally {
+      progressLogger.completed();
+    }
+  }
+ else {
+    logger.warn(String.format("Running Play App (%s) at http://localhost:%d/",getPath(),httpPort));
   }
 }

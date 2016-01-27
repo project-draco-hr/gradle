@@ -1,0 +1,19 @@
+{
+  if (ModelPath.ROOT.equals(listener.getAncestor())) {
+    addEverythingListener(listener);
+    return;
+  }
+  ModelNodeInternal ancestor=flattened.get(listener.getAncestor());
+  if (ancestor != null) {
+    LinkedList<ModelNodeInternal> queue=new LinkedList<ModelNodeInternal>();
+    queue.add(ancestor);
+    while (!queue.isEmpty()) {
+      ModelNodeInternal parent=queue.removeFirst();
+      for (      ModelNodeInternal node : parent.getLinks()) {
+        maybeNotify(node,listener);
+        queue.addFirst(node);
+      }
+    }
+  }
+  ancestorListeners.put(listener.getAncestor(),listener);
+}

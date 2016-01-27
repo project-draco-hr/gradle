@@ -1,0 +1,24 @@
+{
+  if (allTypes.size() == 0) {
+    throw new IllegalArgumentException("No types given");
+  }
+  if (allTypes.size() == 1) {
+    return allTypes;
+  }
+  Set<ModelType<?>> typesToCheck=Sets.newLinkedHashSet(allTypes);
+  Set<ModelType<?>> convergingTypes=Sets.newLinkedHashSet(allTypes);
+  while (!typesToCheck.isEmpty()) {
+    Iterator<ModelType<?>> iTypeToCheck=typesToCheck.iterator();
+    ModelType<?> typeToCheck=iTypeToCheck.next();
+    iTypeToCheck.remove();
+    Iterator<ModelType<?>> iRemainingType=convergingTypes.iterator();
+    while (iRemainingType.hasNext()) {
+      ModelType<?> remainingType=iRemainingType.next();
+      if (!remainingType.equals(typeToCheck) && remainingType.isAssignableFrom(typeToCheck)) {
+        iRemainingType.remove();
+        typesToCheck.remove(remainingType);
+      }
+    }
+  }
+  return convergingTypes;
+}

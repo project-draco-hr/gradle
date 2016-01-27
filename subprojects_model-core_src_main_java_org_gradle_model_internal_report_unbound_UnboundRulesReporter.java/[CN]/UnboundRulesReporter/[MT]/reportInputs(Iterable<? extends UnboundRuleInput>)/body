@@ -1,18 +1,30 @@
 {
   for (  UnboundRuleInput input : inputs) {
-    item();
-    writer.print(input.isBound() ? "+ " : "- ");
-    String path=input.getPath() == null ? "<unspecified>" : input.getPath();
-    writer.print(String.format("%s (%s)",path,input.getType()));
+    writer.print(indent(2));
+    writer.write("- ");
+    writer.write(input.getPath() == null ? "<no path>" : input.getPath());
+    writer.write(" ");
+    writer.write(input.getType() == null ? "<untyped>" : input.getType());
     if (input.getDescription() != null) {
-      writer.print(String.format(" %s",input.getDescription()));
+      writer.write(" ");
+      writer.write("(");
+      writer.write(input.getDescription());
+      writer.write(")");
     }
+    if (!input.isBound()) {
+      writer.write(" ");
+      writer.write("[*]");
+    }
+    writer.println();
     if (input.getPath() == null && input.getScope() != null) {
-      writer.print(String.format(" in scope of '%s'",input.getScope()));
+      writer.write(indent(4));
+      writer.write("scope: ");
+      writer.println(input.getScope());
     }
     if (input.getSuggestedPaths().size() > 0) {
-      writer.print(" - suggestions: ");
-      writer.print(Joiner.on(", ").join(input.getSuggestedPaths()));
+      writer.write(indent(4));
+      writer.write("suggestions: ");
+      writer.println(Joiner.on(", ").join(input.getSuggestedPaths()));
     }
   }
 }

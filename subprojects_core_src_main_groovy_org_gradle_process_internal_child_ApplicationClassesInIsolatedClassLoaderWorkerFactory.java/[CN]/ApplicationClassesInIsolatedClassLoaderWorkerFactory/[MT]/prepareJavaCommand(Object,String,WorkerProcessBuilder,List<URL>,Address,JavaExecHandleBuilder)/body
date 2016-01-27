@@ -1,0 +1,21 @@
+{
+  execSpec.setMain(IsolatedGradleWorkerMain.class.getName());
+  execSpec.classpath(classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles());
+  Collection<URI> applicationClassPath=new DefaultClassPath(processBuilder.getApplicationClasspath()).getAsURIs();
+  ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+  try {
+    DataOutputStream outstr=new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
+    outstr.writeInt(applicationClassPath.size());
+    for (    URI entry : applicationClassPath) {
+      outstr.writeUTF(entry.toString());
+    }
+    ActionExecutionWorker injectedWorker=new ActionExecutionWorker(processBuilder.getWorker(),workerId,displayName,serverAddress,processBuilder.getGradleUserHomeDir());
+    ImplementationClassLoaderWorker worker=new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),processBuilder.getSharedPackages(),implementationClassPath,GUtil.serialize(injectedWorker));
+    GUtil.serialize(worker,outstr);
+    outstr.flush();
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
+  execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
+}

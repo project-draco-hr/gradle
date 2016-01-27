@@ -1,9 +1,12 @@
 {
 synchronized (lock) {
-    if (allListeners.remove(listener)) {
-      for (      BroadcastDispatch<?> broadcaster : dispatchers.values()) {
-        broadcaster.remove(listener);
+    ListenerDetails details=allListeners.remove(listener);
+    if (details != null) {
+      details.disconnect();
+      for (      EventBroadcast<?> broadcaster : broadcasters.values()) {
+        broadcaster.maybeRemove(details);
       }
+      details.untilNotInUse(Thread.currentThread());
     }
   }
 }

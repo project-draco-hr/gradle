@@ -1,0 +1,22 @@
+{
+  base.evaluate();
+  try {
+    if (cleanup && dir != null && dir.exists()) {
+      ConcurrentTestUtil.poll(new Closure(null,null){
+        @SuppressWarnings("UnusedDeclaration") void doCall() throws IOException {
+          FileUtils.forceDelete(dir);
+        }
+      }
+);
+    }
+  }
+ catch (  Exception e) {
+    if (suppressCleanupErrors) {
+      System.err.println("Couldn't delete test dir for " + displayName + " (test is holding files open)");
+      e.printStackTrace(System.err);
+    }
+ else {
+      throw e;
+    }
+  }
+}

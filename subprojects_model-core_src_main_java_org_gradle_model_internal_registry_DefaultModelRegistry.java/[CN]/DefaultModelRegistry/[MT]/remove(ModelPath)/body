@@ -3,13 +3,12 @@
   if (node == null) {
     return;
   }
-  Iterable<? extends ModelNode> dependents=node.getDependents();
-  if (Iterables.isEmpty(dependents)) {
-    modelGraph.remove(node);
-    ruleBindings.remove(node);
-    unboundRules.remove(node.getCreatorBinder());
-  }
- else {
-    throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: "+ Joiner.on(", ").join(dependents));
+  List<ModelNodeInternal> nodesToRemove=Lists.newArrayList();
+  ensureCanRemove(node,nodesToRemove);
+  Collections.reverse(nodesToRemove);
+  for (  ModelNodeInternal nodeToRemove : nodesToRemove) {
+    modelGraph.remove(nodeToRemove);
+    ruleBindings.remove(nodeToRemove);
+    unboundRules.removeAll(nodeToRemove.getRegistrationActionBinders());
   }
 }

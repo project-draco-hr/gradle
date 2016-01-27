@@ -13,7 +13,18 @@
       return -1;
     }
     buffer.clear();
-    int nread=socket.read(buffer);
+    int nread;
+    try {
+      nread=socket.read(buffer);
+    }
+ catch (    IOException e) {
+      if (isEndOfStream(e)) {
+        buffer.position(0);
+        buffer.limit(0);
+        return -1;
+      }
+      throw e;
+    }
     buffer.flip();
     if (nread < 0) {
       return -1;

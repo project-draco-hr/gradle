@@ -1,0 +1,30 @@
+{
+  int modifiers=source.getModifiers();
+  if (Modifier.isInterface(modifiers)) {
+    problems.add("Must be a class, not an interface");
+  }
+  if (source.getEnclosingClass() != null) {
+    if (Modifier.isStatic(modifiers)) {
+      if (Modifier.isPrivate(modifiers)) {
+        problems.add("Class cannot be private");
+      }
+    }
+ else {
+      problems.add("Enclosed classes must be static and non private");
+    }
+  }
+  Constructor<?>[] constructors=source.getDeclaredConstructors();
+  for (  Constructor<?> constructor : constructors) {
+    if (constructor.getParameterTypes().length > 0) {
+      problems.add("Cannot declare a constructor that takes arguments");
+      break;
+    }
+  }
+  Field[] fields=source.getDeclaredFields();
+  for (  Field field : fields) {
+    int fieldModifiers=field.getModifiers();
+    if (!field.isSynthetic() && !(Modifier.isStatic(fieldModifiers) && Modifier.isFinal(fieldModifiers))) {
+      problems.add(field,"Fields must be static final.");
+    }
+  }
+}

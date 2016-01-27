@@ -1,0 +1,20 @@
+{
+  TaskStateInternal state=task.getState();
+  long startTime=result.getStartTime();
+  long endTime=result.getEndTime();
+  if (state.getUpToDate()) {
+    return new DefaultTaskSuccessResult(startTime,endTime,true);
+  }
+ else   if (state.getSkipped()) {
+    return new DefaultTaskSkippedResult(startTime,endTime,state.getSkipMessage());
+  }
+ else {
+    Throwable failure=state.getFailure();
+    if (failure == null) {
+      return new DefaultTaskSuccessResult(startTime,endTime,false);
+    }
+ else {
+      return new DefaultTaskFailureResult(startTime,endTime,Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  Class<?> boxedType=BOXED_TYPES.get(primitiveClass);
+  Type primitiveType=Type.getType(primitiveClass);
+  methodVisitor.visitTypeInsn(CHECKCAST,Type.getInternalName(boxedType));
+  methodVisitor.visitInsn(DUP);
+  Label exit=new Label();
+  Label elseValue=new Label();
+  methodVisitor.visitJumpInsn(IFNONNULL,elseValue);
+  methodVisitor.visitInsn(POP);
+  pushDefaultValue(methodVisitor,primitiveClass);
+  methodVisitor.visitJumpInsn(GOTO,exit);
+  methodVisitor.visitLabel(elseValue);
+  methodVisitor.visitMethodInsn(INVOKEVIRTUAL,Type.getInternalName(boxedType),primitiveClass.getSimpleName() + "Value",Type.getMethodDescriptor(primitiveType),false);
+  methodVisitor.visitLabel(exit);
+}

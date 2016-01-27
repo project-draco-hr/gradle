@@ -3,27 +3,50 @@
     return new FixedPatternStep(source,caseSensitive);
   }
   char ch=source.charAt(0);
+  int endPrefixWildcard=0;
   if (ch == '*') {
-    int pos=1;
-    while (pos < source.length() && source.charAt(pos) == '*') {
-      pos++;
+    endPrefixWildcard=1;
+    while (endPrefixWildcard < source.length() && source.charAt(endPrefixWildcard) == '*') {
+      endPrefixWildcard++;
     }
-    if (pos == source.length()) {
-      return pos == 1 && lastStep ? FILE_WILDCARD_PATTERN_STEP : ANY_WILDCARD_PATTERN_STEP;
-    }
-    for (int i=pos; i < source.length(); i++) {
-      ch=source.charAt(i);
-      if (ch == '?' || ch == '*') {
-        return new RegExpPatternStep(source,caseSensitive);
-      }
-    }
-    return new WildcardPrefixPatternStep(source.substring(pos),caseSensitive);
   }
-  for (int i=0; i < source.length(); i++) {
+  if (endPrefixWildcard == source.length()) {
+    return endPrefixWildcard == 1 && lastStep ? FILE_WILDCARD_PATTERN_STEP : ANY_WILDCARD_PATTERN_STEP;
+  }
+  int endLiteral=endPrefixWildcard;
+  for (; endLiteral < source.length(); endLiteral++) {
+    ch=source.charAt(endLiteral);
+    if (ch == '?') {
+      return new RegExpPatternStep(source,caseSensitive);
+    }
+    if (ch == '*') {
+      break;
+    }
+  }
+  if (endLiteral == source.length()) {
+    if (endPrefixWildcard == 0) {
+      return new FixedPatternStep(source,caseSensitive);
+    }
+    return new HasSuffixPatternStep(source.substring(endPrefixWildcard),caseSensitive);
+  }
+  if (endPrefixWildcard > 0) {
+    return new RegExpPatternStep(source,caseSensitive);
+  }
+  int endSuffixWildcard=endLiteral;
+  for (; endSuffixWildcard < source.length(); endSuffixWildcard++) {
+    ch=source.charAt(endSuffixWildcard);
+    if (ch != '*') {
+      break;
+    }
+  }
+  if (endSuffixWildcard == source.length()) {
+    return new HasPrefixPatternStep(source.substring(0,endLiteral),caseSensitive);
+  }
+  for (int i=endSuffixWildcard; i < source.length(); i++) {
     ch=source.charAt(i);
     if (ch == '?' || ch == '*') {
       return new RegExpPatternStep(source,caseSensitive);
     }
   }
-  return new FixedPatternStep(source,caseSensitive);
+  return new HasPrefixAndSuffixPatternStep(source.substring(0,endLiteral),source.substring(endSuffixWildcard),caseSensitive);
 }

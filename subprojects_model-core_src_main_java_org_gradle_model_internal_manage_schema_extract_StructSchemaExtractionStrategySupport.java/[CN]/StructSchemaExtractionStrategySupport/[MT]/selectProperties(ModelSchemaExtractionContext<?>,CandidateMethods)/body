@@ -1,0 +1,23 @@
+{
+  Map<String,ModelPropertyExtractionContext> propertiesMap=Maps.newTreeMap();
+  for (  Map.Entry<Wrapper<Method>,Collection<Method>> entry : candidateMethods.allMethods().entrySet()) {
+    Method method=entry.getKey().get();
+    PropertyAccessorType propertyAccessorType=PropertyAccessorType.of(method);
+    Collection<Method> methodsWithEqualSignature=entry.getValue();
+    if (propertyAccessorType != null) {
+      String propertyName=propertyAccessorType.propertyNameFor(method);
+      ModelPropertyExtractionContext propertyContext=propertiesMap.get(propertyName);
+      if (propertyContext == null) {
+        propertyContext=new ModelPropertyExtractionContext(propertyName);
+        propertiesMap.put(propertyName,propertyContext);
+      }
+      propertyContext.addAccessor(new PropertyAccessorExtractionContext(propertyAccessorType,methodsWithEqualSignature));
+    }
+  }
+  return Collections2.filter(propertiesMap.values(),new Predicate<ModelPropertyExtractionContext>(){
+    @Override public boolean apply(    ModelPropertyExtractionContext property){
+      return property.isReadable();
+    }
+  }
+);
+}

@@ -1,0 +1,29 @@
+{
+  Set<LanguageSourceSetInternal> sourceSetsToCompile=getSourcesToCompile(binary);
+  for (  LanguageTransform<?,?> languageTransform : prioritizedTransforms) {
+    if (!languageTransform.applyToBinary(binary)) {
+      continue;
+    }
+    LanguageSourceSetInternal sourceSetToCompile;
+    while ((sourceSetToCompile=findSourceFor(languageTransform,sourceSetsToCompile)) != null) {
+      sourceSetsToCompile.remove(sourceSetToCompile);
+      final SourceTransformTaskConfig taskConfig=languageTransform.getTransformTask();
+      String taskName=getTransformTaskName(languageTransform,taskConfig,binary,sourceSetToCompile);
+      Task task=tasks.create(taskName,taskConfig.getTaskType());
+      taskConfig.configureTask(task,binary,sourceSetToCompile,serviceRegistry);
+      task.dependsOn(sourceSetToCompile);
+      binary.getTasks().add(task);
+      if (binary.hasCodependentSources() && taskConfig instanceof JointCompileTaskConfig) {
+        JointCompileTaskConfig jointCompileTaskConfig=(JointCompileTaskConfig)taskConfig;
+        Iterator<LanguageSourceSetInternal> candidateSourceSets=sourceSetsToCompile.iterator();
+        while (candidateSourceSets.hasNext()) {
+          LanguageSourceSetInternal candidate=candidateSourceSets.next();
+          if (jointCompileTaskConfig.canTransform(candidate)) {
+            jointCompileTaskConfig.configureAdditionalTransform(task,candidate);
+            candidateSourceSets.remove();
+          }
+        }
+      }
+    }
+  }
+}

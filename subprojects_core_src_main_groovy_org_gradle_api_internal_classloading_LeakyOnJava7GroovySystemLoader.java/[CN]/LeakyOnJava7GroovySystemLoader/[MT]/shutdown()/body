@@ -1,0 +1,21 @@
+{
+  if (leakingLoader == getClass().getClassLoader()) {
+    throw new IllegalStateException("Cannot shut down the main Groovy loader.");
+  }
+  try {
+    Iterator<?> it=globalClassSetIterator();
+    while (it.hasNext()) {
+      Object classInfo=it.next();
+      if (classInfo != null) {
+        Class clazz=(Class)clazzField.get(classInfo);
+        removeFromGlobalClassValue.invoke(globalClassValue,clazz);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("Removed ClassInfo from %s loaded by %s",clazz.getName(),clazz.getClassLoader()));
+        }
+      }
+    }
+  }
+ catch (  Exception e) {
+    throw new GradleException("Could not shut down the Groovy system for " + leakingLoader,e);
+  }
+}

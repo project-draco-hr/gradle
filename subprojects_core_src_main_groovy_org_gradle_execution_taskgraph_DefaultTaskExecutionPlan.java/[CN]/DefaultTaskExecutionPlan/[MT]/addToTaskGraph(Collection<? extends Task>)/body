@@ -30,7 +30,8 @@
       continue;
     }
     if (visiting.add(node)) {
-      Set<? extends Task> dependsOnTasks=realizedDependencies(task,context);
+      ((TaskContainerInternal)task.getProject().getTasks()).prepareForExecution(task);
+      Set<? extends Task> dependsOnTasks=context.getDependencies(task);
       for (      Task dependsOnTask : dependsOnTasks) {
         TaskInfo targetNode=graph.addNode(dependsOnTask);
         node.addDependencySuccessor(targetNode);
@@ -38,7 +39,7 @@
           queue.add(0,targetNode);
         }
       }
-      for (      Task finalizerTask : realizedDependencies(task,task.getFinalizedBy())) {
+      for (      Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
         TaskInfo targetNode=graph.addNode(finalizerTask);
         addFinalizerNode(node,targetNode);
         if (!visiting.contains(targetNode)) {

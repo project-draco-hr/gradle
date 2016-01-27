@@ -1,0 +1,24 @@
+{
+  if (delegateType != null && Modifier.isAbstract(delegateType.getConcreteClass().getModifiers())) {
+    throw new InvalidManagedTypeException(String.format("Type '%s' is not a valid managed type: delegate type must be null or a non-abstract type instead of '%s'.",publicType.getDisplayName(),delegateType.getDisplayName()));
+  }
+  Set<ModelType<?>> implementedViews=collectImplementedViews(publicType,internalViewTypes,delegateType);
+  StructSchema<T> publicSchema=getStructSchema(publicType);
+  Iterable<StructSchema<?>> declaredViewSchemas=getStructSchemas(Iterables.concat(Collections.singleton(publicType),internalViewTypes));
+  Iterable<StructSchema<?>> implementedSchemas=getStructSchemas(implementedViews);
+  StructSchema<D> delegateSchema=delegateType == null ? null : getStructSchema(delegateType);
+  StructBindingExtractionContext<T> extractionContext=new StructBindingExtractionContext<T>(publicSchema,implementedSchemas,delegateSchema);
+  if (!(publicSchema instanceof RuleSourceSchema)) {
+    validateTypeHierarchy(extractionContext,publicType);
+    for (    ModelType<?> internalViewType : internalViewTypes) {
+      validateTypeHierarchy(extractionContext,internalViewType);
+    }
+  }
+  Map<String,Multimap<PropertyAccessorType,StructMethodBinding>> propertyBindings=Maps.newTreeMap();
+  Set<StructMethodBinding> methodBindings=collectMethodBindings(extractionContext,propertyBindings);
+  ImmutableSortedMap<String,ManagedProperty<?>> managedProperties=collectManagedProperties(extractionContext,propertyBindings);
+  if (extractionContext.problems.hasProblems()) {
+    throw new InvalidManagedTypeException(extractionContext.problems.format());
+  }
+  return new DefaultStructBindings<T>(publicSchema,declaredViewSchemas,implementedSchemas,delegateSchema,managedProperties,methodBindings);
+}

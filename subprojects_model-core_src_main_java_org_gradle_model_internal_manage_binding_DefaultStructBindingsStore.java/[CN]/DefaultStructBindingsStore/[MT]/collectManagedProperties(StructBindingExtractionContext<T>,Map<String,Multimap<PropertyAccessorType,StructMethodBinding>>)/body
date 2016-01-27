@@ -1,0 +1,17 @@
+{
+  ImmutableSortedMap.Builder<String,ManagedProperty<?>> managedPropertiesBuilder=ImmutableSortedMap.naturalOrder();
+  for (  Map.Entry<String,Multimap<PropertyAccessorType,StructMethodBinding>> propertyEntry : propertyBindings.entrySet()) {
+    String propertyName=propertyEntry.getKey();
+    Multimap<PropertyAccessorType,StructMethodBinding> accessorBindings=propertyEntry.getValue();
+    if (isManagedProperty(extractionContext,propertyName,accessorBindings)) {
+      if (hasSetter(accessorBindings.keySet()) && !hasGetter(accessorBindings.keySet())) {
+        extractionContext.add(propertyName,"it must both have an abstract getter and a setter");
+        continue;
+      }
+      ModelType<?> propertyType=determineManagedPropertyType(extractionContext,propertyName,accessorBindings);
+      ModelSchema<?> propertySchema=schemaStore.getSchema(propertyType);
+      managedPropertiesBuilder.put(propertyName,createManagedProperty(extractionContext,propertyName,propertySchema,accessorBindings));
+    }
+  }
+  return managedPropertiesBuilder.build();
+}

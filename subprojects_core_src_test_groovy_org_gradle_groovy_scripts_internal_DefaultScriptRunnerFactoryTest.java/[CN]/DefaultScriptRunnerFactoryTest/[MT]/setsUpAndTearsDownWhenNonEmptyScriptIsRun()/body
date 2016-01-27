@@ -1,0 +1,36 @@
+{
+  ScriptRunner<?,Void> scriptRunner=factory.create(compiledScriptMock,scriptSourceDummy,classLoaderDummy);
+  expectScriptInstantiated();
+  context.checking(new Expectations(){
+{
+      Sequence sequence=context.sequence("seq");
+      allowing(compiledScriptMock).getRunDoesSomething();
+      will(returnValue(true));
+      one(scriptExecutionListenerMock).scriptClassLoaded(scriptSourceDummy,Script.class);
+      inSequence(sequence);
+      one(scriptMock).init(target,scriptServices);
+      inSequence(sequence);
+      one(standardOutputCaptureMock).start();
+      inSequence(sequence);
+      one(scriptMock).run();
+      inSequence(sequence);
+      will(doAll(new Action(){
+        public void describeTo(        Description description){
+          description.appendValue("check context classloader");
+        }
+        public Object invoke(        Invocation invocation) throws Throwable {
+          assertThat(Thread.currentThread().getContextClassLoader(),sameInstance(classLoaderDummy));
+          return null;
+        }
+      }
+));
+      one(standardOutputCaptureMock).stop();
+      inSequence(sequence);
+    }
+  }
+);
+  ClassLoader originalClassLoader=Thread.currentThread().getContextClassLoader();
+  assertThat(originalClassLoader,not(sameInstance(classLoaderDummy)));
+  scriptRunner.run(target,scriptServices);
+  assertThat(Thread.currentThread().getContextClassLoader(),sameInstance(originalClassLoader));
+}

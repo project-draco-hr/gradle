@@ -1,0 +1,38 @@
+{
+  lock.lock();
+  try {
+    LOG.debug("Begin - adding watches for {}",fileSystemSubset);
+    final WatchPointsRegistry.Delta delta=watchPointsRegistry.appendFileSystemSubset(fileSystemSubset);
+    Iterable<? extends File> startingWatchPoints=delta.getStartingWatchPoints();
+    for (    File dir : startingWatchPoints) {
+      LOG.debug("Begin - handling starting point {}",dir);
+      final Path dirPath=dir.toPath();
+      watchDir(dirPath);
+      if (!FILE_TREE_WATCHING_SUPPORTED) {
+        Files.walkFileTree(dirPath,new SimpleFileVisitor<Path>(){
+          @Override public FileVisitResult preVisitDirectory(          Path path,          BasicFileAttributes attrs) throws IOException {
+            if (!path.equals(dirPath)) {
+              if (delta.shouldWatch(path.toFile())) {
+                watchDir(path);
+                return FileVisitResult.CONTINUE;
+              }
+ else {
+                LOG.debug("Skipping watching for {}, filtered by WatchPointsRegistry",path);
+                return FileVisitResult.SKIP_SUBTREE;
+              }
+            }
+ else {
+              return FileVisitResult.CONTINUE;
+            }
+          }
+        }
+);
+      }
+      LOG.debug("End - handling starting point {}",dir);
+    }
+    LOG.debug("End - adding watches for {}",fileSystemSubset);
+  }
+  finally {
+    lock.unlock();
+  }
+}

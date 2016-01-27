@@ -1,0 +1,19 @@
+{
+  Set<Method> nonPropertyMethods=Sets.newLinkedHashSet(Iterables.transform(candidateMethods.allMethods().keySet(),new Function<Wrapper<Method>,Method>(){
+    @Override public Method apply(    Wrapper<Method> method){
+      return method.get();
+    }
+  }
+));
+  for (  ModelPropertyExtractionResult<?> extractedProperty : extractedProperties) {
+    for (    PropertyAccessorExtractionContext accessor : extractedProperty.getAccessors()) {
+      nonPropertyMethods.removeAll(accessor.getDeclaringMethods());
+    }
+  }
+  return Sets.newLinkedHashSet(Iterables.transform(nonPropertyMethods,new Function<Method,WeaklyTypeReferencingMethod<?,?>>(){
+    @Override public WeaklyTypeReferencingMethod<?,?> apply(    Method method){
+      return WeaklyTypeReferencingMethod.of(method);
+    }
+  }
+));
+}

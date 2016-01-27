@@ -1,0 +1,15 @@
+{
+  EnumMap<UsageKind,Iterable<DependencySpec>> dependenciesPerUsage=new EnumMap<UsageKind,Iterable<DependencySpec>>(UsageKind.class);
+  EnumMap<UsageKind,TaskDependency> buildDependenciesPerUsage=new EnumMap<UsageKind,TaskDependency>(UsageKind.class);
+  EnumMap<UsageKind,List<PublishArtifact>> artifacts=new EnumMap<UsageKind,List<PublishArtifact>>(UsageKind.class);
+  initializeUsages(dependenciesPerUsage,buildDependenciesPerUsage,artifacts);
+  if (selectedBinary instanceof JarBinarySpecInternal) {
+    JarBinarySpecInternal jarBinarySpec=(JarBinarySpecInternal)selectedBinary;
+    createJarBinarySpecLocalComponentMetaData(artifacts,jarBinarySpec,dependenciesPerUsage,buildDependenciesPerUsage,toAssembly);
+  }
+  if (selectedBinary instanceof WithJvmAssembly) {
+    JvmAssembly assembly=((WithJvmAssembly)selectedBinary).getAssembly();
+    createJvmAssemblyLocalComponentMetaData(artifacts,assembly,dependenciesPerUsage,buildDependenciesPerUsage,toAssembly);
+  }
+  return createResolvedMetaData((BinarySpecInternal)selectedBinary,projectPath,dependenciesPerUsage,buildDependenciesPerUsage,artifacts);
+}

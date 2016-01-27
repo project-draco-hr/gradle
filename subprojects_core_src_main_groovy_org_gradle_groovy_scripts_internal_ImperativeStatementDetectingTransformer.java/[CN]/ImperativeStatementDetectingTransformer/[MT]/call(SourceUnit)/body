@@ -1,14 +1,15 @@
 {
-  if (!source.getAST().getMethods().isEmpty()) {
-    imperativeStatementDetected=true;
-    return;
-  }
   BlockStatement statementBlock=source.getAST().getStatementBlock();
   List<Statement> statements=statementBlock.getStatements();
-  if (statements.size() == 1 && AstUtils.isReturnNullStatement(statements.get(0))) {
-    return;
-  }
-  for (int i=0; i < statements.size() && !imperativeStatementDetected; i++) {
-    statements.get(i).visit(this);
+  for (  Statement statement : statements) {
+    if (!AstUtils.mayHaveAnEffect(statement)) {
+      continue;
+    }
+    ScriptBlock scriptBlock=AstUtils.detectScriptBlock(statement);
+    if (scriptBlock != null && scriptBlock.getName().equals(ModelBlockTransformer.MODEL)) {
+      continue;
+    }
+    imperativeStatementDetected=true;
+    break;
   }
 }

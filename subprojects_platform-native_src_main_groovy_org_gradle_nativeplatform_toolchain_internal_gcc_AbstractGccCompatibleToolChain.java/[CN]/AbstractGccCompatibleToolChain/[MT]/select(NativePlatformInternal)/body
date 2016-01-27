@@ -1,18 +1,8 @@
 {
-  TargetPlatformConfiguration targetPlatformConfigurationConfiguration=getPlatformConfiguration(targetPlatform);
-  ToolChainAvailability result=new ToolChainAvailability();
-  if (targetPlatformConfigurationConfiguration == null) {
-    result.unavailable(String.format("Don't know how to build for platform '%s'.",targetPlatform.getName()));
-    return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(),result);
+  PlatformToolProvider toolProvider=toolProviders.get(targetPlatform);
+  if (toolProvider == null) {
+    toolProvider=createPlatformToolProvider(targetPlatform);
+    toolProviders.put(targetPlatform,toolProvider);
   }
-  DefaultGccPlatformToolChain configurableToolChain=instantiator.newInstance(DefaultGccPlatformToolChain.class,targetPlatform);
-  addDefaultTools(configurableToolChain);
-  configureDefaultTools(configurableToolChain);
-  targetPlatformConfigurationConfiguration.apply(configurableToolChain);
-  configureActions.execute(configurableToolChain);
-  initTools(configurableToolChain,result);
-  if (!result.isAvailable()) {
-    return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(),result);
-  }
-  return new GccPlatformToolProvider(buildOperationProcessor,targetPlatform.getOperatingSystem(),toolSearchPath,configurableToolChain,execActionFactory,configurableToolChain.isCanUseCommandFile());
+  return toolProvider;
 }

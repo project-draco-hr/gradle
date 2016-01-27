@@ -1,0 +1,18 @@
+{
+  if (action.getSubject().getPath() != null) {
+    throw new IllegalArgumentException("Linked element action reference must have null path.");
+  }
+  final ModelType<?> subjectType=action.getSubject().getType();
+  registerListener(new DelegatingListener(spec){
+    @Override public String toString(){
+      return "configure matching " + spec + " using "+ action.getDescriptor();
+    }
+    @Override public void onDiscovered(    ModelNodeInternal node){
+      if (node.canBeViewedAs(subjectType) && spec.matches(node)) {
+        bind(ModelReference.of(node.getPath(),subjectType),role,action);
+      }
+    }
+  }
+);
+  return this;
+}

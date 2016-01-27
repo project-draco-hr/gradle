@@ -1,0 +1,24 @@
+{
+  roots=fileSystemSubset.getRoots();
+  allRequestedRoots=ImmutableSet.<File>builder().addAll(allRequestedRoots).addAll(roots).build();
+  unfiltered=fileSystemSubset.unfiltered();
+  Iterable<? extends File> startingWatchPointCandidates=calculateStartingWatchPoints(roots,unfiltered);
+  if (!currentWatchPoints.isEmpty()) {
+    if (createNewStartingPointsUnderExistingRoots) {
+      startingWatchPoints=filterCurrentWatchPoints(startingWatchPointCandidates);
+      currentWatchPoints=ImmutableSet.<File>builder().addAll(currentWatchPoints).addAll(startingWatchPoints).build();
+    }
+ else {
+      Iterable<? extends File> combinedRoots=FileUtils.calculateRoots(Iterables.concat(currentWatchPoints,startingWatchPointCandidates));
+      startingWatchPoints=filterCurrentWatchPoints(combinedRoots);
+      currentWatchPoints=ImmutableSet.copyOf(combinedRoots);
+    }
+    combinedFileSystemSubset=FileSystemSubset.builder().add(combinedFileSystemSubset).add(fileSystemSubset).build();
+  }
+ else {
+    startingWatchPoints=startingWatchPointCandidates;
+    combinedFileSystemSubset=fileSystemSubset;
+    currentWatchPoints=ImmutableSet.copyOf(startingWatchPoints);
+  }
+  return this;
+}

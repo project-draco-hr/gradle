@@ -1,0 +1,17 @@
+{
+  InstanceFactory.TypeRegistrationBuilder<T> registration=register(type,ruleDescriptor);
+  if (implementationType != null) {
+    registration.withImplementation(Cast.<ModelType<? extends T>>uncheckedCast(implementationType),new InstanceFactory.ImplementationFactory<T>(){
+      @Override public T create(      ModelType<? extends T> publicType,      String sourceSetName,      MutableModelNode modelNode){
+        return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(),implementationType.getConcreteClass(),sourceSetName,determineParentName(modelNode),sourceDirectorySetFactory));
+      }
+    }
+);
+  }
+  for (  Class<?> internalView : internalViews) {
+    registration.withInternalView(ModelType.of(internalView));
+  }
+  if (!StringUtils.isEmpty(languageName)) {
+    languageRegistrations.add(new NamedLanguageRegistration<T>(languageName,type));
+  }
+}

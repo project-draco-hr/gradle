@@ -1,5 +1,15 @@
 {
-  for (  File script : gradle.getStartParameter().getAllInitScripts()) {
-    processor.process(new UriScriptSource("initialization script",script),gradle);
+  final List<File> initScripts=gradle.getStartParameter().getAllInitScripts();
+  if (initScripts.isEmpty()) {
+    return;
   }
+  BuildOperationDetails operationDetails=BuildOperationDetails.displayName("Run init scripts").progressDisplayName("init scripts").build();
+  buildOperationExecutor.run(operationDetails,new Runnable(){
+    @Override public void run(){
+      for (      File script : initScripts) {
+        processor.process(new UriScriptSource("initialization script",script),gradle);
+      }
+    }
+  }
+);
 }

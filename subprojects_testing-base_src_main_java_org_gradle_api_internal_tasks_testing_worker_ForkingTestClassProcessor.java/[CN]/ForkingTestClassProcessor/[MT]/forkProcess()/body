@@ -1,0 +1,18 @@
+{
+  WorkerProcessBuilder builder=workerFactory.create();
+  builder.setBaseName("Gradle Test Executor");
+  builder.applicationClasspath(classPath);
+  builder.setLoadApplicationInSystemClassLoader(true);
+  builder.worker(new TestWorker(processorFactory));
+  options.copyTo(builder.getJavaCommand());
+  buildConfigAction.execute(builder);
+  workerProcess=builder.build();
+  workerProcess.start();
+  ObjectConnection connection=workerProcess.getConnection();
+  connection.useParameterSerializer(TestEventSerializer.create());
+  connection.addIncoming(TestResultProcessor.class,resultProcessor);
+  RemoteTestClassProcessor remoteProcessor=connection.addOutgoing(RemoteTestClassProcessor.class);
+  connection.connect();
+  remoteProcessor.startProcessing();
+  return remoteProcessor;
+}

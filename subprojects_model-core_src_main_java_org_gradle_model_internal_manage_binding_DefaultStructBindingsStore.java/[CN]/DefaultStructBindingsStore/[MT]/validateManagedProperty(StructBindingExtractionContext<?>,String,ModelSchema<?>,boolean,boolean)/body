@@ -1,0 +1,23 @@
+{
+  if (propertyName.equals("name") && Named.class.isAssignableFrom(extractionContext.getPublicSchema().getType().getRawClass())) {
+    if (writable) {
+      extractionContext.add(propertyName,String.format("it must not have a setter, because the type implements '%s'",Named.class.getName()));
+    }
+    return;
+  }
+  boolean isAllowedPropertyTypeOfManagedType=propertySchema instanceof ManagedImplSchema || propertySchema instanceof ScalarValueSchema;
+  ModelType<?> propertyType=propertySchema.getType();
+  if (isAllowedPropertyTypeOfManagedType && isDeclaredAsHavingUnmanagedType) {
+    extractionContext.add(propertyName,String.format("it is marked as @Unmanaged, but is of @Managed type '%s'; please remove the @Managed annotation",propertyType.getDisplayName()));
+  }
+  if (!writable && isDeclaredAsHavingUnmanagedType) {
+    extractionContext.add(propertyName,"it must not be read only, because it is marked as @Unmanaged");
+  }
+  if (!(extractionContext.getPublicSchema() instanceof RuleSourceSchema)) {
+    if (propertySchema instanceof CollectionSchema) {
+      if (!(propertySchema instanceof ScalarCollectionSchema) && writable) {
+        extractionContext.add(propertyName,String.format("it cannot have a setter (%s properties must be read only)",propertyType.getRawClass().getSimpleName()));
+      }
+    }
+  }
+}

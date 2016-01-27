@@ -1,0 +1,16 @@
+{
+  Clock clock=new Clock();
+  GFileUtils.deleteDirectory(classesDir);
+  GFileUtils.mkdirs(classesDir);
+  CompilerConfiguration configuration=createBaseCompilerConfiguration(scriptBaseClass);
+  configuration.setTargetDirectory(classesDir);
+  try {
+    compileScript(source,classLoader,configuration,classesDir,metadataDir,extractingTransformer,verifier);
+  }
+ catch (  GradleException e) {
+    GFileUtils.deleteDirectory(classesDir);
+    GFileUtils.deleteDirectory(metadataDir);
+    throw e;
+  }
+  logger.debug("Timing: Writing script to cache at {} took: {}",classesDir.getAbsolutePath(),clock.getTime());
+}

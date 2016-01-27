@@ -7,11 +7,19 @@
   }
  else   if (type instanceof ParameterizedType) {
     ParameterizedType parameterizedType=(ParameterizedType)type;
-    return new ParameterizedTypeWrapper(toWrappers(parameterizedType.getActualTypeArguments()),(ClassTypeWrapper)wrap(parameterizedType.getRawType()),wrap(parameterizedType.getOwnerType()),type.hashCode());
+    return new ParameterizedTypeWrapper(toWrappers(parameterizedType.getActualTypeArguments()),(ClassTypeWrapper)wrap(parameterizedType.getRawType()),wrap(parameterizedType.getOwnerType()));
   }
  else   if (type instanceof WildcardType) {
     WildcardType wildcardType=(WildcardType)type;
     return new WildcardTypeWrapper(toWrappers(wildcardType.getUpperBounds()),toWrappers(wildcardType.getLowerBounds()),type.hashCode());
+  }
+ else   if (type instanceof TypeVariable) {
+    TypeVariable<?> typeVariable=(TypeVariable<?>)type;
+    return new TypeVariableTypeWrapper(typeVariable.getName(),toWrappers(typeVariable.getBounds()),type.hashCode());
+  }
+ else   if (type instanceof GenericArrayType) {
+    GenericArrayType genericArrayType=(GenericArrayType)type;
+    return new GenericArrayTypeWrapper(wrap(genericArrayType.getGenericComponentType()),type.hashCode());
   }
  else {
     throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());

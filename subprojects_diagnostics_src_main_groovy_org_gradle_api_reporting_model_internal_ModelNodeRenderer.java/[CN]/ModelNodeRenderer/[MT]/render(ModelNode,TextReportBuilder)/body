@@ -1,18 +1,17 @@
 {
-  if (model.isHidden()) {
+  if (model.isHidden() && !showHidden) {
     return;
   }
   StyledTextOutput styledTextoutput=output.getOutput();
-  if (model.getPath().equals(ModelPath.ROOT)) {
-    styledTextoutput.println("model");
+  if (!model.getPath().equals(ModelPath.ROOT)) {
+    printNodeName(model,styledTextoutput);
+    maybePrintType(model,styledTextoutput);
+    maybePrintValue(model,styledTextoutput);
+    printCreator(model,styledTextoutput);
+    maybePrintRules(model,styledTextoutput);
   }
- else {
-    styledTextoutput.withStyle(Identifier).format("%s",modelNodeDescriptor.label(model));
-    Optional<String> value=modelNodeDescriptor.value(model);
-    if (value.isPresent()) {
-      styledTextoutput.withStyle(Description).format(" = %s",value.get());
-    }
-    styledTextoutput.println();
+  if (model instanceof ModelReferenceNode) {
+    return;
   }
   Map<String,ModelNode> links=new TreeMap<String,ModelNode>();
   for (  ModelNode node : model.getLinks(ModelType.untyped())) {

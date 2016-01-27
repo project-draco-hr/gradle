@@ -1,0 +1,36 @@
+{
+  StringBuilder line=new StringBuilder();
+  boolean eol=false;
+  int ch;
+  while (!eol && (ch=bufferedIn.read()) >= 0) {
+    if (ch == '\n') {
+      eol=true;
+    }
+ else     if (ch == '\r') {
+      eol=true;
+      bufferedIn.mark(1);
+      if (bufferedIn.read() != '\n') {
+        bufferedIn.reset();
+      }
+    }
+ else {
+      line.append((char)ch);
+    }
+  }
+  if (line.length() == 0 && !eol) {
+    state=State.EOF;
+    return;
+  }
+  Object result=closure.call(line.toString());
+  if (result == null) {
+    state=State.SKIP_LINE;
+    return;
+  }
+  StringBuilder builder=new StringBuilder();
+  builder.append(result.toString());
+  if (eol) {
+    builder.append(SystemProperties.getInstance().getLineSeparator());
+  }
+  state=State.NORMAL;
+  transformedLine=builder.toString();
+}

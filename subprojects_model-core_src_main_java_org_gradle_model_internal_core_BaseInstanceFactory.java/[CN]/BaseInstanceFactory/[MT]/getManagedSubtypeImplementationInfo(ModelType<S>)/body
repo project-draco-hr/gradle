@@ -1,0 +1,18 @@
+{
+  if (!isManaged(publicType)) {
+    throw new IllegalArgumentException(String.format("Type '%s' is not managed",publicType));
+  }
+  final List<ImplementationInfo<T>> implementationInfos=Lists.newArrayListWithCapacity(1);
+  ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(),new RegistrationHierarchyVisitor<S>(){
+    @Override protected void visitRegistration(    TypeRegistration<? extends T> registration){
+      if (registration != null && registration.implementationRegistration != null) {
+        implementationInfos.add(new ImplementationInfoImpl<T>(publicType,registration.implementationRegistration));
+      }
+    }
+  }
+);
+  if (implementationInfos.isEmpty()) {
+    throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation",publicType));
+  }
+  return implementationInfos.get(0);
+}

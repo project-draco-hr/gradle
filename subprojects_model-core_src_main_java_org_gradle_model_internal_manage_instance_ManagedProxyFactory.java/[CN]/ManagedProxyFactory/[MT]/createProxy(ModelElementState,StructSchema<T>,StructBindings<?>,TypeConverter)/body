@@ -1,0 +1,22 @@
+{
+  try {
+    Class<? extends T> generatedClass=Cast.uncheckedCast(generatedImplementationTypes.get(new CacheKey(ModelElementState.class,viewSchema,bindings)));
+    StructSchema<?> delegateSchema=bindings.getDelegateSchema();
+    if (delegateSchema == null) {
+      Constructor<? extends T> constructor=generatedClass.getConstructor(ModelElementState.class,TypeConverter.class);
+      return constructor.newInstance(state,typeConverter);
+    }
+ else {
+      ModelType<?> delegateType=delegateSchema.getType();
+      Object delegate=state.getBackingNode().getPrivateData(delegateType);
+      Constructor<? extends T> constructor=generatedClass.getConstructor(ModelElementState.class,TypeConverter.class,delegateType.getConcreteClass());
+      return constructor.newInstance(state,typeConverter,delegate);
+    }
+  }
+ catch (  InvocationTargetException e) {
+    throw UncheckedException.throwAsUncheckedException(e.getTargetException());
+  }
+catch (  Exception e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+}

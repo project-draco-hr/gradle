@@ -16,17 +16,17 @@
   String displayName=getBaseName() + " " + id;
   WorkerFactory workerFactory;
   if (isLoadApplicationInSystemClassLoader()) {
-    workerFactory=new ApplicationClassesInSystemClassLoaderWorkerFactory(id,displayName,this,implementationClassPath,localAddress,classPathRegistry);
+    workerFactory=systemClassLoaderWorkerFactory;
   }
  else {
-    workerFactory=new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id,displayName,this,implementationClassPath,localAddress,classPathRegistry);
+    workerFactory=isolatedClassLoaderWorkerFactory;
   }
   LOGGER.debug("Creating {}",displayName);
   LOGGER.debug("Using application classpath {}",getApplicationClasspath());
   LOGGER.debug("Using implementation classpath {}",implementationClassPath);
   JavaExecHandleBuilder javaCommand=getJavaCommand();
-  workerFactory.prepareJavaCommand(javaCommand);
   javaCommand.setDisplayName(displayName);
+  workerFactory.prepareJavaCommand(id,displayName,this,implementationClassPath,localAddress,javaCommand);
   javaCommand.args("'" + displayName + "'");
   ExecHandle execHandle=javaCommand.build();
   workerProcess.setExecHandle(execHandle);

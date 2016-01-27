@@ -1,0 +1,20 @@
+{
+  try {
+    String literal;
+    if (sourceObject instanceof Enum) {
+      literal=((Enum<?>)sourceObject).name();
+    }
+ else     if (sourceObject instanceof String) {
+      literal=(String)sourceObject;
+    }
+ else {
+      literal=sourceObject.toString();
+    }
+    NotationParser<String,T> parser=new NotationConverterToNotationParserAdapter<String,T>(new EnumFromCharSequenceNotationParser(targetType));
+    T parsedLiteral=parser.parseNotation(literal);
+    return targetType.cast(parsedLiteral);
+  }
+ catch (  TypeConversionException e) {
+    throw new IllegalArgumentException(String.format("Can't convert '%s' to enum type '%s'",sourceObject,targetType.getSimpleName()),e);
+  }
+}

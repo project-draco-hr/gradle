@@ -1,8 +1,17 @@
 {
+  viewState.assertCanReadChild(name);
   MutableModelNode link=modelNode.getLink(name);
   if (link == null) {
     return null;
   }
   link.ensureUsable();
-  return link.asWritable(elementType,sourceDescriptor,null).getInstance();
+  if (!elementFilter.apply(link)) {
+    return null;
+  }
+  if (viewState.isCanMutate()) {
+    return link.asMutable(elementType,sourceDescriptor).getInstance();
+  }
+ else {
+    return link.asImmutable(elementType,sourceDescriptor).getInstance();
+  }
 }

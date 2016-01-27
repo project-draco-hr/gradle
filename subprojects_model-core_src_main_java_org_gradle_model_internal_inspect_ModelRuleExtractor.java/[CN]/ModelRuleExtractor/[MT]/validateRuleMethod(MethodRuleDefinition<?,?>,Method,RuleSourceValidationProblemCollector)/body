@@ -1,0 +1,29 @@
+{
+  if (Modifier.isPrivate(ruleMethod.getModifiers())) {
+    problems.add(ruleMethod,"A rule method cannot be private");
+  }
+  if (Modifier.isAbstract(ruleMethod.getModifiers())) {
+    problems.add(ruleMethod,"A rule method cannot be abstract");
+  }
+  if (ruleMethod.getTypeParameters().length > 0) {
+    problems.add(ruleMethod,"Cannot have type variables (i.e. cannot be a generic method)");
+  }
+  ModelType<?> returnType=ModelType.returnType(ruleMethod);
+  if (returnType.isRawClassOfParameterizedType()) {
+    problems.add(ruleMethod,"Raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
+  }
+  for (int i=0; i < ruleDefinition.getReferences().size(); i++) {
+    ModelReference<?> reference=ruleDefinition.getReferences().get(i);
+    if (reference.getType().isRawClassOfParameterizedType()) {
+      problems.add(ruleMethod,"Raw type " + reference.getType() + " used for parameter "+ (i + 1)+ " (all type parameters must be specified of parameterized type)");
+    }
+    if (reference.getPath() != null) {
+      try {
+        ModelPath.validatePath(reference.getPath().toString());
+      }
+ catch (      Exception e) {
+        problems.add(ruleDefinition,"The declared model element path '" + reference.getPath() + "' used for parameter "+ (i + 1)+ " is not a valid path",e);
+      }
+    }
+  }
+}
