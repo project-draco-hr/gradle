@@ -1,0 +1,16 @@
+{
+  JavaExecAction exec=factory.newJavaExecAction();
+  exec.executable(javaExe(jdkPath));
+  writeProbe(exec.getWorkingDir());
+  exec.setMain(JavaProbe.CLASSNAME);
+  ByteArrayOutputStream baos=new ByteArrayOutputStream();
+  exec.setStandardOutput(baos);
+  exec.setErrorOutput(new ByteArrayOutputStream());
+  exec.setIgnoreExitValue(true);
+  ExecResult result=exec.execute();
+  int exitValue=result.getExitValue();
+  if (exitValue == 0) {
+    return Type.parseExecOutput(baos.toString());
+  }
+  return null;
+}
