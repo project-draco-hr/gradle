@@ -1,0 +1,27 @@
+{
+  File currentJavaHome=canonicalFile(Jvm.current().getJavaHome());
+  for (  final JdkSpec jdk : jdks) {
+    final File javaHome=canonicalFile(jdk.getPath());
+    JavaInstallationProbe.ProbeResult probeResult=probe.checkJdk(javaHome);
+    JavaInstallationProbe.ProbeResult kind=clazz == InstalledJdk.class ? JavaInstallationProbe.ProbeResult.IS_JDK : JavaInstallationProbe.ProbeResult.IS_JRE;
+    if (probeResult == kind) {
+      if (!javaHome.equals(currentJavaHome)) {
+        installed.create(jdk.getName(),clazz,new Action<T>(){
+          @Override public void execute(          T installedJdk){
+            installedJdk.setJavaHome(javaHome);
+            probe.configure(javaHome,installedJdk);
+          }
+        }
+);
+      }
+    }
+ else {
+switch (probeResult) {
+case NO_SUCH_DIRECTORY:
+        throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s",jdk.getName(),javaHome));
+case INVALID_JDK:
+      throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s",jdk.getName(),javaHome));
+  }
+}
+}
+}
