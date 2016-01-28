@@ -1,14 +1,12 @@
 {
-  String proxyScheme="https";
-  HttpProxySettings.HttpProxy proxy=httpSettings.getSecureProxySettings().getProxy();
-  if (proxy == null) {
-    proxy=httpSettings.getProxySettings().getProxy();
-    proxyScheme="http";
-  }
-  if (proxy != null) {
-    if (proxy.credentials != null) {
-      useCredentials(credentialsProvider,proxy.host,proxy.port,Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
+  HttpProxySettings.HttpProxy httpProxy=httpSettings.getProxySettings().getProxy();
+  HttpProxySettings.HttpProxy httpsProxy=httpSettings.getSecureProxySettings().getProxy();
+  for (  HttpProxySettings.HttpProxy proxy : Lists.newArrayList(httpProxy,httpsProxy)) {
+    if (proxy != null) {
+      if (proxy.credentials != null) {
+        useCredentials(credentialsProvider,proxy.host,proxy.port,Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
+      }
     }
-    builder.setProxy(new HttpHost(proxy.host,proxy.port,proxyScheme));
   }
+  builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
 }
