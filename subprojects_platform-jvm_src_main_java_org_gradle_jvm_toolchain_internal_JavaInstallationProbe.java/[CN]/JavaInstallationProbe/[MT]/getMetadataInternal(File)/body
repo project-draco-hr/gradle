@@ -1,0 +1,28 @@
+{
+  JavaExecAction exec=factory.newJavaExecAction();
+  exec.executable(javaExe(jdkPath));
+  File workingDir=Files.createTempDir();
+  exec.setWorkingDir(workingDir);
+  try {
+    writeProbe(workingDir);
+    exec.setMain(JavaProbe.CLASSNAME);
+    ByteArrayOutputStream baos=new ByteArrayOutputStream();
+    exec.setStandardOutput(baos);
+    exec.setErrorOutput(new ByteArrayOutputStream());
+    exec.setIgnoreExitValue(true);
+    ExecResult result=exec.execute();
+    int exitValue=result.getExitValue();
+    if (exitValue == 0) {
+      return SysProp.parseExecOutput(baos.toString());
+    }
+    return SysProp.unknown();
+  }
+  finally {
+    try {
+      org.apache.commons.io.FileUtils.deleteDirectory(workingDir);
+    }
+ catch (    IOException e) {
+      throw new GradleException("Unable to delete temp directory",e);
+    }
+  }
+}
