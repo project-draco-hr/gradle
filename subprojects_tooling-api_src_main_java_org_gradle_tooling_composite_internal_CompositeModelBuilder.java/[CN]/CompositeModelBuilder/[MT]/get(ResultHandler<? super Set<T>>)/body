@@ -1,0 +1,27 @@
+{
+  final Set<T> results=Sets.newLinkedHashSet();
+  final AtomicReference<Throwable> firstFailure=new AtomicReference<Throwable>();
+  final ResultHandlerAdapter<T> adaptedHandler=new ResultHandlerAdapter(handler);
+  for (  GradleParticipantBuild participant : participants) {
+    participant.getConnection().getModel(modelType,new ResultHandler<T>(){
+      @Override public void onComplete(      T result){
+        results.add(result);
+      }
+      @Override public void onFailure(      GradleConnectionException failure){
+        firstFailure.compareAndSet(null,failure);
+      }
+    }
+);
+  }
+  new CyclicBarrier(participants.size(),new Runnable(){
+    @Override public void run(){
+      if (firstFailure.get() == null) {
+        adaptedHandler.onComplete(results);
+      }
+ else {
+        adaptedHandler.onFailure(firstFailure.get());
+      }
+    }
+  }
+);
+}
