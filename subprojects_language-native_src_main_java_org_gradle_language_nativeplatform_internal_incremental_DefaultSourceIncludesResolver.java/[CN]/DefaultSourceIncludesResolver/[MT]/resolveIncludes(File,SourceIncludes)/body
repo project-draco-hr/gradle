@@ -1,10 +1,9 @@
 {
-  Set<File> candidates=Sets.newLinkedHashSet();
-  Set<ResolvedInclude> dependencies=Sets.newLinkedHashSet();
-  searchForDependencies(dependencies,prependSourceDir(sourceFile,includePaths),includes.getQuotedIncludes(),candidates);
-  searchForDependencies(dependencies,includePaths,includes.getSystemIncludes(),candidates);
+  BuildableResolvedSourceIncludes resolvedSourceIncludes=new BuildableResolvedSourceIncludes();
+  searchForDependencies(prependSourceDir(sourceFile,includePaths),includes.getQuotedIncludes(),resolvedSourceIncludes);
+  searchForDependencies(includePaths,includes.getSystemIncludes(),resolvedSourceIncludes);
   if (!includes.getMacroIncludes().isEmpty()) {
-    dependencies.add(new ResolvedInclude(includes.getMacroIncludes().get(0).getValue(),null));
+    resolvedSourceIncludes.resolved(includes.getMacroIncludes().get(0).getValue(),null);
   }
-  return new DefaultSourceIncludesResolutionResult(dependencies,candidates);
+  return resolvedSourceIncludes;
 }
