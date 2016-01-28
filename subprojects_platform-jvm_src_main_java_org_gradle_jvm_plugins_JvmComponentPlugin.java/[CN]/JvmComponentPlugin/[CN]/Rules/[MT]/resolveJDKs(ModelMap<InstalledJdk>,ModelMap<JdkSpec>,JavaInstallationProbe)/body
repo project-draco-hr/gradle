@@ -1,10 +1,12 @@
 {
+  File currentJavaHome=canonicalFile(Jvm.current().getJavaHome());
   for (  final JdkSpec jdk : jdks) {
-    if (probe.isValidInstallation(jdk.getPath())) {
+    final File javaHome=canonicalFile(jdk.getPath());
+    if (!javaHome.equals(currentJavaHome) && probe.isValidInstallation(javaHome)) {
       installedJdks.create(jdk.getName(),InstalledJdkInternal.class,new Action<InstalledJdkInternal>(){
         @Override public void execute(        InstalledJdkInternal installedJdk){
-          installedJdk.setJavaHome(jdk.getPath());
-          probe.configure(jdk.getPath(),installedJdk);
+          installedJdk.setJavaHome(javaHome);
+          probe.configure(javaHome,installedJdk);
         }
       }
 );
