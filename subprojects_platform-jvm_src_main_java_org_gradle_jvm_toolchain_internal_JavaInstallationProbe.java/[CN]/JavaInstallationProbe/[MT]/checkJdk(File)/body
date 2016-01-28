@@ -1,0 +1,17 @@
+{
+  if (!jdkPath.exists()) {
+    return ProbeResult.NO_SUCH_DIRECTORY;
+  }
+  EnumMap<SysProp,String> metadata=cache.getUnchecked(jdkPath);
+  String version=metadata.get(SysProp.VERSION);
+  if (UNKNOWN.equals(version)) {
+    return ProbeResult.INVALID_JDK;
+  }
+  try {
+    JavaVersion.toVersion(version);
+  }
+ catch (  IllegalArgumentException ex) {
+    return ProbeResult.INVALID_JDK;
+  }
+  return ProbeResult.VALID_JDK;
+}
