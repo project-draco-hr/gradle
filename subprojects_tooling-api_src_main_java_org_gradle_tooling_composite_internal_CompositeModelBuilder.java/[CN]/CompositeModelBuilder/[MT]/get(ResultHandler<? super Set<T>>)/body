@@ -1,19 +1,8 @@
 {
-  final Set<T> results=Sets.newLinkedHashSet();
+  final Set<T> results=Sets.newConcurrentHashSet();
   final AtomicReference<Throwable> firstFailure=new AtomicReference<Throwable>();
-  final ResultHandlerAdapter<T> adaptedHandler=new ResultHandlerAdapter(handler);
-  for (  GradleParticipantBuild participant : participants) {
-    participant.getConnection().getModel(modelType,new ResultHandler<T>(){
-      @Override public void onComplete(      T result){
-        results.add(result);
-      }
-      @Override public void onFailure(      GradleConnectionException failure){
-        firstFailure.compareAndSet(null,failure);
-      }
-    }
-);
-  }
-  new CyclicBarrier(participants.size(),new Runnable(){
+  final ResultHandlerVersion1<Set<T>> adaptedHandler=new HierarchialResultAdapter(new ResultHandlerAdapter(handler));
+  final CyclicBarrier barrier=new CyclicBarrier(participants.size(),new Runnable(){
     @Override public void run(){
       if (firstFailure.get() == null) {
         adaptedHandler.onComplete(results);
@@ -24,4 +13,28 @@
     }
   }
 );
+  for (  GradleParticipantBuild participant : participants) {
+    participant.getConnection().getModel(modelType,new ResultHandler<T>(){
+      @Override public void onComplete(      T result){
+        results.add(result);
+        waitForFinish();
+      }
+      private void waitForFinish(){
+        try {
+          barrier.await();
+        }
+ catch (        InterruptedException e) {
+          e.printStackTrace();
+        }
+catch (        BrokenBarrierException e) {
+          e.printStackTrace();
+        }
+      }
+      @Override public void onFailure(      GradleConnectionException failure){
+        firstFailure.compareAndSet(null,failure);
+        waitForFinish();
+      }
+    }
+);
+  }
 }
