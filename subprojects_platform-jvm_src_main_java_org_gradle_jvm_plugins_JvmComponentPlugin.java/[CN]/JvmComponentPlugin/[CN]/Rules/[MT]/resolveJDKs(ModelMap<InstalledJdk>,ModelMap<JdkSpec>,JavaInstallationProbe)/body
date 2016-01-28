@@ -1,12 +1,10 @@
 {
   for (  final JdkSpec jdk : jdks) {
-    EnumMap<JavaInstallationProbe.SysProp,String> metadata=probe.getMetadata(jdk.getPath());
-    if (!JavaInstallationProbe.UNKNOWN.equals(metadata.get(JavaInstallationProbe.SysProp.VERSION))) {
+    if (probe.isValidInstallation(jdk.getPath())) {
       installedJdks.create(jdk.getName(),InstalledJdkInternal.class,new Action<InstalledJdkInternal>(){
         @Override public void execute(        InstalledJdkInternal installedJdk){
-          EnumMap<JavaInstallationProbe.SysProp,String> metadata=probe.getMetadata(jdk.getPath());
           installedJdk.setJavaHome(jdk.getPath());
-          configureInstalledJdk(installedJdk,metadata);
+          probe.configure(jdk.getPath(),installedJdk);
         }
       }
 );
