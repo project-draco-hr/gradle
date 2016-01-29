@@ -8,14 +8,15 @@
     exec.setMain(JavaProbe.CLASSNAME);
     ByteArrayOutputStream baos=new ByteArrayOutputStream();
     exec.setStandardOutput(baos);
-    exec.setErrorOutput(new ByteArrayOutputStream());
+    ByteArrayOutputStream errorOutput=new ByteArrayOutputStream();
+    exec.setErrorOutput(errorOutput);
     exec.setIgnoreExitValue(true);
     ExecResult result=exec.execute();
     int exitValue=result.getExitValue();
     if (exitValue == 0) {
       return parseExecOutput(baos.toString());
     }
-    return error("Command returned unexpected result code: " + exitValue);
+    return error("Command returned unexpected result code: " + exitValue + "\nError output:\n"+ errorOutput);
   }
  catch (  ExecException ex) {
     return error(ex.getMessage());
