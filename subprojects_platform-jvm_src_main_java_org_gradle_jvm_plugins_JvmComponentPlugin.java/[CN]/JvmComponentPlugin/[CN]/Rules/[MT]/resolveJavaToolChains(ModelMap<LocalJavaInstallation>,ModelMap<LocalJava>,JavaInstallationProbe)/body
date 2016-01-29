@@ -1,0 +1,29 @@
+{
+  File currentJavaHome=canonicalFile(Jvm.current().getJavaHome());
+  for (  final LocalJava jdk : jdks) {
+    final File javaHome=canonicalFile(jdk.getPath());
+    JavaInstallationProbe.ProbeResult probeResult=probe.checkJdk(javaHome);
+    Class<? extends LocalJavaInstallation> clazz=null;
+switch (probeResult) {
+case IS_JDK:
+      clazz=InstalledJdkInternal.class;
+    break;
+case IS_JRE:
+  clazz=InstalledJre.class;
+break;
+case NO_SUCH_DIRECTORY:
+throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s",jdk.getName(),javaHome));
+case INVALID_JDK:
+throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s",jdk.getName(),javaHome));
+}
+if (!javaHome.equals(currentJavaHome)) {
+installedJdks.create(jdk.getName(),clazz,new Action<LocalJavaInstallation>(){
+@Override public void execute(LocalJavaInstallation installedJdk){
+installedJdk.setJavaHome(javaHome);
+probe.configure(javaHome,installedJdk);
+}
+}
+);
+}
+}
+}
