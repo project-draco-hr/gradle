@@ -1,20 +1,20 @@
 {
   if (!jdkPath.exists()) {
-    return ProbeResult.NO_SUCH_DIRECTORY;
+    return new ProbeResult(InstallType.NO_SUCH_DIRECTORY,unknown());
   }
   EnumMap<SysProp,String> metadata=cache.getUnchecked(jdkPath);
   String version=metadata.get(SysProp.VERSION);
   if (UNKNOWN.equals(version)) {
-    return ProbeResult.INVALID_JDK;
+    return new ProbeResult(InstallType.INVALID_JDK,metadata);
   }
   try {
     JavaVersion.toVersion(version);
   }
  catch (  IllegalArgumentException ex) {
-    return ProbeResult.INVALID_JDK;
+    return new ProbeResult(InstallType.INVALID_JDK,metadata);
   }
   if (javaExe(jdkPath,"javac").exists()) {
-    return ProbeResult.IS_JDK;
+    return new ProbeResult(InstallType.IS_JDK,metadata);
   }
-  return ProbeResult.IS_JRE;
+  return new ProbeResult(InstallType.IS_JRE,metadata);
 }

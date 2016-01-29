@@ -3,9 +3,9 @@
   validateNoDuplicate(localJavaInstalls);
   for (  final LocalJava candidate : localJavaInstalls) {
     final File javaHome=canonicalFile(candidate.getPath());
-    JavaInstallationProbe.ProbeResult probeResult=probe.checkJdk(javaHome);
+    final JavaInstallationProbe.ProbeResult probeResult=probe.checkJdk(javaHome);
     Class<? extends LocalJavaInstallation> clazz=null;
-switch (probeResult) {
+switch (probeResult.getInstallType()) {
 case IS_JDK:
       clazz=InstalledJdkInternal.class;
     break;
@@ -21,7 +21,7 @@ if (!javaHome.equals(currentJavaHome)) {
 installedJdks.create(candidate.getName(),clazz,new Action<LocalJavaInstallation>(){
 @Override public void execute(LocalJavaInstallation installedJdk){
 installedJdk.setJavaHome(javaHome);
-probe.configure(javaHome,installedJdk);
+probeResult.configure(installedJdk);
 }
 }
 );
