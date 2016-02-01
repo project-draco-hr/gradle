@@ -1,0 +1,36 @@
+{
+  resolveGenericsTypes(type.getGenericsTypes());
+  if (type.isResolved() || type.isPrimaryClassNode()) {
+    return true;
+  }
+  if (type.isArray()) {
+    ClassNode element=type.getComponentType();
+    boolean resolved=resolve(element,testModuleImports,testDefaultImports,testStaticInnerClasses);
+    if (resolved) {
+      ClassNode cn=element.makeArray();
+      type.setRedirect(cn);
+    }
+    return resolved;
+  }
+  if (currentClass == type) {
+    return true;
+  }
+  String name=type.getName();
+  if (genericParameterNames.get(name) != null) {
+    GenericsType gt=genericParameterNames.get(name);
+    type.setRedirect(gt.getType());
+    type.setGenericsTypes(new GenericsType[]{gt});
+    type.setGenericsPlaceHolder(true);
+    return true;
+  }
+  if (currentClass.getNameWithoutPackage().equals(name)) {
+    type.setRedirect(currentClass);
+    return true;
+  }
+  if (type.hasPackageName()) {
+    if (resolveFromResolver(type,name)) {
+      return true;
+    }
+  }
+  return resolveNestedClass(type) || resolveFromModule(type,testModuleImports) || resolveFromCompileUnit(type)|| resolveFromDefaultImports(type,testDefaultImports)|| resolveFromStaticInnerClasses(type,testStaticInnerClasses)|| resolveToOuter(type);
+}

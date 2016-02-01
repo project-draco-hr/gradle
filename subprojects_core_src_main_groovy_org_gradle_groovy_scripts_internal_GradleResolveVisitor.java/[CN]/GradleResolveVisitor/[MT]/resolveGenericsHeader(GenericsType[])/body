@@ -1,0 +1,28 @@
+{
+  if (types == null) {
+    return;
+  }
+  currentClass.setUsingGenerics(true);
+  for (  GenericsType type : types) {
+    ClassNode classNode=type.getType();
+    String name=type.getName();
+    ClassNode[] bounds=type.getUpperBounds();
+    if (bounds != null) {
+      boolean nameAdded=false;
+      for (      ClassNode upperBound : bounds) {
+        if (!nameAdded && upperBound != null || !resolve(classNode)) {
+          genericParameterNames.put(name,type);
+          type.setPlaceholder(true);
+          classNode.setRedirect(upperBound);
+          nameAdded=true;
+        }
+        resolveOrFail(upperBound,classNode);
+      }
+    }
+ else {
+      genericParameterNames.put(name,type);
+      classNode.setRedirect(ClassHelper.OBJECT_TYPE);
+      type.setPlaceholder(true);
+    }
+  }
+}

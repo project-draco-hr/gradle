@@ -1,0 +1,57 @@
+{
+  if (type instanceof ConstructedNestedClass) {
+    return false;
+  }
+  Map<String,ClassNode> hierClasses=new LinkedHashMap<String,ClassNode>();
+  ClassNode val;
+  for (ClassNode classToCheck=currentClass; classToCheck != ClassHelper.OBJECT_TYPE; classToCheck=classToCheck.getSuperClass()) {
+    if (classToCheck == null || hierClasses.containsKey(classToCheck.getName())) {
+      break;
+    }
+    hierClasses.put(classToCheck.getName(),classToCheck);
+  }
+  for (  ClassNode classToCheck : hierClasses.values()) {
+    val=new ConstructedNestedClass(classToCheck,type.getName());
+    if (resolveFromCompileUnit(val)) {
+      type.setRedirect(val);
+      return true;
+    }
+    for (    ClassNode next : classToCheck.getAllInterfaces()) {
+      if (type.getName().contains(next.getName())) {
+        continue;
+      }
+      val=new ConstructedNestedClass(next,type.getName());
+      if (resolve(val,false,false,false)) {
+        type.setRedirect(val);
+        return true;
+      }
+    }
+  }
+  if (!(currentClass instanceof InnerClassNode)) {
+    return false;
+  }
+  LinkedList<ClassNode> outerClasses=new LinkedList<ClassNode>();
+  ClassNode outer=currentClass.getOuterClass();
+  while (outer != null) {
+    outerClasses.addFirst(outer);
+    outer=outer.getOuterClass();
+  }
+  for (  ClassNode testNode : outerClasses) {
+    val=new ConstructedNestedClass(testNode,type.getName());
+    if (resolveFromCompileUnit(val)) {
+      type.setRedirect(val);
+      return true;
+    }
+    for (    ClassNode next : testNode.getAllInterfaces()) {
+      if (type.getName().contains(next.getName())) {
+        continue;
+      }
+      val=new ConstructedNestedClass(next,type.getName());
+      if (resolve(val,false,false,false)) {
+        type.setRedirect(val);
+        return true;
+      }
+    }
+  }
+  return false;
+}

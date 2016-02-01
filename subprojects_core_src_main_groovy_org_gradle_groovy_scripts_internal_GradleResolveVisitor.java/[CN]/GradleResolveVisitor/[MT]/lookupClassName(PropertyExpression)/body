@@ -1,0 +1,48 @@
+{
+  boolean doInitialClassTest=true;
+  String name="";
+  for (Expression it=pe; it != null; it=((PropertyExpression)it).getObjectExpression()) {
+    if (it instanceof VariableExpression) {
+      VariableExpression ve=(VariableExpression)it;
+      if (ve.isSuperExpression() || ve.isThisExpression()) {
+        return null;
+      }
+      String varName=ve.getName();
+      if (doInitialClassTest) {
+        if (!testVanillaNameForClass(varName)) {
+          return null;
+        }
+        doInitialClassTest=false;
+        name=varName;
+      }
+ else {
+        name=varName + "." + name;
+      }
+      break;
+    }
+ else     if (it.getClass() != PropertyExpression.class) {
+      return null;
+    }
+ else {
+      PropertyExpression current=(PropertyExpression)it;
+      String propertyPart=current.getPropertyAsString();
+      if (propertyPart == null || propertyPart.equals("class")) {
+        return null;
+      }
+      if (doInitialClassTest) {
+        if (!testVanillaNameForClass(propertyPart)) {
+          return null;
+        }
+        doInitialClassTest=false;
+        name=propertyPart;
+      }
+ else {
+        name=propertyPart + "." + name;
+      }
+    }
+  }
+  if (name.length() == 0) {
+    return null;
+  }
+  return name;
+}
