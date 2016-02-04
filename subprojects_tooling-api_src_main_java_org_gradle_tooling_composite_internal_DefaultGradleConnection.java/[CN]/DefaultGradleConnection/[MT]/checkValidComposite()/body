@@ -1,0 +1,15 @@
+{
+  Set<BuildEnvironment> buildEnvironments=createCompositeModelBuilder(BuildEnvironment.class).get();
+  final VersionNumber minimumVersion=VersionNumber.parse("1.0");
+  CollectionUtils.every(buildEnvironments,new Spec<BuildEnvironment>(){
+    @Override public boolean isSatisfiedBy(    BuildEnvironment buildEnvironment){
+      String projectName="unknown project";
+      VersionNumber participantVersion=VersionNumber.parse(buildEnvironment.getGradle().getGradleVersion());
+      if (participantVersion.compareTo(minimumVersion) >= 0) {
+        return true;
+      }
+      throw new IllegalArgumentException(String.format("'%s' is using Gradle %s.  This does not meet the minimum Gradle version (%s) required for composite builds.",projectName,participantVersion,minimumVersion));
+    }
+  }
+);
+}

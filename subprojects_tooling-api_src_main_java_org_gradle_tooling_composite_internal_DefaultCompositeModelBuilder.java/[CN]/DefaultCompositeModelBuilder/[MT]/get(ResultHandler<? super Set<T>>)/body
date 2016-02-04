@@ -4,6 +4,8 @@
   final ResultHandlerVersion1<Set<T>> adaptedHandler=new HierarchialResultAdapter(new ResultHandlerAdapter(handler));
   final CyclicBarrier barrier=new CyclicBarrier(participants.size(),new ResultsCollected(results,firstFailure,adaptedHandler));
   for (  GradleParticipantBuild participant : participants) {
-    participant.getConnection().getModel(modelType,new ProjectResultHandler<T>(participant,barrier,results,firstFailure));
+    ModelBuilder<T> modelBuilder=participant.getConnection().model(modelType);
+    modelBuilder.withCancellationToken(cancellationToken);
+    modelBuilder.get(new ProjectResultHandler<T>(participant,barrier,results,firstFailure));
   }
 }
