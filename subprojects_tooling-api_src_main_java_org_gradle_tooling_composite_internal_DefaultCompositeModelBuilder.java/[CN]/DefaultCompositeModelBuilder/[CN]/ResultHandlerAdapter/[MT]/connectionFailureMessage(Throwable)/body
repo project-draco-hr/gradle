@@ -1,6 +1,11 @@
 {
-  String connectionDisplayName="composite connection";
-  String message=String.format("Could not fetch model of type '%s' using %s.",modelType.getSimpleName(),connectionDisplayName);
+  String connectionDisplayName=CollectionUtils.collect(participants,new Transformer<String,GradleParticipantBuild>(){
+    @Override public String transform(    GradleParticipantBuild gradleParticipantBuild){
+      return gradleParticipantBuild.getDisplayName();
+    }
+  }
+).toString();
+  String message=String.format("Could not fetch model of type '%s' using composite containing %s.",modelType.getSimpleName(),connectionDisplayName);
   if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
     message+="\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
   }
