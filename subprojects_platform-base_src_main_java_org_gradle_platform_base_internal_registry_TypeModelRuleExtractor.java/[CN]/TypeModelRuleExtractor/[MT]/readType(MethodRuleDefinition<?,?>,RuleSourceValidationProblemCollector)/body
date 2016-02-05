@@ -1,17 +1,18 @@
 {
   validateIsVoidMethod(ruleDefinition,problems);
   if (ruleDefinition.getReferences().size() != 1) {
-    problems.add(ruleDefinition,String.format("A method %s must have a single parameter of type %s.",getDescription(),builderInterface.toString()));
+    problems.add(ruleDefinition,String.format("A method %s must have a single parameter of type %s.",getDescription(),TypeBuilder.class.getName()));
     return null;
   }
   ModelReference<?> subjectReference=ruleDefinition.getSubjectReference();
   ModelType<?> builder=subjectReference.getType();
-  if (!builderInterface.isAssignableFrom(builder)) {
-    problems.add(ruleDefinition,String.format("A method %s must have a single parameter of type %s.",getDescription(),builderInterface.toString()));
+  Class<?> rawBuilderType=builder.getRawClass();
+  if (!rawBuilderType.isAssignableFrom(builderInterface.getRawClass()) || !TypeBuilder.class.isAssignableFrom(rawBuilderType)) {
+    problems.add(ruleDefinition,String.format("A method %s must have a single parameter of type %s.",getDescription(),TypeBuilder.class.getName()));
     return null;
   }
   if (builder.getTypeVariables().size() != 1) {
-    problems.add(ruleDefinition,String.format("Parameter of type %s must declare a type parameter.",builderInterface.toString()));
+    problems.add(ruleDefinition,String.format("Parameter of type %s must declare a type parameter.",rawBuilderType.getName()));
     return null;
   }
   ModelType<?> subType=builder.getTypeVariables().get(0);
