@@ -1,0 +1,15 @@
+{
+  StringBuilder reason=new StringBuilder();
+  try {
+    boolean meetsMinimumVersion=new VerifyMinimumGradleVersion(reason).isSatisfiedBy(getBuildEnvironments(connection));
+    boolean hasNoOverlappingProjects=new VerifyNoOverlappingProjects(reason).isSatisfiedBy(getGradleProjects(connection));
+    return meetsMinimumVersion && hasNoOverlappingProjects;
+  }
+ catch (  GradleConnectionException e) {
+    reason.append("Could not validate composite.");
+    return false;
+  }
+ finally {
+    lastUnsatisfiedReason=reason.toString();
+  }
+}
