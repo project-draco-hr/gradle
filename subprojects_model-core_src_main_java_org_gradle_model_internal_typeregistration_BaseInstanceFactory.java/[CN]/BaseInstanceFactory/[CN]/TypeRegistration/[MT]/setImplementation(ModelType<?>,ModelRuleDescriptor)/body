@@ -5,9 +5,6 @@
   if (managedPublicType) {
     throw new IllegalArgumentException(String.format("Cannot specify default implementation for managed type '%s'",publicType));
   }
-  if (!baseInterface.isAssignableFrom(implementationType)) {
-    throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must extend '%s'",implementationType,publicType,baseImplementationType));
-  }
   if (Modifier.isAbstract(implementationType.getConcreteClass().getModifiers())) {
     throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must not be abstract",implementationType,publicType));
   }
@@ -17,10 +14,10 @@
  catch (  NoSuchMethodException e) {
     throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must have a public default constructor",implementationType,publicType));
   }
-  Class<? extends BASEIMPL> implementationClass=implementationType.getConcreteClass().asSubclass(baseImplementation);
-  ImplementationFactory<S,BASEIMPL> factory=findFactory(implementationClass);
+  Class<?> implementationClass=implementationType.getConcreteClass();
+  ImplementationFactory<S,?> factory=findFactory(implementationClass);
   if (factory == null) {
     throw new IllegalArgumentException(String.format("No factory registered to create an instance of implementation class '%s'.",implementationClass.getName()));
   }
-  this.implementationRegistration=new ImplementationRegistration<S,BASEIMPL>(source,implementationType.asSubtype(baseImplementationType),factory);
+  this.implementationRegistration=new ImplementationRegistration<S>(source,implementationType,factory);
 }
