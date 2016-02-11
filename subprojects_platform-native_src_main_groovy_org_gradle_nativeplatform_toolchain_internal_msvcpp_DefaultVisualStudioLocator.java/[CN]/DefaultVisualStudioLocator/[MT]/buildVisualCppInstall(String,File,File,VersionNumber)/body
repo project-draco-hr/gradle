@@ -1,58 +1,21 @@
 {
+  List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders=Lists.newArrayList();
+  architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.X86_ON_X86);
+  architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.AMD64_ON_X86);
+  architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.IA64_ON_X86);
+  architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.ARM_ON_X86);
   boolean isNativeAmd64=systemInfo.getArchitecture() == SystemInfo.Architecture.amd64;
-  Map<Architecture,List<File>> paths=new HashMap<Architecture,List<File>>();
-  Map<Architecture,File> binaryPaths=new HashMap<Architecture,File>();
-  Map<Architecture,File> libraryPaths=new HashMap<Architecture,File>();
-  Map<Architecture,File> includePaths=new HashMap<Architecture,File>();
-  Map<Architecture,String> assemblerFilenames=new HashMap<Architecture,String>();
-  Map<Architecture,Map<String,String>> definitions=new HashMap<Architecture,Map<String,String>>();
-  Architecture amd64=Architectures.forInput(ARCHITECTURE_AMD64);
-  Architecture x86=Architectures.forInput(ARCHITECTURE_X86);
-  Architecture arm=Architectures.forInput(ARCHITECTURE_ARM);
-  File includePath=new File(basePath,PATH_INCLUDE);
-  File commonTools=new File(vsPath,PATH_COMMONTOOLS);
-  File commonIde=new File(vsPath,PATH_COMMONIDE);
-  List<ArchitecturePaths> architecturePathsList=Lists.newArrayList();
   if (isNativeAmd64) {
-    architecturePathsList.add(ArchitecturePaths.AMD64_AMD64);
-    architecturePathsList.add(ArchitecturePaths.AMD64_X86);
-    architecturePathsList.add(ArchitecturePaths.AMD64_ARM);
+    architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.AMD64_ON_AMD64);
+    architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.X86_ON_AMD64);
+    architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.ARM_ON_AMD64);
   }
-  architecturePathsList.add(ArchitecturePaths.X86_X86);
-  architecturePathsList.add(ArchitecturePaths.X86_AMD64);
-  architecturePathsList.add(ArchitecturePaths.X86_IA64);
-  architecturePathsList.add(ArchitecturePaths.X86_ARM);
-  for (  ArchitecturePaths architecturePaths : architecturePathsList) {
-    if (!binaryPaths.containsKey(architecturePaths.architecture)) {
-      File binPath=new File(basePath,architecturePaths.binPath);
-      File libPath=new File(basePath,architecturePaths.libPath);
-      File compilerPath=new File(binPath,COMPILER_FILENAME);
-      if (binPath.isDirectory() && libPath.isDirectory() && compilerPath.exists()) {
-        Map<String,String> definitionsList=new LinkedHashMap<String,String>();
-        List<File> pathsList=new ArrayList<File>();
-        pathsList.add(commonTools);
-        pathsList.add(commonIde);
-        if (isNativeAmd64) {
-          if (!amd64.equals(architecturePaths.architecture)) {
-            pathsList.add(new File(basePath,ArchitecturePaths.AMD64_AMD64.binPath));
-          }
-        }
- else {
-          if (!x86.equals(architecturePaths.architecture)) {
-            pathsList.add(new File(basePath,ArchitecturePaths.X86_X86.binPath));
-          }
-        }
-        if (arm.equals(architecturePaths.architecture)) {
-          definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE,"1");
-        }
-        binaryPaths.put(architecturePaths.architecture,binPath);
-        libraryPaths.put(architecturePaths.architecture,libPath);
-        includePaths.put(architecturePaths.architecture,includePath);
-        assemblerFilenames.put(architecturePaths.architecture,architecturePaths.asmFilename);
-        paths.put(architecturePaths.architecture,pathsList);
-        definitions.put(architecturePaths.architecture,definitionsList);
-      }
+  Map<Architecture,ArchitectureDescriptor> descriptors=Maps.newHashMap();
+  for (  ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
+    ArchitectureDescriptor descriptor=architectureDescriptorBuilder.buildDescriptor(basePath,vsPath);
+    if (descriptor.isInstalled()) {
+      descriptors.put(architectureDescriptorBuilder.architecture,descriptor);
     }
   }
-  return new VisualCppInstall(name,version,paths,binaryPaths,libraryPaths,includePaths,assemblerFilenames,definitions);
+  return new VisualCppInstall(name,version,descriptors);
 }
