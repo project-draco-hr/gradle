@@ -10,7 +10,15 @@
     Action<ConnectCompletion> connectEvent=new Action<ConnectCompletion>(){
       public void execute(      ConnectCompletion completion){
         MessageSerializer<Message> serializer=new KryoBackedMessageSerializer<Message>(Serializers.stateful(DaemonMessageSerializer.create()));
-        handler.handle(new SynchronizedDispatchConnection<Message>(completion.create(serializer)));
+        RemoteConnection<Message> remoteConnection;
+        try {
+          remoteConnection=completion.create(serializer);
+        }
+ catch (        UncheckedIOException e) {
+          connectionErrorHandler.run();
+          throw e;
+        }
+        handler.handle(new SynchronizedDispatchConnection<Message>(remoteConnection));
       }
     }
 ;
