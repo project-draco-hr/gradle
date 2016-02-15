@@ -8,7 +8,12 @@
   }
 );
   if (match == null) {
-    throw new TypeConversionException(String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",enumString,type.getName(),CollectionUtils.toStringList(Arrays.asList(type.getEnumConstants()))));
+    throw new TypeConversionException(String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",enumString,type.getName(),Joiner.on(", ").join(CollectionUtils.collect(Arrays.asList(type.getEnumConstants()),new Transformer<String,T>(){
+      @Override public String transform(      T t){
+        return t.name();
+      }
+    }
+))));
   }
   result.converted(match);
 }
