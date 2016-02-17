@@ -1,29 +1,6 @@
 {
   if (dependency.getSelector() instanceof LibraryComponentSelector) {
     LibraryComponentSelector selector=(LibraryComponentSelector)dependency.getSelector();
-    final String selectorProjectPath=selector.getProjectPath();
-    final String libraryName=selector.getLibraryName();
-    LibraryResolutionErrorMessageBuilder.LibraryResolutionResult resolutionResult=doResolve(selectorProjectPath,libraryName);
-    LibrarySpec selectedLibrary=resolutionResult.getSelectedLibrary();
-    if (selectedLibrary != null) {
-      Collection<BinarySpec> allBinaries=selectedLibrary.getBinaries().values();
-      Collection<? extends BinarySpec> compatibleBinaries=matcher.filterBinaries(variantsMetaData,allBinaries);
-      if (!allBinaries.isEmpty() && compatibleBinaries.isEmpty()) {
-        result.failed(new ModuleVersionResolveException(selector,errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName,allBinaries)));
-      }
- else       if (compatibleBinaries.size() > 1) {
-        result.failed(new ModuleVersionResolveException(selector,errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName,compatibleBinaries)));
-      }
- else {
-        BinarySpec selectedBinary=compatibleBinaries.iterator().next();
-        LocalComponentMetaData metaData=libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary,selectorProjectPath);
-        result.resolved(metaData);
-      }
-    }
-    if (!result.hasResult()) {
-      String message=resolutionResult.toResolutionErrorMessage(binaryType,selector);
-      ModuleVersionResolveException failure=new ModuleVersionResolveException(selector,new LibraryResolveException(message));
-      result.failed(failure);
-    }
+    resolveLibraryAndChooseBinary(result,selector);
   }
 }

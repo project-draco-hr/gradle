@@ -1,8 +1,13 @@
 {
-  List<String> visitedFilePaths=Lists.newLinkedList();
-  Set<File> visitedDirs=Sets.newLinkedHashSet();
-  List<File> cpFiles=classPath.getAsFiles();
-  Adler32 checksum=new Adler32();
-  hash(checksum,visitedFilePaths,visitedDirs,cpFiles.iterator());
+  final List<String> visitedFilePaths=Lists.newLinkedList();
+  final Set<File> visitedDirs=Sets.newLinkedHashSet();
+  final List<File> cpFiles=classPath.getAsFiles();
+  final Adler32 checksum=new Adler32();
+  cacheAccess.useCache("Snapshot classpath",new Runnable(){
+    @Override public void run(){
+      hash(checksum,visitedFilePaths,visitedDirs,cpFiles.iterator());
+    }
+  }
+);
   return new ClassPathSnapshotImpl(visitedFilePaths,checksum.getValue());
 }

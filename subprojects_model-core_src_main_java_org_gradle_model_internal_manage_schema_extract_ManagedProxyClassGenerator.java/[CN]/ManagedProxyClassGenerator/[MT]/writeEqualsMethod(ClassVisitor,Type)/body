@@ -9,17 +9,16 @@
   methodVisitor.visitInsn(IRETURN);
   methodVisitor.visitLabel(notSameLabel);
   methodVisitor.visitVarInsn(ALOAD,1);
-  methodVisitor.visitTypeInsn(INSTANCEOF,MANAGED_INSTANCE_TYPE);
-  Label notManagedInstanceLabel=new Label();
-  methodVisitor.visitJumpInsn(IFNE,notManagedInstanceLabel);
+  methodVisitor.visitTypeInsn(INSTANCEOF,GENERATED_VIEW_TYPE.getInternalName());
+  Label generatedViewLabel=new Label();
+  methodVisitor.visitJumpInsn(IFNE,generatedViewLabel);
   methodVisitor.visitInsn(ICONST_0);
   methodVisitor.visitInsn(IRETURN);
-  methodVisitor.visitLabel(notManagedInstanceLabel);
-  methodVisitor.visitVarInsn(ALOAD,0);
-  methodVisitor.visitMethodInsn(INVOKEVIRTUAL,generatedType.getInternalName(),"getBackingNode",GET_BACKING_NODE_METHOD_DESCRIPTOR,false);
+  methodVisitor.visitLabel(generatedViewLabel);
+  putStateFieldValueOnStack(methodVisitor,generatedType);
   methodVisitor.visitVarInsn(ALOAD,1);
-  methodVisitor.visitTypeInsn(CHECKCAST,MANAGED_INSTANCE_TYPE);
-  methodVisitor.visitMethodInsn(INVOKEINTERFACE,MANAGED_INSTANCE_TYPE,"getBackingNode",GET_BACKING_NODE_METHOD_DESCRIPTOR,true);
-  methodVisitor.visitMethodInsn(INVOKEINTERFACE,MUTABLE_MODEL_NODE_TYPE,"equals",EQUALS_METHOD_DESCRIPTOR,true);
+  methodVisitor.visitTypeInsn(CHECKCAST,GENERATED_VIEW_TYPE.getInternalName());
+  methodVisitor.visitMethodInsn(INVOKEINTERFACE,GENERATED_VIEW_TYPE.getInternalName(),"__view_state__",GET_VIEW_STATE_METHOD_DESCRIPTOR,true);
+  methodVisitor.visitMethodInsn(INVOKEINTERFACE,GENERATED_VIEW_STATE_TYPE_NAME,"equals",EQUALS_METHOD_DESCRIPTOR,true);
   finishVisitingMethod(methodVisitor,Opcodes.IRETURN);
 }

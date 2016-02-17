@@ -3,36 +3,48 @@
     final String stageTaskName=String.format("stage%sDist",StringUtils.capitalize(distribution.getName()));
     final File stageDir=new File(buildDir,"stage");
     final String baseName=StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName();
-    tasks.create(stageTaskName,Copy.class,new Action<Copy>(){
-      @Override public void execute(      Copy copy){
-        copy.setDescription("Copies the '" + distribution.getName() + "' distribution to a staging directory.");
-        copy.setDestinationDir(stageDir);
-        CopySpecInternal baseSpec=copy.getRootSpec().addChild();
+    tasks.create(stageTaskName,Sync.class,new Action<Sync>(){
+      @Override public void execute(      Sync sync){
+        sync.setDescription("Copies the '" + distribution.getName() + "' distribution to a staging directory.");
+        sync.setDestinationDir(stageDir);
+        CopySpecInternal baseSpec=sync.getRootSpec().addChild();
         baseSpec.into(baseName);
         baseSpec.with(distribution.getContents());
       }
     }
 );
-    tasks.named("stage",new Action<Task>(){
+    tasks.named(STAGE_LIFECYCLE_TASK_NAME,new Action<Task>(){
       @Override public void execute(      Task task){
         task.dependsOn(stageTaskName);
       }
     }
 );
     final Task stageTask=tasks.get(stageTaskName);
-    final String distributionTaskName=String.format("create%sDist",StringUtils.capitalize(distribution.getName()));
-    tasks.create(distributionTaskName,Zip.class,new Action<Zip>(){
+    final String distributionZipTaskName=String.format("create%sZipDist",StringUtils.capitalize(distribution.getName()));
+    tasks.create(distributionZipTaskName,Zip.class,new Action<Zip>(){
       @Override public void execute(      final Zip zip){
         zip.setDescription("Packages the '" + distribution.getName() + "' distribution as a zip file.");
-        zip.setArchiveName(String.format("%s.zip",baseName));
+        zip.setBaseName(baseName);
         zip.setDestinationDir(new File(buildDir,"distributions"));
         zip.from(stageTask);
       }
     }
 );
-    tasks.named("dist",new Action<Task>(){
+    final String distributionTarTaskName=String.format("create%sTarDist",StringUtils.capitalize(distribution.getName()));
+    tasks.create(distributionTarTaskName,Tar.class,new Action<Tar>(){
+      @Override public void execute(      final Tar tar){
+        tar.setDescription("Packages the '" + distribution.getName() + "' distribution as a tar file.");
+        tar.setBaseName(baseName);
+        tar.setDestinationDir(new File(buildDir,"distributions"));
+        tar.from(stageTask);
+      }
+    }
+);
+    tasks.named(distributionTarTaskName,DistributionArchiveRules.class);
+    tasks.named(distributionZipTaskName,DistributionArchiveRules.class);
+    tasks.named(DIST_LIFECYCLE_TASK_NAME,new Action<Task>(){
       @Override public void execute(      Task task){
-        task.dependsOn(distributionTaskName);
+        task.dependsOn(distributionZipTaskName,distributionTarTaskName);
       }
     }
 );

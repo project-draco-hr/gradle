@@ -1,0 +1,16 @@
+{
+  List<DependencySpec> dependencies=Lists.newArrayList();
+  if (specificDependencies != null) {
+    for (    Collection<DependencySpec> deps : specificDependencies) {
+      dependencies.addAll(deps);
+    }
+  }
+  Collection<LanguageSourceSet> binarySources=binary.getSources().values();
+  Iterable<LanguageSourceSet> sourceSets=owner != null ? Iterables.concat(owner.getSources().values(),binarySources) : binarySources;
+  for (  LanguageSourceSet sourceSet : sourceSets) {
+    if (sourceSet instanceof DependentSourceSet) {
+      dependencies.addAll(((DependentSourceSet)sourceSet).getDependencies().getDependencies());
+    }
+  }
+  return dependencies;
+}

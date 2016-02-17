@@ -1,33 +1,22 @@
 {
   Map<String,ModelPropertyExtractionContext> propertiesMap=Maps.newTreeMap();
-  for (  Map.Entry<Equivalence.Wrapper<Method>,Collection<Method>> entry : candidateMethods.allMethods().entrySet()) {
+  for (  Map.Entry<Wrapper<Method>,Collection<Method>> entry : candidateMethods.allMethods().entrySet()) {
     Method method=entry.getKey().get();
-    MethodType methodType=MethodType.of(method);
+    PropertyAccessorType propertyAccessorType=PropertyAccessorType.of(method);
     Collection<Method> methodsWithEqualSignature=entry.getValue();
-    if (MethodType.NON_PROPERTY == methodType) {
-      handleNonPropertyMethod(context,methodsWithEqualSignature);
-    }
- else {
-      String propertyName=methodType.propertyNameFor(method);
+    if (propertyAccessorType != null) {
+      String propertyName=propertyAccessorType.propertyNameFor(method);
       ModelPropertyExtractionContext propertyContext=propertiesMap.get(propertyName);
       if (propertyContext == null) {
         propertyContext=new ModelPropertyExtractionContext(propertyName);
         propertiesMap.put(propertyName,propertyContext);
       }
-      if (MethodType.GET_GETTER == methodType) {
-        propertyContext.setGetGetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
-      }
- else       if (MethodType.IS_GETTER == methodType) {
-        propertyContext.setIsGetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
-      }
- else {
-        propertyContext.setSetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
-      }
+      propertyContext.addAccessor(new PropertyAccessorExtractionContext(propertyAccessorType,methodsWithEqualSignature));
     }
   }
   return Collections2.filter(propertiesMap.values(),new Predicate<ModelPropertyExtractionContext>(){
     @Override public boolean apply(    ModelPropertyExtractionContext property){
-      return selectProperty(context,property);
+      return property.isReadable();
     }
   }
 );

@@ -1,0 +1,31 @@
+{
+  if (type instanceof ConstructedNestedClass) {
+    return false;
+  }
+  if (type instanceof LowerCaseClass) {
+    return false;
+  }
+  testStaticInnerClasses&=type.hasPackageName();
+  if (testStaticInnerClasses) {
+    if (type instanceof ConstructedClassWithPackage) {
+      ConstructedClassWithPackage tmp=(ConstructedClassWithPackage)type;
+      String savedName=tmp.className;
+      tmp.className=replaceLastPoint(savedName);
+      if (resolve(tmp,false,true,false)) {
+        type.setRedirect(tmp.redirect());
+        return true;
+      }
+      tmp.className=savedName;
+    }
+ else {
+      String savedName=type.getName();
+      String replacedPointType=replaceLastPoint(savedName);
+      type.setName(replacedPointType);
+      if (resolve(type,false,true,false)) {
+        return true;
+      }
+      type.setName(savedName);
+    }
+  }
+  return false;
+}

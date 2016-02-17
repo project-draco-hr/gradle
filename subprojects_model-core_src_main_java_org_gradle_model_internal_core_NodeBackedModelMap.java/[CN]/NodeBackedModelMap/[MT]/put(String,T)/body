@@ -1,5 +1,11 @@
 {
   Class<T> type=Cast.uncheckedCast(instance.getClass());
-  ModelRuleDescriptor descriptor=NestedModelRuleDescriptor.append(sourceDescriptor,"put()");
-  modelNode.addLink(ModelRegistrations.unmanagedInstance(ModelReference.of(modelNode.getPath().child(name),type),Factories.constant(instance)).descriptor(descriptor).build());
+  ModelRuleDescriptor descriptor=sourceDescriptor.append("put()");
+  if (instance instanceof ManagedInstance) {
+    ManagedInstance target=(ManagedInstance)instance;
+    modelNode.addReference(name,target.getManagedType(),target.getBackingNode(),descriptor);
+  }
+ else {
+    modelNode.addLink(ModelRegistrations.unmanagedInstance(ModelReference.of(modelNode.getPath().child(name),type),Factories.constant(instance)).descriptor(descriptor).build());
+  }
 }

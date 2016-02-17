@@ -1,11 +1,8 @@
 {
   configureFromBuildDir(layout.getSearchDir(),layout.getSearchUpwards(),properties);
   configureFromGradleUserHome(layout.getGradleUserHomeDir(),properties);
-  properties.putAll(Maps.filterEntries((Map)System.getProperties(),new Predicate<Map.Entry<?,?>>(){
-    public boolean apply(    Map.Entry<?,?> input){
-      return input.getKey() instanceof Serializable && (input.getValue() instanceof Serializable || input.getValue() == null);
-    }
-  }
-));
+  Map<Object,Object> systemProperties=new HashMap<Object,Object>(System.getProperties());
+  Map filteredSystemProperties=filterNonSerializableEntries(systemProperties);
+  properties.putAll(filteredSystemProperties);
   return properties;
 }

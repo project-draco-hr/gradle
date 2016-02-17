@@ -1,0 +1,61 @@
+{
+  Expression left=transform(be.getLeftExpression());
+  int type=be.getOperation().getType();
+  if ((type == Types.ASSIGNMENT_OPERATOR || type == Types.EQUAL) && left instanceof ClassExpression) {
+    ClassExpression ce=(ClassExpression)left;
+    String error="you tried to assign a value to the class '" + ce.getType().getName() + "'";
+    if (ce.getType().isScript()) {
+      error+=". Do you have a script with this name?";
+    }
+    addError(error,be.getLeftExpression());
+    return be;
+  }
+  if (left instanceof ClassExpression && isLeftSquareBracket(type)) {
+    if (be.getRightExpression() instanceof ListExpression) {
+      ListExpression list=(ListExpression)be.getRightExpression();
+      if (list.getExpressions().isEmpty()) {
+        final ClassExpression ce=new ClassExpression(left.getType().makeArray());
+        ce.setSourcePosition(be);
+        return ce;
+      }
+ else {
+        boolean map=true;
+        for (        Expression expression : list.getExpressions()) {
+          if (!(expression instanceof MapEntryExpression)) {
+            map=false;
+            break;
+          }
+        }
+        if (map) {
+          final MapExpression me=new MapExpression();
+          for (          Expression expression : list.getExpressions()) {
+            me.addMapEntryExpression((MapEntryExpression)transform(expression));
+          }
+          me.setSourcePosition(list);
+          final CastExpression ce=new CastExpression(left.getType(),me);
+          ce.setSourcePosition(be);
+          return ce;
+        }
+      }
+    }
+ else     if (be.getRightExpression() instanceof SpreadMapExpression) {
+      SpreadMapExpression mapExpression=(SpreadMapExpression)be.getRightExpression();
+      Expression right=transform(mapExpression.getExpression());
+      Expression ce=new CastExpression(left.getType(),right);
+      ce.setSourcePosition(be);
+      return ce;
+    }
+    if (be.getRightExpression() instanceof MapEntryExpression) {
+      final MapExpression me=new MapExpression();
+      me.addMapEntryExpression((MapEntryExpression)transform(be.getRightExpression()));
+      me.setSourcePosition(be.getRightExpression());
+      final CastExpression ce=new CastExpression(left.getType(),me);
+      ce.setSourcePosition(be);
+      return ce;
+    }
+  }
+  Expression right=transform(be.getRightExpression());
+  be.setLeftExpression(left);
+  be.setRightExpression(right);
+  return be;
+}

@@ -1,0 +1,66 @@
+{
+  ClassNode oldNode=currentClass;
+  if (node instanceof InnerClassNode) {
+    if (Modifier.isStatic(node.getModifiers())) {
+      genericParameterNames=new HashMap<String,GenericsType>();
+    }
+  }
+ else {
+    genericParameterNames=new HashMap<String,GenericsType>();
+  }
+  currentClass=node;
+  resolveGenericsHeader(node.getGenericsTypes());
+  ModuleNode module=node.getModule();
+  if (!module.hasImportsResolved()) {
+    for (    ImportNode importNode : module.getImports()) {
+      currImportNode=importNode;
+      ClassNode type=importNode.getType();
+      if (resolve(type,false,false,true)) {
+        currImportNode=null;
+        continue;
+      }
+      currImportNode=null;
+      addError("unable to resolve class " + type.getName(),type);
+    }
+    for (    ImportNode importNode : module.getStaticStarImports().values()) {
+      ClassNode type=importNode.getType();
+      if (resolve(type,false,false,true)) {
+        continue;
+      }
+      if (type.getPackageName() == null && node.getPackageName() != null) {
+        String oldTypeName=type.getName();
+        type.setName(node.getPackageName() + "." + oldTypeName);
+        if (resolve(type,false,false,true)) {
+          continue;
+        }
+        type.setName(oldTypeName);
+      }
+      addError("unable to resolve class " + type.getName(),type);
+    }
+    for (    ImportNode importNode : module.getStaticImports().values()) {
+      ClassNode type=importNode.getType();
+      if (resolve(type,true,true,true)) {
+        continue;
+      }
+      addError("unable to resolve class " + type.getName(),type);
+    }
+    for (    ImportNode importNode : module.getStaticStarImports().values()) {
+      ClassNode type=importNode.getType();
+      if (resolve(type,true,true,true)) {
+        continue;
+      }
+      addError("unable to resolve class " + type.getName(),type);
+    }
+    module.setImportsResolved(true);
+  }
+  ClassNode sn=node.getUnresolvedSuperClass();
+  if (sn != null) {
+    resolveOrFail(sn,node,true);
+  }
+  for (  ClassNode anInterface : node.getInterfaces()) {
+    resolveOrFail(anInterface,node,true);
+  }
+  checkCyclicInheritence(node,node.getUnresolvedSuperClass(),node.getInterfaces());
+  super.visitClass(node);
+  currentClass=oldNode;
+}

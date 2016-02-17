@@ -1,0 +1,26 @@
+{
+  return new SourceTransformTaskConfig(){
+    public String getTaskPrefix(){
+      return "compile";
+    }
+    public Class<? extends DefaultTask> getTaskType(){
+      return TwirlCompile.class;
+    }
+    public void configureTask(    Task task,    BinarySpec binarySpec,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
+      PlayApplicationBinarySpecInternal binary=(PlayApplicationBinarySpecInternal)binarySpec;
+      TwirlSourceSet twirlSourceSet=(TwirlSourceSet)sourceSet;
+      TwirlCompile twirlCompile=(TwirlCompile)task;
+      ScalaLanguageSourceSet twirlScalaSources=binary.getGeneratedScala().get(twirlSourceSet);
+      File generatedSourceDir=binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(),"src");
+      File twirlCompileOutputDirectory=new File(generatedSourceDir,twirlScalaSources.getName());
+      twirlCompile.setDescription("Compiles twirl templates for the '" + twirlSourceSet.getName() + "' source set.");
+      twirlCompile.setPlatform(binary.getTargetPlatform());
+      twirlCompile.setSource(twirlSourceSet.getSource());
+      twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
+      twirlCompile.setDefaultImports(twirlSourceSet.getDefaultImports());
+      twirlScalaSources.getSource().srcDir(twirlCompileOutputDirectory);
+      twirlScalaSources.builtBy(twirlCompile);
+    }
+  }
+;
+}

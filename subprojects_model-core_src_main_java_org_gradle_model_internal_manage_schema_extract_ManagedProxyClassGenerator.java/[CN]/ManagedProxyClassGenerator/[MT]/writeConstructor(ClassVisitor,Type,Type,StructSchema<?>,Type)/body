@@ -1,0 +1,21 @@
+{
+  String constructorDescriptor;
+  Type delegateType;
+  if (delegateSchema == null) {
+    delegateType=null;
+    constructorDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,backingStateType,TYPE_CONVERTER_TYPE);
+  }
+ else {
+    delegateType=Type.getType(delegateSchema.getType().getConcreteClass());
+    constructorDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,backingStateType,TYPE_CONVERTER_TYPE,delegateType);
+  }
+  MethodVisitor constructorVisitor=declareMethod(visitor,CONSTRUCTOR_NAME,constructorDescriptor,CONCRETE_SIGNATURE);
+  invokeSuperConstructor(constructorVisitor,superclassType);
+  assignStateField(constructorVisitor,generatedType);
+  assignTypeConverterField(constructorVisitor,generatedType);
+  if (delegateType != null) {
+    assignDelegateField(constructorVisitor,generatedType,delegateType);
+  }
+  setCanCallSettersField(constructorVisitor,generatedType,true);
+  finishVisitingMethod(constructorVisitor);
+}

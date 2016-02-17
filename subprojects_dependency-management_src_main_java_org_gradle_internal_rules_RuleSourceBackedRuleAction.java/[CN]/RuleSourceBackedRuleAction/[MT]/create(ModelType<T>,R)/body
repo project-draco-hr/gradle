@@ -6,26 +6,27 @@
     }
   }
 );
-  List<String> reasons=Lists.newArrayList();
+  FormattingValidationProblemCollector problemsFormatter=new FormattingValidationProblemCollector("rule source",ruleSourceType);
+  RuleSourceValidationProblemCollector problems=new DefaultRuleSourceValidationProblemCollector(problemsFormatter);
   if (mutateMethods.size() == 0) {
-    reasons.add("must have at exactly one method annotated with @org.gradle.model.Mutate");
+    problems.add("Must have at exactly one method annotated with @" + Mutate.class.getName());
   }
  else {
     if (mutateMethods.size() > 1) {
-      reasons.add("more than one method is annotated with @org.gradle.model.Mutate");
+      problems.add("More than one method is annotated with @" + Mutate.class.getName());
     }
     for (    Method ruleMethod : mutateMethods) {
       if (ruleMethod.getReturnType() != Void.TYPE) {
-        reasons.add(String.format("rule method '%s' must return void",ruleMethod.getName()));
+        problems.add(ruleMethod,"A rule method must return void");
       }
       Type[] parameterTypes=ruleMethod.getGenericParameterTypes();
       if (parameterTypes.length == 0 || !subjectType.isAssignableFrom(ModelType.of(parameterTypes[0]))) {
-        reasons.add(String.format("first parameter of rule method '%s' must be of type %s",ruleMethod.getName(),subjectType));
+        problems.add(ruleMethod,String.format("First parameter of a rule method must be of type %s",subjectType));
       }
     }
   }
-  if (reasons.size() > 0) {
-    throw invalid(ruleSourceType,reasons);
+  if (problemsFormatter.hasProblems()) {
+    throw new RuleActionValidationException(problemsFormatter.format());
   }
   return new RuleSourceBackedRuleAction<R,T>(ruleSourceInstance,new JavaMethod<R,T>(ruleSourceType.getConcreteClass(),subjectType.getConcreteClass(),mutateMethods.get(0)));
 }

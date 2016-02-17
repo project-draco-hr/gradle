@@ -1,0 +1,27 @@
+{
+  String methodName=method.getName();
+  PropertyAccessorType accessorType=PropertyAccessorType.fromName(methodName);
+  if (accessorType != null) {
+switch (accessorType) {
+case GET_GETTER:
+case IS_GETTER:
+      if (!PropertyAccessorType.takesNoParameter(method.getMethod())) {
+        problems.add(method,"property accessor","getter method must not take parameters");
+      }
+    break;
+case SETTER:
+  if (!hasVoidReturnType(method.getMethod())) {
+    problems.add(method,"property accessor","setter method must have void return type");
+  }
+if (!takesSingleParameter(method.getMethod())) {
+  problems.add(method,"property accessor","setter method must take exactly one parameter");
+}
+break;
+default :
+throw new AssertionError();
+}
+}
+ else {
+problems.add(method,"managed type","it must have an implementation");
+}
+}

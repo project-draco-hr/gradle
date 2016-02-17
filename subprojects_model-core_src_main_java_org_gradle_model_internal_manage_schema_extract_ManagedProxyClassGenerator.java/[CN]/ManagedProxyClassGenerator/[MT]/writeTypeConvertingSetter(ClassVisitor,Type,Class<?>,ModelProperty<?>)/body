@@ -1,0 +1,41 @@
+{
+  WeaklyTypeReferencingMethod<?,?> weakSetter=property.getAccessor(SETTER);
+  if (weakSetter == null) {
+    return;
+  }
+  if (!(property.getSchema() instanceof ScalarValueSchema)) {
+    return;
+  }
+  Class<?> propertyClass=property.getType().getConcreteClass();
+  Type propertyType=Type.getType(propertyClass);
+  Class<?> boxedClass=propertyClass.isPrimitive() ? BOXED_TYPES.get(propertyClass) : propertyClass;
+  Type boxedType=Type.getType(boxedClass);
+  Method setter=weakSetter.getMethod();
+  MethodVisitor methodVisitor=declareMethod(visitor,setter.getName(),SET_OBJECT_PROPERTY_DESCRIPTOR,SET_OBJECT_PROPERTY_DESCRIPTOR);
+  putThisOnStack(methodVisitor);
+  putTypeConverterFieldValueOnStack(methodVisitor,generatedType);
+  methodVisitor.visitVarInsn(ALOAD,1);
+  methodVisitor.visitLdcInsn(boxedType);
+  methodVisitor.visitInsn(propertyClass.isPrimitive() ? ICONST_1 : ICONST_0);
+  Label startTry=new Label();
+  methodVisitor.visitLabel(startTry);
+  methodVisitor.visitMethodInsn(INVOKEINTERFACE,TYPE_CONVERTER_TYPE.getInternalName(),"convert",COERCE_TO_SCALAR_DESCRIPTOR,true);
+  Label endTry=new Label();
+  methodVisitor.visitLabel(endTry);
+  methodVisitor.visitTypeInsn(CHECKCAST,boxedType.getInternalName());
+  if (propertyClass.isPrimitive()) {
+    unboxType(methodVisitor,propertyClass);
+  }
+  methodVisitor.visitMethodInsn(INVOKEVIRTUAL,generatedType.getInternalName(),setter.getName(),Type.getMethodDescriptor(Type.VOID_TYPE,propertyType),false);
+  methodVisitor.visitInsn(RETURN);
+  Label startCatch=new Label();
+  methodVisitor.visitLabel(startCatch);
+  methodVisitor.visitTryCatchBlock(startTry,endTry,startCatch,TYPE_CONVERSION_EXCEPTION_TYPE.getInternalName());
+  methodVisitor.visitVarInsn(ASTORE,2);
+  putClassOnStack(methodVisitor,viewClass);
+  methodVisitor.visitLdcInsn(property.getName());
+  putFirstMethodArgumentOnStack(methodVisitor);
+  methodVisitor.visitVarInsn(ALOAD,2);
+  methodVisitor.visitMethodInsn(INVOKESTATIC,Type.getInternalName(ManagedProxyClassGenerator.class),"propertyValueConvertFailure",Type.getMethodDescriptor(Type.VOID_TYPE,CLASS_TYPE,STRING_TYPE,OBJECT_TYPE,TYPE_CONVERSION_EXCEPTION_TYPE),false);
+  finishVisitingMethod(methodVisitor);
+}

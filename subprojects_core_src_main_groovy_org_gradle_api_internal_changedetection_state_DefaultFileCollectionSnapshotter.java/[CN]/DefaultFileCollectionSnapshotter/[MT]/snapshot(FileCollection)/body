@@ -1,6 +1,8 @@
 {
-  final List<FileVisitDetails> allFileVisitDetails=visitFiles(input);
-  if (allFileVisitDetails.isEmpty()) {
+  final List<FileVisitDetails> allFileVisitDetails=Lists.newLinkedList();
+  final List<File> missingFiles=Lists.newArrayList();
+  visitFiles(input,allFileVisitDetails,missingFiles);
+  if (allFileVisitDetails.isEmpty() && missingFiles.isEmpty()) {
     return new FileCollectionSnapshotImpl(Collections.<String,IncrementalFileSnapshot>emptyMap());
   }
   final Map<String,IncrementalFileSnapshot> snapshots=new HashMap<String,IncrementalFileSnapshot>();
@@ -15,6 +17,12 @@
  else {
             snapshots.put(absolutePath,new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash()));
           }
+        }
+      }
+      for (      File missingFile : missingFiles) {
+        final String absolutePath=stringInterner.intern(missingFile.getAbsolutePath());
+        if (!snapshots.containsKey(absolutePath)) {
+          snapshots.put(absolutePath,MissingFileSnapshot.getInstance());
         }
       }
     }

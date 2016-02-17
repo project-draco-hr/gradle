@@ -35,15 +35,28 @@
     }
   }
 );
-  for (  Map.Entry<String,Collection<String>> entry : simpleNames.asMap().entrySet()) {
-    if (entry.getValue().size() > 1) {
-      System.out.println(String.format("Multiple DSL types have short name '%s'",entry.getKey()));
-      for (      String className : entry.getValue()) {
-        System.out.println("    * " + className);
+  final PrintWriter mappingFileWriter=new PrintWriter(new FileWriter(getMappingDestFile()));
+  try {
+    for (    Map.Entry<String,Collection<String>> entry : simpleNames.asMap().entrySet()) {
+      if (entry.getValue().size() > 1) {
+        System.out.println(String.format("Multiple DSL types have short name '%s'",entry.getKey()));
+        for (        String className : entry.getValue()) {
+          System.out.println("    * " + className);
+        }
       }
+      mappingFileWriter.print(entry.getKey());
+      mappingFileWriter.print(":");
+      for (      String className : entry.getValue()) {
+        mappingFileWriter.print(className);
+        mappingFileWriter.print(";");
+      }
+      mappingFileWriter.println();
     }
   }
-  final PrintWriter writer=new PrintWriter(new FileWriter(getDestFile()));
+  finally {
+    mappingFileWriter.close();
+  }
+  final PrintWriter writer=new PrintWriter(new FileWriter(getImportsDestFile()));
   try {
     for (    String packageName : packages) {
       writer.print("import ");

@@ -1,4 +1,5 @@
 {
+  final AtomicBoolean operationCompleted=new AtomicBoolean();
   Future<?> handle=null;
   try {
     handle=executorService.submit(new Runnable(){
@@ -6,7 +7,10 @@
         try {
           while (!Thread.currentThread().isInterrupted()) {
             int c=input.read();
-            if (c == KEY_CODE_CTRL_D || c == EOF) {
+            if (operationCompleted.get()) {
+              break;
+            }
+            if (isCancellation(c) && !operationCompleted.get()) {
               cancellationToken.cancel();
               break;
             }
@@ -19,6 +23,7 @@
     }
 );
     operation.execute(cancellationToken);
+    operationCompleted.set(true);
   }
   finally {
     if (handle != null) {

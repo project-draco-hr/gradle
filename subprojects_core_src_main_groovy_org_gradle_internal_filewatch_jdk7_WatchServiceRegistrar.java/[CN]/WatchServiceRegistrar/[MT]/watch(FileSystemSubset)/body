@@ -1,37 +1,38 @@
 {
-  this.fileSystemSubset=fileSystemSubset;
-  this.unfilteredFileSystemSubset=fileSystemSubset.unfiltered();
-  this.roots=fileSystemSubset.getRoots();
-  Iterable<File> enclosingDirsThatExist=Iterables.transform(roots,new Function<File,File>(){
-    @Override public File apply(    File input){
-      File target=input;
-      while (!target.isDirectory()) {
-        target=target.getParentFile();
-      }
-      return target;
-    }
-  }
-);
-  Iterable<? extends File> startingWatchPoints=FileUtils.calculateRoots(enclosingDirsThatExist);
-  for (  File dir : startingWatchPoints) {
-    if (FILE_TREE_WATCHING_SUPPORTED) {
-      if (inUnfilteredSubsetOrAncestorOfAnyRoot(dir)) {
-        watchDir(dir.toPath());
-      }
-    }
+  lock.lock();
+  try {
+    LOG.debug("Begin - adding watches for {}",fileSystemSubset);
+    final WatchPointsRegistry.Delta delta=watchPointsRegistry.appendFileSystemSubset(fileSystemSubset);
+    Iterable<? extends File> startingWatchPoints=delta.getStartingWatchPoints();
+    for (    File dir : startingWatchPoints) {
+      LOG.debug("Begin - handling starting point {}",dir);
+      final Path dirPath=dir.toPath();
+      watchDir(dirPath);
+      if (!FILE_TREE_WATCHING_SUPPORTED) {
+        Files.walkFileTree(dirPath,new SimpleFileVisitor<Path>(){
+          @Override public FileVisitResult preVisitDirectory(          Path path,          BasicFileAttributes attrs) throws IOException {
+            if (!path.equals(dirPath)) {
+              if (delta.shouldWatch(path.toFile())) {
+                watchDir(path);
+                return FileVisitResult.CONTINUE;
+              }
  else {
-      Files.walkFileTree(dir.toPath(),new SimpleFileVisitor<Path>(){
-        @Override public FileVisitResult preVisitDirectory(        Path path,        BasicFileAttributes attrs) throws IOException {
-          if (inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile())) {
-            watchDir(path);
-            return FileVisitResult.CONTINUE;
-          }
+                LOG.debug("Skipping watching for {}, filtered by WatchPointsRegistry",path);
+                return FileVisitResult.SKIP_SUBTREE;
+              }
+            }
  else {
-            return FileVisitResult.SKIP_SUBTREE;
+              return FileVisitResult.CONTINUE;
+            }
           }
         }
-      }
 );
+      }
+      LOG.debug("End - handling starting point {}",dir);
     }
+    LOG.debug("End - adding watches for {}",fileSystemSubset);
+  }
+  finally {
+    lock.unlock();
   }
 }

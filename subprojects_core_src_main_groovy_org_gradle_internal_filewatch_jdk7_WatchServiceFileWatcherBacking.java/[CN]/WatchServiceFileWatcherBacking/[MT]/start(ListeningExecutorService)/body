@@ -3,6 +3,7 @@
     final ListenableFuture<?> runLoopFuture=executorService.submit(new Runnable(){
       @Override public void run(){
         if (!stopped.get()) {
+          pollerThreadReference.set(new SoftReference<Thread>(Thread.currentThread()));
           running.set(true);
           try {
             try {
@@ -11,8 +12,10 @@
  catch (            InterruptedException e) {
             }
 catch (            Throwable t) {
-              stop();
-              onError.execute(t);
+              if (!(Throwables.getRootCause(t) instanceof InterruptedException)) {
+                stop();
+                onError.execute(t);
+              }
             }
           }
   finally {

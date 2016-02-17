@@ -1,0 +1,76 @@
+{
+  if (type instanceof ConstructedNestedClass) {
+    return false;
+  }
+  if (type instanceof LowerCaseClass) {
+    return resolveAliasFromModule(type);
+  }
+  String name=type.getName();
+  ModuleNode module=currentClass.getModule();
+  if (module == null) {
+    return false;
+  }
+  boolean newNameUsed=false;
+  if (!type.hasPackageName() && module.hasPackageName() && !(type instanceof ConstructedClassWithPackage)) {
+    type.setName(module.getPackageName() + name);
+    newNameUsed=true;
+  }
+  List<ClassNode> moduleClasses=module.getClasses();
+  for (  ClassNode mClass : moduleClasses) {
+    if (mClass.getName().equals(type.getName())) {
+      if (mClass != type) {
+        type.setRedirect(mClass);
+      }
+      return true;
+    }
+  }
+  if (newNameUsed) {
+    type.setName(name);
+  }
+  if (testModuleImports) {
+    if (resolveAliasFromModule(type)) {
+      return true;
+    }
+    if (module.hasPackageName()) {
+      ConstructedClassWithPackage tmp=new ConstructedClassWithPackage(module.getPackageName(),name);
+      if (resolve(tmp,false,false,false)) {
+        ambiguousClass(type,tmp,name);
+        type.setRedirect(tmp.redirect());
+        return true;
+      }
+    }
+    if (!name.contains(".")) {
+      for (      ImportNode importNode : module.getStaticImports().values()) {
+        if (importNode.getFieldName().equals(name)) {
+          ClassNode tmp=new ConstructedNestedClass(importNode.getType(),name);
+          if (resolve(tmp,false,false,true)) {
+            if ((tmp.getModifiers() & Opcodes.ACC_STATIC) != 0) {
+              type.setRedirect(tmp.redirect());
+              return true;
+            }
+          }
+        }
+      }
+      for (      ImportNode importNode : module.getStarImports()) {
+        String packagePrefix=importNode.getPackageName();
+        ConstructedClassWithPackage tmp=new ConstructedClassWithPackage(packagePrefix,name);
+        if (resolve(tmp,false,false,true)) {
+          ambiguousClass(type,tmp,name);
+          type.setRedirect(tmp.redirect());
+          return true;
+        }
+      }
+      for (      ImportNode importNode : module.getStaticStarImports().values()) {
+        ClassNode tmp=new ConstructedNestedClass(importNode.getType(),name);
+        if (resolve(tmp,false,false,true)) {
+          if ((tmp.getModifiers() & Opcodes.ACC_STATIC) != 0) {
+            ambiguousClass(type,tmp,name);
+            type.setRedirect(tmp.redirect());
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}

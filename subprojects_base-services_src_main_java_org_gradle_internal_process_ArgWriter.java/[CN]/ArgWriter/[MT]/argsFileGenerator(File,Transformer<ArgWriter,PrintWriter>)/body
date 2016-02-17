@@ -1,0 +1,25 @@
+{
+  return new Transformer<List<String>,List<String>>(){
+    @Override public List<String> transform(    List<String> args){
+      if (args.isEmpty()) {
+        return args;
+      }
+      argsFile.getParentFile().mkdirs();
+      try {
+        PrintWriter writer=new PrintWriter(argsFile);
+        try {
+          ArgWriter argWriter=argWriterFactory.transform(writer);
+          argWriter.args(args);
+        }
+  finally {
+          writer.close();
+        }
+      }
+ catch (      IOException e) {
+        throw new UncheckedIOException(String.format("Could not write options file '%s'.",argsFile.getAbsolutePath()),e);
+      }
+      return Collections.singletonList(String.format("@%s",argsFile.getAbsolutePath()));
+    }
+  }
+;
+}

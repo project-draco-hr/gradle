@@ -1,0 +1,40 @@
+{
+  visitAnnotations(ve);
+  Variable v=ve.getAccessedVariable();
+  if (!(v instanceof DynamicVariable) && !checkingVariableTypeInDeclaration) {
+    return ve;
+  }
+  if (v instanceof DynamicVariable) {
+    String name=ve.getName();
+    ClassNode t=ClassHelper.make(name);
+    boolean isClass=t.isResolved();
+    if (!isClass) {
+      if (Character.isLowerCase(name.charAt(0))) {
+        t=new LowerCaseClass(name);
+      }
+      isClass=resolve(t);
+      if (!isClass) {
+        isClass=resolveToNestedOfCurrent(t);
+      }
+    }
+    if (isClass) {
+      for (VariableScope scope=currentScope; scope != null && !scope.isRoot(); scope=scope.getParent()) {
+        if (scope.isRoot()) {
+          break;
+        }
+        if (scope.removeReferencedClassVariable(ve.getName()) == null) {
+          break;
+        }
+      }
+      ClassExpression ce=new ClassExpression(t);
+      ce.setSourcePosition(ve);
+      return ce;
+    }
+  }
+  resolveOrFail(ve.getType(),ve);
+  ClassNode origin=ve.getOriginType();
+  if (origin != ve.getType()) {
+    resolveOrFail(origin,ve);
+  }
+  return ve;
+}

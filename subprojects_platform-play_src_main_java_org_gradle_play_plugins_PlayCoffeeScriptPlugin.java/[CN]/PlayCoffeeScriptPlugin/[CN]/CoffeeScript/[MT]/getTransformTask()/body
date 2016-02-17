@@ -1,0 +1,24 @@
+{
+  return new SourceTransformTaskConfig(){
+    public String getTaskPrefix(){
+      return "compile";
+    }
+    public Class<? extends DefaultTask> getTaskType(){
+      return PlayCoffeeScriptCompile.class;
+    }
+    public void configureTask(    Task task,    BinarySpec binarySpec,    LanguageSourceSet sourceSet,    ServiceRegistry serviceRegistry){
+      PlayApplicationBinarySpecInternal binary=(PlayApplicationBinarySpecInternal)binarySpec;
+      CoffeeScriptSourceSet coffeeScriptSourceSet=(CoffeeScriptSourceSet)sourceSet;
+      PlayCoffeeScriptCompile coffeeScriptCompile=(PlayCoffeeScriptCompile)task;
+      JavaScriptSourceSet javaScriptSourceSet=binary.getGeneratedJavaScript().get(coffeeScriptSourceSet);
+      coffeeScriptCompile.setDescription("Compiles coffeescript for the " + coffeeScriptSourceSet.getDisplayName() + ".");
+      File generatedSourceDir=binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(),"src");
+      File outputDirectory=new File(generatedSourceDir,javaScriptSourceSet.getName());
+      coffeeScriptCompile.setDestinationDir(outputDirectory);
+      coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
+      javaScriptSourceSet.getSource().srcDir(outputDirectory);
+      javaScriptSourceSet.builtBy(coffeeScriptCompile);
+    }
+  }
+;
+}

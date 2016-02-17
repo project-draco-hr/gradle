@@ -1,0 +1,24 @@
+{
+  VariableScope oldScope=currentScope;
+  currentScope=node.getVariableScope();
+  Map<String,GenericsType> oldPNames=genericParameterNames;
+  genericParameterNames=new HashMap<String,GenericsType>(genericParameterNames);
+  resolveGenericsHeader(node.getGenericsTypes());
+  Parameter[] paras=node.getParameters();
+  for (  Parameter p : paras) {
+    p.setInitialExpression(transform(p.getInitialExpression()));
+    resolveOrFail(p.getType(),p.getType());
+    visitAnnotations(p);
+  }
+  ClassNode[] exceptions=node.getExceptions();
+  for (  ClassNode t : exceptions) {
+    resolveOrFail(t,node);
+  }
+  resolveOrFail(node.getReturnType(),node);
+  MethodNode oldCurrentMethod=currentMethod;
+  currentMethod=node;
+  super.visitConstructorOrMethod(node,isConstructor);
+  currentMethod=oldCurrentMethod;
+  genericParameterNames=oldPNames;
+  currentScope=oldScope;
+}

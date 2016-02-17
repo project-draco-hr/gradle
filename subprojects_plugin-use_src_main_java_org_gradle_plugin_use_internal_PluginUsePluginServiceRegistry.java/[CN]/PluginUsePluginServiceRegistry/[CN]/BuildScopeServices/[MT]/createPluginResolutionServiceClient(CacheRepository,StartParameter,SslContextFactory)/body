@@ -1,0 +1,7 @@
+{
+  PluginResolutionServiceClient httpClient=startParameter.isOffline() ? new OfflinePluginResolutionServiceClient() : new HttpPluginResolutionServiceClient(sslContextFactory);
+  PersistentCache cache=cacheRepository.cache(CACHE_NAME).withDisplayName("Plugin Resolution Cache").withLockOptions(mode(FileLockManager.LockMode.None)).open();
+  PluginResolutionServiceClient persistentCachingClient=new PersistentCachingPluginResolutionServiceClient(httpClient,cache);
+  PluginResolutionServiceClient inMemoryCachingClient=new InMemoryCachingPluginResolutionServiceClient(persistentCachingClient);
+  return new DeprecationListeningPluginResolutionServiceClient(inMemoryCachingClient);
+}

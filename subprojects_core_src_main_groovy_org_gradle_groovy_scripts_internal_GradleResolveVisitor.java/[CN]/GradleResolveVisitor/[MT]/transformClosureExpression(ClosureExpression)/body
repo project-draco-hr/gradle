@@ -1,0 +1,25 @@
+{
+  boolean oldInClosure=inClosure;
+  inClosure=true;
+  Parameter[] paras=ce.getParameters();
+  if (paras != null) {
+    for (    Parameter para : paras) {
+      ClassNode t=para.getType();
+      resolveOrFail(t,ce);
+      visitAnnotations(para);
+      if (para.hasInitialExpression()) {
+        Object initialVal=para.getInitialExpression();
+        if (initialVal instanceof Expression) {
+          para.setInitialExpression(transform((Expression)initialVal));
+        }
+      }
+      visitAnnotations(para);
+    }
+  }
+  Statement code=ce.getCode();
+  if (code != null) {
+    code.visit(this);
+  }
+  inClosure=oldInClosure;
+  return ce;
+}

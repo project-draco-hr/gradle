@@ -1,0 +1,20 @@
+{
+  initializeVisualStudioInstalls();
+  List<VisualStudioInstall> sortedInstalls=CollectionUtils.sort(foundInstalls.values(),new Comparator<VisualStudioInstall>(){
+    @Override public int compare(    VisualStudioInstall o1,    VisualStudioInstall o2){
+      return o2.getVersion().compareTo(o1.getVersion());
+    }
+  }
+);
+  if (sortedInstalls.isEmpty()) {
+    return Lists.newArrayList((SearchResult)new InstallNotFound("Could not locate a Visual Studio installation, using the Windows registry and system path."));
+  }
+ else {
+    return CollectionUtils.collect(sortedInstalls,new Transformer<SearchResult,VisualStudioInstall>(){
+      @Override public SearchResult transform(      VisualStudioInstall visualStudioInstall){
+        return new InstallFound(visualStudioInstall);
+      }
+    }
+);
+  }
+}

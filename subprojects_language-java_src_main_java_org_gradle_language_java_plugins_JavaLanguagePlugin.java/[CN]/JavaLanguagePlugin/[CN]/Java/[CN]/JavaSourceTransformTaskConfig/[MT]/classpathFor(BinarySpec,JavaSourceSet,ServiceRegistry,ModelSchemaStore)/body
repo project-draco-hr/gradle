@@ -1,0 +1,9 @@
+{
+  Iterable<DependencySpec> dependencies=compileDependencies(binary,javaSourceSet);
+  ArtifactDependencyResolver dependencyResolver=serviceRegistry.get(ArtifactDependencyResolver.class);
+  RepositoryHandler repositories=serviceRegistry.get(RepositoryHandler.class);
+  List<ResolutionAwareRepository> resolutionAwareRepositories=collect(repositories,Transformers.cast(ResolutionAwareRepository.class));
+  ModelSchema<? extends BinarySpec> schema=schemaStore.getSchema(((BinarySpecInternal)binary).getPublicType());
+  VariantsMetaData variantsMetaData=DefaultVariantsMetaData.extractFrom(binary,schema);
+  return new SourceSetDependencyResolvingClasspath((BinarySpecInternal)binary,javaSourceSet,dependencies,dependencyResolver,variantsMetaData,resolutionAwareRepositories);
+}
