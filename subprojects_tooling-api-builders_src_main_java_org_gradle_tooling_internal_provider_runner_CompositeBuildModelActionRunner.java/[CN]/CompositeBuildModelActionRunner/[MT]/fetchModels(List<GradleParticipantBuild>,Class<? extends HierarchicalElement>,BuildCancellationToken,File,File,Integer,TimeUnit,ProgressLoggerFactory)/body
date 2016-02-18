@@ -5,8 +5,9 @@
       break;
     }
     ProjectConnection projectConnection=connect(participant,gradleUserHomeDir,daemonBaseDir,daemonMaxIdleTimeValue,daemonMaxIdleTimeUnits);
-    ModelBuilder<T> modelBuilder=projectConnection.model(modelType);
+    ModelBuilder<? extends HierarchicalElement> modelBuilder=projectConnection.model(modelType);
     modelBuilder.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
+    modelBuilder.addProgressListener(new ProgressListenerToProgressLoggerAdapter(progressLoggerFactory));
     if (cancellationToken.isCancellationRequested()) {
       projectConnection.close();
       break;
