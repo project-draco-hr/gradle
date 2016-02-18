@@ -1,23 +1,25 @@
 {
-  final Set<T> results=Sets.newConcurrentHashSet();
-  final AtomicReference<Throwable> firstFailure=new AtomicReference<Throwable>();
-  final CountDownLatch countDownLatch=new CountDownLatch(participantBuilds.size());
+  final Set<T> results=new LinkedHashSet<T>();
   for (  GradleParticipantBuild participant : participantBuilds) {
+    if (cancellationToken.isCancellationRequested()) {
+      break;
+    }
     ProjectConnection projectConnection=connect(participant,gradleUserHomeDir,daemonBaseDir,daemonMaxIdleTimeValue,daemonMaxIdleTimeUnits);
     ModelBuilder<T> modelBuilder=projectConnection.model(modelType);
-    if (cancellationToken != null) {
-      modelBuilder.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
+    modelBuilder.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
+    if (cancellationToken.isCancellationRequested()) {
+      projectConnection.close();
+      break;
     }
-    modelBuilder.get(new MultiResultHandler<T>(projectConnection,countDownLatch,firstFailure,new HierarchicalResultAdapter<T>(results)));
+    try {
+      accumulate(results,modelBuilder.get());
+    }
+ catch (    GradleConnectionException e) {
+      throw new CompositeBuildExceptionVersion1(e);
+    }
+ finally {
+      projectConnection.close();
+    }
   }
-  try {
-    countDownLatch.await();
-  }
- catch (  InterruptedException e) {
-    UncheckedException.throwAsUncheckedException(e);
-  }
-  if (firstFailure.get() != null) {
-    throw new CompositeBuildExceptionVersion1(firstFailure.get());
-  }
-  return new HashSet<T>(results);
+  return results;
 }
