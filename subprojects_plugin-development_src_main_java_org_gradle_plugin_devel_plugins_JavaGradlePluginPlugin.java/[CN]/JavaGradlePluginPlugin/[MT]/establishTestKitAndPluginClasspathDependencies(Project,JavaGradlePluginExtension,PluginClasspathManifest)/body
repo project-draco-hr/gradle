@@ -1,0 +1,15 @@
+{
+  project.afterEvaluate(new Action<Project>(){
+    @Override public void execute(    Project project){
+      DependencyHandler dependencies=project.getDependencies();
+      Set<SourceSet> testSourceSets=extension.getFunctionalTestClasspath().getTestSourceSets();
+      for (      SourceSet testSourceSet : testSourceSets) {
+        String compileConfigurationName=testSourceSet.getCompileConfigurationName();
+        dependencies.add(compileConfigurationName,dependencies.gradleTestKit());
+        String runtimeConfigurationName=testSourceSet.getRuntimeConfigurationName();
+        dependencies.add(runtimeConfigurationName,project.files(pluginClasspathTask));
+      }
+    }
+  }
+);
+}
