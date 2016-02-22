@@ -1,0 +1,27 @@
+{
+  GradleConnection.Builder builder=GradleConnector.newGradleConnectionBuilder();
+  File gradleHome=new File(args[0]);
+  builder.useGradleUserHomeDir(new File(args[1]));
+  for (int i=2; i < args.length; i++) {
+    File projectDir=new File(args[i]);
+    builder.addBuild(projectDir,gradleHome);
+  }
+  GradleConnection connection=builder.build();
+  try {
+    Set<EclipseProject> eclipseProjects=connection.getModels(EclipseProject.class);
+    for (    EclipseProject eclipseProject : eclipseProjects) {
+      EclipseProject rootProject=findRootProject(eclipseProject);
+      String rootProjectName=rootProject.getGradleProject().getName();
+      GradleProject gradleProject=eclipseProject.getGradleProject();
+      String projectPath=gradleProject.getPath();
+      String projectDir=getProjectDirectory(gradleProject);
+      String sourceLanguageLevel=getJavaVersion(eclipseProject);
+      System.out.println("Project: " + rootProjectName + ":"+ projectPath);
+      System.out.println("Source Language Level: " + sourceLanguageLevel);
+      System.out.println("Project Directory: " + projectDir);
+    }
+  }
+  finally {
+    connection.close();
+  }
+}
