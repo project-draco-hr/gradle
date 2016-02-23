@@ -1,0 +1,51 @@
+{
+  final BuildExperimentInvocationInfo invocationInfo=new BuildExperimentInvocationInfo(){
+    @Override public BuildExperimentSpec getBuildExperimentSpec(){
+      return experiment;
+    }
+    @Override public File getProjectDir(){
+      return projectDir;
+    }
+    @Override public Phase getPhase(){
+      return phase;
+    }
+    @Override public int getIterationNumber(){
+      return iterationNumber;
+    }
+    @Override public int getIterationMax(){
+      return iterationMax;
+    }
+  }
+;
+  final Runnable runner=new Runnable(){
+    public void run(){
+      ExecAction mavenInvocation=createMavenInvocation(experiment.getInvocation());
+      mavenInvocation.execute();
+    }
+  }
+;
+  if (experiment.getListener() != null) {
+    experiment.getListener().beforeInvocation(invocationInfo);
+  }
+  MeasuredOperation operation=getTimer().measure(new Action<MeasuredOperation>(){
+    @Override public void execute(    MeasuredOperation measuredOperation){
+      runner.run();
+    }
+  }
+);
+  final AtomicBoolean omitMeasurement=new AtomicBoolean();
+  if (experiment.getListener() != null) {
+    experiment.getListener().afterInvocation(invocationInfo,operation,new BuildExperimentListener.MeasurementCallback(){
+      @Override public void omitMeasurement(){
+        omitMeasurement.set(true);
+      }
+    }
+);
+  }
+  if (!omitMeasurement.get()) {
+    if (operation.getException() == null) {
+      getDataCollector().collect(invocationInfo,operation);
+    }
+    results.add(operation);
+  }
+}
