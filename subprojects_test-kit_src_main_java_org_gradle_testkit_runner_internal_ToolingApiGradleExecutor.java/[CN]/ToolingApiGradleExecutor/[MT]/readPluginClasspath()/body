@@ -1,0 +1,27 @@
+{
+  List<File> pluginClasspath=new ArrayList<File>();
+  URL[] classLoaderURLs=((URLClassLoader)(Thread.currentThread().getContextClassLoader())).getURLs();
+  URL pluginClasspathUrl=CollectionUtils.findFirst(classLoaderURLs,new Spec<URL>(){
+    @Override public boolean isSatisfiedBy(    URL url){
+      return url.toString().endsWith("generatePluginClasspathManifest/plugin-classpath.txt");
+    }
+  }
+);
+  if (pluginClasspathUrl != null) {
+    BufferedReader br=null;
+    try {
+      br=new BufferedReader(new InputStreamReader(pluginClasspathUrl.openStream()));
+      String line;
+      while ((line=br.readLine()) != null) {
+        pluginClasspath.add(new File(line));
+      }
+    }
+ catch (    IOException e) {
+      throw new UncheckedIOException(e);
+    }
+ finally {
+      IOUtils.closeQuietly(br);
+    }
+  }
+  return pluginClasspath;
+}
