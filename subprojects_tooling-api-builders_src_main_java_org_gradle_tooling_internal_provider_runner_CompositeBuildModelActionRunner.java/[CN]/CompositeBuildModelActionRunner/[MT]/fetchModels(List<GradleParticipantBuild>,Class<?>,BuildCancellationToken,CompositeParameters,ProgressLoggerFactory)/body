@@ -1,0 +1,24 @@
+{
+  final Set<Object> results=new LinkedHashSet<Object>();
+  for (  GradleParticipantBuild participant : participantBuilds) {
+    if (cancellationToken.isCancellationRequested()) {
+      break;
+    }
+    ProjectConnection projectConnection=connect(participant,compositeParameters);
+    try {
+      if (HierarchicalElement.class.isAssignableFrom(modelType) && modelType != IdeaProject.class && modelType != BasicIdeaProject.class) {
+        fetchHierarchicalModels(results,projectConnection,(Class<? extends HierarchicalElement>)modelType,cancellationToken,progressLoggerFactory);
+      }
+ else {
+        fetchPerProjectModels(results,projectConnection,modelType,cancellationToken,progressLoggerFactory);
+      }
+    }
+ catch (    GradleConnectionException e) {
+      throw new CompositeBuildExceptionVersion1(e);
+    }
+ finally {
+      projectConnection.close();
+    }
+  }
+  return results;
+}
