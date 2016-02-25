@@ -17,22 +17,7 @@
     GradleSession session=executerProvider.session(buildSpec);
     session.prepare();
     try {
-      int warmUpCount=warmupsForExperiment(experiment);
-      for (int i=0; i < warmUpCount; i++) {
-        System.out.println();
-        System.out.println(String.format("Warm-up #%s",i + 1));
-        runOnce(session,experiment,new MeasuredOperationList(),projectDir,Phase.WARMUP,i + 1,warmUpCount);
-      }
-      waitForMillis(experiment,experiment.getSleepAfterWarmUpMillis());
-      int invocationCount=invocationsForExperiment(experiment);
-      for (int i=0; i < invocationCount; i++) {
-        if (i > 0) {
-          waitForMillis(experiment,experiment.getSleepAfterTestRoundMillis());
-        }
-        System.out.println();
-        System.out.println(String.format("Test run #%s",i + 1));
-        runOnce(session,experiment,results,projectDir,Phase.MEASUREMENT,i + 1,invocationCount);
-      }
+      performMeasurements(session,experiment,results,projectDir);
     }
   finally {
       session.cleanup();
