@@ -1,0 +1,27 @@
+{
+  DefaultGradleConnector connector=getInternalConnector();
+  File gradleUserHomeDir=compositeParameters.getGradleUserHomeDir();
+  File daemonBaseDir=compositeParameters.getDaemonBaseDir();
+  Integer daemonMaxIdleTimeValue=compositeParameters.getDaemonMaxIdleTimeValue();
+  TimeUnit daemonMaxIdleTimeUnits=compositeParameters.getDaemonMaxIdleTimeUnits();
+  Boolean embeddedParticipants=compositeParameters.isEmbeddedParticipants();
+  if (gradleUserHomeDir != null) {
+    connector.useGradleUserHomeDir(gradleUserHomeDir);
+  }
+  if (daemonBaseDir != null) {
+    connector.daemonBaseDir(daemonBaseDir);
+  }
+  if (daemonMaxIdleTimeValue != null && daemonMaxIdleTimeUnits != null) {
+    connector.daemonMaxIdleTime(daemonMaxIdleTimeValue,daemonMaxIdleTimeUnits);
+  }
+  connector.searchUpwards(false);
+  connector.forProjectDirectory(build.getProjectDir());
+  if (embeddedParticipants) {
+    connector.embedded(true);
+    connector.useClasspathDistribution();
+    return connector.connect();
+  }
+ else {
+    return configureDistribution(connector,build).connect();
+  }
+}

@@ -1,0 +1,28 @@
+{
+  BuildExperimentSpec experiment=invocationInfo.getBuildExperimentSpec();
+  final Runnable runner=session.runner(Cast.<T>uncheckedCast(this.<S,T>createInvocationCustomizer(invocationInfo)));
+  if (experiment.getListener() != null) {
+    experiment.getListener().beforeInvocation(invocationInfo);
+  }
+  MeasuredOperation operation=timer.measure(new Action<MeasuredOperation>(){
+    @Override public void execute(    MeasuredOperation measuredOperation){
+      runner.run();
+    }
+  }
+);
+  final AtomicBoolean omitMeasurement=new AtomicBoolean();
+  if (experiment.getListener() != null) {
+    experiment.getListener().afterInvocation(invocationInfo,operation,new BuildExperimentListener.MeasurementCallback(){
+      @Override public void omitMeasurement(){
+        omitMeasurement.set(true);
+      }
+    }
+);
+  }
+  if (!omitMeasurement.get()) {
+    if (operation.getException() == null) {
+      dataCollector.collect(invocationInfo,operation);
+    }
+    results.add(operation);
+  }
+}
