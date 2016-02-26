@@ -7,11 +7,12 @@
     ProjectConnection projectConnection=connect(participant,compositeParameters);
     try {
       if (modelType == BuildEnvironment.class) {
-        Object projectIdentity=participant.getProjectDir() + "$:";
-        fetchPerBuildModels(results,projectIdentity,projectConnection,modelType,cancellationToken,progressLoggerFactory);
+        File rootDir=participant.getProjectDir();
+        ProjectIdentity projectIdentity=new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir),rootDir,":");
+        results.putAll(fetchPerBuildModels(projectIdentity,projectConnection,modelType,cancellationToken,progressLoggerFactory));
       }
  else {
-        fetchPerProjectModels(results,projectConnection,modelType,cancellationToken,progressLoggerFactory);
+        results.putAll(fetchPerProjectModels(projectConnection,modelType,cancellationToken,progressLoggerFactory));
       }
     }
  catch (    GradleConnectionException e) {

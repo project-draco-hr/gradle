@@ -3,14 +3,9 @@
   final List<ModelResult<T>> models=new LinkedList<ModelResult<T>>();
   if (result.getModel() instanceof Map) {
     Map<Object,Object> targetMap=new HashMap<Object,Object>();
-    adapter.convertMap(targetMap,String.class,elementType,Map.class.cast(result.getModel()),getCompatibilityMapperAction());
+    adapter.convertMap(targetMap,ProjectIdentity.class,elementType,Map.class.cast(result.getModel()),getCompatibilityMapperAction());
     for (    Map.Entry<Object,Object> e : targetMap.entrySet()) {
-      String projectIdentityString=(String)e.getKey();
-      String[] splits=projectIdentityString.split("[$]");
-      File rootDir=new File(splits[0]);
-      String projectPath=splits[1];
-      BuildIdentity buildIdentity=new DefaultBuildIdentity(rootDir);
-      ProjectIdentity projectIdentity=new DefaultProjectIdentity(buildIdentity,rootDir,projectPath);
+      ProjectIdentity projectIdentity=(ProjectIdentity)e.getKey();
       T model=(T)e.getValue();
       models.add(new DefaultModelResult<T>(model,projectIdentity));
     }
