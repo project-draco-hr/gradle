@@ -1,12 +1,10 @@
 {
-  Map<String,Long> rootFileIds=new HashMap<String,Long>();
+  Set<String> roots=new LinkedHashSet<String>();
   int rootFileIdsCount=decoder.readSmallInt();
   for (int i=0; i < rootFileIdsCount; i++) {
-    String key=stringInterner.intern(decoder.readString());
-    boolean notNull=decoder.readBoolean();
-    Long value=notNull ? decoder.readLong() : null;
-    rootFileIds.put(key,value);
+    String path=stringInterner.intern(decoder.readString());
+    roots.add(path);
   }
   FileCollectionSnapshot snapshot=serializer.read(decoder);
-  return new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(rootFileIds,snapshot);
+  return new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(roots,snapshot);
 }
