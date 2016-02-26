@@ -1,16 +1,14 @@
 {
-  final Set<Object> results=new LinkedHashSet<Object>();
+  final Map<Object,Object> results=new HashMap<Object,Object>();
   for (  GradleParticipantBuild participant : participantBuilds) {
     if (cancellationToken.isCancellationRequested()) {
       break;
     }
     ProjectConnection projectConnection=connect(participant,compositeParameters);
     try {
-      if (HierarchicalElement.class.isAssignableFrom(modelType) && modelType != IdeaProject.class && modelType != BasicIdeaProject.class) {
-        fetchHierarchicalModels(results,projectConnection,Cast.<Class<? extends HierarchicalElement>>uncheckedCast(modelType),cancellationToken,progressLoggerFactory);
-      }
- else       if (modelType == BuildEnvironment.class) {
-        fetchPerBuildModels(results,projectConnection,modelType,cancellationToken,progressLoggerFactory);
+      if (modelType == BuildEnvironment.class) {
+        Object projectIdentity=participant.getProjectDir() + "$:";
+        fetchPerBuildModels(results,projectIdentity,projectConnection,modelType,cancellationToken,progressLoggerFactory);
       }
  else {
         fetchPerProjectModels(results,projectConnection,modelType,cancellationToken,progressLoggerFactory);
