@@ -1,23 +1,23 @@
 {
-  final Set<Object> results=new LinkedHashSet<Object>();
+  final Map<Object,Object> results=new HashMap<Object,Object>();
   for (  GradleParticipantBuild participant : participantBuilds) {
     if (cancellationToken.isCancellationRequested()) {
       break;
     }
     ProjectConnection projectConnection=connect(participant,compositeParameters);
+    File rootDir=participant.getProjectDir();
+    DefaultBuildIdentity buildIdentity=new DefaultBuildIdentity(rootDir);
     try {
-      if (HierarchicalElement.class.isAssignableFrom(modelType) && modelType != IdeaProject.class && modelType != BasicIdeaProject.class) {
-        fetchHierarchicalModels(results,projectConnection,Cast.<Class<? extends HierarchicalElement>>uncheckedCast(modelType),cancellationToken,progressLoggerFactory);
-      }
- else       if (modelType == BuildEnvironment.class) {
-        fetchPerBuildModels(results,projectConnection,modelType,cancellationToken,progressLoggerFactory);
+      if (modelType == BuildEnvironment.class) {
+        ProjectIdentity projectIdentity=new DefaultProjectIdentity(buildIdentity,rootDir,":");
+        results.putAll(fetchPerBuildModels(projectIdentity,projectConnection,modelType,cancellationToken,progressLoggerFactory));
       }
  else {
-        fetchPerProjectModels(results,projectConnection,modelType,cancellationToken,progressLoggerFactory);
+        results.putAll(fetchPerProjectModels(projectConnection,modelType,cancellationToken,progressLoggerFactory));
       }
     }
  catch (    GradleConnectionException e) {
-      throw new CompositeBuildExceptionVersion1(e);
+      throw new CompositeBuildExceptionVersion1(e,buildIdentity);
     }
  finally {
       projectConnection.close();

@@ -1,0 +1,22 @@
+{
+  final ConsumerOperationParameters operationParameters=getConsumerOperationParameters();
+  connection.run(new ConsumerAction<Iterable<ModelResult<T>>>(){
+    public ConsumerOperationParameters getParameters(){
+      return operationParameters;
+    }
+    public Iterable<ModelResult<T>> run(    ConsumerConnection connection){
+      Iterable<ModelResult<T>> model=connection.buildModels(modelType,operationParameters);
+      return model;
+    }
+  }
+,new ResultHandlerAdapter<Iterable<ModelResult<T>>>(handler){
+    @Override protected String connectionFailureMessage(    Throwable failure){
+      String message=String.format("Could not fetch models of type '%s' using %s.",modelType.getSimpleName(),connection.getDisplayName());
+      if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
+        message+="\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
+      }
+      return message;
+    }
+  }
+);
+}
