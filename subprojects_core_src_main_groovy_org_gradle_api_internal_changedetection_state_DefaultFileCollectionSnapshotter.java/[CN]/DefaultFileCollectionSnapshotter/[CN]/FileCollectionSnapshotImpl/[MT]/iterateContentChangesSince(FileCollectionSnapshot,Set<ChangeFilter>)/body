@@ -2,6 +2,7 @@
   FileCollectionSnapshotImpl oldSnapshotImpl=(FileCollectionSnapshotImpl)oldSnapshot;
   final Map<String,IncrementalFileSnapshot> otherSnapshots=new HashMap<String,IncrementalFileSnapshot>(oldSnapshotImpl.snapshots);
   final Iterator<String> currentFiles=snapshots.keySet().iterator();
+  final boolean includeAdded=!filters.contains(ChangeFilter.IgnoreAddedFiles);
   return new ChangeIterator<String>(){
     private Iterator<String> removedFiles;
     public boolean next(    ChangeListener<String> listener){
@@ -9,8 +10,10 @@
         String currentFile=currentFiles.next();
         IncrementalFileSnapshot otherFile=otherSnapshots.remove(currentFile);
         if (otherFile == null) {
-          listener.added(currentFile);
-          return true;
+          if (includeAdded) {
+            listener.added(currentFile);
+            return true;
+          }
         }
  else         if (!snapshots.get(currentFile).isContentUpToDate(otherFile)) {
           listener.changed(currentFile);
