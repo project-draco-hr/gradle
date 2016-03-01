@@ -1,27 +1,25 @@
 {
-  List<File> pluginClasspath=new ArrayList<File>();
   URL[] classLoaderURLs=((URLClassLoader)(Thread.currentThread().getContextClassLoader())).getURLs();
   URL pluginClasspathUrl=CollectionUtils.findFirst(classLoaderURLs,new Spec<URL>(){
     @Override public boolean isSatisfiedBy(    URL url){
-      return url.toString().endsWith("pluginClasspathManifest/plugin-classpath.txt");
+      return url.toString().endsWith("pluginClasspathManifest/plugin-under-test-metadata.properties");
     }
   }
 );
   if (pluginClasspathUrl != null) {
-    BufferedReader br=null;
-    try {
-      br=new BufferedReader(new InputStreamReader(pluginClasspathUrl.openStream()));
-      String line;
-      while ((line=br.readLine()) != null) {
-        pluginClasspath.add(new File(line));
+    Properties properties=GUtil.loadProperties(pluginClasspathUrl);
+    if (!properties.isEmpty()) {
+      if (!properties.containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)) {
+        throw new IncompletePluginMetadataException(String.format("Plugin classpath manifest file does not contain expected property named '%s'",IMPLEMENTATION_CLASSPATH_PROP_KEY));
       }
-    }
- catch (    IOException e) {
-      throw new UncheckedIOException(e);
-    }
- finally {
-      IOUtils.closeQuietly(br);
+      String[] parsedImplementationClasspath=properties.getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY).split(",");
+      return CollectionUtils.collect(parsedImplementationClasspath,new Transformer<File,String>(){
+        @Override public File transform(        String classpathEntry){
+          return new File(classpathEntry);
+        }
+      }
+);
     }
   }
-  return pluginClasspath;
+  return Collections.emptyList();
 }
