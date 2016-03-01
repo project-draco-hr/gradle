@@ -4,7 +4,16 @@
   }
   Class<?> modelType=resolveModelType((BuildModelAction)action);
   ProgressLoggerFactory progressLoggerFactory=buildController.getBuildScopeServices().get(ProgressLoggerFactory.class);
-  Map<Object,Object> results=aggregateModels(modelType,actionParameters,requestContext.getCancellationToken(),progressLoggerFactory);
+  Map<Object,Object> results=null;
+  if (modelType != Void.class) {
+    results=aggregateModels(modelType,actionParameters,requestContext.getCancellationToken(),progressLoggerFactory);
+  }
+ else {
+    if (!((BuildModelAction)action).isRunTasks()) {
+      throw new IllegalStateException("No tasks defined.");
+    }
+    executeTasks(action.getStartParameter(),actionParameters,requestContext.getCancellationToken(),progressLoggerFactory);
+  }
   PayloadSerializer payloadSerializer=buildController.getBuildScopeServices().get(PayloadSerializer.class);
   buildController.setResult(new BuildActionResult(payloadSerializer.serialize(results),null));
 }
