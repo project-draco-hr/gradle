@@ -1,0 +1,30 @@
+{
+  validateIsVoidMethod(ruleDefinition,context);
+  if (ruleDefinition.getReferences().size() != 1) {
+    context.add(ruleDefinition,String.format("A method %s must have a single parameter of type %s.",getDescription(),TypeBuilder.class.getName()));
+    return null;
+  }
+  ModelReference<?> subjectReference=ruleDefinition.getSubjectReference();
+  ModelType<?> subjectType=subjectReference.getType();
+  Class<?> rawSubjectType=subjectType.getRawClass();
+  if (!rawSubjectType.equals(TypeBuilder.class)) {
+    context.add(ruleDefinition,String.format("A method %s must have a single parameter of type %s.",getDescription(),TypeBuilder.class.getName()));
+    return null;
+  }
+  List<ModelType<?>> typeVariables=subjectType.getTypeVariables();
+  if (typeVariables.size() != 1) {
+    context.add(ruleDefinition,String.format("Parameter of type %s must declare a type parameter.",rawSubjectType.getName()));
+    return null;
+  }
+  ModelType<?> builtType=typeVariables.get(0);
+  if (builtType.isWildcard()) {
+    context.add(ruleDefinition,String.format("Type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).",builtType.toString()));
+    return null;
+  }
+  ComponentTypeRegistrationInfo info=componentTypeRegistrationInfoFor(builtType);
+  if (info == null) {
+    context.add(ruleDefinition,String.format("Type '%s' is not a subtype of '%s'.",builtType.toString(),componentSpecModelType.toString()));
+    return null;
+  }
+  return new ExtractedTypeRule(ruleDefinition,info,builtType.asSubtype(info.baseInterface));
+}

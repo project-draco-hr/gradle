@@ -1,0 +1,17 @@
+{
+  Map<String,IncrementalFileSnapshot> otherSnapshots=new HashMap<String,IncrementalFileSnapshot>(oldSnapshots);
+  for (  Map.Entry<String,IncrementalFileSnapshot> entry : snapshots.entrySet()) {
+    IncrementalFileSnapshot otherFile=otherSnapshots.remove(entry.getKey());
+    if (otherFile == null) {
+      if (changes.includeAdded()) {
+        listener.added(entry);
+      }
+    }
+ else     if (!entry.getValue().isContentAndMetadataUpToDate(otherFile)) {
+      listener.changed(entry);
+    }
+  }
+  for (  Map.Entry<String,IncrementalFileSnapshot> entry : otherSnapshots.entrySet()) {
+    listener.removed(entry);
+  }
+}

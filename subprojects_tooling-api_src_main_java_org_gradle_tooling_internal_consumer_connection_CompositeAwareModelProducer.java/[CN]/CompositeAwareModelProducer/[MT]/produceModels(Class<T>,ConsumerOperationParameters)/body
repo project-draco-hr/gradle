@@ -1,0 +1,15 @@
+{
+  BuildResult<?> result=buildModels(elementType,operationParameters);
+  if (result.getModel() instanceof Map) {
+    final List<ModelResult<T>> models=new LinkedList<ModelResult<T>>();
+    Map<Object,Object> targetMap=new HashMap<Object,Object>();
+    adapter.convertMap(targetMap,ProjectIdentity.class,elementType,Map.class.cast(result.getModel()),getCompatibilityMapperAction());
+    for (    Map.Entry<Object,Object> e : targetMap.entrySet()) {
+      ProjectIdentity projectIdentity=(ProjectIdentity)e.getKey();
+      T model=(T)e.getValue();
+      models.add(new DefaultModelResult<T>(model,projectIdentity));
+    }
+    return models;
+  }
+  throw new UnsupportedOperationException(String.format("Produced result of type %s for model %s",result.getModel().getClass().getCanonicalName(),elementType.getCanonicalName()));
+}

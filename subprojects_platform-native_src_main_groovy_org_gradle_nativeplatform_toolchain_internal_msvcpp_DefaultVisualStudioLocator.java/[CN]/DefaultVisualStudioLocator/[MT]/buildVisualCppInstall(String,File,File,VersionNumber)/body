@@ -1,75 +1,21 @@
 {
+  List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders=Lists.newArrayList();
+  architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.X86_ON_X86);
+  architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.AMD64_ON_X86);
+  architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.IA64_ON_X86);
+  architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.ARM_ON_X86);
   boolean isNativeAmd64=systemInfo.getArchitecture() == SystemInfo.Architecture.amd64;
-  Map<Architecture,List<File>> paths=new HashMap<Architecture,List<File>>();
-  Map<Architecture,File> binaryPaths=new HashMap<Architecture,File>();
-  Map<Architecture,File> libraryPaths=new HashMap<Architecture,File>();
-  Map<Architecture,File> includePaths=new HashMap<Architecture,File>();
-  Map<Architecture,String> assemblerFilenames=new HashMap<Architecture,String>();
-  Map<Architecture,Map<String,String>> definitions=new HashMap<Architecture,Map<String,String>>();
-  Architecture amd64=Architectures.forInput(ARCHITECTURE_AMD64);
-  Architecture x86=Architectures.forInput(ARCHITECTURE_X86);
-  Architecture arm=Architectures.forInput(ARCHITECTURE_ARM);
-  Architecture ia64=Architectures.forInput(ARCHITECTURE_IA64);
-  File includePath=new File(basePath,PATH_INCLUDE);
-  File commonTools=new File(vsPath,PATH_COMMONTOOLS);
-  File commonIde=new File(vsPath,PATH_COMMONIDE);
   if (isNativeAmd64) {
-    Architecture[] architectures={amd64,x86,arm};
-    String[] binPaths={BINPATH_AMD64_AMD64,BINPATH_AMD64_X86,BINPATH_AMD64_ARM};
-    String[] libPaths={LIBPATH_AMD64,LIBPATH_X86,LIBPATH_ARM};
-    String[] asmFilenames={ASSEMBLER_FILENAME_AMD64,ASSEMBLER_FILENAME_X86,ASSEMBLER_FILENAME_ARM};
-    for (int i=0; i != architectures.length; ++i) {
-      Architecture architecture=architectures[i];
-      File binPath=new File(basePath,binPaths[i]);
-      File libPath=new File(basePath,libPaths[i]);
-      if (binPath.isDirectory() && libPath.isDirectory()) {
-        Map<String,String> definitionsList=new LinkedHashMap<String,String>();
-        List<File> pathsList=new ArrayList<File>();
-        pathsList.add(commonTools);
-        pathsList.add(commonIde);
-        if (architecture != amd64) {
-          pathsList.add(new File(basePath,binPaths[0]));
-        }
-        if (architecture == arm) {
-          definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE,"1");
-        }
-        binaryPaths.put(architecture,binPath);
-        libraryPaths.put(architecture,libPath);
-        includePaths.put(architecture,includePath);
-        assemblerFilenames.put(architecture,asmFilenames[i]);
-        paths.put(architecture,pathsList);
-        definitions.put(architecture,definitionsList);
-      }
+    architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.AMD64_ON_AMD64);
+    architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.X86_ON_AMD64);
+    architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.ARM_ON_AMD64);
+  }
+  Map<Architecture,ArchitectureDescriptor> descriptors=Maps.newHashMap();
+  for (  ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
+    ArchitectureDescriptor descriptor=architectureDescriptorBuilder.buildDescriptor(basePath,vsPath);
+    if (descriptor.isInstalled()) {
+      descriptors.put(architectureDescriptorBuilder.architecture,descriptor);
     }
   }
-  Architecture[] architectures={x86,amd64,ia64,arm};
-  String[] binPaths={BINPATH_X86_X86,BINPATH_X86_AMD64,BINPATH_X86_IA64,BINPATH_X86_ARM};
-  String[] libPaths={LIBPATH_X86,LIBPATH_AMD64,LIBPATH_IA64,LIBPATH_ARM};
-  String[] asmFilenames={ASSEMBLER_FILENAME_X86,ASSEMBLER_FILENAME_AMD64,ASSEMBLER_FILENAME_IA64,ASSEMBLER_FILENAME_ARM};
-  for (int i=0; i != architectures.length; ++i) {
-    Architecture architecture=architectures[i];
-    if (!binaryPaths.containsKey(architecture)) {
-      File binPath=new File(basePath,binPaths[i]);
-      File libPath=new File(basePath,libPaths[i]);
-      if (binPath.isDirectory() && libPath.isDirectory()) {
-        Map<String,String> definitionsList=new LinkedHashMap<String,String>();
-        List<File> pathsList=new ArrayList<File>();
-        pathsList.add(commonTools);
-        pathsList.add(commonIde);
-        if (architecture != x86) {
-          pathsList.add(new File(basePath,binPaths[0]));
-        }
-        if (architecture == arm) {
-          definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE,"1");
-        }
-        binaryPaths.put(architecture,binPath);
-        libraryPaths.put(architecture,libPath);
-        includePaths.put(architecture,includePath);
-        assemblerFilenames.put(architecture,asmFilenames[i]);
-        paths.put(architecture,pathsList);
-        definitions.put(architecture,definitionsList);
-      }
-    }
-  }
-  return new VisualCppInstall(name,version,paths,binaryPaths,libraryPaths,includePaths,assemblerFilenames,definitions);
+  return new VisualCppInstall(name,version,descriptors);
 }

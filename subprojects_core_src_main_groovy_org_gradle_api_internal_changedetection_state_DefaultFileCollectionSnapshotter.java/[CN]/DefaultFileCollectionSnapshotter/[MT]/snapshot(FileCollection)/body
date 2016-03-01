@@ -9,18 +9,18 @@
   cacheAccess.useCache("Create file snapshot",new Runnable(){
     public void run(){
       for (      FileVisitDetails fileDetails : allFileVisitDetails) {
-        final String absolutePath=stringInterner.intern(fileDetails.getFile().getAbsolutePath());
+        String absolutePath=stringInterner.intern(fileDetails.getFile().getAbsolutePath());
         if (!snapshots.containsKey(absolutePath)) {
           if (fileDetails.isDirectory()) {
             snapshots.put(absolutePath,DirSnapshot.getInstance());
           }
  else {
-            snapshots.put(absolutePath,new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash()));
+            snapshots.put(absolutePath,new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(),fileDetails.getLastModified()));
           }
         }
       }
       for (      File missingFile : missingFiles) {
-        final String absolutePath=stringInterner.intern(missingFile.getAbsolutePath());
+        String absolutePath=stringInterner.intern(missingFile.getAbsolutePath());
         if (!snapshots.containsKey(absolutePath)) {
           snapshots.put(absolutePath,MissingFileSnapshot.getInstance());
         }

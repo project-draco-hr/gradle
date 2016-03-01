@@ -1,26 +1,7 @@
 {
-  final Map<String,Long> snapshotDirIds=new HashMap<String,Long>();
-  final Set<File> theFiles=files.getFiles();
-  cacheAccess.useCache("create dir snapshots",new Runnable(){
-    public void run(){
-      for (      File file : theFiles) {
-        Long dirId;
-        final String absolutePath=stringInterner.intern(file.getAbsolutePath());
-        if (file.exists()) {
-          dirId=dirIdentifierCache.get(absolutePath);
-          if (dirId == null) {
-            dirId=idGenerator.generateId();
-            dirIdentifierCache.put(absolutePath,dirId);
-          }
-        }
- else {
-          dirIdentifierCache.remove(absolutePath);
-          dirId=null;
-        }
-        snapshotDirIds.put(absolutePath,dirId);
-      }
-    }
+  Set<String> roots=new LinkedHashSet<String>();
+  for (  File file : files.getFiles()) {
+    roots.add(stringInterner.intern(file.getAbsolutePath()));
   }
-);
-  return new OutputFilesSnapshot(snapshotDirIds,snapshotter.snapshot(files));
+  return new OutputFilesSnapshot(roots,snapshotter.snapshot(files));
 }

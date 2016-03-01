@@ -1,0 +1,13 @@
+{
+  Map<Object,Object> results=new HashMap<Object,Object>();
+  BuildActionExecuter<Map<Object,Object>> buildActionExecuter=projectConnection.action(new FetchPerProjectModelAction(modelType.getName()));
+  buildActionExecuter.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
+  buildActionExecuter.addProgressListener(new ProgressListenerToProgressLoggerAdapter(progressLoggerFactory));
+  if (!cancellationToken.isCancellationRequested()) {
+    for (    Map.Entry<Object,Object> e : buildActionExecuter.run().entrySet()) {
+      InternalProjectIdentity internalProjectIdentity=(InternalProjectIdentity)e.getKey();
+      results.put(convertToProjectIdentity(internalProjectIdentity),e.getValue());
+    }
+  }
+  return results;
+}
