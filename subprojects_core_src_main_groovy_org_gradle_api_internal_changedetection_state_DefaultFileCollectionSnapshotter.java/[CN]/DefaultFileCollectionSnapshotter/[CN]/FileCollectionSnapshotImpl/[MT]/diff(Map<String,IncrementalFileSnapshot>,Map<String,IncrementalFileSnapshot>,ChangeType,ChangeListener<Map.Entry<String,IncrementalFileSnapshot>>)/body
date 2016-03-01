@@ -3,9 +3,11 @@
   for (  Map.Entry<String,IncrementalFileSnapshot> entry : snapshots.entrySet()) {
     IncrementalFileSnapshot otherFile=otherSnapshots.remove(entry.getKey());
     if (otherFile == null) {
-      listener.added(entry);
+      if (changes.includeAdded()) {
+        listener.added(entry);
+      }
     }
- else     if (!entry.getValue().isUpToDate(otherFile)) {
+ else     if (!entry.getValue().isContentAndMetadataUpToDate(otherFile)) {
       listener.changed(entry);
     }
   }
