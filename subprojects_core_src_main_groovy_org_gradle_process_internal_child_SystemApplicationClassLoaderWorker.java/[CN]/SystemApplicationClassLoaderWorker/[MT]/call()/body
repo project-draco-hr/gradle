@@ -1,5 +1,14 @@
 {
-  final Action<WorkerContext> action=new ImplementationClassLoaderWorker(LogLevel.values()[logLevel],sharedPackages,workerClassPath,serializedWorker);
+  LoggingManagerInternal loggingManager=createLoggingManager();
+  loggingManager.setLevel(LogLevel.values()[logLevel]).start();
+  Action<WorkerContext> action;
+  try {
+    ObjectInputStream instr=new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker),getClass().getClassLoader());
+    action=(Action<WorkerContext>)instr.readObject();
+  }
+ catch (  Exception e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
   action.execute(new WorkerContext(){
     public ClassLoader getApplicationClassLoader(){
       return ClassLoader.getSystemClassLoader();
