@@ -1,16 +1,8 @@
 {
-  File file=source.getResource().getFile();
-  String hash;
-  if (file != null) {
-    CachingFileSnapshotter.FileInfo snapshot=snapshotter.snapshot(file);
-    hash=new HashValue(snapshot.getHash()).asCompactString();
+  if (source instanceof NonExistentFileScriptSource) {
+    return emptyCompiledScript(classLoaderId,operation);
   }
- else {
-    hash=HashUtil.createCompactMD5(source.getResource().getText());
-  }
-  Map<String,Object> properties=new HashMap<String,Object>();
-  properties.put("source.filename",source.getFileName());
-  properties.put("source.hash",hash);
+  Map<String,Object> properties=createCacheProperties(source);
   String dslId=operation.getId();
   String cacheName=String.format("scripts/%s/%s",source.getClassName(),dslId);
   PersistentCache cache=cacheRepository.cache(cacheName).withProperties(properties).withValidator(validator).withDisplayName(String.format("%s class cache for %s",dslId,source.getDisplayName())).withInitializer(new ProgressReportingInitializer(progressLoggerFactory,new CacheInitializer(source,classLoader,operation,verifier,scriptBaseClass))).open();
