@@ -15,7 +15,6 @@
     execSpec.classpath(workerMainClassPath.getAsFiles());
     execSpec.systemProperty("java.security.manager","jarjar." + BootstrapSecurityManager.class.getName());
   }
-  ActionExecutionWorker worker=new ActionExecutionWorker(processBuilder.getWorker(),workerId,displayName,serverAddress,processBuilder.getGradleUserHomeDir());
   ByteArrayOutputStream bytes=new ByteArrayOutputStream();
   try {
     DataOutputStream outstr=new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
@@ -26,7 +25,6 @@
       }
       outstr.writeUTF(requestedSecurityManager == null ? "" : requestedSecurityManager.toString());
     }
-    outstr.writeInt(logLevel.ordinal());
     outstr.writeInt(sharedPackages.size());
     for (    String str : sharedPackages) {
       outstr.writeUTF(str);
@@ -35,13 +33,17 @@
     for (    URL entry : implementationClassPath) {
       outstr.writeUTF(entry.toString());
     }
+    OutputStreamBackedEncoder encoder=new OutputStreamBackedEncoder(outstr);
+    encoder.writeSmallInt(logLevel.ordinal());
+    new MultiChoiceAddressSerializer().write(encoder,(MultiChoiceAddress)serverAddress);
+    ActionExecutionWorker worker=new ActionExecutionWorker(processBuilder.getWorker(),workerId,displayName,processBuilder.getGradleUserHomeDir());
     byte[] serializedWorker=GUtil.serialize(worker);
-    outstr.writeInt(serializedWorker.length);
-    outstr.write(serializedWorker);
-    outstr.flush();
+    encoder.writeBinary(serializedWorker);
+    encoder.flush();
   }
  catch (  IOException e) {
     throw new UncheckedIOException(e);
   }
-  execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
+  byte[] encodedConfig=bytes.toByteArray();
+  execSpec.setStandardInput(new ByteArrayInputStream(encodedConfig));
 }
