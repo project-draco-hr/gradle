@@ -6,14 +6,7 @@
     encoder.writeNullableString(pid == null ? null : pid.toString());
     encoder.writeString(uid);
     MultiChoiceAddress multiChoiceAddress=(MultiChoiceAddress)address;
-    UUID canonicalAddress=(UUID)multiChoiceAddress.getCanonicalAddress();
-    encoder.writeLong(canonicalAddress.getMostSignificantBits());
-    encoder.writeLong(canonicalAddress.getLeastSignificantBits());
-    encoder.writeInt(multiChoiceAddress.getPort());
-    encoder.writeSmallInt(multiChoiceAddress.getCandidates().size());
-    for (    InetAddress inetAddress : multiChoiceAddress.getCandidates()) {
-      encoder.writeBinary(inetAddress.getAddress());
-    }
+    new MultiChoiceAddressSerializer().write(encoder,multiChoiceAddress);
     encoder.writeString(daemonLog.getPath());
     encoder.flush();
   }
