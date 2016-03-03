@@ -1,6 +1,7 @@
 {
   if (operatingSystem.isWindows()) {
-    return new GenericFileSystem(new EmptyChmod(),new FallbackStat(),new WindowsSymlink());
+    Symlink symlink=(Symlink)newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink",WindowsSymlink.class);
+    return new GenericFileSystem(new EmptyChmod(),new FallbackStat(),symlink);
   }
   if (posixFiles instanceof UnavailablePosixFiles) {
     LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
@@ -11,8 +12,8 @@
     FileModeAccessor stat=new NativePlatformBackedStat(posixFiles);
     return new GenericFileSystem(chmod,stat,symlink);
   }
-  LOGGER.debug("Using UnsupportedSymlink implementation.");
-  Symlink symlink=new UnsupportedSymlink();
+  Symlink symlink=(Symlink)newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink",UnsupportedSymlink.class);
+  LOGGER.debug("Using {} implementation as symlink.",symlink.getClass().getSimpleName());
   Object handler=newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.PosixJdk7FilePermissionHandler",UnsupportedFilePermissions.class);
   return new GenericFileSystem((FileModeMutator)handler,(FileModeAccessor)handler,symlink);
 }
