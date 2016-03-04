@@ -22,7 +22,8 @@
   String classpathClosureName=scriptTarget.getClasspathBlockName();
   InitialPassStatementTransformer initialPassStatementTransformer=new InitialPassStatementTransformer(classpathClosureName,onPluginBlockError,scriptSource,documentationRegistry);
   SubsetScriptTransformer initialTransformer=new SubsetScriptTransformer(initialPassStatementTransformer);
-  CompileOperation<PluginRequests> initialOperation=new FactoryBackedCompileOperation<PluginRequests>("cp_" + scriptTarget.getId(),initialTransformer,initialPassStatementTransformer,pluginRequestsSerializer);
+  String id="cp_" + scriptTarget.getId();
+  CompileOperation<PluginRequests> initialOperation=new FactoryBackedCompileOperation<PluginRequests>(id,id,initialTransformer,initialPassStatementTransformer,pluginRequestsSerializer);
   ScriptRunner<? extends BasicScript,PluginRequests> initialRunner=compiler.compile(scriptType,initialOperation,baseScope.getExportClassLoader(),Actions.doNothing());
   initialRunner.run(target,services);
   PluginRequests pluginRequests=initialRunner.getData();
@@ -30,7 +31,8 @@
   pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,pluginManager,targetScope);
   BuildScriptTransformer buildScriptTransformer=new BuildScriptTransformer(classpathClosureName,scriptSource);
   String operationId=scriptTarget.getId();
-  CompileOperation<BuildScriptData> operation=new FactoryBackedCompileOperation<BuildScriptData>(operationId,buildScriptTransformer,buildScriptTransformer,buildScriptDataSerializer);
+  String cacheKey=cacheKey(scriptHandler,scriptTarget,pluginRequests);
+  CompileOperation<BuildScriptData> operation=new FactoryBackedCompileOperation<BuildScriptData>(operationId,cacheKey,buildScriptTransformer,buildScriptTransformer,buildScriptDataSerializer);
   final ScriptRunner<? extends BasicScript,BuildScriptData> runner=compiler.compile(scriptType,operation,targetScope.getLocalClassLoader(),ClosureCreationInterceptingVerifier.INSTANCE);
   if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
     scriptTarget.attachScript(runner.getScript());

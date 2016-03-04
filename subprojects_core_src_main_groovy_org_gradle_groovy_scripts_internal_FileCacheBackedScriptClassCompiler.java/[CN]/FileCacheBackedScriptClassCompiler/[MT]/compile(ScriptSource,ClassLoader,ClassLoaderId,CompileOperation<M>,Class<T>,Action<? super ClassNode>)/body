@@ -2,12 +2,17 @@
   if (source instanceof NonExistentFileScriptSource) {
     return emptyCompiledScript(classLoaderId,operation);
   }
-  Map<String,Object> properties=createCacheProperties(source);
+  String hash=hashFor(source);
+  Map<String,Object> properties=createCacheProperties(source,hash);
   String dslId=operation.getId();
-  String cacheName=String.format("scripts/%s/%s",source.getClassName(),dslId);
+  String cacheName=String.format("scripts/%s/%s",hash,operation.getCacheKey());
   PersistentCache cache=cacheRepository.cache(cacheName).withProperties(properties).withValidator(validator).withDisplayName(String.format("%s class cache for %s",dslId,source.getDisplayName())).withInitializer(new ProgressReportingInitializer(progressLoggerFactory,new CacheInitializer(source,classLoader,operation,verifier,scriptBaseClass))).open();
-  caches.add(cache);
-  final File classesDir=classesDir(cache);
-  final File metadataDir=metadataDir(cache);
-  return scriptCompilationHandler.loadFromDir(source,classLoader,classesDir,metadataDir,operation,scriptBaseClass,classLoaderId);
+  try {
+    final File classesDir=classesDir(cache);
+    final File metadataDir=metadataDir(cache);
+    return scriptCompilationHandler.loadFromDir(source,classLoader,classesDir,metadataDir,operation,scriptBaseClass,classLoaderId);
+  }
+  finally {
+    cache.close();
+  }
 }
