@@ -1,0 +1,13 @@
+{
+  Key key=new Key(source.getClassName(),classLoader,operation.getId());
+  CachedCompiledScript cached=cachedCompiledScripts.getIfPresent(key);
+  byte[] hash=hashFor(source);
+  if (cached != null) {
+    if (Arrays.equals(hash,cached.hash)) {
+      return Cast.uncheckedCast(cached.compiledScript);
+    }
+  }
+  CompiledScript<T,M> compiledScript=delegate.compile(source,classLoader,classLoaderId,operation,scriptBaseClass,verifier);
+  cachedCompiledScripts.put(key,new CachedCompiledScript(hash,compiledScript));
+  return compiledScript;
+}
