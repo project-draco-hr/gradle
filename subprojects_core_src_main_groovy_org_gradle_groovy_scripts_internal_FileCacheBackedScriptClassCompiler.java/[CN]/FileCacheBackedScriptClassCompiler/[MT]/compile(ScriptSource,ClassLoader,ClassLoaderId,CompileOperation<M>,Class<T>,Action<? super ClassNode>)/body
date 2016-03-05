@@ -2,19 +2,73 @@
   if (source instanceof NonExistentFileScriptSource) {
     return emptyCompiledScript(classLoaderId,operation);
   }
-  String hash=hashFor(source);
-  Map<String,Object> properties=createCacheProperties(source,hash);
-  String dslId=operation.getId();
-  String cacheKey=operation.getCacheKey();
-  String cacheName=String.format("scripts/%s/%s",hash,cacheKey);
-  RemappingScriptSource remapped=new RemappingScriptSource(source);
-  PersistentCache cache=cacheRepository.cache(cacheName).withProperties(properties).withValidator(validator).withDisplayName(String.format("%s class cache for %s",dslId,source.getDisplayName())).withInitializer(new ProgressReportingInitializer(progressLoggerFactory,new CacheInitializer(remapped,classLoader,operation,verifier,scriptBaseClass))).open();
+  final String hash=hashFor(source);
+  final String cacheKey=operation.getCacheKey();
+  final Map<String,Object> cacheProperties=createCacheProperties(cacheKey);
+  final String dslId=operation.getId();
+  final RemappingScriptSource remapped=new RemappingScriptSource(source);
+  PersistentCache remappedClassesCache=cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s",source.getClassName(),hash,cacheKey)).withDisplayName(String.format("%s remapped class cache for %s",dslId,source.getDisplayName())).withValidator(validator).withInitializer(new ProgressReportingInitializer(progressLoggerFactory,new Action<PersistentCache>(){
+    public void execute(    PersistentCache remappedClassesCache){
+      PersistentCache cache=cacheRepository.cache(String.format("scripts/%s/%s",hash,dslId)).withProperties(cacheProperties).withValidator(validator).withDisplayName(String.format("%s generic class cache for %s",dslId,source.getDisplayName())).withInitializer(new ProgressReportingInitializer(progressLoggerFactory,new CacheInitializer(remapped,classLoader,operation,verifier,scriptBaseClass),"Compiling script into cache","Compiling " + source.getDisplayName() + " to cross build script cache")).open();
+      final File genericClassesDir=classesDir(cache);
+      final File metadataDir=metadataDir(cache);
+      try {
+        remapClasses(genericClassesDir,classesDir(remappedClassesCache),remapped);
+        copyMetadata(metadataDir,metadataDir(remappedClassesCache));
+      }
+  finally {
+        cache.close();
+      }
+    }
+    private void remapClasses(    File scriptCacheDir,    File relocalizedDir,    RemappingScriptSource source){
+      ScriptSource origin=source.getSource();
+      String className=origin.getClassName();
+      if (!relocalizedDir.exists()) {
+        relocalizedDir.mkdir();
+      }
+      File[] files=scriptCacheDir.listFiles();
+      if (files != null) {
+        for (        File file : files) {
+          String renamed=file.getName();
+          if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
+            renamed=className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
+          }
+          org.objectweb.asm.ClassWriter cv=new org.objectweb.asm.ClassWriter(0);
+          BuildScriptRemapper remapper=new BuildScriptRemapper(cv,origin);
+          try {
+            ClassReader cr=new ClassReader(Files.toByteArray(file));
+            cr.accept(remapper,0);
+            Files.write(cv.toByteArray(),new File(relocalizedDir,renamed));
+          }
+ catch (          IOException ex) {
+            throw UncheckedException.throwAsUncheckedException(ex);
+          }
+catch (          Throwable t) {
+            t.printStackTrace();
+          }
+        }
+      }
+    }
+    private void copyMetadata(    File source,    File dest){
+      if (dest.mkdir()) {
+        for (        File src : source.listFiles()) {
+          try {
+            Files.copy(src,new File(dest,src.getName()));
+          }
+ catch (          IOException ex) {
+            throw UncheckedException.throwAsUncheckedException(ex);
+          }
+        }
+      }
+    }
+  }
+,"Compiling script into cache","Compiling " + source.getFileName() + " into local build cache")).open();
   try {
-    final File classesDir=classesDir(cache);
-    final File metadataDir=metadataDir(cache);
-    return scriptCompilationHandler.loadFromDir(remapped,classLoader,classesDir,metadataDir,operation,scriptBaseClass,classLoaderId);
+    File remappedClassesDir=classesDir(remappedClassesCache);
+    File remappedMetadataDir=metadataDir(remappedClassesCache);
+    return scriptCompilationHandler.loadFromDir(source,classLoader,remappedClassesDir,remappedMetadataDir,operation,scriptBaseClass,classLoaderId);
   }
   finally {
-    cache.close();
+    remappedClassesCache.close();
   }
 }
