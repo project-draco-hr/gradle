@@ -7,59 +7,7 @@
   final Map<String,Object> cacheProperties=createCacheProperties(cacheKey);
   final String dslId=operation.getId();
   final RemappingScriptSource remapped=new RemappingScriptSource(source);
-  PersistentCache remappedClassesCache=cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s",source.getClassName(),hash,cacheKey)).withDisplayName(String.format("%s remapped class cache for %s",dslId,source.getDisplayName())).withValidator(validator).withInitializer(new ProgressReportingInitializer(progressLoggerFactory,new Action<PersistentCache>(){
-    public void execute(    PersistentCache remappedClassesCache){
-      PersistentCache cache=cacheRepository.cache(String.format("scripts/%s/%s",hash,dslId)).withProperties(cacheProperties).withValidator(validator).withDisplayName(String.format("%s generic class cache for %s",dslId,source.getDisplayName())).withInitializer(new ProgressReportingInitializer(progressLoggerFactory,new CacheInitializer(remapped,classLoader,operation,verifier,scriptBaseClass),"Compiling script into cache","Compiling " + source.getDisplayName() + " to cross build script cache")).open();
-      final File genericClassesDir=classesDir(cache);
-      final File metadataDir=metadataDir(cache);
-      try {
-        remapClasses(genericClassesDir,classesDir(remappedClassesCache),remapped);
-        copyMetadata(metadataDir,metadataDir(remappedClassesCache));
-      }
-  finally {
-        cache.close();
-      }
-    }
-    private void remapClasses(    File scriptCacheDir,    File relocalizedDir,    RemappingScriptSource source){
-      ScriptSource origin=source.getSource();
-      String className=origin.getClassName();
-      if (!relocalizedDir.exists()) {
-        relocalizedDir.mkdir();
-      }
-      File[] files=scriptCacheDir.listFiles();
-      if (files != null) {
-        for (        File file : files) {
-          String renamed=file.getName();
-          if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
-            renamed=className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
-          }
-          ClassWriter cv=new ClassWriter(0);
-          BuildScriptRemapper remapper=new BuildScriptRemapper(cv,origin);
-          try {
-            ClassReader cr=new ClassReader(Files.toByteArray(file));
-            cr.accept(remapper,0);
-            Files.write(cv.toByteArray(),new File(relocalizedDir,renamed));
-          }
- catch (          IOException ex) {
-            throw UncheckedException.throwAsUncheckedException(ex);
-          }
-        }
-      }
-    }
-    private void copyMetadata(    File source,    File dest){
-      if (dest.mkdir()) {
-        for (        File src : source.listFiles()) {
-          try {
-            Files.copy(src,new File(dest,src.getName()));
-          }
- catch (          IOException ex) {
-            throw UncheckedException.throwAsUncheckedException(ex);
-          }
-        }
-      }
-    }
-  }
-,"Compiling script into cache","Compiling " + source.getFileName() + " into local build cache")).open();
+  PersistentCache remappedClassesCache=cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s",source.getClassName(),hash,cacheKey)).withDisplayName(String.format("%s remapped class cache for %s",dslId,hash)).withValidator(validator).withInitializer(new ProgressReportingInitializer(progressLoggerFactory,new RemapBuildScriptsAction<M,T>(remapped,hash,dslId,cacheProperties,classLoader,operation,verifier,scriptBaseClass),"Compiling script into cache","Compiling " + source.getFileName() + " into local build cache")).open();
   try {
     File remappedClassesDir=classesDir(remappedClassesCache);
     File remappedMetadataDir=metadataDir(remappedClassesCache);
