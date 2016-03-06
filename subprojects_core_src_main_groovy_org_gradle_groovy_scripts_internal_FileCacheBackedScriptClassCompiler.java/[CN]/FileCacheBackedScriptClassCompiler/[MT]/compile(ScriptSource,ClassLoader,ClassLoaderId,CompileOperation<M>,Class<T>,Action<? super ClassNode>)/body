@@ -8,12 +8,8 @@
   final String dslId=operation.getId();
   final RemappingScriptSource remapped=new RemappingScriptSource(source);
   PersistentCache remappedClassesCache=cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s",source.getClassName(),hash,cacheKey)).withDisplayName(String.format("%s remapped class cache for %s",dslId,hash)).withValidator(validator).withInitializer(new ProgressReportingInitializer(progressLoggerFactory,new RemapBuildScriptsAction<M,T>(remapped,hash,dslId,cacheProperties,classLoader,operation,verifier,scriptBaseClass),"Compiling script into cache","Compiling " + source.getFileName() + " into local build cache")).open();
-  try {
-    File remappedClassesDir=classesDir(remappedClassesCache);
-    File remappedMetadataDir=metadataDir(remappedClassesCache);
-    return scriptCompilationHandler.loadFromDir(source,classLoader,remappedClassesDir,remappedMetadataDir,operation,scriptBaseClass,classLoaderId);
-  }
-  finally {
-    remappedClassesCache.close();
-  }
+  remappedClassesCache.close();
+  File remappedClassesDir=classesDir(remappedClassesCache);
+  File remappedMetadataDir=metadataDir(remappedClassesCache);
+  return scriptCompilationHandler.loadFromDir(source,classLoader,remappedClassesDir,remappedMetadataDir,operation,scriptBaseClass,classLoaderId);
 }
