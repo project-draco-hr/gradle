@@ -1,23 +1,15 @@
 {
-  FileWriter writer=null;
-  try {
-    writer=new FileWriter(new File(getOutputDirectory(),METADATA_FILE_NAME));
-    if (!getPluginClasspath().isEmpty()) {
-      List<String> paths=CollectionUtils.collect(getPluginClasspath(),new Transformer<String,File>(){
-        @Override public String transform(        File file){
-          return file.getAbsolutePath().replaceAll("\\\\","/");
-        }
+  Properties properties=new Properties();
+  if (!getPluginClasspath().isEmpty()) {
+    List<String> paths=CollectionUtils.collect(getPluginClasspath(),new Transformer<String,File>(){
+      @Override public String transform(      File file){
+        return file.getAbsolutePath().replaceAll("\\\\","/");
       }
-);
-      writer.write(IMPLEMENTATION_CLASSPATH_PROP_KEY);
-      writer.write("=");
-      Joiner.on(",").appendTo(writer,paths);
     }
+);
+    StringBuilder implementationClasspath=new StringBuilder();
+    Joiner.on(File.pathSeparator).appendTo(implementationClasspath,paths);
+    properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY,implementationClasspath.toString());
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
-  }
- finally {
-    IOUtils.closeQuietly(writer);
-  }
+  GUtil.saveProperties(properties,new File(getOutputDirectory(),METADATA_FILE_NAME));
 }
