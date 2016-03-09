@@ -1,0 +1,30 @@
+{
+  boolean hasTextOnBottomLine=textCursor.row == 0 && textCursor.col > 0;
+  if (writePos.row == 0 && writtenText.equals(text) && !hasTextOnBottomLine) {
+    return;
+  }
+  Ansi ansi=createAnsi();
+  if (hasTextOnBottomLine) {
+    writePos.copyFrom(textCursor);
+    positionCursorAt(writePos,ansi);
+    ansi.newline();
+    newLineWritten(writePos);
+    writtenText="";
+  }
+ else {
+    writePos.bottomLeft();
+    positionCursorAt(writePos,ansi);
+  }
+  if (text.length() > 0) {
+    ColorMap.Color color=colorMap.getStatusBarColor();
+    color.on(ansi);
+    ansi.a(text);
+    color.off(ansi);
+  }
+  if (text.length() < writtenText.length()) {
+    ansi.eraseLine(Ansi.Erase.FORWARD);
+  }
+  write(ansi);
+  charactersWritten(writePos,text.length());
+  writtenText=text;
+}

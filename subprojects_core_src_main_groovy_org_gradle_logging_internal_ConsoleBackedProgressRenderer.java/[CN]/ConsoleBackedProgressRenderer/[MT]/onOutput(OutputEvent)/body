@@ -2,7 +2,7 @@
 synchronized (lock) {
     queue.add(newEvent);
     if (newEvent instanceof FlushToOutputsEvent) {
-      drain(timeProvider.getCurrentTime());
+      renderNow(timeProvider.getCurrentTime());
       return;
     }
     if (queue.size() > 1) {
@@ -10,13 +10,13 @@ synchronized (lock) {
     }
     long now=timeProvider.getCurrentTime();
     if (now - lastUpdate >= throttleMs) {
-      drain(now);
+      renderNow(now);
       return;
     }
     executor.schedule(new Runnable(){
       @Override public void run(){
 synchronized (lock) {
-          drain(timeProvider.getCurrentTime());
+          renderNow(timeProvider.getCurrentTime());
         }
       }
     }

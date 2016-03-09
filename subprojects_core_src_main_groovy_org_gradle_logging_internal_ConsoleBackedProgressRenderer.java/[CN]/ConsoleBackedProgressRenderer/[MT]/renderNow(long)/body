@@ -1,0 +1,36 @@
+{
+  if (queue.isEmpty()) {
+    return;
+  }
+  ProgressOperation lastOp=mostRecentOperation;
+  for (  OutputEvent event : queue) {
+    try {
+      if (event instanceof ProgressStartEvent) {
+        ProgressStartEvent startEvent=(ProgressStartEvent)event;
+        lastOp=operations.start(startEvent.getShortDescription(),startEvent.getStatus(),startEvent.getOperationId(),startEvent.getParentId());
+      }
+ else       if (event instanceof ProgressCompleteEvent) {
+        ProgressOperation op=operations.complete(((ProgressCompleteEvent)event).getOperationId());
+        lastOp=op.getParent();
+      }
+ else       if (event instanceof ProgressEvent) {
+        ProgressEvent progressEvent=(ProgressEvent)event;
+        lastOp=operations.progress(progressEvent.getStatus(),progressEvent.getOperationId());
+      }
+      listener.onOutput(event);
+    }
+ catch (    Exception e) {
+      throw new RuntimeException("Unable to process incoming event '" + event + "' ("+ event.getClass().getSimpleName()+ ")",e);
+    }
+  }
+  if (lastOp != null) {
+    getStatusBar().setText(statusBarFormatter.format(lastOp));
+  }
+ else   if (mostRecentOperation != null) {
+    getStatusBar().setText("");
+  }
+  console.flush();
+  mostRecentOperation=lastOp;
+  queue.clear();
+  lastUpdate=now;
+}
