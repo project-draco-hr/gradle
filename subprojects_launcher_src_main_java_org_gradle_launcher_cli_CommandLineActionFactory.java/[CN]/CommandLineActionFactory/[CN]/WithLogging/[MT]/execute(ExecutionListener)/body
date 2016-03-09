@@ -17,7 +17,12 @@
   LoggingManagerInternal loggingManager=loggingServices.getFactory(LoggingManagerInternal.class).create();
   loggingManager.setLevel(loggingConfiguration.getLogLevel());
   loggingManager.start();
-  NativeServices.initialize(buildLayout.getGradleUserHomeDir());
-  loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
-  action.execute(executionListener);
+  try {
+    NativeServices.initialize(buildLayout.getGradleUserHomeDir());
+    loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
+    action.execute(executionListener);
+  }
+  finally {
+    loggingManager.stop();
+  }
 }
