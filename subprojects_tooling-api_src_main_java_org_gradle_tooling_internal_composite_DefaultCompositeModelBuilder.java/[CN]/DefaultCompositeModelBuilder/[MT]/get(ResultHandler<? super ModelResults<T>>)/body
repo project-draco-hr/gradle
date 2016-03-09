@@ -1,15 +1,20 @@
 {
   final ConsumerOperationParameters operationParameters=getConsumerOperationParameters();
-  connection.run(new ConsumerAction<Iterable<ModelResult<T>>>(){
+  connection.run(new ConsumerAction<ModelResults<T>>(){
     public ConsumerOperationParameters getParameters(){
       return operationParameters;
     }
-    public Iterable<ModelResult<T>> run(    ConsumerConnection connection){
-      Iterable<ModelResult<T>> model=connection.buildModels(modelType,operationParameters);
-      return model;
+    public ModelResults<T> run(    ConsumerConnection connection){
+      final Iterable<ModelResult<T>> models=connection.buildModels(modelType,operationParameters);
+      return new ModelResults<T>(){
+        @Override public Iterator<ModelResult<T>> iterator(){
+          return models.iterator();
+        }
+      }
+;
     }
   }
-,new ResultHandlerAdapter<Iterable<ModelResult<T>>>(handler){
+,new ResultHandlerAdapter<ModelResults<T>>(handler){
     @Override protected String connectionFailureMessage(    Throwable failure){
       String message=String.format("Could not fetch models of type '%s' using %s.",modelType.getSimpleName(),connection.getDisplayName());
       if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
