@@ -1,13 +1,18 @@
 {
-  final ImmutableList.Builder<FileVisitDetails> fileVisitDetails=ImmutableList.builder();
-  fileTree.visitTreeOrBackingFile(new FileVisitor(){
-    @Override public void visitDir(    FileVisitDetails dirDetails){
-      fileVisitDetails.add(dirDetails);
-    }
-    @Override public void visitFile(    FileVisitDetails fileDetails){
-      fileVisitDetails.add(fileDetails);
+  if (isDirectoryFileTree(fileTree)) {
+    DirectoryFileTree directoryFileTree=DirectoryFileTree.class.cast(((FileTreeAdapter)fileTree).getTree());
+    if (isEmptyPattern(directoryFileTree.getPatterns())) {
+      final String absolutePath=directoryFileTree.getDir().getAbsolutePath();
+      Collection<? extends FileVisitDetails> cachedTree=cachedTrees.get(absolutePath);
+      if (cachedTree != null) {
+        return cachedTree;
+      }
+ else {
+        cachedTree=doVisitTree(fileTree);
+        Collection<? extends FileVisitDetails> previous=cachedTrees.putIfAbsent(absolutePath,cachedTree);
+        return previous != null ? previous : cachedTree;
+      }
     }
   }
-);
-  return fileVisitDetails.build();
+  return doVisitTree(fileTree);
 }
