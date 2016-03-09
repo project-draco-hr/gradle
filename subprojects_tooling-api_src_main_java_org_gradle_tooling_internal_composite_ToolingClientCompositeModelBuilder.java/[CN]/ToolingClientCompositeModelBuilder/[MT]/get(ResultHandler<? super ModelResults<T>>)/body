@@ -1,0 +1,23 @@
+{
+  final Set<ModelResult<T>> results=Sets.newConcurrentHashSet();
+  for (  GradleBuildInternal participant : participants) {
+    if (hasProjectHierarchy(modelType)) {
+      buildResultsFromHierarchicalModel(participant,results);
+    }
+ else {
+      if (!isBuildEnvironment(modelType) && supportsCustomModelAction(participant)) {
+        buildResultsUsingModelAction(participant,results);
+      }
+ else {
+        EclipseProject rootProject=getModel(connect(participant),EclipseProject.class);
+        buildResultsWithSeparateProjectConnections(participant,rootProject,results);
+      }
+    }
+  }
+  handler.onComplete(new ModelResults<T>(){
+    @Override public Iterator<ModelResult<T>> iterator(){
+      return results.iterator();
+    }
+  }
+);
+}
