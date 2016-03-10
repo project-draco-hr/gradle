@@ -5,8 +5,12 @@
   }
   Ansi ansi=createAnsi();
   if (hasTextOnBottomLine) {
+    int staleStatusChars=writePos.row > 0 ? 0 : writtenText.length();
     writePos.copyFrom(textCursor);
     positionCursorAt(writePos,ansi);
+    if (staleStatusChars > textCursor.col) {
+      ansi.eraseLine(Ansi.Erase.FORWARD);
+    }
     ansi.newline();
     newLineWritten(writePos);
     writtenText="";
