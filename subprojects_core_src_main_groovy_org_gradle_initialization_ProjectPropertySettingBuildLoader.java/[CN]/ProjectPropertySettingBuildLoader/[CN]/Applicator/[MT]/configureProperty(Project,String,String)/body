@@ -1,0 +1,23 @@
+{
+  Class<? extends Project> clazz=project.getClass();
+  if (clazz != projectClazz) {
+    mutators.clear();
+    projectClazz=clazz;
+  }
+  PropertyMutator propertyMutator=mutators.get(name);
+  if (propertyMutator != null) {
+    propertyMutator.setValue(project,value);
+  }
+ else {
+    if (!mutators.containsKey(name)) {
+      propertyMutator=JavaReflectionUtil.writeablePropertyIfExists(clazz,name);
+      mutators.put(name,propertyMutator);
+      if (propertyMutator != null) {
+        propertyMutator.setValue(project,value);
+        return;
+      }
+    }
+    ExtraPropertiesExtension extraProperties=project.getExtensions().getExtraProperties();
+    extraProperties.set(name,value);
+  }
+}
