@@ -1,17 +1,12 @@
 {
-  final Set<ModelResult<T>> results=Sets.newConcurrentHashSet();
+  final Set<ModelResult<T>> results=Sets.newLinkedHashSet();
   for (  GradleParticipantBuild participant : participants) {
-    if (hasProjectHierarchy(modelType)) {
-      buildResultsFromHierarchicalModel(participant,results);
+    try {
+      final Set<ModelResult<T>> participantResults=buildResultsForParticipant(participant);
+      results.addAll(participantResults);
     }
- else {
-      if (!isBuildEnvironment(modelType) && supportsCustomModelAction(participant)) {
-        buildResultsUsingModelAction(participant,results);
-      }
- else {
-        EclipseProject rootProject=getModel(participant,EclipseProject.class);
-        buildResultsWithSeparateProjectConnections(participant,rootProject,results);
-      }
+ catch (    GradleConnectionException e) {
+      results.add(new DefaultModelResult<T>(participant.toProjectIdentity(":"),e));
     }
   }
   handler.onComplete(new ModelResults<T>(){
