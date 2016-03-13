@@ -3,12 +3,12 @@
     execution.proceed();
     return;
   }
-  AsynchronousLogDispatcher dispatcher=new AsynchronousLogDispatcher(execution.getConnection());
   final LogLevel buildLogLevel=build.getParameters().getLogLevel();
+  final AsynchronousLogDispatcher dispatcher=new AsynchronousLogDispatcher(execution.getConnection());
   OutputEventListener listener=new OutputEventListener(){
     public void onOutput(    OutputEvent event){
       if (event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0) {
-        eventQueue.add(event);
+        dispatcher.submit(event);
       }
     }
   }
@@ -21,13 +21,7 @@
     execution.proceed();
   }
   finally {
-    try {
-      dispatcher.interrupt();
-      dispatcher.join();
-    }
- catch (    InterruptedException e) {
-      dispatcher.interrupt();
-    }
+    dispatcher.waitForCompletion();
     loggingOutput.removeOutputEventListener(listener);
   }
 }
