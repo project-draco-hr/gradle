@@ -1,16 +1,23 @@
 {
   final Set<ModelResult<T>> participantResults=Sets.newConcurrentHashSet();
-  if (hasProjectHierarchy(modelType)) {
-    buildResultsFromHierarchicalModel(participant,participantResults);
+  if (isBuildEnvironment(modelType)) {
+    GradleBuild gradleBuild=getProjectModel(participant,GradleBuild.class);
+    BuildEnvironment buildEnvironment=getProjectModel(participant,BuildEnvironment.class);
+    addPerBuildModelResult(participant,gradleBuild.getRootProject(),buildEnvironment,participantResults);
+  }
+ else   if (isGradleBuild(modelType)) {
+    GradleBuild gradleBuild=getProjectModel(participant,GradleBuild.class);
+    addPerBuildModelResult(participant,gradleBuild.getRootProject(),gradleBuild,participantResults);
+  }
+ else   if (hasProjectHierarchy(modelType)) {
+    addResultsFromHierarchicalModel(participant,participantResults);
+  }
+ else   if (supportsCustomModelAction(participant)) {
+    addResultsUsingModelAction(participant,participantResults);
   }
  else {
-    if (!isBuildEnvironment(modelType) && supportsCustomModelAction(participant)) {
-      buildResultsUsingModelAction(participant,participantResults);
-    }
- else {
-      GradleBuild gradleBuild=getProjectModel(participant,GradleBuild.class);
-      buildResultsWithSeparateProjectConnections(participant,gradleBuild.getRootProject(),participantResults);
-    }
+    GradleBuild gradleBuild=getProjectModel(participant,GradleBuild.class);
+    buildResultsWithSeparateProjectConnections(participant,gradleBuild.getRootProject(),participantResults);
   }
   return participantResults;
 }
