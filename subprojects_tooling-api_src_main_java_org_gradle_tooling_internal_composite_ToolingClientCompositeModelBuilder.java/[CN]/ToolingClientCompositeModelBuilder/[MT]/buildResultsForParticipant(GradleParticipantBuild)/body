@@ -1,23 +1,10 @@
 {
-  final Set<ModelResult<T>> participantResults=Sets.newConcurrentHashSet();
-  if (isBuildEnvironment(modelType)) {
-    GradleBuild gradleBuild=getProjectModel(participant,GradleBuild.class);
-    BuildEnvironment buildEnvironment=getProjectModel(participant,BuildEnvironment.class);
-    addPerBuildModelResult(participant,gradleBuild.getRootProject(),buildEnvironment,participantResults);
+  for (  CompositeModelResultsBuilder builder : builders) {
+    if (builder.canBuild(participant)) {
+      final List<ModelResult<T>> participantResults=Lists.newArrayList();
+      builder.addModelResults(participant,participantResults);
+      return participantResults;
+    }
   }
- else   if (isGradleBuild(modelType)) {
-    GradleBuild gradleBuild=getProjectModel(participant,GradleBuild.class);
-    addPerBuildModelResult(participant,gradleBuild.getRootProject(),gradleBuild,participantResults);
-  }
- else   if (hasProjectHierarchy(modelType)) {
-    addResultsFromHierarchicalModel(participant,participantResults);
-  }
- else   if (supportsCustomModelAction(participant)) {
-    addResultsUsingModelAction(participant,participantResults);
-  }
- else {
-    GradleBuild gradleBuild=getProjectModel(participant,GradleBuild.class);
-    buildResultsWithSeparateProjectConnections(participant,gradleBuild.getRootProject(),participantResults);
-  }
-  return participantResults;
+  throw new GradleConnectionException("Not a supported model type for this participant: " + modelType.getCanonicalName());
 }
