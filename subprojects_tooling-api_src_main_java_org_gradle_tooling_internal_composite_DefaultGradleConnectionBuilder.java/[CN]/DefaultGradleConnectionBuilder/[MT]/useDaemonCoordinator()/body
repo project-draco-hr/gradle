@@ -1,3 +1,15 @@
 {
-  return false;
+  for (  GradleBuildInternal participant : participants) {
+    ProjectConnection connect=createParticipantBuild(participant).connect();
+    try {
+      BuildEnvironment model=connect.getModel(BuildEnvironment.class);
+      if (!model.getGradle().getGradleVersion().equals(GradleVersion.current().getVersion())) {
+        return false;
+      }
+    }
+  finally {
+      connect.close();
+    }
+  }
+  return true;
 }
