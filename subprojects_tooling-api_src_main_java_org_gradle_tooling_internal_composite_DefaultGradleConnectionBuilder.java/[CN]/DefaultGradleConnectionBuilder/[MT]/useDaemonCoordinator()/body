@@ -1,0 +1,18 @@
+{
+  if (coordinatorDistribution != null) {
+    return true;
+  }
+  for (  GradleBuildInternal participant : participants) {
+    ProjectConnection connect=new GradleParticipantBuild(participant,gradleUserHomeDir).withDaemonBaseDir(daemonBaseDir).connect();
+    try {
+      BuildEnvironment model=connect.getModel(BuildEnvironment.class);
+      if (!model.getGradle().getGradleVersion().equals(GradleVersion.current().getVersion())) {
+        return false;
+      }
+    }
+  finally {
+      connect.close();
+    }
+  }
+  return true;
+}
