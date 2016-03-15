@@ -2,7 +2,15 @@
   SelfResolvingDependency dependency=internCache.get(notation);
   if (dependency == null) {
     Collection<File> classpath=classPathRegistry.getClassPath(notation.name()).getAsFiles();
-    FileCollectionInternal files=fileResolver.resolveFiles(classpath);
+    FileCollectionInternal files;
+    if (notation.equals(DependencyFactory.ClassPathNotation.FAT_GRADLE_API)) {
+      List<File> groovyImpl=classPathRegistry.getClassPath(DependencyFactory.ClassPathNotation.LOCAL_GROOVY.name()).getAsFiles();
+      classpath.removeAll(groovyImpl);
+      files=(FileCollectionInternal)apiJar(classpath).plus(fileResolver.resolveFiles(groovyImpl));
+    }
+ else {
+      files=fileResolver.resolveFiles(classpath);
+    }
     dependency=instantiator.newInstance(DefaultSelfResolvingDependency.class,files);
     internCache.put(notation,dependency);
   }
