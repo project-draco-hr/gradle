@@ -1,18 +1,19 @@
 {
   String daemonUid=UUID.randomUUID().toString();
-  ModuleRegistry registry=new DefaultModuleRegistry();
+  GradleInstallation gradleInstallation=CurrentGradleInstallation.get();
+  ModuleRegistry registry=new DefaultModuleRegistry(gradleInstallation);
   ClassPath classpath;
   List<File> searchClassPath;
-  if (new DefaultGradleDistributionLocator().getGradleHome() != null) {
-    classpath=registry.getModule("gradle-launcher").getImplementationClasspath();
-    searchClassPath=Collections.emptyList();
-  }
- else {
+  if (gradleInstallation == null) {
     classpath=new DefaultClassPath();
     for (    Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
       classpath=classpath.plus(module.getClasspath());
     }
     searchClassPath=registry.getAdditionalClassPath().getAsFiles();
+  }
+ else {
+    classpath=registry.getModule("gradle-launcher").getImplementationClasspath();
+    searchClassPath=Collections.emptyList();
   }
   if (classpath.isEmpty()) {
     throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
