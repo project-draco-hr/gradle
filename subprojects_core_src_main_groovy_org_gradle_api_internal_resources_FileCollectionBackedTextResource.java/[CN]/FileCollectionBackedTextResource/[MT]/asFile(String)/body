@@ -1,14 +1,19 @@
 {
-  Charset targetCharsetObj=Charset.forName(targetCharset);
-  if (targetCharsetObj.equals(charset)) {
-    return fileCollection.getSingleFile();
-  }
-  File targetFile=tempFileProvider.createTemporaryFile("fileCollection",".txt","resource");
   try {
-    Files.asCharSource(fileCollection.getSingleFile(),charset).copyTo(Files.asCharSink(targetFile,targetCharsetObj));
+    Charset targetCharsetObj=Charset.forName(targetCharset);
+    if (targetCharsetObj.equals(charset)) {
+      return fileCollection.getSingleFile();
+    }
+    File targetFile=tempFileProvider.createTemporaryFile("fileCollection",".txt","resource");
+    try {
+      Files.asCharSource(fileCollection.getSingleFile(),charset).copyTo(Files.asCharSink(targetFile,targetCharsetObj));
+    }
+ catch (    IOException e) {
+      throw new ResourceException("Could not write " + getDisplayName() + " content to "+ targetFile+ ".",e);
+    }
+    return targetFile;
   }
- catch (  IOException e) {
-    throw new UncheckedIOException(e);
+ catch (  Exception e) {
+    throw ResourceExceptions.readFailed(getDisplayName(),e);
   }
-  return targetFile;
 }
