@@ -6,7 +6,17 @@ synchronized (lock) {
       }
       File implDepsJarFile=jarFile(gradleImplDepsCache,name);
       if (!implDepsJarFile.exists()) {
-        relocatedJarCreator.create(implDepsJarFile,classpath);
+        ProgressLogger progressLogger=progressLoggerFactory.newOperation(GradleImplDepsProvider.class);
+        progressLogger.setDescription("Gradle JARs generation");
+        progressLogger.setLoggingHeader(String.format("Generating JAR file '%s'",implDepsJarFile.getName()));
+        progressLogger.started();
+        try {
+          RelocatedJarCreator relocatedJarCreator=new GradleImplDepsRelocatedJarCreator(progressLogger);
+          relocatedJarCreator.create(implDepsJarFile,classpath);
+        }
+  finally {
+          progressLogger.completed();
+        }
       }
       LOGGER.debug("Using Gradle impl deps JAR file: {}",implDepsJarFile);
       return implDepsJarFile;
