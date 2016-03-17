@@ -7,4 +7,14 @@
   builders.add(new HierarchicalModelResultsBuilder());
   builders.add(new CustomActionModelResultsBuilder());
   builders.add(new BruteForceModelResultsBuilder());
+  exceptionTransformer=new ExceptionTransformer(new Transformer<String,Throwable>(){
+    @Override public String transform(    Throwable failure){
+      String message=String.format("Could not fetch models of type '%s' using client-side composite connection.",modelType.getSimpleName());
+      if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
+        message+="\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
+      }
+      return message;
+    }
+  }
+);
 }
