@@ -3,16 +3,16 @@
     return;
   }
   Class<?> modelType=resolveModelType((BuildModelAction)action);
-  ProgressLoggerFactory progressLoggerFactory=buildController.getBuildScopeServices().get(ProgressLoggerFactory.class);
   Map<Object,Object> results=null;
   if (modelType != Void.class) {
-    results=aggregateModels(modelType,actionParameters,requestContext.getCancellationToken(),progressLoggerFactory);
+    results=new HashMap<Object,Object>();
+    results.putAll(fetchCompositeModelsInProcess((BuildModelAction)action,modelType,actionParameters.getCompositeParameters().getBuilds(),requestContext.getCancellationToken(),buildController.getBuildScopeServices()));
   }
  else {
     if (!((BuildModelAction)action).isRunTasks()) {
       throw new IllegalStateException("No tasks defined.");
     }
-    executeTasks(action.getStartParameter(),actionParameters,requestContext.getCancellationToken(),progressLoggerFactory);
+    executeTasksInProcess(action.getStartParameter(),actionParameters,requestContext.getCancellationToken(),buildController.getBuildScopeServices());
   }
   PayloadSerializer payloadSerializer=buildController.getBuildScopeServices().get(PayloadSerializer.class);
   buildController.setResult(new BuildActionResult(payloadSerializer.serialize(results),null));

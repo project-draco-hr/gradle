@@ -1,0 +1,23 @@
+{
+  CompositeParameters compositeParameters=actionParameters.getCompositeParameters();
+  List<GradleParticipantBuild> participantBuilds=compositeParameters.getBuilds();
+  GradleLauncherFactory launcherFactory=sharedServices.get(GradleLauncherFactory.class);
+  boolean buildFound=false;
+  for (  GradleParticipantBuild participant : participantBuilds) {
+    if (!participant.getProjectDir().getAbsolutePath().equals(compositeParameters.getCompositeTargetBuildRootDir().getAbsolutePath())) {
+      continue;
+    }
+    buildFound=true;
+    if (cancellationToken.isCancellationRequested()) {
+      break;
+    }
+    StartParameter startParameter=parentStartParam.newInstance();
+    startParameter.setProjectDir(participant.getProjectDir());
+    startParameter.setSearchUpwards(false);
+    DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),System.currentTimeMillis()),new DefaultBuildCancellationToken(),new NoOpBuildEventConsumer());
+    launcherFactory.newInstance(startParameter,requestContext,sharedServices).run();
+  }
+  if (!buildFound) {
+    throw new IllegalStateException("Build not part of composite");
+  }
+}
