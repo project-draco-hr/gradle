@@ -1,5 +1,11 @@
 {
-  final File tmpFile=new File(outputJar.getParentFile(),outputJar.getName() + ".tmp");
+  final File tmpFile;
+  try {
+    tmpFile=File.createTempFile(outputJar.getName(),".tmp");
+  }
+ catch (  IOException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
   IoActions.withResource(openJarOutputStream(tmpFile),new ErroringAction<ZipOutputStream>(){
     @Override protected void doExecute(    ZipOutputStream jarOutputStream) throws Exception {
       processFiles(jarOutputStream,files,new byte[BUFFER_SIZE],new HashSet<String>(),progressLogger);
