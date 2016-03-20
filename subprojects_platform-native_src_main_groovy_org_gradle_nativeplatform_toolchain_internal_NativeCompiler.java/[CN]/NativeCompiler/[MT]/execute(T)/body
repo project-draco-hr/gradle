@@ -1,12 +1,16 @@
 {
   final T transformedSpec=specTransformer.transform(spec);
   final List<String> genericArgs=getArguments(transformedSpec);
-  final BuildOperationQueue<CommandLineToolInvocation> buildQueue=buildOperationProcessor.newQueue(commandLineToolInvocationWorker,spec.getOperationLogger().getLogLocation());
-  File objectDir=transformedSpec.getObjectFileDir();
-  for (  File sourceFile : transformedSpec.getSourceFiles()) {
-    CommandLineToolInvocation perFileInvocation=createPerFileInvocation(genericArgs,sourceFile,objectDir,spec);
-    buildQueue.add(perFileInvocation);
+  final File objectDir=transformedSpec.getObjectFileDir();
+  buildOperationProcessor.run(commandLineToolInvocationWorker,new Action<BuildOperationQueue<CommandLineToolInvocation>>(){
+    @Override public void execute(    BuildOperationQueue<CommandLineToolInvocation> buildQueue){
+      buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+      for (      File sourceFile : transformedSpec.getSourceFiles()) {
+        CommandLineToolInvocation perFileInvocation=createPerFileInvocation(genericArgs,sourceFile,objectDir,spec);
+        buildQueue.add(perFileInvocation);
+      }
+    }
   }
-  buildQueue.waitForCompletion();
+);
   return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
 }

@@ -1,10 +1,14 @@
 {
   deletePreviousOutput(spec);
-  BuildOperationQueue<CommandLineToolInvocation> queue=buildOperationProcessor.newQueue(commandLineToolInvocationWorker,spec.getOperationLogger().getLogLocation());
   List<String> args=argsTransformer.transform(spec);
   invocationContext.getArgAction().execute(args);
-  CommandLineToolInvocation invocation=invocationContext.createInvocation(String.format("archiving %s",spec.getOutputFile().getName()),args,spec.getOperationLogger());
-  queue.add(invocation);
-  queue.waitForCompletion();
+  final CommandLineToolInvocation invocation=invocationContext.createInvocation(String.format("archiving %s",spec.getOutputFile().getName()),args,spec.getOperationLogger());
+  buildOperationProcessor.run(commandLineToolInvocationWorker,new Action<BuildOperationQueue<CommandLineToolInvocation>>(){
+    @Override public void execute(    BuildOperationQueue<CommandLineToolInvocation> buildQueue){
+      buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+      buildQueue.add(invocation);
+    }
+  }
+);
   return new SimpleWorkResult(true);
 }

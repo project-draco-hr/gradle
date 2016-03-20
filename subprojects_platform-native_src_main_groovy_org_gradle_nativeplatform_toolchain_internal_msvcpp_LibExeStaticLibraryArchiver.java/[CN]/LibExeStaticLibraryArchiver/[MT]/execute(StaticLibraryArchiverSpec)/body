@@ -1,11 +1,15 @@
 {
-  BuildOperationQueue<CommandLineToolInvocation> queue=buildOperationProcessor.newQueue(commandLineToolInvocationWorker,spec.getOperationLogger().getLogLocation());
-  StaticLibraryArchiverSpec transformedSpec=specTransformer.transform(spec);
-  List<String> args=argsTransformer.transform(transformedSpec);
+  final StaticLibraryArchiverSpec transformedSpec=specTransformer.transform(spec);
+  final List<String> args=argsTransformer.transform(transformedSpec);
   invocationContext.getArgAction().execute(args);
   new VisualCppOptionsFileArgsWriter(spec.getTempDir()).execute(args);
-  CommandLineToolInvocation invocation=invocationContext.createInvocation(String.format("archiving %s",spec.getOutputFile().getName()),args,spec.getOperationLogger());
-  queue.add(invocation);
-  queue.waitForCompletion();
+  final CommandLineToolInvocation invocation=invocationContext.createInvocation(String.format("archiving %s",spec.getOutputFile().getName()),args,spec.getOperationLogger());
+  buildOperationProcessor.run(commandLineToolInvocationWorker,new Action<BuildOperationQueue<CommandLineToolInvocation>>(){
+    @Override public void execute(    BuildOperationQueue<CommandLineToolInvocation> buildQueue){
+      buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+      buildQueue.add(invocation);
+    }
+  }
+);
   return new SimpleWorkResult(true);
 }
