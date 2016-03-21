@@ -1,17 +1,16 @@
 {
   if (VALID_JAR_NAMES.contains(name)) {
-    File implDepsJarFile=jarFile(cache,name);
-    if (!implDepsJarFile.exists()) {
-      lock.lock();
-      try {
+synchronized (lock) {
+      if (gradleImplDepsCache == null) {
+        gradleImplDepsCache=cacheRepository.cache(CACHE_KEY).open();
+      }
+      File implDepsJarFile=jarFile(gradleImplDepsCache,name);
+      if (!implDepsJarFile.exists()) {
         relocatedJarCreator.create(implDepsJarFile,classpath);
       }
-  finally {
-        lock.unlock();
-      }
+      LOGGER.debug("Using Gradle impl deps JAR file: {}",implDepsJarFile);
+      return implDepsJarFile;
     }
-    LOGGER.debug("Using Gradle impl deps JAR file: {}",implDepsJarFile);
-    return implDepsJarFile;
   }
   LOGGER.warn("The provided name {} does not refer to a valid Gradle impl deps JAR",name);
   return null;
