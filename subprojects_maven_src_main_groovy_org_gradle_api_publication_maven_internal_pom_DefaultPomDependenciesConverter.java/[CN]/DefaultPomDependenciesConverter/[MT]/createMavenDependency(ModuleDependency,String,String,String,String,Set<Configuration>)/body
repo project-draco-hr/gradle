@@ -1,34 +1,28 @@
 {
-  Dependency mavenDependency=new Dependency();
-  mavenDependency.setGroupId(dependency.getGroup());
+  List<Dependency> mavenDependencies=new ArrayList<Dependency>();
   if (dependency instanceof ProjectDependency) {
     ProjectDependency projectDependency=(ProjectDependency)dependency;
-    mavenDependency.setArtifactId(determineProjectDependencyArtifactId(projectDependency));
     final String artifactId=determineProjectDependencyArtifactId((ProjectDependency)dependency);
-    PublishArtifactSet configurationArtifacts=projectDependency.getProjectConfiguration().getArtifacts();
-    if (configurationArtifacts.size() > 0) {
-      Object[] matchingArtifacts=configurationArtifacts.matching(new Spec<PublishArtifact>(){
-        public boolean isSatisfiedBy(        PublishArtifact element){
-          return element.getName().equals(artifactId);
-        }
-      }
-).toArray();
-      PublishArtifact artifactToPublish;
-      if (matchingArtifacts.length > 0) {
-        artifactToPublish=(PublishArtifact)matchingArtifacts[0];
-        if (artifactToPublish.getClassifier() != null) {
-          classifier=artifactToPublish.getClassifier();
-        }
-      }
+    Configuration dependencyConfig=projectDependency.getProjectConfiguration();
+    for (    PublishArtifact artifactToPublish : dependencyConfig.getAllArtifacts()) {
+      Dependency mavenDependency=new Dependency();
+      mavenDependency.setArtifactId(artifactId);
+      mavenDependency.setClassifier(artifactToPublish.getClassifier());
+      mavenDependencies.add(mavenDependency);
     }
   }
  else {
+    Dependency mavenDependency=new Dependency();
     mavenDependency.setArtifactId(name);
+    mavenDependency.setClassifier(classifier);
+    mavenDependencies.add(mavenDependency);
   }
-  mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
-  mavenDependency.setType(type);
-  mavenDependency.setScope(scope);
-  mavenDependency.setClassifier(classifier);
-  mavenDependency.setExclusions(getExclusions(dependency,configurations));
-  return mavenDependency;
+  for (  Dependency mavenDependency : mavenDependencies) {
+    mavenDependency.setGroupId(dependency.getGroup());
+    mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
+    mavenDependency.setType(type);
+    mavenDependency.setScope(scope);
+    mavenDependency.setExclusions(getExclusions(dependency,configurations));
+  }
+  return mavenDependencies;
 }
