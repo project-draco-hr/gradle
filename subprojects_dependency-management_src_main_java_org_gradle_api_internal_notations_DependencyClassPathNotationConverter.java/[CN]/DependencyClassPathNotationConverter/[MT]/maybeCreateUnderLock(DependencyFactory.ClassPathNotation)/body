@@ -2,7 +2,17 @@
   SelfResolvingDependency dependency=internCache.get(notation);
   if (dependency == null) {
     Collection<File> classpath=classPathRegistry.getClassPath(notation.name()).getAsFiles();
-    FileCollectionInternal files=fileResolver.resolveFiles(classpath);
+    boolean runningFromInstallation=currentGradleInstallation.getInstallation() != null;
+    FileCollectionInternal files;
+    if (runningFromInstallation && notation.equals(FAT_GRADLE_API)) {
+      files=gradleApiFileCollection(classpath);
+    }
+ else     if (runningFromInstallation && notation.equals(FAT_GRADLE_TEST_KIT)) {
+      files=gradleTestKitFileCollection(classpath);
+    }
+ else {
+      files=fileResolver.resolveFiles(classpath);
+    }
     dependency=instantiator.newInstance(DefaultSelfResolvingDependency.class,files);
     internCache.put(notation,dependency);
   }

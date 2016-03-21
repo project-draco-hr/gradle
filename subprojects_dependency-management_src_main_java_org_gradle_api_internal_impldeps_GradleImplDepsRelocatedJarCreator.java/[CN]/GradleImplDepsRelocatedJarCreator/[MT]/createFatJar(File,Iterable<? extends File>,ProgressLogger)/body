@@ -1,0 +1,18 @@
+{
+  final File tmpFile;
+  try {
+    tmpFile=File.createTempFile(outputJar.getName(),".tmp");
+    tmpFile.deleteOnExit();
+  }
+ catch (  IOException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+  IoActions.withResource(openJarOutputStream(tmpFile),new ErroringAction<ZipOutputStream>(){
+    @Override protected void doExecute(    ZipOutputStream jarOutputStream) throws Exception {
+      processFiles(jarOutputStream,files,new byte[BUFFER_SIZE],new HashSet<String>(),progressLogger);
+      jarOutputStream.finish();
+    }
+  }
+);
+  GFileUtils.moveFile(tmpFile,outputJar);
+}

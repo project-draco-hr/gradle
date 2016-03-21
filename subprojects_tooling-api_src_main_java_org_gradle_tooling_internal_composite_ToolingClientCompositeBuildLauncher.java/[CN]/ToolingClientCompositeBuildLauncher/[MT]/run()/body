@@ -1,0 +1,20 @@
+{
+  for (  GradleBuildInternal gradleBuildInternal : operationParameters.getBuilds()) {
+    if (operationParameters.getCompositeTargetBuildRootDir().equals(gradleBuildInternal.getProjectDir())) {
+      ProjectConnection connection=null;
+      try {
+        connection=util.createParticipantBuild(gradleBuildInternal).connect();
+        BuildLauncher buildLauncher=connection.newBuild();
+        util.configureRequest(buildLauncher);
+        buildLauncher.run();
+      }
+  finally {
+        if (connection != null) {
+          connection.close();
+        }
+      }
+      return;
+    }
+  }
+  throw new GradleConnectionException("Not a valid build directory: " + operationParameters.getCompositeTargetBuildRootDir(),new IllegalStateException("Build not part of composite"));
+}

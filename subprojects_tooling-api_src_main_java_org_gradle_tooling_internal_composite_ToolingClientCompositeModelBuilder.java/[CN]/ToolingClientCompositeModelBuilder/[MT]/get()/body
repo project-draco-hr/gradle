@@ -1,0 +1,14 @@
+{
+  final List<ModelResult<T>> results=Lists.newArrayList();
+  for (  GradleBuildInternal participant : operationParameters.getBuilds()) {
+    try {
+      final List<ModelResult<T>> participantResults=buildResultsForParticipant(util.createParticipantBuild(participant));
+      results.addAll(participantResults);
+    }
+ catch (    GradleConnectionException e) {
+      String message=String.format("Could not fetch models of type '%s' using client-side composite connection.",modelType.getSimpleName());
+      results.add(new DefaultModelResult<T>(participant.toProjectIdentity(":"),new GradleConnectionException(message,e)));
+    }
+  }
+  return results;
+}

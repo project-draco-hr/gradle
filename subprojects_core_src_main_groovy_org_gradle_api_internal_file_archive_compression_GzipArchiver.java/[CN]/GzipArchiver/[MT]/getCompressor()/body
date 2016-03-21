@@ -1,11 +1,12 @@
 {
   return new ArchiveOutputStreamFactory(){
-    public OutputStream createArchiveOutputStream(    File destination){
+    public OutputStream createArchiveOutputStream(    File destination) throws FileNotFoundException {
+      OutputStream outStr=new FileOutputStream(destination);
       try {
-        OutputStream outStr=new FileOutputStream(destination);
         return new GZIPOutputStream(outStr);
       }
  catch (      Exception e) {
+        IOUtils.closeQuietly(outStr);
         String message=String.format("Unable to create gzip output stream for file %s.",destination);
         throw new RuntimeException(message,e);
       }

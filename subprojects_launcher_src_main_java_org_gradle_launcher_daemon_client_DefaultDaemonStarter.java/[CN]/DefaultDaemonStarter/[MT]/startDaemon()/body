@@ -1,18 +1,19 @@
 {
-  daemonParameters.resetUid();
-  ModuleRegistry registry=new DefaultModuleRegistry();
+  String daemonUid=UUID.randomUUID().toString();
+  GradleInstallation gradleInstallation=CurrentGradleInstallation.get();
+  ModuleRegistry registry=new DefaultModuleRegistry(gradleInstallation);
   ClassPath classpath;
   List<File> searchClassPath;
-  if (new DefaultGradleDistributionLocator().getGradleHome() != null) {
-    classpath=registry.getModule("gradle-launcher").getImplementationClasspath();
-    searchClassPath=Collections.emptyList();
-  }
- else {
+  if (gradleInstallation == null) {
     classpath=new DefaultClassPath();
     for (    Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
       classpath=classpath.plus(module.getClasspath());
     }
     searchClassPath=registry.getAdditionalClassPath().getAsFiles();
+  }
+ else {
+    classpath=registry.getModule("gradle-launcher").getImplementationClasspath();
+    searchClassPath=Collections.emptyList();
   }
   if (classpath.isEmpty()) {
     throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
@@ -37,7 +38,7 @@
     encoder.writeString(daemonParameters.getGradleUserHomeDir().getAbsolutePath());
     encoder.writeString(daemonDir.getBaseDir().getAbsolutePath());
     encoder.writeSmallInt(daemonParameters.getIdleTimeout());
-    encoder.writeString(daemonParameters.getUid());
+    encoder.writeString(daemonUid);
     encoder.writeSmallInt(daemonOpts.size());
     for (    String daemonOpt : daemonOpts) {
       encoder.writeString(daemonOpt);

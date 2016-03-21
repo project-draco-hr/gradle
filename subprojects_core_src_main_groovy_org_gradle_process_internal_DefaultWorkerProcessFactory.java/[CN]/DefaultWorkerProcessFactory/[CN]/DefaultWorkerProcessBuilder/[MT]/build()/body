@@ -2,7 +2,7 @@
   if (getWorker() == null) {
     throw new IllegalStateException("No worker action specified for this worker process.");
   }
-  final DefaultWorkerProcess workerProcess=new DefaultWorkerProcess(120,TimeUnit.SECONDS);
+  final DefaultWorkerProcess workerProcess=new DefaultWorkerProcess(connectTimeoutSeconds,TimeUnit.SECONDS);
   ConnectionAcceptor acceptor=server.accept(new Action<ObjectConnection>(){
     public void execute(    ObjectConnection connection){
       workerProcess.onConnect(connection);
@@ -14,13 +14,6 @@
   List<URL> implementationClassPath=ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
   Object id=idGenerator.generateId();
   String displayName=getBaseName() + " " + id;
-  WorkerFactory workerFactory;
-  if (isLoadApplicationInSystemClassLoader()) {
-    workerFactory=systemClassLoaderWorkerFactory;
-  }
- else {
-    workerFactory=isolatedClassLoaderWorkerFactory;
-  }
   LOGGER.debug("Creating {}",displayName);
   LOGGER.debug("Using application classpath {}",getApplicationClasspath());
   LOGGER.debug("Using implementation classpath {}",implementationClassPath);

@@ -3,25 +3,31 @@
   int pos=0;
   int start=0;
   while (pos < max) {
-    if (seenCharsFromEol == eol.length) {
+    if (seenCharsFromEol == eolChars.length) {
       doStartLine();
       seenCharsFromEol=0;
     }
-    if (seenCharsFromEol < eol.length && text.charAt(pos) == eol[seenCharsFromEol]) {
+    if (seenCharsFromEol < eolChars.length && text.charAt(pos) == eolChars[seenCharsFromEol]) {
       seenCharsFromEol++;
       pos++;
-      if (seenCharsFromEol == eol.length) {
-        doLineText(text.substring(start,pos),true);
-        doFinishLine();
+      if (seenCharsFromEol == eolChars.length) {
+        if (start < pos - seenCharsFromEol) {
+          doLineText(text.substring(start,pos - seenCharsFromEol));
+        }
+        doEndLine(eol);
         start=pos;
       }
     }
  else {
+      if (seenCharsFromEol > 0 && start == 0) {
+        doLineText(eol.substring(0,seenCharsFromEol));
+        start=pos;
+      }
       seenCharsFromEol=0;
       pos++;
     }
   }
-  if (pos > start) {
-    doLineText(text.substring(start,pos),false);
+  if (start < pos - seenCharsFromEol) {
+    doLineText(text.substring(start,pos - seenCharsFromEol));
   }
 }

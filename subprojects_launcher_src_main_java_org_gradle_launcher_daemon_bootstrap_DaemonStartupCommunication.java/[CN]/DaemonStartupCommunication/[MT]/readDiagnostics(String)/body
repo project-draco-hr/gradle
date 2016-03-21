@@ -9,15 +9,7 @@
     String pidString=decoder.readNullableString();
     String uid=decoder.readString();
     Long pid=pidString == null ? null : Long.valueOf(pidString);
-    UUID canonicalAddress=new UUID(decoder.readLong(),decoder.readLong());
-    int port=decoder.readInt();
-    int addressCount=decoder.readSmallInt();
-    List<InetAddress> addresses=new ArrayList<InetAddress>(addressCount);
-    for (int i=0; i < addressCount; i++) {
-      InetAddress address=InetAddress.getByAddress(decoder.readBinary());
-      addresses.add(address);
-    }
-    Address address=new MultiChoiceAddress(canonicalAddress,port,addresses);
+    Address address=new MultiChoiceAddressSerializer().read(decoder);
     File daemonLog=new File(decoder.readString());
     return new DaemonStartupInfo(uid,address,new DaemonDiagnostics(daemonLog,pid));
   }

@@ -1,0 +1,41 @@
+{
+  final Map<Object,Object> results=new HashMap<Object,Object>();
+  PayloadSerializer payloadSerializer=sharedServices.get(PayloadSerializer.class);
+  GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
+  BuildActionRunner runner=new ClientProvidedBuildActionRunner();
+  org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,runner);
+  DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),cancellationToken,new NoOpBuildEventConsumer());
+  ProtocolToModelAdapter protocolToModelAdapter=new ProtocolToModelAdapter();
+  FetchPerProjectModelAction fetchPerProjectModelAction=new FetchPerProjectModelAction(modelType.getName());
+  InternalBuildAction<?> internalBuildAction=new InternalBuildActionAdapter<Map<Object,Object>>(fetchPerProjectModelAction,protocolToModelAdapter);
+  SerializedPayload serializedAction=payloadSerializer.serialize(internalBuildAction);
+  for (  GradleParticipantBuild participant : participantBuilds) {
+    DefaultBuildActionParameters actionParameters=new DefaultBuildActionParameters(Collections.EMPTY_MAP,Collections.<String,String>emptyMap(),participant.getProjectDir(),LogLevel.INFO,DaemonUsage.EXPLICITLY_DISABLED,false,true,ClassPath.EMPTY);
+    StartParameter startParameter=modelAction.getStartParameter().newInstance();
+    startParameter.setProjectDir(participant.getProjectDir());
+    ServiceRegistry buildScopedServices=new BuildSessionScopeServices(sharedServices,startParameter,ClassPath.EMPTY);
+    ClientProvidedBuildAction mappedAction=new ClientProvidedBuildAction(startParameter,serializedAction,modelAction.getClientSubscriptions());
+    try {
+      BuildActionResult result=(BuildActionResult)buildActionExecuter.execute(mappedAction,requestContext,actionParameters,buildScopedServices);
+      if (result.result != null) {
+        Map<Object,Object> values=Cast.uncheckedCast(payloadSerializer.deserialize(result.result));
+        for (        Map.Entry<Object,Object> e : values.entrySet()) {
+          InternalProjectIdentity internalProjectIdentity=(InternalProjectIdentity)e.getKey();
+          results.put(convertToProjectIdentity(internalProjectIdentity),e.getValue());
+        }
+      }
+ else {
+        Throwable failure=(Throwable)payloadSerializer.deserialize(result.failure);
+        File rootDir=participant.getProjectDir();
+        DefaultBuildIdentity buildIdentity=new DefaultBuildIdentity(rootDir);
+        results.put(new DefaultProjectIdentity(buildIdentity,rootDir,":"),failure);
+      }
+    }
+ catch (    Exception e) {
+      File rootDir=participant.getProjectDir();
+      DefaultBuildIdentity buildIdentity=new DefaultBuildIdentity(rootDir);
+      results.put(new DefaultProjectIdentity(buildIdentity,rootDir,":"),e);
+    }
+  }
+  return results;
+}

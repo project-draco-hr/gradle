@@ -1,8 +1,7 @@
 {
-  GradleDistributionLocator gradleDistributionLocator=new DefaultGradleDistributionLocator(GradleRunner.class);
-  File gradleHome=gradleDistributionLocator.getGradleHome();
-  if (gradleHome == null) {
-    String messagePrefix="Could not find a Gradle runtime to use based on the location of the GradleRunner class";
+  GradleInstallation gradleInstallation=CurrentGradleInstallation.get();
+  if (gradleInstallation == null) {
+    String messagePrefix="Could not find a Gradle installation to use based on the location of the GradleRunner class";
     try {
       File classpathForClass=ClasspathUtil.getClasspathForClass(GradleRunner.class);
       messagePrefix+=": " + classpathForClass.getAbsolutePath();
@@ -11,5 +10,5 @@
     }
     throw new InvalidRunnerConfigurationException(messagePrefix + ". Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.");
   }
-  return new InstalledGradleDistribution(gradleHome);
+  return GradleProvider.installation(gradleInstallation.getGradleHome());
 }

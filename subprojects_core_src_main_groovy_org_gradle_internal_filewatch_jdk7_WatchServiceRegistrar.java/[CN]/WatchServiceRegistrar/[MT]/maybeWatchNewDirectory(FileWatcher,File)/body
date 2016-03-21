@@ -1,0 +1,30 @@
+{
+  LOG.debug("Begin - maybeWatchNewDirectory {}",dir);
+  if (isStopRequested(watcher)) {
+    LOG.debug("Stop requested, returning.");
+    return;
+  }
+  if (!watchPointsRegistry.shouldWatch(dir)) {
+    LOG.debug("Ignoring watching {}",dir);
+    return;
+  }
+  if (dir.exists()) {
+    if (!FILE_TREE_WATCHING_SUPPORTED) {
+      watchDir(dir.toPath());
+    }
+    File[] contents=dir.listFiles();
+    if (contents != null) {
+      for (      File file : contents) {
+        if (isStopRequested(watcher)) {
+          LOG.debug("Stop requested, returning.");
+          return;
+        }
+        maybeFire(watcher,FileWatcherEvent.create(file));
+        if (file.isDirectory()) {
+          maybeWatchNewDirectory(watcher,file);
+        }
+      }
+    }
+  }
+  LOG.debug("End - maybeWatchNewDirectory {}",dir);
+}

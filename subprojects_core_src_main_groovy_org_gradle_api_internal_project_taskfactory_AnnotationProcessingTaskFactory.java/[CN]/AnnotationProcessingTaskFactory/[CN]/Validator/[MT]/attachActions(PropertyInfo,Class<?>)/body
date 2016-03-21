@@ -5,12 +5,12 @@
   }
   Map<String,Field> fields=getFields(type);
   for (  Method method : type.getDeclaredMethods()) {
-    if (!isGetter(method)) {
+    if (!isGetter(method) || method.isBridge()) {
       continue;
     }
     String name=method.getName();
     int prefixLength=name.startsWith("is") ? 2 : 3;
-    String fieldName=StringUtils.uncapitalize(name.substring(prefixLength));
+    String fieldName=Introspector.decapitalize(name.substring(prefixLength));
     String propertyName=fieldName;
     if (parent != null) {
       propertyName=parent.getName() + '.' + propertyName;

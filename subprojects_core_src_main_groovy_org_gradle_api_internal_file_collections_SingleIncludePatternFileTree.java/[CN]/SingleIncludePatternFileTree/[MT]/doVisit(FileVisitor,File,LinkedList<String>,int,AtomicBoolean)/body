@@ -8,10 +8,10 @@
     patternSet.include(includePattern);
     patternSet.exclude(excludeSpec);
     DirectoryFileTree fileTree=new DirectoryFileTree(baseDir,patternSet);
-    fileTree.visitFrom(visitor,file,new RelativePath(file.isFile(),relativePath.toArray(new String[0])));
+    fileTree.visitFrom(visitor,file,new RelativePath(file.isFile(),relativePath.toArray(new String[relativePath.size()])));
   }
  else   if (segment.contains("*") || segment.contains("?")) {
-    PatternStep step=PatternStepFactory.getStep(segment,false,segmentIndex + 1 == patternSegments.size());
+    PatternStep step=PatternStepFactory.getStep(segment,false);
     File[] children=file.listFiles();
     if (children == null) {
       if (!file.canRead()) {
@@ -24,7 +24,7 @@
         break;
       }
       String childName=child.getName();
-      if (step.matches(childName,child.isFile())) {
+      if (step.matches(childName)) {
         relativePath.addLast(childName);
         doVisitDirOrFile(visitor,child,relativePath,segmentIndex + 1,stopFlag);
         relativePath.removeLast();

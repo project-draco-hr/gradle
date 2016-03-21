@@ -3,26 +3,13 @@
     execution.proceed();
     return;
   }
-  final LogLevel buildLogLevel=build.getParameters().getLogLevel();
-  OutputEventListener listener=new OutputEventListener(){
-    public void onOutput(    OutputEvent event){
-      try {
-        if (event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0) {
-          execution.getConnection().logEvent(event);
-        }
-      }
- catch (      Exception e) {
-      }
-    }
-  }
-;
-  LOGGER.debug(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
-  loggingOutput.addOutputEventListener(listener);
+  dispatcher=new AsynchronousLogDispatcher(execution.getConnection(),build.getParameters().getLogLevel());
+  LOGGER.info("{}{}). The daemon log file: {}",DaemonMessages.STARTED_RELAYING_LOGS,diagnostics.getPid(),diagnostics.getDaemonLog());
+  dispatcher.start();
   try {
-    LOGGER.info("{}{}). The daemon log file: {}",DaemonMessages.STARTED_RELAYING_LOGS,diagnostics.getPid(),diagnostics.getDaemonLog());
     execution.proceed();
   }
   finally {
-    loggingOutput.removeOutputEventListener(listener);
+    dispatcher.waitForCompletion();
   }
 }

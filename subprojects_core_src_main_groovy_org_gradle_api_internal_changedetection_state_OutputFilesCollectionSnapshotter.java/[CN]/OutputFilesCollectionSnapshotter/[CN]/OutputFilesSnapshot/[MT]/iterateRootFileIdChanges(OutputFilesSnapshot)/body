@@ -1,18 +1,10 @@
 {
-  Map<String,Long> added=new HashMap<String,Long>(rootFileIds);
-  added.keySet().removeAll(other.rootFileIds.keySet());
-  final Iterator<String> addedIterator=added.keySet().iterator();
-  Map<String,Long> removed=new HashMap<String,Long>(other.rootFileIds);
-  removed.keySet().removeAll(rootFileIds.keySet());
-  final Iterator<String> removedIterator=removed.keySet().iterator();
-  Set<String> changed=new HashSet<String>();
-  for (  Map.Entry<String,Long> current : rootFileIds.entrySet()) {
-    Long otherValue=other.rootFileIds.get(current.getKey());
-    if (otherValue != null && !otherValue.equals(current.getValue())) {
-      changed.add(current.getKey());
-    }
-  }
-  final Iterator<String> changedIterator=changed.iterator();
+  Set<String> added=new LinkedHashSet<String>(roots);
+  added.removeAll(other.roots);
+  final Iterator<String> addedIterator=added.iterator();
+  Set<String> removed=new LinkedHashSet<String>(other.roots);
+  removed.removeAll(roots);
+  final Iterator<String> removedIterator=removed.iterator();
   return new ChangeIterator<String>(){
     public boolean next(    ChangeListener<String> listener){
       if (addedIterator.hasNext()) {
@@ -21,10 +13,6 @@
       }
       if (removedIterator.hasNext()) {
         listener.removed(removedIterator.next());
-        return true;
-      }
-      if (changedIterator.hasNext()) {
-        listener.changed(changedIterator.next());
         return true;
       }
       return false;

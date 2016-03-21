@@ -1,13 +1,24 @@
 {
   BuildResult<?> result=buildModels(elementType,operationParameters);
   if (result.getModel() instanceof Map) {
+    ExceptionTransformer exceptionTransformer=new ExceptionTransformer(new Transformer<String,Throwable>(){
+      @Override public String transform(      Throwable throwable){
+        return String.format("Could not fetch models of type '%s' using Gradle daemon composite connection.",elementType.getSimpleName());
+      }
+    }
+);
     final List<ModelResult<T>> models=new LinkedList<ModelResult<T>>();
-    Map<Object,Object> targetMap=new HashMap<Object,Object>();
-    adapter.convertMap(targetMap,ProjectIdentity.class,elementType,Map.class.cast(result.getModel()),getCompatibilityMapperAction());
-    for (    Map.Entry<Object,Object> e : targetMap.entrySet()) {
-      ProjectIdentity projectIdentity=(ProjectIdentity)e.getKey();
-      T model=(T)e.getValue();
-      models.add(new DefaultModelResult<T>(model,projectIdentity));
+    Map<Object,Object> resultMap=(Map)result.getModel();
+    for (    Map.Entry<Object,Object> entry : resultMap.entrySet()) {
+      ProjectIdentity projectIdentity=adapter.adapt(ProjectIdentity.class,entry.getKey(),getCompatibilityMapperAction());
+      if (entry.getValue() instanceof Throwable) {
+        GradleConnectionException failure=exceptionTransformer.transform((Throwable)entry.getValue());
+        models.add(new DefaultModelResult<T>(projectIdentity,failure));
+      }
+ else {
+        T modelResult=adapter.adapt(elementType,entry.getValue(),getCompatibilityMapperAction());
+        models.add(new DefaultModelResult<T>(projectIdentity,modelResult));
+      }
     }
     return models;
   }

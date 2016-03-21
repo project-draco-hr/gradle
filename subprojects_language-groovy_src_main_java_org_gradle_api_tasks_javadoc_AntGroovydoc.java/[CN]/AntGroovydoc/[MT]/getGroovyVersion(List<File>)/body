@@ -1,0 +1,28 @@
+{
+  File temp;
+  final String tempPath;
+  try {
+    temp=File.createTempFile("temp","");
+    String p=temp.getCanonicalPath();
+    tempPath=File.separatorChar == '/' ? p : p.replace(File.separatorChar,'/');
+    temp.deleteOnExit();
+  }
+ catch (  IOException e) {
+    throw new GradleException("Unable to create temp file needed for Groovydoc",e);
+  }
+  ant.withClasspath(combinedClasspath).execute(new Closure<Object>(this,this){
+    @SuppressWarnings("UnusedDeclaration") public Object doCall(    Object it){
+      final GroovyObjectSupport antBuilder=(GroovyObjectSupport)it;
+      antBuilder.invokeMethod("taskdef",ImmutableMap.of("name","groovy","classname","org.codehaus.groovy.ant.Groovy"));
+      antBuilder.invokeMethod("groovy",new Object[]{"new File('" + tempPath + "').text = GroovySystem.version"});
+      return null;
+    }
+  }
+);
+  try {
+    return Files.toString(temp,Charset.defaultCharset()).trim();
+  }
+ catch (  IOException e) {
+    throw new GradleException("Unable to find Groovy version needed for Groovydoc",e);
+  }
+}

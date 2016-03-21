@@ -1,0 +1,23 @@
+{
+  BuildOperationQueue<T> queue=buildOperationQueueFactory.create(fixedSizePool,worker);
+  List<GradleException> failures=Lists.newArrayList();
+  try {
+    generator.execute(queue);
+  }
+ catch (  Exception e) {
+    failures.add(new BuildOperationQueueFailure("There was a failure while populating the build operation queue.",e));
+    queue.cancel();
+  }
+  try {
+    queue.waitForCompletion();
+  }
+ catch (  MultipleBuildOperationFailures e) {
+    failures.add(e);
+  }
+  if (failures.size() == 1) {
+    throw failures.get(0);
+  }
+ else   if (failures.size() > 1) {
+    throw new DefaultMultiCauseException("There were failures with both submitting and executing operations in the build operation queue.",failures);
+  }
+}

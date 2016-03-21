@@ -1,30 +1,3 @@
 {
-  if (failure instanceof InternalUnsupportedBuildArgumentException) {
-    handler.onFailure(new UnsupportedBuildArgumentException(connectionFailureMessage(failure) + "\n" + failure.getMessage(),failure));
-  }
- else   if (failure instanceof UnsupportedOperationConfigurationException) {
-    handler.onFailure(new UnsupportedOperationConfigurationException(connectionFailureMessage(failure) + "\n" + failure.getMessage(),failure.getCause()));
-  }
- else   if (failure instanceof GradleConnectionException) {
-    handler.onFailure((GradleConnectionException)failure);
-  }
- else   if (failure instanceof InternalBuildCancelledException) {
-    handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure),failure.getCause()));
-  }
- else   if (failure instanceof InternalTestExecutionException) {
-    handler.onFailure(new TestExecutionException(connectionFailureMessage(failure),failure.getCause()));
-  }
- else   if (failure.getClass().getName().equals(CompositeBuildExceptionVersion1.class.getName())) {
-    CompositeBuildExceptionVersion1 compositeBuildException=(CompositeBuildExceptionVersion1)failure;
-    handler.onFailure(new CompositeBuildException(connectionFailureMessage(failure),failure.getCause(),compositeBuildException.getBuildIdentity()));
-  }
- else   if (failure instanceof BuildExceptionVersion1) {
-    handler.onFailure(new BuildException(connectionFailureMessage(failure),failure.getCause()));
-  }
- else   if (failure instanceof ListenerNotificationException) {
-    handler.onFailure(new ListenerFailedException(connectionFailureMessage(failure),((ListenerNotificationException)failure).getCauses()));
-  }
- else {
-    handler.onFailure(new GradleConnectionException(connectionFailureMessage(failure),failure));
-  }
+  handler.onFailure(exceptionTransformer.transform(failure));
 }
