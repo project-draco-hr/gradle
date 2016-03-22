@@ -1,8 +1,8 @@
 {
   this.classLoaderFactory=classLoaderFactory;
-  this.runtimeClassLoader=new HashedClassLoader(getClass().getClassLoader(),"runtime".hashCode());
-  apiOnlyClassLoader=new HashedClassLoader(restrictToGradleApi(runtimeClassLoader),"apiOnly".hashCode());
+  ClassLoader runtimeClassLoader=getClass().getClassLoader();
+  apiOnlyClassLoader=restrictToGradleApi(runtimeClassLoader);
   ClassPath pluginsClassPath=classPathRegistry.getClassPath("GRADLE_EXTENSIONS");
-  extensionsClassLoader=new HashedClassLoader(new MutableURLClassLoader(runtimeClassLoader,pluginsClassPath),"extensions".hashCode());
-  this.apiAndPluginsClassLoader=new HashedClassLoader(restrictToGradleApi(extensionsClassLoader),"apiAndPlugins".hashCode());
+  extensionsClassLoader=new MutableURLClassLoader(runtimeClassLoader,pluginsClassPath);
+  this.apiAndPluginsClassLoader=restrictToGradleApi(extensionsClassLoader);
 }
