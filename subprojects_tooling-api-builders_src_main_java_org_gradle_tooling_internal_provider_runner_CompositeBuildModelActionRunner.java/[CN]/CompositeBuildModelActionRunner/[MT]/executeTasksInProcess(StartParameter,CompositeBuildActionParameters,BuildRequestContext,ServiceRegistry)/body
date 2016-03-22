@@ -8,13 +8,13 @@
       continue;
     }
     buildFound=true;
-    if (cancellationToken.isCancellationRequested()) {
+    if (buildRequestContext.getCancellationToken().isCancellationRequested()) {
       break;
     }
     StartParameter startParameter=parentStartParam.newInstance();
     startParameter.setProjectDir(participant.getProjectDir());
     startParameter.setSearchUpwards(false);
-    DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),System.currentTimeMillis()),new DefaultBuildCancellationToken(),new NoOpBuildEventConsumer());
+    DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),System.currentTimeMillis()),buildRequestContext.getCancellationToken(),buildRequestContext.getEventConsumer(),buildRequestContext.getOutputListener(),buildRequestContext.getErrorListener());
     GradleLauncher launcher=launcherFactory.newInstance(startParameter,requestContext,sharedServices);
     try {
       launcher.run();

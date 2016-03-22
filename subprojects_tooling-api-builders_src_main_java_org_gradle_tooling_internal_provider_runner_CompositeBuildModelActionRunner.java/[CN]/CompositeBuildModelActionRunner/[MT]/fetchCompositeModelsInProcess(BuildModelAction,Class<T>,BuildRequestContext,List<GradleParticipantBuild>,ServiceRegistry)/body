@@ -2,9 +2,9 @@
   final Map<Object,Object> results=new HashMap<Object,Object>();
   PayloadSerializer payloadSerializer=sharedServices.get(PayloadSerializer.class);
   GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
-  BuildActionRunner runner=new ClientProvidedBuildActionRunner();
+  BuildActionRunner runner=new SubscribableBuildActionRunner(new ClientProvidedBuildActionRunner());
   org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,runner);
-  DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),cancellationToken,new NoOpBuildEventConsumer());
+  DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),buildRequestContext.getCancellationToken(),buildRequestContext.getEventConsumer(),buildRequestContext.getOutputListener(),buildRequestContext.getErrorListener());
   ProtocolToModelAdapter protocolToModelAdapter=new ProtocolToModelAdapter();
   FetchPerProjectModelAction fetchPerProjectModelAction=new FetchPerProjectModelAction(modelType.getName());
   InternalBuildAction<?> internalBuildAction=new InternalBuildActionAdapter<Map<Object,Object>>(fetchPerProjectModelAction,protocolToModelAdapter);
