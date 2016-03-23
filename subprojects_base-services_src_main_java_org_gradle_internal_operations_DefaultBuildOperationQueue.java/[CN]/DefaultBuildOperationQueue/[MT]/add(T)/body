@@ -2,6 +2,7 @@
   if (waitingForCompletion) {
     throw new IllegalStateException("BuildOperationQueue cannot be reused once it has started completion.");
   }
-  ListenableFuture<?> future=executor.submit(new OperationHolder(operation));
-  operations.add(future);
+  OperationHolder operationHolder=new OperationHolder(operation);
+  ListenableFuture<?> future=executor.submit(operationHolder);
+  operations.add(new QueuedOperation(operationHolder,future));
 }
