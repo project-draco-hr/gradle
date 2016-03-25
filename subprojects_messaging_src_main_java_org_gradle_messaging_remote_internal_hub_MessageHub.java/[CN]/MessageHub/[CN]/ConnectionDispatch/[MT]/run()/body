@@ -10,13 +10,14 @@
   finally {
           lock.unlock();
         }
-        for (        Object message : messages) {
-          InterHubMessage channelMessage=(InterHubMessage)message;
-          connection.dispatch(channelMessage);
+        for (        InterHubMessage message : messages) {
+          connection.dispatch(message);
           if (message instanceof EndOfStream) {
+            connection.flush();
             return;
           }
         }
+        connection.flush();
         messages.clear();
       }
     }
