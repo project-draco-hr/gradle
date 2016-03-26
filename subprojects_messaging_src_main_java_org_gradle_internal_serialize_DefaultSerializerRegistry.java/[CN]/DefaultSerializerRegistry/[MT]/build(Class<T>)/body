@@ -1,0 +1,18 @@
+{
+  Map<Class<?>,Serializer<?>> matches=new LinkedHashMap<Class<?>,Serializer<?>>();
+  for (  Map.Entry<Class<?>,Serializer<?>> entry : serializerMap.entrySet()) {
+    if (baseType.isAssignableFrom(entry.getKey())) {
+      matches.put(entry.getKey(),entry.getValue());
+    }
+  }
+  Set<Class<?>> matchingJavaSerialization=new LinkedHashSet<Class<?>>();
+  for (  Class<?> candidate : javaSerialization) {
+    if (baseType.isAssignableFrom(candidate)) {
+      matchingJavaSerialization.add(candidate);
+    }
+  }
+  if (matches.size() == 1 && matchingJavaSerialization.isEmpty()) {
+    return (Serializer<T>)matches.values().iterator().next();
+  }
+  return new TaggedTypeSerializer<T>(matches,matchingJavaSerialization);
+}
