@@ -1,12 +1,11 @@
 {
-  Class<?> targetType=Throwable.class.isAssignableFrom(valueType) ? Throwable.class : valueType;
-  TypeInfo typeInfo=serializersByType.get(targetType);
+  TypeInfo typeInfo=serializersByType.get(valueType);
   if (typeInfo != null) {
     return typeInfo;
   }
-  for (  Class<?> candidate : javaSerialization) {
-    if (candidate.isAssignableFrom(targetType)) {
-      return JAVA_SERIALIZATION;
+  for (  Map.Entry<Class<?>,TypeInfo> entry : typeHierarchies.entrySet()) {
+    if (entry.getKey().isAssignableFrom(valueType)) {
+      return entry.getValue();
     }
   }
   throw new IllegalArgumentException(String.format("Don't know how to serialize an object of type %s.",valueType.getName()));
