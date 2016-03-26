@@ -1,7 +1,7 @@
 {
   int methodId=decoder.readSmallInt();
-  Method method=methods.get(methodId);
-  if (method == null) {
+  MethodDetails methodDetails=methods.get(methodId);
+  if (methodDetails == null) {
     Class<?> declaringClass=readType();
     String methodName=decoder.readString();
     int paramCount=decoder.readSmallInt();
@@ -9,8 +9,9 @@
     for (int i=0; i < paramTypes.length; i++) {
       paramTypes[i]=readType();
     }
-    method=declaringClass.getDeclaredMethod(methodName,paramTypes);
-    methods.put(methodId,method);
+    Method method=declaringClass.getDeclaredMethod(methodName,paramTypes);
+    methodDetails=new MethodDetails(methodId,method,methodArgsSerializer.forTypes(method.getParameterTypes()));
+    methods.put(methodId,methodDetails);
   }
-  return method;
+  return methodDetails;
 }
