@@ -1,7 +1,8 @@
 {
   LOG.debug("Starting Gradle compiler daemon with fork options {}.",forkOptions);
   Clock clock=new Clock();
-  WorkerProcessBuilder builder=workerFactory.create();
+  WorkerProcessBuilder builder=workerFactory.create(new CompilerDaemonServer());
+  builder.setBaseName("Gradle Compiler Daemon");
   builder.setLogLevel(startParameter.getLogLevel());
   builder.applicationClasspath(forkOptions.getClasspath());
   builder.sharedPackages(forkOptions.getSharedPackages());
@@ -10,7 +11,7 @@
   javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
   javaCommand.setJvmArgs(forkOptions.getJvmArgs());
   javaCommand.setWorkingDir(workingDir);
-  WorkerProcess process=builder.worker(new CompilerDaemonServer()).setBaseName("Gradle Compiler Daemon").build();
+  WorkerProcess process=builder.build();
   process.start();
   CompilerDaemonServerProtocol server=process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
   CompilerDaemonClient client=new CompilerDaemonClient(forkOptions,process,server);
