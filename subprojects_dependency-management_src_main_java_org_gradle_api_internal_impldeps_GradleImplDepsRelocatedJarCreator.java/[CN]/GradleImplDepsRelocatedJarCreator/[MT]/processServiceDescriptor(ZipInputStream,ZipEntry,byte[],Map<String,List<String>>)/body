@@ -1,0 +1,24 @@
+{
+  String descriptorName=zipEntry.getName().substring(SERVICES_DIR_PREFIX.length());
+  String descriptorApiClass=periodsToSlashes(descriptorName);
+  String relocatedApiClassName=REMAPPER.relocateClass(descriptorApiClass);
+  if (relocatedApiClassName == null) {
+    relocatedApiClassName=descriptorApiClass;
+  }
+  byte[] bytes=readEntry(inputStream,zipEntry,buffer);
+  String entry=new String(bytes,Charsets.UTF_8).replaceAll("(?m)^#.*","").trim();
+  String descriptorImplClass=periodsToSlashes(entry);
+  String relocatedImplClassName=REMAPPER.relocateClass(descriptorImplClass);
+  if (relocatedImplClassName == null) {
+    relocatedImplClassName=descriptorImplClass;
+  }
+  String serviceType=slashesToPeriods(relocatedApiClassName);
+  String serviceProvider=slashesToPeriods(relocatedImplClassName).trim();
+  if (!services.containsKey(serviceType)) {
+    services.put(serviceType,Lists.newArrayList(serviceProvider));
+  }
+ else {
+    List<String> providers=services.get(serviceType);
+    providers.add(serviceProvider);
+  }
+}
