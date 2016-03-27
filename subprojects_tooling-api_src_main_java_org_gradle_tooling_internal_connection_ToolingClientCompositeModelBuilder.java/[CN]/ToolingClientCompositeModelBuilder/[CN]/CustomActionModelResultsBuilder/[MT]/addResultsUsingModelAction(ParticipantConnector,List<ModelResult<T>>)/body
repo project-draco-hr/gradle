@@ -4,8 +4,9 @@
     BuildActionExecuter<Map<String,T>> actionExecuter=projectConnection.action(new FetchPerProjectModelAction<T>(modelType));
     util.configureRequest(actionExecuter);
     Map<String,T> actionResults=actionExecuter.run();
-    for (    String projectPath : actionResults.keySet()) {
-      ModelResult<T> result=createModelResult(participant,projectPath,actionResults.get(projectPath));
+    for (    final String projectPath : actionResults.keySet()) {
+      T identified=transformWithProjectIdentity(participant.toProjectIdentity(projectPath),actionResults.get(projectPath));
+      ModelResult<T> result=createModelResult(participant,projectPath,identified);
       results.add(result);
     }
   }
