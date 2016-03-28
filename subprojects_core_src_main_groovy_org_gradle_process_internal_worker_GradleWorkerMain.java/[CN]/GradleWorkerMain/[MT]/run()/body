@@ -1,0 +1,22 @@
+{
+  DataInputStream instr=new DataInputStream(new EncodedStream.EncodedInput(System.in));
+  int sharedPackagesCount=instr.readInt();
+  List<String> sharedPackages=new ArrayList<String>(sharedPackagesCount);
+  for (int i=0; i < sharedPackagesCount; i++) {
+    sharedPackages.add(instr.readUTF());
+  }
+  int classPathLength=instr.readInt();
+  URL[] implementationClassPath=new URL[classPathLength];
+  for (int i=0; i < classPathLength; i++) {
+    String url=instr.readUTF();
+    implementationClassPath[i]=new URL(url);
+  }
+  FilteringClassLoader filteringClassLoader=new FilteringClassLoader(getClass().getClassLoader());
+  for (  String sharedPackage : sharedPackages) {
+    filteringClassLoader.allowPackage(sharedPackage);
+  }
+  URLClassLoader classLoader=new URLClassLoader(implementationClassPath,filteringClassLoader);
+  Class<? extends Callable> workerClass=classLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
+  Callable<Void> main=workerClass.getConstructor(DataInputStream.class).newInstance(instr);
+  main.call();
+}
