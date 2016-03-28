@@ -1,7 +1,7 @@
 {
   RhinoWorkerHandleFactory handleFactory=new DefaultRhinoWorkerHandleFactory(getWorkerProcessBuilderFactory());
   LogLevel logLevel=getProject().getGradle().getStartParameter().getLogLevel();
-  RhinoWorkerHandle<JsHintResult,JsHintSpec> rhinoHandle=handleFactory.create(getRhinoClasspath(),createWorkerSpec(),logLevel,new Action<JavaExecSpec>(){
+  JsHintProtocol worker=handleFactory.create(getRhinoClasspath(),JsHintProtocol.class,JsHintWorker.class,logLevel,new Action<JavaExecSpec>(){
     public void execute(    JavaExecSpec javaExecSpec){
       javaExecSpec.setWorkingDir(getProject().getProjectDir());
     }
@@ -11,7 +11,7 @@
   spec.setSource(getSource().getFiles());
   spec.setEncoding(getEncoding());
   spec.setJsHint(getJsHint().getSingleFile());
-  JsHintResult result=rhinoHandle.process(spec);
+  JsHintResult result=worker.process(spec);
   setDidWork(true);
   Logger logger=getLogger();
   boolean anyErrors=false;
