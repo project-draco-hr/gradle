@@ -7,13 +7,19 @@
       result=method.invoke(implementation,args);
     }
  catch (    InvocationTargetException e) {
-      responder.failed(e.getCause());
+      Throwable failure=e.getCause();
+      if (failure instanceof NoClassDefFoundError) {
+        responder.infrastructureFailed(failure);
+      }
+ else {
+        responder.failed(failure);
+      }
       return;
     }
     responder.completed(result);
   }
- catch (  Exception e) {
-    responder.failed(new GradleException(String.format("Failed to call method %s on worker implementation %s.",methodName,workerImplementation),e));
+ catch (  Throwable t) {
+    responder.infrastructureFailed(t);
   }
  finally {
     completed.countDown();
