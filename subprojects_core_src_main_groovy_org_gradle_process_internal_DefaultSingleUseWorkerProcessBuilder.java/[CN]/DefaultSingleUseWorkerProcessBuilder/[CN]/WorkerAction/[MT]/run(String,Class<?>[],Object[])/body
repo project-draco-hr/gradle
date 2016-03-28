@@ -1,0 +1,21 @@
+{
+  try {
+    Object implementation=workerImplementation.newInstance();
+    Method method=workerImplementation.getDeclaredMethod(methodName,paramTypes);
+    Object result;
+    try {
+      result=method.invoke(implementation,args);
+    }
+ catch (    InvocationTargetException e) {
+      responder.failed(e.getCause());
+      return;
+    }
+    responder.completed(result);
+  }
+ catch (  Exception e) {
+    responder.failed(new GradleException(String.format("Failed to call method %s on worker implementation %s.",methodName,workerImplementation),e));
+  }
+ finally {
+    completed.countDown();
+  }
+}

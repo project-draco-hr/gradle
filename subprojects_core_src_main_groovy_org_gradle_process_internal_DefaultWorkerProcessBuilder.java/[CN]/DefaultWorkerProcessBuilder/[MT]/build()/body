@@ -1,0 +1,24 @@
+{
+  final DefaultWorkerProcess workerProcess=new DefaultWorkerProcess(connectTimeoutSeconds,TimeUnit.SECONDS);
+  ConnectionAcceptor acceptor=server.accept(new Action<ObjectConnection>(){
+    public void execute(    ObjectConnection connection){
+      workerProcess.onConnect(connection);
+    }
+  }
+);
+  workerProcess.startAccepting(acceptor);
+  Address localAddress=acceptor.getAddress();
+  List<URL> implementationClassPath=ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
+  Object id=idGenerator.generateId();
+  String displayName=getBaseName() + " " + id;
+  LOGGER.debug("Creating {}",displayName);
+  LOGGER.debug("Using application classpath {}",getApplicationClasspath());
+  LOGGER.debug("Using implementation classpath {}",implementationClassPath);
+  JavaExecHandleBuilder javaCommand=getJavaCommand();
+  javaCommand.setDisplayName(displayName);
+  workerFactory.prepareJavaCommand(id,displayName,this,implementationClassPath,localAddress,javaCommand);
+  javaCommand.args("'" + displayName + "'");
+  ExecHandle execHandle=javaCommand.build();
+  workerProcess.setExecHandle(execHandle);
+  return workerProcess;
+}

@@ -1,0 +1,18 @@
+{
+  return protocolType.cast(Proxy.newProxyInstance(protocolType.getClassLoader(),new Class[]{protocolType},new InvocationHandler(){
+    @Override public Object invoke(    Object proxy,    Method method,    Object[] args) throws Throwable {
+      WorkerProcess workerProcess=builder.build();
+      workerProcess.start();
+      ObjectConnection connection=workerProcess.getConnection();
+      RequestProtocol requestProtocol=connection.addOutgoing(RequestProtocol.class);
+      Receiver receiver=new Receiver();
+      connection.addIncoming(ResponseProtocol.class,receiver);
+      connection.connect();
+      requestProtocol.run(method.getName(),method.getParameterTypes(),args);
+      receiver.waitForResult();
+      workerProcess.waitForStop();
+      return receiver.getResult();
+    }
+  }
+));
+}
