@@ -1,7 +1,8 @@
 {
   boolean built=false;
-  for (  GradleConnectionParticipant gradleBuildInternal : operationParameters.getBuilds()) {
-    if (operationParameters.getBuildIdentity() == null || operationParameters.getBuildIdentity().equals(gradleBuildInternal.toBuildIdentity())) {
+  for (  GradleParticipantBuild gradleBuildInternal : operationParameters.getBuilds()) {
+    BuildIdentifier participantIdentifier=new DefaultBuildIdentifier(gradleBuildInternal.getProjectDir());
+    if (operationParameters.getBuildIdentifier() == null || operationParameters.getBuildIdentifier().equals(participantIdentifier)) {
       ProjectConnection connection=null;
       try {
         connection=util.createParticipantConnector(gradleBuildInternal).connect();
@@ -18,6 +19,6 @@
     }
   }
   if (!built) {
-    throw new GradleConnectionException("Not a valid build: " + operationParameters.getBuildIdentity(),new IllegalStateException("Build not part of composite"));
+    throw new GradleConnectionException("Not a valid build: " + operationParameters.getBuildIdentifier(),new IllegalStateException("Build not part of composite"));
   }
 }
