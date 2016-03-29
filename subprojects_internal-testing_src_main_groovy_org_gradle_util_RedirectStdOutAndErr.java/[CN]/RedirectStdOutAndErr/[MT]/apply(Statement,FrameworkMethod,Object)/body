@@ -3,17 +3,14 @@
     @Override public void evaluate() throws Throwable {
       originalStdOut=System.out;
       originalStdErr=System.err;
+      stdoutContent=new ByteArrayOutputStream();
+      stderrContent=new ByteArrayOutputStream();
+      stdOutPrintStream=new PrintStream(new TeeOutputStream(stdoutContent,originalStdOut));
+      stdErrPrintStream=new PrintStream(new TeeOutputStream(stderrContent,originalStdErr));
       try {
         System.setOut(stdOutPrintStream);
         System.setErr(stdErrPrintStream);
-        try {
-          base.evaluate();
-        }
- catch (        Throwable throwable) {
-          originalStdOut.write(stdoutContent.toByteArray());
-          originalStdErr.write(stderrContent.toByteArray());
-          throw throwable;
-        }
+        base.evaluate();
       }
   finally {
         System.setOut(originalStdOut);
