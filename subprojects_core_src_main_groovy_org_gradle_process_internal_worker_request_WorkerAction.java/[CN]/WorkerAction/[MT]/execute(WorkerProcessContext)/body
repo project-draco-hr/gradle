@@ -1,0 +1,19 @@
+{
+  completed=new CountDownLatch(1);
+  try {
+    implementation=workerImplementation.newInstance();
+  }
+ catch (  Throwable e) {
+    failure=e;
+  }
+  ObjectConnection connection=workerProcessContext.getServerConnection();
+  connection.addIncoming(RequestProtocol.class,this);
+  responder=connection.addOutgoing(ResponseProtocol.class);
+  connection.connect();
+  try {
+    completed.await();
+  }
+ catch (  InterruptedException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+}

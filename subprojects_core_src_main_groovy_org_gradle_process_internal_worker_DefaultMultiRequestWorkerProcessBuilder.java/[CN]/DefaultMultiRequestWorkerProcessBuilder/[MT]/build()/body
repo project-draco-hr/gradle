@@ -1,0 +1,30 @@
+{
+  final WorkerProcess workerProcess=workerProcessBuilder.build();
+  return workerType.cast(Proxy.newProxyInstance(workerType.getClassLoader(),new Class[]{workerType},new InvocationHandler(){
+    private Receiver receiver=new Receiver(getBaseName());
+    private RequestProtocol requestProtocol;
+    @Override public Object invoke(    Object proxy,    Method method,    Object[] args) throws Throwable {
+      if (method.equals(START_METHOD)) {
+        workerProcess.start();
+        workerProcess.getConnection().addIncoming(ResponseProtocol.class,receiver);
+        requestProtocol=workerProcess.getConnection().addOutgoing(RequestProtocol.class);
+        workerProcess.getConnection().connect();
+        return null;
+      }
+      if (method.equals(STOP_METHOD)) {
+        if (requestProtocol != null) {
+          requestProtocol.stop();
+        }
+        try {
+          return workerProcess.waitForStop();
+        }
+  finally {
+          requestProtocol=null;
+        }
+      }
+      requestProtocol.run(method.getName(),method.getParameterTypes(),args);
+      return receiver.getNextResult();
+    }
+  }
+));
+}

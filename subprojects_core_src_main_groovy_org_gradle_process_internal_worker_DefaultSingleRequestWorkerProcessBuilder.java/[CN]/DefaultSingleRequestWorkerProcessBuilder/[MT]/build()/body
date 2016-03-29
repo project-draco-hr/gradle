@@ -5,13 +5,13 @@
       workerProcess.start();
       ObjectConnection connection=workerProcess.getConnection();
       RequestProtocol requestProtocol=connection.addOutgoing(RequestProtocol.class);
-      Receiver receiver=new Receiver();
+      Receiver receiver=new Receiver(getBaseName());
       connection.addIncoming(ResponseProtocol.class,receiver);
       connection.useJavaSerializationForParameters(workerImplementation.getClassLoader());
       connection.connect();
-      requestProtocol.run(method.getName(),method.getParameterTypes(),args);
+      requestProtocol.runThenStop(method.getName(),method.getParameterTypes(),args);
       workerProcess.waitForStop();
-      return receiver.getResult();
+      return receiver.getNextResult();
     }
   }
 ));
