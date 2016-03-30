@@ -1,0 +1,6 @@
+{
+  ByteBuddyAgent.install();
+  ClassLoader targetClassLoader=DirectoryFileTree.class.getClassLoader();
+  new ByteBuddy().redefine(CountDirectoryScans.class).make().load(targetClassLoader,ClassReloadingStrategy.fromInstalledAgent());
+  new ByteBuddy().redefine(DirectoryFileTree.class).visit(new AsmVisitorWrapper.ForDeclaredMethods().writerFlags(ClassWriter.COMPUTE_FRAMES).method(ElementMatchers.named("visitFrom"),Advice.to(CountDirectoryScans.class))).make().load(targetClassLoader,ClassReloadingStrategy.fromInstalledAgent());
+}
