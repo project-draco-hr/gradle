@@ -1,3 +1,17 @@
 {
-  return parameters instanceof CompositeConnectionParameters ? ((CompositeConnectionParameters)parameters).getBuilds() : null;
+  if (!(parameters instanceof CompositeConnectionParameters)) {
+    return null;
+  }
+  List<GradleParticipantBuild> unorderedBuilds=((CompositeConnectionParameters)parameters).getBuilds();
+  List<GradleParticipantBuild> builds=new LinkedList<GradleParticipantBuild>();
+  for (  GradleParticipantBuild build : unorderedBuilds) {
+    BuildIdentifier participantIdentifier=new DefaultBuildIdentifier(build.getProjectDir());
+    if (participantIdentifier.equals(buildIdentifier)) {
+      builds.add(0,build);
+    }
+ else {
+      builds.add(build);
+    }
+  }
+  return builds;
 }

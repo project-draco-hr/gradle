@@ -1,26 +1,17 @@
 {
   CompositeParameters compositeParameters=actionParameters.getCompositeParameters();
-  List<GradleParticipantBuild> participantBuilds=compositeParameters.getBuilds();
   GradleLauncherFactory launcherFactory=sharedServices.get(GradleLauncherFactory.class);
-  boolean buildFound=false;
-  for (  GradleParticipantBuild participant : participantBuilds) {
-    buildFound=true;
-    if (buildRequestContext.getCancellationToken().isCancellationRequested()) {
-      break;
-    }
-    StartParameter startParameter=parentStartParam.newInstance();
-    startParameter.setProjectDir(participant.getProjectDir());
-    startParameter.setSearchUpwards(false);
-    DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),System.currentTimeMillis()),buildRequestContext.getCancellationToken(),buildRequestContext.getEventConsumer(),buildRequestContext.getOutputListener(),buildRequestContext.getErrorListener());
-    GradleLauncher launcher=launcherFactory.newInstance(startParameter,requestContext,sharedServices);
-    try {
-      launcher.run();
-    }
-  finally {
-      launcher.stop();
-    }
+  GradleParticipantBuild participant=compositeParameters.getTargetBuild();
+  StartParameter startParameter=parentStartParam.newInstance();
+  startParameter.setProjectDir(participant.getProjectDir());
+  startParameter.setSearchUpwards(false);
+  ServiceRegistry buildScopedServices=new BuildSessionScopeServices(sharedServices,startParameter,ClassPath.EMPTY);
+  DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),System.currentTimeMillis()),buildRequestContext.getCancellationToken(),buildRequestContext.getEventConsumer(),buildRequestContext.getOutputListener(),buildRequestContext.getErrorListener());
+  GradleLauncher launcher=launcherFactory.newInstance(startParameter,requestContext,buildScopedServices);
+  try {
+    launcher.run();
   }
-  if (!buildFound) {
-    throw new IllegalStateException("Build not part of composite");
+  finally {
+    launcher.stop();
   }
 }
