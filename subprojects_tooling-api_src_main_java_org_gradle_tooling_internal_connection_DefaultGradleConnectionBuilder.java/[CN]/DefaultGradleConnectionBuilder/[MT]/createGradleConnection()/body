@@ -8,10 +8,14 @@
   DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder=DefaultCompositeConnectionParameters.builder();
   compositeConnectionParametersBuilder.setBuilds(participants);
   compositeConnectionParametersBuilder.setGradleUserHomeDir(gradleUserHomeDir);
+  compositeConnectionParametersBuilder.setEmbedded(embeddedCoordinator);
   compositeConnectionParametersBuilder.setDaemonMaxIdleTimeValue(daemonMaxIdleTimeValue);
   compositeConnectionParametersBuilder.setDaemonMaxIdleTimeUnits(daemonMaxIdleTimeUnits);
   compositeConnectionParametersBuilder.setDaemonBaseDir(daemonBaseDir);
   DefaultCompositeConnectionParameters connectionParameters=compositeConnectionParametersBuilder.build();
-  Distribution distribution=distributionFactory.getDistribution(GradleVersion.current().getVersion());
+  Distribution distribution=coordinatorDistribution;
+  if (distribution == null) {
+    distribution=distributionFactory.getDistribution(GradleVersion.current().getVersion());
+  }
   return gradleConnectionFactory.create(distribution,connectionParameters,false);
 }
