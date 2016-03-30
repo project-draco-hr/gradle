@@ -1,9 +1,9 @@
 {
-  final Map<Object,Object> results=new HashMap<Object,Object>();
   GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
   BuildActionRunner runner=new SubscribableBuildActionRunner(new BuildModelsActionRunner());
   org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,runner);
   DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),buildRequestContext.getCancellationToken(),buildRequestContext.getEventConsumer(),buildRequestContext.getOutputListener(),buildRequestContext.getErrorListener());
+  final List<Object> results=Lists.newArrayList();
   for (  GradleParticipantBuild participant : participantBuilds) {
     DefaultBuildActionParameters actionParameters=new DefaultBuildActionParameters(Collections.EMPTY_MAP,Collections.<String,String>emptyMap(),participant.getProjectDir(),LogLevel.INFO,DaemonUsage.EXPLICITLY_DISABLED,false,true,ClassPath.EMPTY);
     StartParameter startParameter=modelAction.getStartParameter().newInstance();
@@ -13,15 +13,13 @@
     try {
       Map<String,Object> result=Cast.uncheckedCast(buildActionExecuter.execute(participantAction,requestContext,actionParameters,buildScopedServices));
       for (      Map.Entry<String,Object> e : result.entrySet()) {
-        DefaultProjectIdentifier projectIdentifier=new DefaultProjectIdentifier(participant.getProjectDir(),e.getKey());
+        String projectPath=e.getKey();
         Object modelValue=e.getValue();
-        results.put(projectIdentifier,modelValue);
+        results.add(compositeModelResult(participant,projectPath,modelValue));
       }
     }
  catch (    Exception e) {
-      File rootDir=participant.getProjectDir();
-      BuildIdentifier buildIdentifier=new DefaultBuildIdentifier(rootDir);
-      results.put(new DefaultProjectIdentifier(buildIdentifier,":"),e);
+      results.add(compositeModelResult(participant,null,e));
     }
   }
   return results;
