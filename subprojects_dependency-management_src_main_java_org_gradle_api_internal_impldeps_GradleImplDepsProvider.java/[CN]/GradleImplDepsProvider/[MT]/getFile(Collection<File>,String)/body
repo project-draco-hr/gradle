@@ -1,16 +1,12 @@
 {
-  if (VALID_JAR_NAMES.contains(name)) {
+  if (GradleImplDepsJar.isValidIdentifier(name)) {
     final File implDepsJarFile=jarFile(cache,name);
-    Boolean existsInCache=cache.useCache(String.format("Checking %s",implDepsJarFile.getName()),new Factory<Boolean>(){
-      @Override public Boolean create(){
-        return implDepsJarFile.exists();
-      }
-    }
-);
-    if (!existsInCache) {
+    if (!implDepsJarFile.exists()) {
       cache.useCache(String.format("Generating %s",implDepsJarFile.getName()),new Runnable(){
         public void run(){
-          relocatedJarCreator.create(implDepsJarFile,classpath);
+          if (!implDepsJarFile.exists()) {
+            relocatedJarCreator.create(implDepsJarFile,classpath);
+          }
         }
       }
 );
