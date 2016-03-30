@@ -3,8 +3,8 @@
   ClassLoader targetClassLoader=DirectoryFileTree.class.getClassLoader();
   ByteBuddy byteBuddy=new ByteBuddy();
   for (  Class<?> clazz : new Class<?>[]{CountDirectoryScans.class,CountCacheStats.class,CountCacheStats.Hits.class,CountCacheStats.Misses.class}) {
-    byteBuddy.redefine(clazz).make().load(targetClassLoader,ClassReloadingStrategy.fromInstalledAgent());
+    makeAndLoad(byteBuddy.redefine(clazz),targetClassLoader);
   }
-  byteBuddy.redefine(DirectoryFileTree.class).visit(new AsmVisitorWrapper.ForDeclaredMethods().writerFlags(ClassWriter.COMPUTE_FRAMES).method(ElementMatchers.named("visitFrom"),Advice.to(CountDirectoryScans.class))).make().load(targetClassLoader,ClassReloadingStrategy.fromInstalledAgent());
-  byteBuddy.redefine(targetClassLoader.loadClass("org.gradle.api.internal.changedetection.state.CachingTreeVisitor")).visit(new AsmVisitorWrapper.ForDeclaredMethods().writerFlags(ClassWriter.COMPUTE_FRAMES).method(ElementMatchers.named("recordCacheHit"),Advice.to(CountCacheStats.Hits.class)).method(ElementMatchers.named("recordCacheMiss"),Advice.to(CountCacheStats.Misses.class))).make().load(targetClassLoader,ClassReloadingStrategy.fromInstalledAgent());
+  makeAndLoad(byteBuddy.redefine(DirectoryFileTree.class).visit(Advice.to(CountDirectoryScans.class).on(ElementMatchers.named("visitFrom"))),targetClassLoader);
+  makeAndLoad(byteBuddy.redefine(targetClassLoader.loadClass("org.gradle.api.internal.changedetection.state.CachingTreeVisitor")).visit(Advice.to(CountCacheStats.Hits.class).on(ElementMatchers.named("recordCacheHit")).method(ElementMatchers.named("recordCacheMiss"),Advice.to(CountCacheStats.Misses.class))),targetClassLoader);
 }
