@@ -1,0 +1,27 @@
+{
+  if (!(action instanceof BuildModelAction)) {
+    return;
+  }
+  BuildModelAction buildModelAction=(BuildModelAction)action;
+  GradleInternal gradle=buildController.getGradle();
+  buildController.configure();
+  gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
+  String modelName=buildModelAction.getModelName();
+  ToolingModelBuilderRegistry builderRegistry=getToolingModelBuilderRegistry(gradle);
+  ToolingModelBuilder builder;
+  try {
+    builder=builderRegistry.getBuilder(modelName);
+  }
+ catch (  UnknownModelException e) {
+    throw (InternalUnsupportedModelException)new InternalUnsupportedModelException().initCause(e);
+  }
+  Map<String,Object> models=Maps.newLinkedHashMap();
+  if (builder instanceof ProjectToolingModelBuilder) {
+    ((ProjectToolingModelBuilder)builder).addModels(modelName,gradle.getDefaultProject(),models);
+  }
+ else {
+    Object result=builder.buildAll(modelName,gradle.getDefaultProject());
+    models.put(gradle.getDefaultProject().getPath(),result);
+  }
+  buildController.setResult(models);
+}

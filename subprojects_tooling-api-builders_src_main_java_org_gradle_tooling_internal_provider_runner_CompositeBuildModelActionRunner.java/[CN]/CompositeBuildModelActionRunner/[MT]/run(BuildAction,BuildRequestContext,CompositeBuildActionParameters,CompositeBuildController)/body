@@ -2,14 +2,13 @@
   if (!(action instanceof BuildModelAction)) {
     return;
   }
-  Class<?> modelType=resolveModelType((BuildModelAction)action);
+  BuildModelAction buildModelAction=(BuildModelAction)action;
   Map<Object,Object> results=null;
-  if (modelType != Void.class) {
-    results=new HashMap<Object,Object>();
-    results.putAll(fetchCompositeModelsInProcess((BuildModelAction)action,modelType,requestContext,actionParameters.getCompositeParameters().getBuilds(),buildController.getBuildScopeServices()));
+  if (isModelRequest(buildModelAction)) {
+    results=fetchCompositeModelsInProcess(buildModelAction,requestContext,actionParameters.getCompositeParameters().getBuilds(),buildController.getBuildScopeServices());
   }
  else {
-    if (!((BuildModelAction)action).isRunTasks()) {
+    if (!buildModelAction.isRunTasks()) {
       throw new IllegalStateException("No tasks defined.");
     }
     executeTasksInProcess(action.getStartParameter(),actionParameters,requestContext,buildController.getBuildScopeServices());
