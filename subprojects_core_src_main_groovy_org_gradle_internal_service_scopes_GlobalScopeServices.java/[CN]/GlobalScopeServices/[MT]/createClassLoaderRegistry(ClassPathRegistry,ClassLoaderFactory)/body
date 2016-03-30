@@ -2,8 +2,15 @@
   CodeSource codeSource=getClass().getProtectionDomain().getCodeSource();
   if (codeSource != null) {
     URL location=codeSource.getLocation();
-    if (location.getProtocol().equals("file") && location.getPath().endsWith("gradle-api-" + GradleVersion.current().getVersion() + ".jar")) {
-      return new FlatClassLoaderRegistry(getClass().getClassLoader());
+    if (location.getProtocol().equals("file") && location.getPath().endsWith(".jar")) {
+      try {
+        if (GradleFatJar.containsMarkerFile(new File(location.toURI()))) {
+          return new FlatClassLoaderRegistry(getClass().getClassLoader());
+        }
+      }
+ catch (      URISyntaxException e) {
+        UncheckedException.throwAsUncheckedException(e);
+      }
     }
   }
   return new DefaultClassLoaderRegistry(classPathRegistry,classLoaderFactory);

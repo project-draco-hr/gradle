@@ -1,5 +1,5 @@
 {
-  PercentageProgressFormatter progressFormatter=new PercentageProgressFormatter("Generating",Iterables.size(files));
+  PercentageProgressFormatter progressFormatter=new PercentageProgressFormatter("Generating",Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
   for (  File file : files) {
     progressLogger.progress(progressFormatter.getProgress());
     if (file.getName().endsWith(".jar")) {
@@ -10,8 +10,8 @@
     }
     progressFormatter.incrementAndGetProgress();
   }
-  for (  Map.Entry<String,List<String>> service : services.entrySet()) {
-    String allProviders=Joiner.on("\n").join(service.getValue());
-    writeEntry(outputStream,SERVICES_DIR_PREFIX + service.getKey(),allProviders.getBytes(Charsets.UTF_8));
-  }
+  writeServiceFiles(outputStream,services);
+  progressFormatter.incrementAndGetProgress();
+  writeMarkerFile(outputStream);
+  progressFormatter.incrementAndGetProgress();
 }
