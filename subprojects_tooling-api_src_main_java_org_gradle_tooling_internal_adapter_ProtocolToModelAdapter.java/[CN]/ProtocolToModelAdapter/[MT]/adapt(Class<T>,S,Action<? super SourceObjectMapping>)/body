@@ -9,15 +9,16 @@
   if (wrapperType.isInstance(sourceObject)) {
     return wrapperType.cast(sourceObject);
   }
-  if (targetType.isEnum()) {
-    return adaptToEnum(targetType,sourceObject);
-  }
+  MethodInvoker overrideMethodInvoker=mapping.overrideInvoker;
   MixInMethodInvoker mixInMethodInvoker=null;
   if (mapping.mixInType != null) {
     mixInMethodInvoker=new MixInMethodInvoker(mapping.mixInType,new AdaptingMethodInvoker(mapper,new ReflectionMethodInvoker()));
+    overrideMethodInvoker=mixInMethodInvoker;
   }
-  MethodInvoker overrideInvoker=chainInvokers(mixInMethodInvoker,mapping.overrideInvoker);
-  Object proxy=Proxy.newProxyInstance(wrapperType.getClassLoader(),new Class<?>[]{wrapperType},new InvocationHandlerImpl(sourceObject,overrideInvoker,mapper));
+  if (targetType.isEnum()) {
+    return adaptToEnum(targetType,sourceObject);
+  }
+  Object proxy=Proxy.newProxyInstance(wrapperType.getClassLoader(),new Class<?>[]{wrapperType},new InvocationHandlerImpl(sourceObject,overrideMethodInvoker,mapper));
   if (mixInMethodInvoker != null) {
     mixInMethodInvoker.setProxy(proxy);
   }
