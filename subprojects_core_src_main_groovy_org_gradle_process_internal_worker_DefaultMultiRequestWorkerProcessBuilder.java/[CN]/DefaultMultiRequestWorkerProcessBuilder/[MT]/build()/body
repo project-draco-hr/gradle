@@ -5,7 +5,12 @@
     private RequestProtocol requestProtocol;
     @Override public Object invoke(    Object proxy,    Method method,    Object[] args) throws Throwable {
       if (method.equals(START_METHOD)) {
-        workerProcess.start();
+        try {
+          workerProcess.start();
+        }
+ catch (        Exception e) {
+          throw WorkerProcessException.runFailed(getBaseName(),e);
+        }
         workerProcess.getConnection().addIncoming(ResponseProtocol.class,receiver);
         workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
         requestProtocol=workerProcess.getConnection().addOutgoing(RequestProtocol.class);
@@ -24,6 +29,17 @@
         }
       }
       requestProtocol.run(method.getName(),method.getParameterTypes(),args);
+      boolean hasResult=receiver.awaitNextResult();
+      if (!hasResult) {
+        try {
+          requestProtocol=null;
+          workerProcess.waitForStop();
+          throw new IllegalStateException(String.format("No response was received from %s but the worker process has finished.",getBaseName()));
+        }
+ catch (        Exception e) {
+          throw WorkerProcessException.runFailed(getBaseName(),e);
+        }
+      }
       return receiver.getNextResult();
     }
   }
