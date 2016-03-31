@@ -3,10 +3,8 @@
     @Override public void evaluate() throws Throwable {
       originalStdOut=System.out;
       originalStdErr=System.err;
-      stdoutContent=new ByteArrayOutputStream();
-      stderrContent=new ByteArrayOutputStream();
-      stdOutPrintStream=new PrintStream(new TeeOutputStream(stdoutContent,originalStdOut));
-      stdErrPrintStream=new PrintStream(new TeeOutputStream(stderrContent,originalStdErr));
+      stdOutRouter.setOut(originalStdOut);
+      stdErrRouter.setOut(originalStdErr);
       try {
         System.setOut(stdOutPrintStream);
         System.setErr(stdErrPrintStream);
@@ -15,6 +13,8 @@
   finally {
         System.setOut(originalStdOut);
         System.setErr(originalStdErr);
+        stdOutRouter=null;
+        stdErrRouter=null;
         stdOutPrintStream=null;
         stdErrPrintStream=null;
         stdoutContent=null;
