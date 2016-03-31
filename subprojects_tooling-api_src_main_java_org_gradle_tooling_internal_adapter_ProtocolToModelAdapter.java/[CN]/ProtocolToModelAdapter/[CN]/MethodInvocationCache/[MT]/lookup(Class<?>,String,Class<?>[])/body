@@ -1,0 +1,27 @@
+{
+  Method match;
+  try {
+    match=sourceClass.getMethod(methodName,parameterTypes);
+  }
+ catch (  NoSuchMethodException e) {
+    return Optional.absent();
+  }
+  LinkedList<Class<?>> queue=new LinkedList<Class<?>>();
+  queue.add(sourceClass);
+  while (!queue.isEmpty()) {
+    Class<?> c=queue.removeFirst();
+    try {
+      match=c.getMethod(methodName,parameterTypes);
+    }
+ catch (    NoSuchMethodException e) {
+    }
+    for (    Class<?> interfaceType : c.getInterfaces()) {
+      queue.addFirst(interfaceType);
+    }
+    if (c.getSuperclass() != null) {
+      queue.addFirst(c.getSuperclass());
+    }
+  }
+  match.setAccessible(true);
+  return Optional.of(match);
+}

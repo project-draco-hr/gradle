@@ -1,11 +1,11 @@
 {
+  Path sourceFile=null;
+  Path linkFile=null;
   try {
-    Path sourceFile=Files.createTempFile("symlink","test");
-    Path linkFile=Files.createTempFile("symlink","test_link");
-    sourceFile.toFile().deleteOnExit();
+    sourceFile=Files.createTempFile("symlink","test");
+    linkFile=Files.createTempFile("symlink","test_link");
     Files.delete(linkFile);
     Files.createSymbolicLink(linkFile,sourceFile);
-    linkFile.toFile().deleteOnExit();
     return true;
   }
  catch (  IOException e) {
@@ -13,5 +13,17 @@
   }
 catch (  UnsupportedOperationException e) {
     return false;
+  }
+ finally {
+    try {
+      if (sourceFile != null && sourceFile.toFile().exists()) {
+        Files.delete(sourceFile);
+      }
+      if (linkFile != null && linkFile.toFile().exists()) {
+        Files.delete(linkFile);
+      }
+    }
+ catch (    IOException e) {
+    }
   }
 }

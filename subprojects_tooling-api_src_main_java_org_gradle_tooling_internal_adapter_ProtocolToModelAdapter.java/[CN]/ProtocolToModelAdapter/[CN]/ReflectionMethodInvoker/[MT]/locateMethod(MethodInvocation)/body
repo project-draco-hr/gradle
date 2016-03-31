@@ -1,28 +1,3 @@
 {
-  Class<?> sourceClass=invocation.getDelegate().getClass();
-  Method match;
-  try {
-    match=sourceClass.getMethod(invocation.getName(),invocation.getParameterTypes());
-  }
- catch (  NoSuchMethodException e) {
-    return null;
-  }
-  LinkedList<Class<?>> queue=new LinkedList<Class<?>>();
-  queue.add(sourceClass);
-  while (!queue.isEmpty()) {
-    Class<?> c=queue.removeFirst();
-    try {
-      match=c.getMethod(invocation.getName(),invocation.getParameterTypes());
-    }
- catch (    NoSuchMethodException e) {
-    }
-    for (    Class<?> interfaceType : c.getInterfaces()) {
-      queue.addFirst(interfaceType);
-    }
-    if (c.getSuperclass() != null) {
-      queue.addFirst(c.getSuperclass());
-    }
-  }
-  match.setAccessible(true);
-  return match;
+  return LOOKUP_CACHE.get(invocation);
 }
