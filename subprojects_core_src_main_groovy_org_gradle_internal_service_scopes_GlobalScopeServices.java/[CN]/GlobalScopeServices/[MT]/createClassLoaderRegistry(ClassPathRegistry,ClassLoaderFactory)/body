@@ -1,17 +1,6 @@
 {
-  CodeSource codeSource=getClass().getProtectionDomain().getCodeSource();
-  if (codeSource != null) {
-    URL location=codeSource.getLocation();
-    if (location.getProtocol().equals("file") && location.getPath().endsWith(".jar")) {
-      try {
-        if (GradleFatJar.containsMarkerFile(new File(location.toURI()))) {
-          return new FlatClassLoaderRegistry(getClass().getClassLoader());
-        }
-      }
- catch (      URISyntaxException e) {
-        UncheckedException.throwAsUncheckedException(e);
-      }
-    }
+  if (GradleFatJar.containsMarkerFile(getClass())) {
+    return new FlatClassLoaderRegistry(getClass().getClassLoader());
   }
   return new DefaultClassLoaderRegistry(classPathRegistry,classLoaderFactory);
 }
