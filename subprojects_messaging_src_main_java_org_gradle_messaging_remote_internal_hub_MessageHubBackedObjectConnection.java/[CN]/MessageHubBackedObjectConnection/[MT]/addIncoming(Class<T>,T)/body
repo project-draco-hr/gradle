@@ -2,5 +2,9 @@
   if (methodParamClassLoader == null) {
     methodParamClassLoader=type.getClassLoader();
   }
-  hub.addHandler(type.getName(),new ReflectionDispatch(instance));
+  Dispatch<MethodInvocation> handler=new ReflectionDispatch(instance);
+  if (instance instanceof StreamCompletion) {
+    handler=new BoundedDispatchWrapper((StreamCompletion)instance,handler);
+  }
+  hub.addHandler(type.getName(),handler);
 }

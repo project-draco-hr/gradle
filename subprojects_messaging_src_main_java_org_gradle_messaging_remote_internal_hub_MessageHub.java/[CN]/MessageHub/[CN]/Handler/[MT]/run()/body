@@ -12,6 +12,7 @@
         }
         for (        InterHubMessage message : messages) {
           if (message instanceof EndOfStream) {
+            boundedDispatch.endStream();
             return;
           }
           if (message instanceof ChannelMessage) {
@@ -21,12 +22,6 @@
  else           if (message instanceof RejectedMessage) {
             RejectedMessage rejectedMessage=(RejectedMessage)message;
             listener.messageDiscarded(rejectedMessage.getPayload());
-          }
- else           if (message instanceof ConnectionEstablished) {
-            stateListener.onConnect();
-          }
- else           if (message instanceof ConnectionClosed) {
-            stateListener.onDisconnect();
           }
  else {
             throw new IllegalArgumentException(String.format("Don't know how to handle message %s",message));

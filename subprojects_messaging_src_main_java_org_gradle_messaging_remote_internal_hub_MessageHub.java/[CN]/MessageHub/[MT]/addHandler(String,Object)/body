@@ -16,16 +16,16 @@
  else {
       dispatch=DISCARD;
     }
-    HubStateListener stateListener;
-    if (handler instanceof HubStateListener) {
-      stateListener=(HubStateListener)handler;
+    BoundedDispatch<Object> boundedDispatch;
+    if (dispatch instanceof BoundedDispatch) {
+      boundedDispatch=(BoundedDispatch)dispatch;
     }
  else {
-      stateListener=DISCARD;
+      boundedDispatch=DISCARD;
     }
     ChannelIdentifier identifier=new ChannelIdentifier(channelName);
     EndPointQueue queue=incomingQueue.getChannel(identifier).newEndpoint();
-    workers.execute(new Handler(queue,dispatch,rejectedMessageListener,stateListener));
+    workers.execute(new Handler(queue,dispatch,boundedDispatch,rejectedMessageListener));
   }
   finally {
     lock.unlock();
