@@ -1,0 +1,23 @@
+{
+  String internalName=Type.getInternalName(classToMap);
+  String resourceName=internalName.concat(".class");
+  URL resource=WorkerProcessClassPathProvider.class.getClassLoader().getResource(resourceName);
+  if (resource == null) {
+    throw new IllegalStateException("Could not locate classpath resource for class " + classToMap.getName());
+  }
+  InputStream inputStream=resource.openStream();
+  ClassReader classReader;
+  try {
+    classReader=new ClassReader(inputStream);
+  }
+  finally {
+    inputStream.close();
+  }
+  ClassWriter classWriter=new ClassWriter(0);
+  ClassVisitor remappingVisitor=new RemappingClassAdapter(classWriter,remapper);
+  classReader.accept(remappingVisitor,ClassReader.EXPAND_FRAMES);
+  byte[] remappedClass=classWriter.toByteArray();
+  String remappedClassName=remapper.map(internalName).concat(".class");
+  jar.putNextEntry(new ZipEntry(remappedClassName));
+  jar.write(remappedClass);
+}

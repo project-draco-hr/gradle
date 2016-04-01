@@ -1,57 +1,19 @@
 {
-  File jarFile=jarFile(cache);
-  LOGGER.debug("Generating worker process classes to {}.",jarFile);
-  URL currentClasspath=getClass().getProtectionDomain().getCodeSource().getLocation();
-  JarJarTask task=new JarJarTask();
-  task.setDestFile(jarFile);
-  final List<Resource> classResources=new ArrayList<Resource>();
-  List<Class<?>> renamedClasses=Arrays.asList(GradleWorkerMain.class,BootstrapSecurityManager.class,EncodedStream.EncodedInput.class,FilteringClassLoader.class,FilteringClassLoader.Spec.class,ClassLoaderHierarchy.class,ClassLoaderVisitor.class,ClassLoaderSpec.class,JavaReflectionUtil.class,JavaMethod.class,GradleException.class,NoSuchPropertyException.class,NoSuchMethodException.class,UncheckedException.class,PropertyAccessor.class,PropertyMutator.class,Factory.class,Spec.class);
-  List<Class<?>> classes=new ArrayList<Class<?>>();
-  classes.addAll(renamedClasses);
-  for (  Class<?> aClass : classes) {
-    final String fileName=aClass.getName().replace('.','/') + ".class";
-    Enumeration<URL> resources;
+  try {
+    File jarFile=jarFile(cache);
+    LOGGER.debug("Generating worker process classes to {}.",jarFile);
+    List<Class<?>> classes=Arrays.asList(GradleWorkerMain.class,BootstrapSecurityManager.class,EncodedStream.EncodedInput.class,FilteringClassLoader.class,FilteringClassLoader.Spec.class,ClassLoaderHierarchy.class,ClassLoaderVisitor.class,ClassLoaderSpec.class,JavaReflectionUtil.class,JavaMethod.class,GradleException.class,NoSuchPropertyException.class,NoSuchMethodException.class,UncheckedException.class,PropertyAccessor.class,PropertyMutator.class,Factory.class,Spec.class);
+    ZipOutputStream outputStream=new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)));
     try {
-      resources=WorkerProcessClassPathProvider.class.getClassLoader().getResources(fileName);
-    }
- catch (    IOException e) {
-      throw new UncheckedIOException(e);
-    }
-    URL resource=null;
-    while (resources.hasMoreElements()) {
-      URL url=resources.nextElement();
-      resource=url;
-      if (url.toString().startsWith(currentClasspath.toString())) {
-        break;
+      for (      Class<?> classToMap : classes) {
+        remapClass(classToMap,outputStream);
       }
     }
-    URLResource urlResource=new URLResource(resource){
-      @Override public synchronized String getName(){
-        return fileName;
-      }
-    }
-;
-    classResources.add(urlResource);
-  }
-  task.add(new ResourceCollection(){
-    public Iterator iterator(){
-      return classResources.iterator();
-    }
-    public int size(){
-      return classResources.size();
-    }
-    public boolean isFilesystemOnly(){
-      return true;
+  finally {
+      outputStream.close();
     }
   }
-);
-  Rule rule=new Rule();
-  rule.setPattern(SystemApplicationClassLoaderWorker.class.getName());
-  rule.setResult(SystemApplicationClassLoaderWorker.class.getName());
-  task.addConfiguredRule(rule);
-  rule=new Rule();
-  rule.setPattern("org.gradle.**");
-  rule.setResult("jarjar.@0");
-  task.addConfiguredRule(rule);
-  AntUtil.execute(task);
+ catch (  Exception e) {
+    throw new GradleException("Could not generate worker process bootstrap classes.",e);
+  }
 }
