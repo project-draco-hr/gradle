@@ -1,6 +1,7 @@
 {
   this.classPathRegistry=classPathRegistry;
   this.classLoaderFactory=classLoaderFactory;
+  this.moduleRegistry=moduleRegistry;
   this.libClasspath=new DefaultClassPath();
   GroovySystemLoaderFactory groovySystemLoaderFactory=new GroovySystemLoaderFactory();
   this.classLoaderCache=new ClassPathToClassLoaderCache(groovySystemLoaderFactory);
@@ -17,9 +18,10 @@
   loggingLoader.allowClass(Logger.class);
   loggingLoader.allowClass(LogLevel.class);
   this.baseAntLoader=new CachingClassLoader(new MultiParentClassLoader(antLoader,loggingLoader));
-  ClassPath gradleCoreUrls=classPathRegistry.getClassPath("GRADLE_CORE");
-  gradleCoreUrls=gradleCoreUrls.plus(classPathRegistry.getClassPath("GROOVY"));
-  gradleCoreUrls=gradleCoreUrls.plus(classPathRegistry.getClassPath("GRADLE_BASE_SERVICES"));
+  ClassPath gradleCoreUrls=moduleRegistry.getModule("gradle-core").getImplementationClasspath();
+  gradleCoreUrls=gradleCoreUrls.plus(moduleRegistry.getModule("gradle-logging").getImplementationClasspath());
+  gradleCoreUrls=gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-all").getClasspath());
+  gradleCoreUrls=gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
   this.antAdapterLoader=new MutableURLClassLoader(baseAntLoader,gradleCoreUrls);
   gradleApiGroovyLoader=groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
   antAdapterGroovyLoader=groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
