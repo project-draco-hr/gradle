@@ -4,9 +4,8 @@
     public void visitDir(    FileVisitDetails dirDetails){
     }
     public void visitFile(    FileVisitDetails fileDetails){
-      File file=fileDetails.getFile();
       writer.print(fileDetails.getPath() + ": ");
-      if (file.getName().endsWith(".class")) {
+      if (fileDetails.getPath().endsWith(".class")) {
         try {
           ClassReader reader;
           InputStream inputStream=new BufferedInputStream(fileDetails.open());
@@ -44,8 +43,12 @@
           }
         }
  catch (        Exception exception) {
-          throw new ClassAnalysisException("Could not transform class from " + file,exception);
+          throw new ClassAnalysisException("Could not transform class from " + fileDetails.getFile(),exception);
         }
+      }
+ else       if (fileDetails.getPath().endsWith(".properties") && classes.unshadedPackages.matches(fileDetails.getPath())) {
+        writer.println("include");
+        classes.addResource(new ResourceDetails(fileDetails.getPath(),fileDetails.getFile()));
       }
  else {
         writer.println("skipped");
