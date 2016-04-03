@@ -1,0 +1,56 @@
+{
+  final PackagePatterns ignored=new PackagePatterns(Collections.singleton("java"));
+  sourceFiles.getAsFileTree().visit(new FileVisitor(){
+    public void visitDir(    FileVisitDetails dirDetails){
+    }
+    public void visitFile(    FileVisitDetails fileDetails){
+      File file=fileDetails.getFile();
+      writer.print(fileDetails.getPath() + ": ");
+      if (file.getName().endsWith(".class")) {
+        try {
+          ClassReader reader;
+          InputStream inputStream=new BufferedInputStream(fileDetails.open());
+          try {
+            reader=new ClassReader(inputStream);
+          }
+  finally {
+            inputStream.close();
+          }
+          final ClassDetails details=classes.get(reader.getClassName());
+          details.visited=true;
+          ClassWriter classWriter=new ClassWriter(0);
+          reader.accept(new RemappingClassAdapter(classWriter,new Remapper(){
+            public String map(            String name){
+              if (ignored.matches(name)) {
+                return name;
+              }
+              ClassDetails dependencyDetails=classes.get(name);
+              if (dependencyDetails != details) {
+                details.dependencies.add(dependencyDetails);
+              }
+              return dependencyDetails.outputClassName;
+            }
+          }
+),ClassReader.EXPAND_FRAMES);
+          writer.println("mapped class name: " + details.outputClassName);
+          File outputFile=new File(classesDir,details.outputClassName.concat(".class"));
+          outputFile.getParentFile().mkdirs();
+          OutputStream outputStream=new FileOutputStream(outputFile);
+          try {
+            outputStream.write(classWriter.toByteArray());
+          }
+  finally {
+            outputStream.close();
+          }
+        }
+ catch (        Exception exception) {
+          throw new ClassAnalysisException("Could not transform class from " + file,exception);
+        }
+      }
+ else {
+        writer.println("skipped");
+      }
+    }
+  }
+);
+}
