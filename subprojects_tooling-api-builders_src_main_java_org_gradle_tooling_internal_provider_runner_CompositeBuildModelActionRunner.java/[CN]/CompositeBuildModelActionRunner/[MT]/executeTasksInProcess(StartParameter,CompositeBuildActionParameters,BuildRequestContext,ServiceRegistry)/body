@@ -5,13 +5,9 @@
   StartParameter startParameter=parentStartParam.newInstance();
   startParameter.setProjectDir(participant.getProjectDir());
   startParameter.setSearchUpwards(false);
+  org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(launcherFactory,new ExecuteBuildActionRunner());
+  ExecuteBuildAction action=new ExecuteBuildAction(startParameter);
+  DefaultBuildRequestContext requestContext=createRequestContext(buildRequestContext);
   ServiceRegistry buildScopedServices=new BuildSessionScopeServices(sharedServices,startParameter,ClassPath.EMPTY);
-  DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),System.currentTimeMillis()),buildRequestContext.getCancellationToken(),buildRequestContext.getEventConsumer(),buildRequestContext.getOutputListener(),buildRequestContext.getErrorListener());
-  GradleLauncher launcher=launcherFactory.newInstance(startParameter,requestContext,buildScopedServices);
-  try {
-    launcher.run();
-  }
-  finally {
-    launcher.stop();
-  }
+  buildActionExecuter.execute(action,requestContext,null,buildScopedServices);
 }
