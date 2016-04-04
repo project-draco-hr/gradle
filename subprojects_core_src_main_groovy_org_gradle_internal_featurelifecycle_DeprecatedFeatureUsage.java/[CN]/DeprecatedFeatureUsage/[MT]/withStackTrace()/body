@@ -2,7 +2,7 @@
   if (!stack.isEmpty()) {
     return this;
   }
-  StackTraceElement[] originalStack=StackTraceUtils.sanitize(new Exception()).getStackTrace();
+  StackTraceElement[] originalStack=new Exception().getStackTrace();
   int caller=0;
   while (caller < originalStack.length && !originalStack[caller].getClassName().startsWith(calledFrom.getName())) {
     caller++;
@@ -10,7 +10,9 @@
   while (caller < originalStack.length && originalStack[caller].getClassName().startsWith(calledFrom.getName())) {
     caller++;
   }
+  caller=skipSystemStackElements(originalStack,caller);
   caller++;
+  caller=skipSystemStackElements(originalStack,caller);
   List<StackTraceElement> stack=new ArrayList<StackTraceElement>();
   for (; caller < originalStack.length; caller++) {
     stack.add(originalStack[caller]);
