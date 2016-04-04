@@ -6,20 +6,10 @@
     final int hashCode=31 * spec.classPathSnapshot.hashCode() + (spec.filterSpec != null ? spec.filterSpec.hashCode() : 0);
     if (spec.isFiltered()) {
       parentCachedLoader=getAndRetainLoader(classPath,spec.unfiltered(),id);
-      classLoader=new FilteringClassLoader(parentCachedLoader.classLoader,spec.filterSpec){
-        @Override public int hashCode(){
-          return hashCode;
-        }
-      }
-;
+      classLoader=new HashedFilteringClassLoader(parentCachedLoader,spec,hashCode);
     }
  else {
-      classLoader=new MutableURLClassLoader(spec.parent,classPath){
-        @Override public int hashCode(){
-          return hashCode;
-        }
-      }
-;
+      classLoader=new HashedMutableURLClassLoader(spec,classPath,hashCode);
     }
     cachedLoader=new CachedClassLoader(classLoader,spec,parentCachedLoader);
     bySpec.put(spec,cachedLoader);
