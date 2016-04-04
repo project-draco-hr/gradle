@@ -1,0 +1,18 @@
+{
+  Collection<FileTreeElement> sortedFileTreeElement=sortForHashing(allFileTreeElements);
+  Hasher hasher=createHasher();
+  for (  FileTreeElement fileTreeElement : sortedFileTreeElement) {
+    for (    String pathPart : fileTreeElement.getRelativePath().getSegments()) {
+      hasher.putUnencodedChars(pathPart);
+      hasher.putByte(HASH_PATH_SEPARATOR);
+    }
+    if (!fileTreeElement.isDirectory()) {
+      hasher.putByte(HASH_FIELD_SEPARATOR);
+      hasher.putLong(fileTreeElement.getSize());
+      hasher.putByte(HASH_FIELD_SEPARATOR);
+      hasher.putLong(fileTreeElement.getLastModified());
+    }
+    hasher.putByte(HASH_RECORD_SEPARATOR);
+  }
+  return hasher.hash().asInt();
+}

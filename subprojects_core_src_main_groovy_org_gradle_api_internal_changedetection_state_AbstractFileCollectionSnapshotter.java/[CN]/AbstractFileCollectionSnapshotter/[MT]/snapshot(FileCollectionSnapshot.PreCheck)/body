@@ -1,0 +1,29 @@
+{
+  if (preCheck.getFileTreeElements().isEmpty() && preCheck.getMissingFiles().isEmpty()) {
+    return emptySnapshot();
+  }
+  final Map<String,IncrementalFileSnapshot> snapshots=new HashMap<String,IncrementalFileSnapshot>();
+  cacheAccess.useCache("Create file snapshot",new Runnable(){
+    public void run(){
+      for (      FileTreeElement fileDetails : preCheck.getFileTreeElements()) {
+        String absolutePath=getInternedAbsolutePath(fileDetails.getFile());
+        if (!snapshots.containsKey(absolutePath)) {
+          if (fileDetails.isDirectory()) {
+            snapshots.put(absolutePath,DirSnapshot.getInstance());
+          }
+ else {
+            snapshots.put(absolutePath,new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(),fileDetails.getLastModified()));
+          }
+        }
+      }
+      for (      File missingFile : preCheck.getMissingFiles()) {
+        String absolutePath=getInternedAbsolutePath(missingFile);
+        if (!snapshots.containsKey(absolutePath)) {
+          snapshots.put(absolutePath,MissingFileSnapshot.getInstance());
+        }
+      }
+    }
+  }
+);
+  return new FileCollectionSnapshotImpl(snapshots);
+}

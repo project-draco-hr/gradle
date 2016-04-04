@@ -7,6 +7,8 @@
     lastExecutionOutputFiles=previousExecution.getOutputFilesSnapshot();
   }
   FileCollectionSnapshot newOutputFiles=lastExecutionOutputFiles.updateFrom(outputFilesBefore);
-  FileCollectionSnapshot outputFilesAfter=createSnapshot(outputFilesSnapshotter,task.getOutputs().getFiles());
+  FileCollectionSnapshot.PreCheck outputFilesAfterPreCheck=createSnapshotPreCheck(outputFilesSnapshotter,task.getOutputs().getFiles());
+  FileCollectionSnapshot outputFilesAfter=createSnapshot(outputFilesSnapshotter,outputFilesAfterPreCheck);
   currentExecution.setOutputFilesSnapshot(outputFilesAfter.applyAllChangesSince(outputFilesBefore,newOutputFiles));
+  currentExecution.setOutputFilesHash(outputFilesAfterPreCheck.getHash());
 }

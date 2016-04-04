@@ -1,6 +1,6 @@
 {
   final TaskHistory history=loadHistory(task);
-  final LazyTaskExecution currentExecution=new LazyTaskExecution();
+  final LazyTaskExecution currentExecution=new LazyTaskExecution(history);
   currentExecution.snapshotRepository=snapshotRepository;
   currentExecution.cacheAccess=cacheAccess;
   currentExecution.setOutputFiles(outputFiles(task));
@@ -46,6 +46,17 @@
         }
       }
 );
+    }
+    @Override public void finished(    boolean wasUpToDate){
+      if (wasUpToDate && history.modified) {
+        cacheAccess.useCache("Update task history",new Runnable(){
+          public void run(){
+            history.beforeSerialized();
+            taskHistoryCache.put(task.getPath(),history);
+          }
+        }
+);
+      }
     }
   }
 ;
