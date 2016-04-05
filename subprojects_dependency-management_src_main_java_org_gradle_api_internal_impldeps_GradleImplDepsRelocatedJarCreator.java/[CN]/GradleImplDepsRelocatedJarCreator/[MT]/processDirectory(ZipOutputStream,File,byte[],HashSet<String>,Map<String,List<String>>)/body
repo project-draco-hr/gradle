@@ -1,0 +1,29 @@
+{
+  new DirectoryFileTree(file).visit(new FileVisitor(){
+    @Override public void visitDir(    FileVisitDetails dirDetails){
+      try {
+        ZipEntry zipEntry=new ZipEntry(dirDetails.getPath() + "/");
+        processEntry(outputStream,null,zipEntry,buffer,seenPaths,services);
+      }
+ catch (      IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+    @Override public void visitFile(    FileVisitDetails fileDetails){
+      try {
+        ZipEntry zipEntry=new ZipEntry(fileDetails.getPath());
+        InputStream inputStream=fileDetails.open();
+        try {
+          processEntry(outputStream,inputStream,zipEntry,buffer,seenPaths,services);
+        }
+  finally {
+          inputStream.close();
+        }
+      }
+ catch (      IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
+);
+}
