@@ -1,14 +1,15 @@
 {
-  GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
+  StartParameter parentStartParam=compositeAction.getStartParameter();
   CompositeParameters compositeParameters=actionParameters.getCompositeParameters();
-  DefaultServiceRegistry compositeServices=createCompositeAwareServices(compositeParameters.getBuilds(),gradleLauncherFactory,sharedServices);
-  StartParameter startParameter=compositeAction.getStartParameter().newInstance();
-  startParameter.setProjectDir(compositeParameters.getTargetBuild().getProjectDir());
+  GradleLauncherFactory launcherFactory=sharedServices.get(GradleLauncherFactory.class);
+  GradleParticipantBuild participant=compositeParameters.getTargetBuild();
+  StartParameter startParameter=parentStartParam.newInstance();
+  startParameter.setProjectDir(participant.getProjectDir());
   startParameter.setSearchUpwards(false);
   BuildActionRunner runner=new SubscribableBuildActionRunner(new BuildModelActionRunner());
-  org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,runner);
+  org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(launcherFactory,runner);
   BuildModelAction participantAction=new BuildModelAction(startParameter,ModelIdentifier.NULL_MODEL,true,compositeAction.getClientSubscriptions());
   DefaultBuildRequestContext requestContext=createRequestContext(buildRequestContext);
-  ServiceRegistry buildScopedServices=new BuildSessionScopeServices(compositeServices,startParameter,ClassPath.EMPTY);
+  ServiceRegistry buildScopedServices=new BuildSessionScopeServices(sharedServices,startParameter,ClassPath.EMPTY);
   buildActionExecuter.execute(participantAction,requestContext,null,buildScopedServices);
 }
