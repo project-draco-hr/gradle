@@ -1,0 +1,13 @@
+{
+  GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
+  CompositeContextBuilder builder=new CompositeContextBuilder(propagateFailures);
+  BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,builder);
+  DefaultBuildRequestContext requestContext=createRequestContext(buildRequestContext);
+  for (  GradleParticipantBuild participant : compositeParameters.getBuilds()) {
+    StartParameter startParameter=modelAction.getStartParameter().newInstance();
+    startParameter.setProjectDir(participant.getProjectDir());
+    BuildModelAction configureAction=new BuildModelAction(startParameter,ModelIdentifier.NULL_MODEL,false,modelAction.getClientSubscriptions());
+    buildActionExecuter.execute(configureAction,requestContext,null,sharedServices);
+  }
+  return builder.build();
+}
