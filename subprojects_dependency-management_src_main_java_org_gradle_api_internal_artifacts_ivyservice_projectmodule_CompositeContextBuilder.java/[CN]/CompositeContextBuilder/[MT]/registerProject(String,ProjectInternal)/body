@@ -1,9 +1,8 @@
 {
   String projectPath=buildName + ":" + project.getPath();
-  ModuleInternal module=project.getModule();
-  ModuleVersionIdentifier moduleVersionIdentifier=DefaultModuleVersionIdentifier.newId(module);
   ComponentIdentifier componentIdentifier=new DefaultProjectComponentIdentifier(projectPath);
-  DefaultLocalComponentMetaData localComponentMetaData=new DefaultLocalComponentMetaData(moduleVersionIdentifier,componentIdentifier,module.getStatus());
-  addConfigurations(localComponentMetaData,project);
-  context.register(moduleVersionIdentifier.getModule(),projectPath,localComponentMetaData);
+  ProjectComponentRegistry projectComponentRegistry=project.getServices().get(ProjectComponentRegistry.class);
+  DefaultLocalComponentMetaData projectComponentMetadata=(DefaultLocalComponentMetaData)projectComponentRegistry.getProject(project.getPath());
+  LocalComponentMetaData localComponentMetaData=createCompositeCopy(componentIdentifier,projectComponentMetadata);
+  context.register(localComponentMetaData.getId().getModule(),projectPath,localComponentMetaData);
 }
