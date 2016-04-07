@@ -1,41 +1,56 @@
 {
-  ActionBroadcast<ExecutionResult> assertions=new ActionBroadcast<ExecutionResult>();
-  if (stackTraceChecksOn) {
-    assertions.add(new Action<ExecutionResult>(){
-      public void execute(      ExecutionResult executionResult){
-        assertNoStackTraces(executionResult.getOutput(),"Standard output");
-        String error=executionResult.getError();
-        if (executionResult instanceof ExecutionFailure) {
-          int pos=error.indexOf("* Exception is:\n");
-          if (pos >= 0) {
-            error=error.substring(0,pos);
+  return new Action<ExecutionResult>(){
+    int expectedDeprecationWarnings=AbstractGradleExecuter.this.expectedDeprecationWarnings;
+    boolean expectStackTraces=!AbstractGradleExecuter.this.stackTraceChecksOn;
+    @Override public void execute(    ExecutionResult executionResult){
+      validate(executionResult.getOutput(),"Standard output");
+      String error=executionResult.getError();
+      if (executionResult instanceof ExecutionFailure) {
+        int pos=error.indexOf("* Exception is:\n");
+        if (pos >= 0) {
+          error=error.substring(0,pos);
+        }
+      }
+      validate(error,"Standard error");
+    }
+    private void validate(    String output,    String displayName){
+      List<String> lines;
+      try {
+        lines=CharSource.wrap(output).readLines();
+      }
+ catch (      IOException e) {
+        throw new UncheckedIOException(e);
+      }
+      int i=0;
+      while (i < lines.size()) {
+        String line=lines.get(i);
+        if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
+          i++;
+        }
+ else         if (line.contains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")) {
+          i++;
+          while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+            i++;
           }
         }
-        assertNoStackTraces(error,"Standard error");
-      }
-      private void assertNoStackTraces(      String output,      String displayName){
-        if (containsLine(matchesRegexp("\\s+(at\\s+)?[\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
-          throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n",displayName,output));
+ else         if (line.matches(".*\\s+deprecated.*")) {
+          if (expectedDeprecationWarnings <= 0) {
+            throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n",displayName,i + 1,line,output));
+          }
+          expectedDeprecationWarnings--;
+          i++;
+          while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+            i++;
+          }
+        }
+ else         if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
+          throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n",displayName,i + 1,line,output));
+        }
+ else {
+          i++;
         }
       }
     }
-);
   }
-  if (deprecationChecksOn) {
-    assertions.add(new Action<ExecutionResult>(){
-      public void execute(      ExecutionResult executionResult){
-        assertNoDeprecationWarnings(executionResult.getOutput(),"Standard output");
-        assertNoDeprecationWarnings(executionResult.getError(),"Standard error");
-      }
-      private void assertNoDeprecationWarnings(      String output,      String displayName){
-        boolean javacWarning=containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
-        boolean deprecationWarning=containsLine(matchesRegexp(".* deprecated.*")).matches(output);
-        if (deprecationWarning && !javacWarning) {
-          throw new AssertionError(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n",displayName,output));
-        }
-      }
-    }
-);
-  }
-  return assertions;
+;
 }
