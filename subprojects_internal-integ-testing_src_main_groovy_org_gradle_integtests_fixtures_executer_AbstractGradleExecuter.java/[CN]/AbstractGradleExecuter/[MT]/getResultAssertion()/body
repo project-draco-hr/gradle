@@ -3,7 +3,7 @@
     int expectedDeprecationWarnings=AbstractGradleExecuter.this.expectedDeprecationWarnings;
     boolean expectStackTraces=!AbstractGradleExecuter.this.stackTraceChecksOn;
     @Override public void execute(    ExecutionResult executionResult){
-      validate(executionResult.getOutput(),"Standard output");
+      validate(executionResult.getNormalizedOutput(),"Standard output");
       String error=executionResult.getError();
       if (executionResult instanceof ExecutionFailure) {
         int pos=error.indexOf("* Exception is:\n");
@@ -26,12 +26,6 @@
         String line=lines.get(i);
         if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
           i++;
-        }
- else         if (line.contains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")) {
-          i++;
-          while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-            i++;
-          }
         }
  else         if (line.matches(".*\\s+deprecated.*")) {
           if (expectedDeprecationWarnings <= 0) {
