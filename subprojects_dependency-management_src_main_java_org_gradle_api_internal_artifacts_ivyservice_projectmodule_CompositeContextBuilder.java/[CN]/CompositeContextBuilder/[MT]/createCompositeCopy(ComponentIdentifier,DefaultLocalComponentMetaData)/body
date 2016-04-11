@@ -3,6 +3,14 @@
   for (  String configurationName : projectComponentMetadata.getConfigurationNames()) {
     LocalConfigurationMetaData configuration=projectComponentMetadata.getConfiguration(configurationName);
     compositeComponentMetadata.addConfiguration(configurationName,configuration.getDescription(),configuration.getExtendsFrom(),configuration.getHierarchy(),configuration.isVisible(),configuration.isTransitive(),new DefaultTaskDependency());
+    Set<ComponentArtifactMetaData> artifacts=configuration.getArtifacts();
+    Set<PublishArtifact> detachedArtifacts=CollectionUtils.collect(artifacts,new Transformer<PublishArtifact,ComponentArtifactMetaData>(){
+      @Override public PublishArtifact transform(      ComponentArtifactMetaData componentArtifactMetaData){
+        return new DetachedPublishArtifact(componentArtifactMetaData.getName(),((LocalComponentArtifactIdentifier)componentArtifactMetaData).getFile());
+      }
+    }
+);
+    compositeComponentMetadata.addArtifacts(configurationName,detachedArtifacts);
   }
   for (  DependencyMetaData dependency : projectComponentMetadata.getDependencies()) {
     compositeComponentMetadata.addDependency(dependency);
