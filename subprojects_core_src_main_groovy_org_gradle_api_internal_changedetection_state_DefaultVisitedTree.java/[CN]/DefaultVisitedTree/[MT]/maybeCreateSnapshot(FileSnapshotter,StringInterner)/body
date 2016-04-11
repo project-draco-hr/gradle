@@ -1,0 +1,40 @@
+{
+  final Collection<FileSnapshotWithKey> fileSnapshots=CollectionUtils.collect(entries,new Transformer<FileSnapshotWithKey,FileTreeElement>(){
+    @Override public FileSnapshotWithKey transform(    FileTreeElement fileTreeElement){
+      String absolutePath=getInternedAbsolutePath(fileTreeElement.getFile(),stringInterner);
+      IncrementalFileSnapshot incrementalFileSnapshot;
+      if (fileTreeElement.isDirectory()) {
+        incrementalFileSnapshot=DirSnapshot.getInstance();
+      }
+ else {
+        incrementalFileSnapshot=new FileHashSnapshot(fileSnapshotter.snapshot(fileTreeElement).getHash(),fileTreeElement.getLastModified());
+      }
+      return new FileSnapshotWithKey(absolutePath,incrementalFileSnapshot);
+    }
+  }
+);
+  if (missingFiles != null) {
+    for (    File file : missingFiles) {
+      fileSnapshots.add(new FileSnapshotWithKey(getInternedAbsolutePath(file,stringInterner),MissingFileSnapshot.getInstance()));
+    }
+  }
+  return new TreeSnapshot(){
+    @Override public boolean isShareable(){
+      return shareable;
+    }
+    @Override public Collection<FileSnapshotWithKey> getFileSnapshots(){
+      return fileSnapshots;
+    }
+    @Override public Long getAssignedId(){
+      return assignedId;
+    }
+    @Override public synchronized Long maybeStoreEntry(    Action<Long> storeEntryAction){
+      if (assignedId == null) {
+        assignedId=nextId;
+        storeEntryAction.execute(assignedId);
+      }
+      return assignedId;
+    }
+  }
+;
+}

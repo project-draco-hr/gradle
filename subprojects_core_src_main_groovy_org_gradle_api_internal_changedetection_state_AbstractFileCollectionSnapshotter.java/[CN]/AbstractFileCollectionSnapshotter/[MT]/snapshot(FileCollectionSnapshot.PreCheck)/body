@@ -1,29 +1,25 @@
 {
-  if (preCheck.getFileTreeElements().isEmpty() && preCheck.getMissingFiles().isEmpty()) {
+  if (preCheck.isEmpty()) {
     return emptySnapshot();
   }
-  final Map<String,IncrementalFileSnapshot> snapshots=new HashMap<String,IncrementalFileSnapshot>();
+  final List<TreeSnapshot> treeSnapshots=new ArrayList<TreeSnapshot>();
   cacheAccess.useCache("Create file snapshot",new Runnable(){
     public void run(){
-      for (      FileTreeElement fileDetails : preCheck.getFileTreeElements()) {
-        String absolutePath=getInternedAbsolutePath(fileDetails.getFile());
-        if (!snapshots.containsKey(absolutePath)) {
-          if (fileDetails.isDirectory()) {
-            snapshots.put(absolutePath,DirSnapshot.getInstance());
-          }
+      final List<VisitedTree> nonShareableTrees=new ArrayList<VisitedTree>();
+      for (      VisitedTree tree : preCheck.getVisitedTrees()) {
+        if (tree.isShareable()) {
+          treeSnapshots.add(tree.maybeCreateSnapshot(snapshotter,stringInterner));
+        }
  else {
-            snapshots.put(absolutePath,new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(),fileDetails.getLastModified()));
-          }
+          nonShareableTrees.add(tree);
         }
       }
-      for (      File missingFile : preCheck.getMissingFiles()) {
-        String absolutePath=getInternedAbsolutePath(missingFile);
-        if (!snapshots.containsKey(absolutePath)) {
-          snapshots.put(absolutePath,MissingFileSnapshot.getInstance());
-        }
+      if (!nonShareableTrees.isEmpty() || !preCheck.getMissingFiles().isEmpty()) {
+        VisitedTree nonShareableTree=createJoinedTree(nonShareableTrees,preCheck.getMissingFiles());
+        treeSnapshots.add(nonShareableTree.maybeCreateSnapshot(snapshotter,stringInterner));
       }
     }
   }
 );
-  return new FileCollectionSnapshotImpl(snapshots);
+  return new FileCollectionSnapshotImpl(treeSnapshots);
 }
