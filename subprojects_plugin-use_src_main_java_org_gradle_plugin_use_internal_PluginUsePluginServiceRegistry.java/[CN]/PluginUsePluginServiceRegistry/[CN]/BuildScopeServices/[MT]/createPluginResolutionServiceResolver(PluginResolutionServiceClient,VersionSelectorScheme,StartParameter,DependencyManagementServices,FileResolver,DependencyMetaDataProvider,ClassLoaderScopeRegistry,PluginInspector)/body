@@ -1,14 +1,4 @@
 {
-  final ProjectFinder projectFinder=new ProjectFinder(){
-    public ProjectInternal getProject(    String path){
-      throw new UnknownProjectException("Cannot use project dependencies in a plugin resolution definition.");
-    }
-  }
-;
-  return new PluginResolutionServiceResolver(pluginResolutionServiceClient,versionSelectorScheme,startParameter,classLoaderScopeRegistry.getCoreScope(),new Factory<DependencyResolutionServices>(){
-    public DependencyResolutionServices create(){
-      return dependencyManagementServices.create(fileResolver,dependencyMetaDataProvider,projectFinder,new BasicDomainObjectContext());
-    }
-  }
-,pluginInspector);
+  final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory=makeDependencyResolutionServicesFactory(dependencyManagementServices,fileResolver,dependencyMetaDataProvider);
+  return new PluginResolutionServiceResolver(pluginResolutionServiceClient,versionSelectorScheme,startParameter,classLoaderScopeRegistry.getCoreScope(),dependencyResolutionServicesFactory,pluginInspector);
 }
