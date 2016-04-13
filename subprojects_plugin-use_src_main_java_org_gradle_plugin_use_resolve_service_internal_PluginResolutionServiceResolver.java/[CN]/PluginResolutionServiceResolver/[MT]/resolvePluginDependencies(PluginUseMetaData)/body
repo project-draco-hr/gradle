@@ -1,5 +1,21 @@
 {
-  final String groupArtifactId=metadata.implementation.get("gav");
+  DependencyResolutionServices resolution=dependencyResolutionServicesFactory.create();
+  RepositoryHandler repositories=resolution.getResolveRepositoryHandler();
   final String repoUrl=metadata.implementation.get("repo");
-  return pluginClassPathResolver.resolvePluginDependencies(repoUrl,groupArtifactId);
+  repositories.maven(new Action<MavenArtifactRepository>(){
+    public void execute(    MavenArtifactRepository mavenArtifactRepository){
+      mavenArtifactRepository.setUrl(repoUrl);
+    }
+  }
+);
+  Dependency dependency=resolution.getDependencyHandler().create(metadata.implementation.get("gav"));
+  ConfigurationContainerInternal configurations=(ConfigurationContainerInternal)resolution.getConfigurationContainer();
+  ConfigurationInternal configuration=configurations.detachedConfiguration(dependency);
+  try {
+    Set<File> files=configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());
+    return new DefaultClassPath(files);
+  }
+ catch (  ResolveException e) {
+    throw new DependencyResolutionException("Failed to resolve all plugin dependencies from " + repoUrl,e.getCause());
+  }
 }

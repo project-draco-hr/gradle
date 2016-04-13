@@ -14,12 +14,10 @@
     result.notFound(getDescription(),"dynamic plugin versions are not supported");
     return;
   }
-  final String artifactNotation=pluginRequest.getId() + ":" + pluginRequest.getId()+ ":"+ pluginRequest.getVersion();
-  try {
-    ClassPath classPath=pluginClassPathResolver.resolvePluginDependencies(getRepoUrl(),artifactNotation);
-    result.found(getDescription(),new ClassPathPluginResolution(pluginRequest.getId(),parentScope,Factories.constant(classPath),pluginInspector));
+  if (exists(pluginRequest)) {
+    handleFound(pluginRequest,result);
   }
- catch (  PluginClassPathResolver.DependencyResolutionException e) {
-    result.notFound(getDescription(),String.format("Could not resolve plugin artifact '%s'",artifactNotation));
+ else {
+    handleNotFound(pluginRequest,result);
   }
 }
