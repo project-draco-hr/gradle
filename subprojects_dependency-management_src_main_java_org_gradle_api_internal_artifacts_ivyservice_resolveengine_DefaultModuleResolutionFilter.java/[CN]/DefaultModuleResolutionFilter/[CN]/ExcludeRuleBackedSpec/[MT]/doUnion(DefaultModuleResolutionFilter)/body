@@ -6,24 +6,21 @@
   if (excludeSpecs.equals(excludeRuleBackedSpec.excludeSpecs)) {
     return this;
   }
-  for (  DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
-    if (excludeSpec instanceof ExcludeRuleSpec) {
-      return super.doUnion(other);
-    }
-  }
-  for (  DefaultModuleResolutionFilter excludeSpec : excludeRuleBackedSpec.excludeSpecs) {
-    if (excludeSpec instanceof ExcludeRuleSpec) {
-      return super.doUnion(other);
-    }
-  }
   List<DefaultModuleResolutionFilter> merged=new ArrayList<DefaultModuleResolutionFilter>();
+  boolean allExcludes=true;
   for (  DefaultModuleResolutionFilter thisSpec : excludeSpecs) {
+    if (thisSpec instanceof ExcludeRuleSpec) {
+      continue;
+    }
     for (    DefaultModuleResolutionFilter otherSpec : excludeRuleBackedSpec.excludeSpecs) {
-      intersect(thisSpec,otherSpec,merged);
+      if (!(otherSpec instanceof ExcludeRuleSpec)) {
+        allExcludes=false;
+        intersect(thisSpec,otherSpec,merged);
+      }
     }
   }
   if (merged.isEmpty()) {
-    return ALL_SPEC;
+    return allExcludes ? null : ALL_SPEC;
   }
   return new ExcludeRuleBackedSpec(merged);
 }
