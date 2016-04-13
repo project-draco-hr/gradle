@@ -1,5 +1,25 @@
 {
-  final String artifactAddress=pluginRequest.getId() + ":" + pluginRequest.getId()+ ":"+ pluginRequest.getVersion();
-  ClassPath classPath=resolvePluginDependencies(getRepoUri(),artifactAddress);
-  result.found("Custom Repository",new ClassPathPluginResolution(pluginRequest.getId(),parentScope,Factories.constant(classPath),pluginInspector));
+  if (getRepoUrl().equals(UNSET_REPO_SYSTEM_PROPERTY)) {
+    return;
+  }
+  if (pluginRequest.getVersion() == null) {
+    result.notFound(getDescription(),"plugin dependency must include a version number for this source");
+    return;
+  }
+  if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
+    result.notFound(getDescription(),"snapshot plugin versions are not supported");
+    return;
+  }
+  if (versionSelectorScheme.parseSelector(pluginRequest.getVersion()).isDynamic()) {
+    result.notFound(getDescription(),"dynamic plugin versions are not supported");
+    return;
+  }
+  final String artifactNotation=pluginRequest.getId() + ":" + pluginRequest.getId()+ ":"+ pluginRequest.getVersion();
+  try {
+    ClassPath classPath=pluginClassPathResolver.resolvePluginDependencies(getRepoUrl(),artifactNotation);
+    result.found(getDescription(),new ClassPathPluginResolution(pluginRequest.getId(),parentScope,Factories.constant(classPath),pluginInspector));
+  }
+ catch (  PluginClassPathResolver.DependencyResolutionException e) {
+    result.notFound(getDescription(),String.format("Could not resolve plugin artifact '%s'",artifactNotation));
+  }
 }
