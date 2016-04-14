@@ -1,0 +1,20 @@
+{
+  final Set<String> targetTaskNames=determineTaskNames(configuration);
+  final String taskName="composite_" + projectPath + "_"+ configuration.getName();
+  return new TaskDependency(){
+    @Override public Set<? extends Task> getDependencies(    Task task){
+      TaskContainer tasks=task.getProject().getRootProject().getTasks();
+      Task depTask=tasks.findByName(taskName);
+      if (depTask == null) {
+        depTask=tasks.create(taskName,CompositeProjectBuild.class,new Action<CompositeProjectBuild>(){
+          @Override public void execute(          CompositeProjectBuild buildTask){
+            buildTask.conf(projectPath,targetTaskNames);
+          }
+        }
+);
+      }
+      return Collections.singleton(depTask);
+    }
+  }
+;
+}

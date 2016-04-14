@@ -2,7 +2,8 @@
   DefaultLocalComponentMetaData compositeComponentMetadata=new DefaultLocalComponentMetaData(projectComponentMetadata.getId(),componentIdentifier,projectComponentMetadata.getStatus());
   for (  String configurationName : projectComponentMetadata.getConfigurationNames()) {
     LocalConfigurationMetaData configuration=projectComponentMetadata.getConfiguration(configurationName);
-    compositeComponentMetadata.addConfiguration(configurationName,configuration.getDescription(),configuration.getExtendsFrom(),configuration.getHierarchy(),configuration.isVisible(),configuration.isTransitive(),new DefaultTaskDependency());
+    TaskDependency configurationTaskDependency=createTaskDependency(componentIdentifier.getProjectPath(),configuration);
+    compositeComponentMetadata.addConfiguration(configurationName,configuration.getDescription(),configuration.getExtendsFrom(),configuration.getHierarchy(),configuration.isVisible(),configuration.isTransitive(),configurationTaskDependency);
     Set<ComponentArtifactMetaData> artifacts=configuration.getArtifacts();
     Set<PublishArtifact> detachedArtifacts=CollectionUtils.collect(artifacts,new Transformer<PublishArtifact,ComponentArtifactMetaData>(){
       @Override public PublishArtifact transform(      ComponentArtifactMetaData componentArtifactMetaData){
