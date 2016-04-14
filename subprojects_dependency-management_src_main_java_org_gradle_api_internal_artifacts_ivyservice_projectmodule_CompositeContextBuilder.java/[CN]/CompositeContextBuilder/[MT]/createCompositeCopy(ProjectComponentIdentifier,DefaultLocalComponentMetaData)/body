@@ -1,10 +1,10 @@
 {
-  DefaultLocalComponentMetaData compositeComponentMetadata=new DefaultLocalComponentMetaData(projectComponentMetadata.getId(),componentIdentifier,projectComponentMetadata.getStatus());
-  for (  String configurationName : projectComponentMetadata.getConfigurationNames()) {
-    LocalConfigurationMetaData configuration=projectComponentMetadata.getConfiguration(configurationName);
-    TaskDependency configurationTaskDependency=createTaskDependency(componentIdentifier.getProjectPath(),configuration);
-    compositeComponentMetadata.addConfiguration(configurationName,configuration.getDescription(),configuration.getExtendsFrom(),configuration.getHierarchy(),configuration.isVisible(),configuration.isTransitive(),configurationTaskDependency);
-    Set<ComponentArtifactMetaData> artifacts=configuration.getArtifacts();
+  DefaultLocalComponentMetaData compositeComponentMetadata=new DefaultLocalComponentMetaData(originalComponentMetadata.getId(),componentIdentifier,originalComponentMetadata.getStatus());
+  for (  String configurationName : originalComponentMetadata.getConfigurationNames()) {
+    LocalConfigurationMetaData originalConfiguration=originalComponentMetadata.getConfiguration(configurationName);
+    TaskDependency configurationTaskDependency=createTaskDependency(componentIdentifier.getProjectPath(),originalConfiguration);
+    compositeComponentMetadata.addConfiguration(configurationName,originalConfiguration.getDescription(),originalConfiguration.getExtendsFrom(),originalConfiguration.getHierarchy(),originalConfiguration.isVisible(),originalConfiguration.isTransitive(),configurationTaskDependency);
+    Set<ComponentArtifactMetaData> artifacts=originalConfiguration.getArtifacts();
     Set<PublishArtifact> detachedArtifacts=CollectionUtils.collect(artifacts,new Transformer<PublishArtifact,ComponentArtifactMetaData>(){
       @Override public PublishArtifact transform(      ComponentArtifactMetaData componentArtifactMetaData){
         return new DetachedPublishArtifact(componentArtifactMetaData.getName(),((LocalComponentArtifactIdentifier)componentArtifactMetaData).getFile());
@@ -13,10 +13,10 @@
 );
     compositeComponentMetadata.addArtifacts(configurationName,detachedArtifacts);
   }
-  for (  DependencyMetaData dependency : projectComponentMetadata.getDependencies()) {
+  for (  DependencyMetaData dependency : originalComponentMetadata.getDependencies()) {
     compositeComponentMetadata.addDependency(dependency);
   }
-  for (  ExcludeRule excludeRule : projectComponentMetadata.getExcludeRules()) {
+  for (  ExcludeRule excludeRule : originalComponentMetadata.getExcludeRules()) {
     compositeComponentMetadata.addExcludeRule(excludeRule);
   }
   return compositeComponentMetadata;
