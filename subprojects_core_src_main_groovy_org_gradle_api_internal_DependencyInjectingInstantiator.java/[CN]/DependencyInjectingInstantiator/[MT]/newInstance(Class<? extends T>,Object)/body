@@ -1,8 +1,10 @@
 {
   try {
-    validateType(type);
-    Constructor<?> constructor=selectConstructor(type);
-    constructor.setAccessible(true);
+    CachedConstructor cached=cachedConstructors.getUnchecked(type);
+    if (cached.error != null) {
+      throw cached.error;
+    }
+    Constructor<?> constructor=cached.constructor;
     Object[] resolvedParameters=convertParameters(type,constructor,parameters);
     try {
       return type.cast(constructor.newInstance(resolvedParameters));
