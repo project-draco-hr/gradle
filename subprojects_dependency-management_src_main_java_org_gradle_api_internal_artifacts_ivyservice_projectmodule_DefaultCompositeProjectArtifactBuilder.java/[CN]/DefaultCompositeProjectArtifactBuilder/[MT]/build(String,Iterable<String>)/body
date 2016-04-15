@@ -1,10 +1,11 @@
 {
-  GradleLauncherFactory gradleLauncherFactory=serviceRegistry.get(GradleLauncherFactory.class);
   File projectDirectory=registry.getProjectDirectory(projectPath);
   StartParameter param=requestedStartParameter.newBuild();
   param.setProjectDir(projectDirectory);
   param.setTaskNames(taskNames);
-  GradleLauncher launcher=gradleLauncherFactory.newInstance(param);
+  ServiceRegistry buildSessionServices=new BuildSessionScopeServices(serviceRegistry,requestedStartParameter,ClassPath.EMPTY);
+  DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),new DefaultBuildCancellationToken(),new NoOpBuildEventConsumer());
+  GradleLauncher launcher=gradleLauncherFactory.newInstance(param,requestContext,buildSessionServices);
   try {
     launcher.run();
   }
