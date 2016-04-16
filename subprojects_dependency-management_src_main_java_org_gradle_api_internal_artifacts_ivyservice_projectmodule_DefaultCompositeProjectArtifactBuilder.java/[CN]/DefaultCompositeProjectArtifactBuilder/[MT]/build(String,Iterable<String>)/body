@@ -1,8 +1,17 @@
 {
+  List<String> tasksToExecute=Lists.newArrayList();
+  for (  String taskName : taskNames) {
+    if (executedTasks.put(projectPath,taskName)) {
+      tasksToExecute.add(taskName);
+    }
+  }
+  if (tasksToExecute.isEmpty()) {
+    return false;
+  }
   File projectDirectory=registry.getProjectDirectory(projectPath);
   StartParameter param=requestedStartParameter.newBuild();
   param.setProjectDir(projectDirectory);
-  param.setTaskNames(taskNames);
+  param.setTaskNames(tasksToExecute);
   ServiceRegistry buildSessionServices=new BuildSessionScopeServices(serviceRegistry,requestedStartParameter,ClassPath.EMPTY);
   DefaultBuildRequestContext requestContext=new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),new DefaultBuildCancellationToken(),new NoOpBuildEventConsumer());
   GradleLauncher launcher=gradleLauncherFactory.newInstance(param,requestContext,buildSessionServices);
@@ -12,4 +21,5 @@
   finally {
     launcher.stop();
   }
+  return true;
 }
