@@ -2,7 +2,13 @@
   final List<String> visitedFilePaths=Lists.newLinkedList();
   final Set<File> visitedDirs=Sets.newLinkedHashSet();
   final List<File> cpFiles=classPath.getAsFiles();
-  final Adler32 checksum=new Adler32();
+  MessageDigest checksum;
+  try {
+    checksum=MessageDigest.getInstance("md5");
+  }
+ catch (  NoSuchAlgorithmException e) {
+    throw new RuntimeException(e);
+  }
   hash(checksum,visitedFilePaths,visitedDirs,cpFiles.iterator());
-  return new HashClassPathSnapshot(visitedFilePaths,checksum.getValue());
+  return new HashClassPathSnapshot(visitedFilePaths,checksum.digest());
 }
