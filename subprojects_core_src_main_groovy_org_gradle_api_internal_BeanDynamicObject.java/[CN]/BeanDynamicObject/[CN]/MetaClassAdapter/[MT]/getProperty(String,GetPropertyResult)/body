@@ -2,10 +2,27 @@
   if (!includeProperties) {
     return;
   }
-  MetaProperty property=getMetaClass().hasProperty(bean,name);
-  if (property == null) {
+  MetaClass metaClass=getMetaClass();
+  MetaProperty property=lookupProperty(metaClass,name);
+  if (property != null) {
+    if (property instanceof MetaBeanProperty && ((MetaBeanProperty)property).getGetter() == null) {
+      throw new GroovyRuntimeException(String.format("Cannot get the value of write-only property '%s' on %s.",name,getDisplayName()));
+    }
     try {
-      result.result(getOpaqueProperty(name));
+      result.result(property.getProperty(bean));
+    }
+ catch (    InvokerInvocationException e) {
+      if (e.getCause() instanceof RuntimeException) {
+        throw (RuntimeException)e.getCause();
+      }
+      throw e;
+    }
+    return;
+  }
+  MetaMethod propertyMissing=findPropertyMissingMethod(metaClass);
+  if (propertyMissing != null) {
+    try {
+      result.result(propertyMissing.invoke(bean,new Object[]{name}));
     }
  catch (    MissingPropertyException e) {
       if (!name.equals(e.getProperty())) {
@@ -13,17 +30,5 @@
       }
     }
     return;
-  }
-  if (property instanceof MetaBeanProperty && ((MetaBeanProperty)property).getGetter() == null) {
-    throw new GroovyRuntimeException(String.format("Cannot get the value of write-only property '%s' on %s.",name,getDisplayName()));
-  }
-  try {
-    result.result(property.getProperty(bean));
-  }
- catch (  InvokerInvocationException e) {
-    if (e.getCause() instanceof RuntimeException) {
-      throw (RuntimeException)e.getCause();
-    }
-    throw e;
   }
 }
