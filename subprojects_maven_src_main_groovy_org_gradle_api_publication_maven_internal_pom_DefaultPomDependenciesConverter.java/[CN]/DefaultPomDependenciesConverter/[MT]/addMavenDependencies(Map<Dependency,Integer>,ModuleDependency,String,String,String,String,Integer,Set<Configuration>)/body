@@ -25,6 +25,13 @@
     mavenDependency.setType(type);
     mavenDependency.setScope(scope);
     mavenDependency.setExclusions(getExclusions(dependency,configurations));
+    Optional<Dependency> duplicateDependency=findEqualIgnoreScopeVersionAndExclusions(dependenciesWithPriorities.keySet(),mavenDependency);
+    if (!duplicateDependency.isPresent()) {
+      dependenciesWithPriorities.put(mavenDependency,priority);
+    }
+ else     if (priority > dependenciesWithPriorities.get(duplicateDependency.get())) {
+      dependenciesWithPriorities.remove(duplicateDependency.get());
+      dependenciesWithPriorities.put(mavenDependency,priority);
+    }
   }
-  return mavenDependencies;
 }

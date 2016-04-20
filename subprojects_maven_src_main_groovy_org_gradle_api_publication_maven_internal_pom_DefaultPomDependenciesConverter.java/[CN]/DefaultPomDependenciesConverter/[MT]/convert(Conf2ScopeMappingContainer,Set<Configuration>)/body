@@ -1,16 +1,18 @@
 {
   Map<ModuleDependency,Set<Configuration>> dependencyToConfigurations=createDependencyToConfigurationsMap(configurations);
-  Map<ModuleDependency,String> dependenciesMap=createDependencyToScopeMap(conf2ScopeMappingContainer,dependencyToConfigurations);
-  List<Dependency> mavenDependencies=new ArrayList<Dependency>();
+  Map<ModuleDependency,Conf2ScopeMapping> dependenciesMap=createDependencyToScopeMap(conf2ScopeMappingContainer,dependencyToConfigurations);
+  Map<Dependency,Integer> dependenciesWithPriorities=new LinkedHashMap<Dependency,Integer>();
   for (  ModuleDependency dependency : dependenciesMap.keySet()) {
-    String scope=dependenciesMap.get(dependency);
+    Conf2ScopeMapping conf2ScopeMapping=dependenciesMap.get(dependency);
+    String scope=conf2ScopeMapping.getScope();
+    Integer priority=conf2ScopeMapping.getPriority() == null ? 0 : conf2ScopeMapping.getPriority();
     Set<Configuration> dependencyConfigurations=dependencyToConfigurations.get(dependency);
     if (dependency.getArtifacts().size() == 0) {
-      addFromDependencyDescriptor(mavenDependencies,dependency,scope,dependencyConfigurations);
+      addFromDependencyDescriptor(dependenciesWithPriorities,dependency,scope,priority,dependencyConfigurations);
     }
  else {
-      addFromArtifactDescriptor(mavenDependencies,dependency,scope,dependencyConfigurations);
+      addFromArtifactDescriptor(dependenciesWithPriorities,dependency,scope,priority,dependencyConfigurations);
     }
   }
-  return mavenDependencies;
+  return new ArrayList<Dependency>(dependenciesWithPriorities.keySet());
 }
