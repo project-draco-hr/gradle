@@ -1,0 +1,40 @@
+{
+  if (!includeProperties) {
+    return;
+  }
+  MetaClass metaClass=getMetaClass();
+  MetaProperty property=metaClass.hasProperty(bean,name);
+  if (property == null) {
+    if (implementsMissing) {
+      try {
+        setOpaqueProperty(name,value,metaClass);
+        result.found();
+      }
+ catch (      MissingPropertyException e) {
+        if (!name.equals(e.getProperty())) {
+          throw e;
+        }
+      }
+    }
+    return;
+  }
+  if (property instanceof MetaBeanProperty && ((MetaBeanProperty)property).getSetter() == null) {
+    throw new ReadOnlyPropertyException(name,bean.getClass()){
+      @Override public String getMessage(){
+        return String.format("Cannot set the value of read-only property '%s' on %s.",name,getDisplayName());
+      }
+    }
+;
+  }
+  try {
+    value=propertySetTransformer.transformValue(bean,property,value);
+    metaClass.setProperty(bean,name,value);
+    result.found();
+  }
+ catch (  InvokerInvocationException e) {
+    if (e.getCause() instanceof RuntimeException) {
+      throw (RuntimeException)e.getCause();
+    }
+    throw e;
+  }
+}
