@@ -25,14 +25,6 @@
  catch (  UnknownModelException e) {
     throw (InternalUnsupportedModelException)new InternalUnsupportedModelException().initCause(e);
   }
-  Object result;
-  if (builder instanceof ProjectSensitiveToolingModelBuilder) {
-    result=((ProjectSensitiveToolingModelBuilder)builder).buildAll(modelName,gradle.getDefaultProject(),true);
-  }
- else {
-    result=builder.buildAll(modelName,gradle.getDefaultProject());
-  }
-  PayloadSerializer payloadSerializer=gradle.getServices().get(PayloadSerializer.class);
-  BuildActionResult buildActionResult=new BuildActionResult(payloadSerializer.serialize(result),null);
-  buildController.setResult(buildActionResult);
+  Object modelResult=createModelResult(gradle,modelName,builder);
+  buildController.setResult(modelResult);
 }
