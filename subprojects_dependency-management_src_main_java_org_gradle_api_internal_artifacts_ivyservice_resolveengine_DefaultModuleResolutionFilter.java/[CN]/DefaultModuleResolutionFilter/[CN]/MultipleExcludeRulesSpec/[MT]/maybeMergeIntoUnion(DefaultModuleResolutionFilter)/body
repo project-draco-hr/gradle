@@ -1,0 +1,29 @@
+{
+  if (!(other instanceof MultipleExcludeRulesSpec)) {
+    return null;
+  }
+  MultipleExcludeRulesSpec multipleExcludeRulesSpec=(MultipleExcludeRulesSpec)other;
+  if (excludeSpecs.equals(multipleExcludeRulesSpec.excludeSpecs)) {
+    return this;
+  }
+  for (  DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
+    if (excludeSpec instanceof IvyPatternMatcherExcludeRuleSpec) {
+      return null;
+    }
+  }
+  for (  DefaultModuleResolutionFilter excludeSpec : multipleExcludeRulesSpec.excludeSpecs) {
+    if (excludeSpec instanceof IvyPatternMatcherExcludeRuleSpec) {
+      return null;
+    }
+  }
+  List<DefaultModuleResolutionFilter> merged=new ArrayList<DefaultModuleResolutionFilter>();
+  for (  DefaultModuleResolutionFilter thisSpec : excludeSpecs) {
+    for (    DefaultModuleResolutionFilter otherSpec : multipleExcludeRulesSpec.excludeSpecs) {
+      mergeExcludeRules(thisSpec,otherSpec,merged);
+    }
+  }
+  if (merged.isEmpty()) {
+    return ALL_SPEC;
+  }
+  return new MultipleExcludeRulesSpec(merged);
+}
