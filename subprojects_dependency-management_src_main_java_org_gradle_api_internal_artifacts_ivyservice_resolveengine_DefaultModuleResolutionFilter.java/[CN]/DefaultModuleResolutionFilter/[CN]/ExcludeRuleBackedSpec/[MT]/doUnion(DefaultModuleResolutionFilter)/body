@@ -6,21 +6,24 @@
   if (excludeSpecs.equals(excludeRuleBackedSpec.excludeSpecs)) {
     return this;
   }
-  List<DefaultModuleResolutionFilter> merged=new ArrayList<DefaultModuleResolutionFilter>();
-  boolean allExcludes=true;
-  for (  DefaultModuleResolutionFilter thisSpec : excludeSpecs) {
-    if (thisSpec instanceof ExcludeRuleSpec) {
-      continue;
+  for (  DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
+    if (excludeSpec instanceof ExcludeRuleSpec) {
+      return super.doUnion(other);
     }
+  }
+  for (  DefaultModuleResolutionFilter excludeSpec : excludeRuleBackedSpec.excludeSpecs) {
+    if (excludeSpec instanceof ExcludeRuleSpec) {
+      return super.doUnion(other);
+    }
+  }
+  List<DefaultModuleResolutionFilter> merged=new ArrayList<DefaultModuleResolutionFilter>();
+  for (  DefaultModuleResolutionFilter thisSpec : excludeSpecs) {
     for (    DefaultModuleResolutionFilter otherSpec : excludeRuleBackedSpec.excludeSpecs) {
-      if (!(otherSpec instanceof ExcludeRuleSpec)) {
-        allExcludes=false;
-        intersect(thisSpec,otherSpec,merged);
-      }
+      intersect(thisSpec,otherSpec,merged);
     }
   }
   if (merged.isEmpty()) {
-    return allExcludes ? null : ALL_SPEC;
+    return ALL_SPEC;
   }
   return new ExcludeRuleBackedSpec(merged);
 }
