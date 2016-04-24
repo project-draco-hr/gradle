@@ -1,17 +1,20 @@
 {
-  AbstractDynamicObject emptyBean=new AbstractDynamicObject(){
+  final List<DynamicObject> delegates=new ArrayList<DynamicObject>(4);
+  if (parent != null) {
+    delegates.add(parent);
+  }
+  delegates.add(convention.getExtensionsAsDynamicObject());
+  delegates.add(extraPropertiesDynamicObject);
+  if (beforeConvention != null) {
+    delegates.add(beforeConvention);
+  }
+  return new CompositeDynamicObject(){
+{
+      setObjects(delegates.toArray(new DynamicObject[0]));
+    }
     @Override protected String getDisplayName(){
       return dynamicDelegate.getDisplayName();
     }
   }
 ;
-  ExtensibleDynamicObject extensibleDynamicObject=new ExtensibleDynamicObject(emptyBean);
-  extensibleDynamicObject.parent=parent;
-  extensibleDynamicObject.convention=convention;
-  extensibleDynamicObject.extraPropertiesDynamicObject=extraPropertiesDynamicObject;
-  if (beforeConvention != null) {
-    extensibleDynamicObject.beforeConvention=beforeConvention;
-  }
-  extensibleDynamicObject.updateDelegates();
-  return extensibleDynamicObject;
 }
