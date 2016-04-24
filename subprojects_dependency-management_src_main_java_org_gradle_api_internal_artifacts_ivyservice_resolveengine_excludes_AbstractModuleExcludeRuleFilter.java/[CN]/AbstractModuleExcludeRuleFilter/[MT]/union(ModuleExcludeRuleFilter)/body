@@ -1,0 +1,35 @@
+{
+  if (other == this) {
+    return this;
+  }
+  if (other == ModuleExcludeRuleFilters.EXCLUDE_NONE) {
+    return other;
+  }
+  if (this == ModuleExcludeRuleFilters.EXCLUDE_NONE) {
+    return this;
+  }
+  List<AbstractModuleExcludeRuleFilter> specs=new ArrayList<AbstractModuleExcludeRuleFilter>();
+  unpackUnion(specs);
+  ((AbstractModuleExcludeRuleFilter)other).unpackUnion(specs);
+  for (int i=0; i < specs.size(); ) {
+    AbstractModuleExcludeRuleFilter spec=specs.get(i);
+    AbstractModuleExcludeRuleFilter merged=null;
+    for (int j=i + 1; j < specs.size(); j++) {
+      merged=spec.maybeMergeIntoUnion(specs.get(j));
+      if (merged != null) {
+        specs.remove(j);
+        break;
+      }
+    }
+    if (merged != null) {
+      specs.set(i,merged);
+    }
+ else {
+      i++;
+    }
+  }
+  if (specs.size() == 1) {
+    return specs.get(0);
+  }
+  return new UnionExcludeRuleFilter(specs);
+}
