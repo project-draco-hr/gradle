@@ -1,9 +1,12 @@
 {
   if (extensible) {
-    String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,Type.getType(Object.class),dynamicObjectType);
+    String helperTypeConstructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,Type.getType(Object.class),Type.getType(Class.class),dynamicObjectType);
     visitor.visitTypeInsn(Opcodes.NEW,extensibleDynamicObjectHelperType.getInternalName());
     visitor.visitInsn(Opcodes.DUP);
     visitor.visitVarInsn(Opcodes.ALOAD,0);
+    visitor.visitVarInsn(Opcodes.ALOAD,0);
+    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getClass",Type.getMethodDescriptor(Type.getType(Class.class)),false);
+    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,Type.getType(Class.class).getInternalName(),"getSuperclass",Type.getMethodDescriptor(Type.getType(Class.class)),false);
     if (providesOwnDynamicObject) {
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,Type.getType(type).getInternalName(),"getAsDynamicObject",Type.getMethodDescriptor(dynamicObjectType));
