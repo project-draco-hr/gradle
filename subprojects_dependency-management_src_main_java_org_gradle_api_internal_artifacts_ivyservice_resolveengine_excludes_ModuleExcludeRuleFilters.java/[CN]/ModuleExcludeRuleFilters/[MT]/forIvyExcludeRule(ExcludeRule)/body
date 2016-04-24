@@ -1,0 +1,27 @@
+{
+  if (!(rule.getMatcher() instanceof ExactPatternMatcher)) {
+    return new IvyPatternMatcherExcludeRuleSpec(rule);
+  }
+  ArtifactId artifactId=rule.getId();
+  ModuleId moduleId=artifactId.getModuleId();
+  boolean anyOrganisation=isWildcard(moduleId.getOrganisation());
+  boolean anyModule=isWildcard(moduleId.getName());
+  boolean anyArtifact=isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
+  if (anyArtifact) {
+    if (!anyOrganisation && !anyModule) {
+      return new ModuleIdExcludeSpec(moduleId.getOrganisation(),moduleId.getName());
+    }
+ else     if (!anyModule) {
+      return new ModuleNameExcludeSpec(moduleId.getName());
+    }
+ else     if (!anyOrganisation) {
+      return new GroupNameExcludeSpec(moduleId.getOrganisation());
+    }
+ else {
+      return new ExcludeAllModulesSpec();
+    }
+  }
+ else {
+    return new ArtifactExcludeSpec(artifactId);
+  }
+}
