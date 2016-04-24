@@ -1,0 +1,29 @@
+{
+  if (!(other instanceof MultipleExcludeRulesSpec)) {
+    return null;
+  }
+  MultipleExcludeRulesSpec multipleExcludeRulesSpec=(MultipleExcludeRulesSpec)other;
+  if (excludeSpecs.equals(multipleExcludeRulesSpec.excludeSpecs)) {
+    return this;
+  }
+  for (  DefaultModuleExcludeRuleFilter excludeSpec : excludeSpecs) {
+    if (!canMerge(excludeSpec)) {
+      return null;
+    }
+  }
+  for (  DefaultModuleExcludeRuleFilter excludeSpec : multipleExcludeRulesSpec.excludeSpecs) {
+    if (!canMerge(excludeSpec)) {
+      return null;
+    }
+  }
+  List<DefaultModuleExcludeRuleFilter> merged=new ArrayList<DefaultModuleExcludeRuleFilter>();
+  for (  DefaultModuleExcludeRuleFilter thisSpec : excludeSpecs) {
+    for (    DefaultModuleExcludeRuleFilter otherSpec : multipleExcludeRulesSpec.excludeSpecs) {
+      mergeExcludeRules(thisSpec,otherSpec,merged);
+    }
+  }
+  if (merged.isEmpty()) {
+    return ALL_SPEC;
+  }
+  return new MultipleExcludeRulesSpec(merged);
+}
