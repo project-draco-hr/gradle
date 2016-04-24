@@ -1,5 +1,6 @@
 {
-  DynamicObject object=new BeanDynamicObject(new DynamicGroovyBean());
+  DynamicGroovyBean bean=new DynamicGroovyBean();
+  DynamicObject object=new ExtensibleDynamicObject(bean);
   Integer doubled=(Integer)object.invokeMethod("bar",1);
   assertThat(doubled,equalTo(2));
   try {
@@ -7,6 +8,6 @@
     fail();
   }
  catch (  MissingMethodException e) {
-    assertThat(e.getMessage(),startsWith("No signature of method: org.gradle.api.internal.DynamicGroovyBean.xxx() is applicable for argument types: (java.lang.Integer, java.lang.Integer, java.lang.Integer) values: [1, 2, 3]\nPossible solutions:"));
+    assertThat(e.getMessage(),equalTo("Could not find method xxx() for arguments [1, 2, 3] on " + bean + "."));
   }
 }
