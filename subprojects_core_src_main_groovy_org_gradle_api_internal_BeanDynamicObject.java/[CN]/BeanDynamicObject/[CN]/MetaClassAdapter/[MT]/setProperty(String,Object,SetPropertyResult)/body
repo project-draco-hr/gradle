@@ -3,38 +3,34 @@
     return;
   }
   MetaClass metaClass=getMetaClass();
-  MetaProperty property=metaClass.hasProperty(bean,name);
-  if (property == null) {
-    if (implementsMissing) {
-      try {
-        setOpaqueProperty(name,value,metaClass);
-        result.found();
-      }
- catch (      MissingPropertyException e) {
-        if (!name.equals(e.getProperty())) {
-          throw e;
-        }
-      }
+  MetaProperty property=lookupProperty(metaClass,name);
+  if (property != null) {
+    if (property instanceof MetaBeanProperty && ((MetaBeanProperty)property).getSetter() == null) {
+      throw setReadOnlyProperty(name);
     }
+    try {
+      value=propertySetTransformer.transformValue(bean,property,value);
+      metaClass.setProperty(bean,name,value);
+      result.found();
+      return;
+    }
+ catch (    InvokerInvocationException e) {
+      if (e.getCause() instanceof RuntimeException) {
+        throw (RuntimeException)e.getCause();
+      }
+      throw e;
+    }
+  }
+  if (!implementsMissing) {
     return;
   }
-  if (property instanceof MetaBeanProperty && ((MetaBeanProperty)property).getSetter() == null) {
-    throw new ReadOnlyPropertyException(name,bean.getClass()){
-      @Override public String getMessage(){
-        return String.format("Cannot set the value of read-only property '%s' on %s.",name,getDisplayName());
-      }
-    }
-;
-  }
   try {
-    value=propertySetTransformer.transformValue(bean,property,value);
-    metaClass.setProperty(bean,name,value);
+    setOpaqueProperty(name,value,metaClass);
     result.found();
   }
- catch (  InvokerInvocationException e) {
-    if (e.getCause() instanceof RuntimeException) {
-      throw (RuntimeException)e.getCause();
+ catch (  MissingPropertyException e) {
+    if (!name.equals(e.getProperty())) {
+      throw e;
     }
-    throw e;
   }
 }
