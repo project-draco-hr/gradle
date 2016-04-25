@@ -8,7 +8,16 @@
     Files.createSymbolicLink(linkFile,sourceFile);
     return true;
   }
- catch (  IOException e) {
+ catch (  InternalError e) {
+    if (e.getMessage().contains("Should not get here")) {
+      LOGGER.debug("Unable to create a symlink. Your system is hitting JDK bug id JDK-8046686. Symlink support disabled.",e);
+    }
+ else {
+      LOGGER.debug("Unexpected internal error",e);
+    }
+    return false;
+  }
+catch (  IOException e) {
     return false;
   }
 catch (  UnsupportedOperationException e) {
