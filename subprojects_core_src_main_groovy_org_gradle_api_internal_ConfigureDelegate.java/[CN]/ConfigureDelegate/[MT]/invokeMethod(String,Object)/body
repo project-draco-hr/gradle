@@ -3,28 +3,19 @@
   boolean isAlreadyConfiguring=_configuring.get();
   _configuring.set(true);
   try {
-    MissingMethodException failure;
-    try {
-      return _delegate.invokeMethod(name,params);
-    }
- catch (    groovy.lang.MissingMethodException e) {
-      if (!name.equals(e.getMethod())) {
-        throw e;
-      }
-      failure=e;
+    InvokeMethodResult result=new InvokeMethodResult();
+    _delegate.invokeMethod(name,result,params);
+    if (result.isFound()) {
+      return result.getResult();
     }
     if (!isAlreadyConfiguring && _isConfigureMethod(name,params)) {
       return _configure(name,params);
     }
-    try {
-      return _owner.invokeMethod(name,params);
+    _owner.invokeMethod(name,result,params);
+    if (result.isFound()) {
+      return result.getResult();
     }
- catch (    groovy.lang.MissingMethodException e) {
-      if (!name.equals(e.getMethod())) {
-        throw e;
-      }
-    }
-    throw failure;
+    throw new MissingMethodException(name,_delegate.getClass(),params);
   }
   finally {
     _configuring.set(isAlreadyConfiguring);

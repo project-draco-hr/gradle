@@ -2,26 +2,17 @@
   boolean isAlreadyConfiguring=_configuring.get();
   _configuring.set(true);
   try {
-    MissingPropertyException failure;
-    try {
-      return _delegate.getProperty(name);
+    GetPropertyResult result=new GetPropertyResult();
+    _delegate.getProperty(name,result);
+    if (result.isFound()) {
+      return result.getValue();
     }
- catch (    MissingPropertyException e) {
-      if (!name.equals(e.getProperty())) {
-        throw e;
-      }
-      failure=e;
-    }
-    try {
-      return _owner.getProperty(name);
-    }
- catch (    MissingPropertyException e) {
-      if (!name.equals(e.getProperty())) {
-        throw e;
-      }
+    _owner.getProperty(name,result);
+    if (result.isFound()) {
+      return result.getValue();
     }
     if (isAlreadyConfiguring) {
-      throw failure;
+      throw new MissingPropertyException(name,_delegate.getClass());
     }
     return _configure(name,EMPTY_PARAMS);
   }
