@@ -1,0 +1,17 @@
+{
+  List<GarbageCollectorMXBean> garbageCollectorMXBeans=ManagementFactory.getGarbageCollectorMXBeans();
+  GarbageCollectorMXBean garbageCollectorMXBean=CollectionUtils.findFirst(garbageCollectorMXBeans,new Spec<GarbageCollectorMXBean>(){
+    @Override public boolean isSatisfiedBy(    GarbageCollectorMXBean mbean){
+      return mbean.getName().equals(garbageCollector);
+    }
+  }
+);
+  List<MemoryPoolMXBean> memoryPoolMXBeans=ManagementFactory.getMemoryPoolMXBeans();
+  for (  MemoryPoolMXBean memoryPoolMXBean : memoryPoolMXBeans) {
+    String pool=memoryPoolMXBean.getName();
+    if (memoryPools.contains(pool)) {
+      GarbageCollectionEvent event=new GarbageCollectionEvent(System.currentTimeMillis(),memoryPoolMXBean.getCollectionUsage(),garbageCollectorMXBean.getCollectionCount());
+      events.get(pool).slideAndInsert(event);
+    }
+  }
+}
