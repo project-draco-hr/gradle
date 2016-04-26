@@ -1,23 +1,9 @@
 {
-  List<String> tasksToExecute=Lists.newArrayList();
-  for (  String taskName : taskNames) {
-    if (executedTasks.put(projectPath,taskName)) {
-      tasksToExecute.add(taskName);
-    }
-  }
-  if (tasksToExecute.isEmpty()) {
-    return false;
-  }
-  File projectDirectory=registry.getProjectDirectory(projectPath);
-  StartParameter param=requestedStartParameter.newBuild();
-  param.setProjectDir(projectDirectory);
-  param.setTaskNames(tasksToExecute);
-  GradleLauncher launcher=gradleLauncherFactory.newInstance(param,serviceRegistry);
+  buildStarted(projectPath);
   try {
-    launcher.run();
+    return doBuild(projectPath,taskNames);
   }
   finally {
-    launcher.stop();
+    buildCompleted(projectPath);
   }
-  return true;
 }
