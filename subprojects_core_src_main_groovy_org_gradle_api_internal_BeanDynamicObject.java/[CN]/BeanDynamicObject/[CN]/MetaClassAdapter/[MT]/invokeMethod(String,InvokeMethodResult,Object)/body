@@ -1,7 +1,20 @@
 {
-  MetaMethod metaMethod=lookupMethod(name,arguments);
+  MetaClass metaClass=getMetaClass();
+  MetaMethod metaMethod=lookupMethod(metaClass,name,arguments);
   if (metaMethod != null) {
     result.result(metaMethod.doMethodInvoke(bean,arguments));
+    return;
+  }
+  List<MetaMethod> metaMethods=metaClass.respondsTo(bean,name);
+  for (  MetaMethod method : metaMethods) {
+    if (method.getParameterTypes().length != arguments.length) {
+      continue;
+    }
+    Object[] transformed=argsTransformer.transform(method.getParameterTypes(),arguments);
+    if (transformed == arguments) {
+      continue;
+    }
+    result.result(method.doMethodInvoke(bean,transformed));
     return;
   }
   if (!implementsMissing) {
@@ -9,7 +22,7 @@
   }
   try {
     try {
-      result.result(invokeOpaqueMethod(name,arguments));
+      result.result(invokeOpaqueMethod(metaClass,name,arguments));
     }
  catch (    InvokerInvocationException e) {
       if (e.getCause() instanceof RuntimeException) {

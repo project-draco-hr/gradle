@@ -5,27 +5,39 @@
   MetaClass metaClass=getMetaClass();
   MetaProperty property=lookupProperty(metaClass,name);
   if (property != null) {
-    if (property instanceof MetaBeanProperty && ((MetaBeanProperty)property).getSetter() == null) {
-      throw setReadOnlyProperty(name);
+    if (property instanceof MultipleSetterProperty) {
+      String setterName=MetaProperty.getSetterName(property.getName());
+      InvokeMethodResult setterResult=new InvokeMethodResult();
+      invokeMethod(setterName,setterResult,value);
+      if (setterResult.isFound()) {
+        result.found();
+        return;
+      }
     }
-    try {
-      value=propertySetTransformer.transformValue(bean,property,value);
-      metaClass.setProperty(bean,name,value);
+ else {
+      if (property instanceof MetaBeanProperty) {
+        MetaBeanProperty metaBeanProperty=(MetaBeanProperty)property;
+        if (metaBeanProperty.getSetter() == null) {
+          throw setReadOnlyProperty(name);
+        }
+        Class setterType=metaBeanProperty.getSetter().getParameterTypes()[0].getTheClass();
+        value=propertySetTransformer.transformValue(setterType,value);
+        value=DefaultTypeTransformation.castToType(value,setterType);
+        metaBeanProperty.getSetter().invoke(bean,new Object[]{value});
+      }
+ else {
+        value=propertySetTransformer.transformValue(property.getType(),value);
+        property.setProperty(bean,value);
+      }
       result.found();
       return;
-    }
- catch (    InvokerInvocationException e) {
-      if (e.getCause() instanceof RuntimeException) {
-        throw (RuntimeException)e.getCause();
-      }
-      throw e;
     }
   }
   if (!implementsMissing) {
     return;
   }
   try {
-    setOpaqueProperty(name,value,metaClass);
+    setOpaqueProperty(metaClass,name,value);
     result.found();
   }
  catch (  MissingPropertyException e) {
