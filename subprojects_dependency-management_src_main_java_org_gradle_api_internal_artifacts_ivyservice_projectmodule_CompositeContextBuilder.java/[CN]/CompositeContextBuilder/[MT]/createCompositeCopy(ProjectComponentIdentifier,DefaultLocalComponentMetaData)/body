@@ -4,14 +4,13 @@
     LocalConfigurationMetaData originalConfiguration=originalComponentMetadata.getConfiguration(configurationName);
     TaskDependency configurationTaskDependency=createTaskDependency(componentIdentifier.getProjectPath(),originalConfiguration);
     compositeComponentMetadata.addConfiguration(configurationName,originalConfiguration.getDescription(),originalConfiguration.getExtendsFrom(),originalConfiguration.getHierarchy(),originalConfiguration.isVisible(),originalConfiguration.isTransitive(),configurationTaskDependency);
+    final Set<String> targetTaskNames=determineTargetTaskNames(originalConfiguration);
     Set<ComponentArtifactMetaData> artifacts=originalConfiguration.getArtifacts();
-    Set<PublishArtifact> detachedArtifacts=CollectionUtils.collect(artifacts,new Transformer<PublishArtifact,ComponentArtifactMetaData>(){
-      @Override public PublishArtifact transform(      ComponentArtifactMetaData componentArtifactMetaData){
-        return new DetachedPublishArtifact(componentArtifactMetaData.getName(),((LocalComponentArtifactIdentifier)componentArtifactMetaData).getFile());
-      }
+    for (    ComponentArtifactMetaData originalArtifact : artifacts) {
+      File artifactFile=((LocalComponentArtifactIdentifier)originalArtifact).getFile();
+      CompositeProjectComponentArtifactMetaData artifact=new CompositeProjectComponentArtifactMetaData(componentIdentifier,originalArtifact.getName(),artifactFile,targetTaskNames);
+      compositeComponentMetadata.addArtifact(configurationName,artifact);
     }
-);
-    compositeComponentMetadata.addArtifacts(configurationName,detachedArtifacts);
   }
   for (  DependencyMetaData dependency : originalComponentMetadata.getDependencies()) {
     if (dependency.getSelector() instanceof ProjectComponentSelector) {
