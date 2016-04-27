@@ -1,2 +1,39 @@
 {
+  try {
+    if (!file.isAbsolute()) {
+      throw new IllegalArgumentException(String.format("Cannot normalize a relative file: '%s'",file));
+    }
+    if (isWindowsOs) {
+      return file.getCanonicalFile();
+    }
+    File candidate;
+    String filePath=file.getPath();
+    List<String> path=null;
+    if (isNormalisingRequiredForAbsolutePath(filePath)) {
+      path=splitAndNormalisePath(filePath);
+      String resolvedPath=CollectionUtils.join(File.separator,path);
+      boolean needLeadingSeparator=File.listRoots()[0].getPath().startsWith(File.separator);
+      if (needLeadingSeparator) {
+        resolvedPath=File.separator + resolvedPath;
+      }
+      candidate=new File(resolvedPath);
+    }
+ else {
+      candidate=file;
+    }
+    if (fileSystem.isCaseSensitive()) {
+      return candidate;
+    }
+    File canonical=candidate.getCanonicalFile();
+    if (candidate.getPath().equalsIgnoreCase(canonical.getPath())) {
+      return canonical;
+    }
+    if (path == null) {
+      path=splitAndNormalisePath(filePath);
+    }
+    return normaliseUnixPathIgnoringCase(path);
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(String.format("Could not normalize path for file '%s'.",file),e);
+  }
 }
