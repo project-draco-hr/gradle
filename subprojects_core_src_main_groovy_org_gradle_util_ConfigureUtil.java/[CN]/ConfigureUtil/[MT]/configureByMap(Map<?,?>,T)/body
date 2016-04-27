@@ -3,16 +3,15 @@
   for (  Map.Entry<?,?> entry : properties.entrySet()) {
     String name=entry.getKey().toString();
     Object value=entry.getValue();
-    if (dynamicObject.hasProperty(name)) {
-      dynamicObject.setProperty(name,value);
+    SetPropertyResult setterResult=new SetPropertyResult();
+    dynamicObject.setProperty(name,value,setterResult);
+    if (setterResult.isFound()) {
+      continue;
     }
- else {
-      try {
-        dynamicObject.invokeMethod(name,value);
-      }
- catch (      MissingMethodException e) {
-        dynamicObject.setProperty(name,value);
-      }
+    InvokeMethodResult invokeResult=new InvokeMethodResult();
+    dynamicObject.invokeMethod(name,invokeResult,value);
+    if (!invokeResult.isFound()) {
+      throw new MissingPropertyException(name,delegate.getClass());
     }
   }
   return delegate;
