@@ -8,14 +8,17 @@
     if (result.isFound()) {
       return result.getResult();
     }
-    if (!isAlreadyConfiguring && _isConfigureMethod(name,params)) {
-      return _configure(name,params);
+    if (!isAlreadyConfiguring) {
+      _configure(name,params,result);
+      if (result.isFound()) {
+        return result.getResult();
+      }
     }
     _owner.invokeMethod(name,result,params);
     if (result.isFound()) {
       return result.getResult();
     }
-    throw new MissingMethodException(name,_delegate.getClass(),params);
+    throw _delegate.methodMissingException(name,params);
   }
   finally {
     _configuring.set(isAlreadyConfiguring);

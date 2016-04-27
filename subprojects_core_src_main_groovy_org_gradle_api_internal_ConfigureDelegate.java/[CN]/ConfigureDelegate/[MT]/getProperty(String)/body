@@ -11,10 +11,13 @@
     if (result.isFound()) {
       return result.getValue();
     }
-    if (isAlreadyConfiguring) {
-      throw new MissingPropertyException(name,_delegate.getClass());
+    if (!isAlreadyConfiguring) {
+      _configure(name,result);
+      if (result.isFound()) {
+        return result.getValue();
+      }
     }
-    return _configure(name,EMPTY_PARAMS);
+    throw _delegate.getMissingProperty(name);
   }
   finally {
     _configuring.set(isAlreadyConfiguring);
