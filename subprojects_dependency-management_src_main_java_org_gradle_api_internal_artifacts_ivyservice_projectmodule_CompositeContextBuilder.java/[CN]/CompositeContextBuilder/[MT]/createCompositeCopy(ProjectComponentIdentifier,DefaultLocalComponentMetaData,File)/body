@@ -1,0 +1,25 @@
+{
+  DefaultLocalComponentMetaData compositeComponentMetadata=new DefaultLocalComponentMetaData(originalComponentMetadata.getId(),componentIdentifier,originalComponentMetadata.getStatus());
+  for (  String configurationName : originalComponentMetadata.getConfigurationNames()) {
+    LocalConfigurationMetaData originalConfiguration=originalComponentMetadata.getConfiguration(configurationName);
+    compositeComponentMetadata.addConfiguration(configurationName,originalConfiguration.getDescription(),originalConfiguration.getExtendsFrom(),originalConfiguration.getHierarchy(),originalConfiguration.isVisible(),originalConfiguration.isTransitive(),new DefaultTaskDependency());
+    final Set<String> targetTaskNames=determineTargetTaskNames(originalConfiguration);
+    Set<ComponentArtifactMetaData> artifacts=originalConfiguration.getArtifacts();
+    for (    ComponentArtifactMetaData originalArtifact : artifacts) {
+      File artifactFile=((LocalComponentArtifactIdentifier)originalArtifact).getFile();
+      CompositeProjectComponentArtifactMetaData artifact=new CompositeProjectComponentArtifactMetaData(componentIdentifier,originalArtifact.getName(),artifactFile,projectDir,targetTaskNames);
+      compositeComponentMetadata.addArtifact(configurationName,artifact);
+    }
+  }
+  for (  DependencyMetaData dependency : originalComponentMetadata.getDependencies()) {
+    if (dependency.getSelector() instanceof ProjectComponentSelector) {
+      ModuleComponentSelector externalizedSelector=DefaultModuleComponentSelector.newSelector(dependency.getRequested());
+      dependency=dependency.withTarget(externalizedSelector);
+    }
+    compositeComponentMetadata.addDependency(dependency);
+  }
+  for (  ExcludeRule excludeRule : originalComponentMetadata.getExcludeRules()) {
+    compositeComponentMetadata.addExcludeRule(excludeRule);
+  }
+  return compositeComponentMetadata;
+}
