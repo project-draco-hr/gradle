@@ -1,0 +1,15 @@
+{
+  return new Action<DependencySubstitution>(){
+    @Override public void execute(    DependencySubstitution dependencySubstitution){
+      ComponentSelector requested=dependencySubstitution.getRequested();
+      if (requested instanceof ModuleComponentSelector) {
+        ModuleComponentSelector selector=(ModuleComponentSelector)requested;
+        ProjectComponentIdentifier replacement=projectComponentRegistry.getReplacementProject(selector);
+        if (replacement != null) {
+          ((DependencySubstitutionInternal)dependencySubstitution).useTarget(DefaultProjectComponentSelector.newSelector(replacement.getProjectPath()),VersionSelectionReasons.COMPOSITE_BUILD);
+        }
+      }
+    }
+  }
+;
+}
