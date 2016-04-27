@@ -1,13 +1,18 @@
 {
   ModuleIdentifier candidateId=DefaultModuleIdentifier.newId(selector.getGroup(),selector.getModule());
-  Collection<String> providingProjects=replacementProjects.get(candidateId);
+  Collection<ProjectComponentIdentifier> providingProjects=replacementProjects.get(candidateId);
   if (providingProjects.isEmpty()) {
     return null;
   }
   if (providingProjects.size() == 1) {
     return providingProjects.iterator().next();
   }
-  SortedSet<String> sortedProjects=Sets.newTreeSet(providingProjects);
+  SortedSet<String> sortedProjects=Sets.newTreeSet(CollectionUtils.collect(providingProjects,new Transformer<String,ProjectComponentIdentifier>(){
+    @Override public String transform(    ProjectComponentIdentifier projectComponentIdentifier){
+      return projectComponentIdentifier.getProjectPath();
+    }
+  }
+));
   String failureMessage=String.format("Module version '%s' is not unique in composite: can be provided by projects %s.",selector.getDisplayName(),sortedProjects);
   throw new ModuleVersionResolveException(selector,failureMessage);
 }
