@@ -13,7 +13,9 @@
     }
  else     if (dependency instanceof ModuleDependency) {
       ModuleDependency d=(ModuleDependency)dependency;
-      DefaultIdeaModuleDependency defaultDependency=new org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency().setExported(d.getExported()).setScope(new DefaultIdeaDependencyScope(d.getScope())).setDependencyModule(modules.get(d.getName()));
+      DefaultIdeaModule targetModule=modules.get(d.getName());
+      File targetProjectDirectory=targetModule == null ? compositeProjectMapper.transform(d.getGradlePath()) : targetModule.getGradleProject().getProjectDirectory();
+      DefaultIdeaModuleDependency defaultDependency=new org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency().setExported(d.getExported()).setScope(new DefaultIdeaDependencyScope(d.getScope())).setDependencyModule(targetModule).setProjectDirectory(targetProjectDirectory);
       dependencies.add(defaultDependency);
     }
   }
