@@ -1,0 +1,19 @@
+{
+  return repositoryHandler.maven(new Action<MavenArtifactRepository>(){
+    @Override public void execute(    MavenArtifactRepository mavenArtifactRepository){
+      mavenArtifactRepository.setName(getArtifactRepositoryName());
+      mavenArtifactRepository.setUrl(getUrl());
+      Credentials credentials=authenticationSupport().getConfiguredCredentials();
+      if (credentials != null) {
+        ((AuthenticationSupportedInternal)mavenArtifactRepository).setConfiguredCredentials(credentials);
+        mavenArtifactRepository.authentication(new Action<AuthenticationContainer>(){
+          @Override public void execute(          AuthenticationContainer authenticationContainer){
+            authenticationContainer.addAll(authenticationSupport().getConfiguredAuthentication());
+          }
+        }
+);
+      }
+    }
+  }
+);
+}

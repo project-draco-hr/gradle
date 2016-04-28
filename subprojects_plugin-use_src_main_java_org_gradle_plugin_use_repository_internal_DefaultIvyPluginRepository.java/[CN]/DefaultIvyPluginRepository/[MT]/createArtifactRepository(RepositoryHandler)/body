@@ -1,0 +1,19 @@
+{
+  return dependencyResolutionServices.getResolveRepositoryHandler().ivy(new Action<IvyArtifactRepository>(){
+    @Override public void execute(    IvyArtifactRepository ivyArtifactRepository){
+      ivyArtifactRepository.setName(getArtifactRepositoryName());
+      ivyArtifactRepository.setUrl(getUrl());
+      Credentials credentials=authenticationSupport().getConfiguredCredentials();
+      if (credentials != null) {
+        ((AuthenticationSupportedInternal)ivyArtifactRepository).setConfiguredCredentials(credentials);
+        ivyArtifactRepository.authentication(new Action<AuthenticationContainer>(){
+          @Override public void execute(          AuthenticationContainer authenticationContainer){
+            authenticationContainer.addAll(authenticationSupport().getConfiguredAuthentication());
+          }
+        }
+);
+      }
+    }
+  }
+);
+}
