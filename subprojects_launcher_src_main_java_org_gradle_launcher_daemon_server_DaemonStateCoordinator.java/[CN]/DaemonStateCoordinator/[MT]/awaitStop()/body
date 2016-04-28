@@ -1,0 +1,30 @@
+{
+  lock.lock();
+  try {
+    while (true) {
+      try {
+switch (state) {
+case Running:
+          LOGGER.debug("daemon is running. Sleeping until state changes.");
+        condition.await();
+      break;
+case Broken:
+    throw new IllegalStateException("This daemon is in a broken state.");
+case StopRequested:
+  LOGGER.debug("daemon stop has been requested. Sleeping until state changes.");
+condition.await();
+break;
+case Stopped:
+LOGGER.debug("daemon has stopped.");
+return true;
+}
+}
+ catch (InterruptedException e) {
+throw UncheckedException.throwAsUncheckedException(e);
+}
+}
+}
+  finally {
+lock.unlock();
+}
+}

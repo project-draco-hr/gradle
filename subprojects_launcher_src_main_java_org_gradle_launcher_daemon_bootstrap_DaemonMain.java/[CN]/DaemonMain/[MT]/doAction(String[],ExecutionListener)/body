@@ -6,6 +6,7 @@
   File gradleHomeDir;
   File daemonBaseDir;
   int idleTimeoutMs;
+  int periodicCheckIntervalMs;
   String daemonUid;
   List<File> additionalClassPath;
   KryoBackedDecoder decoder=new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
@@ -13,6 +14,7 @@
     gradleHomeDir=new File(decoder.readString());
     daemonBaseDir=new File(decoder.readString());
     idleTimeoutMs=decoder.readSmallInt();
+    periodicCheckIntervalMs=decoder.readSmallInt();
     daemonUid=decoder.readString();
     int argCount=decoder.readSmallInt();
     startupOpts=new ArrayList<String>(argCount);
@@ -30,7 +32,7 @@
   }
   LOGGER.debug("Assuming the daemon was started with following jvm opts: {}",startupOpts);
   NativeServices.initialize(gradleHomeDir);
-  DaemonServerConfiguration parameters=new DefaultDaemonServerConfiguration(daemonUid,daemonBaseDir,idleTimeoutMs,startupOpts);
+  DaemonServerConfiguration parameters=new DefaultDaemonServerConfiguration(daemonUid,daemonBaseDir,idleTimeoutMs,periodicCheckIntervalMs,startupOpts);
   LoggingServiceRegistry loggingRegistry=LoggingServiceRegistry.newCommandLineProcessLogging();
   LoggingManagerInternal loggingManager=loggingRegistry.newInstance(LoggingManagerInternal.class);
   DaemonServices daemonServices=new DaemonServices(parameters,loggingRegistry,loggingManager,new DefaultClassPath(additionalClassPath));
@@ -42,7 +44,7 @@
     DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
     Long pid=daemonContext.getPid();
     daemonStarted(pid,daemon.getUid(),daemon.getAddress(),daemonLog);
-    daemon.requestStopOnIdleTimeout(parameters.getIdleTimeout(),TimeUnit.MILLISECONDS);
+    daemon.stopOnExpiration(initializeExpirationStrategy(parameters),parameters.getPeriodicCheckIntervalMs());
   }
   finally {
     daemon.stop();

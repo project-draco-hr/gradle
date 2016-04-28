@@ -1,0 +1,15 @@
+{
+  LOGGER.debug("awaitExpiration() called on daemon");
+  DaemonStateCoordinator stateCoordinator;
+  lifecycleLock.lock();
+  try {
+    if (this.stateCoordinator == null) {
+      throw new IllegalStateException("cannot await stop on daemon as it has not been started.");
+    }
+    stateCoordinator=this.stateCoordinator;
+  }
+  finally {
+    lifecycleLock.unlock();
+  }
+  stateCoordinator.awaitStop();
+}

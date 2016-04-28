@@ -1,0 +1,14 @@
+{
+  try {
+    File daemonRegistryDir=daemon.getDaemonContext().getDaemonRegistryDir();
+    if (!new DaemonDir(daemonRegistryDir).getRegistry().canRead()) {
+      LOG.warn("Daemon registry {} became unreadable. Expiring daemon.",daemonRegistryDir);
+      return new DaemonExpirationResult(true,"daemon registry became unreadable");
+    }
+  }
+ catch (  SecurityException se) {
+    LOG.warn("Daemon registry became inaccessible. Expiring daemon. Error message is '{}'",se.getMessage());
+    return new DaemonExpirationResult(true,"daemon registry became inaccessible");
+  }
+  return new DaemonExpirationResult(false,null);
+}
