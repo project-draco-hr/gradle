@@ -3,6 +3,7 @@
     LOGGER.warn(NO_DESCRIPTOR_WARNING_MESSAGE);
   }
  else {
+    Set<String> pluginFileNames=Sets.newHashSet();
     for (    PluginDescriptor descriptor : descriptors) {
       URI descriptorURI=null;
       try {
@@ -11,12 +12,18 @@
  catch (      URISyntaxException e) {
       }
       String pluginFileName=descriptorURI != null ? new File(descriptorURI).getName() : "UNKNOWN";
+      pluginFileNames.add(pluginFileName);
       String pluginImplementation=descriptor.getImplementationClassName();
       if (pluginImplementation.length() == 0) {
         LOGGER.warn(String.format(INVALID_DESCRIPTOR_WARNING_MESSAGE,pluginFileName));
       }
  else       if (!hasFullyQualifiedClass(pluginImplementation)) {
         LOGGER.warn(String.format(BAD_IMPL_CLASS_WARNING_MESSAGE,pluginFileName,pluginImplementation));
+      }
+    }
+    for (    PluginDeclaration declaration : plugins) {
+      if (!pluginFileNames.contains(declaration.getId() + ".properties")) {
+        LOGGER.warn(String.format(DECLARED_PLUGIN_MISSING_MESSAGE,declaration.getName(),declaration.getId()));
       }
     }
   }

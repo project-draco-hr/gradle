@@ -1,0 +1,11 @@
+{
+  Jar jarTask=(Jar)project.getTasks().findByName(JAR_TASK);
+  List<PluginDescriptor> descriptors=new ArrayList<PluginDescriptor>();
+  Set<String> classList=new HashSet<String>();
+  PluginDescriptorCollectorAction pluginDescriptorCollector=new PluginDescriptorCollectorAction(descriptors);
+  ClassManifestCollectorAction classManifestCollector=new ClassManifestCollectorAction(classList);
+  PluginValidationAction pluginValidationAction=new PluginValidationAction(extension.getPlugins(),descriptors,classList);
+  jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN,pluginDescriptorCollector);
+  jarTask.filesMatching(CLASSES_PATTERN,classManifestCollector);
+  jarTask.appendParallelSafeAction(pluginValidationAction);
+}
