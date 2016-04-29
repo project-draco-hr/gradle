@@ -1,9 +1,15 @@
 {
+  Optional<ServiceProvider> cached=seen.get(type);
+  if (cached != null) {
+    return cached.orNull();
+  }
   for (  Provider provider : providers) {
     ServiceProvider factory=provider.getFactory(context,type);
     if (factory != null) {
+      seen.putIfAbsent(type,Optional.of(factory));
       return factory;
     }
   }
+  seen.putIfAbsent(type,Optional.<ServiceProvider>absent());
   return null;
 }
