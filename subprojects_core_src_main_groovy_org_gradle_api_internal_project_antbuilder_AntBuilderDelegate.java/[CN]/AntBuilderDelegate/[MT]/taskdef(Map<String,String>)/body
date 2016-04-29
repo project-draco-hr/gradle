@@ -1,0 +1,34 @@
+{
+  Set<String> argNames=args.keySet();
+  if (argNames.equals(ImmutableSet.of("name","classname"))) {
+    try {
+      String name=args.get("name");
+      String className=args.get("classname");
+      addTaskDefinition(name,className);
+    }
+ catch (    ClassNotFoundException ex) {
+      throw Throwables.propagate(ex);
+    }
+  }
+ else   if (argNames.equals(Collections.singleton("resource"))) {
+    InputStream instr=antlibClassLoader.getResourceAsStream(args.get("resource"));
+    try {
+      Node xml=new XmlParser().parse(instr);
+      for (      Object taskdefObject : (NodeList)xml.get("taskdef")) {
+        Node taskdef=(Node)taskdefObject;
+        String name=(String)taskdef.get("@name");
+        String className=(String)taskdef.get("@classname");
+        addTaskDefinition(name,className);
+      }
+    }
+ catch (    Exception ex) {
+      throw Throwables.propagate(ex);
+    }
+ finally {
+      IOUtils.closeQuietly(instr);
+    }
+  }
+ else {
+    throw new RuntimeException("Unsupported parameters for taskdef(): " + args);
+  }
+}
