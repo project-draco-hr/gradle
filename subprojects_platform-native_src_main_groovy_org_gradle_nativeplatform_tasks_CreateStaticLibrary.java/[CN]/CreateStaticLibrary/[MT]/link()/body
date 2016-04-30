@@ -1,0 +1,12 @@
+{
+  StaticLibraryArchiverSpec spec=new DefaultStaticLibraryArchiverSpec();
+  spec.setTempDir(getTemporaryDir());
+  spec.setOutputFile(getOutputFile());
+  spec.objectFiles(getSource());
+  spec.args(getStaticLibArgs());
+  BuildOperationLogger operationLogger=getOperationLoggerFactory().newOperationLogger(getName(),getTemporaryDir());
+  spec.setOperationLogger(operationLogger);
+  Compiler<StaticLibraryArchiverSpec> compiler=Cast.uncheckedCast(toolChain.select(targetPlatform).newCompiler(spec.getClass()));
+  WorkResult result=BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
+  setDidWork(result.getDidWork());
+}
