@@ -1,0 +1,27 @@
+{
+  final Spec<DependencyResult> dependencySpec=new StrictDependencyResultSpec(module);
+  ResolutionResult result=configuration.getIncoming().getResolutionResult();
+  final Set<DependencyResult> selectedDependencies=new LinkedHashSet<DependencyResult>();
+  result.allDependencies(new Action<DependencyResult>(){
+    @Override public void execute(    DependencyResult it){
+      if (dependencySpec.isSatisfiedBy(it)) {
+        selectedDependencies.add(it);
+      }
+    }
+  }
+);
+  Collection<RenderableDependency> sortedDeps=new DependencyInsightReporter().prepare(selectedDependencies,versionSelectorScheme,versionComparator);
+  return CollectionUtils.collect(sortedDeps,new Transformer<Object,RenderableDependency>(){
+    @Override public Object transform(    RenderableDependency dependency){
+      String name=replaceArrow(dependency.getName());
+      LinkedHashMap<String,Object> map=new LinkedHashMap<String,Object>(5);
+      map.put("name",replaceArrow(dependency.getName()));
+      map.put("description",dependency.getDescription());
+      map.put("resolvable",dependency.isResolvable());
+      map.put("hasConflict",!name.equals(dependency.getName()));
+      map.put("children",createInsightDependencyChildren(dependency,new HashSet<Object>(),configuration));
+      return map;
+    }
+  }
+);
+}

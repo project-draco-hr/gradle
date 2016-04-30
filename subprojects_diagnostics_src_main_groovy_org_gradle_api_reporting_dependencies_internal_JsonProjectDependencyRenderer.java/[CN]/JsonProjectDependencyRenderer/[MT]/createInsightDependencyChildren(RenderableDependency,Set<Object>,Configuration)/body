@@ -1,0 +1,25 @@
+{
+  Iterable<? extends RenderableDependency> children=dependency.getChildren();
+  return CollectionUtils.collect(children,new Transformer<Object,RenderableDependency>(){
+    @Override public Object transform(    RenderableDependency childDependency){
+      boolean alreadyVisited=!visited.add(childDependency.getId());
+      boolean leaf=childDependency.getChildren().isEmpty();
+      boolean alreadyRendered=alreadyVisited && !leaf;
+      String childName=replaceArrow(childDependency.getName());
+      boolean hasConflict=!childName.equals(childDependency.getName());
+      String name=leaf ? configuration.getName() : childName;
+      LinkedHashMap<String,Object> map=new LinkedHashMap<String,Object>(6);
+      map.put("name",name);
+      map.put("resolvable",childDependency.isResolvable());
+      map.put("hasConflict",hasConflict);
+      map.put("alreadyRendered",alreadyRendered);
+      map.put("isLeaf",leaf);
+      map.put("children",Collections.emptyList());
+      if (!alreadyRendered) {
+        map.put("children",createInsightDependencyChildren(childDependency,visited,configuration));
+      }
+      return map;
+    }
+  }
+);
+}

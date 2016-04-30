@@ -1,0 +1,24 @@
+{
+  Iterable<? extends RenderableDependency> children=dependency.getChildren();
+  return CollectionUtils.collect(children,new Transformer<Map,RenderableDependency>(){
+    @Override public Map transform(    RenderableDependency childDependency){
+      boolean alreadyVisited=!visited.add(childDependency.getId());
+      boolean alreadyRendered=alreadyVisited && !childDependency.getChildren().isEmpty();
+      String name=replaceArrow(childDependency.getName());
+      boolean hasConflict=!name.equals(childDependency.getName());
+      LinkedHashMap<String,Object> map=new LinkedHashMap<String,Object>(6);
+      ModuleIdentifier moduleIdentifier=getModuleIdentifier(childDependency);
+      map.put("module",moduleIdentifier == null ? null : moduleIdentifier.toString());
+      map.put("name",name);
+      map.put("resolvable",childDependency.isResolvable());
+      map.put("hasConflict",hasConflict);
+      map.put("alreadyRendered",alreadyRendered);
+      map.put("children",Collections.emptyList());
+      if (!alreadyRendered) {
+        map.put("children",createDependencyChildren(childDependency,visited));
+      }
+      return ((Map)(map));
+    }
+  }
+);
+}
