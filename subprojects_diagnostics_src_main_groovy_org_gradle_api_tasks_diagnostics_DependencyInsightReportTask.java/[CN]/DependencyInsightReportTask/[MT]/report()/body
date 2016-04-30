@@ -1,0 +1,58 @@
+{
+  final Configuration configuration=getConfiguration();
+  if (configuration == null) {
+    throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. " + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
+  }
+  if (dependencySpec == null) {
+    throw new InvalidUserDataException("Dependency insight report cannot be generated because the dependency to show was not specified." + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
+  }
+  StyledTextOutput output=getTextOutputFactory().create(getClass());
+  GraphRenderer renderer=new GraphRenderer(output);
+  ResolutionResult result=configuration.getIncoming().getResolutionResult();
+  final Set<DependencyResult> selectedDependencies=new LinkedHashSet<DependencyResult>();
+  result.allDependencies(new Action<DependencyResult>(){
+    @Override public void execute(    DependencyResult dependencyResult){
+      if (dependencySpec.isSatisfiedBy(dependencyResult)) {
+        selectedDependencies.add(dependencyResult);
+      }
+    }
+  }
+);
+  if (selectedDependencies.isEmpty()) {
+    output.println("No dependencies matching given input were found in " + String.valueOf(configuration));
+    return;
+  }
+  Collection<RenderableDependency> sortedDeps=new DependencyInsightReporter().prepare(selectedDependencies,getVersionSelectorScheme(),getVersionComparator());
+  NodeRenderer nodeRenderer=new NodeRenderer(){
+    public void renderNode(    StyledTextOutput target,    RenderableDependency node,    boolean alreadyRendered){
+      boolean leaf=node.getChildren().isEmpty();
+      target.text(leaf ? configuration.getName() : node.getName());
+      if (alreadyRendered && !leaf) {
+        target.withStyle(Info).text(" (*)");
+      }
+    }
+  }
+;
+  DependencyGraphRenderer dependencyGraphRenderer=new DependencyGraphRenderer(renderer,nodeRenderer);
+  int i=1;
+  for (  final RenderableDependency dependency : sortedDeps) {
+    renderer.visit(new Action<StyledTextOutput>(){
+      public void execute(      StyledTextOutput out){
+        out.withStyle(Identifier).text(dependency.getName());
+        if (StringUtils.isNotEmpty(dependency.getDescription())) {
+          out.withStyle(Description).text(" (" + dependency.getDescription() + ")");
+        }
+        if (!dependency.isResolvable()) {
+          out.withStyle(Failure).text(" FAILED");
+        }
+      }
+    }
+,true);
+    dependencyGraphRenderer.render(dependency);
+    boolean last=i++ == sortedDeps.size();
+    if (!last) {
+      output.println();
+    }
+  }
+  dependencyGraphRenderer.printLegend();
+}
