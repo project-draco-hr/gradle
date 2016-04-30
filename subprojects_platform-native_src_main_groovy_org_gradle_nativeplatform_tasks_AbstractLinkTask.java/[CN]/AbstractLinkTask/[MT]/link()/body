@@ -1,0 +1,22 @@
+{
+  SimpleStaleClassCleaner cleaner=new SimpleStaleClassCleaner(getOutputs());
+  cleaner.setDestinationDir(getDestinationDir());
+  cleaner.execute();
+  if (getSource().isEmpty()) {
+    setDidWork(false);
+    return;
+  }
+  LinkerSpec spec=createLinkerSpec();
+  spec.setTargetPlatform(getTargetPlatform());
+  spec.setTempDir(getTemporaryDir());
+  spec.setOutputFile(getOutputFile());
+  spec.objectFiles(getSource());
+  spec.libraries(getLibs());
+  spec.args(getLinkerArgs());
+  BuildOperationLogger operationLogger=getOperationLoggerFactory().newOperationLogger(getName(),getTemporaryDir());
+  spec.setOperationLogger(operationLogger);
+  Compiler<LinkerSpec> compiler=Cast.uncheckedCast(toolChain.select(targetPlatform).newCompiler(spec.getClass()));
+  compiler=BuildOperationLoggingCompilerDecorator.wrap(compiler);
+  WorkResult result=compiler.execute(spec);
+  setDidWork(result.getDidWork());
+}
