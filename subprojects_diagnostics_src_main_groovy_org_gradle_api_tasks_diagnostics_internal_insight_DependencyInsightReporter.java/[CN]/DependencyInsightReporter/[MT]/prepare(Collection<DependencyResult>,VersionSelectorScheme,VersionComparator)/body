@@ -1,0 +1,36 @@
+{
+  LinkedList<RenderableDependency> out=new LinkedList<RenderableDependency>();
+  List<DependencyEdge> dependencies=CollectionUtils.collect(input,new Transformer<DependencyEdge,DependencyResult>(){
+    @Override public DependencyEdge transform(    DependencyResult result){
+      if (result instanceof UnresolvedDependencyResult) {
+        return new UnresolvedDependencyEdge((UnresolvedDependencyResult)result);
+      }
+ else {
+        return new ResolvedDependencyEdge((ResolvedDependencyResult)result);
+      }
+    }
+  }
+);
+  Collection<DependencyEdge> sorted=DependencyResultSorter.sort(dependencies,versionSelectorScheme,versionComparator);
+  HashSet<ComponentIdentifier> annotated=new HashSet<ComponentIdentifier>();
+  RequestedVersion current=null;
+  for (  DependencyEdge dependency : sorted) {
+    if (annotated.add(dependency.getActual())) {
+      if (!dependency.getRequested().matchesStrictly(dependency.getActual())) {
+        out.add(new DependencyReportHeader(dependency));
+        current=new RequestedVersion(dependency.getRequested(),dependency.getActual(),dependency.isResolvable(),null);
+        out.add(current);
+      }
+ else {
+        current=new RequestedVersion(dependency.getRequested(),dependency.getActual(),dependency.isResolvable(),getReasonDescription(dependency.getReason()));
+        out.add(current);
+      }
+    }
+ else     if (!current.getRequested().equals(dependency.getRequested())) {
+      current=new RequestedVersion(dependency.getRequested(),dependency.getActual(),dependency.isResolvable(),null);
+      out.add(current);
+    }
+    current.addChild(dependency);
+  }
+  return out;
+}
