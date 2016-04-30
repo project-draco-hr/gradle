@@ -1,0 +1,19 @@
+{
+  this.outputDirectory=outputDirectory;
+  HtmlReportRenderer renderer=new HtmlReportRenderer();
+  renderer.render(projects,new ReportRenderer<Set<Project>,HtmlReportBuilder>(){
+    @Override public void render(    Set<Project> model,    HtmlReportBuilder builder){
+      Transformer<String,Project> htmlPageScheme=projectNamingScheme("html");
+      Transformer<String,Project> jsScheme=projectNamingScheme("js");
+      ProjectPageRenderer projectPageRenderer=new ProjectPageRenderer(jsScheme);
+      builder.renderRawHtmlPage("index.html",projects,new ProjectsPageRenderer(htmlPageScheme));
+      for (      Project project : projects) {
+        String jsFileName=jsScheme.transform(project);
+        generateJsFile(project,jsFileName);
+        String htmlFileName=htmlPageScheme.transform(project);
+        builder.renderRawHtmlPage(htmlFileName,project,projectPageRenderer);
+      }
+    }
+  }
+,outputDirectory);
+}
