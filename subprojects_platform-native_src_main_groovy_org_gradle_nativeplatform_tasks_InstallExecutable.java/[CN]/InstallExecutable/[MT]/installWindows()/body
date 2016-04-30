@@ -1,0 +1,15 @@
+{
+  final File destination=getDestinationDir();
+  final File executable=getExecutable();
+  installToDir(new File(destination,"lib"));
+  StringBuilder toolChainPath=new StringBuilder();
+  if (toolChain instanceof Gcc) {
+    toolChainPath.append("SET PATH=");
+    for (    File pathEntry : ((Gcc)toolChain).getPath()) {
+      toolChainPath.append(pathEntry.getAbsolutePath()).append(";");
+    }
+    toolChainPath.append("%PATH%");
+  }
+  String runScriptText="\n@echo off" + "\nSETLOCAL" + "\n" + toolChainPath + "\nCALL \" %~dp0lib\\"+ executable.getName()+ "\" %*"+ "\nEXIT /B %ERRORLEVEL%"+ "\nENDLOCAL"+ "\n";
+  GFileUtils.writeFile(runScriptText,getRunScript());
+}
