@@ -2,10 +2,15 @@
   this.project=project;
   project.getPluginManager().apply(JavaPlugin.class);
   project.getPluginManager().apply(DistributionPlugin.class);
-  DefaultDistributionContainer defaultDistributionContainer=project.getConvention().getPlugin(DefaultDistributionContainer.class);
+  DefaultDistributionContainer defaultDistributionContainer=(DefaultDistributionContainer)project.getExtensions().findByName("distributions");
   CopySpec contentSpec=defaultDistributionContainer.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME).getContents();
   Jar jar=(Jar)project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME);
-  contentSpec.from(jar);
-  contentSpec.from(project.file("src/dist"));
-  contentSpec.into("lib").from(project.getConfigurations().getByName("runtime"));
+  CopySpec childSpec=project.copySpec();
+  childSpec.from(jar);
+  childSpec.from(project.file("src/dist"));
+  CopySpec libSpec=project.copySpec();
+  libSpec.into("lib");
+  libSpec.from(project.getConfigurations().getByName("runtime"));
+  childSpec.with(libSpec);
+  contentSpec.with(childSpec);
 }
