@@ -1,0 +1,19 @@
+{
+  Task jar=project.getTasks().getAt(JavaPlugin.JAR_TASK_NAME);
+  Task startScripts=project.getTasks().getAt(TASK_START_SCRIPTS_NAME);
+  CopySpec libChildSpec=project.copySpec();
+  libChildSpec.into("lib");
+  libChildSpec.from(jar);
+  libChildSpec.from(project.getConfigurations().getByName("runtime"));
+  CopySpec binChildSpec=project.copySpec();
+  binChildSpec.into("bin");
+  binChildSpec.from(startScripts);
+  binChildSpec.setFileMode(0755);
+  CopySpec childSpec=project.copySpec();
+  childSpec.from(project.file("src/dist"));
+  childSpec.with(libChildSpec);
+  childSpec.with(binChildSpec);
+  distSpec.with(childSpec);
+  distSpec.with(pluginConvention.getApplicationDistribution());
+  return distSpec;
+}

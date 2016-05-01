@@ -1,0 +1,21 @@
+{
+  project.getPluginManager().apply(BasePlugin.class);
+  DefaultDistributionContainer distributions=project.getExtensions().create("distributions",DefaultDistributionContainer.class,Distribution.class,instantiator,fileOperations);
+  distributions.all(new Action<Distribution>(){
+    @Override public void execute(    final Distribution dist){
+      ((IConventionAware)dist).getConventionMapping().map("baseName",new Callable<Object>(){
+        public Object call() throws Exception {
+          return dist.getName().equals(MAIN_DISTRIBUTION_NAME) ? project.getName() : String.format("%s-%s",project.getName(),dist.getName());
+        }
+      }
+);
+      dist.getContents().from("src/" + dist.getName() + "/dist");
+      Task zipTask=addZipTask(project,dist);
+      Task tarTask=addTarTask(project,dist);
+      addAssembleTask(project,dist,zipTask,tarTask);
+      addInstallTask(project,dist);
+    }
+  }
+);
+  distributions.create(MAIN_DISTRIBUTION_NAME);
+}

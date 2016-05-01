@@ -1,0 +1,28 @@
+{
+  final T archiveTask=project.getTasks().create(taskName,type);
+  archiveTask.setDescription("Bundles the project as a distribution.");
+  archiveTask.setGroup(DISTRIBUTION_GROUP);
+  archiveTask.getConventionMapping().map("baseName",new Callable<Object>(){
+    public Object call() throws Exception {
+      if (distribution.getBaseName() == null || distribution.getBaseName().equals("")) {
+        throw new GradleException("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin.");
+      }
+      return distribution.getBaseName();
+    }
+  }
+);
+  Callable<String> baseDir=new Callable<String>(){
+    @Override public String call() throws Exception {
+      String toBeRenamedIfExists="." + archiveTask.getExtension();
+      return archiveTask.getArchiveName().replaceFirst(toBeRenamedIfExists,"");
+    }
+  }
+;
+  CopySpec childSpec=project.copySpec();
+  childSpec.into(baseDir);
+  childSpec.with(distribution.getContents());
+  archiveTask.with(childSpec);
+  ArchivePublishArtifact archiveArtifact=new ArchivePublishArtifact(archiveTask);
+  project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
+  return archiveTask;
+}

@@ -1,0 +1,18 @@
+{
+  this.project=project;
+  project.getPluginManager().apply(JavaPlugin.class);
+  project.getPluginManager().apply(DistributionPlugin.class);
+  addPluginConvention();
+  addRunTask();
+  addCreateScriptsTask();
+  Distribution distribution=((DistributionContainer)project.getExtensions().getByName("distributions")).getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);
+  ((IConventionAware)distribution).getConventionMapping().map("baseName",new Callable<Object>(){
+    public Object call() throws Exception {
+      return pluginConvention.getApplicationName();
+    }
+  }
+);
+  configureDistSpec(distribution.getContents());
+  Task installAppTask=addInstallAppTask(distribution);
+  configureInstallTasks(installAppTask,project.getTasks().getAt(DistributionPlugin.TASK_INSTALL_NAME));
+}
