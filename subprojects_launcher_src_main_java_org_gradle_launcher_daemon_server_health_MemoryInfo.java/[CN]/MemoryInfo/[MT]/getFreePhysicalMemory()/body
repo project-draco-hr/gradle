@@ -1,3 +1,10 @@
 {
-  return ((com.sun.management.OperatingSystemMXBean)ManagementFactory.getOperatingSystemMXBean()).getFreePhysicalMemorySize();
+  OperatingSystemMXBean bean=ManagementFactory.getOperatingSystemMXBean();
+  try {
+    Method getFreePhysicalMemorySize=bean.getClass().getMethod("getFreePhysicalMemorySize");
+    return (Long)getFreePhysicalMemorySize.invoke(bean);
+  }
+ catch (  ReflectiveOperationException e) {
+    throw new UnsupportedOperationException("getFreePhysicalMemory is unsupported on this JVM.",e);
+  }
 }
