@@ -1,10 +1,18 @@
 {
   OperatingSystemMXBean bean=ManagementFactory.getOperatingSystemMXBean();
+  Throwable rootCause=null;
   try {
     Method getTotalPhysicalMemorySize=bean.getClass().getMethod("getTotalPhysicalMemorySize");
     return (Long)getTotalPhysicalMemorySize.invoke(bean);
   }
- catch (  ReflectiveOperationException e) {
-    throw new UnsupportedOperationException("getTotalPhysicalMemory is unsupported on this JVM.",e);
+ catch (  NoSuchMethodException e) {
+    rootCause=e;
   }
+catch (  IllegalAccessException e) {
+    rootCause=e;
+  }
+catch (  InvocationTargetException e) {
+    rootCause=e;
+  }
+  throw new UnsupportedOperationException("getTotalPhysicalMemory is unsupported on this JVM.",rootCause);
 }
