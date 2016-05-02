@@ -1,0 +1,25 @@
+{
+  final File signatureFile=fileFor(toSign);
+  try {
+    withResource(newInputStream(toSign),new Action<InputStream>(){
+      @Override public void execute(      final InputStream toSignStream){
+        try {
+          withResource(newOutputStream(signatureFile),new Action<BufferedOutputStream>(){
+            @Override public void execute(            BufferedOutputStream signatureFileStream){
+              sign(signatory,toSignStream,signatureFileStream);
+            }
+          }
+);
+        }
+ catch (        IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      }
+    }
+);
+  }
+ catch (  FileNotFoundException e) {
+    throw new UncheckedIOException(e);
+  }
+  return signatureFile;
+}
