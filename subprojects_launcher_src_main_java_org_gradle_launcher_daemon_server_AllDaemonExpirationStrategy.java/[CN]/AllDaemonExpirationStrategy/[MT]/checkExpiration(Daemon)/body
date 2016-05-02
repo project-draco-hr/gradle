@@ -1,10 +1,19 @@
 {
   DaemonExpirationResult expirationResult=new DaemonExpirationResult(false,null);
+  List<String> reasons=Lists.newArrayList();
   for (  DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
     expirationResult=expirationStrategy.checkExpiration(daemon);
     if (!expirationResult.isExpired()) {
       return new DaemonExpirationResult(false,null);
     }
+ else {
+      reasons.add(expirationResult.getReason());
+    }
   }
-  return expirationResult;
+  if (!expirationResult.isExpired()) {
+    return expirationResult;
+  }
+ else {
+    return new DaemonExpirationResult(true,Joiner.on(" and ").skipNulls().join(reasons));
+  }
 }
