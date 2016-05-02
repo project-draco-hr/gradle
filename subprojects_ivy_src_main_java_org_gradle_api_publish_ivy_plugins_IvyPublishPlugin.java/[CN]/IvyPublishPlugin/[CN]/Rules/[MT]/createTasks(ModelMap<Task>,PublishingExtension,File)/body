@@ -3,26 +3,26 @@
   RepositoryHandler repositories=publishingExtension.getRepositories();
   for (  final IvyPublicationInternal publication : publications.withType(IvyPublicationInternal.class)) {
     final String publicationName=publication.getName();
-    final String descriptorTaskName=String.format("generateDescriptorFileFor%sPublication",capitalize(publicationName));
+    final String descriptorTaskName="generateDescriptorFileFor" + capitalize(publicationName) + "Publication";
     tasks.create(descriptorTaskName,GenerateIvyDescriptor.class,new Action<GenerateIvyDescriptor>(){
       public void execute(      final GenerateIvyDescriptor descriptorTask){
-        descriptorTask.setDescription(String.format("Generates the Ivy Module Descriptor XML file for publication '%s'.",publication.getName()));
+        descriptorTask.setDescription("Generates the Ivy Module Descriptor XML file for publication '" + publicationName + "'.");
         descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
         descriptorTask.setDescriptor(publication.getDescriptor());
-        descriptorTask.setDestination(new File(buildDir,"publications/" + publication.getName() + "/ivy.xml"));
+        descriptorTask.setDestination(new File(buildDir,"publications/" + publicationName + "/ivy.xml"));
       }
     }
 );
     publication.setDescriptorFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
     for (    final IvyArtifactRepository repository : repositories.withType(IvyArtifactRepository.class)) {
       final String repositoryName=repository.getName();
-      final String publishTaskName=String.format("publish%sPublicationTo%sRepository",capitalize(publicationName),capitalize(repositoryName));
+      final String publishTaskName="publish" + capitalize(publicationName) + "PublicationTo"+ capitalize(repositoryName)+ "Repository";
       tasks.create(publishTaskName,PublishToIvyRepository.class,new Action<PublishToIvyRepository>(){
         public void execute(        PublishToIvyRepository publishTask){
           publishTask.setPublication(publication);
           publishTask.setRepository(repository);
           publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-          publishTask.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'.",publicationName,repositoryName));
+          publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '"+ repositoryName+ "'.");
         }
       }
 );

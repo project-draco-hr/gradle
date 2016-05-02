@@ -1,6 +1,7 @@
 {
   for (  final PlayDistribution distribution : distributions.withType(PlayDistribution.class)) {
-    final String stageTaskName=String.format("stage%sDist",StringUtils.capitalize(distribution.getName()));
+    String capitalizedDistName=StringUtils.capitalize(distribution.getName());
+    final String stageTaskName="stage" + capitalizedDistName + "Dist";
     final File stageDir=new File(buildDir,"stage");
     final String baseName=StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName();
     tasks.create(stageTaskName,Sync.class,new Action<Sync>(){
@@ -20,7 +21,7 @@
     }
 );
     final Task stageTask=tasks.get(stageTaskName);
-    final String distributionZipTaskName=String.format("create%sZipDist",StringUtils.capitalize(distribution.getName()));
+    final String distributionZipTaskName="create" + capitalizedDistName + "ZipDist";
     tasks.create(distributionZipTaskName,Zip.class,new Action<Zip>(){
       @Override public void execute(      final Zip zip){
         zip.setDescription("Packages the '" + distribution.getName() + "' distribution as a zip file.");
@@ -30,7 +31,7 @@
       }
     }
 );
-    final String distributionTarTaskName=String.format("create%sTarDist",StringUtils.capitalize(distribution.getName()));
+    final String distributionTarTaskName="create" + capitalizedDistName + "TarDist";
     tasks.create(distributionTarTaskName,Tar.class,new Action<Tar>(){
       @Override public void execute(      final Tar tar){
         tar.setDescription("Packages the '" + distribution.getName() + "' distribution as a tar file.");
