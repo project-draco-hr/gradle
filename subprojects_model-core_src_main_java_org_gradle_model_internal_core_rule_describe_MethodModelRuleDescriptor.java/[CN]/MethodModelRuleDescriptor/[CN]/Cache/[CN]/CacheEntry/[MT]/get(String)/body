@@ -1,0 +1,23 @@
+{
+  MethodModelRuleDescriptor desc=descriptors.get(methodName);
+  if (desc != null) {
+    return desc;
+  }
+  Class<?> clazz=clazzType.getConcreteClass();
+  Method[] declaredMethods=clazz.getDeclaredMethods();
+  Method method=null;
+  for (  Method declaredMethod : declaredMethods) {
+    if (declaredMethod.getName().equals(methodName)) {
+      if (method != null) {
+        throw new IllegalStateException("Class " + clazz.getName() + " has more than one method named '"+ methodName+ "'");
+      }
+      method=declaredMethod;
+    }
+  }
+  if (method == null) {
+    throw new IllegalStateException("Class " + clazz.getName() + " has no method named '"+ methodName+ "'");
+  }
+  desc=new MethodModelRuleDescriptor(ModelType.of(clazz),ModelType.returnType(method),method);
+  descriptors.put(methodName,desc);
+  return desc;
+}
