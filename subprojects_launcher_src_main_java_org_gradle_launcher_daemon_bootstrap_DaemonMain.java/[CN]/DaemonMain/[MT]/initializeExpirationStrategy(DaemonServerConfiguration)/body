@@ -1,5 +1,6 @@
 {
   DaemonIdleTimeoutExpirationStrategy timeoutStrategy=new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout(),TimeUnit.MILLISECONDS);
   DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy=new DaemonRegistryUnavailableExpirationStrategy();
-  return new CompositeDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy,registryUnavailableStrategy));
+  DaemonExpirationStrategy lowMemoryLruStrategy=new AllDaemonExpirationStrategy(ImmutableList.of(LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.2),new LruDaemonExpirationStrategy()));
+  return new AnyDaemonExpirationStrategy(ImmutableList.of(registryUnavailableStrategy,lowMemoryLruStrategy));
 }
