@@ -6,25 +6,32 @@
   final List<DefaultEclipseExternalDependency> externalDependencies=new LinkedList<DefaultEclipseExternalDependency>();
   final List<DefaultEclipseProjectDependency> projectDependencies=new LinkedList<DefaultEclipseProjectDependency>();
   final List<DefaultEclipseSourceDirectory> sourceDirectories=new LinkedList<DefaultEclipseSourceDirectory>();
+  Map<AbstractLibrary,DefaultEclipseExternalDependency> entryToExternalDependency=new HashMap<AbstractLibrary,DefaultEclipseExternalDependency>();
+  Map<ProjectDependency,DefaultEclipseProjectDependency> entryToProjectDependency=new HashMap<ProjectDependency,DefaultEclipseProjectDependency>();
   for (  ClasspathEntry entry : entries) {
     if (entry instanceof Library) {
       AbstractLibrary library=(AbstractLibrary)entry;
       final File file=library.getLibrary().getFile();
       final File source=library.getSourcePath() == null ? null : library.getSourcePath().getFile();
       final File javadoc=library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
-      externalDependencies.add(new DefaultEclipseExternalDependency(file,javadoc,source,library.getModuleVersion(),library.isExported()));
+      DefaultEclipseExternalDependency dependency=new DefaultEclipseExternalDependency(file,javadoc,source,library.getModuleVersion(),library.isExported());
+      externalDependencies.add(dependency);
+      entryToExternalDependency.put(library,dependency);
     }
  else     if (entry instanceof ProjectDependency) {
       final ProjectDependency projectDependency=(ProjectDependency)entry;
       final String path=StringUtils.removeStart(projectDependency.getPath(),"/");
       DefaultEclipseProject targetProject=projectMapping.get(projectDependency.getGradlePath());
+      DefaultEclipseProjectDependency dependency;
       if (targetProject == null) {
         File projectDirectory=compositeProjectMapper.transform(projectDependency.getGradlePath());
-        projectDependencies.add(new DefaultEclipseProjectDependency(path,projectDirectory,projectDependency.isExported()));
+        dependency=new DefaultEclipseProjectDependency(path,projectDirectory,projectDependency.isExported());
       }
  else {
-        projectDependencies.add(new DefaultEclipseProjectDependency(path,targetProject,projectDependency.isExported()));
+        dependency=new DefaultEclipseProjectDependency(path,targetProject,projectDependency.isExported());
       }
+      projectDependencies.add(dependency);
+      entryToProjectDependency.put(projectDependency,dependency);
     }
  else     if (entry instanceof SourceFolder) {
       final SourceFolder sourceFolder=(SourceFolder)entry;
@@ -59,6 +66,12 @@
   EclipseJdt jdt=eclipseModel.getJdt();
   if (jdt != null) {
     eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings().setSourceLanguageLevel(jdt.getSourceCompatibility()).setTargetBytecodeVersion(jdt.getTargetCompatibility()).setJdk(DefaultInstalledJdk.current()));
+  }
+  if (isWebProject(project)) {
+    EclipseWtp wtp=project.getExtensions().findByType(EclipseModel.class).getWtp();
+    EclipseWtpClasspathAttributeSupport wtpSupport=new EclipseWtpClasspathAttributeSupport(project,wtp);
+    wtpSupport.defineAttributesForExternalDependencies(entryToExternalDependency);
+    wtpSupport.defineAttributesForProjectDependencies(entryToProjectDependency);
   }
   for (  Project childProject : project.getChildProjects().values()) {
     populate(childProject);
