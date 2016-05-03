@@ -1,0 +1,21 @@
+{
+  final ConventionMapping extensionMapping=conventionMappingOf(extension);
+  extensionMapping.map("sourceSets",Callables.returning(new ArrayList()));
+  extensionMapping.map("reportsDir",new Callable<File>(){
+    @Override public File call(){
+      return project.getExtensions().getByType(ReportingExtension.class).file(getReportName());
+    }
+  }
+);
+  project.getPlugins().withType(getBasePlugin(),new Action<Plugin>(){
+    @Override public void execute(    Plugin plugin){
+      extensionMapping.map("sourceSets",new Callable<SourceSetContainer>(){
+        @Override public SourceSetContainer call(){
+          return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+        }
+      }
+);
+    }
+  }
+);
+}
