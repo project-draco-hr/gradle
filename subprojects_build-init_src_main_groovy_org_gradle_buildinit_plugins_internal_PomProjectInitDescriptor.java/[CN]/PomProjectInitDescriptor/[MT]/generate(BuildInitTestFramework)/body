@@ -1,0 +1,12 @@
+{
+  SingleMessageLogger.incubatingFeatureUsed("Maven to Gradle conversion");
+  File pom=fileResolver.resolve("pom.xml");
+  try {
+    Settings settings=settingsProvider.buildSettings();
+    Set<MavenProject> mavenProjects=new MavenProjectsCreator().create(settings,pom);
+    new Maven2Gradle(mavenProjects,fileResolver.resolve(".")).convert();
+  }
+ catch (  Exception exception) {
+    throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.",pom),exception);
+  }
+}
