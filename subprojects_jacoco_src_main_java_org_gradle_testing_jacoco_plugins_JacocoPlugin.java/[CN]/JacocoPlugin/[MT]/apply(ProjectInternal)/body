@@ -1,0 +1,20 @@
+{
+  project.getPluginManager().apply(ReportingBasePlugin.class);
+  this.project=project;
+  addJacocoConfigurations();
+  JacocoAgentJar agent=instantiator.newInstance(JacocoAgentJar.class,project);
+  JacocoPluginExtension extension=project.getExtensions().create(PLUGIN_EXTENSION_NAME,JacocoPluginExtension.class,project,agent);
+  final ReportingExtension reportingExtension=(ReportingExtension)project.getExtensions().getByName(ReportingExtension.NAME);
+  ((IConventionAware)extension).getConventionMapping().map("reportsDir",new Callable<File>(){
+    @Override public File call(){
+      return reportingExtension.file("jacoco");
+    }
+  }
+);
+  configureAgentDependencies(agent,extension);
+  configureTaskClasspathDefaults(extension);
+  applyToDefaultTasks(extension);
+  configureDefaultOutputPathForJacocoMerge();
+  configureJacocoReportsDefaults(extension);
+  addDefaultReportTasks(extension);
+}

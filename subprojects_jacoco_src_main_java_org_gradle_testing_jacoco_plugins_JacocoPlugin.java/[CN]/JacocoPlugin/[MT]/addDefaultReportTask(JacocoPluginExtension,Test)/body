@@ -1,0 +1,28 @@
+{
+  final JacocoReport reportTask=project.getTasks().create("jacoco" + StringUtils.capitalise(task.getName()) + "Report",JacocoReport.class);
+  reportTask.executionData(task);
+  reportTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
+  ConventionMapping taskMapping=((IConventionAware)reportTask).getConventionMapping();
+  taskMapping.getConventionValue(reportTask.getReports(),"reports",false).all(new Action<Report>(){
+    @Override public void execute(    final Report report){
+      ConventionMapping reportMapping=((IConventionAware)report).getConventionMapping();
+      if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
+        reportMapping.map("destination",new Callable<File>(){
+          @Override public File call(){
+            return new File(extension.getReportsDir(),task.getName() + "/" + report.getName());
+          }
+        }
+);
+      }
+ else {
+        reportMapping.map("destination",new Callable<File>(){
+          @Override public File call(){
+            return new File(extension.getReportsDir(),task.getName() + "/" + reportTask.getName()+ "."+ report.getName());
+          }
+        }
+);
+      }
+    }
+  }
+);
+}
