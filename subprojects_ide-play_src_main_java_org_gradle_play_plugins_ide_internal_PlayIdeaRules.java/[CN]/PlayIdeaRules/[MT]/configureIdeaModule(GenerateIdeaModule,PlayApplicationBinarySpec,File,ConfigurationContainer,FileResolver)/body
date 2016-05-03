@@ -1,0 +1,44 @@
+{
+  IdeaModule module=ideaModule.getModule();
+  module.setScopes(buildScopes(configurations));
+  DslObject wrapped=wrapped(module);
+  ConventionMapping conventionMapping=wrapped.getConventionMapping();
+  conventionMapping.map("sourceDirs",new Callable<Set<File>>(){
+    @Override public Set<File> call() throws Exception {
+      return CollectionUtils.inject(new HashSet<File>(),playApplicationBinarySpec.getInputs(),new Action<CollectionUtils.InjectionStep<HashSet<File>,LanguageSourceSet>>(){
+        @Override public void execute(        CollectionUtils.InjectionStep<HashSet<File>,LanguageSourceSet> step){
+          step.getTarget().addAll(step.getItem().getSource().getSrcDirs());
+        }
+      }
+);
+    }
+  }
+);
+  conventionMapping.map("testSourceDirs",new Callable<Set<File>>(){
+    @Override public Set<File> call() throws Exception {
+      return Collections.singleton(fileResolver.resolve("test"));
+    }
+  }
+);
+  conventionMapping.map("singleEntryLibraries",new Callable<Map<String,Iterable<File>>>(){
+    @Override public Map<String,Iterable<File>> call() throws Exception {
+      List<File> runtime=ImmutableList.<File>builder().add(playApplicationBinarySpec.getClasses().getClassesDir()).addAll(playApplicationBinarySpec.getClasses().getResourceDirs()).build();
+      return ImmutableMap.<String,Iterable<File>>builder().put("RUNTIME",runtime).put("TEST",Lists.newArrayList(new File(buildDir,"playBinary/testClasses"))).build();
+    }
+  }
+);
+  wrapped.getExtensions().getExtraProperties().set("scalaPlatform",playApplicationBinarySpec.getTargetPlatform().getScalaPlatform());
+  conventionMapping.map("targetBytecodeVersion",new Callable<JavaVersion>(){
+    @Override public JavaVersion call() throws Exception {
+      return getTargetJavaVersion(playApplicationBinarySpec);
+    }
+  }
+);
+  conventionMapping.map("languageLevel",new Callable<IdeaLanguageLevel>(){
+    @Override public IdeaLanguageLevel call() throws Exception {
+      return new IdeaLanguageLevel(getTargetJavaVersion(playApplicationBinarySpec));
+    }
+  }
+);
+  ideaModule.dependsOn(playApplicationBinarySpec.getInputs());
+}
