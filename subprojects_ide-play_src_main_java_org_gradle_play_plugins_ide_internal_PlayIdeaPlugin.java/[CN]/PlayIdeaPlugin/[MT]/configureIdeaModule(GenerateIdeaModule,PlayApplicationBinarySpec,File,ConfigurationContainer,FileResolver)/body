@@ -1,8 +1,7 @@
 {
   IdeaModule module=ideaModule.getModule();
   module.setScopes(buildScopes(configurations));
-  DslObject wrapped=wrapped(module);
-  ConventionMapping conventionMapping=wrapped.getConventionMapping();
+  ConventionMapping conventionMapping=conventionMappingFor(module);
   conventionMapping.map("sourceDirs",new Callable<Set<File>>(){
     @Override public Set<File> call() throws Exception {
       return CollectionUtils.inject(new HashSet<File>(),playApplicationBinarySpec.getInputs(),new Action<CollectionUtils.InjectionStep<HashSet<File>,LanguageSourceSet>>(){
@@ -22,8 +21,7 @@
 );
   conventionMapping.map("singleEntryLibraries",new Callable<Map<String,Iterable<File>>>(){
     @Override public Map<String,Iterable<File>> call() throws Exception {
-      List<File> runtime=ImmutableList.<File>builder().add(playApplicationBinarySpec.getClasses().getClassesDir()).addAll(playApplicationBinarySpec.getClasses().getResourceDirs()).build();
-      return ImmutableMap.<String,Iterable<File>>builder().put("RUNTIME",runtime).put("TEST",Lists.newArrayList(new File(buildDir,"playBinary/testClasses"))).build();
+      return ImmutableMap.<String,Iterable<File>>builder().put("COMPILE",Collections.singleton(playApplicationBinarySpec.getClasses().getClassesDir())).put("RUNTIME",playApplicationBinarySpec.getClasses().getResourceDirs()).put("TEST",Collections.singleton(new File(buildDir,"playBinary/testClasses"))).build();
     }
   }
 );
