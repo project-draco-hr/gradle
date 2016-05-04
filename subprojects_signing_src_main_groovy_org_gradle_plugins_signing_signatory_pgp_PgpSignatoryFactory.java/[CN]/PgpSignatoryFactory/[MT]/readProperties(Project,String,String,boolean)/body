@@ -1,0 +1,21 @@
+{
+  ArrayList<Object> values=new ArrayList<Object>();
+  for (  String property : PROPERTIES) {
+    String qualifiedProperty=getQualifiedPropertyName(prefix,property);
+    if (project.hasProperty(qualifiedProperty)) {
+      values.add(project.property(qualifiedProperty));
+    }
+ else {
+      if (required) {
+        throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' could not be found on project and is needed for signing");
+      }
+ else {
+        return null;
+      }
+    }
+  }
+  String keyId=values.get(0).toString();
+  File keyRing=project.file(values.get(1).toString());
+  String password=values.get(2).toString();
+  return createSignatory(name,keyId,keyRing,password);
+}

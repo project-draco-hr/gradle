@@ -1,0 +1,16 @@
+{
+  SignOperation signOperation=doSignOperation(new Action<SignOperation>(){
+    public void execute(    SignOperation so){
+      so.sign(mavenDeployment.getPomArtifact());
+      so.configure(closure);
+    }
+  }
+);
+  Signature pomSignature=signOperation.getSingleSignature();
+  if (!pomSignature.getFile().exists()) {
+    return null;
+  }
+  pomSignature.setType("pom." + pomSignature.getSignatureType().getExtension());
+  mavenDeployment.addArtifact(pomSignature);
+  return pomSignature;
+}
