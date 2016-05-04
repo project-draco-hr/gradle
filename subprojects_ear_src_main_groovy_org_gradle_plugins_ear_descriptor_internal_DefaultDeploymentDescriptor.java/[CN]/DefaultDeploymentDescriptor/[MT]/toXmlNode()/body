@@ -1,0 +1,46 @@
+{
+  DomNode root=new DomNode(nodeNameFor("application"));
+  root.attributes().put("version",version);
+  if (!version.equals("1.3")) {
+    root.attributes().put("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance");
+  }
+  if (version.equals("1.3")) {
+    root.setPublicId("-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN");
+    root.setSystemId("http://java.sun.com/dtd/application_1_3.dtd");
+  }
+ else   if (version.equals("1.4")) {
+    root.attributes().put("xsi:schemaLocation","http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_1_4.xsd");
+  }
+ else   if (version.equals("5") || version.equals("6")) {
+    root.attributes().put("xsi:schemaLocation","http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_" + version + ".xsd");
+  }
+  if (applicationName != null) {
+    new Node(root,nodeNameFor("application-name"),applicationName);
+  }
+  if (description != null) {
+    new Node(root,nodeNameFor("description"),description);
+  }
+  if (displayName != null) {
+    new Node(root,nodeNameFor("display-name"),displayName);
+  }
+  if (initializeInOrder) {
+    new Node(root,nodeNameFor("initialize-in-order"),initializeInOrder);
+  }
+  for (  EarModule module : modules) {
+    Node moduleNode=new Node(root,nodeNameFor("module"));
+    module.toXmlNode(moduleNode,moduleNameFor(module));
+  }
+  if (securityRoles != null) {
+    for (    EarSecurityRole role : securityRoles) {
+      Node roleNode=new Node(root,nodeNameFor("security-role"));
+      if (role.getDescription() != null) {
+        new Node(roleNode,nodeNameFor("description"),role.getDescription());
+      }
+      new Node(roleNode,nodeNameFor("role-name"),role.getRoleName());
+    }
+  }
+  if (libraryDirectory != null) {
+    new Node(root,nodeNameFor("library-directory"),libraryDirectory);
+  }
+  return root;
+}
