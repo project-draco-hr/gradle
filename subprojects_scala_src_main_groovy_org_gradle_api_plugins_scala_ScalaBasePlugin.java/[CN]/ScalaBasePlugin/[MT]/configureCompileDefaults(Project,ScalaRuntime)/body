@@ -1,0 +1,23 @@
+{
+  project.getTasks().withType(ScalaCompile.class,new Closure<Void>(project){
+    @SuppressWarnings("unused") public void doCall(    final ScalaCompile compile){
+      compile.getConventionMapping().map("scalaClasspath",new Callable<FileCollection>(){
+        @Override public FileCollection call() throws Exception {
+          return scalaRuntime.inferScalaClasspath(compile.getClasspath());
+        }
+      }
+);
+      compile.getConventionMapping().map("zincClasspath",new Callable<Configuration>(){
+        @Override public Configuration call() throws Exception {
+          Configuration config=project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME);
+          if (!((ScalaCompileOptionsInternal)compile.getScalaCompileOptions()).internalIsUseAnt() && config.getDependencies().isEmpty()) {
+            project.getDependencies().add("zinc","com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+          }
+          return config;
+        }
+      }
+);
+    }
+  }
+);
+}

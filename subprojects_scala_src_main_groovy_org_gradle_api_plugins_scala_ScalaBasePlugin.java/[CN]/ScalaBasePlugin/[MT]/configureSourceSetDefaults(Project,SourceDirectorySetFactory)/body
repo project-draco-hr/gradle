@@ -1,0 +1,28 @@
+{
+  final JavaBasePlugin javaPlugin=project.getPlugins().getPlugin(JavaBasePlugin.class);
+  project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>(){
+    @Override public void execute(    final SourceSet sourceSet){
+      String displayName=(String)InvokerHelper.invokeMethod(sourceSet,"getDisplayName",null);
+      Convention sourceSetConvention=(Convention)InvokerHelper.getProperty(sourceSet,"convention");
+      DefaultScalaSourceSet scalaSourceSet=new DefaultScalaSourceSet(displayName,sourceDirectorySetFactory);
+      sourceSetConvention.getPlugins().put("scala",scalaSourceSet);
+      final SourceDirectorySet scalaDirectorySet=scalaSourceSet.getScala();
+      scalaDirectorySet.srcDir(new Callable<File>(){
+        @Override public File call() throws Exception {
+          return project.file("src/" + sourceSet.getName() + "/scala");
+        }
+      }
+);
+      sourceSet.getAllJava().source(scalaDirectorySet);
+      sourceSet.getAllSource().source(scalaDirectorySet);
+      sourceSet.getResources().getFilter().exclude(new Spec<FileTreeElement>(){
+        @Override public boolean isSatisfiedBy(        FileTreeElement element){
+          return scalaDirectorySet.contains(element.getFile());
+        }
+      }
+);
+      configureScalaCompile(project,javaPlugin,sourceSet);
+    }
+  }
+);
+}

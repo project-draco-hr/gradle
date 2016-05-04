@@ -1,0 +1,26 @@
+{
+  project.getTasks().withType(ScalaDoc.class,new Closure<Void>(project){
+    @SuppressWarnings("unused") public void doCall(    final ScalaDoc scalaDoc){
+      scalaDoc.getConventionMapping().map("destinationDir",new Callable<File>(){
+        @Override public File call() throws Exception {
+          File docsDir=project.getConvention().getPlugin(JavaPluginConvention.class).getDocsDir();
+          return project.file(docsDir.getPath() + "/scaladoc");
+        }
+      }
+);
+      scalaDoc.getConventionMapping().map("title",new Callable<String>(){
+        @Override public String call() throws Exception {
+          return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
+        }
+      }
+);
+      scalaDoc.getConventionMapping().map("scalaClasspath",new Callable<FileCollection>(){
+        @Override public FileCollection call() throws Exception {
+          return scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath());
+        }
+      }
+);
+    }
+  }
+);
+}
