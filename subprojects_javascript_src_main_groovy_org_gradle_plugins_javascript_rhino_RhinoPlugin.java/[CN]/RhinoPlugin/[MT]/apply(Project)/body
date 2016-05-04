@@ -1,0 +1,38 @@
+{
+  project.getPluginManager().apply(JavaScriptBasePlugin.class);
+  JavaScriptExtension jsExtension=project.getExtensions().findByType(JavaScriptExtension.class);
+  final RhinoExtension rhinoExtension=((ExtensionAware)jsExtension).getExtensions().create(RhinoExtension.NAME,RhinoExtension.class);
+  final Configuration configuration=addClasspathConfiguration(project.getConfigurations());
+  configureDefaultRhinoDependency(configuration,project.getDependencies(),rhinoExtension);
+  ConventionMapping conventionMapping=((IConventionAware)rhinoExtension).getConventionMapping();
+  conventionMapping.map("classpath",new Callable<Configuration>(){
+    public Configuration call(){
+      return configuration;
+    }
+  }
+);
+  conventionMapping.map("version",new Callable<String>(){
+    public String call(){
+      return RhinoExtension.DEFAULT_RHINO_DEPENDENCY_VERSION;
+    }
+  }
+);
+  project.getTasks().withType(RhinoShellExec.class,new Action<RhinoShellExec>(){
+    public void execute(    RhinoShellExec task){
+      task.getConventionMapping().map("classpath",new Callable<FileCollection>(){
+        public FileCollection call(){
+          return rhinoExtension.getClasspath();
+        }
+      }
+);
+      task.getConventionMapping().map("main",new Callable<String>(){
+        public String call(){
+          return RhinoExtension.RHINO_SHELL_MAIN;
+        }
+      }
+);
+      task.setClasspath(rhinoExtension.getClasspath());
+    }
+  }
+);
+}

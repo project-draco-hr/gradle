@@ -1,0 +1,45 @@
+{
+  project.getPluginManager().apply(RhinoPlugin.class);
+  project.getPluginManager().apply(ReportingBasePlugin.class);
+  JavaScriptExtension jsExtension=project.getExtensions().getByType(JavaScriptExtension.class);
+  final JsHintExtension jsHintExtension=((ExtensionAware)jsExtension).getExtensions().create(JsHintExtension.NAME,JsHintExtension.class);
+  final Configuration configuration=addConfiguration(project.getConfigurations(),project.getDependencies(),jsHintExtension);
+  ConventionMapping conventionMapping=((IConventionAware)jsHintExtension).getConventionMapping();
+  conventionMapping.map("js",new Callable<Configuration>(){
+    public Configuration call(){
+      return configuration;
+    }
+  }
+);
+  conventionMapping.map("version",new Callable<String>(){
+    public String call(){
+      return JsHintExtension.DEFAULT_DEPENDENCY_VERSION;
+    }
+  }
+);
+  final RhinoExtension rhinoExtension=((ExtensionAware)jsExtension).getExtensions().getByType(RhinoExtension.class);
+  final ReportingExtension reportingExtension=project.getExtensions().getByType(ReportingExtension.class);
+  project.getTasks().withType(JsHint.class,new Action<JsHint>(){
+    public void execute(    final JsHint task){
+      task.getConventionMapping().map("rhinoClasspath",new Callable<FileCollection>(){
+        public FileCollection call(){
+          return rhinoExtension.getClasspath();
+        }
+      }
+);
+      task.getConventionMapping().map("jsHint",new Callable<FileCollection>(){
+        public FileCollection call(){
+          return jsHintExtension.getJs();
+        }
+      }
+);
+      task.getConventionMapping().map("jsonReport",new Callable<File>(){
+        public File call(){
+          return reportingExtension.file(task.getName() + "/report.json");
+        }
+      }
+);
+    }
+  }
+);
+}

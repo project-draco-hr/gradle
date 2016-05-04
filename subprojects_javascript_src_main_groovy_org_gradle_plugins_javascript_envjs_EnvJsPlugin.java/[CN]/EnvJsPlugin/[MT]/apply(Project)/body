@@ -1,0 +1,40 @@
+{
+  project.getPluginManager().apply(RhinoPlugin.class);
+  project.getPluginManager().apply(ReportingBasePlugin.class);
+  JavaScriptExtension jsExtension=project.getExtensions().getByType(JavaScriptExtension.class);
+  final EnvJsExtension envJsExtension=((ExtensionAware)jsExtension).getExtensions().create(EnvJsExtension.NAME,EnvJsExtension.class);
+  final Configuration configuration=addConfiguration(project.getConfigurations(),project.getDependencies(),envJsExtension);
+  final ConventionMapping conventionMapping=((IConventionAware)envJsExtension).getConventionMapping();
+  conventionMapping.map("js",new Callable<Configuration>(){
+    public Configuration call(){
+      return configuration;
+    }
+  }
+);
+  conventionMapping.map("version",new Callable<String>(){
+    public String call(){
+      return EnvJsExtension.DEFAULT_DEPENDENCY_VERSION;
+    }
+  }
+);
+  final RhinoExtension rhinoExtension=((ExtensionAware)jsExtension).getExtensions().getByType(RhinoExtension.class);
+  project.getTasks().withType(BrowserEvaluate.class,new Action<BrowserEvaluate>(){
+    public void execute(    BrowserEvaluate task){
+      ((IConventionAware)task).getConventionMapping().map("evaluator",new Callable<EnvJsBrowserEvaluator>(){
+        public EnvJsBrowserEvaluator call(){
+          RhinoWorkerHandleFactory handleFactory=new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
+          File workDir=project.getProjectDir();
+          Factory<File> envJsFactory=new Factory<File>(){
+            public File create(){
+              return envJsExtension.getJs().getSingleFile();
+            }
+          }
+;
+          return new EnvJsBrowserEvaluator(handleFactory,rhinoExtension.getClasspath(),envJsFactory,project.getGradle().getStartParameter().getLogLevel(),workDir);
+        }
+      }
+);
+    }
+  }
+);
+}

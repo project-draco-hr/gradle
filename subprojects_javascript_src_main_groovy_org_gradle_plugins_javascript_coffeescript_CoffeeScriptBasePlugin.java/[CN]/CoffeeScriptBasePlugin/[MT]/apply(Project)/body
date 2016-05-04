@@ -1,0 +1,38 @@
+{
+  project.getPluginManager().apply(RhinoPlugin.class);
+  JavaScriptExtension jsExtension=project.getExtensions().getByType(JavaScriptExtension.class);
+  ExtensionContainer extensionContainer=((ExtensionAware)jsExtension).getExtensions();
+  final CoffeeScriptExtension csExtension=extensionContainer.create(CoffeeScriptExtension.NAME,CoffeeScriptExtension.class);
+  final Configuration jsConfiguration=addJsConfiguration(project.getConfigurations(),project.getDependencies(),csExtension);
+  ConventionMapping conventionMapping=((IConventionAware)csExtension).getConventionMapping();
+  conventionMapping.map("js",new Callable<Configuration>(){
+    @Override public Configuration call(){
+      return jsConfiguration;
+    }
+  }
+);
+  conventionMapping.map("version",new Callable<String>(){
+    @Override public String call(){
+      return CoffeeScriptExtension.DEFAULT_JS_DEPENDENCY_VERSION;
+    }
+  }
+);
+  final RhinoExtension rhinoExtension=extensionContainer.getByType(RhinoExtension.class);
+  project.getTasks().withType(CoffeeScriptCompile.class,new Action<CoffeeScriptCompile>(){
+    @Override public void execute(    CoffeeScriptCompile task){
+      task.getConventionMapping().map("rhinoClasspath",new Callable<FileCollection>(){
+        public FileCollection call(){
+          return rhinoExtension.getClasspath();
+        }
+      }
+);
+      task.getConventionMapping().map("coffeeScriptJs",new Callable<FileCollection>(){
+        public FileCollection call(){
+          return csExtension.getJs();
+        }
+      }
+);
+    }
+  }
+);
+}
