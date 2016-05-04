@@ -1,0 +1,25 @@
+{
+  final GeneratePluginDescriptors generatePluginDescriptors=project.getTasks().create(GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME,GeneratePluginDescriptors.class);
+  generatePluginDescriptors.conventionMapping("declarations",new Callable<List<PluginDeclaration>>(){
+    @Override public List<PluginDeclaration> call() throws Exception {
+      return Lists.newArrayList(extension.getPlugins());
+    }
+  }
+);
+  generatePluginDescriptors.conventionMapping("outputDirectory",new Callable<File>(){
+    @Override public File call() throws Exception {
+      return new File(project.getBuildDir(),generatePluginDescriptors.getName());
+    }
+  }
+);
+  Copy processResources=(Copy)project.getTasks().getByName(PROCESS_RESOURCES_TASK);
+  CopySpec copyPluginDescriptors=processResources.getRootSpec().addChild();
+  copyPluginDescriptors.into("META-INF/gradle-plugins");
+  copyPluginDescriptors.from(new Callable<File>(){
+    @Override public File call() throws Exception {
+      return generatePluginDescriptors.getOutputDirectory();
+    }
+  }
+);
+  processResources.dependsOn(generatePluginDescriptors);
+}
