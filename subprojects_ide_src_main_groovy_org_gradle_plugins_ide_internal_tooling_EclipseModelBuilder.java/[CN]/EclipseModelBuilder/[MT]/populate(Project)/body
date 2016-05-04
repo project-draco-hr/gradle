@@ -6,8 +6,6 @@
   final List<DefaultEclipseExternalDependency> externalDependencies=new LinkedList<DefaultEclipseExternalDependency>();
   final List<DefaultEclipseProjectDependency> projectDependencies=new LinkedList<DefaultEclipseProjectDependency>();
   final List<DefaultEclipseSourceDirectory> sourceDirectories=new LinkedList<DefaultEclipseSourceDirectory>();
-  Map<AbstractLibrary,DefaultEclipseExternalDependency> entryToExternalDependency=new HashMap<AbstractLibrary,DefaultEclipseExternalDependency>();
-  Map<ProjectDependency,DefaultEclipseProjectDependency> entryToProjectDependency=new HashMap<ProjectDependency,DefaultEclipseProjectDependency>();
   for (  ClasspathEntry entry : entries) {
     if (entry instanceof Library) {
       AbstractLibrary library=(AbstractLibrary)entry;
@@ -16,7 +14,6 @@
       final File javadoc=library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
       DefaultEclipseExternalDependency dependency=new DefaultEclipseExternalDependency(file,javadoc,source,library.getModuleVersion(),library.isExported());
       externalDependencies.add(dependency);
-      entryToExternalDependency.put(library,dependency);
     }
  else     if (entry instanceof ProjectDependency) {
       final ProjectDependency projectDependency=(ProjectDependency)entry;
@@ -31,7 +28,6 @@
         dependency=new DefaultEclipseProjectDependency(path,targetProject,projectDependency.isExported());
       }
       projectDependencies.add(dependency);
-      entryToProjectDependency.put(projectDependency,dependency);
     }
  else     if (entry instanceof SourceFolder) {
       final SourceFolder sourceFolder=(SourceFolder)entry;
@@ -67,9 +63,7 @@
   if (jdt != null) {
     eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings().setSourceLanguageLevel(jdt.getSourceCompatibility()).setTargetBytecodeVersion(jdt.getTargetCompatibility()).setJdk(DefaultInstalledJdk.current()));
   }
-  EclipseWtpClasspathAttributeSupport wtpSupport=EclipseWtpClasspathAttributeSupport.from(project);
-  wtpSupport.defineAttributesForExternalDependencies(entryToExternalDependency);
-  wtpSupport.defineAttributesForProjectDependencies(entryToProjectDependency);
+  EclipseWtpSupport.enhanceProject(project,projectDependencies,externalDependencies);
   for (  Project childProject : project.getChildProjects().values()) {
     populate(childProject);
   }
