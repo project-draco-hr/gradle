@@ -17,13 +17,15 @@
   final Map<Result,PluginImplementation<?>> pluginImpls=Maps.newLinkedHashMap();
   final Map<Result,PluginImplementation<?>> pluginImplsFromOtherLoaders=Maps.newLinkedHashMap();
   if (!results.isEmpty()) {
-    List<ArtifactRepository> pluginArtifactRepositories=Lists.newArrayList();
-    for (    PluginRepository pluginRepository : pluginRepositoryRegistry) {
+    final RepositoryHandler repositories=scriptHandler.getRepositories();
+    List<ArtifactRepository> pluginArtifactRepositories=new ArrayList<ArtifactRepository>();
+    pluginRepositoryRegistry.lock();
+    for (    PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
       if (pluginRepository instanceof BackedByArtifactRepository) {
-        pluginArtifactRepositories.add(((BackedByArtifactRepository)pluginRepository).getArtifactRepository());
+        pluginArtifactRepositories.add(((BackedByArtifactRepository)pluginRepository).createArtifactRepository(repositories));
       }
     }
-    final RepositoryHandler repositories=scriptHandler.getRepositories();
+    repositories.removeAll(pluginArtifactRepositories);
     repositories.addAll(0,pluginArtifactRepositories);
     final List<MavenArtifactRepository> mavenRepos=repositories.withType(MavenArtifactRepository.class);
     final Set<String> repoUrls=Sets.newLinkedHashSet();
