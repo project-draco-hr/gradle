@@ -1,0 +1,29 @@
+{
+  if (events.size() < 1) {
+    return 0;
+  }
+  long total=0;
+  long firstCount=0;
+  long lastCount=0;
+  for (  GarbageCollectionEvent event : events) {
+    if (event.getCount() == lastCount || event.getCount() == 0) {
+      continue;
+    }
+    MemoryUsage usage=event.getUsage();
+    if (firstCount == 0) {
+      firstCount=event.getCount();
+      total+=usage.getUsed();
+    }
+ else {
+      total+=usage.getUsed() * (event.getCount() - lastCount);
+    }
+    lastCount=event.getCount();
+  }
+  if (lastCount == 0 || lastCount == firstCount) {
+    return 0;
+  }
+ else {
+    long totalCount=lastCount - firstCount + 1;
+    return total / totalCount;
+  }
+}

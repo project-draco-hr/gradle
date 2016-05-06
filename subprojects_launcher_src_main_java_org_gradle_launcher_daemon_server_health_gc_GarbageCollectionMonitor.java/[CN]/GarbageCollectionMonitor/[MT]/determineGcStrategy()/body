@@ -1,0 +1,22 @@
+{
+  JVMStrategy jvmStrategy=JVMStrategy.current();
+  final List<String> garbageCollectors=CollectionUtils.collect(ManagementFactory.getGarbageCollectorMXBeans(),new Transformer<String,GarbageCollectorMXBean>(){
+    @Override public String transform(    GarbageCollectorMXBean garbageCollectorMXBean){
+      return garbageCollectorMXBean.getName();
+    }
+  }
+);
+  GarbageCollectorMonitoringStrategy gcStrategy=CollectionUtils.findFirst(jvmStrategy.getGcStrategies(),new Spec<GarbageCollectorMonitoringStrategy>(){
+    @Override public boolean isSatisfiedBy(    GarbageCollectorMonitoringStrategy strategy){
+      return garbageCollectors.contains(strategy.getGarbageCollectorName());
+    }
+  }
+);
+  if (gcStrategy == null) {
+    LOGGER.info("Unable to determine a garbage collection monitoring strategy for " + jvmStrategy.toString());
+    return GarbageCollectorMonitoringStrategy.UNKNOWN;
+  }
+ else {
+    return gcStrategy;
+  }
+}
