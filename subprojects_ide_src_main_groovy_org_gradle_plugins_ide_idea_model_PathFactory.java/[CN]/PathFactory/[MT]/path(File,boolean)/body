@@ -1,0 +1,20 @@
+{
+  Variable match=null;
+  for (  Variable variable : variables) {
+    if (file.getAbsolutePath().equals(variable.getDir().getAbsolutePath())) {
+      match=variable;
+      break;
+    }
+    if (file.getAbsolutePath().startsWith(variable.getPrefix())) {
+      if (match == null || variable.getPrefix().startsWith(match.getPrefix())) {
+        match=variable;
+      }
+    }
+  }
+  if (match != null) {
+    return resolvePath(match.getDir(),match.getName(),file);
+  }
+  String relPath=file.getAbsolutePath().replace(File.separator,"/");
+  String url=relativePathToURI(relPath,useFileScheme);
+  return new FilePath(file,url,url,relPath);
+}

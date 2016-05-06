@@ -1,0 +1,13 @@
+{
+  Map<String,ProjectLibrary> scalaCompilerLibraries=Maps.newHashMap();
+  for (  Project scalaProject : scalaProjects) {
+    IdeaModule ideaModule=scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
+    Iterable<File> files=getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
+    ProjectLibrary library=createScalaSdkLibrary(scalaProject,files,useScalaSdk,ideaModule);
+    if (library != null) {
+      ProjectLibrary duplicate=Iterables.find(scalaCompilerLibraries.values(),Predicates.equalTo(library),null);
+      scalaCompilerLibraries.put(scalaProject.getPath(),duplicate == null ? library : duplicate);
+    }
+  }
+  return scalaCompilerLibraries;
+}

@@ -1,0 +1,15 @@
+{
+  ScalaRuntime runtime=scalaProject.getExtensions().findByType(ScalaRuntime.class);
+  if (runtime != null) {
+    FileCollection scalaClasspath=runtime.inferScalaClasspath(files);
+    File compilerJar=runtime.findScalaJar(scalaClasspath,"compiler");
+    ScalaPlatform scalaPlatform=compilerJar != null ? new DefaultScalaPlatform(runtime.getScalaVersion(compilerJar)) : new DefaultScalaPlatform();
+    return createScalaSdkFromPlatform(scalaPlatform,scalaClasspath,useScalaSdk);
+  }
+ else   if (ideaModule.getScalaPlatform() != null) {
+    return createScalaSdkFromPlatform(ideaModule.getScalaPlatform(),scalaProject.files(files),useScalaSdk);
+  }
+ else {
+    return null;
+  }
+}

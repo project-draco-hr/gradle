@@ -1,0 +1,21 @@
+{
+  try {
+    String expandedUrl=url;
+    for (    Variable variable : variables) {
+      expandedUrl=expandedUrl.replace(variable.getName(),variable.getPrefix());
+    }
+    if (expandedUrl.toLowerCase().startsWith("file://")) {
+      expandedUrl=toUrl("file",new File(expandedUrl.substring(7)).getCanonicalFile());
+    }
+ else     if (expandedUrl.toLowerCase().startsWith("jar://")) {
+      String[] parts=expandedUrl.substring(6).split("!");
+      if (parts.length == 2) {
+        expandedUrl=toUrl("jar",new File(parts[0]).getCanonicalFile()) + "!" + parts[1];
+      }
+    }
+    return new Path(url,expandedUrl,relPath);
+  }
+ catch (  IOException ex) {
+    throw new UncheckedIOException(ex);
+  }
+}

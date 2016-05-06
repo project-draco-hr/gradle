@@ -1,0 +1,33 @@
+{
+  for (  Node orderEntry : findOrderEntries()) {
+    Object orderEntryType=orderEntry.attribute("type");
+    if ("module-library".equals(orderEntryType)) {
+      Set<Path> classes=Sets.newLinkedHashSet();
+      Set<Path> javadoc=Sets.newLinkedHashSet();
+      Set<Path> sources=Sets.newLinkedHashSet();
+      Set<JarDirectory> jarDirectories=Sets.newLinkedHashSet();
+      for (      Node library : getChildren(orderEntry,"library")) {
+        Node classesNode=findFirstChildNamed(library,"CLASSES");
+        for (        Node classesRoot : getChildren(classesNode,"root")) {
+          classes.add(pathFactory.path((String)classesRoot.attribute("url")));
+        }
+        Node javadocNode=findFirstChildNamed(library,"JAVADOC");
+        for (        Node javadocRoot : getChildren(javadocNode,"root")) {
+          javadoc.add(pathFactory.path((String)javadocRoot.attribute("url")));
+        }
+        Node sourcesNode=findFirstChildNamed(library,"SOURCES");
+        for (        Node sourcesRoot : getChildren(sourcesNode,"root")) {
+          sources.add(pathFactory.path((String)sourcesRoot.attribute("url")));
+        }
+        for (        Node jarDirNode : getChildren(library,"jarDirectory")) {
+          jarDirectories.add(new JarDirectory(pathFactory.path((String)jarDirNode.attribute("url")),Boolean.parseBoolean((String)jarDirNode.attribute("recursive"))));
+        }
+      }
+      ModuleLibrary moduleLibrary=new ModuleLibrary(classes,javadoc,sources,jarDirectories,(String)orderEntry.attribute("scope"));
+      dependencies.add(moduleLibrary);
+    }
+ else     if ("module".equals(orderEntryType)) {
+      dependencies.add(new ModuleDependency((String)orderEntry.attribute("module-name"),(String)orderEntry.attribute("scope")));
+    }
+  }
+}

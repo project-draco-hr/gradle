@@ -1,0 +1,27 @@
+{
+  Node bytecodeLevelConfiguration=findOrCreateBytecodeLevelConfiguration();
+  bytecodeLevelConfiguration.attributes().put("target",bytecodeVersion.toString());
+  for (  IdeaModule module : modules) {
+    List<Node> bytecodeLevelModules=getChildren(bytecodeLevelConfiguration,"module");
+    Node moduleNode=findFirstWithAttributeValue(bytecodeLevelModules,"name",module.getName());
+    JavaVersion moduleBytecodeVersionOverwrite=module.getTargetBytecodeVersion();
+    if (moduleBytecodeVersionOverwrite == null) {
+      if (moduleNode != null) {
+        Closure noNodeClosure=new Closure(this,this){
+          @Override public Object call(){
+            return null;
+          }
+        }
+;
+        moduleNode.replaceNode(noNodeClosure);
+      }
+    }
+ else {
+      if (moduleNode == null) {
+        moduleNode=bytecodeLevelConfiguration.appendNode("module");
+        moduleNode.attributes().put("name",module.getName());
+      }
+      moduleNode.attributes().put("target",moduleBytecodeVersionOverwrite.toString());
+    }
+  }
+}

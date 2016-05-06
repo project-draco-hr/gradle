@@ -1,0 +1,51 @@
+{
+  return project.getTasks().withType(GenerateIdeaModule.class,new Action<GenerateIdeaModule>(){
+    @Override public void execute(    GenerateIdeaModule ideaModule){
+      ideaModule.getModule().setScopes(Maps.newHashMap(ImmutableMap.<String,Map<String,Collection<Configuration>>>builder().put("PROVIDED",newScopeDefaults()).put("COMPILE",newScopeDefaults()).put("RUNTIME",newScopeDefaults()).put("TEST",newScopeDefaults()).build()));
+      ConventionMapping module=((IConventionAware)ideaModule.getModule()).getConventionMapping();
+      module.map("sourceDirs",new Callable<Set<File>>(){
+        @Override public Set<File> call(){
+          SourceSetContainer sourceSets=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+          return sourceSets.getByName("main").getAllSource().getSrcDirs();
+        }
+      }
+);
+      module.map("testSourceDirs",new Callable<Set<File>>(){
+        @Override public Set<File> call(){
+          SourceSetContainer sourceSets=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+          return sourceSets.getByName("test").getAllSource().getSrcDirs();
+        }
+      }
+);
+      module.map("singleEntryLibraries",new Callable<Map<String,Iterable<File>>>(){
+        @Override public Map<String,Iterable<File>> call(){
+          SourceSetContainer sourceSets=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+          return Maps.newHashMap(ImmutableMap.<String,Iterable<File>>builder().put("RUNTIME",sourceSets.getByName("main").getOutput().getDirs()).put("TEST",sourceSets.getByName("test").getOutput().getDirs()).build());
+        }
+      }
+);
+      module.map("targetBytecodeVersion",new Callable<JavaVersion>(){
+        @Override public JavaVersion call(){
+          JavaVersion moduleTargetBytecodeLevel=project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
+          return includeModuleBytecodeLevelOverride(project.getRootProject(),moduleTargetBytecodeLevel) ? moduleTargetBytecodeLevel : null;
+        }
+      }
+);
+      module.map("languageLevel",new Callable<IdeaLanguageLevel>(){
+        @Override public IdeaLanguageLevel call(){
+          IdeaLanguageLevel moduleLanguageLevel=new IdeaLanguageLevel(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility());
+          return includeModuleLanguageLevelOverride(project.getRootProject(),moduleLanguageLevel) ? moduleLanguageLevel : null;
+        }
+      }
+);
+      ideaModule.dependsOn(new Callable<FileCollection>(){
+        @Override public FileCollection call(){
+          SourceSetContainer sourceSets=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+          return sourceSets.getByName("main").getOutput().getDirs().plus(sourceSets.getByName("test").getOutput().getDirs());
+        }
+      }
+);
+    }
+  }
+);
+}

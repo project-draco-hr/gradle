@@ -1,0 +1,65 @@
+{
+  if (isRoot(project)) {
+    Task task=project.getTasks().create("ideaProject",GenerateIdeaProject.class,new Action<GenerateIdeaProject>(){
+      @Override public void execute(      final GenerateIdeaProject task){
+        task.setDescription("Generates IDEA project file (IPR)");
+        XmlFileContentMerger ipr=new XmlFileContentMerger(getTaskXmlTransformer(task));
+        IdeaProject ideaProject=instantiator.newInstance(IdeaProject.class,project,ipr);
+        task.setIdeaProject(ideaProject);
+        ideaModel.setProject(ideaProject);
+        ideaProject.setOutputFile(new File(project.getProjectDir(),project.getName() + ".ipr"));
+        ConventionMapping conventionMapping=((IConventionAware)ideaProject).getConventionMapping();
+        conventionMapping.map("jdkName",Callables.returning(JavaVersion.current().toString()));
+        conventionMapping.map("languageLevel",new Callable<IdeaLanguageLevel>(){
+          @Override public IdeaLanguageLevel call(){
+            JavaVersion maxSourceCompatibility=getMaxJavaModuleCompatibilityVersionFor(project,new Function<Project,JavaVersion>(){
+              @Override public JavaVersion apply(              Project p){
+                return p.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility();
+              }
+            }
+);
+            return new IdeaLanguageLevel(maxSourceCompatibility);
+          }
+        }
+);
+        conventionMapping.map("targetBytecodeVersion",new Callable<JavaVersion>(){
+          @Override public JavaVersion call(){
+            return getMaxJavaModuleCompatibilityVersionFor(project,new Function<Project,JavaVersion>(){
+              @Override public JavaVersion apply(              Project p){
+                return p.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
+              }
+            }
+);
+          }
+        }
+);
+        ideaProject.setWildcards(Sets.newLinkedHashSet(Arrays.asList("!?*.class","!?*.scala","!?*.groovy","!?*.java")));
+        conventionMapping.map("modules",new Callable<List<IdeaModule>>(){
+          @Override public List<IdeaModule> call(){
+            Iterable<Project> ideaProjects=Iterables.filter(project.getRootProject().getAllprojects(),new Predicate<Project>(){
+              @Override public boolean apply(              Project p){
+                return p.getPlugins().hasPlugin(IdeaPlugin.class);
+              }
+            }
+);
+            return Lists.newArrayList(Iterables.transform(ideaProjects,new Function<Project,IdeaModule>(){
+              @Override public IdeaModule apply(              Project p){
+                return ideaModelFor(p).getModule();
+              }
+            }
+));
+          }
+        }
+);
+        conventionMapping.map("pathFactory",new Callable<PathFactory>(){
+          @Override public PathFactory call(){
+            return new PathFactory().addPathVariable("PROJECT_DIR",task.getOutputFile().getParentFile());
+          }
+        }
+);
+      }
+    }
+);
+    addWorker(task);
+  }
+}
