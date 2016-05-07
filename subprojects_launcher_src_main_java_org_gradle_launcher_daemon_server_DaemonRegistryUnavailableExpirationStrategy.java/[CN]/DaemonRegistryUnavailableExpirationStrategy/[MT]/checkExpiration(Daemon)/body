@@ -1,9 +1,21 @@
 {
   try {
-    File daemonRegistryDir=daemon.getDaemonContext().getDaemonRegistryDir();
+    final DaemonContext daemonContext=daemon.getDaemonContext();
+    final File daemonRegistryDir=daemonContext.getDaemonRegistryDir();
     if (!new DaemonDir(daemonRegistryDir).getRegistry().canRead()) {
       LOG.warn("Daemon registry {} became unreadable. Expiring daemon.",daemonRegistryDir);
       return new DaemonExpirationResult(true,"daemon registry became unreadable");
+    }
+ else {
+      List<Long> allDaemonPids=Lists.transform(daemon.getDaemonRegistry().getAll(),new Function<DaemonInfo,Long>(){
+        public Long apply(        DaemonInfo info){
+          return info.getPid();
+        }
+      }
+);
+      if (!allDaemonPids.contains(daemonContext.getPid())) {
+        return new DaemonExpirationResult(true,"daemon registry entry unexpectedly lost");
+      }
     }
   }
  catch (  SecurityException se) {
