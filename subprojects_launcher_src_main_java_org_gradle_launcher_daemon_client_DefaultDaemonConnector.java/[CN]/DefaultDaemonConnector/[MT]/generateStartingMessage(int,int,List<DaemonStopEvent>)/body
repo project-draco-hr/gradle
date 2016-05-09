@@ -1,0 +1,23 @@
+{
+  final List<String> reasons=Lists.newArrayList(STARTING_DAEMON_MESSAGE);
+  if (numBusy > 0) {
+    reasons.add(numBusy + " " + (numBusy > 1 ? "are" : "is")+ " busy");
+  }
+  if (numIncompatible > 0) {
+    reasons.add(numIncompatible + " " + (numIncompatible > 1 ? "are" : "is")+ " incompatible");
+  }
+  if (stopEvents.size() > 0) {
+    Map<String,Integer> countByReason=new HashMap<String,Integer>();
+    for (    DaemonStopEvent event : stopEvents) {
+      final String reason=event.getReason();
+      Integer count=countByReason.get(reason) == null ? 0 : countByReason.get(reason);
+      countByReason.put(reason,count + 1);
+    }
+    for (    Map.Entry<String,Integer> entry : countByReason.entrySet()) {
+      Integer numStopped=entry.getValue();
+      reasons.add(numStopped + " " + (numStopped > 1 ? "were" : "was")+ " stopped because "+ entry.getKey());
+    }
+  }
+  final String startingDaemonMessage=Joiner.on(LINE_SEPARATOR + " - ").skipNulls().join(reasons);
+  return startingDaemonMessage + LINE_SEPARATOR + SUBSEQUENT_BUILDS_FASTER_MESSAGE;
+}

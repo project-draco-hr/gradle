@@ -6,10 +6,14 @@
     if (expirationCheck.isImmediate()) {
       LOGGER.lifecycle("Daemon stopping immediately because " + expirationCheck.getReason());
       daemon.getStateCoordinator().requestForcefulStop(expirationCheck.getReason());
+      daemon.registryUpdater.onExpire(expirationCheck.getReason());
     }
  else {
       LOGGER.lifecycle("Daemon stopping because " + expirationCheck.getReason());
       daemon.getStateCoordinator().requestStop();
+      if (expirationCheck.isTerminated()) {
+        daemon.registryUpdater.onExpire(expirationCheck.getReason());
+      }
     }
   }
 }

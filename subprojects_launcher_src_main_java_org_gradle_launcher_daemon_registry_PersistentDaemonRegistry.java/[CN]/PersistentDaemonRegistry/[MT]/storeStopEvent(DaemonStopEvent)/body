@@ -1,0 +1,19 @@
+{
+  lock.lock();
+  LOGGER.debug("Storing daemon stop event with timestamp {}",stopEvent.getTimestamp().getTime());
+  try {
+    cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>(){
+      public DaemonRegistryContent update(      DaemonRegistryContent content){
+        if (content == null) {
+          content=new DaemonRegistryContent();
+        }
+        content.addStopEvent(stopEvent);
+        return content;
+      }
+    }
+);
+  }
+  finally {
+    lock.unlock();
+  }
+}
