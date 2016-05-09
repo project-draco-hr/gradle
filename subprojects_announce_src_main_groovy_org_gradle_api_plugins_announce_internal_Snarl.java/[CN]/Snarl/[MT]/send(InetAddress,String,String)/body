@@ -1,0 +1,32 @@
+{
+  Socket socket;
+  try {
+    try {
+      socket=new Socket(host,9887);
+    }
+ catch (    ConnectException e) {
+      throw new AnnouncerUnavailableException("Snarl is not running on host " + String.valueOf(host) + ".",e);
+    }
+    with(socket,new Action<Closeable>(){
+      @Override public void execute(      Closeable closeable){
+        final OutputStream outputStream;
+        try {
+          outputStream=((Socket)closeable).getOutputStream();
+          with(new PrintWriter(outputStream,true),new Action<Closeable>(){
+            public void execute(            Closeable closeable){
+              DefaultGroovyMethods.println(closeable,formatMessage(title,message));
+            }
+          }
+);
+        }
+ catch (        IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      }
+    }
+);
+  }
+ catch (  IOException ioException) {
+    throw new UncheckedIOException(ioException);
+  }
+}

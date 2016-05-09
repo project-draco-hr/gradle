@@ -1,0 +1,25 @@
+{
+  HttpURLConnection connection=null;
+  try {
+    connection=(HttpURLConnection)(new URL("https://twitter.com/statuses/update.xml").openConnection());
+    connection.setRequestMethod("POST");
+    connection.setDoInput(true);
+    connection.setDoOutput(true);
+    connection.setUseCaches(false);
+    String credentials=EncodingGroovyMethods.encodeBase64((username + ":" + password).getBytes("UTF-8")).toString().trim();
+    connection.setRequestProperty("Authorization","Basic " + credentials);
+    IOUtils.write("status=" + URLEncoder.encode(message,"UTF-8"),connection.getOutputStream());
+    logger.info("Successfully tweeted \'" + message + "\' using account \'"+ username+ "\'");
+    if (logger.isDebugEnabled()) {
+      logger.debug(IOGroovyMethods.getText(connection.getInputStream(),"UTF-8"));
+    }
+  }
+ catch (  Exception e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+ finally {
+    if (connection != null) {
+      connection.disconnect();
+    }
+  }
+}
