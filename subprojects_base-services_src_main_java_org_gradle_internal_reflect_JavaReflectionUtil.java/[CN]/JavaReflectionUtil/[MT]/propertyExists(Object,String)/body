@@ -1,10 +1,24 @@
 {
   Class<?> targetType=target.getClass();
+  ConcurrentMap<String,Boolean> cached;
+synchronized (PROPERTY_CACHE) {
+    cached=PROPERTY_CACHE.get(targetType);
+    if (cached == null) {
+      cached=new ConcurrentHashMap<String,Boolean>();
+      PROPERTY_CACHE.put(targetType,cached);
+    }
+  }
+  Boolean res=cached.get(propertyName);
+  if (res != null) {
+    return res;
+  }
   Method getterMethod=findGetterMethod(target.getClass(),propertyName);
   if (getterMethod == null) {
     if (findField(targetType,propertyName) == null) {
+      cached.putIfAbsent(propertyName,false);
       return false;
     }
   }
+  cached.putIfAbsent(propertyName,true);
   return true;
 }
