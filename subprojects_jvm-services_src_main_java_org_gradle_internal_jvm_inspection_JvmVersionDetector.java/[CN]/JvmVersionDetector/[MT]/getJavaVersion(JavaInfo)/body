@@ -1,16 +1,9 @@
 {
-  JavaVersion version=cachedResults.get(jvm);
+  JavaVersion version=javaHomeResults.get(jvm);
   if (version != null) {
     return version;
   }
-  ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
-  ExecHandleBuilder builder=execHandleFactory.newExec();
-  builder.setWorkingDir(new File(".").getAbsolutePath());
-  builder.setCommandLine(jvm.getJavaExecutable(),"-version");
-  builder.setStandardOutput(new ByteArrayOutputStream());
-  builder.setErrorOutput(outputStream);
-  builder.build().start().waitForFinish().assertNormalExitValue();
-  version=parseJavaVersionCommandOutput(jvm.getJavaExecutable().getPath(),new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
-  cachedResults.put(jvm,version);
+  version=getJavaVersion(jvm.getJavaExecutable().getPath());
+  javaHomeResults.put(jvm,version);
   return version;
 }
