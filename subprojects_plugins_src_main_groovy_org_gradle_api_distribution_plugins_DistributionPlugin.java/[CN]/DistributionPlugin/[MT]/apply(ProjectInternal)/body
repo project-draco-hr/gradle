@@ -10,8 +10,18 @@
       }
 );
       dist.getContents().from("src/" + dist.getName() + "/dist");
-      Task zipTask=addZipTask(project,dist);
-      Task tarTask=addTarTask(project,dist);
+      Task zipTask=DeprecationLogger.whileDisabled(new Factory<Task>(){
+        @Override public Task create(){
+          return addZipTask(project,dist);
+        }
+      }
+);
+      Task tarTask=DeprecationLogger.whileDisabled(new Factory<Task>(){
+        @Override public Task create(){
+          return addTarTask(project,dist);
+        }
+      }
+);
       addAssembleTask(project,dist,zipTask,tarTask);
       addInstallTask(project,dist);
     }
