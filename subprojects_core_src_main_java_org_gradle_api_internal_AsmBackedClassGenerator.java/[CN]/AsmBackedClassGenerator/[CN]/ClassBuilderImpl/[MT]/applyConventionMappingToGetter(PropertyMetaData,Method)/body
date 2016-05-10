@@ -5,8 +5,18 @@
   String methodDescriptor=Type.getMethodDescriptor(returnType);
   MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,getterName,methodDescriptor,null,new String[0]);
   methodVisitor.visitCode();
+  if (hasMappingField) {
+    methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+    methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),MAPPING_FIELD,CONVENTION_MAPPING_FIELD_DESCRIPTOR);
+    Label useConvention=new Label();
+    methodVisitor.visitJumpInsn(Opcodes.IFNONNULL,useConvention);
+    methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+    methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),getterName,methodDescriptor,false);
+    methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
+    methodVisitor.visitLabel(useConvention);
+  }
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionAwareType.getInternalName(),"getConventionMapping",Type.getMethodDescriptor(conventionMappingType));
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,CONVENTION_AWARE_TYPE.getInternalName(),"getConventionMapping",Type.getMethodDescriptor(CONVENTION_MAPPING_TYPE));
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
   methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),getterName,methodDescriptor);
   Type boxedType=null;
@@ -19,7 +29,7 @@
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
   methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),flagName,Type.BOOLEAN_TYPE.getDescriptor());
   String getConventionValueDesc=Type.getMethodDescriptor(ConventionMapping.class.getMethod("getConventionValue",Object.class,String.class,Boolean.TYPE));
-  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,conventionMappingType.getInternalName(),"getConventionValue",getConventionValueDesc);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,CONVENTION_MAPPING_TYPE.getInternalName(),"getConventionValue",getConventionValueDesc);
   if (getter.getReturnType().isPrimitive()) {
     methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,boxedType.getInternalName());
     String valueMethodDescriptor=Type.getMethodDescriptor(returnType);

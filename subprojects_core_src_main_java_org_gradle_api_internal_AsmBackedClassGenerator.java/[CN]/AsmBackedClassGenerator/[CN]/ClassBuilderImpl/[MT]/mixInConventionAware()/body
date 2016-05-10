@@ -2,35 +2,34 @@
   if (!extensible) {
     return;
   }
-  final String mappingFieldSignature=Type.getDescriptor(ConventionMapping.class);
-  final String getConventionDesc=Type.getMethodDescriptor(conventionType);
-  visitor.visitField(Opcodes.ACC_PRIVATE,MAPPING_FIELD,mappingFieldSignature,null,null);
+  final String getConventionDesc=Type.getMethodDescriptor(CONVENTION_TYPE);
+  visitor.visitField(Opcodes.ACC_PRIVATE,MAPPING_FIELD,CONVENTION_MAPPING_FIELD_DESCRIPTOR,null,null);
+  hasMappingField=true;
   final MethodCodeBody initConventionAwareHelper=new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
-      Type helperType=Type.getType(ConventionAwareHelper.class);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitTypeInsn(Opcodes.NEW,helperType.getInternalName());
+      visitor.visitTypeInsn(Opcodes.NEW,CONVENTION_AWARE_HELPER_TYPE.getInternalName());
       visitor.visitInsn(Opcodes.DUP);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getConvention",getConventionDesc);
-      String constructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,conventionAwareType,conventionType);
-      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,helperType.getInternalName(),"<init>",constructorDesc);
-      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),MAPPING_FIELD,mappingFieldSignature);
+      String constructorDesc=Type.getMethodDescriptor(Type.VOID_TYPE,CONVENTION_AWARE_TYPE,CONVENTION_TYPE);
+      visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,CONVENTION_AWARE_HELPER_TYPE.getInternalName(),"<init>",constructorDesc);
+      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),MAPPING_FIELD,CONVENTION_MAPPING_FIELD_DESCRIPTOR);
     }
   }
 ;
   addGetter(IConventionAware.class.getDeclaredMethod("getConventionMapping"),new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
       visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),MAPPING_FIELD,mappingFieldSignature);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),MAPPING_FIELD,CONVENTION_MAPPING_FIELD_DESCRIPTOR);
       visitor.visitInsn(Opcodes.DUP);
       Label returnValue=new Label();
       visitor.visitJumpInsn(Opcodes.IFNONNULL,returnValue);
       visitor.visitInsn(Opcodes.POP);
       initConventionAwareHelper.add(visitor);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),MAPPING_FIELD,mappingFieldSignature);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),MAPPING_FIELD,CONVENTION_MAPPING_FIELD_DESCRIPTOR);
       visitor.visitLabel(returnValue);
     }
   }
