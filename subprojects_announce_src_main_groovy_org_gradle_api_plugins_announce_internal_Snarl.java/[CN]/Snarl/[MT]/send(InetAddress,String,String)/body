@@ -1,5 +1,5 @@
 {
-  Socket socket;
+  Socket socket=null;
   try {
     try {
       socket=new Socket(host,9887);
@@ -7,26 +7,23 @@
  catch (    ConnectException e) {
       throw new AnnouncerUnavailableException("Snarl is not running on host " + String.valueOf(host) + ".",e);
     }
-    with((Closeable)socket,new Action<Closeable>(){
-      @Override public void execute(      Closeable closeable){
-        final OutputStream outputStream;
-        try {
-          outputStream=((Socket)closeable).getOutputStream();
-          with(new PrintWriter(outputStream,true),new Action<Closeable>(){
-            @Override public void execute(            Closeable closeable){
-              ((PrintWriter)closeable).println(formatMessage(title,message));
-            }
-          }
-);
-        }
- catch (        IOException e) {
-          throw new UncheckedIOException(e);
-        }
-      }
+    PrintWriter printWriter=null;
+    try {
+      final OutputStream outputStream=socket.getOutputStream();
+      printWriter=new PrintWriter(outputStream,true);
+      printWriter.println(formatMessage(title,message));
     }
-);
+ catch (    IOException e) {
+      throw new UncheckedIOException(e);
+    }
+ finally {
+      IOUtils.closeQuietly(printWriter);
+    }
   }
  catch (  IOException ioException) {
     throw new UncheckedIOException(ioException);
+  }
+ finally {
+    IOUtils.closeQuietly(socket);
   }
 }
