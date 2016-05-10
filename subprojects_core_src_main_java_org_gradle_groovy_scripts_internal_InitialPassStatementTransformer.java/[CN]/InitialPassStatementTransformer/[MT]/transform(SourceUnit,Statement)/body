@@ -8,21 +8,16 @@
     if (scriptBlock.getName().equals(PLUGINS)) {
       String failMessage=null;
       if (!scriptTarget.getSupportsPluginsBlock()) {
-        failMessage=pluginBlockMetadataExtractor.formatErrorMessage("Only Project build scripts can contain plugins {} blocks");
+        failMessage=makePluginsError("Only Project build scripts can contain plugins {} blocks");
       }
- else {
-        seenPluginsBlock=true;
-        if (seenNonClasspathStatement) {
-          failMessage=String.format(pluginBlockMetadataExtractor.formatErrorMessage("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),scriptTarget.getClasspathBlockName(),PLUGINS,PLUGINS);
-        }
- else {
-          pluginBlockMetadataExtractor.extract(sourceUnit,scriptBlock);
-        }
+ else       if (seenNonClasspathStatement) {
+        failMessage=String.format(makePluginsError("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),scriptTarget.getClasspathBlockName(),PLUGINS,PLUGINS);
       }
+      seenPluginsBlock=true;
       if (failMessage != null) {
         sourceUnit.getErrorCollector().addError(new SyntaxException(failMessage,statement.getLineNumber(),statement.getColumnNumber()),sourceUnit);
       }
-      return null;
+      return statement;
     }
  else     if (scriptBlock.getName().equals(PLUGIN_REPOS)) {
       String failureMessage=null;
@@ -43,7 +38,7 @@
     }
  else {
       if (seenPluginsBlock) {
-        String message=String.format(pluginBlockMetadataExtractor.formatErrorMessage("all %s {} blocks must appear before any %s {} blocks in the script"),scriptTarget.getClasspathBlockName(),PLUGINS);
+        String message=String.format(makePluginsError("all %s {} blocks must appear before any %s {} blocks in the script"),scriptTarget.getClasspathBlockName(),PLUGINS);
         sourceUnit.getErrorCollector().addError(new SyntaxException(message,statement.getLineNumber(),statement.getColumnNumber()),sourceUnit);
       }
       seenClasspathBlock=true;
