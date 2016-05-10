@@ -1,11 +1,11 @@
 {
-  Matcher matcher=EXTENSION_SPLITTER.matcher(notation);
-  boolean hasArtifactType=matcher.matches();
-  if (hasArtifactType && !ClientModule.class.isAssignableFrom(wantedType)) {
-    if (matcher.groupCount() != 2) {
-      throw new InvalidUserDataException("The dependency notation " + notation + " is invalid");
-    }
-    return new ParsedModuleStringNotation(matcher.group(1),matcher.group(2));
+  int idx=notation.lastIndexOf('@');
+  if (idx == -1 || ClientModule.class.isAssignableFrom(wantedType)) {
+    return new ParsedModuleStringNotation(notation,null);
+  }
+  int versionIndx=notation.lastIndexOf(':');
+  if (versionIndx < idx) {
+    return new ParsedModuleStringNotation(notation.substring(0,idx),notation.substring(idx + 1));
   }
   return new ParsedModuleStringNotation(notation,null);
 }
