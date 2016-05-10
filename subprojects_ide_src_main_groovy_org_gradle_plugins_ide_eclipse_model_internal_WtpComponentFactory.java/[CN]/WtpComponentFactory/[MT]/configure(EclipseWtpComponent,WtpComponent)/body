@@ -1,0 +1,13 @@
+{
+  List<Object> entries=Lists.newArrayList();
+  entries.addAll(getEntriesFromSourceDirs(wtp));
+  for (  WbResource element : wtp.getResources()) {
+    if (wtp.getProject().file(element.getSourcePath()).isDirectory()) {
+      entries.add(element);
+    }
+  }
+  entries.addAll(wtp.getProperties());
+  entries.addAll(getEntriesFromConfigurations(configOrEmptySet(wtp.getRootConfigurations()),configOrEmptySet(wtp.getMinusConfigurations()),wtp,"/",false));
+  entries.addAll(getEntriesFromConfigurations(configOrEmptySet(wtp.getLibConfigurations()),configOrEmptySet(wtp.getMinusConfigurations()),wtp,wtp.getLibDeployPath(),true));
+  component.configure(wtp.getDeployName(),wtp.getContextPath(),entries);
+}
