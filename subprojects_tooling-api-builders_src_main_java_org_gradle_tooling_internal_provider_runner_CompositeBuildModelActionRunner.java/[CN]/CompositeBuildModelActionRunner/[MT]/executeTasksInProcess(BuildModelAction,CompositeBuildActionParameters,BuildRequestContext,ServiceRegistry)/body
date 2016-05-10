@@ -3,9 +3,11 @@
   CompositeParameters compositeParameters=actionParameters.getCompositeParameters();
   DefaultServiceRegistry compositeServices=createCompositeAwareServices(compositeAction,buildRequestContext,compositeParameters,sharedServices);
   StartParameter startParameter=compositeAction.getStartParameter().newInstance();
-  startParameter.setProjectDir(compositeParameters.getTargetBuild().getProjectDir());
+  GradleParticipantBuild targetParticipant=compositeParameters.getTargetBuild();
+  startParameter.setProjectDir(targetParticipant.getProjectDir());
   startParameter.setSearchUpwards(false);
   startParameter.setSystemPropertiesArgs(Collections.singletonMap("org.gradle.resolution.assumeFluidDependencies","true"));
+  LOGGER.lifecycle("[composite-build] Executing tasks " + startParameter.getTaskNames() + " for participant: "+ targetParticipant.getProjectDir());
   BuildActionRunner runner=new SubscribableBuildActionRunner(new BuildModelActionRunner());
   org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,runner);
   BuildModelAction participantAction=new BuildModelAction(startParameter,ModelIdentifier.NULL_MODEL,true,compositeAction.getClientSubscriptions());
