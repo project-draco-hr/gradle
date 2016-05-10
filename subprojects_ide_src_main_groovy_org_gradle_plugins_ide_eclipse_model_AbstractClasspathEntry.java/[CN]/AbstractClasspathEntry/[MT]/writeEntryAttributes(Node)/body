@@ -1,0 +1,30 @@
+{
+  Map effectiveEntryAttrs=Maps.newHashMap();
+  for (  String key : entryAttributes.keySet()) {
+    String value=(String)entryAttributes.get(key);
+    if (value != null || key == COMPONENT_NON_DEPENDENCY_ATTRIBUTE) {
+      effectiveEntryAttrs.put(key,value);
+    }
+  }
+  if (effectiveEntryAttrs.isEmpty()) {
+    return;
+  }
+  if (effectiveEntryAttrs.containsKey(COMPONENT_DEPENDENCY_ATTRIBUTE) && effectiveEntryAttrs.containsKey(COMPONENT_NON_DEPENDENCY_ATTRIBUTE)) {
+    effectiveEntryAttrs.remove(COMPONENT_NON_DEPENDENCY_ATTRIBUTE);
+  }
+  Node attributesNode=null;
+  NodeList attributesNodes=(NodeList)node.get("attributes");
+  if (attributesNodes.size() == 0) {
+    attributesNode=node.appendNode("attributes");
+  }
+ else {
+    attributesNode=(Node)attributesNodes.get(0);
+  }
+  for (  Object key : effectiveEntryAttrs.keySet()) {
+    Object value=effectiveEntryAttrs.get(key);
+    Map attrs=Maps.newHashMap();
+    attrs.put("name",key);
+    attrs.put("value",value);
+    attributesNode.appendNode("attribute",attrs);
+  }
+}

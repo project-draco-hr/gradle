@@ -1,0 +1,22 @@
+{
+  for (  Object e : (NodeList)xml.get("classpathentry")) {
+    Node entryNode=(Node)e;
+    Object kind=entryNode.attribute("kind");
+    if ("src".equals(kind)) {
+      String path=(String)entryNode.attribute("path");
+      entries.add(path.startsWith("/") ? new ProjectDependency(entryNode) : new SourceFolder(entryNode));
+    }
+ else     if ("var".equals(kind)) {
+      entries.add(new Variable(entryNode,fileReferenceFactory));
+    }
+ else     if ("con".equals(kind)) {
+      entries.add(new Container(entryNode));
+    }
+ else     if ("lib".equals(kind)) {
+      entries.add(new Library(entryNode,fileReferenceFactory));
+    }
+ else     if ("output".equals(kind)) {
+      entries.add(new Output(entryNode));
+    }
+  }
+}
