@@ -8,10 +8,12 @@
     connection.setUseCaches(false);
     String credentials=EncodingGroovyMethods.encodeBase64((username + ":" + password).getBytes("UTF-8")).toString().trim();
     connection.setRequestProperty("Authorization","Basic " + credentials);
-    IOUtils.write("status=" + URLEncoder.encode(message,"UTF-8"),connection.getOutputStream());
+    final OutputStream outputStream=connection.getOutputStream();
+    IOUtils.write("status=" + URLEncoder.encode(message,"UTF-8"),outputStream);
+    IOUtils.closeQuietly(outputStream);
     logger.info("Successfully tweeted \'" + message + "\' using account \'"+ username+ "\'");
     if (logger.isDebugEnabled()) {
-      logger.debug(IOGroovyMethods.getText(connection.getInputStream(),"UTF-8"));
+      logger.debug(IOUtils.toString(connection.getInputStream(),"UTF-8"));
     }
   }
  catch (  Exception e) {
