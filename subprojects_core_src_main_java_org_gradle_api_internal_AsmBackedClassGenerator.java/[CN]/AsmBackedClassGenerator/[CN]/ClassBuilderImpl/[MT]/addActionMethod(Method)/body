@@ -1,6 +1,4 @@
 {
-  Type actionImplType=Type.getType(ClosureBackedAction.class);
-  Type closureType=Type.getType(Closure.class);
   Type returnType=Type.getType(method.getReturnType());
   Type[] originalParameterTypes=CollectionUtils.collectArray(method.getParameterTypes(),Type.class,new Transformer<Type,Class>(){
     public Type transform(    Class clazz){
@@ -11,7 +9,7 @@
   int numParams=originalParameterTypes.length;
   Type[] closurisedParameterTypes=new Type[numParams];
   System.arraycopy(originalParameterTypes,0,closurisedParameterTypes,0,numParams);
-  closurisedParameterTypes[numParams - 1]=closureType;
+  closurisedParameterTypes[numParams - 1]=CLOSURE_TYPE;
   String methodDescriptor=Type.getMethodDescriptor(returnType,closurisedParameterTypes);
   MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,method.getName(),methodDescriptor,null,new String[0]);
   methodVisitor.visitCode();
@@ -19,11 +17,11 @@
   for (int stackVar=1; stackVar < numParams; ++stackVar) {
     methodVisitor.visitVarInsn(closurisedParameterTypes[stackVar - 1].getOpcode(Opcodes.ILOAD),stackVar);
   }
-  methodVisitor.visitTypeInsn(Opcodes.NEW,actionImplType.getInternalName());
+  methodVisitor.visitTypeInsn(Opcodes.NEW,CLOSURE_BACKED_ACTION_TYPE.getInternalName());
   methodVisitor.visitInsn(Opcodes.DUP);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,numParams);
-  String constuctorDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,closureType);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,actionImplType.getInternalName(),"<init>",constuctorDescriptor);
+  String constuctorDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,CLOSURE_TYPE);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,CLOSURE_BACKED_ACTION_TYPE.getInternalName(),"<init>",constuctorDescriptor);
   methodDescriptor=Type.getMethodDescriptor(Type.getType(method.getReturnType()),originalParameterTypes);
   methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),method.getName(),methodDescriptor);
   methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));

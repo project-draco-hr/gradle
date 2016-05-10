@@ -1,8 +1,4 @@
 {
-  Type serviceRegistryType=Type.getType(ServiceRegistry.class);
-  Type classType=Type.getType(Class.class);
-  Type methodType=Type.getType(Method.class);
-  Type typeType=Type.getType(java.lang.reflect.Type.class);
   String getterName=getter.getName();
   Type returnType=Type.getType(getter.getReturnType());
   String methodDescriptor=Type.getMethodDescriptor(returnType);
@@ -16,20 +12,16 @@
   methodVisitor.visitJumpInsn(Opcodes.IFNONNULL,alreadyLoaded);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getServices",Type.getMethodDescriptor(serviceRegistryType));
-  if (getter.getGenericReturnType() instanceof Class) {
-    methodVisitor.visitLdcInsn(Type.getType((Class)getter.getGenericReturnType()));
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getServices",Type.getMethodDescriptor(SERVICE_REGISTRY_TYPE));
+  java.lang.reflect.Type genericReturnType=getter.getGenericReturnType();
+  if (genericReturnType instanceof Class) {
+    methodVisitor.visitLdcInsn(Type.getType((Class)genericReturnType));
   }
  else {
-    methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-    methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getClass",Type.getMethodDescriptor(classType));
-    methodVisitor.visitLdcInsn(getterName);
-    methodVisitor.visitInsn(Opcodes.ICONST_0);
-    methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY,classType.getInternalName());
-    methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,classType.getInternalName(),"getDeclaredMethod",Type.getMethodDescriptor(methodType,Type.getType(String.class),Type.getType(Class[].class)));
-    methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,methodType.getInternalName(),"getGenericReturnType",Type.getMethodDescriptor(typeType));
+    String constantFieldName=getConstantNameForGenericReturnType(genericReturnType,getterName);
+    methodVisitor.visitFieldInsn(GETSTATIC,generatedType.getInternalName(),constantFieldName,JAVA_REFLECT_TYPE_DESCRIPTOR);
   }
-  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,serviceRegistryType.getInternalName(),"get",Type.getMethodDescriptor(Type.getType(Object.class),typeType));
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,SERVICE_REGISTRY_TYPE.getInternalName(),"get",GET_METHOD_DESCRIPTOR);
   methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,serviceType.getInternalName());
   methodVisitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),propFieldName,serviceType.getDescriptor());
   methodVisitor.visitLabel(alreadyLoaded);
