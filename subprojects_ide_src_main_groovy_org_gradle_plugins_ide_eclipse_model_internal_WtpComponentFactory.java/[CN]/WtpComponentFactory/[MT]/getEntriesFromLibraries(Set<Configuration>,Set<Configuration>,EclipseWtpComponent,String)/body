@@ -1,0 +1,17 @@
+{
+  IdeDependenciesExtractor extractor=new IdeDependenciesExtractor();
+  Collection<IdeExtendedRepoFileDependency> externals=extractor.resolvedExternalDependencies(plusConfigurations,minusConfigurations);
+  Collection<IdeLocalFileDependency> locals=extractor.extractLocalFileDependencies(plusConfigurations,minusConfigurations);
+  Collection<File> libFiles=Lists.newArrayList();
+  for (  IdeExtendedRepoFileDependency dependency : externals) {
+    libFiles.add(dependency.getFile());
+  }
+  for (  IdeLocalFileDependency dependency : locals) {
+    libFiles.add(dependency.getFile());
+  }
+  List<WbDependentModule> libraryEntries=Lists.newArrayList();
+  for (  File file : libFiles) {
+    libraryEntries.add(createWbDependentModuleEntry(file,wtp.getFileReferenceFactory(),deployPath));
+  }
+  return libraryEntries;
+}

@@ -1,0 +1,26 @@
+{
+  LinkedHashSet<Dependency> dependencies=getDependencies(plusConfigurations,minusConfigurations,Specs.<Dependency>isInstance(ProjectDependency.class));
+  List<Project> projects=Lists.newArrayList();
+  for (  Dependency dependency : dependencies) {
+    projects.add(((ProjectDependency)dependency).getDependencyProject());
+  }
+  LinkedHashSet<Project> allProjects=new LinkedHashSet<Project>();
+  allProjects.addAll(projects);
+  if (transitive) {
+    for (    Project project : projects) {
+      collectDependedUponProjects(project,allProjects);
+    }
+  }
+  List<WbDependentModule> projectDependencies=Lists.newArrayList();
+  for (  Project project : allProjects) {
+    String moduleName;
+    if (project.getPlugins().hasPlugin(EclipsePlugin.class)) {
+      moduleName=project.getExtensions().getByType(EclipseModel.class).getProject().getName();
+    }
+ else {
+      moduleName=project.getName();
+    }
+    projectDependencies.add(new WbDependentModule(deployPath,"module:/resource/" + moduleName + "/"+ moduleName));
+  }
+  return projectDependencies;
+}

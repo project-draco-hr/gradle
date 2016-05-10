@@ -1,0 +1,14 @@
+{
+  Configuration runtimeConfig=project.getConfigurations().findByName("runtime");
+  if (runtimeConfig != null) {
+    DomainObjectSet<ProjectDependency> projectDeps=runtimeConfig.getAllDependencies().withType(ProjectDependency.class);
+    List<Project> dependedUponProjects=Lists.newArrayList();
+    for (    ProjectDependency projectDep : projectDeps) {
+      dependedUponProjects.add(projectDep.getDependencyProject());
+    }
+    result.addAll(dependedUponProjects);
+    for (    Project dependedUponProject : dependedUponProjects) {
+      collectDependedUponProjects(dependedUponProject,result);
+    }
+  }
+}

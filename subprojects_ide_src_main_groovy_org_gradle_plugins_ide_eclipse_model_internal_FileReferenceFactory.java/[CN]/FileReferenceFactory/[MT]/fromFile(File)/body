@@ -1,0 +1,24 @@
+{
+  if (file == null) {
+    return null;
+  }
+  String path=null;
+  boolean usedVar=false;
+  for (  Map.Entry<String,File> entry : variables.entrySet()) {
+    String rootDirPath=entry.getValue().getAbsolutePath();
+    String filePath=file.getAbsolutePath();
+    if (filePath.equals(rootDirPath)) {
+      path=entry.getKey();
+      usedVar=true;
+      break;
+    }
+    if (filePath.startsWith(rootDirPath + File.separator)) {
+      int len=rootDirPath.length();
+      path=entry.getKey() + filePath.substring(len);
+      usedVar=true;
+      break;
+    }
+  }
+  path=PathUtil.normalizePath(path != null ? path : file.getAbsolutePath());
+  return new FileReferenceImpl(file,path,usedVar);
+}
