@@ -10,18 +10,10 @@
       }
 );
       dist.getContents().from("src/" + dist.getName() + "/dist");
-      Task zipTask=DeprecationLogger.whileDisabled(new Factory<Task>(){
-        @Override public Task create(){
-          return addZipTask(project,dist);
-        }
-      }
-);
-      Task tarTask=DeprecationLogger.whileDisabled(new Factory<Task>(){
-        @Override public Task create(){
-          return addTarTask(project,dist);
-        }
-      }
-);
+      String zipTaskName=MAIN_DISTRIBUTION_NAME.equals(dist.getName()) ? TASK_DIST_ZIP_NAME : dist.getName() + "DistZip";
+      Task zipTask=configureArchiveTask(project,zipTaskName,dist,Zip.class);
+      String tarTaskName=MAIN_DISTRIBUTION_NAME.equals(dist.getName()) ? TASK_DIST_TAR_NAME : dist.getName() + "DistTar";
+      Task tarTask=configureArchiveTask(project,tarTaskName,dist,Tar.class);
       addAssembleTask(project,dist,zipTask,tarTask);
       addInstallTask(project,dist);
     }
