@@ -1,14 +1,5 @@
 {
-  ScalaCompileOptionsInternal scalaOptions=(ScalaCompileOptionsInternal)spec.getScalaCompileOptions();
   Set<File> scalaClasspathFiles=scalaClasspath.getFiles();
-  if (scalaOptions.internalIsUseAnt()) {
-    Compiler<ScalaCompileSpec> scalaCompiler=new AntScalaCompiler(antBuilder,scalaClasspathFiles);
-    Compiler<JavaCompileSpec> javaCompiler=javaCompilerFactory.createForJointCompilation(spec.getClass());
-    return new NormalizingScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler,javaCompiler));
-  }
-  if (!scalaOptions.internalIsFork()) {
-    throw new GradleException("The Zinc based Scala compiler ('scalaCompileOptions.useAnt=false') " + "requires forking ('scalaCompileOptions.fork=true'), but the latter is set to 'false'.");
-  }
   Set<File> zincClasspathFiles=zincClasspath.getFiles();
   Compiler<ScalaJavaJointCompileSpec> scalaCompiler=new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(rootProjectDirectory,new ZincScalaCompiler(scalaClasspathFiles,zincClasspathFiles,gradleUserHomeDir),compilerDaemonFactory,zincClasspathFiles);
   return new NormalizingScalaCompiler(scalaCompiler);
