@@ -1,0 +1,23 @@
+{
+  installTask.doFirst(new Action<Task>(){
+    @Override public void execute(    Task task){
+      Sync sync=(Sync)task;
+      if (sync.getDestinationDir().isDirectory()) {
+        if (!new File(sync.getDestinationDir(),"lib").isDirectory() || !new File(sync.getDestinationDir(),"bin").isDirectory()) {
+          throw new GradleException("The specified installation directory \'" + sync.getDestinationDir() + "\' is neither empty nor does it contain an installation for \'"+ pluginConvention.getApplicationName()+ "\'.\n"+ "If you really want to install to this directory, delete it and run the install task again.\n"+ "Alternatively, choose a different installation directory.");
+        }
+      }
+    }
+  }
+);
+  installTask.doLast(new Action<Task>(){
+    @Override public void execute(    Task task){
+      Sync sync=(Sync)task;
+      HashMap<String,Object> args=new HashMap<String,Object>();
+      args.put("file","" + sync.getDestinationDir().getAbsolutePath() + "/bin/"+ pluginConvention.getApplicationName());
+      args.put("perm","ugo+x");
+      project.getAnt().invokeMethod("chmod",args);
+    }
+  }
+);
+}
