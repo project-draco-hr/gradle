@@ -5,18 +5,12 @@
   validateProperty(propertySchema,property,nodeInitializerRegistry);
   ModelPath childPath=modelNode.getPath().child(property.getName());
   if (propertySchema instanceof ManagedImplSchema) {
-    if (!property.isWritable()) {
+    if (!property.isWritable() || propertySchema instanceof ScalarCollectionSchema) {
       ModelRegistrations.Builder builder=managedRegistrationBuilder(childPath,property,nodeInitializerRegistry,publicType);
       addLink(modelNode,builder,property.isInternal());
     }
  else {
-      if (propertySchema instanceof ScalarCollectionSchema) {
-        ModelRegistrations.Builder builder=managedRegistrationBuilder(childPath,property,nodeInitializerRegistry,publicType);
-        addLink(modelNode,builder,property.isInternal());
-      }
- else {
-        modelNode.addReference(property.getName(),propertyType,null,modelNode.getDescriptor());
-      }
+      modelNode.addReference(property.getName(),propertyType,null,modelNode.getDescriptor());
     }
   }
  else {
