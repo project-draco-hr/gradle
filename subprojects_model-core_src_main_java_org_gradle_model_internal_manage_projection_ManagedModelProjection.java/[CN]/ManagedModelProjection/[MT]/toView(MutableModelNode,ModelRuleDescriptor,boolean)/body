@@ -63,8 +63,11 @@ class State implements ModelElementState {
         ClosureBackedAction.execute(get(name),action);
       }
       @Override public void set(      String name,      Object value){
-        if (!writable || closed) {
-          throw new ModelViewClosedException(getType(),ruleDescriptor);
+        if (closed) {
+          throw new ModelViewClosedException(getPath(),getType(),ruleDescriptor);
+        }
+        if (!writable) {
+          throw new ReadOnlyModelViewException(getPath(),getType(),ruleDescriptor);
         }
         ModelProperty<?> property=schema.getProperty(name);
         value=doSet(name,value,property);
