@@ -1,8 +1,19 @@
 {
   super.start();
+  boolean shouldReadLoggingConfigFile=System.getProperty(READ_LOGGING_CONFIG_FILE_PROPERTY,"true").equals("true");
   if (!reset) {
     LogManager.getLogManager().reset();
-    Logger.getLogger("").addHandler(new ConsoleHandler());
+    if (shouldReadLoggingConfigFile) {
+      try {
+        LogManager.getLogManager().readConfiguration();
+      }
+ catch (      IOException error) {
+        Logger.getLogger("").addHandler(new ConsoleHandler());
+      }
+    }
+ else {
+      Logger.getLogger("").addHandler(new ConsoleHandler());
+    }
     reset=true;
   }
   return this;
