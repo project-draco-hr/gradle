@@ -1,3 +1,36 @@
 {
-  return dependencyDescriptor.getDependencyConfigurations(moduleConfiguration,requestedConfiguration);
+  Set<String> mappedConfigs=Sets.newLinkedHashSet();
+  List<String> matchedConfigs=confs.get(moduleConfiguration);
+  if (matchedConfigs == null) {
+    matchedConfigs=confs.get("%");
+  }
+  if (matchedConfigs != null) {
+    mappedConfigs.addAll(matchedConfigs);
+  }
+  List<String> wildcardConfigs=confs.get("*");
+  if (wildcardConfigs != null) {
+    mappedConfigs.addAll(wildcardConfigs);
+  }
+  mappedConfigs=CollectionUtils.collect(mappedConfigs,new Transformer<String,String>(){
+    @Override public String transform(    String original){
+      if (original.startsWith("@")) {
+        return moduleConfiguration + original.substring(1);
+      }
+      if (original.startsWith("#")) {
+        return requestedConfiguration + original.substring(1);
+      }
+      return original;
+    }
+  }
+);
+  if (mappedConfigs.remove("*")) {
+    StringBuilder r=new StringBuilder("*");
+    for (    String c : mappedConfigs) {
+      if (c.startsWith("!")) {
+        r.append(c);
+      }
+    }
+    return new String[]{r.toString()};
+  }
+  return mappedConfigs.toArray(new String[mappedConfigs.size()]);
 }

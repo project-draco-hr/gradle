@@ -29,6 +29,7 @@
     }
     DefaultDependencyArtifactDescriptor depArtifact=new DefaultDependencyArtifactDescriptor(dd,dd.getDependencyId().getName(),type,ext,null,extraAtt);
     String optionalizedScope=dep.isOptional() ? "optional" : scope;
+    depArtifact.addConfiguration(optionalizedScope);
     dd.addDependencyArtifact(optionalizedScope,depArtifact);
   }
   List<ModuleId> excluded=dep.getExcludedModules();
@@ -38,8 +39,10 @@
   for (  Object anExcluded : excluded) {
     ModuleId excludedModule=(ModuleId)anExcluded;
     String[] confs=dd.getModuleConfigurations();
+    DefaultExcludeRule rule=new DefaultExcludeRule(new ArtifactId(excludedModule,PatternMatcher.ANY_EXPRESSION,PatternMatcher.ANY_EXPRESSION,PatternMatcher.ANY_EXPRESSION),ExactPatternMatcher.INSTANCE,null);
     for (    String conf : confs) {
-      dd.addExcludeRule(conf,new DefaultExcludeRule(new ArtifactId(excludedModule,PatternMatcher.ANY_EXPRESSION,PatternMatcher.ANY_EXPRESSION,PatternMatcher.ANY_EXPRESSION),ExactPatternMatcher.INSTANCE,null));
+      rule.addConfiguration(conf);
+      dd.addExcludeRule(conf,rule);
     }
   }
   ivyModuleDescriptor.addDependency(dd);

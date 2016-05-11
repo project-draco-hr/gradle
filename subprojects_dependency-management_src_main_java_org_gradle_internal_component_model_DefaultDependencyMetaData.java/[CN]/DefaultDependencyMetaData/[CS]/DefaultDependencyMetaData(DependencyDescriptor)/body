@@ -1,5 +1,14 @@
 {
-  this.dependencyDescriptor=dependencyDescriptor;
-  ModuleRevisionId dependencyRevisionId=dependencyDescriptor.getDependencyRevisionId();
-  requested=new DefaultModuleVersionSelector(dependencyRevisionId.getOrganisation(),dependencyRevisionId.getName(),dependencyRevisionId.getRevision());
+  this.requested=DefaultModuleVersionSelector.newSelector(dependencyDescriptor.getDependencyRevisionId());
+  this.changing=dependencyDescriptor.isChanging();
+  this.transitive=dependencyDescriptor.isTransitive();
+  this.dynamicConstraintVersion=dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision();
+  this.confs=Maps.newLinkedHashMap();
+  Map<String,List<String>> configMappings=readConfigMappings(dependencyDescriptor);
+  for (  String config : configMappings.keySet()) {
+    List<String> mappings=new ArrayList<String>(configMappings.get(config));
+    confs.put(config,mappings);
+  }
+  dependencyArtifacts=Sets.newLinkedHashSet(Arrays.asList(dependencyDescriptor.getAllDependencyArtifacts()));
+  excludeRules=Sets.newLinkedHashSet(Arrays.asList(dependencyDescriptor.getAllExcludeRules()));
 }
