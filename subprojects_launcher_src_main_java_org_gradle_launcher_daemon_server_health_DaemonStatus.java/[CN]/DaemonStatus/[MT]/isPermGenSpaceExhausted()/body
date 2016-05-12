@@ -1,0 +1,14 @@
+{
+  GarbageCollectorMonitoringStrategy strategy=stats.getGcMonitor().getGcStrategy();
+  if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
+    int permgenUsageThreshold=parseValue(PERMGEN_USAGE_EXPIRE_AT,strategy.getPermGenUsageThreshold());
+    if (permgenUsageThreshold == 0) {
+      return false;
+    }
+    GarbageCollectionStats gcStats=stats.getGcMonitor().getPermGenStats();
+    if (gcStats.getEventCount() >= 5 && gcStats.getUsage() >= permgenUsageThreshold) {
+      return true;
+    }
+  }
+  return false;
+}
