@@ -1,15 +1,18 @@
 {
+  String treePath=null;
+  PatternSet treePattern=null;
   if (isDirectoryFileTree(fileTree)) {
     DirectoryFileTree directoryFileTree=DirectoryFileTree.class.cast(((FileTreeAdapter)fileTree).getTree());
-    final String absolutePath=directoryFileTree.getDir().getAbsolutePath();
-    if (isCacheablePath(absolutePath)) {
-      VisitedTreeCacheEntry cacheEntry=findOrCreateCacheEntry(absolutePath);
+    treePath=directoryFileTree.getDir().getAbsolutePath();
+    treePattern=directoryFileTree.getPatternSet();
+    if (isCacheablePath(treePath)) {
+      VisitedTreeCacheEntry cacheEntry=findOrCreateCacheEntry(treePath);
       cacheEntry.lock();
       try {
         VisitedTree cachedTree=null;
         if (cacheEntry != null) {
           if (allowReuse) {
-            cachedTree=cacheEntry.get(directoryFileTree.getPatternSet());
+            cachedTree=cacheEntry.get(treePattern);
           }
  else {
             cacheEntry.clear();
@@ -21,8 +24,8 @@
         }
  else {
           recordCacheMiss(directoryFileTree,allowReuse);
-          cachedTree=doVisitTree(fileTree,true);
-          cacheEntry.put(directoryFileTree.getPatternSet(),cachedTree);
+          cachedTree=doVisitTree(treePath,treePattern,fileTree,true);
+          cacheEntry.put(treePattern,cachedTree);
           return cachedTree;
         }
       }
@@ -31,5 +34,5 @@
       }
     }
   }
-  return doVisitTree(fileTree,false);
+  return doVisitTree(treePath,treePattern,fileTree,false);
 }

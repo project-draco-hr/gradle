@@ -1,7 +1,16 @@
 {
-  Collection<FileTreeElement> fileTreeElements=new ArrayList<FileTreeElement>();
+  Hasher hasher=createHasher();
+  List<VisitedTree> sortedTrees=new ArrayList<VisitedTree>();
+  Collections.sort(sortedTrees,DefaultVisitedTree.VisitedTreeComparator.INSTANCE);
   for (  VisitedTree tree : visitedTrees) {
-    fileTreeElements.addAll(tree.getEntries());
+    if (tree.getAbsolutePath() != null) {
+      hasher.putString(tree.getAbsolutePath(),Charsets.UTF_8);
+    }
+    if (tree.getPatternSet() != null) {
+      hasher.putInt(tree.getPatternSet().hashCode());
+    }
+    hasher.putInt(tree.getEntries().size());
+    hasher.putInt(tree.calculatePreCheckHash());
   }
-  return FileTreeElementHasher.calculateHashForFileMetadata(fileTreeElements);
+  return hasher.hash().asInt();
 }
