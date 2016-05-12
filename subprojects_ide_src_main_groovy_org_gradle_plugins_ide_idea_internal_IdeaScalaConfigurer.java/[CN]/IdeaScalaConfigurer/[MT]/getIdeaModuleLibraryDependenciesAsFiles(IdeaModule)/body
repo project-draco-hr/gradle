@@ -1,16 +1,10 @@
 {
   Set<Dependency> dependencies=ideaModule.resolveDependencies();
-  Iterable<ModuleLibrary> moduleLibraries=Iterables.filter(dependencies,ModuleLibrary.class);
-  final Function<FilePath,File> fileFunction=new Function<FilePath,File>(){
-    @Override public File apply(    FilePath filePath){
-      return filePath.getFile();
+  List<File> files=Lists.newArrayList();
+  for (  ModuleLibrary moduleLibrary : Iterables.filter(dependencies,ModuleLibrary.class)) {
+    for (    FilePath filePath : Iterables.filter(moduleLibrary.getClasses(),FilePath.class)) {
+      files.add(filePath.getFile());
     }
   }
-;
-  return Iterables.concat(Iterables.transform(moduleLibraries,new Function<ModuleLibrary,Iterable<File>>(){
-    @Override public Iterable<File> apply(    ModuleLibrary moduleLibrary){
-      return Iterables.transform(Iterables.filter(moduleLibrary.getClasses(),FilePath.class),fileFunction);
-    }
-  }
-));
+  return files;
 }
