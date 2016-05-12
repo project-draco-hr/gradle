@@ -1,18 +1,33 @@
 {
   if (isDirectoryFileTree(fileTree)) {
     DirectoryFileTree directoryFileTree=DirectoryFileTree.class.cast(((FileTreeAdapter)fileTree).getTree());
-    if (isEligibleForCaching(directoryFileTree)) {
-      final String absolutePath=directoryFileTree.getDir().getAbsolutePath();
-      VisitedTree cachedTree=allowReuse ? cachedTrees.getIfPresent(absolutePath) : null;
-      if (cachedTree != null) {
-        recordCacheHit(directoryFileTree);
-        return cachedTree;
-      }
+    final String absolutePath=directoryFileTree.getDir().getAbsolutePath();
+    if (isCacheablePath(absolutePath)) {
+      VisitedTreeCacheEntry cacheEntry=findOrCreateCacheEntry(absolutePath);
+      cacheEntry.lock();
+      try {
+        VisitedTree cachedTree=null;
+        if (cacheEntry != null) {
+          if (allowReuse) {
+            cachedTree=cacheEntry.get(directoryFileTree.getPatternSet());
+          }
  else {
-        recordCacheMiss(directoryFileTree,allowReuse);
-        cachedTree=doVisitTree(fileTree,true);
-        cachedTrees.put(absolutePath,cachedTree);
-        return cachedTree;
+            cacheEntry.clear();
+          }
+        }
+        if (cachedTree != null) {
+          recordCacheHit(directoryFileTree);
+          return cachedTree;
+        }
+ else {
+          recordCacheMiss(directoryFileTree,allowReuse);
+          cachedTree=doVisitTree(fileTree,true);
+          cacheEntry.put(directoryFileTree.getPatternSet(),cachedTree);
+          return cachedTree;
+        }
+      }
+  finally {
+        cacheEntry.unlock();
       }
     }
   }

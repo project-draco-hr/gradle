@@ -1,5 +1,12 @@
 {
   this.gradle=gradle;
-  buildListener=new CacheCleaner(cachingTreeVisitor);
-  gradle.addBuildListener(buildListener);
+  cacheExpirationStrategy=new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor,new Factory<OverlappingDirectoriesDetector>(){
+    @Override public OverlappingDirectoriesDetector create(){
+      return new OverlappingDirectoriesDetector();
+    }
+  }
+);
+  gradle.getTaskGraph().addTaskExecutionGraphListener(cacheExpirationStrategy);
+  gradle.getTaskGraph().addTaskExecutionListener(cacheExpirationStrategy);
+  gradle.addBuildListener(cacheExpirationStrategy);
 }
