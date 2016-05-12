@@ -9,6 +9,13 @@
     List<String> mappings=new ArrayList<String>(configMappings.get(config));
     confs.put(config,mappings);
   }
-  dependencyArtifacts=Sets.newLinkedHashSet(Arrays.asList(dependencyDescriptor.getAllDependencyArtifacts()));
-  excludeRules=Sets.newLinkedHashSet(Arrays.asList(dependencyDescriptor.getAllExcludeRules()));
+  dependencyArtifacts=Maps.newLinkedHashMap();
+  for (  DependencyArtifactDescriptor dependencyArtifactDescriptor : dependencyDescriptor.getAllDependencyArtifacts()) {
+    IvyArtifactName ivyArtifactName=DefaultIvyArtifactName.forIvyArtifact(dependencyArtifactDescriptor);
+    dependencyArtifacts.put(ivyArtifactName,Sets.newHashSet(dependencyArtifactDescriptor.getConfigurations()));
+  }
+  excludeRules=Maps.newLinkedHashMap();
+  for (  ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
+    excludeRules.put(excludeRule,Sets.newHashSet(excludeRule.getConfigurations()));
+  }
 }
