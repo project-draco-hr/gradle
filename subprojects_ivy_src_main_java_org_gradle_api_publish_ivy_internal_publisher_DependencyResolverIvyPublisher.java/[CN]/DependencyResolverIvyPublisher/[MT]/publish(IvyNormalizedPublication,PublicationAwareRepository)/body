@@ -3,13 +3,12 @@
   IvyPublicationIdentity projectIdentity=publication.getProjectIdentity();
   ModuleRevisionId moduleRevisionId=IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(),projectIdentity.getModule(),projectIdentity.getRevision());
   ModuleVersionIdentifier moduleVersionIdentifier=DefaultModuleVersionIdentifier.newId(moduleRevisionId);
-  DefaultIvyModulePublishMetaData publishMetaData=new DefaultIvyModulePublishMetaData(moduleVersionIdentifier,"");
+  BuildableIvyModulePublishMetaData publishMetaData=new DefaultIvyModulePublishMetaData(moduleVersionIdentifier,"");
   try {
     for (    IvyArtifact publishArtifact : publication.getArtifacts()) {
-      Artifact ivyArtifact=createIvyArtifact(publishArtifact,moduleRevisionId);
-      publishMetaData.addArtifact(ivyArtifact,publishArtifact.getFile());
+      publishMetaData.addArtifact(createIvyArtifact(publishArtifact),publishArtifact.getFile());
     }
-    Artifact artifact=DefaultArtifact.newIvyArtifact(moduleRevisionId,null);
+    IvyArtifactName artifact=new DefaultIvyArtifactName("ivy","ivy","xml");
     publishMetaData.addArtifact(artifact,publication.getDescriptorFile());
     publisher.publish(publishMetaData);
   }
