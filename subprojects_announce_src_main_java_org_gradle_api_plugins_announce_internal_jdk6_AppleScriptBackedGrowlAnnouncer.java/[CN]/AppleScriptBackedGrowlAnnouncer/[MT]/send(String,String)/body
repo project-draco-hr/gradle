@@ -1,0 +1,16 @@
+{
+  String isRunning="\ntell application \"System Events\"\n" + "set isRunning to count of (every process whose bundle identifier is \"com.Growl.GrowlHelperApp\") > 0\n" + "end tell\n"+ "return isRunning\n";
+  try {
+    Object value=engine.eval(isRunning);
+    if (value.equals(0)) {
+      throw new AnnouncerUnavailableException("Growl is not running.");
+    }
+    final File icon=iconProvider.getIcon(48,48);
+    String iconDef=icon != null ? "image from location ((POSIX file \"" + icon.getAbsolutePath() + "\") as string) as alias" : "";
+    String script="\ntell application id \"com.Growl.GrowlHelperApp\"\n" + "register as application \"Gradle\" all notifications {\"Build Notification\"} default notifications {\"Build Notification\"}\n" + "notify with name \"Build Notification\" title \"" + escape(title) + "\" description \""+ escape(message)+ "\" application name \"Gradle\""+ iconDef+ "\nend tell\n";
+    engine.eval(script);
+  }
+ catch (  ScriptException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+}

@@ -1,0 +1,29 @@
+{
+  HttpURLConnection connection=null;
+  try {
+    connection=(HttpURLConnection)(new URL("https://twitter.com/statuses/update.xml").openConnection());
+    connection.setRequestMethod("POST");
+    connection.setDoInput(true);
+    connection.setDoOutput(true);
+    connection.setUseCaches(false);
+    String credentials=Base64.encodeBase64String((username + ":" + password).getBytes("UTF-8")).trim();
+    connection.setRequestProperty("Authorization","Basic " + credentials);
+    final OutputStream outputStream=connection.getOutputStream();
+    IOUtils.write("status=" + URLEncoder.encode(message,"UTF-8"),outputStream);
+    IOUtils.closeQuietly(outputStream);
+    logger.info("Successfully tweeted \'" + message + "\' using account \'"+ username+ "\'");
+    if (logger.isDebugEnabled()) {
+      final InputStream inputStream=connection.getInputStream();
+      logger.debug(IOUtils.toString(inputStream,"UTF-8"));
+      IOUtils.closeQuietly(inputStream);
+    }
+  }
+ catch (  Exception e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+ finally {
+    if (connection != null) {
+      connection.disconnect();
+    }
+  }
+}

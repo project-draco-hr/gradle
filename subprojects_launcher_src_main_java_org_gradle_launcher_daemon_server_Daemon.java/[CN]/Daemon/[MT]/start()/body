@@ -5,7 +5,10 @@
     if (stateCoordinator != null) {
       throw new IllegalStateException("cannot start daemon as it is already running");
     }
-    registryUpdater=new DomainRegistryUpdater(daemonRegistry,daemonContext,password);
+    SecureRandom secureRandom=new SecureRandom();
+    byte[] token=new byte[16];
+    secureRandom.nextBytes(token);
+    registryUpdater=new DomainRegistryUpdater(daemonRegistry,daemonContext,token);
     Runtime.getRuntime().addShutdownHook(new Thread(){
       public void run(){
         try {
@@ -30,7 +33,7 @@
     }
 ;
     stateCoordinator=new DaemonStateCoordinator(executorFactory,onStartCommand,onFinishCommand);
-    connectionHandler=new DefaultIncomingConnectionHandler(commandExecuter,daemonContext,stateCoordinator,executorFactory);
+    connectionHandler=new DefaultIncomingConnectionHandler(commandExecuter,daemonContext,stateCoordinator,executorFactory,token);
     Runnable connectionErrorHandler=new Runnable(){
       @Override public void run(){
         stateCoordinator.stop();

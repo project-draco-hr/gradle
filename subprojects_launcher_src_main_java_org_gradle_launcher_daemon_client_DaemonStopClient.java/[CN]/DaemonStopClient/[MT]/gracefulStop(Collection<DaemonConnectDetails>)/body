@@ -1,0 +1,16 @@
+{
+  for (  DaemonConnectDetails daemon : daemons) {
+    DaemonClientConnection connection=connector.maybeConnect(daemon);
+    if (connection == null) {
+      continue;
+    }
+    try {
+      LOGGER.debug("Requesting daemon {} stop when idle",daemon);
+      stopDispatcher.dispatch(connection,new StopWhenIdle(idGenerator.generateId(),connection.getDaemon().getToken()));
+      LOGGER.lifecycle("Gradle daemon stopped.");
+    }
+  finally {
+      connection.stop();
+    }
+  }
+}

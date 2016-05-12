@@ -1,6 +1,6 @@
 {
+  final DefaultModelViewState state=new DefaultModelViewState(modelNode.getPath(),getType(),ruleDescriptor,writable,true);
   return new ModelView<M>(){
-    private boolean closed;
     private final Map<String,Object> propertyViews=new HashMap<String,Object>();
     @Override public ModelPath getPath(){
       return modelNode.getPath();
@@ -12,14 +12,14 @@
       return proxyFactory.createProxy(new State(),schema,bindings,typeConverter);
     }
     public void close(){
-      closed=true;
+      state.close();
     }
 class State implements ModelElementState {
       @Override public MutableModelNode getBackingNode(){
         return modelNode;
       }
       @Override public String getDisplayName(){
-        return getType() + " '" + modelNode.getPath().toString()+ "'";
+        return getType().getDisplayName() + " '" + modelNode.getPath()+ "'";
       }
       @Override public boolean equals(      Object obj){
         if (obj == this) {
@@ -35,6 +35,7 @@ class State implements ModelElementState {
         return modelNode.hashCode();
       }
       @Override public Object get(      String name){
+        state.assertCanReadChildren();
         if (propertyViews.containsKey(name)) {
           return propertyViews.get(name);
         }
@@ -50,7 +51,7 @@ class State implements ModelElementState {
         ModelView<? extends T> modelView;
         if (writable) {
           modelView=propertyNode.asMutable(propertyType,ruleDescriptor);
-          if (closed) {
+          if (state.isClosed()) {
             modelView.close();
           }
         }
@@ -60,12 +61,11 @@ class State implements ModelElementState {
         return modelView.getInstance();
       }
       @Override public void apply(      String name,      Closure<?> action){
+        state.assertCanMutate();
         ClosureBackedAction.execute(get(name),action);
       }
       @Override public void set(      String name,      Object value){
-        if (!writable || closed) {
-          throw new ModelViewClosedException(getType(),ruleDescriptor);
-        }
+        state.assertCanMutate();
         ModelProperty<?> property=schema.getProperty(name);
         value=doSet(name,value,property);
         propertyViews.put(name,value);
