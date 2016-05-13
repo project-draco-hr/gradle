@@ -1,2 +1,28 @@
 {
+  Preconditions.checkNotNull(jdkName);
+  List<Node> orderEntries=findOrderEntries();
+  Node moduleJdk=findFirstWithAttributeValue(orderEntries,"type","jdk");
+  Node moduleRootManager=getNewModuleRootManager();
+  if (!jdkName.equals(INHERITED)) {
+    Node inheritedJdk=findFirstWithAttributeValue(orderEntries,"type","inheritedJdk");
+    if (inheritedJdk != null) {
+      inheritedJdk.parent().remove(inheritedJdk);
+    }
+    if (moduleJdk != null) {
+      moduleRootManager.remove(moduleJdk);
+    }
+    Map<String,Object> attributes=Maps.newHashMapWithExpectedSize(3);
+    attributes.put("type","jdk");
+    attributes.put("jdkName",jdkName);
+    attributes.put("jdkType","JavaSDK");
+    moduleRootManager.appendNode("orderEntry",attributes);
+  }
+ else   if (findFirstWithAttributeValue(orderEntries,"type","inheritedJdk") == null) {
+    if (moduleJdk != null) {
+      moduleRootManager.remove(moduleJdk);
+    }
+    Map<String,Object> attributes=Maps.newHashMapWithExpectedSize(1);
+    attributes.put("type","inheritedJdk");
+    moduleRootManager.appendNode("orderEntry",attributes);
+  }
 }
