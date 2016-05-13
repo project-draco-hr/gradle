@@ -1,0 +1,26 @@
+{
+  ModuleComponentIdentifier id=descriptor.getComponentIdentifier();
+  writer.startElement("info");
+  writer.attribute("organisation",id.getGroup());
+  writer.attribute("module",id.getModule());
+  String branch=descriptor.getBranch();
+  if (branch != null) {
+    writer.attribute("branch",branch);
+  }
+  writer.attribute("revision",id.getVersion());
+  writer.attribute("status",descriptor.getStatus());
+  if (descriptor.isDefault()) {
+    writer.attribute("default","true");
+  }
+  for (  Map.Entry<NamespaceId,String> entry : descriptor.getExtraInfo().entrySet()) {
+    if (entry.getValue() == null || entry.getValue().length() == 0) {
+      continue;
+    }
+    NamespaceId namespaceId=entry.getKey();
+    writer.startElement("ns:" + namespaceId.getName());
+    writer.attribute("xmlns:ns",namespaceId.getNamespace());
+    writer.characters(entry.getValue());
+    writer.endElement();
+  }
+  writer.endElement();
+}
