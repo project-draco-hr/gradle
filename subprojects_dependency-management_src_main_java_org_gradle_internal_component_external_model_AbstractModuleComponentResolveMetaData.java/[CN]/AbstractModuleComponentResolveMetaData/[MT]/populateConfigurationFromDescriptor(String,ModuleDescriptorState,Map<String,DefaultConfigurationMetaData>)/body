@@ -1,0 +1,17 @@
+{
+  DefaultConfigurationMetaData populated=configurations.get(name);
+  if (populated != null) {
+    return populated;
+  }
+  ModuleDescriptorState.Configuration descriptorConfiguration=moduleDescriptor.getConfiguration(name);
+  Set<String> hierarchy=new LinkedHashSet<String>();
+  hierarchy.add(name);
+  for (  String parent : descriptorConfiguration.extendsFrom) {
+    hierarchy.addAll(populateConfigurationFromDescriptor(parent,moduleDescriptor,configurations).hierarchy);
+  }
+  boolean transitive=descriptorConfiguration.transitive;
+  boolean visible=descriptorConfiguration.visiible;
+  DefaultConfigurationMetaData configuration=new DefaultConfigurationMetaData(name,hierarchy,transitive,visible);
+  configurations.put(name,configuration);
+  return configuration;
+}
