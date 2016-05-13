@@ -3,11 +3,13 @@
   DefaultModuleDescriptor moduleDescriptor=new DefaultModuleDescriptor(moduleRevisionId,"integration",null,true);
   moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION));
   moduleDescriptor.setLastModified(System.currentTimeMillis());
+  ModuleDescriptorState moduleDescriptorState=new ModuleDescriptorState(moduleDescriptor);
   for (  IvyArtifactName artifactName : componentArtifacts) {
-    addArtifact(moduleDescriptor,artifactName.getName(),artifactName.getType(),artifactName.getExtension(),artifactName.getAttributes());
+    moduleDescriptorState.addArtifact(artifactName,Collections.singleton(Dependency.DEFAULT_CONFIGURATION));
   }
   if (componentArtifacts.isEmpty()) {
-    addArtifact(moduleDescriptor,componentIdentifier.getModule(),"jar","jar",Collections.<String,String>emptyMap());
+    IvyArtifactName defaultArtifact=new DefaultIvyArtifactName(componentIdentifier.getModule(),"jar","jar");
+    moduleDescriptorState.addArtifact(defaultArtifact,Collections.singleton(Dependency.DEFAULT_CONFIGURATION));
   }
-  return moduleDescriptor;
+  return moduleDescriptorState;
 }
