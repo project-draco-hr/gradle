@@ -4,7 +4,7 @@
     Collection<IdeProjectDependency> ideProjectDependencies=dependenciesExtractor.extractProjectDependencies(ideaModule.getProject(),Collections.singletonList(configuration),Collections.<Configuration>emptyList());
     for (    IdeProjectDependency ideProjectDependency : ideProjectDependencies) {
       IdeDependencyKey<?,Dependency> key=IdeDependencyKey.forProjectDependency(ideProjectDependency,new IdeDependencyKey.DependencyBuilder<IdeProjectDependency,Dependency>(){
-        public Dependency buildDependency(        IdeProjectDependency dependency,        String scope){
+        @Override public Dependency buildDependency(        IdeProjectDependency dependency,        String scope){
           return new ModuleDependencyBuilder().create(dependency,scope);
         }
       }
@@ -15,7 +15,7 @@
       Collection<IdeExtendedRepoFileDependency> ideRepoFileDependencies=dependenciesExtractor.extractRepoFileDependencies(ideaModule.getProject().getDependencies(),Collections.singletonList(configuration),Collections.<Configuration>emptyList(),ideaModule.isDownloadSources(),ideaModule.isDownloadJavadoc());
       for (      IdeExtendedRepoFileDependency ideRepoFileDependency : ideRepoFileDependencies) {
         IdeDependencyKey<?,Dependency> key=IdeDependencyKey.forRepoFileDependency(ideRepoFileDependency,new IdeDependencyKey.DependencyBuilder<IdeExtendedRepoFileDependency,Dependency>(){
-          public Dependency buildDependency(          IdeExtendedRepoFileDependency dependency,          String scope){
+          @Override public Dependency buildDependency(          IdeExtendedRepoFileDependency dependency,          String scope){
             Set<FilePath> javadoc=CollectionUtils.collect(dependency.getJavadocFiles(),new LinkedHashSet<FilePath>(),getPath);
             Set<FilePath> source=CollectionUtils.collect(dependency.getSourceFiles(),new LinkedHashSet<FilePath>(),getPath);
             SingleEntryModuleLibrary library=new SingleEntryModuleLibrary(getPath.transform(dependency.getFile()),javadoc,source,scope);
@@ -30,7 +30,7 @@
     Collection<IdeLocalFileDependency> ideLocalFileDependencies=dependenciesExtractor.extractLocalFileDependencies(Collections.singletonList(configuration),Collections.<Configuration>emptyList());
     for (    IdeLocalFileDependency fileDependency : ideLocalFileDependencies) {
       IdeDependencyKey<?,Dependency> key=IdeDependencyKey.forLocalFileDependency(fileDependency,new IdeDependencyKey.DependencyBuilder<IdeLocalFileDependency,Dependency>(){
-        public Dependency buildDependency(        IdeLocalFileDependency dependency,        String scope){
+        @Override public Dependency buildDependency(        IdeLocalFileDependency dependency,        String scope){
           return new SingleEntryModuleLibrary(getPath.transform(dependency.getFile()),scope);
         }
       }
@@ -51,7 +51,7 @@
     }
     Collection<Configuration> minusConfigurations=plusMinusConfigurations.get("minus");
     Collection<String> minusConfigurationNames=minusConfigurations != null ? Lists.newArrayList(Iterables.transform(minusConfigurations,new Function<Configuration,String>(){
-      public String apply(      Configuration configuration){
+      @Override public String apply(      Configuration configuration){
         return configuration.getName();
       }
     }
