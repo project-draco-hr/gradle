@@ -1,0 +1,13 @@
+{
+  final String taskPath=task.getPath();
+  if (tasksWithUnknownOutputs != null && tasksWithUnknownOutputs.contains(taskPath)) {
+    LOG.info("Flushing directory cache because task {} has unknown outputs at configuration time.",taskPath);
+    cachingTreeVisitor.clearCache();
+  }
+ else   if (lastTaskToHandleInputFile != null) {
+    Collection<String> filePaths=lastTaskToHandleInputFile.get(taskPath);
+    if (filePaths != null) {
+      cachingTreeVisitor.invalidateFilePaths(filePaths);
+    }
+  }
+}

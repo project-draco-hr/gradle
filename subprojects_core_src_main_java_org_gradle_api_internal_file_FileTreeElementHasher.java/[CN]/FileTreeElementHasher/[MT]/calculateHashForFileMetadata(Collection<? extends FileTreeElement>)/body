@@ -1,18 +1,24 @@
 {
-  Collection<FileTreeElement> sortedFileTreeElement=sortForHashing(allFileTreeElements);
-  Hasher hasher=createHasher();
-  for (  FileTreeElement fileTreeElement : sortedFileTreeElement) {
-    for (    String pathPart : fileTreeElement.getRelativePath().getSegments()) {
-      hasher.putString(pathPart,Charsets.UTF_8);
-      hasher.putByte(HASH_PATH_SEPARATOR);
+  FileTreeElement[] sortedFileTreeElement=sortForHashing(allFileTreeElements);
+  BufferedStreamingHasher hasher=new BufferedStreamingHasher();
+  Encoder encoder=hasher.getEncoder();
+  try {
+    for (    FileTreeElement fileTreeElement : sortedFileTreeElement) {
+      for (      String pathPart : fileTreeElement.getRelativePath().getSegments()) {
+        encoder.writeString(pathPart);
+        encoder.writeByte(HASH_PATH_SEPARATOR);
+      }
+      if (!fileTreeElement.isDirectory()) {
+        encoder.writeByte(HASH_FIELD_SEPARATOR);
+        encoder.writeLong(fileTreeElement.getSize());
+        encoder.writeByte(HASH_FIELD_SEPARATOR);
+        encoder.writeLong(fileTreeElement.getLastModified());
+      }
+      encoder.writeByte(HASH_RECORD_SEPARATOR);
     }
-    if (!fileTreeElement.isDirectory()) {
-      hasher.putByte(HASH_FIELD_SEPARATOR);
-      hasher.putLong(fileTreeElement.getSize());
-      hasher.putByte(HASH_FIELD_SEPARATOR);
-      hasher.putLong(fileTreeElement.getLastModified());
-    }
-    hasher.putByte(HASH_RECORD_SEPARATOR);
+    return hasher.checksum();
   }
-  return hasher.hash().asInt();
+ catch (  IOException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
 }

@@ -1,0 +1,19 @@
+{
+  final String taskName=task.getName();
+  logger.debug("Applying Jacoco to " + taskName);
+  final JacocoTaskExtension extension=task.getExtensions().create(TASK_EXTENSION_NAME,JacocoTaskExtension.class,agent,task);
+  ((IConventionAware)extension).getConventionMapping().map("destinationFile",new Callable<File>(){
+    @Override public File call(){
+      return project.file(String.valueOf(project.getBuildDir()) + "/jacoco/" + taskName+ ".exec");
+    }
+  }
+);
+  task.doFirst(new Action<Task>(){
+    @Override public void execute(    Task input){
+      if (extension.isEnabled()) {
+        task.jvmArgs(extension.getAsJvmArg());
+      }
+    }
+  }
+);
+}

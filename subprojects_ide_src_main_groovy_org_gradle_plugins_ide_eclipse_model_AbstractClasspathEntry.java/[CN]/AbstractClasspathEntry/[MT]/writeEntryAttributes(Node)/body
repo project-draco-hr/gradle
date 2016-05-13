@@ -1,8 +1,8 @@
 {
-  Map effectiveEntryAttrs=Maps.newHashMap();
+  Map<String,Object> effectiveEntryAttrs=Maps.newHashMap();
   for (  String key : entryAttributes.keySet()) {
-    String value=(String)entryAttributes.get(key);
-    if (value != null || key == COMPONENT_NON_DEPENDENCY_ATTRIBUTE) {
+    Object value=entryAttributes.get(key);
+    if ((value != null && !String.valueOf(value).isEmpty()) || COMPONENT_NON_DEPENDENCY_ATTRIBUTE.equals(key)) {
       effectiveEntryAttrs.put(key,value);
     }
   }
@@ -12,7 +12,7 @@
   if (effectiveEntryAttrs.containsKey(COMPONENT_DEPENDENCY_ATTRIBUTE) && effectiveEntryAttrs.containsKey(COMPONENT_NON_DEPENDENCY_ATTRIBUTE)) {
     effectiveEntryAttrs.remove(COMPONENT_NON_DEPENDENCY_ATTRIBUTE);
   }
-  Node attributesNode=null;
+  Node attributesNode;
   NodeList attributesNodes=(NodeList)node.get("attributes");
   if (attributesNodes.size() == 0) {
     attributesNode=node.appendNode("attributes");
@@ -20,9 +20,9 @@
  else {
     attributesNode=(Node)attributesNodes.get(0);
   }
-  for (  Object key : effectiveEntryAttrs.keySet()) {
+  for (  String key : effectiveEntryAttrs.keySet()) {
     Object value=effectiveEntryAttrs.get(key);
-    Map attrs=Maps.newHashMap();
+    Map<String,Object> attrs=Maps.newHashMap();
     attrs.put("name",key);
     attrs.put("value",value);
     attributesNode.appendNode("attribute",attrs);

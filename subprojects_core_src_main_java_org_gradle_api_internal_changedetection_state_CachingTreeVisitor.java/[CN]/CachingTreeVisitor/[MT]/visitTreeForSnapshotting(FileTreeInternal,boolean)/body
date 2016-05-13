@@ -1,20 +1,38 @@
 {
+  String treePath=null;
+  PatternSet treePattern=null;
   if (isDirectoryFileTree(fileTree)) {
     DirectoryFileTree directoryFileTree=DirectoryFileTree.class.cast(((FileTreeAdapter)fileTree).getTree());
-    if (isEligibleForCaching(directoryFileTree)) {
-      final String absolutePath=directoryFileTree.getDir().getAbsolutePath();
-      VisitedTree cachedTree=allowReuse ? cachedTrees.getIfPresent(absolutePath) : null;
-      if (cachedTree != null) {
-        recordCacheHit(directoryFileTree);
-        return cachedTree;
-      }
+    treePath=directoryFileTree.getDir().getAbsolutePath();
+    treePattern=directoryFileTree.getPatternSet();
+    if (isCacheablePath(treePath)) {
+      VisitedTreeCacheEntry cacheEntry=findOrCreateCacheEntry(treePath);
+      cacheEntry.lock();
+      try {
+        VisitedTree cachedTree=null;
+        if (cacheEntry != null) {
+          if (allowReuse) {
+            cachedTree=cacheEntry.get(treePattern);
+          }
  else {
-        recordCacheMiss(directoryFileTree,allowReuse);
-        cachedTree=doVisitTree(fileTree,true);
-        cachedTrees.put(absolutePath,cachedTree);
-        return cachedTree;
+            cacheEntry.clear();
+          }
+        }
+        if (cachedTree != null) {
+          recordCacheHit(directoryFileTree);
+          return cachedTree;
+        }
+ else {
+          recordCacheMiss(directoryFileTree,allowReuse);
+          cachedTree=doVisitTree(treePath,treePattern,fileTree,true);
+          cacheEntry.put(treePattern,cachedTree);
+          return cachedTree;
+        }
+      }
+  finally {
+        cacheEntry.unlock();
       }
     }
   }
-  return doVisitTree(fileTree,false);
+  return doVisitTree(treePath,treePattern,fileTree,false);
 }

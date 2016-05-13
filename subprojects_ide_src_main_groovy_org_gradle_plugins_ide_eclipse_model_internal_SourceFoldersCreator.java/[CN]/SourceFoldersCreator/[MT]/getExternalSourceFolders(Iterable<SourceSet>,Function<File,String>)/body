@@ -1,0 +1,17 @@
+{
+  List<SourceFolder> sourceFolders=projectRelativeFolders(sourceSets,provideRelativePath);
+  List<SourceFolder> externalSourceFolders=CollectionUtils.filter(sourceFolders,new Spec<SourceFolder>(){
+    @Override public boolean isSatisfiedBy(    SourceFolder element){
+      return element.getPath().contains("..");
+    }
+  }
+);
+  List<SourceFolder> regularSourceFolders=getRegularSourceFolders(sourceSets,provideRelativePath);
+  List<String> sources=Lists.newArrayList(Lists.transform(regularSourceFolders,new Function<SourceFolder,String>(){
+    @Override public String apply(    SourceFolder sourceFolder){
+      return sourceFolder.getName();
+    }
+  }
+));
+  return trimAndDedup(externalSourceFolders,sources);
+}

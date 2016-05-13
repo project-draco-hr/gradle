@@ -1,0 +1,20 @@
+{
+  ArrayList<SourceFolder> entries=Lists.newArrayList();
+  List<SourceSet> sortedSourceSets=sortSourceSetsAsPerUsualConvention(sourceSets);
+  for (  SourceSet sourceSet : sortedSourceSets) {
+    List<DirectoryTree> sortedSourceDirs=sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
+    for (    DirectoryTree tree : sortedSourceDirs) {
+      File dir=tree.getDir();
+      if (dir.isDirectory()) {
+        String relativePath=provideRelativePath.apply(dir);
+        SourceFolder folder=new SourceFolder(relativePath,null);
+        folder.setDir(dir);
+        folder.setName(dir.getName());
+        folder.setIncludes(getIncludesForTree(sourceSet,tree));
+        folder.setExcludes(getExcludesForTree(sourceSet,tree));
+        entries.add(folder);
+      }
+    }
+  }
+  return entries;
+}

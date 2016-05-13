@@ -1,12 +1,18 @@
 {
-  Collection<FileTreeElement> sortedFileTreeElement=sortForHashing(allFileTreeElements);
-  Hasher hasher=createHasher();
-  for (  FileTreeElement fileTreeElement : sortedFileTreeElement) {
-    for (    String pathPart : fileTreeElement.getRelativePath().getSegments()) {
-      hasher.putString(pathPart,Charsets.UTF_8);
-      hasher.putByte(HASH_PATH_SEPARATOR);
+  FileTreeElement[] sortedFileTreeElement=sortForHashing(allFileTreeElements);
+  BufferedStreamingHasher hasher=new BufferedStreamingHasher();
+  Encoder encoder=hasher.getEncoder();
+  try {
+    for (    FileTreeElement fileTreeElement : sortedFileTreeElement) {
+      for (      String pathPart : fileTreeElement.getRelativePath().getSegments()) {
+        encoder.writeString(pathPart);
+        encoder.writeByte(HASH_PATH_SEPARATOR);
+      }
+      encoder.writeByte(HASH_RECORD_SEPARATOR);
     }
-    hasher.putByte(HASH_RECORD_SEPARATOR);
+    return hasher.checksum();
   }
-  return hasher.hash().asInt();
+ catch (  IOException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
 }

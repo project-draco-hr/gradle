@@ -1,24 +1,10 @@
 {
-  Node facetManager=findFirstChildWithAttributeValue(iml,"component","name","FacetManager");
-  if (facetManager == null) {
-    facetManager=iml.appendNode("component",ImmutableMap.of("name","FacetManager"));
-  }
-  Node scalaFacet=findFirstChildWithAttributeValue(facetManager,"facet","type","scala");
-  if (scalaFacet == null) {
-    scalaFacet=facetManager.appendNode("facet",ImmutableMap.of("type","scala","name","Scala"));
-  }
-  Node configuration=findFirstChildNamed(scalaFacet,"configuration");
-  if (configuration == null) {
-    configuration=scalaFacet.appendNode("configuration");
-  }
-  Node libraryLevel=findFirstChildWithAttributeValue(configuration,"option","name","compilerLibraryLevel");
-  if (libraryLevel == null) {
-    libraryLevel=configuration.appendNode("option",Maps.newLinkedHashMap(ImmutableMap.of("name","compilerLibraryLevel")));
-  }
+  Node facetManager=findOrCreateFirstChildWithAttributeValue(iml,"component","name","FacetManager");
+  Node scalaFacet=findOrCreateFirstChildWithAttributeValue(facetManager,"facet","type","scala");
+  scalaFacet.attributes().put("name","Scala");
+  Node configuration=findOrCreateFirstChildNamed(scalaFacet,"configuration");
+  Node libraryLevel=findOrCreateFirstChildWithAttributeValue(configuration,"option","name","compilerLibraryLevel");
   libraryLevel.attributes().put("value","Project");
-  Node libraryName=findFirstChildWithAttributeValue(configuration,"option","name","compilerLibraryName");
-  if (libraryName == null) {
-    libraryName=configuration.appendNode("option",Maps.newLinkedHashMap(ImmutableMap.of("name","compilerLibraryName")));
-  }
+  Node libraryName=findOrCreateFirstChildWithAttributeValue(configuration,"option","name","compilerLibraryName");
   libraryName.attributes().put("value",scalaCompilerLibrary.getName());
 }

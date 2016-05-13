@@ -1,8 +1,17 @@
 {
   long start=System.currentTimeMillis();
   long expiry=start + STOP_TIMEOUT_SECONDS * 1000;
-  Set<String> stopped=new HashSet<String>();
-  DaemonClientConnection connection=connector.maybeConnect(compatibilitySpec);
+  final Set<String> seen=new HashSet<String>();
+  ExplainingSpec<DaemonContext> spec=new ExplainingSpec<DaemonContext>(){
+    @Override public String whyUnsatisfied(    DaemonContext element){
+      return "already seen";
+    }
+    @Override public boolean isSatisfiedBy(    DaemonContext element){
+      return !seen.contains(element.getUid());
+    }
+  }
+;
+  DaemonClientConnection connection=connector.maybeConnect(spec);
   if (connection == null) {
     LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
     return;
@@ -10,16 +19,17 @@
   LOGGER.lifecycle("Stopping daemon(s).");
   while (connection != null && System.currentTimeMillis() < expiry) {
     try {
-      if (stopped.add(connection.getDaemon().getUid())) {
-        LOGGER.debug("Requesting daemon {} stop now",connection.getDaemon());
-        stopDispatcher.dispatch(connection,new Stop(idGenerator.generateId(),connection.getDaemon().getToken()));
+      seen.add(connection.getDaemon().getUid());
+      LOGGER.debug("Requesting daemon {} stop now",connection.getDaemon());
+      boolean stopped=stopDispatcher.dispatch(connection,new Stop(idGenerator.generateId(),connection.getDaemon().getToken()));
+      if (stopped) {
         LOGGER.lifecycle("Gradle daemon stopped.");
       }
     }
   finally {
       connection.stop();
     }
-    connection=connector.maybeConnect(compatibilitySpec);
+    connection=connector.maybeConnect(spec);
   }
   if (connection != null) {
     throw new GradleException(String.format("Timeout waiting for all daemons to stop. Waited %s seconds.",(System.currentTimeMillis() - start) / 1000));
