@@ -15,7 +15,7 @@
   ModuleRevisionId relocation=pomReader.getRelocation();
   if (relocation != null) {
     if (groupId != null && artifactId != null && artifactId.equals(relocation.getName()) && groupId.equals(relocation.getOrganisation())) {
-      LOGGER.error("POM relocation to an other version number is not fully supported in Gradle : {} relocated to {}.",mdBuilder.getModuleDescriptor().getModuleRevisionId(),relocation);
+      LOGGER.error("POM relocation to an other version number is not fully supported in Gradle : {} relocated to {}.",mdBuilder.getModuleDescriptor().getComponentIdentifier(),relocation);
       LOGGER.warn("Please update your dependency to directly use the correct version '{}'.",relocation);
       LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
       PomReader relocatedModule=parseOtherPom(parserSettings,DefaultModuleComponentIdentifier.newId(relocation.getOrganisation(),relocation.getName(),relocation.getRevision()));
@@ -25,16 +25,9 @@
       }
     }
  else {
-      LOGGER.info(mdBuilder.getModuleDescriptor().getModuleRevisionId() + " is relocated to " + relocation+ ". Please update your dependencies.");
+      LOGGER.info(mdBuilder.getModuleDescriptor().getComponentIdentifier() + " is relocated to " + relocation+ ". Please update your dependencies.");
       LOGGER.debug("Relocated module will be considered as a dependency");
-      DefaultDependencyDescriptor dd=new DefaultDependencyDescriptor(mdBuilder.getModuleDescriptor(),relocation,true,false,true);
-      Configuration[] m2Confs=GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
-      for (      Configuration m2Conf : m2Confs) {
-        if (Visibility.PUBLIC.equals(m2Conf.getVisibility())) {
-          dd.addDependencyConfiguration(m2Conf.getName(),m2Conf.getName());
-        }
-      }
-      mdBuilder.addDependency(dd);
+      mdBuilder.addDependencyForRelocation(relocation);
     }
   }
  else {

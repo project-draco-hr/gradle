@@ -6,12 +6,9 @@
       effectiveVersion=matcher.group(1) + "-SNAPSHOT";
     }
   }
-  this.mrid=IvyUtil.createModuleRevisionId(group,module,effectiveVersion);
-  ivyModuleDescriptor.setModuleRevisionId(mrid);
-  if (effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT")) {
-    ivyModuleDescriptor.setStatus("integration");
-  }
- else {
-    ivyModuleDescriptor.setStatus("release");
+  String status=effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT") ? "integration" : "release";
+  descriptor=new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId(group,module,effectiveVersion),status,false);
+  for (  Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
+    descriptor.addConfiguration(maven2Configuration.getName(),maven2Configuration.isTransitive(),maven2Configuration.getVisibility() == Visibility.PUBLIC,Lists.newArrayList(maven2Configuration.getExtends()));
   }
 }

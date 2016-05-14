@@ -5,16 +5,14 @@
   }
   String version=determineVersion(dep);
   String mappedVersion=convertVersionFromMavenSyntax(version);
-  ModuleRevisionId moduleRevId=IvyUtil.createModuleRevisionId(dep.getGroupId(),dep.getArtifactId(),mappedVersion);
-  ModuleRevisionId mRevId=ivyModuleDescriptor.getModuleRevisionId();
-  if ((mRevId != null) && mRevId.getModuleId().equals(moduleRevId.getModuleId())) {
+  ModuleVersionSelector selector=DefaultModuleVersionSelector.newSelector(dep.getGroupId(),dep.getArtifactId(),mappedVersion);
+  if (selector.getGroup().equals(descriptor.getComponentIdentifier().getGroup()) && selector.getName().equals(descriptor.getComponentIdentifier().getModule())) {
     return;
   }
-  DefaultDependencyDescriptor dd=new DefaultDependencyDescriptor(ivyModuleDescriptor,moduleRevId,true,false,true);
+  Dependency dependency=descriptor.addDependency(selector);
   scope=(scope == null || scope.length() == 0) ? getDefaultScope(dep) : scope;
   ConfMapper mapping=MAVEN2_CONF_MAPPING.get(scope);
-  mapping.addMappingConfs(dd,dep.isOptional());
-  Map<String,String> extraAtt=new HashMap<String,String>();
+  mapping.addMappingConfs(dependency,dep.isOptional());
   boolean hasClassifier=dep.getClassifier() != null && dep.getClassifier().length() > 0;
   boolean hasNonJarType=dep.getType() != null && !"jar".equals(dep.getType());
   if (hasClassifier || hasNonJarType) {
@@ -23,27 +21,20 @@
       type=dep.getType();
     }
     String ext=determineExtension(type);
-    handleSpecialTypes(type,extraAtt);
-    if (dep.getClassifier() != null) {
-      extraAtt.put(EXTRA_ATTRIBUTE_CLASSIFIER,dep.getClassifier());
-    }
-    DefaultDependencyArtifactDescriptor depArtifact=new DefaultDependencyArtifactDescriptor(dd,dd.getDependencyId().getName(),type,ext,null,extraAtt);
+    String classifier=hasClassifier ? dep.getClassifier() : getClassifierForType(type);
     String optionalizedScope=dep.isOptional() ? "optional" : scope;
-    depArtifact.addConfiguration(optionalizedScope);
-    dd.addDependencyArtifact(optionalizedScope,depArtifact);
+    IvyArtifactName artifactName=new DefaultIvyArtifactName(selector.getName(),type,ext,classifier);
+    dependency.addArtifact(artifactName,Collections.singleton(optionalizedScope));
   }
   List<ModuleId> excluded=dep.getExcludedModules();
   if (excluded.isEmpty()) {
     excluded=getDependencyMgtExclusions(dep);
   }
-  for (  Object anExcluded : excluded) {
-    ModuleId excludedModule=(ModuleId)anExcluded;
-    String[] confs=dd.getModuleConfigurations();
+  for (  ModuleId excludedModule : excluded) {
     DefaultExcludeRule rule=new DefaultExcludeRule(new ArtifactId(excludedModule,PatternMatcher.ANY_EXPRESSION,PatternMatcher.ANY_EXPRESSION,PatternMatcher.ANY_EXPRESSION),ExactPatternMatcher.INSTANCE,null);
-    for (    String conf : confs) {
+    for (    String conf : dependency.getConfMappings().keySet()) {
       rule.addConfiguration(conf);
-      dd.addExcludeRule(conf,rule);
     }
+    dependency.addExcludeRule(rule);
   }
-  ivyModuleDescriptor.addDependency(dd);
 }
