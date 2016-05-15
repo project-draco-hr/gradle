@@ -1,3 +1,32 @@
 {
-  withIvy(Transformers.toTransformer(action));
+  Integer currentDepth=depth.get();
+  if (currentDepth != null) {
+    depth.set(currentDepth + 1);
+    try {
+      action.execute(IvyContext.getContext().getIvy());
+    }
+  finally {
+      depth.set(currentDepth);
+    }
+  }
+  IvyContext.pushNewContext();
+  try {
+    depth.set(1);
+    try {
+      Ivy ivy=getIvy();
+      try {
+        IvyContext.getContext().setIvy(ivy);
+        action.execute(ivy);
+      }
+  finally {
+        releaseIvy(ivy);
+      }
+    }
+  finally {
+      depth.set(null);
+    }
+  }
+  finally {
+    IvyContext.popContext();
+  }
 }
