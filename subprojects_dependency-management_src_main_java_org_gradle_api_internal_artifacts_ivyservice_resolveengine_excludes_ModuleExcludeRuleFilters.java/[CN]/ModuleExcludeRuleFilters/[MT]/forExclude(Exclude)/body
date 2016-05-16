@@ -2,26 +2,26 @@
   if (!PatternMatchers.isExactMatcher(rule.getMatcher())) {
     return new IvyPatternMatcherExcludeRuleSpec(rule);
   }
-  ArtifactId artifactId=rule.getId();
-  ModuleId moduleId=artifactId.getModuleId();
-  boolean anyOrganisation=isWildcard(moduleId.getOrganisation());
+  ModuleIdentifier moduleId=rule.getModuleId();
+  IvyArtifactName artifact=rule.getArtifact();
+  boolean anyOrganisation=isWildcard(moduleId.getGroup());
   boolean anyModule=isWildcard(moduleId.getName());
-  boolean anyArtifact=isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
+  boolean anyArtifact=isWildcard(artifact.getName()) && isWildcard(artifact.getType()) && isWildcard(artifact.getExtension());
   if (anyArtifact) {
     if (!anyOrganisation && !anyModule) {
-      return new ModuleIdExcludeSpec(moduleId.getOrganisation(),moduleId.getName());
+      return new ModuleIdExcludeSpec(moduleId.getGroup(),moduleId.getName());
     }
  else     if (!anyModule) {
       return new ModuleNameExcludeSpec(moduleId.getName());
     }
  else     if (!anyOrganisation) {
-      return new GroupNameExcludeSpec(moduleId.getOrganisation());
+      return new GroupNameExcludeSpec(moduleId.getGroup());
     }
  else {
       return new ExcludeAllModulesSpec();
     }
   }
  else {
-    return new ArtifactExcludeSpec(artifactId);
+    return new ArtifactExcludeSpec(moduleId,artifact);
   }
 }
