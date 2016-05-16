@@ -1,18 +1,19 @@
 {
   Element exclusionsElement=getFirstChildElement(depElement,EXCLUSIONS);
-  List<ModuleId> exclusions=new LinkedList<ModuleId>();
   if (exclusionsElement != null) {
     NodeList childs=exclusionsElement.getChildNodes();
+    List<ModuleIdentifier> exclusions=Lists.newArrayList();
     for (int i=0; i < childs.getLength(); i++) {
       Node node=childs.item(i);
       if (node instanceof Element && EXCLUSION.equals(node.getNodeName())) {
         String groupId=getFirstChildText((Element)node,GROUP_ID);
         String artifactId=getFirstChildText((Element)node,ARTIFACT_ID);
         if ((groupId != null) && (artifactId != null)) {
-          exclusions.add(IvyUtil.createModuleId(groupId,artifactId));
+          exclusions.add(DefaultModuleIdentifier.newId(groupId,artifactId));
         }
       }
     }
+    return exclusions;
   }
-  return exclusions;
+  return Collections.emptyList();
 }

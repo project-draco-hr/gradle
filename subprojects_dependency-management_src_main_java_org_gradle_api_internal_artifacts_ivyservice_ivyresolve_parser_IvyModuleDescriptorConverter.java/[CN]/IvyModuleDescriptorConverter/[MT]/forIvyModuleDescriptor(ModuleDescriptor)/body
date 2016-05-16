@@ -1,0 +1,20 @@
+{
+  ModuleRevisionId moduleRevisionId=ivyDescriptor.getModuleRevisionId();
+  ModuleComponentIdentifier componentIdentifier=DefaultModuleComponentIdentifier.newId(moduleRevisionId.getOrganisation(),moduleRevisionId.getName(),moduleRevisionId.getRevision());
+  MutableModuleDescriptorState state=new MutableModuleDescriptorState(componentIdentifier,ivyDescriptor.getStatus(),ivyDescriptor.isDefault());
+  state.setBranch(moduleRevisionId.getBranch());
+  state.setDescription(ivyDescriptor.getDescription());
+  state.setPublicationDate(ivyDescriptor.getPublicationDate());
+  Map<NamespaceId,String> extraInfo=Cast.uncheckedCast(ivyDescriptor.getExtraInfo());
+  state.getExtraInfo().putAll(extraInfo);
+  for (  org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration : ivyDescriptor.getConfigurations()) {
+    addConfiguration(state,ivyConfiguration);
+  }
+  for (  ExcludeRule excludeRule : ivyDescriptor.getAllExcludeRules()) {
+    addExcludeRule(state,excludeRule);
+  }
+  for (  DependencyDescriptor dependencyDescriptor : ivyDescriptor.getDependencies()) {
+    addDependency(state,dependencyDescriptor);
+  }
+  return state;
+}
