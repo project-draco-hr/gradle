@@ -1,13 +1,8 @@
 {
-  ivyContextManager.withIvy(new Action<Ivy>(){
-    public void execute(    Ivy ivy){
-      LOGGER.debug("Resolving {}",resolveContext);
-      ComponentResolvers componentSource=createComponentSource(resolveContext,repositories,metadataHandler);
-      DependencyGraphBuilder builder=createDependencyGraphBuilder(componentSource,resolveContext.getResolutionStrategy(),metadataHandler);
-      ArtifactResolver artifactResolver=new ErrorHandlingArtifactResolver(new CacheLockingArtifactResolver(cacheLockingManager,ivyContextManager,componentSource.getArtifactResolver()));
-      DependencyGraphVisitor artifactsGraphVisitor=new ResolvedArtifactsGraphVisitor(artifactsVisitor,artifactResolver);
-      builder.resolve(resolveContext,new CompositeDependencyGraphVisitor(graphVisitor,artifactsGraphVisitor));
-    }
-  }
-);
+  LOGGER.debug("Resolving {}",resolveContext);
+  ComponentResolvers componentSource=createComponentSource(resolveContext,repositories,metadataHandler);
+  DependencyGraphBuilder builder=createDependencyGraphBuilder(componentSource,resolveContext.getResolutionStrategy(),metadataHandler);
+  ArtifactResolver artifactResolver=new ErrorHandlingArtifactResolver(new CacheLockingArtifactResolver(cacheLockingManager,componentSource.getArtifactResolver()));
+  DependencyGraphVisitor artifactsGraphVisitor=new ResolvedArtifactsGraphVisitor(artifactsVisitor,artifactResolver);
+  builder.resolve(resolveContext,new CompositeDependencyGraphVisitor(graphVisitor,artifactsGraphVisitor));
 }
