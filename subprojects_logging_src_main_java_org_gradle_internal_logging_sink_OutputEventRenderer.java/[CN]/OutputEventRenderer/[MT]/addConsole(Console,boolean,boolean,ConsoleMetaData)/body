@@ -1,9 +1,11 @@
 {
-  final OutputEventListener consoleChain=new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()),true),console,new DefaultStatusBarFormatter(consoleMetaData),new TrueTimeProvider());
+  final ConsoleBackedProgressRenderer consoleChain=new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()),true),console,new DefaultStatusBarFormatter(consoleMetaData),new TrueTimeProvider());
 synchronized (lock) {
+    this.console=consoleChain;
     if (stdout && stderr) {
       formatters.add(consoleChain);
-      removeStandardOutputAndError();
+      removeStandardOutputListener();
+      removeStandardErrorListener();
     }
  else     if (stdout) {
       formatters.add(onNonError(consoleChain));
