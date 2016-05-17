@@ -19,14 +19,25 @@
       JavaMethod<T,R> javaMethod=JavaReflectionUtil.method(listenerType,returnType,method.getName(),method.getParameterTypes());
       return javaMethod.invoke(listenerCast,args);
     }
-    protected int proxyHashCode(    Object proxy){
-      return System.identityHashCode(proxy);
+    private boolean proxyEquals(    Object proxy,    Object other){
+      if (other == null) {
+        return false;
+      }
+      if (proxy == other) {
+        return true;
+      }
+      String proxyClassName=Proxy.getInvocationHandler(proxy).getClass().toString();
+      String otherClassName;
+      if (Proxy.isProxyClass(other.getClass())) {
+        otherClassName=Proxy.getInvocationHandler(other).getClass().toString();
+      }
+ else {
+        otherClassName=other.getClass().toString();
+      }
+      return proxyClassName.equalsIgnoreCase(otherClassName);
     }
-    protected boolean proxyEquals(    Object proxy,    Object other){
-      if (other == null)       return false;
-      String className1=Proxy.getInvocationHandler(proxy).getClass().toString();
-      String className2=Proxy.isProxyClass(other.getClass()) ? Proxy.getInvocationHandler(other).getClass().toString() : other.getClass().toString();
-      return className1.equalsIgnoreCase(className2);
+    private int proxyHashCode(    Object proxy){
+      return System.identityHashCode(proxy);
     }
   }
 );
