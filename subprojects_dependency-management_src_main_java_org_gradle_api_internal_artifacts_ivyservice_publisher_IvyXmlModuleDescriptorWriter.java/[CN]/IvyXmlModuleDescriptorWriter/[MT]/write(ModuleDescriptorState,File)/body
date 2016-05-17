@@ -1,10 +1,17 @@
 {
-  final ModuleComponentIdentifier componentIdentifier=md.getComponentIdentifier();
-  List<IvyModuleArtifactPublishMetaData> ivyArtifacts=CollectionUtils.collect(md.getArtifacts(),new Transformer<IvyModuleArtifactPublishMetaData,Artifact>(){
-    @Override public IvyModuleArtifactPublishMetaData transform(    Artifact artifact){
-      return new DefaultIvyModuleArtifactPublishMetaData(componentIdentifier,artifact.getArtifactName(),artifact.getConfigurations());
+  try {
+    output.getParentFile().mkdirs();
+    OutputStream outputStream=new FileOutputStream(output);
+    try {
+      SimpleXmlWriter xmlWriter=new SimpleXmlWriter(outputStream,"  ");
+      writeTo(descriptor,xmlWriter);
+      xmlWriter.flush();
+    }
+  finally {
+      outputStream.close();
     }
   }
-);
-  doWrite(md,ivyArtifacts,output);
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
 }
