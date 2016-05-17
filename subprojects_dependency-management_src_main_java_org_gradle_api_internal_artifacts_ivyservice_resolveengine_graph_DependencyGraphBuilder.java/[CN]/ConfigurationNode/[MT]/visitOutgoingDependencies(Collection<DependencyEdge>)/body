@@ -10,7 +10,7 @@
     }
   }
   if (transitiveIncoming.isEmpty() && this != resolveState.root) {
-    if (previousTraversal != null) {
+    if (previousTraversalExclusions != null) {
       removeOutgoingEdges();
     }
     if (incomingEdges.isEmpty()) {
@@ -21,11 +21,11 @@
     }
     return;
   }
-  ModuleExcludeRuleFilter resolutionFilter=getModuleResolutionFilter(transitiveIncoming);
-  if (previousTraversal != null) {
-    if (previousTraversal.excludesSameModulesAs(resolutionFilter)) {
+  ModuleExclusion resolutionFilter=getModuleResolutionFilter(transitiveIncoming);
+  if (previousTraversalExclusions != null) {
+    if (previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
       LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring",this);
-      previousTraversal=resolutionFilter;
+      previousTraversalExclusions=resolutionFilter;
       return;
     }
     removeOutgoingEdges();
@@ -39,5 +39,5 @@
     outgoingEdges.add(dependencyEdge);
     target.add(dependencyEdge);
   }
-  previousTraversal=resolutionFilter;
+  previousTraversalExclusions=resolutionFilter;
 }
