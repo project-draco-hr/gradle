@@ -1,0 +1,25 @@
+{
+  if (one.getFilters().equals(other.getFilters())) {
+    return one;
+  }
+  for (  AbstractModuleExclusion excludeSpec : one.getFilters()) {
+    if (!canMerge(excludeSpec)) {
+      return null;
+    }
+  }
+  for (  AbstractModuleExclusion excludeSpec : other.getFilters()) {
+    if (!canMerge(excludeSpec)) {
+      return null;
+    }
+  }
+  List<AbstractModuleExclusion> merged=new ArrayList<AbstractModuleExclusion>();
+  for (  AbstractModuleExclusion thisSpec : one.getFilters()) {
+    for (    AbstractModuleExclusion otherSpec : other.getFilters()) {
+      mergeExcludeRules(thisSpec,otherSpec,merged);
+    }
+  }
+  if (merged.isEmpty()) {
+    return ModuleExclusions.EXCLUDE_NONE;
+  }
+  return new IntersectionExclusion(merged);
+}
