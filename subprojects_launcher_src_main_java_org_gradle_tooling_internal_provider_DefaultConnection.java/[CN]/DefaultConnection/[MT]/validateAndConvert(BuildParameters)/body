@@ -1,14 +1,10 @@
 {
-  validateCanRun();
-  ProviderOperationParameters providerOperationParameters=adapter.adapt(ProviderOperationParameters.class,buildParameters,BuildLogLevelMixIn.class);
-  if (!supportedConsumerVersion) {
-    String message=String.format("Support for clients using tooling API version %s is deprecated and will be removed in Gradle 3.0. You should upgrade your tooling API client to version %s or later.",consumerVersion.getVersion(),MIN_CLIENT_VERSION.getVersion());
-    DeprecationLogger.nagUserWith(message);
-    if (providerOperationParameters.getStandardOutput() != null) {
-      PrintStream printStream=new PrintStream(providerOperationParameters.getStandardOutput());
-      printStream.println(message);
-      printStream.flush();
-    }
+  LOGGER.info("Tooling API is using target Gradle version: {}.",GradleVersion.current().getVersion());
+  if (!JavaVersion.current().isJava6Compatible()) {
+    throw UnsupportedJavaRuntimeException.usingUnsupportedVersion("Gradle",JavaVersion.VERSION_1_6);
   }
-  return providerOperationParameters;
+  if (!supportedConsumerVersion) {
+    throw unsupportedConnectionException();
+  }
+  return adapter.adapt(ProviderOperationParameters.class,buildParameters,BuildLogLevelMixIn.class);
 }
