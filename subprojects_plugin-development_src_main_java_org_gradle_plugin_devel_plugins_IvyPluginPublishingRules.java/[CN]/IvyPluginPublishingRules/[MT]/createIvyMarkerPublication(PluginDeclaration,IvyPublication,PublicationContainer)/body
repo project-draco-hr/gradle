@@ -1,0 +1,29 @@
+{
+  String pluginId=declaration.getId();
+  IvyPublication publication=publications.create(declaration.getName() + "PluginMarkerIvy",IvyPublication.class);
+  publication.setOrganisation(pluginId);
+  publication.setModule(pluginId + PLUGIN_MARKER_SUFFIX);
+  publication.descriptor(new Action<IvyModuleDescriptorSpec>(){
+    @Override public void execute(    IvyModuleDescriptorSpec descriptor){
+      descriptor.withXml(new Action<XmlProvider>(){
+        @Override public void execute(        XmlProvider xmlProvider){
+          Element root=xmlProvider.asElement();
+          Document document=root.getOwnerDocument();
+          Node dependencies=root.getElementsByTagName("dependencies").item(0);
+          Node dependency=dependencies.appendChild(document.createElement("dependency"));
+          Attr org=document.createAttribute("org");
+          org.setValue(mainPublication.getOrganisation());
+          dependency.getAttributes().setNamedItem(org);
+          Attr name=document.createAttribute("name");
+          name.setValue(mainPublication.getModule());
+          dependency.getAttributes().setNamedItem(name);
+          Attr rev=document.createAttribute("rev");
+          rev.setValue(mainPublication.getRevision());
+          dependency.getAttributes().setNamedItem(rev);
+        }
+      }
+);
+    }
+  }
+);
+}
