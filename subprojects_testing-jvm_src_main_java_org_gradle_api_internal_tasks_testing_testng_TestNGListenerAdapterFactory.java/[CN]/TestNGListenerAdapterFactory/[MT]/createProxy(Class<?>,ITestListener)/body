@@ -1,44 +1,4 @@
 {
-  return (ITestListener)Proxy.newProxyInstance(classLoader,new Class<?>[]{ITestListener.class,ISuiteListener.class,configListenerClass},new InvocationHandler(){
-    public Object invoke(    Object proxy,    Method method,    Object[] args) throws Throwable {
-      Class<?> realReturnType=method.getReturnType();
-      Class<?> boxedReturnType=realReturnType;
-      if (!realReturnType.equals(void.class) && realReturnType.isPrimitive()) {
-        boxedReturnType=JavaReflectionUtil.getWrapperTypeForPrimitiveType(realReturnType);
-      }
-      if (method.getName().equals("equals") && args != null && args.length == 1) {
-        return proxyEquals(proxy,args[0]);
-      }
-      if (method.getName().equals("hashCode") && args == null) {
-        return proxyHashCode(proxy);
-      }
-      return invoke(listener.getClass(),listener,boxedReturnType,method,args);
-    }
-    private <T,R>R invoke(    Class<T> listenerType,    Object listener,    Class<R> returnType,    Method method,    Object[] args){
-      T listenerCast=listenerType.cast(listener);
-      JavaMethod<T,R> javaMethod=JavaReflectionUtil.method(listenerType,returnType,method.getName(),method.getParameterTypes());
-      return javaMethod.invoke(listenerCast,args);
-    }
-    private boolean proxyEquals(    Object proxy,    Object other){
-      if (other == null) {
-        return false;
-      }
-      if (proxy == other) {
-        return true;
-      }
-      String proxyClassName=Proxy.getInvocationHandler(proxy).getClass().getName();
-      String otherClassName;
-      if (Proxy.isProxyClass(other.getClass())) {
-        otherClassName=Proxy.getInvocationHandler(other).getClass().getName();
-      }
- else {
-        otherClassName=other.getClass().getName();
-      }
-      return proxyClassName.equals(otherClassName);
-    }
-    private int proxyHashCode(    Object proxy){
-      return Proxy.getInvocationHandler(proxy).getClass().getName().hashCode();
-    }
-  }
-);
+  Class<?>[] interfaces=new Class<?>[]{ITestListener.class,ISuiteListener.class,configListenerClass};
+  return (ITestListener)Proxy.newProxyInstance(classLoader,interfaces,new AdaptedListener(listener));
 }
