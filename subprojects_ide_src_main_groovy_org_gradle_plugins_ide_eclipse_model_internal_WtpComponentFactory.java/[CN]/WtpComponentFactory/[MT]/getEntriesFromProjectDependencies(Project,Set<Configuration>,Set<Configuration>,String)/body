@@ -1,0 +1,17 @@
+{
+  IdeDependenciesExtractor extractor=new IdeDependenciesExtractor();
+  Collection<IdeProjectDependency> dependencies=extractor.extractProjectDependencies(project,plusConfigurations,minusConfigurations);
+  List<WbDependentModule> projectDependencies=Lists.newArrayList();
+  for (  IdeProjectDependency dependency : dependencies) {
+    Project dependencyProject=dependency.getProject();
+    String moduleName;
+    if (dependencyProject.getPlugins().hasPlugin(EclipsePlugin.class)) {
+      moduleName=dependencyProject.getExtensions().getByType(EclipseModel.class).getProject().getName();
+    }
+ else {
+      moduleName=dependencyProject.getName();
+    }
+    projectDependencies.add(new WbDependentModule(deployPath,"module:/resource/" + moduleName + "/"+ moduleName));
+  }
+  return projectDependencies;
+}

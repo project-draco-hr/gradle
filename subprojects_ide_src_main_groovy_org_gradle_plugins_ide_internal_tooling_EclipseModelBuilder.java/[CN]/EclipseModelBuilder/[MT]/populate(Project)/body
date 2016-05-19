@@ -1,18 +1,26 @@
 {
   EclipseModel eclipseModel=project.getExtensions().getByType(EclipseModel.class);
-  EclipseClasspath classpath=eclipseModel.getClasspath();
-  classpath.setProjectDependenciesOnly(projectDependenciesOnly);
-  List<ClasspathEntry> entries=classpath.resolveDependencies();
+  EclipseClasspath eclipseClasspath=eclipseModel.getClasspath();
+  eclipseClasspath.setProjectDependenciesOnly(projectDependenciesOnly);
+  List<ClasspathEntry> classpathEntries;
+  if (eclipseClasspath.getFile() == null) {
+    classpathEntries=eclipseClasspath.resolveDependencies();
+  }
+ else {
+    Classpath classpath=new Classpath();
+    eclipseClasspath.mergeXmlClasspath(classpath);
+    classpathEntries=classpath.getEntries();
+  }
   final List<DefaultEclipseExternalDependency> externalDependencies=new LinkedList<DefaultEclipseExternalDependency>();
   final List<DefaultEclipseProjectDependency> projectDependencies=new LinkedList<DefaultEclipseProjectDependency>();
   final List<DefaultEclipseSourceDirectory> sourceDirectories=new LinkedList<DefaultEclipseSourceDirectory>();
-  for (  ClasspathEntry entry : entries) {
+  for (  ClasspathEntry entry : classpathEntries) {
     if (entry instanceof Library) {
       AbstractLibrary library=(AbstractLibrary)entry;
       final File file=library.getLibrary().getFile();
       final File source=library.getSourcePath() == null ? null : library.getSourcePath().getFile();
       final File javadoc=library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
-      DefaultEclipseExternalDependency dependency=new DefaultEclipseExternalDependency(file,javadoc,source,library.getModuleVersion(),library.isExported());
+      DefaultEclipseExternalDependency dependency=new DefaultEclipseExternalDependency(file,javadoc,source,library.getModuleVersion(),library.isExported(),createAttributes(library));
       externalDependencies.add(dependency);
     }
  else     if (entry instanceof ProjectDependency) {
@@ -22,10 +30,10 @@
       DefaultEclipseProjectDependency dependency;
       if (targetProject == null) {
         File projectDirectory=compositeProjectMapper.getProjectDirectory(projectDependency.getGradlePath());
-        dependency=new DefaultEclipseProjectDependency(path,projectDirectory,projectDependency.isExported());
+        dependency=new DefaultEclipseProjectDependency(path,projectDirectory,projectDependency.isExported(),createAttributes(projectDependency));
       }
  else {
-        dependency=new DefaultEclipseProjectDependency(path,targetProject,projectDependency.isExported());
+        dependency=new DefaultEclipseProjectDependency(path,targetProject,projectDependency.isExported(),createAttributes(projectDependency));
       }
       projectDependencies.add(dependency);
     }
@@ -63,7 +71,6 @@
   if (jdt != null) {
     eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings().setSourceLanguageLevel(jdt.getSourceCompatibility()).setTargetBytecodeVersion(jdt.getTargetCompatibility()).setJdk(DefaultInstalledJdk.current()));
   }
-  EclipseWtpSupport.enhanceProject(project,projectDependencies,externalDependencies);
   for (  Project childProject : project.getChildProjects().values()) {
     populate(childProject);
   }
