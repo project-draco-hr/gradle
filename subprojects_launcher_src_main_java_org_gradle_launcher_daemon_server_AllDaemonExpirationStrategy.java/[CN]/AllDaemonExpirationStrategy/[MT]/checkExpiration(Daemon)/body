@@ -1,23 +1,23 @@
 {
-  DaemonExpirationResult expirationResult=DaemonExpirationResult.DO_NOT_EXPIRE;
+  DaemonExpirationResult expirationResult=DaemonExpirationResult.NOT_TRIGGERED;
+  DaemonExpirationStatus expirationStatus=DO_NOT_EXPIRE;
   List<String> reasons=Lists.newArrayList();
-  boolean terminated=true;
-  boolean immediate=false;
   for (  DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
     expirationResult=expirationStrategy.checkExpiration(daemon);
-    if (!expirationResult.isExpired()) {
-      return DaemonExpirationResult.DO_NOT_EXPIRE;
+    if (expirationResult.getStatus() == DO_NOT_EXPIRE) {
+      return DaemonExpirationResult.NOT_TRIGGERED;
     }
  else {
-      immediate=immediate || expirationResult.isImmediate();
-      terminated=terminated && expirationResult.isTerminated();
       reasons.add(expirationResult.getReason());
+      if (expirationResult.getStatus().ordinal() > expirationStatus.ordinal()) {
+        expirationStatus=expirationResult.getStatus();
+      }
     }
   }
-  if (!expirationResult.isExpired()) {
-    return expirationResult;
+  if (expirationResult.getStatus() == DO_NOT_EXPIRE) {
+    return DaemonExpirationResult.NOT_TRIGGERED;
   }
  else {
-    return new DaemonExpirationResult(true,immediate,terminated,Joiner.on(" and ").skipNulls().join(reasons));
+    return new DaemonExpirationResult(expirationStatus,Joiner.on(" and ").skipNulls().join(reasons));
   }
 }
