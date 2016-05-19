@@ -1,14 +1,16 @@
 {
   DaemonExpirationResult expirationResult=DaemonExpirationResult.DO_NOT_EXPIRE;
   List<String> reasons=Lists.newArrayList();
-  boolean shouldNotifyUser=true;
+  boolean terminated=true;
+  boolean immediate=false;
   for (  DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
     expirationResult=expirationStrategy.checkExpiration(daemon);
     if (!expirationResult.isExpired()) {
       return DaemonExpirationResult.DO_NOT_EXPIRE;
     }
  else {
-      shouldNotifyUser=shouldNotifyUser & expirationResult.isTerminated();
+      immediate=immediate || expirationResult.isImmediate();
+      terminated=terminated && expirationResult.isTerminated();
       reasons.add(expirationResult.getReason());
     }
   }
@@ -16,6 +18,6 @@
     return expirationResult;
   }
  else {
-    return new DaemonExpirationResult(true,shouldNotifyUser,Joiner.on(" and ").skipNulls().join(reasons));
+    return new DaemonExpirationResult(true,immediate,terminated,Joiner.on(" and ").skipNulls().join(reasons));
   }
 }
