@@ -1,16 +1,9 @@
 {
   if (!initialized) {
-    String overrideProperty=System.getProperty(NATIVE_DIR_OVERRIDE);
-    File nativeDir;
-    if (overrideProperty == null) {
-      nativeDir=new File(userHomeDir,"native");
-    }
- else {
-      nativeDir=new File(overrideProperty);
-    }
+    nativeBaseDir=getNativeServicesDir(userHomeDir);
     if (useNativePlatform) {
       try {
-        net.rubygrapefruit.platform.Native.init(nativeDir);
+        net.rubygrapefruit.platform.Native.init(nativeBaseDir);
       }
  catch (      NativeIntegrationUnavailableException ex) {
         LOGGER.debug("Native-platform is not available.");
@@ -27,8 +20,12 @@ catch (      NativeException ex) {
       }
     }
     if (OperatingSystem.current().isWindows() && initializeJNA) {
-      new JnaBootPathConfigurer().configure(nativeDir);
+      new JnaBootPathConfigurer().configure(nativeBaseDir);
     }
     initialized=true;
+    LOGGER.info("Initialized native services in: " + nativeBaseDir);
+  }
+  if (useNativePlatform && !nativeBaseDir.exists()) {
+    throw new IllegalStateException("NativeServices initialized for directory that no longer exists: " + userHomeDir.getAbsolutePath());
   }
 }
