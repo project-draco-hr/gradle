@@ -4,18 +4,21 @@
   this.transitive=dependencyState.isTransitive();
   this.force=dependencyState.isForce();
   this.dynamicConstraintVersion=dependencyState.getDynamicConstraintVersion();
-  this.confs=Maps.newLinkedHashMap();
   Map<String,List<String>> configMappings=dependencyState.getConfMappings();
-  for (  String config : configMappings.keySet()) {
+  Set<String> configs=configMappings.keySet();
+  this.confs=configs.isEmpty() ? Collections.<String,List<String>>emptyMap() : new LinkedHashMap<String,List<String>>(configs.size());
+  for (  String config : configs) {
     List<String> mappings=new ArrayList<String>(configMappings.get(config));
     confs.put(config,mappings);
   }
-  dependencyArtifacts=Maps.newLinkedHashMap();
-  for (  Artifact dependencyArtifact : dependencyState.getDependencyArtifacts()) {
-    dependencyArtifacts.put(dependencyArtifact.getArtifactName(),dependencyArtifact.getConfigurations());
+  List<Artifact> artifacts=dependencyState.getDependencyArtifacts();
+  dependencyArtifacts=artifacts.isEmpty() ? Collections.<IvyArtifactName,Set<String>>emptyMap() : new HashMap<IvyArtifactName,Set<String>>(artifacts.size());
+  for (  Artifact dependencyArtifact : artifacts) {
+    this.dependencyArtifacts.put(dependencyArtifact.getArtifactName(),dependencyArtifact.getConfigurations());
   }
-  excludes=Maps.newLinkedHashMap();
-  for (  Exclude exclude : dependencyState.getDependencyExcludes()) {
-    excludes.put(exclude,Sets.newHashSet(exclude.getConfigurations()));
+  List<Exclude> dependencyExcludes=dependencyState.getDependencyExcludes();
+  excludes=dependencyExcludes.isEmpty() ? Collections.<Exclude,Set<String>>emptyMap() : new HashMap<Exclude,Set<String>>(dependencyExcludes.size());
+  for (  Exclude exclude : dependencyExcludes) {
+    this.excludes.put(exclude,Sets.newHashSet(exclude.getConfigurations()));
   }
 }
