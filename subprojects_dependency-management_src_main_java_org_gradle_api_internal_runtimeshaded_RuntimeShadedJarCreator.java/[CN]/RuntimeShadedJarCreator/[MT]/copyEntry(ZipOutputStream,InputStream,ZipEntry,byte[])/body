@@ -1,5 +1,10 @@
 {
-  outputStream.putNextEntry(new ZipEntry(zipEntry.getName()));
+  String name=zipEntry.getName();
+  int i=name.contains("META-INF") ? -1 : name.lastIndexOf("/");
+  String path=i == -1 ? name : name.substring(0,i);
+  String remappedClassName=i == -1 ? null : REMAPPER.relocateClass(path);
+  String newFileName=remappedClassName == null ? name : remappedClassName + name.substring(i);
+  outputStream.putNextEntry(new ZipEntry(newFileName));
   pipe(inputStream,outputStream,buffer);
   outputStream.closeEntry();
 }

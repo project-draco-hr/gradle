@@ -1,16 +1,7 @@
 {
   String className=zipEntry.getName().substring(0,zipEntry.getName().length() - ".class".length());
   byte[] bytes=readEntry(inputStream,zipEntry,buffer);
-  ClassReader classReader=new ClassReader(bytes);
-  ClassWriter classWriter=new ClassWriter(0);
-  ClassVisitor remappingVisitor=new RemappingClassAdapter(classWriter,REMAPPER);
-  try {
-    classReader.accept(remappingVisitor,ClassReader.EXPAND_FRAMES);
-  }
- catch (  Exception e) {
-    throw new GradleException("Error in ASM processing class: " + className,e);
-  }
-  byte[] remappedClass=classWriter.toByteArray();
+  byte[] remappedClass=remapClass(className,bytes);
   String remappedClassName=REMAPPER.relocateClass(className);
   String newFileName=(remappedClassName == null ? className : remappedClassName).concat(".class");
   writeEntry(outputStream,newFileName,remappedClass);
