@@ -1,6 +1,6 @@
 {
-  TaskClassInfo taskClassInfo=getTaskClassInfo(task.getClass());
-  if (taskClassInfo.incremental) {
+  TaskClassInfo taskClassInfo=taskClassInfoStore.getTaskClassInfo(task.getClass());
+  if (taskClassInfo.isIncremental()) {
     task.getOutputs().upToDateWhen(new Spec<Task>(){
       public boolean isSatisfiedBy(      Task element){
         return true;
@@ -8,12 +8,13 @@
     }
 );
   }
-  for (  Factory<Action<Task>> actionFactory : taskClassInfo.taskActions) {
+  for (  Factory<Action<Task>> actionFactory : taskClassInfo.getTaskActions()) {
     task.prependParallelSafeAction(actionFactory.create());
   }
-  if (taskClassInfo.validator != null) {
-    task.prependParallelSafeAction(taskClassInfo.validator);
-    taskClassInfo.validator.addInputsAndOutputs(task);
+  TaskClassValidator validator=taskClassInfo.getValidator();
+  if (!validator.hasAnythingToValidate()) {
+    task.prependParallelSafeAction(validator);
+    validator.addInputsAndOutputs(task);
   }
   return task;
 }
