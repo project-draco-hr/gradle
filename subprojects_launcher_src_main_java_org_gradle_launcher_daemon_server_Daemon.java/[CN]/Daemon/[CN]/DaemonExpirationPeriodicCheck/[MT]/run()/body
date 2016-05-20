@@ -1,22 +1,7 @@
 {
   LOGGER.debug("DaemonExpirationPeriodicCheck running");
   final DaemonExpirationResult result=expirationStrategy.checkExpiration(daemon);
-switch (result.getStatus()) {
-case DO_NOT_EXPIRE:
-    break;
-case QUIET_EXPIRE:
-  LOGGER.lifecycle("Daemon stopping because " + result.getReason());
-daemon.getStateCoordinator().requestStop();
-break;
-case GRACEFUL_EXPIRE:
-LOGGER.lifecycle("Daemon stopping because " + result.getReason());
-daemon.getStateCoordinator().requestStop();
-daemon.registryUpdater.onExpire(result.getReason());
-break;
-case IMMEDIATE_EXPIRE:
-LOGGER.lifecycle("Daemon stopping immediately because " + result.getReason());
-daemon.getStateCoordinator().requestForcefulStop(result.getReason());
-daemon.registryUpdater.onExpire(result.getReason());
-break;
-}
+  if (result.getStatus() != DO_NOT_EXPIRE) {
+    listenerBroadcast.getSource().onExpirationEvent(result);
+  }
 }
