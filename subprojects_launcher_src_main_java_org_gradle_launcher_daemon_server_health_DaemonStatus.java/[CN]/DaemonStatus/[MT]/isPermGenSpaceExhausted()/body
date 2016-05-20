@@ -1,23 +1,9 @@
 {
-  if (!isEnabled()) {
-    return false;
-  }
-  GarbageCollectorMonitoringStrategy strategy=stats.getGcMonitor().getGcStrategy();
-  if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
-    int permgenUsageThreshold=parseValue(PERMGEN_USAGE_EXPIRE_AT,strategy.getPermGenUsageThreshold());
-    if (permgenUsageThreshold == 0) {
-      return false;
-    }
-    GarbageCollectionStats gcStats=stats.getGcMonitor().getPermGenStats();
-    if (gcStats.getEventCount() >= 5 && gcStats.getUsage() >= permgenUsageThreshold) {
-      if (gcStats.getUsage() > 0) {
-        logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%",gcStats.getRate(),gcStats.getUsage()));
-      }
- else {
-        logger.debug("GC rate: 0.0/s");
-      }
-      return true;
+  GarbageCollectionStats gcStats=stats.getGcMonitor().getPermGenStats();
+  return exceedsThreshold(PERMGEN,gcStats,new Spec<GarbageCollectionStats>(){
+    @Override public boolean isSatisfiedBy(    GarbageCollectionStats gcStats){
+      return permgenUsageThreshold != 0 && gcStats.getEventCount() >= 5 && gcStats.getUsage() >= permgenUsageThreshold;
     }
   }
-  return false;
+);
 }

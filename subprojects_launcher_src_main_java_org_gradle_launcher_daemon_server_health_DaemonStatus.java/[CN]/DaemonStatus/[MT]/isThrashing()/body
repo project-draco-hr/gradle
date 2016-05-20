@@ -1,27 +1,9 @@
 {
-  if (!isEnabled()) {
-    return false;
-  }
-  GarbageCollectorMonitoringStrategy strategy=stats.getGcMonitor().getGcStrategy();
-  if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
-    int tenuredUsageThreshold=parseValue(TENURED_USAGE_EXPIRE_AT,strategy.getTenuredUsageThreshold());
-    if (tenuredUsageThreshold == 0) {
-      return false;
-    }
-    double thrashingThreshold=parseValue(THRASHING_EXPIRE_AT,strategy.getThrashingThreshold());
-    if (thrashingThreshold == 0) {
-      return false;
-    }
-    GarbageCollectionStats gcStats=stats.getGcMonitor().getTenuredStats();
-    if (gcStats.getEventCount() >= 5 && gcStats.getRate() >= thrashingThreshold && gcStats.getUsage() >= tenuredUsageThreshold) {
-      if (gcStats.getUsage() > 0) {
-        logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%",gcStats.getRate(),gcStats.getUsage()));
-      }
- else {
-        logger.debug("GC rate: 0.0/s");
-      }
-      return true;
+  GarbageCollectionStats gcStats=stats.getGcMonitor().getTenuredStats();
+  return exceedsThreshold(TENURED,gcStats,new Spec<GarbageCollectionStats>(){
+    @Override public boolean isSatisfiedBy(    GarbageCollectionStats gcStats){
+      return tenuredUsageThreshold != 0 && thrashingThreshold != 0 && gcStats.getEventCount() >= 5 && gcStats.getUsage() >= tenuredUsageThreshold && gcStats.getRate() >= thrashingThreshold;
     }
   }
-  return false;
+);
 }
