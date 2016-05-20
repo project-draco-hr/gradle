@@ -1,0 +1,31 @@
+{
+  Object bean=rootObject;
+  if (parent != null) {
+    TaskPropertyValue parentValue=parent.getValue(rootObject);
+    if (parentValue.getValue() == null) {
+      return NO_OP_VALUE;
+    }
+    bean=parentValue.getValue();
+  }
+  final Object finalBean=bean;
+  final Object value=DeprecationLogger.whileDisabled(new Factory<Object>(){
+    public Object create(){
+      return JavaReflectionUtil.method(finalBean,Object.class,method).invoke(finalBean);
+    }
+  }
+);
+  return new TaskPropertyValue(){
+    @Override public Object getValue(){
+      return value;
+    }
+    @Override public void checkNotNull(    Collection<String> messages){
+      notNullValidator.validate(propertyName,value,messages);
+    }
+    @Override public void checkValid(    Collection<String> messages){
+      if (value != null) {
+        validationAction.validate(propertyName,value,messages);
+      }
+    }
+  }
+;
+}

@@ -1,0 +1,25 @@
+{
+  Class<?> superclass=type.getSuperclass();
+  if (!(superclass == null || superclass.equals(ConventionTask.class) || superclass.equals(DefaultTask.class) || superclass.equals(AbstractTask.class) || superclass.equals(Object.class))) {
+    attachActions(parent,superclass);
+  }
+  Map<String,Field> fields=getFields(type);
+  for (  Method method : type.getDeclaredMethods()) {
+    PropertyAccessorType accessorType=PropertyAccessorType.of(method);
+    if (accessorType == null || accessorType == PropertyAccessorType.SETTER || method.isBridge() || GroovyMethods.isObjectMethod(method)) {
+      continue;
+    }
+    String fieldName=accessorType.propertyNameFor(method);
+    Field field=fields.get(fieldName);
+    String propertyName=parent != null ? parent.getName() + '.' + fieldName : fieldName;
+    TaskPropertyInfo propertyInfo=new TaskPropertyInfo(this,parent,propertyName,method,field);
+    boolean annotationFound=attachValidationActions(propertyInfo,field);
+    if (propertyInfo.isValidationRequired()) {
+      validatedProperties.add(propertyInfo);
+    }
+    allPropertyNames.add(propertyName);
+    if (annotationFound) {
+      annotatedPropertyNames.add(propertyName);
+    }
+  }
+}
