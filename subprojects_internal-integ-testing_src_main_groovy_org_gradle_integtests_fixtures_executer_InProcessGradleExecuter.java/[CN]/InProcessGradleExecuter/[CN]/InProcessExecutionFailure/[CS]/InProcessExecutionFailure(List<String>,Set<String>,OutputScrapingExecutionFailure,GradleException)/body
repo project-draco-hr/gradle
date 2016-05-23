@@ -2,11 +2,11 @@
   super(tasks,skippedTasks,outputFailure);
   this.outputFailure=outputFailure;
   this.failure=failure;
-  if (failure instanceof LocationAwareException) {
-    LocationAwareException loe=(LocationAwareException)failure;
-    fileName=loe.getSourceDisplayName() == null ? "" : StringUtils.capitalize(loe.getSourceDisplayName());
-    lineNumber=loe.getLineNumber() == null ? "" : loe.getLineNumber().toString();
-    description=loe.getCause().getMessage().trim();
+  java.util.regex.Matcher matcher=LOCATION_PATTERN.matcher(failure.getMessage());
+  if (matcher.find()) {
+    fileName=matcher.group(1);
+    lineNumber=matcher.group(3);
+    description=failure.getMessage().substring(matcher.end()).trim();
   }
  else {
     fileName="";

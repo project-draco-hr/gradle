@@ -1,5 +1,4 @@
 {
-  PluginRequestCollector pluginRequestCollector=getPluginRequestCollector(target);
   final DefaultServiceRegistry services=new DefaultServiceRegistry(){
     Factory<PatternSet> createPatternSetFactory(){
       return PatternSets.getNonCachingPatternSetFactory();
@@ -17,18 +16,18 @@
   services.add(ModelRuleSourceDetector.class,modelRuleSourceDetector);
   services.add(PluginRepositoryRegistry.class,pluginRepositoryRegistry);
   services.add(PluginRepositoryFactory.class,pluginRepositoryFactory);
-  services.add(PluginDependenciesSpec.class,pluginRequestCollector);
   final ScriptTarget initialPassScriptTarget=initialPassTarget(target);
   ScriptCompiler compiler=scriptCompilerFactory.createCompiler(scriptSource);
   Class<? extends BasicScript> scriptType=initialPassScriptTarget.getScriptClass();
   InitialPassStatementTransformer initialPassStatementTransformer=new InitialPassStatementTransformer(scriptSource,initialPassScriptTarget,documentationRegistry);
-  final SubsetScriptTransformer initialTransformer=new SubsetScriptTransformer(initialPassStatementTransformer);
-  final String id=INTERNER.intern("cp_" + initialPassScriptTarget.getId());
-  CompileOperation<Void> initialOperation=new VoidCompileOperation(id,initialTransformer);
-  ScriptRunner<? extends BasicScript,Void> initialRunner=compiler.compile(scriptType,initialOperation,baseScope.getExportClassLoader(),Actions.doNothing());
+  SubsetScriptTransformer initialTransformer=new SubsetScriptTransformer(initialPassStatementTransformer);
+  String id=INTERNER.intern("cp_" + initialPassScriptTarget.getId());
+  CompileOperation<PluginRequests> initialOperation=new FactoryBackedCompileOperation<PluginRequests>(id,initialTransformer,initialPassStatementTransformer,pluginRequestsSerializer);
+  ScriptRunner<? extends BasicScript,PluginRequests> initialRunner=compiler.compile(scriptType,initialOperation,baseScope.getExportClassLoader(),Actions.doNothing());
   initialRunner.run(target,services);
-  List<TargetedPluginRequest> pluginRequests=pluginRequestCollector.getRequests();
-  pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,targetScope);
+  PluginRequests pluginRequests=initialRunner.getData();
+  PluginManagerInternal pluginManager=initialPassScriptTarget.getPluginManager();
+  pluginRequestApplicator.applyPlugins(pluginRequests,scriptHandler,pluginManager,targetScope);
   final ScriptTarget scriptTarget=secondPassTarget(target);
   scriptType=scriptTarget.getScriptClass();
   BuildScriptTransformer buildScriptTransformer=new BuildScriptTransformer(scriptSource,scriptTarget);
