@@ -5,14 +5,13 @@
     if (parentFile != null) {
       FileUtils.forceMkdir(parentFile);
     }
-    FileOutputStream outputStream=null;
-    try {
-      outputStream=new FileOutputStream(manifestFile);
-      return writeTo(outputStream);
+    IoActions.withResource(new FileOutputStream(manifestFile),new Action<FileOutputStream>(){
+      @Override public void execute(      FileOutputStream fileOutputStream){
+        writeTo(fileOutputStream);
+      }
     }
-  finally {
-      IOUtils.closeQuietly(outputStream);
-    }
+);
+    return this;
   }
  catch (  IOException e) {
     throw new UncheckedIOException(e);
