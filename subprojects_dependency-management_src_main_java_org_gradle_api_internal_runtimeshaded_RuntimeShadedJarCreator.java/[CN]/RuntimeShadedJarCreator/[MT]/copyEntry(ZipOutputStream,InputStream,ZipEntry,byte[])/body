@@ -1,10 +1,14 @@
 {
-  String name=zipEntry.getName();
-  int i=name.contains("META-INF") ? -1 : name.lastIndexOf("/");
-  String path=i == -1 ? name : name.substring(0,i);
-  String remappedClassName=i == -1 ? null : REMAPPER.relocateClass(path);
-  String newFileName=remappedClassName == null ? name : remappedClassName + name.substring(i);
-  outputStream.putNextEntry(new ZipEntry(newFileName));
-  pipe(inputStream,outputStream,buffer);
-  outputStream.closeEntry();
+  ByteArrayOutputStream bos=new ByteArrayOutputStream(1024);
+  pipe(inputStream,bos,buffer);
+  String originalName=zipEntry.getName();
+  byte[] resource=bos.toByteArray();
+  writeResourceEntry(outputStream,new ByteArrayInputStream(resource),buffer,zipEntry.getName());
+  int i=originalName.lastIndexOf("/");
+  String path=i == -1 ? null : originalName.substring(0,i);
+  String remappedResourceName=path != null ? REMAPPER.maybeRelocateResource(path) : null;
+  if (remappedResourceName != null) {
+    String newFileName=remappedResourceName + originalName.substring(i);
+    writeResourceEntry(outputStream,inputStream,buffer,newFileName);
+  }
 }
