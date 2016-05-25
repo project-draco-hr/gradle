@@ -12,7 +12,19 @@
           if (manifest == null) {
             manifest=new DefaultManifest(null);
           }
-          manifest.writeTo(outputStream);
+          if (manifest instanceof ManifestInternal) {
+            ManifestInternal manifestInternal=(ManifestInternal)manifest;
+            manifestInternal.setContentCharset(manifestContentCharset);
+            manifestInternal.writeTo(outputStream);
+          }
+ else {
+            try {
+              manifest.writeTo(new OutputStreamWriter(outputStream,manifestContentCharset));
+            }
+ catch (            UnsupportedEncodingException e) {
+              throw new UncheckedIOException(e);
+            }
+          }
         }
       }
 );
