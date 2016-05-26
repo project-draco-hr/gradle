@@ -1,9 +1,19 @@
 {
-  IoActions.writeTextFile(fileResolver.resolve(path),contentCharset,new ErroringAction<Writer>(){
-    @Override protected void doExecute(    Writer writer) throws Exception {
-      writeTo(writer);
+  File manifestFile=fileResolver.resolve(path);
+  try {
+    File parentFile=manifestFile.getParentFile();
+    if (parentFile != null) {
+      FileUtils.forceMkdir(parentFile);
     }
-  }
+    IoActions.withResource(new FileOutputStream(manifestFile),new Action<FileOutputStream>(){
+      @Override public void execute(      FileOutputStream fileOutputStream){
+        writeTo(fileOutputStream);
+      }
+    }
 );
-  return this;
+    return this;
+  }
+ catch (  IOException e) {
+    throw new UncheckedIOException(e);
+  }
 }

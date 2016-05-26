@@ -1,8 +1,14 @@
 {
-  PrintWriter printWriter=new PrintWriter(writer);
   try {
-    getEffectiveManifest().generateAntManifest().write(printWriter);
-    printWriter.flush();
+    Manifest javaManifest=getEffectiveManifest().generateJavaManifest();
+    ByteArrayOutputStream buffer=new ByteArrayOutputStream();
+    javaManifest.write(buffer);
+    String manifestContent=buffer.toString(DEFAULT_CONTENT_CHARSET);
+    if (!DEFAULT_CONTENT_CHARSET.equals(contentCharset)) {
+      manifestContent=new String(manifestContent.getBytes(contentCharset),contentCharset);
+    }
+    writer.write(manifestContent);
+    writer.flush();
   }
  catch (  IOException e) {
     throw new UncheckedIOException(e);

@@ -1,21 +1,16 @@
 {
   File manifestFile=fileResolver.resolve(manifestPath);
   try {
-    InputStreamReader reader=new InputStreamReader(new FileInputStream(manifestFile),contentCharset);
-    Manifest antManifest;
-    try {
-      antManifest=new Manifest(reader);
+    byte[] manifestBytes=FileUtils.readFileToByteArray(manifestFile);
+    manifestBytes=prepareManifestBytesForInteroperability(manifestBytes);
+    if (!DEFAULT_CONTENT_CHARSET.equals(contentCharset)) {
+      manifestBytes=new String(manifestBytes,contentCharset).getBytes(DEFAULT_CONTENT_CHARSET);
     }
-  finally {
-      reader.close();
-    }
-    addAntManifestToAttributes(antManifest);
-    addAntManifestToSections(antManifest);
+    Manifest javaManifest=new Manifest(new ByteArrayInputStream(manifestBytes));
+    addJavaManifestToAttributes(javaManifest);
+    addJavaManifestToSections(javaManifest);
   }
- catch (  ManifestException e) {
-    throw new org.gradle.api.java.archives.ManifestException(e.getMessage(),e);
-  }
-catch (  IOException e) {
+ catch (  IOException e) {
     throw new UncheckedIOException(e);
   }
 }

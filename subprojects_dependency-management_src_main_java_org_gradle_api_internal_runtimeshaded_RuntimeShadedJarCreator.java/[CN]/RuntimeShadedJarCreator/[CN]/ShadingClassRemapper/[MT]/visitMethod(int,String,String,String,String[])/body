@@ -1,0 +1,24 @@
+{
+  return new MethodVisitor(Opcodes.ASM5,super.visitMethod(access,name,desc,signature,exceptions)){
+    @Override public void visitLdcInsn(    Object cst){
+      if (cst instanceof String) {
+        String literal=remappedClassLiterals.get(cst);
+        super.visitLdcInsn(literal != null ? literal : cst);
+      }
+ else {
+        super.visitLdcInsn(cst);
+      }
+    }
+    @Override public void visitFieldInsn(    int opcode,    String owner,    String name,    String desc){
+      if ((opcode == Opcodes.GETSTATIC || opcode == Opcodes.PUTSTATIC) && CLASS_DESC.equals(desc)) {
+        ImplementationDependencyRelocator.ClassLiteralRemapping remapping=REMAPPER.maybeRemap(name);
+        if (remapping != null) {
+          super.visitFieldInsn(opcode,owner,remapping.getFieldNameReplacement(),desc);
+          return;
+        }
+      }
+      super.visitFieldInsn(opcode,owner,name,desc);
+    }
+  }
+;
+}

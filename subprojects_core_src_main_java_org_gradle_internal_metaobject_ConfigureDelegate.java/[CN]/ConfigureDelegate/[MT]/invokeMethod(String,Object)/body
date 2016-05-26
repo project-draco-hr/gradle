@@ -8,8 +8,14 @@
     if (result.isFound()) {
       return result.getResult();
     }
+    MissingMethodException failure=null;
     if (!isAlreadyConfiguring) {
-      _configure(name,params,result);
+      try {
+        _configure(name,params,result);
+      }
+ catch (      MissingMethodException e) {
+        failure=e;
+      }
       if (result.isFound()) {
         return result.getResult();
       }
@@ -17,6 +23,9 @@
     _owner.invokeMethod(name,result,params);
     if (result.isFound()) {
       return result.getResult();
+    }
+    if (failure != null) {
+      throw failure;
     }
     throw _delegate.methodMissingException(name,params);
   }
