@@ -1,0 +1,11 @@
+{
+  File projectDir=getProjectDirectory(project);
+  String name=getProject(project).getId().getName();
+  IvyArtifactName ivyArtifactName=new DefaultIvyArtifactName(name,"iml","iml",null);
+  File imlFile=new File(projectDir,name + ".iml");
+  String rootProjectPath=project.getProjectPath().split("::")[0] + "::";
+  ProjectComponentIdentifier rootProjectIdentifier=DefaultProjectComponentIdentifier.newId(rootProjectPath);
+  File buildDir=getProjectDirectory(rootProjectIdentifier);
+  String taskPath=project.getProjectPath().equals(rootProjectPath) ? ":ideaModule" : project.getProjectPath().substring(rootProjectPath.length() - 1) + ":ideaModule";
+  return new CompositeProjectComponentArtifactMetaData(project,ivyArtifactName,imlFile,buildDir,Collections.singleton(taskPath));
+}
