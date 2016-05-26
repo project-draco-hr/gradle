@@ -1,16 +1,16 @@
 {
-  final List<String> reasons=Lists.newArrayList(STARTING_DAEMON_MESSAGE);
+  final List<String> messages=Lists.newArrayList(STARTING_DAEMON_MESSAGE);
   if (numBusy > 0) {
-    reasons.add(numBusy + " Gradle Daemon" + (numBusy > 1 ? "s are" : " is")+ " busy");
+    messages.add(numBusy > 1 ? MULTIPLE_BUSY_DAEMONS_MESSAGE : ONE_BUSY_DAEMON_MESSAGE);
   }
   if (numIncompatible > 0) {
-    reasons.add(numIncompatible + " Gradle Daemon" + (numIncompatible > 1 ? "s are" : " is")+ " incompatible");
+    messages.add(numIncompatible > 1 ? MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE : ONE_INCOMPATIBLE_DAEMON_MESSAGE);
   }
   if (stopEvents.size() > 0) {
     for (    DaemonStopEvent event : stopEvents) {
-      reasons.add("A Gradle Daemon was stopped " + event.getReason());
+      messages.add("A Gradle Daemon was stopped " + event.getReason() + ".");
     }
   }
-  final String startingDaemonMessage=Joiner.on(LINE_SEPARATOR + " - ").skipNulls().join(reasons);
-  return startingDaemonMessage + LINE_SEPARATOR + SUBSEQUENT_BUILDS_FASTER_MESSAGE;
+  messages.add(SUBSEQUENT_BUILDS_FASTER_MESSAGE);
+  return Joiner.on(LINE_SEPARATOR + "   ").skipNulls().join(messages);
 }
