@@ -12,19 +12,15 @@
           if (manifest == null) {
             manifest=new DefaultManifest(null);
           }
+          ManifestInternal manifestInternal;
           if (manifest instanceof ManifestInternal) {
-            ManifestInternal manifestInternal=(ManifestInternal)manifest;
-            manifestInternal.setContentCharset(manifestContentCharset);
-            manifestInternal.writeTo(outputStream);
+            manifestInternal=(ManifestInternal)manifest;
           }
  else {
-            try {
-              manifest.writeTo(new OutputStreamWriter(outputStream,manifestContentCharset));
-            }
- catch (            UnsupportedEncodingException e) {
-              throw new UncheckedIOException(e);
-            }
+            manifestInternal=new CustomManifestInternalWrapper(manifest);
           }
+          manifestInternal.setContentCharset(manifestContentCharset);
+          manifestInternal.writeTo(outputStream);
         }
       }
 );
