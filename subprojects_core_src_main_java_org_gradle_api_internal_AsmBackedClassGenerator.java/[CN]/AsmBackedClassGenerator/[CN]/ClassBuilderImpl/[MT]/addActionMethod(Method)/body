@@ -17,11 +17,9 @@
   for (int stackVar=1; stackVar < numParams; ++stackVar) {
     methodVisitor.visitVarInsn(closurisedParameterTypes[stackVar - 1].getOpcode(Opcodes.ILOAD),stackVar);
   }
-  methodVisitor.visitTypeInsn(Opcodes.NEW,CLOSURE_BACKED_ACTION_TYPE.getInternalName());
-  methodVisitor.visitInsn(Opcodes.DUP);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,numParams);
-  String constuctorDescriptor=Type.getMethodDescriptor(Type.VOID_TYPE,CLOSURE_TYPE);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,CLOSURE_BACKED_ACTION_TYPE.getInternalName(),"<init>",constuctorDescriptor);
+  methodDescriptor=Type.getMethodDescriptor(Type.getType(Action.class),CLOSURE_TYPE);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC,CONFIGURE_UTIL_TYPE.getInternalName(),"configureUsing",methodDescriptor);
   methodDescriptor=Type.getMethodDescriptor(Type.getType(method.getReturnType()),originalParameterTypes);
   methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),method.getName(),methodDescriptor);
   methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
