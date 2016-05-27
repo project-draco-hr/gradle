@@ -2,10 +2,15 @@
   lock.lock();
   LOGGER.info("Clearing daemon stop events");
   try {
-    DaemonRegistryContent content=cache.get();
-    if (content != null) {
-      content.clearStopEvents();
+    cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>(){
+      public DaemonRegistryContent update(      DaemonRegistryContent content){
+        if (content != null) {
+          content.clearStopEvents();
+        }
+        return content;
+      }
     }
+);
   }
   finally {
     lock.unlock();
