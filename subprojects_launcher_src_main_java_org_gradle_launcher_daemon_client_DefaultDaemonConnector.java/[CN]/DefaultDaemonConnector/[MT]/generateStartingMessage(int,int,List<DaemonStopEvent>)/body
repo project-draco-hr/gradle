@@ -1,14 +1,20 @@
 {
-  final List<String> messages=Lists.newArrayList(STARTING_DAEMON_MESSAGE);
-  if (numBusy > 0) {
-    messages.add(numBusy > 1 ? MULTIPLE_BUSY_DAEMONS_MESSAGE : ONE_BUSY_DAEMON_MESSAGE);
+  final List<String> messages=Lists.newArrayList();
+  if (numBusy + numIncompatible == 0) {
+    messages.add(STARTING_DAEMON_MESSAGE + " none are running");
   }
-  if (numIncompatible > 0) {
-    messages.add(numIncompatible > 1 ? MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE : ONE_INCOMPATIBLE_DAEMON_MESSAGE);
+ else {
+    messages.add(STARTING_DAEMON_MESSAGE);
+    if (numBusy > 0) {
+      messages.add(numBusy > 1 ? MULTIPLE_BUSY_DAEMONS_MESSAGE : ONE_BUSY_DAEMON_MESSAGE);
+    }
+    if (numIncompatible > 0) {
+      messages.add(numIncompatible > 1 ? MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE : ONE_INCOMPATIBLE_DAEMON_MESSAGE);
+    }
   }
   if (stopEvents.size() > 0) {
     for (    DaemonStopEvent event : stopEvents) {
-      messages.add("A Gradle Daemon was stopped " + event.getReason() + ".");
+      messages.add(DAEMON_WAS_STOPPED_PREFIX + event.getReason());
     }
   }
   messages.add(SUBSEQUENT_BUILDS_FASTER_MESSAGE);

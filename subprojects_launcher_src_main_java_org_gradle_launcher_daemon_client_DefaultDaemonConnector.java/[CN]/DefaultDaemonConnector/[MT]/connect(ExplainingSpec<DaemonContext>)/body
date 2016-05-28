@@ -1,13 +1,20 @@
 {
-  List<DaemonInfo> compatibleIdleDaemons=getCompatibleDaemons(daemonRegistry.getIdle(),constraint);
+  final Collection<DaemonInfo> allDaemons=daemonRegistry.getAll();
+  final Pair<Collection<DaemonInfo>,Collection<DaemonInfo>> idleBusy=CollectionUtils.partition(allDaemons,new Spec<DaemonInfo>(){
+    public boolean isSatisfiedBy(    DaemonInfo element){
+      return element.isIdle();
+    }
+  }
+);
+  final Collection<DaemonInfo> idleDaemons=idleBusy.getLeft();
+  final Collection<DaemonInfo> busyDaemons=idleBusy.getRight();
+  final List<DaemonInfo> compatibleIdleDaemons=getCompatibleDaemons(idleDaemons,constraint);
   DaemonClientConnection connection=findConnection(compatibleIdleDaemons);
   if (connection != null) {
     return connection;
   }
-  final int numBusy=daemonRegistry.getBusy().size();
-  final int numIncompatible=daemonRegistry.getIdle().size();
   final List<DaemonStopEvent> stopEvents=daemonRegistry.getStopEvents();
-  LOGGER.lifecycle(generateStartingMessage(numBusy,numIncompatible,stopEvents));
-  daemonRegistry.clearStopEvents();
+  daemonRegistry.removeStopEvents(stopEvents);
+  LOGGER.lifecycle(generateStartingMessage(busyDaemons.size(),idleDaemons.size(),stopEvents));
   return startDaemon(constraint);
 }
