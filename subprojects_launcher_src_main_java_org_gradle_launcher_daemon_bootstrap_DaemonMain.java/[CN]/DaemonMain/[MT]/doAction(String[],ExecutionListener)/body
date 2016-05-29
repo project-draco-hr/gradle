@@ -30,7 +30,6 @@
  catch (  EOFException e) {
     throw new UncheckedIOException(e);
   }
-  LOGGER.debug("Assuming the daemon was started with following jvm opts: {}",startupOpts);
   NativeServices.initialize(gradleHomeDir);
   DaemonServerConfiguration parameters=new DefaultDaemonServerConfiguration(daemonUid,daemonBaseDir,idleTimeoutMs,periodicCheckIntervalMs,startupOpts);
   LoggingServiceRegistry loggingRegistry=LoggingServiceRegistry.newCommandLineProcessLogging();
@@ -39,6 +38,7 @@
   DaemonServices daemonServices=new DaemonServices(parameters,loggingRegistry,loggingManager,new DefaultClassPath(additionalClassPath),timeProvider.getCurrentTime());
   File daemonLog=daemonServices.getDaemonLogFile();
   initialiseLogging(loggingManager,daemonLog);
+  LOGGER.debug("Assuming the daemon was started with following jvm opts: {}",startupOpts);
   Daemon daemon=daemonServices.get(Daemon.class);
   daemon.start();
   try {
