@@ -1,0 +1,24 @@
+{
+  State state=new State();
+  List<ProjectInternal> orderedProjects=Ordering.usingToString().sortedCopy(projectRegistry.getAllProjects());
+  for (  ProjectInternal project : orderedProjects) {
+    if (project.getPlugins().hasPlugin(ComponentModelBasePlugin.class)) {
+      ModelRegistry modelRegistry=projectModelResolver.resolveProjectModel(project.getPath());
+      ModelMap<NativeComponentSpec> components=modelRegistry.realize("components",ModelTypes.modelMap(NativeComponentSpec.class));
+      for (      NativeBinarySpecInternal binary : allBinariesOf(components)) {
+        state.binaries.put(stateKeyOf(binary),binary);
+      }
+    }
+  }
+  for (  Map.Entry<String,NativeBinarySpecInternal> entry : state.binaries.entrySet()) {
+    String key=entry.getKey();
+    NativeBinarySpecInternal nativeBinary=entry.getValue();
+    if (state.dependencies.get(key) == null) {
+      state.dependencies.put(key,Lists.<NativeBinarySpecInternal>newArrayList());
+    }
+    for (    NativeLibraryBinary libraryBinary : nativeBinary.getDependentBinaries()) {
+      state.dependencies.get(key).add((NativeBinarySpecInternal)libraryBinary);
+    }
+  }
+  return state;
+}
