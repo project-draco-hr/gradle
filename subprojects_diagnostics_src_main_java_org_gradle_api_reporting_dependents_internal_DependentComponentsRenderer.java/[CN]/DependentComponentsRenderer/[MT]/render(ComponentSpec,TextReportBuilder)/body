@@ -1,0 +1,22 @@
+{
+  ComponentSpecInternal internalProtocol=(ComponentSpecInternal)component;
+  StyledTextOutput output=builder.getOutput();
+  GraphRenderer renderer=new GraphRenderer(output);
+  renderer.visit(new Action<StyledTextOutput>(){
+    @Override public void execute(    StyledTextOutput output){
+      output.withStyle(Identifier).text(component.getName());
+      output.withStyle(Description).text(" - Dependent components for " + component.getDisplayName());
+    }
+  }
+,true);
+  NodeRenderer nodeRenderer=new DependentBinaryNodeRenderer();
+  DependencyGraphRenderer dependencyGraphRenderer=new DependencyGraphRenderer(renderer,nodeRenderer);
+  RenderableDependency root=getRenderableDependencyOf(component,internalProtocol);
+  if (root.getChildren().isEmpty()) {
+    output.withStyle(Info).text("No dependents");
+    output.println();
+  }
+ else {
+    dependencyGraphRenderer.render(root);
+  }
+}
