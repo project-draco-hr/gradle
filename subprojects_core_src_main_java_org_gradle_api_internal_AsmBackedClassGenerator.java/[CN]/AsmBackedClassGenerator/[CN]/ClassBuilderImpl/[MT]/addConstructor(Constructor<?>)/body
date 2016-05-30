@@ -3,8 +3,8 @@
   for (  Class<?> paramType : constructor.getParameterTypes()) {
     paramTypes.add(Type.getType(paramType));
   }
-  String methodDescriptor=Type.getMethodDescriptor(VOID_TYPE,paramTypes.toArray(new Type[0]));
-  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,"<init>",methodDescriptor,signature(constructor),new String[0]);
+  String methodDescriptor=Type.getMethodDescriptor(VOID_TYPE,paramTypes.toArray(EMPTY_TYPES));
+  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,"<init>",methodDescriptor,signature(constructor),EMPTY_STRINGS);
   for (  Annotation annotation : constructor.getDeclaredAnnotations()) {
     if (annotation.annotationType().getAnnotation(Inherited.class) != null) {
       continue;
@@ -18,7 +18,7 @@
   for (int i=0; i < constructor.getParameterTypes().length; i++) {
     methodVisitor.visitVarInsn(Type.getType(constructor.getParameterTypes()[i]).getOpcode(Opcodes.ILOAD),i + 1);
   }
-  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),"<init>",methodDescriptor);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL,superclassType.getInternalName(),"<init>",methodDescriptor,false);
   methodVisitor.visitInsn(Opcodes.RETURN);
   methodVisitor.visitMaxs(0,0);
   methodVisitor.visitEnd();
