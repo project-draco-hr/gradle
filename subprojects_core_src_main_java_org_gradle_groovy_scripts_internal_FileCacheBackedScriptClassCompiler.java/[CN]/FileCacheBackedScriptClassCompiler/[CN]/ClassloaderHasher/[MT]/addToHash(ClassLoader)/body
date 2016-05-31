@@ -1,0 +1,39 @@
+{
+  if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
+    hasher.putBytes(RUNTIME);
+    hasher.putBytes(GRADLE_VERSION);
+    return true;
+  }
+  if (classLoaderRegistry.getGradleApiClassLoader() == cl) {
+    hasher.putBytes(API);
+    hasher.putBytes(GRADLE_VERSION);
+    return true;
+  }
+  if (classLoaderRegistry.getGradleCoreApiClassLoader() == cl) {
+    hasher.putBytes(CORE_API);
+    hasher.putBytes(GRADLE_VERSION);
+    return true;
+  }
+ else   if (classLoaderRegistry.getPluginsClassLoader() == cl) {
+    hasher.putBytes(PLUGINS);
+    hasher.putBytes(GRADLE_VERSION);
+    return true;
+  }
+  ClassLoader systemClassLoader=ClassLoader.getSystemClassLoader();
+  if (systemClassLoader == cl) {
+    hasher.putBytes(SYSTEM);
+    hasher.putBytes(JAVA_VERSION);
+    return true;
+  }
+ else   if (systemClassLoader != null && systemClassLoader.getParent() == cl) {
+    hasher.putBytes(APP);
+    hasher.putBytes(JAVA_VERSION);
+    return true;
+  }
+ else   if (cl instanceof DefaultClassLoaderCache.HashedClassLoader) {
+    hasher.putBytes(((DefaultClassLoaderCache.HashedClassLoader)cl).getClassLoaderHash().asBytes());
+    return true;
+  }
+  hasher.putBytes(UNKNOWN);
+  return false;
+}
