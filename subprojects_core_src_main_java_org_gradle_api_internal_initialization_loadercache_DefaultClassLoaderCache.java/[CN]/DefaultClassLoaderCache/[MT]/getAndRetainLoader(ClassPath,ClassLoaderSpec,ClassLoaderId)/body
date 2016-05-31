@@ -3,14 +3,13 @@
   if (cachedLoader == null) {
     ClassLoader classLoader;
     CachedClassLoader parentCachedLoader=null;
-    long snapshotHash=spec.classPathSnapshot.getStrongHash().asLong();
-    final long hashCode=31 * snapshotHash + (spec.filterSpec != null ? spec.filterSpec.hashCode() : 0);
+    HashCode classPathHash=spec.classPathSnapshot.getStrongHash();
     if (spec.isFiltered()) {
       parentCachedLoader=getAndRetainLoader(classPath,spec.unfiltered(),id);
-      classLoader=new HashedFilteringClassLoader(parentCachedLoader,spec,hashCode);
+      classLoader=new HashedFilteringClassLoader(parentCachedLoader.classLoader,spec);
     }
  else {
-      classLoader=new HashedVisitableURLClassLoader(spec,classPath,hashCode);
+      classLoader=new HashedVisitableURLClassLoader(spec.parent,classPath,classPathHash);
     }
     cachedLoader=new CachedClassLoader(classLoader,spec,parentCachedLoader);
     bySpec.put(spec,cachedLoader);
