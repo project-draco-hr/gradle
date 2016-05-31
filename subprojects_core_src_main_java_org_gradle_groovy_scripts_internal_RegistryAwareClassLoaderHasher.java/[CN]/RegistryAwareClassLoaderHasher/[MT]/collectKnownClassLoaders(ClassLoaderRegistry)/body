@@ -1,0 +1,15 @@
+{
+  Map<ClassLoader,String> knownClassLoaders=Maps.newHashMap();
+  String javaVmVersion=String.format("%s|%s|%s",System.getProperty("java.vm.name"),System.getProperty("java.vm.vendor"),System.getProperty("java.vm.vendor"));
+  ClassLoader systemClassLoader=ClassLoader.getSystemClassLoader();
+  if (systemClassLoader != null) {
+    addClassLoader(knownClassLoaders,systemClassLoader,"system" + javaVmVersion);
+    addClassLoader(knownClassLoaders,systemClassLoader.getParent(),"app" + javaVmVersion);
+  }
+  String gradleVersion=GradleVersion.current().getVersion();
+  addClassLoader(knownClassLoaders,registry.getRuntimeClassLoader(),"runtime:" + gradleVersion);
+  addClassLoader(knownClassLoaders,registry.getGradleApiClassLoader(),"gradle-api:" + gradleVersion);
+  addClassLoader(knownClassLoaders,registry.getGradleCoreApiClassLoader(),"gradle-core-api:" + gradleVersion);
+  addClassLoader(knownClassLoaders,registry.getPluginsClassLoader(),"plugins:" + gradleVersion);
+  return knownClassLoaders;
+}
