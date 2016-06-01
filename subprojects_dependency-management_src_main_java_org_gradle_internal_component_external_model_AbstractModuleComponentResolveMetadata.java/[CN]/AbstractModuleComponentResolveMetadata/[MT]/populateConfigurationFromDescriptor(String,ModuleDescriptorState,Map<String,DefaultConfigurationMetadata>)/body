@@ -1,0 +1,27 @@
+{
+  DefaultConfigurationMetadata populated=configurations.get(name);
+  if (populated != null) {
+    return populated;
+  }
+  Configuration descriptorConfiguration=moduleDescriptor.getConfiguration(name);
+  List<String> extendsFrom=descriptorConfiguration.getExtendsFrom();
+  boolean transitive=descriptorConfiguration.isTransitive();
+  boolean visible=descriptorConfiguration.isVisible();
+  if (extendsFrom.isEmpty()) {
+    populated=new DefaultConfigurationMetadata(name,transitive,visible);
+    configurations.put(name,populated);
+    return populated;
+  }
+ else   if (extendsFrom.size() == 1) {
+    populated=new DefaultConfigurationMetadata(name,transitive,visible,Collections.singletonList(populateConfigurationFromDescriptor(extendsFrom.get(0),moduleDescriptor,configurations)));
+    configurations.put(name,populated);
+    return populated;
+  }
+  List<DefaultConfigurationMetadata> hierarchy=new ArrayList<DefaultConfigurationMetadata>(extendsFrom.size());
+  for (  String confName : extendsFrom) {
+    hierarchy.add(populateConfigurationFromDescriptor(confName,moduleDescriptor,configurations));
+  }
+  populated=new DefaultConfigurationMetadata(name,transitive,visible,hierarchy);
+  configurations.put(name,populated);
+  return populated;
+}
