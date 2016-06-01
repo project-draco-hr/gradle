@@ -1,20 +1,18 @@
 {
-  if (alreadyHashedLoaders.contains(cl)) {
-    return true;
-  }
   byte[] knownId=knownClassLoaders.get(cl);
   if (knownId != null) {
     hasher.putBytes(knownId);
-    return true;
+    return false;
   }
   if (cl instanceof CachingClassLoader || cl instanceof MultiParentClassLoader) {
     return true;
   }
-  if (cl instanceof HashedClassLoader) {
-    hasher.putBytes(((HashedClassLoader)cl).getClassLoaderHash().asBytes());
-    alreadyHashedLoaders.add(cl.getParent());
+  HashCode hash=classLoaderHasher.getHash(cl);
+  if (hash != null) {
+    hasher.putBytes(hash.asBytes());
     return true;
   }
   hasher.putBytes(UNKNOWN);
-  return false;
+  foundUnknown=true;
+  return true;
 }
