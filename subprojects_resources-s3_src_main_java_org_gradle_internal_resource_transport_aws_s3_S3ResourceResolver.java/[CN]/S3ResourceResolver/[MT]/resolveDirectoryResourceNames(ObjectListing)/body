@@ -1,6 +1,16 @@
 {
+  ImmutableList.Builder<String> builder=ImmutableList.builder();
   if (objectListing.getCommonPrefixes() != null) {
-    return ImmutableList.copyOf(Iterables.transform(objectListing.getCommonPrefixes(),MAYBE_STRIP_TRAILING_SLASH));
+    for (    String prefix : objectListing.getCommonPrefixes()) {
+      String directChild=prefix.split(Pattern.quote(objectListing.getPrefix()))[1];
+      if (directChild.endsWith("/")) {
+        builder.add(directChild.substring(0,directChild.length() - 1));
+      }
+ else {
+        builder.add(directChild);
+      }
+    }
+    return builder.build();
   }
   return Collections.emptyList();
 }
