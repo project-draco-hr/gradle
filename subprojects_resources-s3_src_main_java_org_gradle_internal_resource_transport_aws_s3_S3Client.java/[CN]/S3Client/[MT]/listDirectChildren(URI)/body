@@ -1,15 +1,16 @@
 {
-  List<String> results=new ArrayList<String>();
   S3RegionalResource s3RegionalResource=new S3RegionalResource(parent);
   String bucketName=s3RegionalResource.getBucketName();
   String s3BucketKey=s3RegionalResource.getKey();
   configureClient(s3RegionalResource);
   ListObjectsRequest listObjectsRequest=new ListObjectsRequest().withBucketName(bucketName).withPrefix(s3BucketKey).withMaxKeys(1000).withDelimiter("/");
   ObjectListing objectListing=amazonS3Client.listObjects(listObjectsRequest);
-  results.addAll(resourceResolver.resolveResourceNames(objectListing));
+  ImmutableList.Builder<String> builder=ImmutableList.builder();
+  builder.addAll(resourceResolver.resolveResourceNames(objectListing));
+  builder.addAll(resourceResolver.resolveResourceNames(objectListing));
   while (objectListing.isTruncated()) {
     objectListing=amazonS3Client.listNextBatchOfObjects(objectListing);
-    results.addAll(resourceResolver.resolveResourceNames(objectListing));
+    builder.addAll(resourceResolver.resolveResourceNames(objectListing));
   }
-  return results;
+  return builder.build();
 }
