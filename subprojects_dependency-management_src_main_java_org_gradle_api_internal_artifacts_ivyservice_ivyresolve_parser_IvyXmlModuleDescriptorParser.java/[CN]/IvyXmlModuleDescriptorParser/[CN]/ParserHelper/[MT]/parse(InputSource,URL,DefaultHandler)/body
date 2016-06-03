@@ -4,8 +4,15 @@
     if (schema != null) {
       schemaStream=URLHandlerRegistry.getDefault().openStream(schema);
     }
-    SAXParser parser=newSAXParser(schema,schemaStream);
-    parser.parse(xmlStream,handler);
+    ClassLoader original=Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader().getParent());
+    try {
+      SAXParser parser=newSAXParser(schema,schemaStream);
+      parser.parse(xmlStream,handler);
+    }
+  finally {
+      Thread.currentThread().setContextClassLoader(original);
+    }
   }
   finally {
     if (schemaStream != null) {

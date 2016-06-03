@@ -1,0 +1,27 @@
+{
+  String message="";
+  List<DaemonStopEvent> recentStopEvents=CollectionUtils.filter(stopEvents,new Spec<DaemonStopEvent>(){
+    public boolean isSatisfiedBy(    DaemonStopEvent event){
+      return event.occurredInLastDays(1);
+    }
+  }
+);
+  if (numBusy + numIncompatible + recentStopEvents.size() > 0) {
+    final List<String> reasons=Lists.newArrayList(NO_COMPATIBLE_DAEMONS_MESSAGE);
+    if (numBusy > 0) {
+      reasons.add(numBusy > 1 ? numBusy + MULTIPLE_BUSY_DAEMONS_MESSAGE : ONE_BUSY_DAEMON_MESSAGE);
+    }
+    if (numIncompatible > 0) {
+      reasons.add(numIncompatible > 1 ? numIncompatible + MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE : ONE_INCOMPATIBLE_DAEMON_MESSAGE);
+    }
+    if (recentStopEvents.size() > 0) {
+      for (      Map.Entry<String,Integer> entry : countByReason(recentStopEvents).entrySet()) {
+        final Integer numStopped=entry.getValue();
+        final String prefix=numStopped > 1 ? numStopped + MULTIPLE_DAEMONS_STOPPED_PREFIX : ONE_DAEMON_STOPPED_PREFIX;
+        reasons.add(prefix + entry.getKey());
+      }
+    }
+    message+=Joiner.on(LINE_SEPARATOR + "  - ").skipNulls().join(reasons) + LINE_SEPARATOR;
+  }
+  return message + STARTING_DAEMON_MESSAGE;
+}

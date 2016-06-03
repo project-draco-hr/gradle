@@ -1,14 +1,7 @@
 {
-  List<String> results=new ArrayList<String>();
   List<S3ObjectSummary> objectSummaries=objectListing.getObjectSummaries();
   if (null != objectSummaries) {
-    for (    S3ObjectSummary objectSummary : objectSummaries) {
-      String key=objectSummary.getKey();
-      String fileName=nameExtractor.extractResourceName(key);
-      if (null != fileName) {
-        results.add(fileName);
-      }
-    }
+    return ImmutableList.copyOf(Iterables.filter(Iterables.transform(objectSummaries,EXTRACT_FILE_NAME),Predicates.notNull()));
   }
-  return results;
+  return Collections.emptyList();
 }

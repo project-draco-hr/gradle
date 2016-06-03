@@ -1,0 +1,18 @@
+{
+  byte[] knownId=knownClassLoaders.get(cl);
+  if (knownId != null) {
+    hasher.putBytes(knownId);
+    return false;
+  }
+  if (cl instanceof CachingClassLoader || cl instanceof MultiParentClassLoader) {
+    return true;
+  }
+  HashCode hash=classLoaderHasher.getHash(cl);
+  if (hash != null) {
+    hasher.putBytes(hash.asBytes());
+    return true;
+  }
+  hasher.putBytes(UNKNOWN);
+  foundUnknown=true;
+  return true;
+}

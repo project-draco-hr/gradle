@@ -1,13 +1,16 @@
 {
-  List<String> results=new ArrayList<String>();
-  List<String> commonPrefixes=objectListing.getCommonPrefixes();
-  if (null != commonPrefixes) {
-    for (    String prefix : commonPrefixes) {
-      String dirName=nameExtractor.extractDirectoryName(prefix);
-      if (null != dirName) {
-        results.add(dirName);
+  ImmutableList.Builder<String> builder=ImmutableList.builder();
+  if (objectListing.getCommonPrefixes() != null) {
+    for (    String prefix : objectListing.getCommonPrefixes()) {
+      String directChild=prefix.split(Pattern.quote(objectListing.getPrefix()))[1];
+      if (directChild.endsWith("/")) {
+        builder.add(directChild.substring(0,directChild.length() - 1));
+      }
+ else {
+        builder.add(directChild);
       }
     }
+    return builder.build();
   }
-  return results;
+  return Collections.emptyList();
 }

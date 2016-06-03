@@ -1,8 +1,15 @@
 {
-  PrintWriter printWriter=new PrintWriter(writer);
+  SingleMessageLogger.nagUserOfDeprecated("Manifest.writeTo(Writer)","Please use Manifest.writeTo(Object) instead");
   try {
-    getEffectiveManifest().generateAntManifest().write(printWriter);
-    printWriter.flush();
+    Manifest javaManifest=generateJavaManifest(getEffectiveManifest());
+    ByteArrayOutputStream buffer=new ByteArrayOutputStream();
+    javaManifest.write(buffer);
+    String manifestContent=buffer.toString(DEFAULT_CONTENT_CHARSET);
+    if (!DEFAULT_CONTENT_CHARSET.equals(contentCharset)) {
+      manifestContent=new String(manifestContent.getBytes(contentCharset),contentCharset);
+    }
+    writer.write(manifestContent);
+    writer.flush();
   }
  catch (  IOException e) {
     throw new UncheckedIOException(e);

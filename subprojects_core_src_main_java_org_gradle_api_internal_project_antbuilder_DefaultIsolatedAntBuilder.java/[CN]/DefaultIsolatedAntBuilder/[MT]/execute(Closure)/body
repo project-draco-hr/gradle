@@ -1,7 +1,7 @@
 {
   classLoaderCache.withCachedClassLoader(libClasspath,gradleApiGroovyLoader,antAdapterGroovyLoader,new Factory<ClassLoader>(){
     @Override public ClassLoader create(){
-      return new MutableURLClassLoader(baseAntLoader,libClasspath);
+      return new VisitableURLClassLoader(baseAntLoader,libClasspath);
     }
   }
 ,new Action<CachedClassLoader>(){
@@ -14,7 +14,7 @@
       try {
         configureAntBuilder(antBuilder,antLogger);
         Object delegate=new AntBuilderDelegate(antBuilder,classLoader);
-        new ClosureBackedAction<Object>(antClosure).execute(delegate);
+        ClosureBackedAction.execute(delegate,antClosure);
       }
   finally {
         Thread.currentThread().setContextClassLoader(originalLoader);

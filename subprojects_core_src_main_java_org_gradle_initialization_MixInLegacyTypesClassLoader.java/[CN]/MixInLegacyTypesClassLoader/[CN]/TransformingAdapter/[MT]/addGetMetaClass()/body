@@ -1,0 +1,22 @@
+{
+  Label lookup=new Label();
+  MethodVisitor methodVisitor=cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC,"getMetaClass",RETURN_META_CLASS,null,null);
+  methodVisitor.visitCode();
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitFieldInsn(Opcodes.GETFIELD,className,META_CLASS_FIELD,META_CLASS_TYPE.getDescriptor());
+  methodVisitor.visitInsn(Opcodes.DUP);
+  methodVisitor.visitJumpInsn(Opcodes.IFNULL,lookup);
+  methodVisitor.visitInsn(Opcodes.ARETURN);
+  methodVisitor.visitLabel(lookup);
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC,GROOVY_SYSTEM_TYPE.getInternalName(),"getMetaClassRegistry",RETURN_META_CLASS_REGISTRY,false);
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,OBJECT_TYPE.getInternalName(),"getClass",RETURN_CLASS,false);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,META_CLASS_REGISTRY_TYPE.getInternalName(),"getMetaClass",RETURN_META_CLASS_FROM_CLASS,true);
+  methodVisitor.visitFieldInsn(Opcodes.PUTFIELD,className,META_CLASS_FIELD,META_CLASS_TYPE.getDescriptor());
+  methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
+  methodVisitor.visitFieldInsn(Opcodes.GETFIELD,className,META_CLASS_FIELD,META_CLASS_TYPE.getDescriptor());
+  methodVisitor.visitInsn(Opcodes.ARETURN);
+  methodVisitor.visitMaxs(0,0);
+  methodVisitor.visitEnd();
+}

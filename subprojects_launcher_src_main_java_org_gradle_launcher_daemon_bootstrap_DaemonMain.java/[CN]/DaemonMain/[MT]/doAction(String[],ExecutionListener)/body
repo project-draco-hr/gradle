@@ -30,21 +30,23 @@
  catch (  EOFException e) {
     throw new UncheckedIOException(e);
   }
-  LOGGER.debug("Assuming the daemon was started with following jvm opts: {}",startupOpts);
   NativeServices.initialize(gradleHomeDir);
   DaemonServerConfiguration parameters=new DefaultDaemonServerConfiguration(daemonUid,daemonBaseDir,idleTimeoutMs,periodicCheckIntervalMs,startupOpts);
   LoggingServiceRegistry loggingRegistry=LoggingServiceRegistry.newCommandLineProcessLogging();
   LoggingManagerInternal loggingManager=loggingRegistry.newInstance(LoggingManagerInternal.class);
-  DaemonServices daemonServices=new DaemonServices(parameters,loggingRegistry,loggingManager,new DefaultClassPath(additionalClassPath));
+  TrueTimeProvider timeProvider=new TrueTimeProvider();
+  DaemonServices daemonServices=new DaemonServices(parameters,loggingRegistry,loggingManager,new DefaultClassPath(additionalClassPath),timeProvider.getCurrentTime());
   File daemonLog=daemonServices.getDaemonLogFile();
   initialiseLogging(loggingManager,daemonLog);
+  LOGGER.debug("Assuming the daemon was started with following jvm opts: {}",startupOpts);
   Daemon daemon=daemonServices.get(Daemon.class);
   daemon.start();
   try {
     DaemonContext daemonContext=daemonServices.get(DaemonContext.class);
     Long pid=daemonContext.getPid();
     daemonStarted(pid,daemon.getUid(),daemon.getAddress(),daemonLog);
-    daemon.stopOnExpiration(DaemonExpirationStrategies.getDefaultStrategy(daemon,daemonServices,parameters),parameters.getPeriodicCheckIntervalMs());
+    DaemonExpirationStrategy expirationStrategy=daemonServices.get(MasterExpirationStrategy.class);
+    daemon.stopOnExpiration(expirationStrategy,parameters.getPeriodicCheckIntervalMs());
   }
   finally {
     daemon.stop();

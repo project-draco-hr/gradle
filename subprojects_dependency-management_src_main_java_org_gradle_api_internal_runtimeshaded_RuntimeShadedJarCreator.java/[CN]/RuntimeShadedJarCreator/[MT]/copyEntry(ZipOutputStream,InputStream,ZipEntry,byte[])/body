@@ -1,5 +1,16 @@
 {
-  outputStream.putNextEntry(new ZipEntry(zipEntry.getName()));
-  pipe(inputStream,outputStream,buffer);
-  outputStream.closeEntry();
+  ByteArrayOutputStream bos=new ByteArrayOutputStream(1024);
+  pipe(inputStream,bos,buffer);
+  String originalName=zipEntry.getName();
+  byte[] resource=bos.toByteArray();
+  int i=originalName.lastIndexOf("/");
+  String path=i == -1 ? null : originalName.substring(0,i);
+  if (REMAPPER.keepOriginalResource(path)) {
+    writeResourceEntry(outputStream,new ByteArrayInputStream(resource),buffer,zipEntry.getName());
+  }
+  String remappedResourceName=path != null ? REMAPPER.maybeRelocateResource(path) : null;
+  if (remappedResourceName != null) {
+    String newFileName=remappedResourceName + originalName.substring(i);
+    writeResourceEntry(outputStream,new ByteArrayInputStream(resource),buffer,newFileName);
+  }
 }

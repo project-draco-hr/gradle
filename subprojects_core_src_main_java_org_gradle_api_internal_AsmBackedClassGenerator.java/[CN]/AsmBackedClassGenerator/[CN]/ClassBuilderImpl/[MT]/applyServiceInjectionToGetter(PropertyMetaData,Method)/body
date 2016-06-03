@@ -4,7 +4,7 @@
   String methodDescriptor=Type.getMethodDescriptor(returnType);
   Type serviceType=Type.getType(property.getType());
   String propFieldName=propFieldName(property);
-  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,getterName,methodDescriptor,signature(getter),new String[0]);
+  MethodVisitor methodVisitor=visitor.visitMethod(Opcodes.ACC_PUBLIC,getterName,methodDescriptor,signature(getter),EMPTY_STRINGS);
   methodVisitor.visitCode();
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
   methodVisitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),propFieldName,serviceType.getDescriptor());
@@ -12,7 +12,7 @@
   methodVisitor.visitJumpInsn(Opcodes.IFNONNULL,alreadyLoaded);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
   methodVisitor.visitVarInsn(Opcodes.ALOAD,0);
-  methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getServices",Type.getMethodDescriptor(SERVICE_REGISTRY_TYPE));
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getServices",Type.getMethodDescriptor(SERVICE_REGISTRY_TYPE),false);
   java.lang.reflect.Type genericReturnType=getter.getGenericReturnType();
   if (genericReturnType instanceof Class) {
     methodVisitor.visitLdcInsn(Type.getType((Class)genericReturnType));
@@ -21,7 +21,7 @@
     String constantFieldName=getConstantNameForGenericReturnType(genericReturnType,getterName);
     methodVisitor.visitFieldInsn(GETSTATIC,generatedType.getInternalName(),constantFieldName,JAVA_REFLECT_TYPE_DESCRIPTOR);
   }
-  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,SERVICE_REGISTRY_TYPE.getInternalName(),"get",GET_METHOD_DESCRIPTOR);
+  methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,SERVICE_REGISTRY_TYPE.getInternalName(),"get",GET_METHOD_DESCRIPTOR,true);
   methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,serviceType.getInternalName());
   methodVisitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),propFieldName,serviceType.getDescriptor());
   methodVisitor.visitLabel(alreadyLoaded);

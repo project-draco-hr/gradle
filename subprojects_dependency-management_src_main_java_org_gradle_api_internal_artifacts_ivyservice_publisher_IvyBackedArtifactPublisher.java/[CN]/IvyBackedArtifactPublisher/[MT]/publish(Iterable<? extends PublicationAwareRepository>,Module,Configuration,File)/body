@@ -1,0 +1,19 @@
+{
+  Set<Configuration> allConfigurations=configuration.getAll();
+  Set<Configuration> configurationsToPublish=configuration.getHierarchy();
+  if (descriptor != null) {
+    IvyModulePublishMetadata publishMetaData=toPublishMetaData(module,allConfigurations);
+    ivyModuleDescriptorWriter.write(publishMetaData.getModuleDescriptor(),publishMetaData.getArtifacts(),descriptor);
+  }
+  BuildableIvyModulePublishMetadata publishMetaData=toPublishMetaData(module,configurationsToPublish);
+  if (descriptor != null) {
+    IvyArtifactName artifact=new DefaultIvyArtifactName("ivy","ivy","xml");
+    publishMetaData.addArtifact(artifact,descriptor);
+  }
+  List<ModuleVersionPublisher> publishResolvers=new ArrayList<ModuleVersionPublisher>();
+  for (  PublicationAwareRepository repository : repositories) {
+    ModuleVersionPublisher publisher=repository.createPublisher();
+    publishResolvers.add(publisher);
+  }
+  dependencyPublisher.publish(publishResolvers,publishMetaData);
+}

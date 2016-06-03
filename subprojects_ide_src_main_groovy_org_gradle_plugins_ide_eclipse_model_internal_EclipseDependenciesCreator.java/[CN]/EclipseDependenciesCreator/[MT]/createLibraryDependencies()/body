@@ -1,0 +1,14 @@
+{
+  ArrayList<AbstractClasspathEntry> libraries=Lists.newArrayList();
+  boolean downloadSources=classpath.isDownloadSources();
+  boolean downloadJavadoc=classpath.isDownloadJavadoc();
+  Collection<IdeExtendedRepoFileDependency> repoFileDependencies=dependenciesExtractor.extractRepoFileDependencies(classpath.getProject().getDependencies(),classpath.getPlusConfigurations(),classpath.getMinusConfigurations(),downloadSources,downloadJavadoc);
+  for (  IdeExtendedRepoFileDependency dependency : repoFileDependencies) {
+    libraries.add(createLibraryEntry(dependency.getFile(),dependency.getSourceFile(),dependency.getJavadocFile(),classpath,dependency.getId()));
+  }
+  Collection<IdeLocalFileDependency> localFileDependencies=dependenciesExtractor.extractLocalFileDependencies(classpath.getPlusConfigurations(),classpath.getMinusConfigurations());
+  for (  IdeLocalFileDependency it : localFileDependencies) {
+    libraries.add(createLibraryEntry(it.getFile(),null,null,classpath,null));
+  }
+  return libraries;
+}

@@ -1,10 +1,27 @@
 {
-  Class<?> compilerImplClass;
+  Class<?> clazz;
   try {
-    compilerImplClass=isolatedToolsLoader.loadClass(DEFAULT_COMPILER_IMPL_NAME);
+    if (isJava9Compatible) {
+      clazz=isolatedToolsLoader.loadClass("javax.tools.ToolProvider");
+      try {
+        return (JavaCompiler)clazz.getDeclaredMethod("getSystemJavaCompiler").invoke(null);
+      }
+ catch (      IllegalAccessException e) {
+        cannotCreateJavaCompiler(e);
+      }
+catch (      InvocationTargetException e) {
+        cannotCreateJavaCompiler(e);
+      }
+catch (      NoSuchMethodException e) {
+        cannotCreateJavaCompiler(e);
+      }
+    }
+ else {
+      clazz=isolatedToolsLoader.loadClass(DEFAULT_COMPILER_IMPL_NAME);
+    }
   }
  catch (  ClassNotFoundException e) {
     throw new IllegalStateException("Could not load class '" + DEFAULT_COMPILER_IMPL_NAME);
   }
-  return DirectInstantiator.instantiate(compilerImplClass.asSubclass(JavaCompiler.class));
+  return DirectInstantiator.instantiate(clazz.asSubclass(JavaCompiler.class));
 }

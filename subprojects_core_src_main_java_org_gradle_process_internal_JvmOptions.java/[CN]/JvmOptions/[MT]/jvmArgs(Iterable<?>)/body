@@ -38,6 +38,7 @@
   }
   boolean xdebugFound=false;
   boolean xrunjdwpFound=false;
+  boolean xagentlibJdwpFound=false;
   Set<Object> matches=new HashSet<Object>();
   for (  Object extraJvmArg : extraJvmArgs) {
     if (extraJvmArg.toString().equals("-Xdebug")) {
@@ -48,8 +49,12 @@
       xrunjdwpFound=true;
       matches.add(extraJvmArg);
     }
+ else     if (extraJvmArg.toString().equals("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")) {
+      xagentlibJdwpFound=true;
+      matches.add(extraJvmArg);
+    }
   }
-  if (xdebugFound && xrunjdwpFound) {
+  if (xdebugFound && xrunjdwpFound || xagentlibJdwpFound) {
     debug=true;
     extraJvmArgs.removeAll(matches);
   }
