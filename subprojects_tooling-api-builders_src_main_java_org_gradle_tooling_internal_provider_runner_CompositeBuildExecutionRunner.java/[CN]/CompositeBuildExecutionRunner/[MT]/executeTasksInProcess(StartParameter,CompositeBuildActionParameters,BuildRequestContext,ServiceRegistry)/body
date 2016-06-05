@@ -1,0 +1,15 @@
+{
+  GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
+  CompositeParameters compositeParameters=actionParameters.getCompositeParameters();
+  DefaultServiceRegistry compositeServices=createCompositeAwareServices(actionStartParameter,buildRequestContext,compositeParameters,sharedServices);
+  StartParameter startParameter=actionStartParameter.newInstance();
+  GradleParticipantBuild targetParticipant=compositeParameters.getTargetBuild();
+  startParameter.setProjectDir(targetParticipant.getProjectDir());
+  startParameter.setSearchUpwards(false);
+  startParameter.setSystemPropertiesArgs(Collections.singletonMap("org.gradle.resolution.assumeFluidDependencies","true"));
+  LOGGER.lifecycle("[composite-build] Executing tasks " + startParameter.getTaskNames() + " for participant: "+ targetParticipant.getProjectDir());
+  BuildActionRunner runner=new ExecuteBuildActionRunner();
+  BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,runner);
+  ServiceRegistry buildScopedServices=new BuildSessionScopeServices(compositeServices,startParameter,ClassPath.EMPTY);
+  buildActionExecuter.execute(new ExecuteBuildAction(startParameter),buildRequestContext,null,buildScopedServices);
+}

@@ -1,0 +1,19 @@
+{
+  File projectDir=GUtil.elvis(startParameter.getProjectDir(),startParameter.getCurrentDir());
+  List<File> participantPaths=Lists.newArrayList();
+  try {
+    participantPaths.add(projectDir.getCanonicalFile());
+    for (    File file : startParameter.getParticipantBuilds()) {
+      participantPaths.add(file.getCanonicalFile());
+    }
+  }
+ catch (  IOException e) {
+    throw UncheckedException.throwAsUncheckedException(e);
+  }
+  return CollectionUtils.collect(participantPaths,new Transformer<GradleParticipantBuild,File>(){
+    @Override public GradleParticipantBuild transform(    File participantPath){
+      return new DefaultGradleParticipantBuild(participantPath,null,null,null);
+    }
+  }
+);
+}
