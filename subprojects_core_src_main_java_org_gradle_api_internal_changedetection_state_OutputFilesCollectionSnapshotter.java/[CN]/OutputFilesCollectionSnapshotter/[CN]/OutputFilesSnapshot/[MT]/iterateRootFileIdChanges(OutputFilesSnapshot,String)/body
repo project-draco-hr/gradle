@@ -13,21 +13,18 @@
     }
   }
   final Iterator<String> changedIterator=changed.iterator();
-  return new ChangeIterator<String>(){
-    public boolean next(    ChangeListener<String> listener){
+  return new AbstractIterator<TaskStateChange>(){
+    @Override protected TaskStateChange computeNext(){
       if (addedIterator.hasNext()) {
-        listener.added(addedIterator.next());
-        return true;
+        return new FileChange(addedIterator.next(),ChangeType.ADDED,fileType);
       }
       if (removedIterator.hasNext()) {
-        listener.removed(removedIterator.next());
-        return true;
+        return new FileChange(removedIterator.next(),ChangeType.REMOVED,fileType);
       }
       if (changedIterator.hasNext()) {
-        listener.changed(changedIterator.next());
-        return true;
+        return new FileChange(changedIterator.next(),ChangeType.MODIFIED,fileType);
       }
-      return false;
+      return endOfData();
     }
   }
 ;
