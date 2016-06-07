@@ -14,6 +14,7 @@
   final List<DefaultEclipseExternalDependency> externalDependencies=new LinkedList<DefaultEclipseExternalDependency>();
   final List<DefaultEclipseProjectDependency> projectDependencies=new LinkedList<DefaultEclipseProjectDependency>();
   final List<DefaultEclipseSourceDirectory> sourceDirectories=new LinkedList<DefaultEclipseSourceDirectory>();
+  final List<DefaultEclipseClasspathContainer> classpathContainers=new LinkedList<DefaultEclipseClasspathContainer>();
   for (  ClasspathEntry entry : classpathEntries) {
     if (entry instanceof Library) {
       AbstractLibrary library=(AbstractLibrary)entry;
@@ -43,6 +44,10 @@
       List<String> excludes=sourceFolder.getExcludes();
       List<String> includes=sourceFolder.getIncludes();
       sourceDirectories.add(new DefaultEclipseSourceDirectory(path,sourceFolder.getDir(),excludes,includes,createAttributes(sourceFolder)));
+    }
+ else     if (entry instanceof Container) {
+      final Container container=(Container)entry;
+      classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(),createAttributes(container)));
     }
   }
   DefaultEclipseProject eclipseProject=projectMapping.get(project.getPath());
