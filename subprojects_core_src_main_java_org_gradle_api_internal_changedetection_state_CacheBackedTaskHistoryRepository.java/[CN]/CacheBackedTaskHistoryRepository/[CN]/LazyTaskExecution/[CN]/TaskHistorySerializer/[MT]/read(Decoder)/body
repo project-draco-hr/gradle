@@ -1,7 +1,14 @@
 {
   LazyTaskExecution execution=new LazyTaskExecution();
-  execution.inputFilesSnapshotId=decoder.readLong();
-  execution.setInputFilesHash(decoder.readInt());
+  int inputFilesSnapshotIdCount=decoder.readInt();
+  ImmutableSortedMap.Builder<String,Long> inputFilesSnapshotIds=ImmutableSortedMap.naturalOrder();
+  for (int snapshotIdx=0; snapshotIdx < inputFilesSnapshotIdCount; snapshotIdx++) {
+    String property=decoder.readString();
+    long id=decoder.readLong();
+    inputFilesSnapshotIds.put(property,id);
+  }
+  execution.inputFilesSnapshotIds=inputFilesSnapshotIds.build();
+  execution.setInputFilesHash(HashCode.fromBytes(decoder.readBinary()));
   execution.outputFilesSnapshotId=decoder.readLong();
   execution.setOutputFilesHash(decoder.readInt());
   execution.discoveredFilesSnapshotId=decoder.readLong();

@@ -1,0 +1,34 @@
+{
+  if (noChanges) {
+    return Iterators.emptyIterator();
+  }
+  if (getPrevious() == null) {
+    return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange(title + " file history is not available."));
+  }
+  final List<TaskStateChange> propertyChanges=Lists.newLinkedList();
+  DiffUtil.diff(getCurrent().keySet(),getPrevious().keySet(),new ChangeListener<String>(){
+    @Override public void added(    String element){
+      propertyChanges.add(new DescriptiveChange("%s property '%s' has been added for task '%s'",title,element,taskName));
+    }
+    @Override public void removed(    String element){
+      propertyChanges.add(new DescriptiveChange("%s property '%s' has been removed for task '%s'",title,element,taskName));
+    }
+    @Override public void changed(    String element){
+      throw new AssertionError();
+    }
+  }
+);
+  if (!propertyChanges.isEmpty()) {
+    return propertyChanges.iterator();
+  }
+  return Iterators.concat(Iterables.transform(getCurrent().entrySet(),new Function<Map.Entry<String,FileCollectionSnapshot>,Iterator<TaskStateChange>>(){
+    @Override public Iterator<TaskStateChange> apply(    Map.Entry<String,FileCollectionSnapshot> entry){
+      String propertyName=entry.getKey();
+      FileCollectionSnapshot currentSnapshot=entry.getValue();
+      FileCollectionSnapshot previousSnapshot=getPrevious().get(propertyName);
+      String title=AbstractNamedFileSnapshotTaskStateChanges.this.title + " property '" + propertyName+ "'";
+      return currentSnapshot.iterateContentChangesSince(previousSnapshot,title,getFileChangeFilters());
+    }
+  }
+).iterator());
+}

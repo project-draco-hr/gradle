@@ -20,8 +20,12 @@
       cacheAccess.useCache("Update task history",new Runnable(){
         public void run(){
           history.configurations.add(0,currentExecution);
-          if (currentExecution.inputFilesSnapshotId == null && currentExecution.inputFilesSnapshot != null) {
-            currentExecution.inputFilesSnapshotId=snapshotRepository.add(currentExecution.inputFilesSnapshot);
+          if (currentExecution.inputFilesSnapshotIds == null && currentExecution.inputFilesSnapshot != null) {
+            ImmutableSortedMap.Builder<String,Long> builder=ImmutableSortedMap.naturalOrder();
+            for (            Map.Entry<String,FileCollectionSnapshot> entry : currentExecution.inputFilesSnapshot.entrySet()) {
+              builder.put(entry.getKey(),snapshotRepository.add(entry.getValue()));
+            }
+            currentExecution.inputFilesSnapshotIds=builder.build();
           }
           if (currentExecution.outputFilesSnapshotId == null && currentExecution.outputFilesSnapshot != null) {
             currentExecution.outputFilesSnapshotId=snapshotRepository.add(currentExecution.outputFilesSnapshot);
@@ -31,8 +35,10 @@
           }
           while (history.configurations.size() > TaskHistory.MAX_HISTORY_ENTRIES) {
             LazyTaskExecution execution=history.configurations.remove(history.configurations.size() - 1);
-            if (execution.inputFilesSnapshotId != null) {
-              snapshotRepository.remove(execution.inputFilesSnapshotId);
+            if (execution.inputFilesSnapshotIds != null) {
+              for (              Long id : execution.inputFilesSnapshotIds.values()) {
+                snapshotRepository.remove(id);
+              }
             }
             if (execution.outputFilesSnapshotId != null) {
               snapshotRepository.remove(execution.outputFilesSnapshotId);
