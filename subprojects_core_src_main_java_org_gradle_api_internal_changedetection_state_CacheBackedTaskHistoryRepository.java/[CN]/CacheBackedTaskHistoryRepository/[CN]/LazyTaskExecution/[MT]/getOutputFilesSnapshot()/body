@@ -1,8 +1,13 @@
 {
   if (outputFilesSnapshot == null) {
-    outputFilesSnapshot=cacheAccess.useCache("fetch output files",new Factory<FileCollectionSnapshot>(){
-      public FileCollectionSnapshot create(){
-        return snapshotRepository.get(outputFilesSnapshotId);
+    outputFilesSnapshot=cacheAccess.useCache("fetch output files",new Factory<Map<String,FileCollectionSnapshot>>(){
+      public Map<String,FileCollectionSnapshot> create(){
+        ImmutableSortedMap.Builder<String,FileCollectionSnapshot> builder=ImmutableSortedMap.naturalOrder();
+        for (        Map.Entry<String,Long> entry : outputFilesSnapshotIds.entrySet()) {
+          String propertyName=entry.getKey();
+          builder.put(propertyName,snapshotRepository.get(entry.getValue()));
+        }
+        return builder.build();
       }
     }
 );

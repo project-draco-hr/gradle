@@ -27,8 +27,12 @@
             }
             currentExecution.inputFilesSnapshotIds=builder.build();
           }
-          if (currentExecution.outputFilesSnapshotId == null && currentExecution.outputFilesSnapshot != null) {
-            currentExecution.outputFilesSnapshotId=snapshotRepository.add(currentExecution.outputFilesSnapshot);
+          if (currentExecution.outputFilesSnapshotIds == null && currentExecution.outputFilesSnapshot != null) {
+            ImmutableSortedMap.Builder<String,Long> builder=ImmutableSortedMap.naturalOrder();
+            for (            Map.Entry<String,FileCollectionSnapshot> entry : currentExecution.outputFilesSnapshot.entrySet()) {
+              builder.put(entry.getKey(),snapshotRepository.add(entry.getValue()));
+            }
+            currentExecution.outputFilesSnapshotIds=builder.build();
           }
           if (currentExecution.discoveredFilesSnapshotId == null && currentExecution.discoveredFilesSnapshot != null) {
             currentExecution.discoveredFilesSnapshotId=snapshotRepository.add(currentExecution.discoveredFilesSnapshot);
@@ -40,8 +44,10 @@
                 snapshotRepository.remove(id);
               }
             }
-            if (execution.outputFilesSnapshotId != null) {
-              snapshotRepository.remove(execution.outputFilesSnapshotId);
+            if (execution.outputFilesSnapshotIds != null) {
+              for (              Long id : execution.outputFilesSnapshotIds.values()) {
+                snapshotRepository.remove(id);
+              }
             }
             if (execution.discoveredFilesSnapshotId != null) {
               snapshotRepository.remove(execution.discoveredFilesSnapshotId);
