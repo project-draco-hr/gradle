@@ -3,6 +3,15 @@
     @Override public void visitLdcInsn(    Object cst){
       if (cst instanceof String) {
         String literal=remappedClassLiterals.get(cst);
+        if (literal == null) {
+          literal=REMAPPER.maybeRelocateResource((String)cst);
+        }
+        if (literal == null) {
+          literal=REMAPPER.maybeRelocateResource(((String)cst).replace('.','/'));
+          if (literal != null) {
+            literal=literal.replace("/",".");
+          }
+        }
         super.visitLdcInsn(literal != null ? literal : cst);
       }
  else {
