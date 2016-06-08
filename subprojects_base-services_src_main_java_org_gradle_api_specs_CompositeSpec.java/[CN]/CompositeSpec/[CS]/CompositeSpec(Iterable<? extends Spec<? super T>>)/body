@@ -1,7 +1,20 @@
 {
-  List<Spec<? super T>> copy=new ArrayList<Spec<? super T>>();
-  for (  Spec<? super T> spec : specs) {
-    copy.add(spec);
+  if (specs instanceof Collection) {
+    Collection<Spec<? super T>> specCollection=uncheckedCast(specs);
+    if (specCollection.isEmpty()) {
+      this.specs=uncheckedCast(EMPTY);
+    }
+ else {
+      this.specs=uncheckedCast(specCollection.toArray(EMPTY));
+    }
   }
-  this.specs=copy.toArray(new Spec[0]);
+ else {
+    Iterator<? extends Spec<? super T>> iterator=specs.iterator();
+    if (!iterator.hasNext()) {
+      this.specs=uncheckedCast(EMPTY);
+    }
+ else {
+      this.specs=uncheckedCast(Iterators.toArray(iterator,Spec.class));
+    }
+  }
 }
