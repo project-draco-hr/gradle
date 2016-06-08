@@ -17,17 +17,16 @@
       }
       if (call.getMethod() instanceof ConstantExpression) {
         ConstantExpression methodName=(ConstantExpression)call.getMethod();
-        if (isOfType(methodName,String.class)) {
+        if (isString(methodName)) {
           String methodNameText=methodName.getText();
           if (methodNameText.equals("id") || methodNameText.equals("version")) {
-            ConstantExpression argumentExpression=hasSingleConstantArgOfType(call,String.class);
+            ConstantExpression argumentExpression=hasSingleConstantStringArg(call);
             if (argumentExpression == null) {
-              restrict(call,formatErrorMessage(NEED_SINGLE_STRING));
               return;
             }
             String argStringValue=argumentExpression.getValue().toString();
             if (argStringValue.length() == 0) {
-              restrict(argumentExpression,formatErrorMessage(NEED_SINGLE_STRING));
+              restrict(argumentExpression,formatErrorMessage(INVALID_ARGUMENT_LIST));
               return;
             }
             if (methodName.getText().equals("id")) {
@@ -45,29 +44,21 @@
               }
             }
             if (methodName.getText().equals("version")) {
-              PluginDependencySpec spec=getSpecFor(call);
-              if (spec == null) {
-                return;
+              Expression objectExpression=call.getObjectExpression();
+              if (objectExpression instanceof MethodCallExpression) {
+                PluginDependencySpec spec=objectExpression.getNodeMetaData(PluginDependencySpec.class);
+                if (spec != null) {
+                  spec.version(argStringValue);
+                }
               }
-              spec.version(argStringValue);
-              call.setNodeMetaData(PluginDependencySpec.class,spec);
+ else {
+                restrict(call,formatErrorMessage(BASE_MESSAGE));
+              }
             }
-          }
- else           if (methodNameText.equals("apply")) {
-            ConstantExpression arguments=hasSingleConstantArgOfType(call,boolean.class);
-            if (arguments == null) {
-              restrict(call,formatErrorMessage(NEED_SINGLE_BOOLEAN));
-              return;
-            }
-            PluginDependencySpec spec=getSpecFor(call);
-            if (spec == null) {
-              return;
-            }
-            spec.apply((Boolean)arguments.getValue());
           }
  else {
             if (!call.isImplicitThis()) {
-              restrict(methodName,formatErrorMessage(EXTENDED_MESSAGE));
+              restrict(methodName,formatErrorMessage(VERSION_MESSAGE));
             }
  else {
               restrict(methodName,formatErrorMessage(BASE_MESSAGE));
@@ -82,15 +73,27 @@
         restrict(call);
       }
     }
-    private PluginDependencySpec getSpecFor(    MethodCallExpression call){
-      Expression objectExpression=call.getObjectExpression();
-      if (objectExpression instanceof MethodCallExpression) {
-        return objectExpression.getNodeMetaData(PluginDependencySpec.class);
+    private ConstantExpression hasSingleConstantStringArg(    MethodCallExpression call){
+      ArgumentListExpression argumentList=(ArgumentListExpression)call.getArguments();
+      if (argumentList.getExpressions().size() == 1) {
+        Expression argumentExpression=argumentList.getExpressions().get(0);
+        if (argumentExpression instanceof ConstantExpression) {
+          ConstantExpression constantArgumentExpression=(ConstantExpression)argumentExpression;
+          if (isString(constantArgumentExpression)) {
+            return constantArgumentExpression;
+          }
+ else {
+            restrict(constantArgumentExpression,formatErrorMessage(INVALID_ARGUMENT_LIST));
+          }
+        }
+ else {
+          restrict(argumentExpression,formatErrorMessage(INVALID_ARGUMENT_LIST));
+        }
       }
  else {
-        restrict(call,formatErrorMessage(BASE_MESSAGE));
-        return null;
+        restrict(argumentList,formatErrorMessage(INVALID_ARGUMENT_LIST));
       }
+      return null;
     }
     @Override public void visitExpressionStatement(    ExpressionStatement statement){
       statement.getExpression().visit(this);

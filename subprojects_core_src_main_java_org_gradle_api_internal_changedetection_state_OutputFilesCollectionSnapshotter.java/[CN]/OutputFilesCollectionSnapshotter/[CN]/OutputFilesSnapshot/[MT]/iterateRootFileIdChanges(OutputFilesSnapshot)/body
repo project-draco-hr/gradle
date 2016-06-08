@@ -1,0 +1,34 @@
+{
+  Map<String,Boolean> added=new HashMap<String,Boolean>(roots);
+  added.keySet().removeAll(other.roots.keySet());
+  final Iterator<String> addedIterator=added.keySet().iterator();
+  Map<String,Boolean> removed=new HashMap<String,Boolean>(other.roots);
+  removed.keySet().removeAll(roots.keySet());
+  final Iterator<String> removedIterator=removed.keySet().iterator();
+  Set<String> changed=new HashSet<String>();
+  for (  Map.Entry<String,Boolean> current : roots.entrySet()) {
+    Boolean otherValue=other.roots.get(current.getKey());
+    if (otherValue != null && otherValue.booleanValue() && !otherValue.equals(current.getValue())) {
+      changed.add(current.getKey());
+    }
+  }
+  final Iterator<String> changedIterator=changed.iterator();
+  return new ChangeIterator<String>(){
+    public boolean next(    ChangeListener<String> listener){
+      if (addedIterator.hasNext()) {
+        listener.added(addedIterator.next());
+        return true;
+      }
+      if (removedIterator.hasNext()) {
+        listener.removed(removedIterator.next());
+        return true;
+      }
+      if (changedIterator.hasNext()) {
+        listener.changed(changedIterator.next());
+        return true;
+      }
+      return false;
+    }
+  }
+;
+}
