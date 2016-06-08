@@ -14,6 +14,7 @@
   final List<DefaultEclipseExternalDependency> externalDependencies=new LinkedList<DefaultEclipseExternalDependency>();
   final List<DefaultEclipseProjectDependency> projectDependencies=new LinkedList<DefaultEclipseProjectDependency>();
   final List<DefaultEclipseSourceDirectory> sourceDirectories=new LinkedList<DefaultEclipseSourceDirectory>();
+  final List<DefaultEclipseClasspathContainer> classpathContainers=new LinkedList<DefaultEclipseClasspathContainer>();
   for (  ClasspathEntry entry : classpathEntries) {
     if (entry instanceof Library) {
       AbstractLibrary library=(AbstractLibrary)entry;
@@ -40,7 +41,14 @@
  else     if (entry instanceof SourceFolder) {
       final SourceFolder sourceFolder=(SourceFolder)entry;
       String path=sourceFolder.getPath();
-      sourceDirectories.add(new DefaultEclipseSourceDirectory(path,sourceFolder.getDir()));
+      List<String> excludes=sourceFolder.getExcludes();
+      List<String> includes=sourceFolder.getIncludes();
+      String output=sourceFolder.getOutput();
+      sourceDirectories.add(new DefaultEclipseSourceDirectory(path,sourceFolder.getDir(),excludes,includes,output,createAttributes(sourceFolder)));
+    }
+ else     if (entry instanceof Container) {
+      final Container container=(Container)entry;
+      classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(),createAttributes(container)));
     }
   }
   DefaultEclipseProject eclipseProject=projectMapping.get(project.getPath());
@@ -71,6 +79,7 @@
   if (jdt != null) {
     eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings().setSourceLanguageLevel(jdt.getSourceCompatibility()).setTargetBytecodeVersion(jdt.getTargetCompatibility()).setJdk(DefaultInstalledJdk.current()));
   }
+  eclipseProject.setClasspathContainers(classpathContainers);
   for (  Project childProject : project.getChildProjects().values()) {
     populate(childProject);
   }

@@ -1,11 +1,16 @@
 {
-  FileCollectionSnapshot lastExecutionOutputFiles;
-  if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
-    lastExecutionOutputFiles=outputFilesSnapshotter.emptySnapshot();
+  PreCheckSet outputFilesAfterPreCheck=buildPreCheckSet();
+  Map<String,FileCollectionSnapshot> outputFilesAfter=buildSnapshots(outputFilesAfterPreCheck);
+  ImmutableMap.Builder<String,FileCollectionSnapshot> builder=ImmutableMap.builder();
+  for (  TaskFilePropertySpecInternal propertySpec : fileProperties) {
+    String propertyName=propertySpec.getPropertyName();
+    FileCollection roots=propertySpec.getFiles();
+    FileCollectionSnapshot beforeExecution=getCurrent().get(propertyName);
+    FileCollectionSnapshot afterExecution=outputFilesAfter.get(propertyName);
+    FileCollectionSnapshot afterPreviousExecution=getSnapshotAfterPreviousExecution(propertyName);
+    FileCollectionSnapshot outputSnapshot=getSnapshotter().createOutputSnapshot(afterPreviousExecution,beforeExecution,afterExecution,roots);
+    builder.put(propertyName,outputSnapshot);
   }
- else {
-    lastExecutionOutputFiles=previousExecution.getOutputFilesSnapshot();
-  }
-  FileCollectionSnapshot outputFilesAfter=createSnapshot(outputFilesSnapshotter,task.getOutputs().getFiles());
-  currentExecution.setOutputFilesSnapshot(outputFilesSnapshotter.createOutputSnapshot(lastExecutionOutputFiles,outputFilesBefore,outputFilesAfter,task.getOutputs().getFiles()));
+  current.setOutputFilesSnapshot(builder.build());
+  current.setOutputFilesHash(outputFilesAfterPreCheck.getHash());
 }

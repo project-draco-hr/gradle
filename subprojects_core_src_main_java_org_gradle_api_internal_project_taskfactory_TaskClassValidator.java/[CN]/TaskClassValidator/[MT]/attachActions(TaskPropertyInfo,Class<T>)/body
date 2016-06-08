@@ -1,4 +1,5 @@
 {
+  final Map<String,TaskPropertyInfo> properties=Maps.newHashMap();
   Types.walkTypeHierarchy(type,IGNORED_SUPER_CLASSES,new Types.TypeVisitor<T>(){
     @Override public void visitType(    Class<? super T> type){
       Map<String,Field> fields=getFields(type);
@@ -10,17 +11,33 @@
         String fieldName=accessorType.propertyNameFor(method);
         Field field=fields.get(fieldName);
         String propertyName=parent != null ? parent.getName() + '.' + fieldName : fieldName;
-        TaskPropertyInfo propertyInfo=new TaskPropertyInfo(TaskClassValidator.this,parent,propertyName,method,field);
-        boolean annotationFound=attachValidationActions(propertyInfo,field);
-        if (propertyInfo.isValidationRequired()) {
-          validatedProperties.add(propertyInfo);
+        TaskPropertyInfo propertyInfo=properties.get(propertyName);
+        if (propertyInfo == null) {
+          propertyInfo=new TaskPropertyInfo(TaskClassValidator.this,parent,propertyName,method,field);
+          properties.put(propertyName,propertyInfo);
         }
-        allPropertyNames.add(propertyName);
-        if (annotationFound) {
-          annotatedPropertyNames.add(propertyName);
+ else {
+          if (propertyInfo.getInstanceVariableField() == null && field != null) {
+            propertyInfo.setInstanceVariableField(field);
+          }
+        }
+        propertyInfo.addAnnotations(method.getDeclaredAnnotations());
+        if (field != null) {
+          propertyInfo.addAnnotations(field.getDeclaredAnnotations());
         }
       }
     }
   }
 );
+  for (  TaskPropertyInfo propertyInfo : properties.values()) {
+    boolean annotationFound=attachValidationActions(propertyInfo);
+    if (propertyInfo.isValidationRequired()) {
+      validatedProperties.add(propertyInfo);
+    }
+    String propertyName=propertyInfo.getName();
+    allPropertyNames.add(propertyName);
+    if (annotationFound) {
+      annotatedPropertyNames.add(propertyName);
+    }
+  }
 }
