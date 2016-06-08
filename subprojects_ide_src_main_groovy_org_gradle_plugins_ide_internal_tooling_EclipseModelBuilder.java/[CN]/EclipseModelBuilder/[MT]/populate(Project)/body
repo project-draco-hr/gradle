@@ -15,6 +15,7 @@
   final List<DefaultEclipseProjectDependency> projectDependencies=new LinkedList<DefaultEclipseProjectDependency>();
   final List<DefaultEclipseSourceDirectory> sourceDirectories=new LinkedList<DefaultEclipseSourceDirectory>();
   final List<DefaultEclipseClasspathContainer> classpathContainers=new LinkedList<DefaultEclipseClasspathContainer>();
+  DefaultEclipseOutputLocation outputLocation=null;
   for (  ClasspathEntry entry : classpathEntries) {
     if (entry instanceof Library) {
       AbstractLibrary library=(AbstractLibrary)entry;
@@ -50,6 +51,9 @@
       final Container container=(Container)entry;
       classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(),createAttributes(container),createAccessRules(container)));
     }
+ else     if (entry instanceof Output) {
+      outputLocation=new DefaultEclipseOutputLocation(((Output)entry).getPath());
+    }
   }
   DefaultEclipseProject eclipseProject=projectMapping.get(project.getPath());
   eclipseProject.setClasspath(externalDependencies);
@@ -80,6 +84,7 @@
     eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings().setSourceLanguageLevel(jdt.getSourceCompatibility()).setTargetBytecodeVersion(jdt.getTargetCompatibility()).setJdk(DefaultInstalledJdk.current()));
   }
   eclipseProject.setClasspathContainers(classpathContainers);
+  eclipseProject.setOutputLocation(outputLocation != null ? outputLocation : new DefaultEclipseOutputLocation("bin"));
   for (  Project childProject : project.getChildProjects().values()) {
     populate(childProject);
   }
