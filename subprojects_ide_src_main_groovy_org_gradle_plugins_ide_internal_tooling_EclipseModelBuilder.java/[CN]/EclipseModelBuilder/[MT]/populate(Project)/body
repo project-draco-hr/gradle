@@ -21,7 +21,7 @@
       final File file=library.getLibrary().getFile();
       final File source=library.getSourcePath() == null ? null : library.getSourcePath().getFile();
       final File javadoc=library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
-      DefaultEclipseExternalDependency dependency=new DefaultEclipseExternalDependency(file,javadoc,source,library.getModuleVersion(),library.isExported(),createAttributes(library));
+      DefaultEclipseExternalDependency dependency=new DefaultEclipseExternalDependency(file,javadoc,source,library.getModuleVersion(),library.isExported(),createAttributes(library),createAccessRules(library));
       externalDependencies.add(dependency);
     }
  else     if (entry instanceof ProjectDependency) {
@@ -31,10 +31,10 @@
       DefaultEclipseProjectDependency dependency;
       if (targetProject == null) {
         File projectDirectory=compositeProjectMapper.getProjectDirectory(projectDependency.getGradlePath());
-        dependency=new DefaultEclipseProjectDependency(path,projectDirectory,projectDependency.isExported(),createAttributes(projectDependency));
+        dependency=new DefaultEclipseProjectDependency(path,projectDirectory,projectDependency.isExported(),createAttributes(projectDependency),createAccessRules(projectDependency));
       }
  else {
-        dependency=new DefaultEclipseProjectDependency(path,targetProject,projectDependency.isExported(),createAttributes(projectDependency));
+        dependency=new DefaultEclipseProjectDependency(path,targetProject,projectDependency.isExported(),createAttributes(projectDependency),createAccessRules(projectDependency));
       }
       projectDependencies.add(dependency);
     }
@@ -44,11 +44,11 @@
       List<String> excludes=sourceFolder.getExcludes();
       List<String> includes=sourceFolder.getIncludes();
       String output=sourceFolder.getOutput();
-      sourceDirectories.add(new DefaultEclipseSourceDirectory(path,sourceFolder.getDir(),excludes,includes,output,createAttributes(sourceFolder)));
+      sourceDirectories.add(new DefaultEclipseSourceDirectory(path,sourceFolder.getDir(),excludes,includes,output,createAttributes(sourceFolder),createAccessRules(sourceFolder)));
     }
  else     if (entry instanceof Container) {
       final Container container=(Container)entry;
-      classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(),createAttributes(container)));
+      classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(),createAttributes(container),createAccessRules(container)));
     }
   }
   DefaultEclipseProject eclipseProject=projectMapping.get(project.getPath());
