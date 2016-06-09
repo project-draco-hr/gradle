@@ -2,8 +2,6 @@
   if (localAddresses != null) {
     return;
   }
-  Transformer<Boolean,NetworkInterface> loopback=loopback();
-  Transformer<Boolean,NetworkInterface> multicast=multicast();
   localAddresses=new ArrayList<InetAddress>();
   remoteAddresses=new ArrayList<InetAddress>();
   multicastInterfaces=new ArrayList<NetworkInterface>();
@@ -12,26 +10,15 @@
     NetworkInterface networkInterface=interfaces.nextElement();
     LOGGER.debug("Adding IP addresses for network interface {}",networkInterface.getDisplayName());
     try {
-      Boolean isLoopbackInterface=loopback.transform(networkInterface);
+      boolean isLoopbackInterface=networkInterface.isLoopback();
       LOGGER.debug("Is this a loopback interface? {}",isLoopbackInterface);
-      Boolean isMulticast=multicast.transform(networkInterface);
+      boolean isMulticast=networkInterface.supportsMulticast();
       LOGGER.debug("Is this a multicast interface? {}",isMulticast);
       boolean isRemote=false;
       Enumeration<InetAddress> candidates=networkInterface.getInetAddresses();
       while (candidates.hasMoreElements()) {
         InetAddress candidate=candidates.nextElement();
-        if (isLoopbackInterface == null) {
-          if (candidate.isLoopbackAddress()) {
-            LOGGER.debug("Adding loopback address {}",candidate);
-            localAddresses.add(candidate);
-          }
- else {
-            LOGGER.debug("Adding remote address {}",candidate);
-            remoteAddresses.add(candidate);
-            isRemote=true;
-          }
-        }
- else         if (isLoopbackInterface) {
+        if (isLoopbackInterface) {
           if (candidate.isLoopbackAddress()) {
             LOGGER.debug("Adding loopback address {}",candidate);
             localAddresses.add(candidate);
