@@ -1,11 +1,12 @@
 {
   Hasher hasher=Hashing.md5().newHasher();
-  ImmutableSortedMap.Builder<String,FileCollectionSnapshot.PreCheck> builder=ImmutableSortedMap.naturalOrder();
-  for (  TaskFilePropertySpec fileProperty : fileProperties) {
-    String propertyName=fileProperty.getPropertyName();
+  ImmutableMap.Builder<String,FileCollectionSnapshot.PreCheck> builder=ImmutableMap.builder();
+  for (  Map.Entry<String,FileCollection> entry : fileProperties.entrySet()) {
+    String propertyName=entry.getKey();
+    FileCollection files=entry.getValue();
     FileCollectionSnapshot.PreCheck result;
     try {
-      result=snapshotter.preCheck(fileProperty.getPropertyFiles(),allowSnapshotReuse);
+      result=snapshotter.preCheck(files,allowSnapshotReuse);
     }
  catch (    UncheckedIOException e) {
       throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.",title.toLowerCase(),taskName,propertyName),e);
