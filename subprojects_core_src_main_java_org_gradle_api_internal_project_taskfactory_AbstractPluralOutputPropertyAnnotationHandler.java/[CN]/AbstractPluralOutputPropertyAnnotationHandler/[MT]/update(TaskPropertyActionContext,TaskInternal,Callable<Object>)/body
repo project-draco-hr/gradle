@@ -1,0 +1,21 @@
+{
+  if (Map.class.isAssignableFrom(context.getType())) {
+    task.getOutputs().namedFiles(Cast.<Callable<Map<?,?>>>uncheckedCast(futureValue));
+  }
+ else {
+    DeprecationLogger.whileDisabled(new Runnable(){
+      @Override @SuppressWarnings("deprecation") public void run(){
+        task.getOutputs().files(futureValue);
+      }
+    }
+);
+  }
+  task.prependParallelSafeAction(new Action<Task>(){
+    public void execute(    Task task){
+      for (      File file : toFiles(uncheckedCall(futureValue))) {
+        doEnsureExists(file);
+      }
+    }
+  }
+);
+}

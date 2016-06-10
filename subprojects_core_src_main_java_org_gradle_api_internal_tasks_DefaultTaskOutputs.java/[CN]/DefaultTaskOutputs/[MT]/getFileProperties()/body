@@ -1,0 +1,31 @@
+{
+  if (filePropertiesMap == null) {
+    ensurePropertiesHaveNames(fileProperties);
+    final Iterator<BasePropertySpec> rootIterator=fileProperties.iterator();
+    filePropertiesMap=collectFileProperties(new AbstractIterator<TaskFilePropertySpec>(){
+      private Iterator<TaskFilePropertySpec> childIterator;
+      @Override protected TaskFilePropertySpec computeNext(){
+        while (true) {
+          if (childIterator != null) {
+            if (childIterator.hasNext()) {
+              return childIterator.next();
+            }
+            childIterator=null;
+          }
+          if (!rootIterator.hasNext()) {
+            return endOfData();
+          }
+          BasePropertySpec propertySpec=rootIterator.next();
+          if (propertySpec instanceof CompositePropertySpec) {
+            childIterator=((CompositePropertySpec)propertySpec).iterator();
+          }
+ else {
+            return (TaskFilePropertySpec)propertySpec;
+          }
+        }
+      }
+    }
+);
+  }
+  return filePropertiesMap;
+}
