@@ -1,5 +1,23 @@
 {
+  super("output");
+  this.resolver=resolver;
+  this.taskName=task.getName();
   this.taskMutator=taskMutator;
-  outputFiles=new DefaultConfigurableFileCollection(task + " output files",resolver,null);
-  outputFiles.builtBy(task);
+  final DefaultTaskDependency buildDependencies=new DefaultTaskDependency();
+  buildDependencies.add(task);
+  this.allOutputFiles=new CompositeFileCollection(){
+    @Override public String getDisplayName(){
+      return task + " output files";
+    }
+    @Override public void visitContents(    FileCollectionResolveContext context){
+      for (      TaskFilePropertySpec fileProperty : fileProperties) {
+        context.add(fileProperty.getPropertyFiles());
+      }
+    }
+    @Override public void visitDependencies(    TaskDependencyResolveContext context){
+      context.add(buildDependencies);
+      super.visitDependencies(context);
+    }
+  }
+;
 }

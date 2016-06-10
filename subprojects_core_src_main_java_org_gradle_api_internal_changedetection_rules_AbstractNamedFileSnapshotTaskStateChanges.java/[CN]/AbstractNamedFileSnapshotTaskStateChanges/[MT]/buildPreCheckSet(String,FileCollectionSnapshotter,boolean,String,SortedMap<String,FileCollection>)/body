@@ -1,0 +1,19 @@
+{
+  Hasher hasher=Hashing.md5().newHasher();
+  ImmutableMap.Builder<String,FileCollectionSnapshot.PreCheck> builder=ImmutableMap.builder();
+  for (  Map.Entry<String,FileCollection> entry : fileProperties.entrySet()) {
+    String propertyName=entry.getKey();
+    FileCollection files=entry.getValue();
+    FileCollectionSnapshot.PreCheck result;
+    try {
+      result=snapshotter.preCheck(files,allowSnapshotReuse);
+    }
+ catch (    UncheckedIOException e) {
+      throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.",title.toLowerCase(),taskName,propertyName),e);
+    }
+    builder.put(propertyName,result);
+    hasher.putString(propertyName,Charsets.UTF_8);
+    hasher.putInt(result.getHash());
+  }
+  return new PreCheckSet(builder.build(),hasher.hash());
+}
