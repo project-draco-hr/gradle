@@ -3,15 +3,6 @@
     @Override public void visitLdcInsn(    Object cst){
       if (cst instanceof String) {
         String literal=remappedClassLiterals.get(cst);
-        if (literal == null) {
-          literal=remapper.maybeRelocateResource((String)cst);
-        }
-        if (literal == null) {
-          literal=remapper.maybeRelocateResource(((String)cst).replace('.','/'));
-          if (literal != null) {
-            literal=literal.replace("/",".");
-          }
-        }
         super.visitLdcInsn(literal != null ? literal : cst);
       }
  else {
@@ -20,7 +11,7 @@
     }
     @Override public void visitFieldInsn(    int opcode,    String owner,    String name,    String desc){
       if ((opcode == Opcodes.GETSTATIC || opcode == Opcodes.PUTSTATIC) && CLASS_DESC.equals(desc)) {
-        ImplementationDependencyRelocator.ClassLiteralRemapping remapping=remapper.maybeRemap(name);
+        ImplementationDependencyRelocator.ClassLiteralRemapping remapping=REMAPPER.maybeRemap(name);
         if (remapping != null) {
           super.visitFieldInsn(opcode,owner,remapping.getFieldNameReplacement(),desc);
           return;
