@@ -1,0 +1,22 @@
+{
+  if (daemons.isEmpty()) {
+    LOGGER.quiet(DaemonMessages.NO_DAEMONS_RUNNING);
+  }
+ else {
+    LOGGER.quiet("   PID VERSION STATUS");
+    for (    DaemonInfo info : daemons) {
+      DaemonClientConnection connection=connector.maybeConnect(info);
+      if (connection != null) {
+        try {
+          String status=reportStatusDispatcher.dispatch(connection,new ReportStatus(idGenerator.generateId(),info.getToken()));
+          if (status != null) {
+            LOGGER.quiet(status);
+          }
+        }
+  finally {
+          connection.stop();
+        }
+      }
+    }
+  }
+}
