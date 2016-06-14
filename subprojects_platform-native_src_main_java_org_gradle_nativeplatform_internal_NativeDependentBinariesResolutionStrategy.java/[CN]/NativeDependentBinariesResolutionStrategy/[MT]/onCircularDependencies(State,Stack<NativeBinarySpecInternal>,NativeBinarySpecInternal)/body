@@ -1,0 +1,22 @@
+{
+  GraphNodeRenderer<NativeBinarySpecInternal> nodeRenderer=new GraphNodeRenderer<NativeBinarySpecInternal>(){
+    @Override public void renderTo(    NativeBinarySpecInternal node,    StyledTextOutput output){
+      output.withStyle(StyledTextOutput.Style.Identifier).text(node);
+    }
+  }
+;
+  DirectedGraph<NativeBinarySpecInternal,Object> directedGraph=new DirectedGraph<NativeBinarySpecInternal,Object>(){
+    @Override public void getNodeValues(    NativeBinarySpecInternal node,    Collection<? super Object> values,    Collection<? super NativeBinarySpecInternal> connectedNodes){
+      for (      NativeBinarySpecInternal binary : stack) {
+        if (state.getDependents(node).contains(binary)) {
+          connectedNodes.add(binary);
+        }
+      }
+    }
+  }
+;
+  DirectedGraphRenderer<NativeBinarySpecInternal> graphRenderer=new DirectedGraphRenderer<NativeBinarySpecInternal>(nodeRenderer,directedGraph);
+  StringWriter writer=new StringWriter();
+  graphRenderer.renderTo(target,writer);
+  throw new CircularReferenceException(String.format("Circular dependency between the following binaries:%n%s",writer.toString()));
+}

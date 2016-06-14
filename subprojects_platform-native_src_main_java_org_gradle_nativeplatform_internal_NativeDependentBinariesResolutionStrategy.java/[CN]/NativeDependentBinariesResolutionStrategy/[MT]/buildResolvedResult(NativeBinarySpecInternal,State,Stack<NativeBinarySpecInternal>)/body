@@ -1,9 +1,14 @@
 {
+  if (stack.contains(target)) {
+    onCircularDependencies(state,stack,target);
+  }
+  stack.push(target);
   List<DependentBinariesResolvedResult> result=Lists.newArrayList();
-  List<NativeBinarySpecInternal> dependents=getDependents(target,state);
+  List<NativeBinarySpecInternal> dependents=state.getDependents(target);
   for (  NativeBinarySpecInternal dependent : dependents) {
-    List<DependentBinariesResolvedResult> children=buildResolvedResult(dependent,state);
+    List<DependentBinariesResolvedResult> children=buildResolvedResult(dependent,state,stack);
     result.add(new DefaultDependentBinariesResolvedResult(dependent.getId(),dependent.isBuildable(),isTestSuite(dependent),children));
   }
+  stack.pop();
   return result;
 }
