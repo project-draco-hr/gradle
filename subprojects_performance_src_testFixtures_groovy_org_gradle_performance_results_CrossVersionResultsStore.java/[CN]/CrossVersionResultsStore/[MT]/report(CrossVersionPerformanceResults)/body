@@ -3,8 +3,10 @@
     db.withConnection(new ConnectionAction<Void>(){
       public Void execute(      Connection connection) throws Exception {
         long testId;
-        PreparedStatement statement=connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement statement=null;
+        ResultSet keys=null;
         try {
+          statement=connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
           statement.setString(1,results.getTestId());
           statement.setTimestamp(2,new Timestamp(results.getTestTime()));
           statement.setString(3,results.getVersionUnderTest());
@@ -19,22 +21,23 @@
           String vcs=results.getVcsCommits() == null ? null : Joiner.on(",").join(results.getVcsCommits());
           statement.setString(12,vcs);
           statement.execute();
-          ResultSet keys=statement.getGeneratedKeys();
+          keys=statement.getGeneratedKeys();
           keys.next();
           testId=keys.getLong(1);
         }
   finally {
-          statement.close();
+          closeStatement(statement);
+          closeResultSet(keys);
         }
-        statement=connection.prepareStatement("insert into testOperation(testExecution, version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         try {
+          statement=connection.prepareStatement("insert into testOperation(testExecution, version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
           addOperations(statement,testId,null,results.getCurrent());
           for (          BaselineVersion baselineVersion : results.getBaselineVersions()) {
             addOperations(statement,testId,baselineVersion.getVersion(),baselineVersion.getResults());
           }
         }
   finally {
-          statement.close();
+          closeStatement(statement);
         }
         for (        String previousId : results.getPreviousTestIds()) {
           statement=connection.prepareStatement("update testExecution set testId = ? where testId = ?");
@@ -44,7 +47,7 @@
             statement.execute();
           }
   finally {
-            statement.close();
+            closeStatement(statement);
           }
         }
         return null;
