@@ -1,0 +1,21 @@
+{
+  if (!visitedEntries.contains(entry.getKey())) {
+    visitedEntries.add(entry.getKey());
+    for (    final ClassLoaderId usedBy : entry.getValue().usedBy) {
+      final CachedClassLoader cachedClassLoader=byId.get(usedBy);
+      visitTopologicalSort(new Map.Entry<ClassLoaderId,CachedClassLoader>(){
+        @Override public ClassLoaderId getKey(){
+          return usedBy;
+        }
+        @Override public CachedClassLoader getValue(){
+          return cachedClassLoader;
+        }
+        @Override public CachedClassLoader setValue(        CachedClassLoader value){
+          throw new UnsupportedOperationException();
+        }
+      }
+,sortedEntries,visitedEntries);
+    }
+    sortedEntries.add(entry);
+  }
+}
