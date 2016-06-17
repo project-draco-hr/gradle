@@ -2,5 +2,17 @@
   if (components == null || components.isEmpty()) {
     return allComponents;
   }
-  return Sets.filter(allComponents,new ReportedComponentPredicate(components));
+  Set<ComponentSpec> reportedComponents=Sets.newLinkedHashSet();
+  List<String> notFound=Lists.newArrayList(components);
+  for (  ComponentSpec candidate : allComponents) {
+    String candidateName=candidate.getName();
+    if (components.contains(candidateName)) {
+      reportedComponents.add(candidate);
+      notFound.remove(candidateName);
+    }
+  }
+  if (!notFound.isEmpty()) {
+    onComponentsNotFound(notFound);
+  }
+  return reportedComponents;
 }
