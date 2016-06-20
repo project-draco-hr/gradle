@@ -2,9 +2,21 @@
   if (fileCollection instanceof FileTreeAdapter) {
     collectTree(((FileTreeAdapter)fileCollection).getTree(),results);
   }
+ else   if (fileCollection instanceof LazilyInitializedFileCollection) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Skipped inspecting LazilyInitializedFileCollection {}",((LazilyInitializedFileCollection)fileCollection).getDisplayName());
+    }
+  }
+ else   if (fileCollection instanceof Configuration) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Skipped inspecting configuration {}",((Configuration)fileCollection).getName());
+    }
+  }
  else {
-    for (    File file : fileCollection.getFiles()) {
-      results.add(new FileEntry(file));
+    FileSystemSubset.Builder watchPointsBuilder=FileSystemSubset.builder();
+    fileCollection.registerWatchPoints(watchPointsBuilder);
+    for (    File root : watchPointsBuilder.build().getRoots()) {
+      results.add(new FileEntry(root));
     }
   }
 }
