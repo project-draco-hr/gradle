@@ -1,3 +1,23 @@
 {
-  listRunningDaemons(daemonRegistry.getAll());
+  final List<DaemonInfo> daemons=daemonRegistry.getAll();
+  final List<Status> statuses=Lists.newArrayList();
+  for (  DaemonInfo daemon : daemons) {
+    DaemonClientConnection connection=connector.maybeConnect(daemon);
+    if (connection != null) {
+      try {
+        final ReportStatus statusCommand=new ReportStatus(idGenerator.generateId(),daemon.getToken());
+        final Status status=reportStatusDispatcher.dispatch(connection,statusCommand);
+        if (status != null) {
+          statuses.add(status);
+        }
+ else {
+          statuses.add(new Status(connection.getDaemon().getPid(),"UNKNOWN","UNKNOWN"));
+        }
+      }
+  finally {
+        connection.stop();
+      }
+    }
+  }
+  printRunningDaemons(statuses);
 }
