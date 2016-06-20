@@ -1,12 +1,14 @@
 {
-  try {
-    resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
-  }
- catch (  Exception e) {
-    LOG.info("Exception '{}' while resolving task inputs and outputs. Disabling tree visitor caching for this build.",e.getMessage());
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Exception details",e);
+  if (graphPopulated.compareAndSet(false,true)) {
+    try {
+      resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
     }
-    clearCache();
+ catch (    Exception e) {
+      LOG.info("Exception '{}' while resolving task inputs and outputs. Disabling tree visitor caching for this build.",e.getMessage());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Exception details",e);
+      }
+      clearCache();
+    }
   }
 }
