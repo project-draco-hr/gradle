@@ -1,0 +1,22 @@
+{
+synchronized (lock) {
+    int workerId=counter++;
+    while (workers.size() >= maxWorkerCount) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Worker {} waiting for a lease. Currently {} in use",workerId,workers.size());
+      }
+      try {
+        lock.wait();
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+    Completion completion=new DefaultCompletion(workerId);
+    workers.add(completion);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Worker { } started.",workerId);
+    }
+    return completion;
+  }
+}
