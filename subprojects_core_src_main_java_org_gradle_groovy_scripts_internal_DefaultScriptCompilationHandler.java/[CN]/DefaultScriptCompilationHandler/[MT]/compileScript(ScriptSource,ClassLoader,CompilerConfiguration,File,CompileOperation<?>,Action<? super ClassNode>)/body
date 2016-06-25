@@ -20,16 +20,21 @@
   String scriptName=source.getClassName();
   GroovyCodeSource codeSource=new GroovyCodeSource(scriptText == null ? "" : scriptText,scriptName,"/groovy/script");
   try {
-    groovyClassLoader.parseClass(codeSource,false);
+    try {
+      groovyClassLoader.parseClass(codeSource,false);
+    }
+ catch (    MultipleCompilationErrorsException e) {
+      wrapCompilationFailure(source,e);
+    }
+catch (    CompilationFailedException e) {
+      throw new GradleException(String.format("Could not compile %s.",source.getDisplayName()),e);
+    }
+    if (packageDetector.hasPackageStatement) {
+      throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",StringUtils.capitalize(source.getDisplayName())));
+    }
+    serializeMetadata(source,extractingTransformer,metadataDir,emptyScriptDetector.isEmptyScript(),emptyScriptDetector.getHasMethods());
   }
- catch (  MultipleCompilationErrorsException e) {
-    wrapCompilationFailure(source,e);
+  finally {
+    ClassLoaderUtil.closeClassLoader(groovyClassLoader);
   }
-catch (  CompilationFailedException e) {
-    throw new GradleException(String.format("Could not compile %s.",source.getDisplayName()),e);
-  }
-  if (packageDetector.hasPackageStatement) {
-    throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",StringUtils.capitalize(source.getDisplayName())));
-  }
-  serializeMetadata(source,extractingTransformer,metadataDir,emptyScriptDetector.isEmptyScript(),emptyScriptDetector.getHasMethods());
 }
