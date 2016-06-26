@@ -1,0 +1,26 @@
+{
+synchronized (lock) {
+    int workerId=counter++;
+    Thread ownerThread=Thread.currentThread();
+    if (threads.containsKey(ownerThread)) {
+      throw new UnsupportedOperationException("Cannot nest operations in the same thread. Each nested operation must run in its own thread.");
+    }
+    DefaultOperation operation=new DefaultOperation(parent,workerId,ownerThread);
+    while (!parent.grantLease()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Worker {} waiting for a lease. Currently {} in use",operation.getDisplayName(),root.leasesInUse);
+      }
+      try {
+        lock.wait();
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+    threads.put(ownerThread,operation);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Worker {} started ({} in use).",operation.getDisplayName(),root.leasesInUse);
+    }
+    return operation;
+  }
+}
