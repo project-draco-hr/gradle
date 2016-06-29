@@ -1,14 +1,5 @@
 {
   task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
-  task.getConventionMapping().map("source",new Callable<SourceDirectorySet>(){
-    @Override public SourceDirectorySet call() throws Exception {
-      Convention sourceSetConvention=new DslObject(sourceSet).getConvention();
-      GroovySourceSet groovySourceSet=sourceSetConvention.findPlugin(GroovySourceSet.class);
-      if (groovySourceSet == null) {
-        return null;
-      }
-      return groovySourceSet.getAllGroovy();
-    }
-  }
-);
+  DynamicObject dynamicObject=new DslObject(sourceSet).getAsDynamicObject();
+  task.setSource(dynamicObject.getProperty("allGroovy"));
 }

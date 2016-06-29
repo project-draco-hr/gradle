@@ -4,7 +4,7 @@
   tasksWithUnknownOutputs=new HashSet<String>();
   Map<String,List<String>> inputFileToTaskPaths=new HashMap<String,List<String>>();
   Set<String> cumulatedInputsAndOutputs=new HashSet<String>();
-  OverlappingDirectoriesDetector detector=overlappingDirectoriesDetectorFactory.create();
+  OverlappingDirectoriesDetector detector=new OverlappingDirectoriesDetector();
   for (  Task task : graph.getAllTasks()) {
     final String taskPath=task.getPath();
     List<String> inputPaths=extractFilePaths(task.getInputs().getFiles());
@@ -17,7 +17,7 @@
       }
       cumulatedInputsAndOutputs.addAll(inputPaths);
     }
- else     if (!task.getInputs().getHasInputs()) {
+ else     if (!task.getInputs().getHasInputs() && !task.getActions().isEmpty()) {
       tasksWithUnknownInputs.add(taskPath);
     }
     List<String> outputPaths=extractFilePaths(task.getOutputs().getFiles());
@@ -25,11 +25,11 @@
       cumulatedInputsAndOutputs.addAll(outputPaths);
       detector.addPaths(outputPaths);
     }
- else     if (!task.getOutputs().getHasOutput()) {
+ else     if (!task.getOutputs().getHasOutput() && !task.getActions().isEmpty()) {
       tasksWithUnknownOutputs.add(taskPath);
     }
   }
-  resolveLastTasksToHandleEachFile(inputFileToTaskPaths);
   cacheableFilePaths.removeAll(detector.resolveOverlappingPaths());
+  resolveLastTasksToHandleEachFile(inputFileToTaskPaths,new HashSet<String>(cacheableFilePaths));
   cachingTreeVisitor.updateCacheableFilePaths(cacheableFilePaths);
 }
