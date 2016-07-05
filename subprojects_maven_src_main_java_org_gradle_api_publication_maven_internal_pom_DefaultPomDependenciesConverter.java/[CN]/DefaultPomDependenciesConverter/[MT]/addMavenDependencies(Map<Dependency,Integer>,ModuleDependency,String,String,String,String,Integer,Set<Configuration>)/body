@@ -31,13 +31,16 @@
     }
  else {
       int duplicatePriority=dependenciesWithPriorities.get(duplicateDependency.get());
+      boolean samePriority=priority == duplicatePriority;
       boolean higherPriority=priority > duplicatePriority;
       boolean higherVersion=compareMavenVersionStrings(mavenDependency.getVersion(),duplicateDependency.get().getVersion()) > 0;
       if (higherPriority || higherVersion) {
         dependenciesWithPriorities.remove(duplicateDependency.get());
         if (!higherPriority) {
           mavenDependency.setScope(duplicateDependency.get().getScope());
-          mavenDependency.setExclusions(duplicateDependency.get().getExclusions());
+          if (!samePriority) {
+            mavenDependency.setExclusions(duplicateDependency.get().getExclusions());
+          }
         }
         int highestPriority=higherPriority ? priority : duplicatePriority;
         dependenciesWithPriorities.put(mavenDependency,highestPriority);
