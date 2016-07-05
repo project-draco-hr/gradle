@@ -1,0 +1,16 @@
+{
+synchronized (lock) {
+    if (Thread.currentThread() != ownerThread) {
+      throw new UnsupportedOperationException("Must complete operation from owner thread.");
+    }
+    parent.releaseLease();
+    threads.remove(ownerThread);
+    lock.notifyAll();
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Worker {} completed ({} in use)",getDisplayName(),root.leasesInUse);
+    }
+    if (children != 0) {
+      throw new IllegalStateException("Some child operations have not yet completed.");
+    }
+  }
+}

@@ -1,25 +1,30 @@
 {
-  Statement statement=connection.createStatement();
-  statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
-  statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
-  statement.execute("alter table testExecution add column if not exists vcsBranch varchar not null default 'master'");
-  statement.execute("alter table testExecution add column if not exists vcsCommit varchar");
-  statement.execute("alter table testExecution add column if not exists gradleOpts array");
-  statement.execute("alter table testExecution add column if not exists daemon boolean");
-  statement.execute("alter table testOperation add column if not exists totalHeapUsageBytes decimal");
-  statement.execute("alter table testOperation add column if not exists maxHeapUsageBytes decimal");
-  statement.execute("alter table testOperation add column if not exists maxUncollectedHeapBytes decimal");
-  statement.execute("alter table testOperation add column if not exists maxCommittedHeapBytes decimal");
-  if (columnExists(connection,"TESTOPERATION","EXECUTIONTIMEMS")) {
-    statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
-    statement.execute("alter table testOperation add column executionTime decimal");
-    statement.execute("update testOperation set executionTime = 0");
-    statement.execute("alter table testOperation alter column executionTime set not null");
-    statement.execute("alter table testOperation add column configurationTime decimal");
-    statement.execute("update testOperation set configurationTime = 0");
-    statement.execute("alter table testOperation alter column configurationTime set not null");
+  Statement statement=null;
+  try {
+    statement=connection.createStatement();
+    statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
+    statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
+    statement.execute("alter table testExecution add column if not exists vcsBranch varchar not null default 'master'");
+    statement.execute("alter table testExecution add column if not exists vcsCommit varchar");
+    statement.execute("alter table testExecution add column if not exists gradleOpts array");
+    statement.execute("alter table testExecution add column if not exists daemon boolean");
+    statement.execute("alter table testOperation add column if not exists totalHeapUsageBytes decimal");
+    statement.execute("alter table testOperation add column if not exists maxHeapUsageBytes decimal");
+    statement.execute("alter table testOperation add column if not exists maxUncollectedHeapBytes decimal");
+    statement.execute("alter table testOperation add column if not exists maxCommittedHeapBytes decimal");
+    if (columnExists(connection,"TESTOPERATION","EXECUTIONTIMEMS")) {
+      statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
+      statement.execute("alter table testOperation add column executionTime decimal");
+      statement.execute("update testOperation set executionTime = 0");
+      statement.execute("alter table testOperation alter column executionTime set not null");
+      statement.execute("alter table testOperation add column configurationTime decimal");
+      statement.execute("update testOperation set configurationTime = 0");
+      statement.execute("alter table testOperation alter column configurationTime set not null");
+    }
+    statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
   }
-  statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
-  statement.close();
+  finally {
+    closeStatement(statement);
+  }
   return null;
 }

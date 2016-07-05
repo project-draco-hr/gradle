@@ -1,0 +1,22 @@
+{
+  Status returnedStatus=null;
+  Throwable failure=null;
+  try {
+    connection.dispatch(statusCommand);
+    Result result=(Result)connection.receive();
+    if (result instanceof Failure) {
+      failure=((Failure)result).getValue();
+    }
+ else     if (result instanceof Success) {
+      returnedStatus=(Status)result.getValue();
+    }
+    connection.dispatch(new Finished());
+  }
+ catch (  Throwable e) {
+    failure=e;
+  }
+  if (failure != null) {
+    LOGGER.debug(String.format("Unable to get status of %s.",connection),failure);
+  }
+  return returnedStatus;
+}

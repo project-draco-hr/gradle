@@ -3,14 +3,20 @@
   long start=System.currentTimeMillis();
   TaskInfo task;
   while ((task=taskExecutionPlan.getTaskToExecute()) != null) {
-    final String taskPath=task.getTask().getPath();
-    LOGGER.info("{} ({}) started.",taskPath,Thread.currentThread());
-    long startTask=System.currentTimeMillis();
-    processTask(task);
-    long taskDuration=System.currentTimeMillis() - startTask;
-    busy+=taskDuration;
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("{} ({}) completed. Took {}.",taskPath,Thread.currentThread(),prettyTime(taskDuration));
+    BuildOperationWorkerRegistry.Completion completion=buildOperationWorkerRegistry.operationStart();
+    try {
+      final String taskPath=task.getTask().getPath();
+      LOGGER.info("{} ({}) started.",taskPath,Thread.currentThread());
+      long startTask=System.currentTimeMillis();
+      processTask(task);
+      long taskDuration=System.currentTimeMillis() - startTask;
+      busy+=taskDuration;
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info("{} ({}) completed. Took {}.",taskPath,Thread.currentThread(),prettyTime(taskDuration));
+      }
+    }
+  finally {
+      completion.operationFinish();
     }
   }
   long total=System.currentTimeMillis() - start;

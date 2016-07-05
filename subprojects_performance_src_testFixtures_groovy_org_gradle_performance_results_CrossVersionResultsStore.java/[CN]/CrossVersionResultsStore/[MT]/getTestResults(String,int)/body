@@ -10,57 +10,64 @@
         }
 );
         Set<String> allBranches=new TreeSet<String>();
-        PreparedStatement executionsForName=connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
-        PreparedStatement operationsForExecution=connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
-        executionsForName.setInt(1,mostRecentN);
-        executionsForName.setString(2,testName);
-        ResultSet testExecutions=executionsForName.executeQuery();
-        while (testExecutions.next()) {
-          long id=testExecutions.getLong(1);
-          CrossVersionPerformanceResults performanceResults=new CrossVersionPerformanceResults();
-          performanceResults.setTestId(testName);
-          performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
-          performanceResults.setVersionUnderTest(testExecutions.getString(3));
-          performanceResults.setTestProject(testExecutions.getString(4));
-          performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
-          performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
-          performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
-          performanceResults.setDaemon((Boolean)testExecutions.getObject(8));
-          performanceResults.setOperatingSystem(testExecutions.getString(9));
-          performanceResults.setJvm(testExecutions.getString(10));
-          performanceResults.setVcsBranch(testExecutions.getString(11).trim());
-          performanceResults.setVcsCommits(ResultsStoreHelper.splitVcsCommits(testExecutions.getString(12)));
-          results.add(performanceResults);
-          allBranches.add(performanceResults.getVcsBranch());
-          operationsForExecution.setLong(1,id);
-          ResultSet builds=operationsForExecution.executeQuery();
-          while (builds.next()) {
-            String version=builds.getString(1);
-            if ("1.7".equals(version) && performanceResults.getTestTime() <= ignoreV17Before) {
-              continue;
-            }
-            MeasuredOperation operation=new MeasuredOperation();
-            operation.setTotalTime(Duration.millis(builds.getBigDecimal(2)));
-            operation.setConfigurationTime(Duration.millis(builds.getBigDecimal(3)));
-            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(4)));
-            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(5)));
-            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(6)));
-            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
-            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(8)));
-            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
-            if (version == null) {
-              performanceResults.getCurrent().add(operation);
-            }
+        PreparedStatement executionsForName=null;
+        PreparedStatement operationsForExecution=null;
+        ResultSet testExecutions=null;
+        try {
+          executionsForName=connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
+          operationsForExecution=connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+          executionsForName.setInt(1,mostRecentN);
+          executionsForName.setString(2,testName);
+          testExecutions=executionsForName.executeQuery();
+          while (testExecutions.next()) {
+            long id=testExecutions.getLong(1);
+            CrossVersionPerformanceResults performanceResults=new CrossVersionPerformanceResults();
+            performanceResults.setTestId(testName);
+            performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
+            performanceResults.setVersionUnderTest(testExecutions.getString(3));
+            performanceResults.setTestProject(testExecutions.getString(4));
+            performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
+            performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
+            performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
+            performanceResults.setDaemon((Boolean)testExecutions.getObject(8));
+            performanceResults.setOperatingSystem(testExecutions.getString(9));
+            performanceResults.setJvm(testExecutions.getString(10));
+            performanceResults.setVcsBranch(testExecutions.getString(11).trim());
+            performanceResults.setVcsCommits(ResultsStoreHelper.splitVcsCommits(testExecutions.getString(12)));
+            results.add(performanceResults);
+            allBranches.add(performanceResults.getVcsBranch());
+            operationsForExecution.setLong(1,id);
+            ResultSet builds=operationsForExecution.executeQuery();
+            while (builds.next()) {
+              String version=builds.getString(1);
+              if ("1.7".equals(version) && performanceResults.getTestTime() <= ignoreV17Before) {
+                continue;
+              }
+              MeasuredOperation operation=new MeasuredOperation();
+              operation.setTotalTime(Duration.millis(builds.getBigDecimal(2)));
+              operation.setConfigurationTime(Duration.millis(builds.getBigDecimal(3)));
+              operation.setExecutionTime(Duration.millis(builds.getBigDecimal(4)));
+              operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(5)));
+              operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(6)));
+              operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
+              operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(8)));
+              operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
+              if (version == null) {
+                performanceResults.getCurrent().add(operation);
+              }
  else {
-              BaselineVersion baselineVersion=performanceResults.baseline(version);
-              baselineVersion.getResults().add(operation);
-              allVersions.add(version);
+                BaselineVersion baselineVersion=performanceResults.baseline(version);
+                baselineVersion.getResults().add(operation);
+                allVersions.add(version);
+              }
             }
           }
         }
-        testExecutions.close();
-        operationsForExecution.close();
-        executionsForName.close();
+  finally {
+          closeStatement(operationsForExecution);
+          closeStatement(executionsForName);
+          closeResultSet(testExecutions);
+        }
         return new CrossVersionPerformanceTestHistory(testName,new ArrayList<String>(allVersions),new ArrayList<String>(allBranches),results);
       }
     }

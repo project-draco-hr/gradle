@@ -1,4 +1,5 @@
 {
+  ProgressLogger progressLogger=progressLoggerFactory.newOperation(DefaultDaemonConnector.class).start("Connecting to Gradle Daemon","Connecting to Daemon");
   RemoteConnection<Message> connection;
   try {
     connection=connector.connect(daemon.getAddress()).create(Serializers.stateful(DaemonMessageSerializer.create()));
@@ -6,6 +7,9 @@
  catch (  ConnectException e) {
     staleAddressDetector.maybeStaleAddress(e);
     throw e;
+  }
+ finally {
+    progressLogger.completed();
   }
   return new DaemonClientConnection(connection,daemon,staleAddressDetector);
 }
