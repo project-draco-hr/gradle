@@ -1,0 +1,24 @@
+{
+  for (  Configuration configuration : configurations) {
+    configuration.getAllArtifacts().all(new Action<PublishArtifact>(){
+      @Override public void execute(      PublishArtifact artifact){
+        if (artifact instanceof Signature) {
+          return;
+        }
+        signArtifact(artifact);
+      }
+    }
+);
+    configuration.getAllArtifacts().whenObjectRemoved(new Action<PublishArtifact>(){
+      @Override public void execute(      final PublishArtifact publishArtifact){
+        signatures.remove(Iterables.find(signatures,new Predicate<Signature>(){
+          @Override public boolean apply(          Signature input){
+            return input.getToSignArtifact().equals(publishArtifact);
+          }
+        }
+));
+      }
+    }
+);
+  }
+}
