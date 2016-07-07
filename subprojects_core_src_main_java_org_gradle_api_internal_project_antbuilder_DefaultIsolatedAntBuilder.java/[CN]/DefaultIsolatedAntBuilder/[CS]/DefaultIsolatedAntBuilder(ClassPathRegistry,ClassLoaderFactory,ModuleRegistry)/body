@@ -3,8 +3,7 @@
   this.classLoaderFactory=classLoaderFactory;
   this.moduleRegistry=moduleRegistry;
   this.libClasspath=new DefaultClassPath();
-  GroovySystemLoaderFactory groovySystemLoaderFactory=new GroovySystemLoaderFactory();
-  this.classLoaderCache=new ClassPathToClassLoaderCache(groovySystemLoaderFactory);
+  this.classLoaderCache=new ClassPathToClassLoaderCache();
   List<File> antClasspath=Lists.newArrayList(classPathRegistry.getClassPath("ANT").getAsFiles());
   File toolsJar=Jvm.current().getToolsJar();
   if (toolsJar != null) {
@@ -24,7 +23,4 @@
   gradleCoreUrls=gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-all").getClasspath());
   gradleCoreUrls=gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
   this.antAdapterLoader=new VisitableURLClassLoader(baseAntLoader,gradleCoreUrls);
-  this.gradleApiLoader=classLoaderFactory.createIsolatedClassLoader(gradleCoreUrls);
-  gradleApiGroovyLoader=groovySystemLoaderFactory.forClassLoader(gradleApiLoader);
-  antAdapterGroovyLoader=groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
 }
