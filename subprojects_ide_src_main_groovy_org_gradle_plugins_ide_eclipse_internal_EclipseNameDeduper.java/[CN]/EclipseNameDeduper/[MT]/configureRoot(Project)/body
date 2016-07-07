@@ -1,0 +1,25 @@
+{
+  Set<Project> eclipseProjects=Sets.filter(rootProject.getAllprojects(),new Predicate<Project>(){
+    @Override public boolean apply(    Project project){
+      return project.getPlugins().hasPlugin(EclipsePlugin.class);
+    }
+  }
+);
+  new ProjectDeduper().dedupe(eclipseProjects,new Closure<DeduplicationTarget>(this,this){
+    public DeduplicationTarget doCall(    final Project project){
+      DeduplicationTarget target=new DeduplicationTarget();
+      target.setProject(project);
+      final EclipseProject projectModel=((GenerateEclipseProject)project.getTasks().getByName("eclipseProject")).getProjectModel();
+      target.setModuleName(projectModel.getName());
+      target.setUpdateModuleName(new Closure<String>(EclipseNameDeduper.this,EclipseNameDeduper.this){
+        public String doCall(        String moduleName){
+          projectModel.setName(moduleName);
+          return moduleName;
+        }
+      }
+);
+      return target;
+    }
+  }
+);
+}
