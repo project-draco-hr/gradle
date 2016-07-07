@@ -1,0 +1,28 @@
+{
+  project.getPlugins().withType(JavaPlugin.class,new Action<JavaPlugin>(){
+    @Override public void execute(    JavaPlugin javaPlugin){
+      project.afterEvaluate(new Action<Project>(){
+        @Override public void execute(        Project project){
+          Collection<Configuration> plusConfigurations=model.getClasspath().getPlusConfigurations();
+          EclipseWtpComponent component=model.getWtp().getComponent();
+          plusConfigurations.addAll(component.getRootConfigurations());
+          plusConfigurations.addAll(component.getLibConfigurations());
+        }
+      }
+);
+      model.getClasspath().getFile().whenMerged(new Closure<Void>(EclipseWtpPlugin.this,EclipseWtpPlugin.this){
+        public void doCall(        Classpath classpath){
+          new WtpClasspathAttributeSupport(project,model).enhance(classpath);
+        }
+      }
+);
+    }
+  }
+);
+  project.getPlugins().withType(WarPlugin.class,new Action<WarPlugin>(){
+    @Override public void execute(    WarPlugin warPlugin){
+      model.getClasspath().containers(WEB_LIBS_CONTAINER);
+    }
+  }
+);
+}

@@ -1,0 +1,110 @@
+{
+  maybeAddTask(project,this,ECLIPSE_WTP_COMPONENT_TASK_NAME,GenerateEclipseWtpComponent.class,new Action<GenerateEclipseWtpComponent>(){
+    @Override public void execute(    final GenerateEclipseWtpComponent task){
+      task.setDescription("Generates the Eclipse WTP component settings file.");
+      task.setInputFile(project.file(".settings/org.eclipse.wst.common.component"));
+      task.setOutputFile(project.file(".settings/org.eclipse.wst.common.component"));
+      model.getWtp().setComponent(task.getComponent());
+      ((IConventionAware)task.getComponent()).getConventionMapping().map("deployName",new Callable<String>(){
+        @Override public String call() throws Exception {
+          return model.getProject().getName();
+        }
+      }
+);
+      project.getPlugins().withType(JavaPlugin.class,new Action<JavaPlugin>(){
+        @Override public void execute(        JavaPlugin javaPlugin){
+          if (hasWarOrEarPlugin(project)) {
+            return;
+          }
+          task.getComponent().setLibConfigurations(Sets.<Configuration>newHashSet(project.getConfigurations().getByName("runtime")));
+          task.getComponent().setMinusConfigurations(Sets.<Configuration>newHashSet());
+          task.getComponent().setClassesDeployPath("/");
+          ((IConventionAware)task.getComponent()).getConventionMapping().map("libDeployPath",new Callable<String>(){
+            @Override public String call() throws Exception {
+              return "../";
+            }
+          }
+);
+          ((IConventionAware)task.getComponent()).getConventionMapping().map("sourceDirs",new Callable<Set<File>>(){
+            @Override public Set<File> call() throws Exception {
+              return getMainSourceDirs(project);
+            }
+          }
+);
+        }
+      }
+);
+      project.getPlugins().withType(WarPlugin.class,new Action<WarPlugin>(){
+        @Override public void execute(        WarPlugin warPlugin){
+          task.getComponent().setLibConfigurations(Sets.<Configuration>newHashSet(project.getConfigurations().getByName("runtime")));
+          task.getComponent().setMinusConfigurations(Sets.<Configuration>newHashSet(project.getConfigurations().getByName("providedRuntime")));
+          task.getComponent().setClassesDeployPath("/WEB-INF/classes");
+          ConventionMapping convention=((IConventionAware)task.getComponent()).getConventionMapping();
+          convention.map("libDeployPath",new Callable<String>(){
+            @Override public String call() throws Exception {
+              return "/WEB-INF/lib";
+            }
+          }
+);
+          convention.map("contextPath",new Callable<String>(){
+            @Override public String call() throws Exception {
+              return ((War)project.getTasks().getByName("war")).getBaseName();
+            }
+          }
+);
+          convention.map("resources",new Callable<List<WbResource>>(){
+            @Override public List<WbResource> call() throws Exception {
+              return Lists.newArrayList(new WbResource("/",project.getConvention().getPlugin(WarPluginConvention.class).getWebAppDirName()));
+            }
+          }
+);
+          convention.map("sourceDirs",new Callable<Set<File>>(){
+            @Override public Set<File> call() throws Exception {
+              return getMainSourceDirs(project);
+            }
+          }
+);
+        }
+      }
+);
+      project.getPlugins().withType(EarPlugin.class,new Action<EarPlugin>(){
+        @Override public void execute(        EarPlugin earPlugin){
+          task.getComponent().setRootConfigurations(Sets.<Configuration>newHashSet(project.getConfigurations().getByName("deploy")));
+          task.getComponent().setLibConfigurations(Sets.<Configuration>newHashSet(project.getConfigurations().getByName("earlib")));
+          task.getComponent().setMinusConfigurations(Sets.<Configuration>newHashSet());
+          task.getComponent().setClassesDeployPath("/");
+          final ConventionMapping convention=((IConventionAware)task.getComponent()).getConventionMapping();
+          convention.map("libDeployPath",new Callable<String>(){
+            @Override public String call() throws Exception {
+              String deployPath=((Ear)project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getLibDirName();
+              if (!deployPath.startsWith("/")) {
+                deployPath="/" + deployPath;
+              }
+              return deployPath;
+            }
+          }
+);
+          convention.map("sourceDirs",new Callable<Set<File>>(){
+            @Override public Set<File> call() throws Exception {
+              return project.files(project.getConvention().getPlugin(EarPluginConvention.class).getAppDirName()).getFiles();
+            }
+          }
+);
+          project.getPlugins().withType(JavaPlugin.class,new Action<JavaPlugin>(){
+            @Override public void execute(            JavaPlugin javaPlugin){
+              convention.map("sourceDirs",new Callable<Set<File>>(){
+                @Override public Set<File> call() throws Exception {
+                  return getMainSourceDirs(project);
+                }
+              }
+);
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}
