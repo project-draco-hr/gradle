@@ -3,14 +3,14 @@
   int localPort;
   try {
     serverSocket=ServerSocketChannel.open();
-    serverSocket.socket().bind(new InetSocketAddress(addressFactory.findLocalBindingAddress(),0));
+    serverSocket.socket().bind(new InetSocketAddress(addressFactory.getLocalBindingAddress(),0));
     localPort=serverSocket.socket().getLocalPort();
   }
  catch (  Exception e) {
     throw UncheckedException.throwAsUncheckedException(e);
   }
   UUID id=idGenerator.generateId();
-  List<InetAddress> addresses=allowRemote ? addressFactory.findRemoteAddresses() : addressFactory.findLocalAddresses();
+  List<InetAddress> addresses=addressFactory.getCommunicationAddresses();
   final Address address=new MultiChoiceAddress(id,localPort,addresses);
   LOGGER.debug("Listening on {}.",address);
   final StoppableExecutor executor=executorFactory.create("Incoming " + (allowRemote ? "remote" : "local") + " TCP Connector on port "+ localPort);

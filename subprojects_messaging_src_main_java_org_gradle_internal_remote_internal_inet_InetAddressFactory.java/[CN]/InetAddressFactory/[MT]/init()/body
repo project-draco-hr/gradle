@@ -1,93 +1,12 @@
 {
-  if (localAddresses != null) {
+  if (initialized) {
     return;
   }
-  localAddresses=new ArrayList<InetAddress>();
-  remoteAddresses=new ArrayList<InetAddress>();
-  multicastInterfaces=new ArrayList<NetworkInterface>();
-  Enumeration<NetworkInterface> interfaces=NetworkInterface.getNetworkInterfaces();
-  while (interfaces.hasMoreElements()) {
-    NetworkInterface networkInterface=interfaces.nextElement();
-    LOGGER.debug("Adding IP addresses for network interface {}",networkInterface.getDisplayName());
-    try {
-      boolean isLoopbackInterface=networkInterface.isLoopback();
-      LOGGER.debug("Is this a loopback interface? {}",isLoopbackInterface);
-      boolean isMulticast=networkInterface.supportsMulticast();
-      LOGGER.debug("Is this a multicast interface? {}",isMulticast);
-      boolean isRemote=false;
-      Enumeration<InetAddress> candidates=networkInterface.getInetAddresses();
-      while (candidates.hasMoreElements()) {
-        InetAddress candidate=candidates.nextElement();
-        if (isLoopbackInterface) {
-          if (candidate.isLoopbackAddress()) {
-            LOGGER.debug("Adding loopback address {}",candidate);
-            localAddresses.add(candidate);
-          }
- else {
-            LOGGER.debug("Ignoring remote address on loopback interface {}",candidate);
-          }
-        }
- else {
-          if (candidate.isLoopbackAddress()) {
-            LOGGER.debug("Ignoring loopback address on remote interface {}",candidate);
-          }
- else {
-            LOGGER.debug("Adding remote address {}",candidate);
-            remoteAddresses.add(candidate);
-            isRemote=true;
-          }
-        }
-      }
-      if (isMulticast) {
-        if (isRemote) {
-          LOGGER.debug("Adding remote multicast interface {}",networkInterface.getDisplayName());
-          multicastInterfaces.add(0,networkInterface);
-        }
- else {
-          LOGGER.debug("Adding loopback multicast interface {}",networkInterface.getDisplayName());
-          multicastInterfaces.add(networkInterface);
-        }
-      }
-    }
- catch (    Throwable e) {
-      throw new RuntimeException(String.format("Could not determine the IP addresses for network interface %s",networkInterface.getName()),e);
-    }
+  initialized=true;
+  if (inetAddresses == null) {
+    inetAddresses=new InetAddresses();
   }
-  if (localAddresses.isEmpty()) {
-    if (remoteAddresses.isEmpty()) {
-      InetAddress fallback=InetAddress.getByName(null);
-      LOGGER.debug("No loopback addresses, using fallback {}",fallback);
-      localAddresses.add(fallback);
-    }
- else {
-      LOGGER.debug("No loopback addresses, using remote addresses instead.");
-      localAddresses.addAll(remoteAddresses);
-    }
-  }
-  if (remoteAddresses.isEmpty()) {
-    try {
-      InetAddress fallback=InetAddress.getLocalHost();
-      LOGGER.debug("No remote addresses, using fallback {}",fallback);
-      remoteAddresses.add(fallback);
-    }
- catch (    UnknownHostException e) {
-      LOGGER.debug("Could not map local host name to remote address, using local addresses instead.");
-      remoteAddresses.addAll(localAddresses);
-    }
-  }
-  if (multicastInterfaces.isEmpty()) {
-    LOGGER.debug("No multicast interfaces, using fallbacks");
-    Enumeration<NetworkInterface> networkInterfaces=NetworkInterface.getNetworkInterfaces();
-    while (networkInterfaces.hasMoreElements()) {
-      multicastInterfaces.add(networkInterfaces.nextElement());
-    }
-  }
-  InetAddress openshiftBindAddress=findOpenshiftAddresses();
-  if (openshiftBindAddress != null) {
-    localBindingAddress=openshiftBindAddress;
-    localAddresses.add(openshiftBindAddress);
-  }
- else {
-    localBindingAddress=new InetSocketAddress(0).getAddress();
-  }
+  localBindingAddress=new InetSocketAddress(0).getAddress();
+  findCommunicationAddresses();
+  handleOpenshift();
 }
