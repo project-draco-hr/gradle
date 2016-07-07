@@ -1,0 +1,65 @@
+{
+  project.getTasks().withType(GenerateIdeaModule.class,new Action<GenerateIdeaModule>(){
+    @Override public void execute(    GenerateIdeaModule ideaModule){
+      LinkedHashMap<String,Map<String,Collection<Configuration>>> scopes=Maps.newLinkedHashMap();
+      addScope("PROVIDED",scopes);
+      addScope("COMPILE",scopes);
+      addScope("RUNTIME",scopes);
+      addScope("TEST",scopes);
+      ideaModule.getModule().setScopes(scopes);
+      ConventionMapping convention=((IConventionAware)ideaModule.getModule()).getConventionMapping();
+      convention.map("sourceDirs",new Callable<Set<File>>(){
+        @Override public Set<File> call() throws Exception {
+          SourceSetContainer sourceSets=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+          return sourceSets.getByName("main").getAllSource().getSrcDirs();
+        }
+      }
+);
+      convention.map("testSourceDirs",new Callable<Set<File>>(){
+        @Override public Set<File> call() throws Exception {
+          SourceSetContainer sourceSets=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+          return sourceSets.getByName("test").getAllSource().getSrcDirs();
+        }
+      }
+);
+      convention.map("singleEntryLibraries",new Callable<Map<String,FileCollection>>(){
+        @Override public Map<String,FileCollection> call() throws Exception {
+          SourceSetContainer sourceSets=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+          LinkedHashMap<String,FileCollection> map=new LinkedHashMap<String,FileCollection>(2);
+          map.put("RUNTIME",sourceSets.getByName("main").getOutput().getDirs());
+          map.put("TEST",sourceSets.getByName("test").getOutput().getDirs());
+          return map;
+        }
+      }
+);
+      convention.map("targetBytecodeVersion",new Callable<JavaVersion>(){
+        @Override public JavaVersion call() throws Exception {
+          JavaVersion moduleTargetBytecodeLevel=project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
+          return includeModuleBytecodeLevelOverride(project.getRootProject(),moduleTargetBytecodeLevel) ? moduleTargetBytecodeLevel : null;
+        }
+      }
+);
+      convention.map("languageLevel",new Callable<IdeaLanguageLevel>(){
+        @Override public IdeaLanguageLevel call() throws Exception {
+          IdeaLanguageLevel moduleLanguageLevel=new IdeaLanguageLevel(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility());
+          return includeModuleLanguageLevelOverride(project.getRootProject(),moduleLanguageLevel) ? moduleLanguageLevel : null;
+        }
+      }
+);
+      ideaModule.dependsOn(new Callable<FileCollection>(){
+        @Override public FileCollection call() throws Exception {
+          SourceSetContainer sourceSets=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+          return sourceSets.getByName("main").getOutput().getDirs().plus(sourceSets.getByName("test").getOutput().getDirs());
+        }
+      }
+);
+    }
+    private void addScope(    String name,    LinkedHashMap<String,Map<String,Collection<Configuration>>> scopes){
+      LinkedHashMap<String,Collection<Configuration>> scope=Maps.<String,Collection<Configuration>>newLinkedHashMap();
+      scope.put("plus",Lists.<Configuration>newArrayList());
+      scope.put("minus",Lists.<Configuration>newArrayList());
+      scopes.put(name,scope);
+    }
+  }
+);
+}

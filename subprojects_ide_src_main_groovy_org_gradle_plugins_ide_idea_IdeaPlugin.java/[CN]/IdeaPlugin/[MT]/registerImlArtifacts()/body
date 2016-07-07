@@ -1,0 +1,13 @@
+{
+  Set<Project> projectsWithIml=Sets.filter(project.getRootProject().getAllprojects(),new Predicate<Project>(){
+    @Override public boolean apply(    Project project){
+      return project.getPlugins().hasPlugin(IdeaPlugin.class);
+    }
+  }
+);
+  for (  Project project : projectsWithIml) {
+    ProjectLocalComponentProvider projectComponentProvider=((ProjectInternal)project).getServices().get(ProjectLocalComponentProvider.class);
+    ProjectComponentIdentifier projectId=DefaultProjectComponentIdentifier.newId(project.getPath());
+    projectComponentProvider.registerAdditionalArtifact(projectId,createImlArtifact(projectId,project));
+  }
+}

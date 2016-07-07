@@ -1,0 +1,51 @@
+{
+  final GenerateIdeaModule task=project.getTasks().create("ideaModule",GenerateIdeaModule.class);
+  task.setDescription("Generates IDEA module files (IML)");
+  IdeaModuleIml iml=new IdeaModuleIml(task.getXmlTransformer(),project.getProjectDir());
+  final IdeaModule module=instantiator.newInstance(IdeaModule.class,project,iml);
+  task.setModule(module);
+  ideaModel.setModule(module);
+  ConventionMapping conventionMapping=((IConventionAware)module).getConventionMapping();
+  conventionMapping.map("sourceDirs",new Callable<Set<File>>(){
+    @Override public Set<File> call() throws Exception {
+      return Sets.newHashSet();
+    }
+  }
+);
+  conventionMapping.map("name",new Callable<String>(){
+    @Override public String call() throws Exception {
+      return project.getName();
+    }
+  }
+);
+  conventionMapping.map("contentRoot",new Callable<File>(){
+    @Override public File call() throws Exception {
+      return project.getProjectDir();
+    }
+  }
+);
+  conventionMapping.map("testSourceDirs",new Callable<Set<File>>(){
+    @Override public Set<File> call() throws Exception {
+      return Sets.newHashSet();
+    }
+  }
+);
+  conventionMapping.map("excludeDirs",new Callable<Set<File>>(){
+    @Override public Set<File> call() throws Exception {
+      return Sets.newHashSet(project.getBuildDir(),project.file(".gradle"));
+    }
+  }
+);
+  conventionMapping.map("pathFactory",new Callable<PathFactory>(){
+    @Override public PathFactory call() throws Exception {
+      final PathFactory factory=new PathFactory();
+      factory.addPathVariable("MODULE_DIR",task.getOutputFile().getParentFile());
+      for (      Map.Entry<String,File> entry : module.getPathVariables().entrySet()) {
+        factory.addPathVariable(entry.getKey(),entry.getValue());
+      }
+      return factory;
+    }
+  }
+);
+  addWorker(task);
+}
