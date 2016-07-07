@@ -1,0 +1,25 @@
+{
+  Set<Project> ideaProjects=Sets.filter(rootProject.getAllprojects(),new Predicate<Project>(){
+    @Override public boolean apply(    Project project){
+      return project.getPlugins().hasPlugin(IdeaPlugin.class);
+    }
+  }
+);
+  new ProjectDeduper().dedupe(ideaProjects,new Closure<DeduplicationTarget>(this,this){
+    public DeduplicationTarget doCall(    final Project project){
+      DeduplicationTarget target=new DeduplicationTarget();
+      final IdeaModule module=((GenerateIdeaModule)project.getTasks().getByName("ideaModule")).getModule();
+      target.setProject(project);
+      target.setModuleName(module.getName());
+      target.setUpdateModuleName(new Closure<String>(IdeaNameDeduper.this,IdeaNameDeduper.this){
+        public String doCall(        String moduleName){
+          module.setName(moduleName);
+          return moduleName;
+        }
+      }
+);
+      return target;
+    }
+  }
+);
+}
