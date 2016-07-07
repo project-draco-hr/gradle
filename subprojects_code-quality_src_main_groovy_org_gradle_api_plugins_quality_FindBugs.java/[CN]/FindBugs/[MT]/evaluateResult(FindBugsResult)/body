@@ -1,0 +1,22 @@
+{
+  if (DefaultGroovyMethods.asBoolean(result.getException())) {
+    throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.",result.getException());
+  }
+  if (DefaultGroovyMethods.asBoolean(result.getErrorCount())) {
+    throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.");
+  }
+  if (DefaultGroovyMethods.asBoolean(result.getBugCount())) {
+    String message="FindBugs rule violations were found.";
+    SingleFileReport report=reports.getFirstEnabled();
+    if (DefaultGroovyMethods.asBoolean(report)) {
+      String reportUrl=new ConsoleRenderer().asClickableFileUrl(report.getDestination());
+      message+=" See the report at: " + reportUrl;
+    }
+    if (getIgnoreFailures()) {
+      getLogger().warn(message);
+    }
+ else {
+      throw new GradleException(message);
+    }
+  }
+}

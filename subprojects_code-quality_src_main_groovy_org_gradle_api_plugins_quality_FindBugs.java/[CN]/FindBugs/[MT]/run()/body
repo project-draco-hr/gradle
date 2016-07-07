@@ -1,0 +1,14 @@
+{
+  new FindBugsClasspathValidator(JavaVersion.current()).validateClasspath(Iterables.transform(getFindbugsClasspath().getFiles(),new Function<File,String>(){
+    @Override public String apply(    File input){
+      return input.getName();
+    }
+  }
+));
+  FindBugsSpec spec=generateSpec();
+  FindBugsWorkerManager manager=new FindBugsWorkerManager();
+  getLogging().captureStandardOutput(LogLevel.DEBUG);
+  getLogging().captureStandardError(LogLevel.DEBUG);
+  FindBugsResult result=manager.runWorker(getProject().getProjectDir(),getWorkerProcessBuilderFactory(),getFindbugsClasspath(),spec);
+  evaluateResult(result);
+}
