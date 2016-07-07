@@ -1,0 +1,53 @@
+{
+  maybeAddTask(project,this,ECLIPSE_PROJECT_TASK_NAME,GenerateEclipseProject.class,new Action<GenerateEclipseProject>(){
+    @Override public void execute(    GenerateEclipseProject task){
+      final EclipseProject projectModel=task.getProjectModel();
+      task.setDescription("Generates the Eclipse project file.");
+      task.setInputFile(project.file(".project"));
+      task.setOutputFile(project.file(".project"));
+      model.setProject(projectModel);
+      projectModel.setName(project.getName());
+      final ConventionMapping convention=((IConventionAware)projectModel).getConventionMapping();
+      convention.map("comment",new Callable<String>(){
+        @Override public String call(){
+          return project.getDescription();
+        }
+      }
+);
+      project.getPlugins().withType(JavaBasePlugin.class,new Action<JavaBasePlugin>(){
+        @Override public void execute(        JavaBasePlugin javaBasePlugin){
+          if (!project.getPlugins().hasPlugin(EarPlugin.class)) {
+            projectModel.buildCommand("org.eclipse.jdt.core.javabuilder");
+          }
+          projectModel.natures("org.eclipse.jdt.core.javanature");
+          convention.map("linkedResources",new Callable<Set<Link>>(){
+            @Override public Set<Link> call(){
+              return new LinkedResourcesCreator().links(project);
+            }
+          }
+);
+        }
+      }
+);
+      project.getPlugins().withType(GroovyBasePlugin.class,new Action<GroovyBasePlugin>(){
+        @Override public void execute(        GroovyBasePlugin groovyBasePlugin){
+          projectModel.getNatures().add(projectModel.getNatures().indexOf("org.eclipse.jdt.core.javanature"),"org.eclipse.jdt.groovy.core.groovyNature");
+        }
+      }
+);
+      project.getPlugins().withType(ScalaBasePlugin.class,new Action<ScalaBasePlugin>(){
+        @Override public void execute(        ScalaBasePlugin scalaBasePlugin){
+          projectModel.getBuildCommands().set(Iterables.indexOf(projectModel.getBuildCommands(),new Predicate<BuildCommand>(){
+            @Override public boolean apply(            BuildCommand buildCommand){
+              return buildCommand.getName().equals("org.eclipse.jdt.core.javabuilder");
+            }
+          }
+),new BuildCommand("org.scala-ide.sdt.core.scalabuilder"));
+          projectModel.getNatures().add(projectModel.getNatures().indexOf("org.eclipse.jdt.core.javanature"),"org.scala-ide.sdt.core.scalanature");
+        }
+      }
+);
+    }
+  }
+);
+}

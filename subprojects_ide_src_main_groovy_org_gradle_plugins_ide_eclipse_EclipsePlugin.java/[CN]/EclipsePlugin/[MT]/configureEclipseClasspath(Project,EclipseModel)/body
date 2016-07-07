@@ -1,0 +1,42 @@
+{
+  model.setClasspath(instantiator.newInstance(EclipseClasspath.class,project));
+  ((IConventionAware)model.getClasspath()).getConventionMapping().map("defaultOutputDir",new Callable<File>(){
+    @Override public File call(){
+      return new File(project.getProjectDir(),"bin");
+    }
+  }
+);
+  final EclipsePlugin eclipsePlugin=this;
+  project.getPlugins().withType(JavaBasePlugin.class,new Action<JavaBasePlugin>(){
+    @Override public void execute(    JavaBasePlugin javaBasePlugin){
+      maybeAddTask(project,eclipsePlugin,ECLIPSE_CP_TASK_NAME,GenerateEclipseClasspath.class,new Action<GenerateEclipseClasspath>(){
+        @Override public void execute(        final GenerateEclipseClasspath task){
+          task.setDescription("Generates the Eclipse classpath file.");
+          task.setInputFile(project.file(".classpath"));
+          task.setOutputFile(project.file(".classpath"));
+          task.setClasspath(model.getClasspath());
+          task.getClasspath().setFile(new XmlFileContentMerger(task.getXmlTransformer()));
+          task.getClasspath().setSourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets());
+          project.afterEvaluate(new Action<Project>(){
+            @Override public void execute(            Project p){
+              Set<String> containers=Sets.newLinkedHashSet();
+              containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + model.getJdt().getJavaRuntimeName() + "/");
+              containers.addAll(task.getClasspath().getContainers());
+              task.getClasspath().setContainers(containers);
+            }
+          }
+);
+          project.getPlugins().withType(JavaPlugin.class,new Action<JavaPlugin>(){
+            @Override public void execute(            JavaPlugin javaPlugin){
+              configureJavaClasspath(project,task);
+            }
+          }
+);
+          configureScalaDependencies(project,task);
+        }
+      }
+);
+    }
+  }
+);
+}

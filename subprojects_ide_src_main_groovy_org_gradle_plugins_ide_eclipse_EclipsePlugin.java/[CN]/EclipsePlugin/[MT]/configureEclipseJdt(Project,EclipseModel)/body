@@ -1,0 +1,37 @@
+{
+  final EclipsePlugin eclipsePlugin=this;
+  project.getPlugins().withType(JavaBasePlugin.class,new Action<JavaBasePlugin>(){
+    @Override public void execute(    JavaBasePlugin javaBasePlugin){
+      maybeAddTask(project,eclipsePlugin,ECLIPSE_JDT_TASK_NAME,GenerateEclipseJdt.class,new Action<GenerateEclipseJdt>(){
+        @Override public void execute(        GenerateEclipseJdt task){
+          task.setDescription("Generates the Eclipse JDT settings file.");
+          task.setOutputFile(project.file(".settings/org.eclipse.jdt.core.prefs"));
+          task.setInputFile(project.file(".settings/org.eclipse.jdt.core.prefs"));
+          EclipseJdt jdt=task.getJdt();
+          model.setJdt(jdt);
+          ConventionMapping conventionMapping=((IConventionAware)jdt).getConventionMapping();
+          conventionMapping.map("sourceCompatibility",new Callable<JavaVersion>(){
+            @Override public JavaVersion call(){
+              return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility();
+            }
+          }
+);
+          conventionMapping.map("targetCompatibility",new Callable<JavaVersion>(){
+            @Override public JavaVersion call(){
+              return project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
+            }
+          }
+);
+          conventionMapping.map("javaRuntimeName",new Callable<String>(){
+            @Override public String call(){
+              return "JavaSE-" + project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}
