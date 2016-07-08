@@ -10,9 +10,11 @@
   getMainSpec().eachFile(new Action<FileCopyDetails>(){
     @Override public void execute(    FileCopyDetails details){
       DeploymentDescriptor deploymentDescriptor=getDeploymentDescriptor();
-      if (deploymentDescriptor != null && details.getPath().equalsIgnoreCase("META-INF/" + deploymentDescriptor.getFileName())) {
+      String descriptorPath=deploymentDescriptor != null ? "META-INF/" + deploymentDescriptor.getFileName() : null;
+      if (details.getPath().equalsIgnoreCase(descriptorPath)) {
         deploymentDescriptor=null;
         setDeploymentDescriptor(null);
+        details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
       }
       if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
         EarModule module;
@@ -35,7 +37,7 @@
       final DeploymentDescriptor descriptor=getDeploymentDescriptor();
       if (descriptor != null) {
         MapFileTree descriptorSource=new MapFileTree(getTemporaryDirFactory(),getFileSystem());
-        if (descriptor.getLibraryDirectory() != null) {
+        if (descriptor.getLibraryDirectory() == null) {
           descriptor.setLibraryDirectory(getLibDirName());
         }
         descriptorSource.add(descriptor.getFileName(),new Action<OutputStream>(){
