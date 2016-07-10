@@ -1,9 +1,11 @@
 {
+  StartParameter actionStartParameter=modelAction.getStartParameter();
   GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
-  CompositeContextBuilder builder=new CompositeContextBuilder(propagateFailures);
+  BuildExceptionReporter exceptionReporter=new BuildExceptionReporter(sharedServices.get(StyledTextOutputFactory.class),actionStartParameter,buildRequestContext.getClient());
+  CompositeContextBuilder builder=new CompositeContextBuilder(propagateFailures,exceptionReporter);
   BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,builder);
   for (  GradleParticipantBuild participant : compositeParameters.getBuilds()) {
-    StartParameter startParameter=modelAction.getStartParameter().newInstance();
+    StartParameter startParameter=actionStartParameter.newInstance();
     startParameter.setProjectDir(participant.getProjectDir());
     startParameter.setConfigureOnDemand(false);
     if (startParameter.getLogLevel() == LogLevel.LIFECYCLE) {
