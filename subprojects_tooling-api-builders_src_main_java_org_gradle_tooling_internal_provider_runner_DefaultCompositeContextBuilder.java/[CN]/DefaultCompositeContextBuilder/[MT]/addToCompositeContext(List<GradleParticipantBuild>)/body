@@ -1,0 +1,17 @@
+{
+  GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
+  CompositeBuildContext context=sharedServices.get(CompositeBuildContext.class);
+  BuildExceptionReporter exceptionReporter=new BuildExceptionReporter(sharedServices.get(StyledTextOutputFactory.class),buildStartParam,requestContext.getClient());
+  CompositeContextBuildActionRunner builder=new CompositeContextBuildActionRunner(context,propagateFailures,exceptionReporter);
+  BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,builder);
+  for (  GradleParticipantBuild participant : participantBuilds) {
+    StartParameter participantStartParam=buildStartParam.newInstance();
+    participantStartParam.setProjectDir(participant.getProjectDir());
+    participantStartParam.setConfigureOnDemand(false);
+    if (participantStartParam.getLogLevel() == LogLevel.LIFECYCLE) {
+      participantStartParam.setLogLevel(LogLevel.QUIET);
+      LOGGER.lifecycle("[composite-build] Configuring participant: " + participant.getProjectDir());
+    }
+    buildActionExecuter.execute(new ExecuteBuildAction(participantStartParam),requestContext,null,sharedServices);
+  }
+}

@@ -1,3 +1,6 @@
 {
-  return new CompositeBuildServicesBuilder().createCompositeAwareServices(buildStartParameter,propagateFailures,buildRequestContext,compositeParameters,sharedServices);
+  DefaultServiceRegistry compositeServices=new BuildSessionScopeServices(sharedServices,buildStartParameter,ClassPath.EMPTY);
+  compositeServices.addProvider(new CompositeScopeServices(buildStartParameter,buildRequestContext,compositeServices,propagateFailures));
+  compositeServices.get(CompositeContextBuilder.class).addToCompositeContext(compositeParameters.getBuilds());
+  return compositeServices;
 }
