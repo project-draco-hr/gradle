@@ -1,0 +1,26 @@
+{
+  this.binary=binary;
+  includeRoots=project.files();
+  libs=project.files();
+  if (binary instanceof SourceComponentSpec) {
+    SourceComponentSpec sourceComponentSpec=(SourceComponentSpec)binary;
+    sourceComponentSpec.getSources().withType(HeaderExportingSourceSet.class).all(new Action<HeaderExportingSourceSet>(){
+      @Override public void execute(      HeaderExportingSourceSet sourceSet){
+        includeRoots.builtBy(sourceSet.getExportedHeaders());
+        includeRoots.from(sourceSet.getExportedHeaders().getSrcDirs());
+      }
+    }
+);
+    sourceComponentSpec.getSources().withType(CppSourceSet.class).all(new Action<CppSourceSet>(){
+      @Override public void execute(      CppSourceSet sourceSet){
+        for (        Object lib : sourceSet.getLibs()) {
+          if (lib instanceof NativeDependencySet) {
+            libs.from(((NativeDependencySet)lib).getLinkFiles());
+            includeRoots.from(((NativeDependencySet)lib).getIncludeRoots());
+          }
+        }
+      }
+    }
+);
+  }
+}

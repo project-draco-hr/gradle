@@ -1,0 +1,55 @@
+{
+  for (  Object compiler : descriptor.getRootCppCompilerTools()) {
+    Node includePathsOption=descriptor.getOrCreateIncludePathsOption(compiler);
+    for (    Object includePath : Lists.newArrayList(includePathsOption.children())) {
+      includePathsOption.remove((Node)includePath);
+    }
+    for (    File includeRoot : includeRoots) {
+      Map<String,String> map=new LinkedHashMap<String,String>(2);
+      map.put("builtIn","false");
+      map.put("value",includeRoot.getAbsolutePath());
+      includePathsOption.appendNode("listOptionValue",map);
+    }
+  }
+  for (  Object linker : descriptor.getRootCppLinkerTools()) {
+    Node libsOption=descriptor.getOrCreateLibsOption(linker);
+    for (    Object lib : Lists.newArrayList(libsOption.children())) {
+      libsOption.remove((Node)lib);
+    }
+    for (    File lib : libs) {
+      Map<String,String> map=new LinkedHashMap<String,String>(2);
+      map.put("builtIn","false");
+      map.put("value",lib.getAbsolutePath());
+      libsOption.appendNode("listOptionValue",map);
+    }
+  }
+  final String extension="";
+  String type;
+  if (binary instanceof NativeLibrarySpec) {
+    type="org.eclipse.cdt.build.core.buildArtefactType.sharedLib";
+  }
+ else   if (binary instanceof NativeExecutableSpec) {
+    type="org.eclipse.cdt.build.core.buildArtefactType.exe";
+  }
+ else {
+    throw new IllegalStateException("The binary " + binary + " is of a type that we don\'t know about");
+  }
+  for (  Node conf : (List<Node>)descriptor.getConfigurations()) {
+    conf.attributes().put("buildArtefactType",type);
+    conf.attributes().put("artifactExtension",extension);
+    String[] buildPropsPairs=((String)conf.attributes().get("buildProperties")).split(",");
+    Map<String,String> buildProps=Maps.newLinkedHashMap();
+    for (    String buildPropsPair : buildPropsPairs) {
+      String[] parts=buildPropsPair.split("=",2);
+      buildProps.put(parts[0],parts[1]);
+    }
+    buildProps.put("org.eclipse.cdt.build.core.buildArtefactType",type);
+    buildPropsPairs=Iterables.toArray(Iterables.transform(buildProps.entrySet(),new Function<Map.Entry,String>(){
+      @Override public String apply(      Map.Entry entry){
+        return String.valueOf(entry.getKey()) + "=" + String.valueOf(entry.getValue());
+      }
+    }
+),String.class);
+    conf.attributes().put("buildProperties",DefaultGroovyMethods.join(buildPropsPairs,","));
+  }
+}
