@@ -1,7 +1,8 @@
 {
   GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
   BuildExceptionReporter exceptionReporter=new BuildExceptionReporter(sharedServices.get(StyledTextOutputFactory.class),actionStartParameter,buildRequestContext.getClient());
-  CompositeContextBuilder builder=new CompositeContextBuilder(propagateFailures,exceptionReporter);
+  CompositeBuildContext context=new DefaultBuildableCompositeBuildContext();
+  CompositeContextBuildActionRunner builder=new CompositeContextBuildActionRunner(context,propagateFailures,exceptionReporter);
   BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,builder);
   for (  GradleParticipantBuild participant : compositeParameters.getBuilds()) {
     StartParameter startParameter=actionStartParameter.newInstance();
@@ -13,5 +14,5 @@
     }
     buildActionExecuter.execute(new ExecuteBuildAction(startParameter),buildRequestContext,null,sharedServices);
   }
-  return builder.build();
+  return context;
 }
