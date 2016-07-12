@@ -1,0 +1,14 @@
+{
+  registerParticipantsInContext(compositeAction.getStartParameter(),true,buildRequestContext,compositeParameters,sharedServices);
+  StartParameter startParameter=compositeAction.getStartParameter().newInstance();
+  GradleParticipantBuild targetParticipant=compositeParameters.getTargetBuild();
+  startParameter.setProjectDir(targetParticipant.getProjectDir());
+  startParameter.setSearchUpwards(false);
+  LOGGER.lifecycle("[composite-build] Executing tasks " + startParameter.getTaskNames() + " for participant: "+ targetParticipant.getProjectDir());
+  BuildActionRunner runner=new SubscribableBuildActionRunner(new BuildModelActionRunner());
+  GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
+  BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,runner);
+  BuildModelAction participantAction=new BuildModelAction(startParameter,ModelIdentifier.NULL_MODEL,true,compositeAction.getClientSubscriptions());
+  ServiceRegistry buildScopedServices=new BuildSessionScopeServices(sharedServices,startParameter,ClassPath.EMPTY);
+  buildActionExecuter.execute(participantAction,buildRequestContext,null,buildScopedServices);
+}

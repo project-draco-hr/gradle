@@ -2,6 +2,8 @@
   if (!(action instanceof ExecuteBuildAction)) {
     return;
   }
-  executeTasksInProcess(action.getStartParameter(),actionParameters,requestContext,buildController.getBuildScopeServices());
+  BuildSessionScopeServices compositeServices=new BuildSessionScopeServices(buildController.getBuildScopeServices(),action.getStartParameter(),ClassPath.EMPTY);
+  compositeServices.addProvider(new CompositeBuildServices.CompositeBuildSessionScopeServices());
+  executeTasksInProcess((ExecuteBuildAction)action,actionParameters.getCompositeParameters().getBuilds(),requestContext,compositeServices);
   buildController.setResult(null);
 }

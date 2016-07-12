@@ -1,17 +1,16 @@
 {
   boolean propagateFailures=ModelIdentifier.NULL_MODEL.equals(modelAction.getModelName());
-  DefaultServiceRegistry compositeServices=createCompositeAwareServices(modelAction.getStartParameter(),propagateFailures,buildRequestContext,compositeParameters,sharedServices);
+  registerParticipantsInContext(modelAction.getStartParameter(),propagateFailures,buildRequestContext,compositeParameters,sharedServices);
   BuildActionRunner runner=new SubscribableBuildActionRunner(new BuildModelsActionRunner());
-  org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(sharedServices.get(GradleLauncherFactory.class),runner);
+  BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(sharedServices.get(GradleLauncherFactory.class),runner);
   final List<Object> results=Lists.newArrayList();
   for (  GradleParticipantBuild participant : compositeParameters.getBuilds()) {
     DefaultBuildActionParameters actionParameters=new DefaultBuildActionParameters(Collections.EMPTY_MAP,Collections.<String,String>emptyMap(),participant.getProjectDir(),LogLevel.INFO,false,false,true,ClassPath.EMPTY);
     StartParameter startParameter=modelAction.getStartParameter().newInstance();
     startParameter.setProjectDir(participant.getProjectDir());
-    ServiceRegistry buildScopedServices=new BuildSessionScopeServices(compositeServices,startParameter,ClassPath.EMPTY);
     BuildModelAction participantAction=new BuildModelAction(startParameter,modelAction.getModelName(),false,modelAction.getClientSubscriptions());
     try {
-      Map<String,Object> result=Cast.uncheckedCast(buildActionExecuter.execute(participantAction,buildRequestContext,actionParameters,buildScopedServices));
+      Map<String,Object> result=Cast.uncheckedCast(buildActionExecuter.execute(participantAction,buildRequestContext,actionParameters,sharedServices));
       for (      Map.Entry<String,Object> e : result.entrySet()) {
         String projectPath=e.getKey();
         Object modelValue=e.getValue();
