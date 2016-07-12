@@ -1,0 +1,52 @@
+{
+  return project.getTasks().create("cdtCproject",GenerateMetadataFileTask.class,new Closure<Void>(this,this){
+    public void doCall(    final Object task){
+      ((ArrayList<ComponentSpecContainer>)new ArrayList<ComponentSpecContainer>(Arrays.asList(project.getExtensions().getByType(ComponentSpecContainer.class)))).all(new Closure<CprojectSettings>(CdtIdePlugin.this,CdtIdePlugin.this){
+        public CprojectSettings doCall(        Object binary){
+          if (((ComponentSpec)binary).getName().equals("main")) {
+            return setSettings(task,new CprojectSettings((NativeComponentSpec)binary,(ProjectInternal)project));
+          }
+        }
+      }
+);
+      ((GenerateMetadataFileTask)task).doFirst(new Closure<Void>(CdtIdePlugin.this,CdtIdePlugin.this){
+        public void doCall(        Task it){
+          if (((GenerateMetadataFileTask)task).getSettings() == null) {
+            throw new InvalidUserDataException("There is neither a main binary or library");
+          }
+        }
+        public void doCall(){
+          doCall(null);
+        }
+      }
+);
+      ((GenerateMetadataFileTask)task).getInputs().files(new Closure<FileCollection>(CdtIdePlugin.this,CdtIdePlugin.this){
+        public FileCollection doCall(        Object it){
+          return ((GenerateMetadataFileTask)task).getSettings().getIncludeRoots();
+        }
+        public FileCollection doCall(){
+          return doCall(null);
+        }
+      }
+).withPropertyName("settings.includeRoots");
+      ((GenerateMetadataFileTask)task).setInputFile(project.file(".cproject"));
+      ((GenerateMetadataFileTask)task).setOutputFile(project.file(".cproject"));
+      ((GenerateMetadataFileTask)task).factory(new Closure<CprojectDescriptor>(CdtIdePlugin.this,CdtIdePlugin.this){
+        public CprojectDescriptor doCall(        Object it){
+          return new CprojectDescriptor();
+        }
+        public CprojectDescriptor doCall(){
+          return doCall(null);
+        }
+      }
+);
+      ((GenerateMetadataFileTask)task).onConfigure(new Closure<Void>(CdtIdePlugin.this,CdtIdePlugin.this){
+        public void doCall(        Object descriptor){
+          ((GenerateMetadataFileTask)task).getSettings().applyTo((CprojectDescriptor)descriptor);
+        }
+      }
+);
+    }
+  }
+);
+}

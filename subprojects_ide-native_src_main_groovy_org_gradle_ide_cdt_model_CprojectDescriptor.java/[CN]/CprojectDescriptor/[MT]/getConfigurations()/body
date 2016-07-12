@@ -1,0 +1,18 @@
+{
+  Node storageModule=findFirstChildNamed(getXml(),"storageModule");
+  Node cconfiguration=findFirstChildNamed(storageModule,"cconfiguration");
+  List<Node> storageModules=getChildren(cconfiguration,"storageModule");
+  Iterable<Node> cdtModules=Iterables.filter(storageModules,new Predicate<Node>(){
+    @Override public boolean apply(    Node module){
+      return module.attributes().get("moduleId").equals("cdtBuildSystem");
+    }
+  }
+);
+  Iterable<Node> cdtConfigurations=Iterables.transform(cdtModules,new Function<Node,Node>(){
+    @Override public Node apply(    Node module){
+      return findFirstChildNamed(module,"configuration");
+    }
+  }
+);
+  return new NodeList(Lists.newArrayList(cdtConfigurations));
+}
