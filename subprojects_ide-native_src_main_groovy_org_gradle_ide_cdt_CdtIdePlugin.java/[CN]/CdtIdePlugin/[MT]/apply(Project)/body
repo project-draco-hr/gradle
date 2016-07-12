@@ -1,16 +1,10 @@
 {
   project.getPluginManager().apply(NativeComponentPlugin.class);
   final ArrayList<GenerateMetadataFileTask> metadataFileTasks=new ArrayList<GenerateMetadataFileTask>(Arrays.asList(addCreateProjectDescriptor(project),addCreateCprojectDescriptor(project)));
-  project.getTasks().create("cleanCdt",Delete.class,new Closure<Delete>(this,this){
-    public Delete doCall(    Object clean){
-      return ((Delete)clean).delete(((ArrayList<GenerateMetadataFileTask>)metadataFileTasks).getOutputs().getFiles());
-    }
+  Delete cleanCdt=project.getTasks().create("cleanCdt",Delete.class);
+  for (  GenerateMetadataFileTask metadataFileTask : metadataFileTasks) {
+    cleanCdt.delete(metadataFileTask.getOutputs().getFiles());
   }
-);
-  project.getTasks().create("cdt",new Closure<Task>(this,this){
-    public Task doCall(    Object cdt){
-      return ((Task)cdt).dependsOn(metadataFileTasks);
-    }
-  }
-);
+  Task cdt=project.getTasks().create("cdt");
+  cdt.dependsOn(metadataFileTasks);
 }
