@@ -2,8 +2,12 @@
   if (!(action instanceof ExecuteBuildAction)) {
     return;
   }
-  BuildSessionScopeServices compositeServices=new BuildSessionScopeServices(buildController.getBuildScopeServices(),action.getStartParameter(),ClassPath.EMPTY);
-  compositeServices.addProvider(new CompositeBuildServices.CompositeBuildSessionScopeServices());
-  executeTasksInProcess((ExecuteBuildAction)action,actionParameters.getCompositeParameters().getBuilds(),requestContext,compositeServices);
+  ServiceRegistry sharedServices=buildController.getBuildScopeServices();
+  CompositeContextBuilder contextBuilder=sharedServices.get(CompositeContextBuilder.class);
+  contextBuilder.addToCompositeContext(actionParameters.getCompositeParameters().getBuilds(),requestContext,true);
+  BuildActionRunner runner=new ExecuteBuildActionRunner();
+  GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
+  BuildActionExecuter<BuildActionParameters> buildActionExecuter=new InProcessBuildActionExecuter(gradleLauncherFactory,runner);
+  buildActionExecuter.execute(action,requestContext,null,sharedServices);
   buildController.setResult(null);
 }

@@ -1,2 +1,13 @@
 {
+  if (tracker.getCurrentBuild() != null) {
+    throw new IllegalStateException("Cannot have a current build");
+  }
+  if (!(parentRegistry instanceof BuildSessionScopeServices)) {
+    throw new IllegalArgumentException("Service registry must be of build session scope");
+  }
+  BuildScopeServices buildScopeServices=BuildScopeServices.forSession((BuildSessionScopeServices)parentRegistry);
+  DefaultGradleLauncher launcher=doNewInstance(startParameter,requestContext.getCancellationToken(),requestContext,requestContext.getEventConsumer(),buildScopeServices);
+  DeploymentRegistry deploymentRegistry=parentRegistry.get(DeploymentRegistry.class);
+  deploymentRegistry.onNewBuild(launcher.getGradle());
+  return launcher;
 }
