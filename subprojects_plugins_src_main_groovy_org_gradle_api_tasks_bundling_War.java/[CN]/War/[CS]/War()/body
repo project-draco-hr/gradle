@@ -1,0 +1,46 @@
+{
+  setExtension(WAR_EXTENSION);
+  setMetadataCharset("UTF-8");
+  webInf=(DefaultCopySpec)getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");
+  webInf.into("classes",new Closure<CopySpec>(this,this){
+    public CopySpec doCall(    CopySpec it){
+      return it.from(new Callable<Iterable<File>>(){
+        public Iterable<File> call(){
+          FileCollection classpath=getClasspath();
+          return classpath != null ? Iterables.filter(classpath,IS_DIRECTORY) : new ArrayList<File>();
+        }
+      }
+);
+    }
+  }
+);
+  webInf.into("lib",new Closure<CopySpec>(this,this){
+    public CopySpec doCall(    CopySpec it){
+      return it.from(new Callable<Iterable<File>>(){
+        public Iterable<File> call(){
+          FileCollection classpath=getClasspath();
+          return classpath != null ? Iterables.filter(classpath,IS_FILE) : new ArrayList<File>();
+        }
+      }
+);
+    }
+  }
+);
+  webInf.into("",new Closure<CopySpec>(this,this){
+    public CopySpec doCall(    CopySpec it){
+      it.from(new Callable<File>(){
+        public File call(){
+          return getWebXml();
+        }
+      }
+);
+      return it.rename(new Closure<String>(War.this,War.this){
+        public String doCall(        Object it){
+          return "web.xml";
+        }
+      }
+);
+    }
+  }
+);
+}

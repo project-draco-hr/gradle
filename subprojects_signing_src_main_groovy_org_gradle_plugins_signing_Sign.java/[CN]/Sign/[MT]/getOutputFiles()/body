@@ -1,0 +1,24 @@
+{
+  ArrayListMultimap<String,File> filesWithPotentialNameCollisions=ArrayListMultimap.create();
+  for (  Signature signature : getSignatures()) {
+    String name=JAVA_PARTS.matcher(signature.getName()).replaceAll("_");
+    if (name.length() > 0 && !Character.isJavaIdentifierStart(name.codePointAt(0))) {
+      name="_" + name.substring(1);
+    }
+    filesWithPotentialNameCollisions.put(name,signature.getToSign());
+  }
+  Map<String,File> files=Maps.newHashMap();
+  for (  Map.Entry<String,Collection<File>> entry : filesWithPotentialNameCollisions.asMap().entrySet()) {
+    File[] filesWithSameName=entry.getValue().toArray(new File[0]);
+    boolean hasMoreThanOneFileWithSameName=filesWithSameName.length > 1;
+    for (int i=0; i < filesWithSameName.length; i++) {
+      File file=filesWithSameName[i];
+      String key=entry.getKey();
+      if (hasMoreThanOneFileWithSameName) {
+        key+="$" + (i + 1);
+      }
+      files.put(key,file);
+    }
+  }
+  return files;
+}

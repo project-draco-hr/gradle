@@ -1,0 +1,46 @@
+{
+  logger.debug("Adding IP addresses for network interface {}",networkInterface.getDisplayName());
+  try {
+    boolean isLoopbackInterface=networkInterface.isLoopback();
+    logger.debug("Is this a loopback interface? {}",isLoopbackInterface);
+    boolean isMulticast=networkInterface.supportsMulticast();
+    logger.debug("Is this a multicast interface? {}",isMulticast);
+    boolean isRemote=false;
+    Enumeration<InetAddress> candidates=networkInterface.getInetAddresses();
+    while (candidates.hasMoreElements()) {
+      InetAddress candidate=candidates.nextElement();
+      if (isLoopbackInterface) {
+        if (candidate.isLoopbackAddress()) {
+          logger.debug("Adding loopback address {}",candidate);
+          loopback.add(candidate);
+        }
+ else {
+          logger.debug("Ignoring remote address on loopback interface {}",candidate);
+        }
+      }
+ else {
+        if (candidate.isLoopbackAddress()) {
+          logger.debug("Ignoring loopback address on remote interface {}",candidate);
+        }
+ else {
+          logger.debug("Adding remote address {}",candidate);
+          remote.add(candidate);
+          isRemote=true;
+        }
+      }
+    }
+    if (isMulticast) {
+      if (isRemote) {
+        logger.debug("Adding remote multicast interface {}",networkInterface.getDisplayName());
+        multicastInterfaces.add(0,networkInterface);
+      }
+ else {
+        logger.debug("Adding loopback multicast interface {}",networkInterface.getDisplayName());
+        multicastInterfaces.add(networkInterface);
+      }
+    }
+  }
+ catch (  Throwable e) {
+    throw new RuntimeException(String.format("Could not determine the IP addresses for network interface %s",networkInterface.getName()),e);
+  }
+}

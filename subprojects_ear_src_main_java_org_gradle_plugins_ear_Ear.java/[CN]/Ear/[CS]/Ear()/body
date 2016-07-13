@@ -1,0 +1,55 @@
+{
+  setExtension(EAR_EXTENSION);
+  setMetadataCharset("UTF-8");
+  lib=getRootSpec().addChildBeforeSpec(getMainSpec()).into(new Callable<String>(){
+    public String call(){
+      return getLibDirName();
+    }
+  }
+);
+  getMainSpec().eachFile(new Action<FileCopyDetails>(){
+    @Override public void execute(    FileCopyDetails details){
+      DeploymentDescriptor deploymentDescriptor=getDeploymentDescriptor();
+      String descriptorPath=deploymentDescriptor != null ? "META-INF/" + deploymentDescriptor.getFileName() : null;
+      if (details.getPath().equalsIgnoreCase(descriptorPath)) {
+        deploymentDescriptor=null;
+        setDeploymentDescriptor(null);
+        details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
+      }
+      if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
+        EarModule module;
+        if (details.getPath().toLowerCase().endsWith(".war")) {
+          module=new DefaultEarWebModule(details.getPath(),details.getPath().substring(0,details.getPath().lastIndexOf(".")));
+        }
+ else {
+          module=new DefaultEarModule(details.getPath());
+        }
+        if (!deploymentDescriptor.getModules().contains(module)) {
+          deploymentDescriptor.getModules().add(module);
+        }
+      }
+    }
+  }
+);
+  CopySpecInternal metaInf=(CopySpecInternal)getMainSpec().addChild().into("META-INF");
+  metaInf.addChild().from(new Callable<FileTreeAdapter>(){
+    public FileTreeAdapter call(){
+      final DeploymentDescriptor descriptor=getDeploymentDescriptor();
+      if (descriptor != null) {
+        MapFileTree descriptorSource=new MapFileTree(getTemporaryDirFactory(),getFileSystem());
+        if (descriptor.getLibraryDirectory() == null) {
+          descriptor.setLibraryDirectory(getLibDirName());
+        }
+        descriptorSource.add(descriptor.getFileName(),new Action<OutputStream>(){
+          public void execute(          OutputStream outputStream){
+            descriptor.writeTo(new OutputStreamWriter(outputStream));
+          }
+        }
+);
+        return new FileTreeAdapter(descriptorSource);
+      }
+      return null;
+    }
+  }
+);
+}

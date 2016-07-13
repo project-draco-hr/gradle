@@ -1,0 +1,19 @@
+{
+  for (  String duplicateName : getDuplicateNames()) {
+    Collection<T> duplicatedElements=elementsByName.get(duplicateName);
+    Set<String> reservedNames=ImmutableSet.copyOf(elementsByName.keySet());
+    Set<T> notYetRenamed=getNotYetRenamedElements(duplicatedElements);
+    boolean deduplicationSuccessful=false;
+    Set<T> elementsToRename=notYetRenamed.isEmpty() ? ImmutableSet.copyOf(duplicatedElements) : notYetRenamed;
+    for (    T element : elementsToRename) {
+      boolean elementRenamed=true;
+      while (elementRenamed && reservedNames.contains(getCurrentlyAssignedName(element))) {
+        elementRenamed=renameUsingParentPrefix(element);
+        deduplicationSuccessful|=elementRenamed;
+      }
+    }
+    if (!deduplicationSuccessful) {
+      throw new IllegalArgumentException("Duplicate root element " + duplicateName);
+    }
+  }
+}

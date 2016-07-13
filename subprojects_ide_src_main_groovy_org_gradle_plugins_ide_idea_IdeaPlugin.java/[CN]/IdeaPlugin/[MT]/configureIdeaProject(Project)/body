@@ -1,0 +1,65 @@
+{
+  if (isRoot(project)) {
+    final GenerateIdeaProject task=project.getTasks().create("ideaProject",GenerateIdeaProject.class);
+    task.setDescription("Generates IDEA project file (IPR)");
+    XmlFileContentMerger ipr=new XmlFileContentMerger(task.getXmlTransformer());
+    IdeaProject ideaProject=instantiator.newInstance(IdeaProject.class,project,ipr);
+    task.setIdeaProject(ideaProject);
+    ideaModel.setProject(ideaProject);
+    ideaProject.setOutputFile(new File(project.getProjectDir(),project.getName() + ".ipr"));
+    ConventionMapping conventionMapping=((IConventionAware)ideaProject).getConventionMapping();
+    conventionMapping.map("jdkName",new Callable<String>(){
+      @Override public String call() throws Exception {
+        return JavaVersion.current().toString();
+      }
+    }
+);
+    conventionMapping.map("languageLevel",new Callable<IdeaLanguageLevel>(){
+      @Override public IdeaLanguageLevel call() throws Exception {
+        JavaVersion maxSourceCompatibility=getMaxJavaModuleCompatibilityVersionFor(new Function<Project,JavaVersion>(){
+          @Override public JavaVersion apply(          Project p){
+            return p.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility();
+          }
+        }
+);
+        return new IdeaLanguageLevel(maxSourceCompatibility);
+      }
+    }
+);
+    conventionMapping.map("targetBytecodeVersion",new Callable<JavaVersion>(){
+      @Override public JavaVersion call() throws Exception {
+        return getMaxJavaModuleCompatibilityVersionFor(new Function<Project,JavaVersion>(){
+          @Override public JavaVersion apply(          Project p){
+            return p.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
+          }
+        }
+);
+      }
+    }
+);
+    ideaProject.setWildcards(Sets.newHashSet("!?*.class","!?*.scala","!?*.groovy","!?*.java"));
+    conventionMapping.map("modules",new Callable<List<IdeaModule>>(){
+      @Override public List<IdeaModule> call() throws Exception {
+        return Lists.newArrayList(Iterables.transform(Sets.filter(project.getRootProject().getAllprojects(),new Predicate<Project>(){
+          @Override public boolean apply(          Project p){
+            return p.getPlugins().hasPlugin(IdeaPlugin.class);
+          }
+        }
+),new Function<Project,IdeaModule>(){
+          @Override public IdeaModule apply(          Project p){
+            return ideaModelFor(p).getModule();
+          }
+        }
+));
+      }
+    }
+);
+    conventionMapping.map("pathFactory",new Callable<PathFactory>(){
+      @Override public PathFactory call() throws Exception {
+        return new PathFactory().addPathVariable("PROJECT_DIR",task.getOutputFile().getParentFile());
+      }
+    }
+);
+    addWorker(task);
+  }
+}

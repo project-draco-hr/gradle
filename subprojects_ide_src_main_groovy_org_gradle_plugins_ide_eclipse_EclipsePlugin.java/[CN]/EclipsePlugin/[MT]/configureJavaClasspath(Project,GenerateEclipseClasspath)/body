@@ -1,0 +1,13 @@
+{
+  task.getClasspath().setPlusConfigurations(Lists.newArrayList(project.getConfigurations().getByName("testRuntime"),project.getConfigurations().getByName("compileClasspath"),project.getConfigurations().getByName("testCompileClasspath")));
+  ((IConventionAware)task.getClasspath()).getConventionMapping().map("classFolders",new Callable<List<File>>(){
+    @Override public List<File> call(){
+      SourceSetContainer sourceSets=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+      return Lists.newArrayList(Iterables.concat(sourceSets.getByName("main").getOutput().getDirs(),sourceSets.getByName("test").getOutput().getDirs()));
+    }
+  }
+);
+  SourceSetContainer sourceSets=project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+  task.dependsOn(sourceSets.getByName("main").getOutput().getDirs());
+  task.dependsOn(sourceSets.getByName("test").getOutput().getDirs());
+}

@@ -1,0 +1,47 @@
+{
+  maybeAddTask(project,this,ECLIPSE_WTP_FACET_TASK_NAME,GenerateEclipseWtpFacet.class,new Action<GenerateEclipseWtpFacet>(){
+    @Override public void execute(    final GenerateEclipseWtpFacet task){
+      task.setDescription("Generates the Eclipse WTP facet settings file.");
+      task.setInputFile(project.file(".settings/org.eclipse.wst.common.project.facet.core.xml"));
+      task.setOutputFile(project.file(".settings/org.eclipse.wst.common.project.facet.core.xml"));
+      eclipseModel.getWtp().setFacet(task.getFacet());
+      project.getPlugins().withType(JavaPlugin.class,new Action<JavaPlugin>(){
+        @Override public void execute(        JavaPlugin javaPlugin){
+          if (hasWarOrEarPlugin(project)) {
+            return;
+          }
+          ((IConventionAware)task.getFacet()).getConventionMapping().map("facets",new Callable<List<Facet>>(){
+            @Override public List<Facet> call() throws Exception {
+              return Lists.newArrayList(new Facet(Facet.FacetType.fixed,"jst.java",null),new Facet(Facet.FacetType.installed,"jst.utility","1.0"),new Facet(Facet.FacetType.installed,"jst.java",toJavaFacetVersion(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility())));
+            }
+          }
+);
+        }
+      }
+);
+      project.getPlugins().withType(WarPlugin.class,new Action<WarPlugin>(){
+        @Override public void execute(        WarPlugin warPlugin){
+          ((IConventionAware)task.getFacet()).getConventionMapping().map("facets",new Callable<List<Facet>>(){
+            @Override public List<Facet> call() throws Exception {
+              return Lists.newArrayList(new Facet(Facet.FacetType.fixed,"jst.java",null),new Facet(Facet.FacetType.fixed,"jst.web",null),new Facet(Facet.FacetType.installed,"jst.web","2.4"),new Facet(Facet.FacetType.installed,"jst.java",toJavaFacetVersion(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility())));
+            }
+          }
+);
+        }
+      }
+);
+      project.getPlugins().withType(EarPlugin.class,new Action<EarPlugin>(){
+        @Override public void execute(        EarPlugin earPlugin){
+          ((IConventionAware)task.getFacet()).getConventionMapping().map("facets",new Callable<List<Facet>>(){
+            @Override public List<Facet> call() throws Exception {
+              return Lists.newArrayList(new Facet(Facet.FacetType.fixed,"jst.ear",null),new Facet(Facet.FacetType.installed,"jst.ear","5.0"));
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

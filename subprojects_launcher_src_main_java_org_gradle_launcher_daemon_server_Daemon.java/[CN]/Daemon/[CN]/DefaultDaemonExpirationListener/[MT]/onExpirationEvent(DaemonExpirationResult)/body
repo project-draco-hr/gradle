@@ -1,26 +1,14 @@
 {
-switch (result.getStatus()) {
-case DO_NOT_EXPIRE:
-    break;
-case QUIET_EXPIRE:
-  if (!stateControl.isStopping()) {
-    LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + result.getReason());
-    stateControl.requestStop();
+  final DaemonExpirationStatus expirationCheck=result.getStatus();
+  if (expirationCheck != DO_NOT_EXPIRE) {
+    if (expirationCheck == IMMEDIATE_EXPIRE) {
+      stateControl.requestForcefulStop(result.getReason());
+    }
+ else {
+      stateControl.requestStop(result.getReason());
+    }
+    if (expirationCheck != QUIET_EXPIRE && !stateControl.isStopping()) {
+      registryUpdater.onExpire(result.getReason());
+    }
   }
-break;
-case GRACEFUL_EXPIRE:
-if (!stateControl.isStopping()) {
-LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + result.getReason());
-stateControl.requestStop();
-registryUpdater.onExpire(result.getReason());
-}
-break;
-case IMMEDIATE_EXPIRE:
-if (!stateControl.isStopped()) {
-LOGGER.lifecycle(DAEMON_STOPPING_IMMEDIATELY_MESSAGE + result.getReason());
-stateControl.requestForcefulStop(result.getReason());
-registryUpdater.onExpire(result.getReason());
-}
-break;
-}
 }

@@ -1,0 +1,22 @@
+{
+  String prefix=deduplicatedName.substring(0,deduplicatedName.lastIndexOf(originalName));
+  if (prefix.isEmpty()) {
+    return deduplicatedName;
+  }
+  Splitter splitter=Splitter.on('-').omitEmptyStrings();
+  List<String> prefixParts=Lists.newArrayList(splitter.split(prefix));
+  List<String> postfixParts=Lists.newArrayList(splitter.split(originalName));
+  List<String> words=Lists.newArrayList();
+  if (postfixParts.size() > 1) {
+    String postfixHead=postfixParts.get(0);
+    prefixParts.add(postfixHead);
+    postfixParts.remove(postfixHead);
+  }
+  for (  String prefixPart : prefixParts) {
+    if (!prefixPart.equals(Iterables.getLast(words,null))) {
+      words.add(prefixPart);
+    }
+  }
+  words.addAll(postfixParts);
+  return Joiner.on('-').join(words);
+}

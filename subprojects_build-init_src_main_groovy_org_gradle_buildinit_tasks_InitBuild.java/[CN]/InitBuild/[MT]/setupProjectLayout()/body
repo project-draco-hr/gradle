@@ -1,0 +1,19 @@
+{
+  final String type=getType();
+  BuildInitTestFramework testFramework=BuildInitTestFramework.fromName(getTestFramework());
+  final ProjectLayoutSetupRegistry projectLayoutRegistry=getProjectLayoutRegistry();
+  if (!projectLayoutRegistry.supports(type)) {
+    String supportedTypes=Joiner.on(", ").join(Iterables.transform(projectLayoutRegistry.getSupportedTypes(),new Function<String,String>(){
+      @Override public String apply(      String input){
+        return "'" + input + "'";
+      }
+    }
+));
+    throw new GradleException("The requested build setup type '" + type + "' is not supported. Supported types: "+ supportedTypes+ ".");
+  }
+  ProjectInitDescriptor initDescriptor=(ProjectInitDescriptor)projectLayoutRegistry.get(type);
+  if (!testFramework.equals(BuildInitTestFramework.NONE) && !initDescriptor.supports(testFramework)) {
+    throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '"+ type+ "' setup type");
+  }
+  initDescriptor.generate(testFramework);
+}
