@@ -3,7 +3,12 @@
   ExtraPropertiesExtension rootExtraProperties=rootProject.getExtensions().getByType(ExtraPropertiesExtension.class);
   String extraPropertyName="org.gradle." + key + ".postprocess.applied";
   if (!rootExtraProperties.has(extraPropertyName)) {
-    project.getGradle().projectsEvaluated(closure);
+    project.getGradle().addBuildListener(new BuildAdapter(){
+      @Override public void projectsEvaluated(      Gradle gradle){
+        action.execute(gradle);
+      }
+    }
+);
     rootExtraProperties.set(extraPropertyName,true);
   }
 }
