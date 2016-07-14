@@ -13,17 +13,16 @@
     while (System.currentTimeMillis() < waitUntil) {
       try {
 switch (state) {
-case Running:
-          if (isIdle()) {
-            LOGGER.debug("Cancel: daemon is idle now.");
-            return;
-          }
+case Idle:
+          LOGGER.debug("Cancel: daemon is idle now.");
+        return;
+case Busy:
 case StopRequested:
-        LOGGER.debug("Cancel: daemon is busy, sleeping until state changes.");
-      condition.awaitUntil(expiry);
-    break;
+      LOGGER.debug("Cancel: daemon is busy, sleeping until state changes.");
+    condition.awaitUntil(expiry);
+  break;
 case Broken:
-  throw new IllegalStateException("This daemon is in a broken state.");
+throw new IllegalStateException("This daemon is in a broken state.");
 case Stopped:
 LOGGER.debug("Cancel: daemon has stopped.");
 return;
