@@ -1,21 +1,22 @@
 {
   Set<String> outputFiles=currentExecution.getOutputFiles();
+  int outputFilesSize=outputFiles.size();
   LazyTaskExecution bestMatch=null;
   int bestMatchOverlap=0;
-  for (  LazyTaskExecution configuration : history.configurations) {
-    if (outputFiles.size() == 0) {
-      if (configuration.getOutputFiles().size() == 0) {
-        bestMatch=configuration;
+  for (  LazyTaskExecution previousExecution : history.configurations) {
+    if (outputFilesSize == 0) {
+      if (previousExecution.getOutputFiles().size() == 0) {
+        bestMatch=previousExecution;
         break;
       }
     }
-    Set<String> intersection=new HashSet<String>(outputFiles);
-    intersection.retainAll(configuration.getOutputFiles());
-    if (intersection.size() > bestMatchOverlap) {
-      bestMatch=configuration;
-      bestMatchOverlap=intersection.size();
+    Set<String> intersection=Sets.intersection(outputFiles,previousExecution.getOutputFiles());
+    int overlap=intersection.size();
+    if (overlap > bestMatchOverlap) {
+      bestMatch=previousExecution;
+      bestMatchOverlap=overlap;
     }
-    if (bestMatchOverlap == outputFiles.size()) {
+    if (bestMatchOverlap == outputFilesSize) {
       break;
     }
   }
