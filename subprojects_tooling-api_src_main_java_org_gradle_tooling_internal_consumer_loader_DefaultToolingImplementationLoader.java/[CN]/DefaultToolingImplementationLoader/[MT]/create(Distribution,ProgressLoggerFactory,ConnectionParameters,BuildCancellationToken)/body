@@ -1,7 +1,7 @@
 {
   LOGGER.debug("Using tooling provider from {}",distribution.getDisplayName());
-  ClassLoader classLoader=createImplementationClassLoader(distribution,progressLoggerFactory,connectionParameters.getGradleUserHomeDir(),cancellationToken);
-  ServiceLocator serviceLocator=new DefaultServiceLocator(classLoader);
+  ClassLoader serviceClassLoader=createImplementationClassLoader(distribution,progressLoggerFactory,connectionParameters.getGradleUserHomeDir(),cancellationToken);
+  ServiceLocator serviceLocator=new DefaultServiceLocator(serviceClassLoader);
   try {
     Factory<ConnectionVersion4> factory=serviceLocator.findFactory(ConnectionVersion4.class);
     if (factory == null) {
@@ -46,8 +46,5 @@
   }
 catch (  Throwable t) {
     throw new GradleConnectionException(String.format("Could not create an instance of Tooling API implementation using the specified %s.",distribution.getDisplayName()),t);
-  }
- finally {
-    ClassLoaderUtils.tryClose(classLoader);
   }
 }
