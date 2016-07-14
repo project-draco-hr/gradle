@@ -1,0 +1,27 @@
+{
+  final ModelMap<NativeBinarySpecInternal> nativeBinaries=binaries.withType(NativeBinarySpecInternal.class);
+  for (  final BinarySpecInternal binary : nativeBinaries) {
+    Task assembleDependents=tasks.get(binary.getNamingScheme().getTaskName("assembleDependents"));
+    Task assembleDependentComponents=tasks.get(getAssembleDependentComponentsTaskName(binary.getComponent()));
+    if (assembleDependentComponents != null) {
+      assembleDependentComponents.dependsOn(assembleDependents);
+    }
+    Callable<Iterable<Task>> deferredDependencies=new Callable<Iterable<Task>>(){
+      @Override public Iterable<Task> call(){
+        List<Task> dependencies=Lists.newArrayList();
+        DependentBinariesResolvedResult result=dependentsResolver.resolve(binary).getRoot();
+        for (        DependentBinariesResolvedResult dependent : result.getChildren()) {
+          if (dependent.isBuildable()) {
+            ModelRegistry modelRegistry=projectModelResolver.resolveProjectModel(dependent.getId().getProjectPath());
+            ModelMap<NativeBinarySpecInternal> projectBinaries=modelRegistry.realize("binaries",ModelTypes.modelMap(NativeBinarySpecInternal.class));
+            NativeBinarySpecInternal dependentBinary=projectBinaries.get(dependent.getProjectScopedName());
+            dependencies.add(dependentBinary.getBuildTask());
+          }
+        }
+        return dependencies;
+      }
+    }
+;
+    assembleDependents.dependsOn(deferredDependencies);
+  }
+}
