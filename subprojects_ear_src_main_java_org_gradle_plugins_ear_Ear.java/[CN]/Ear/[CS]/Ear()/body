@@ -9,13 +9,11 @@
 );
   getMainSpec().eachFile(new Action<FileCopyDetails>(){
     @Override public void execute(    FileCopyDetails details){
+      checkIfShouldGenerateDeploymentDescriptor(details);
+      recordTopLevelModules(details);
+    }
+    private void recordTopLevelModules(    FileCopyDetails details){
       DeploymentDescriptor deploymentDescriptor=getDeploymentDescriptor();
-      String descriptorPath=deploymentDescriptor != null ? "META-INF/" + deploymentDescriptor.getFileName() : null;
-      if (details.getPath().equalsIgnoreCase(descriptorPath)) {
-        deploymentDescriptor=null;
-        setDeploymentDescriptor(null);
-        details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
-      }
       if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
         EarModule module;
         if (details.getPath().toLowerCase().endsWith(".war")) {
@@ -27,6 +25,14 @@
         if (!deploymentDescriptor.getModules().contains(module)) {
           deploymentDescriptor.getModules().add(module);
         }
+      }
+    }
+    private void checkIfShouldGenerateDeploymentDescriptor(    FileCopyDetails details){
+      DeploymentDescriptor deploymentDescriptor=getDeploymentDescriptor();
+      String descriptorPath=deploymentDescriptor != null ? "META-INF/" + deploymentDescriptor.getFileName() : null;
+      if (details.getPath().equalsIgnoreCase(descriptorPath)) {
+        setDeploymentDescriptor(null);
+        details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
       }
     }
   }
