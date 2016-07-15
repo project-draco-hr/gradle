@@ -1,6 +1,18 @@
 {
-  if (staticGetters.containsKey(name)) {
-    staticGetters.remove(name);
+  if (missingStaticStringConstantGetters.containsKey(name)) {
+    missingStaticStringConstantGetters.remove(name);
+  }
+  if (((access & Opcodes.ACC_PUBLIC) > 0) && !isStatic(access) && Type.getMethodDescriptor(Type.BOOLEAN_TYPE).equals(desc)) {
+    PropertyAccessorType accessorType=PropertyAccessorType.fromName(name);
+    if (accessorType != null) {
+      String propertyName=accessorType.propertyNameFor(name);
+      if (accessorType == PropertyAccessorType.IS_GETTER) {
+        booleanIsGetters.add(propertyName);
+      }
+ else       if (accessorType == PropertyAccessorType.GET_GETTER) {
+        booleanGetGetters.add(propertyName);
+      }
+    }
   }
   return super.visitMethod(access,name,desc,signature,exceptions);
 }
