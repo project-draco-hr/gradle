@@ -8,8 +8,8 @@
   scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
   scalaCompile.setSource(scalaSourceSet.getScala());
   project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(taskName);
-  project.getGradle().projectsEvaluated(new Closure<Void>(project){
-    @SuppressWarnings("unused") public void doCall(){
+  project.getGradle().addBuildListener(new BuildAdapter(){
+    @Override public void projectsEvaluated(    Gradle gradle){
       IncrementalCompileOptions incrementalOptions=scalaCompile.getScalaCompileOptions().getIncrementalOptions();
       if (incrementalOptions.getAnalysisFile() == null) {
         String analysisFilePath=project.getBuildDir().getPath() + "/tmp/scala/compilerAnalysis/" + scalaCompile.getName()+ ".analysis";

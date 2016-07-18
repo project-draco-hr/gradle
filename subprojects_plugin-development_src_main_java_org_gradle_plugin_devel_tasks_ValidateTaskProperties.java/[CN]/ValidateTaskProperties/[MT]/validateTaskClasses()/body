@@ -1,74 +1,10 @@
 {
-  final Map<String,Boolean> taskValidationProblems=Maps.newTreeMap();
   ClassPath classPath=new DefaultClassPath(Iterables.concat(Collections.singleton(getClassesDir()),getClasspath()));
-  final ClassLoader classLoader=getClassLoaderFactory().createIsolatedClassLoader(classPath);
-  final Class<?> taskInterface;
-  final Method validatorMethod;
+  ClassLoader classLoader=getClassLoaderFactory().createIsolatedClassLoader(classPath);
   try {
-    taskInterface=classLoader.loadClass(Task.class.getName());
-    Class<?> validatorClass=classLoader.loadClass(TaskPropertyValidationAccess.class.getName());
-    validatorMethod=validatorClass.getMethod("collectTaskValidationProblems",Class.class,Map.class);
+    validateTaskClasses(classLoader);
   }
- catch (  ClassNotFoundException e) {
-    throw Throwables.propagate(e);
+  finally {
+    ClassLoaderUtils.tryClose(classLoader);
   }
-catch (  NoSuchMethodException e) {
-    throw Throwables.propagate(e);
-  }
-  new DirectoryFileTree(getClassesDir()).visit(new FileVisitor(){
-    @Override public void visitDir(    FileVisitDetails dirDetails){
-    }
-    @Override public void visitFile(    FileVisitDetails fileDetails){
-      if (!fileDetails.getPath().endsWith(".class")) {
-        return;
-      }
-      ClassReader reader;
-      try {
-        reader=new Java9ClassReader(Files.asByteSource(fileDetails.getFile()).read());
-      }
- catch (      IOException e) {
-        throw Throwables.propagate(e);
-      }
-      List<String> classNames=Lists.newArrayList();
-      reader.accept(new TaskNameCollectorVisitor(classNames),ClassReader.SKIP_CODE);
-      for (      String className : classNames) {
-        Class<?> clazz;
-        try {
-          clazz=classLoader.loadClass(className);
-        }
- catch (        IllegalAccessError e) {
-          throw new GradleException("Could not load class: " + className,e);
-        }
-catch (        ClassNotFoundException e) {
-          throw new GradleException("Could not load class: " + className,e);
-        }
-catch (        NoClassDefFoundError e) {
-          throw new GradleException("Could not load class: " + className,e);
-        }
-        if (!Modifier.isPublic(clazz.getModifiers())) {
-          continue;
-        }
-        if (Modifier.isAbstract(clazz.getModifiers())) {
-          continue;
-        }
-        if (!taskInterface.isAssignableFrom(clazz)) {
-          continue;
-        }
-        Class<? extends Task> taskClass=Cast.uncheckedCast(clazz);
-        try {
-          validatorMethod.invoke(null,taskClass,taskValidationProblems);
-        }
- catch (        IllegalAccessException e) {
-          throw Throwables.propagate(e);
-        }
-catch (        InvocationTargetException e) {
-          throw Throwables.propagate(e);
-        }
-      }
-    }
-  }
-);
-  List<String> problemMessages=toProblemMessages(taskValidationProblems);
-  storeResults(problemMessages,getOutputFile());
-  communicateResult(problemMessages,taskValidationProblems.values().contains(Boolean.TRUE));
 }
