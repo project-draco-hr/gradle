@@ -1,4 +1,7 @@
 {
+  if (type.getName().endsWith("_Decorated")) {
+    type=Cast.uncheckedCast(type.getSuperclass());
+  }
   TaskClassInfo taskClassInfo=classInfos.get(type);
   if (taskClassInfo == null) {
     taskClassInfo=new TaskClassInfo();
@@ -6,6 +9,7 @@
     TaskClassValidator validator=new TaskClassValidator();
     validator.attachActions(null,type);
     taskClassInfo.setValidator(validator);
+    taskClassInfo.setCacheable(type.isAnnotationPresent(CacheableTask.class));
     classInfos.put(type,taskClassInfo);
   }
   return taskClassInfo;
