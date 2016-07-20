@@ -8,15 +8,10 @@
     return connection;
   }
   final List<DaemonStopEvent> stopEvents=daemonRegistry.getStopEvents();
-  daemonRegistry.removeStopEvents(stopEvents);
-  List<DaemonStopEvent> recentStopEvents=CollectionUtils.filter(stopEvents,new Spec<DaemonStopEvent>(){
-    public boolean isSatisfiedBy(    DaemonStopEvent event){
-      return event.occurredInLastHours(1);
-    }
-  }
-);
+  daemonRegistry.removeStopEvents(DaemonStopEvents.oldStopEvents(stopEvents));
+  final List<DaemonStopEvent> recentStopEvents=DaemonStopEvents.uniqueRecentDaemonStopEvents(stopEvents);
   for (  DaemonStopEvent stopEvent : recentStopEvents) {
-    LOGGER.info("Previous Daemon stopped at " + stopEvent.getTimestamp() + " "+ stopEvent.getReason());
+    LOGGER.info("Previous Daemon (" + stopEvent.getPid() + ") stopped at "+ stopEvent.getTimestamp()+ " "+ stopEvent.getReason());
   }
   LOGGER.lifecycle(DaemonStartupMessage.generate(busyDaemons.size(),idleDaemons.size(),recentStopEvents.size()));
   return startDaemon(constraint);
