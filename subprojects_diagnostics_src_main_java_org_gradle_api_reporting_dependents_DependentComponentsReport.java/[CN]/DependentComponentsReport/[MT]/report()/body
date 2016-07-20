@@ -3,11 +3,16 @@
   ModelRegistry modelRegistry=getModelRegistry();
   DependentBinariesResolver dependentBinariesResolver=modelRegistry.find("dependentBinariesResolver",DependentBinariesResolver.class);
   StyledTextOutput textOutput=getTextOutputFactory().create(DependentComponentsReport.class);
-  TextDependentComponentsReportRenderer reportRenderer=new TextDependentComponentsReportRenderer(dependentBinariesResolver,showNonBuildable);
+  TextDependentComponentsReportRenderer reportRenderer=new TextDependentComponentsReportRenderer(dependentBinariesResolver,showNonBuildable,showTestSuites);
   reportRenderer.setOutput(textOutput);
   reportRenderer.startProject(project);
   Set<ComponentSpec> allComponents=getAllComponents(modelRegistry);
   reportRenderer.renderComponents(getReportedComponents(allComponents));
+  if (showTestSuites) {
+    Set<ComponentSpec> allTestSuites=getAllTestSuites(modelRegistry);
+    reportRenderer.renderComponents(allTestSuites);
+  }
+  reportRenderer.renderLegend();
   reportRenderer.completeProject(project);
   reportRenderer.complete();
 }
