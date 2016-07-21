@@ -1,31 +1,18 @@
 {
   if (fileProperties == null) {
     TaskPropertyUtils.ensurePropertiesHaveNames(filePropertiesInternal);
-    final Iterator<BasePropertySpec> rootIterator=filePropertiesInternal.iterator();
-    fileProperties=TaskPropertyUtils.collectFileProperties("output",new AbstractIterator<TaskOutputFilePropertySpec>(){
-      private Iterator<TaskOutputFilePropertySpec> childIterator;
-      @Override protected TaskOutputFilePropertySpec computeNext(){
-        while (true) {
-          if (childIterator != null) {
-            if (childIterator.hasNext()) {
-              return childIterator.next();
-            }
-            childIterator=null;
-          }
-          if (!rootIterator.hasNext()) {
-            return endOfData();
-          }
-          BasePropertySpec propertySpec=rootIterator.next();
-          if (propertySpec instanceof CompositePropertySpec) {
-            childIterator=((CompositePropertySpec)propertySpec).iterator();
-          }
+    Iterable<TaskOutputFilePropertySpec> flattenedProperties=Iterables.concat(Iterables.transform(filePropertiesInternal,new Function<BasePropertySpec,Iterable<TaskOutputFilePropertySpec>>(){
+      @Override public Iterable<TaskOutputFilePropertySpec> apply(      BasePropertySpec propertySpec){
+        if (propertySpec instanceof CompositePropertySpec) {
+          return (CompositePropertySpec)propertySpec;
+        }
  else {
-            return (TaskOutputFilePropertySpec)propertySpec;
-          }
+          return Collections.singleton((TaskOutputFilePropertySpec)propertySpec);
         }
       }
     }
-);
+));
+    fileProperties=TaskPropertyUtils.collectFileProperties("output",flattenedProperties);
   }
   return fileProperties;
 }
