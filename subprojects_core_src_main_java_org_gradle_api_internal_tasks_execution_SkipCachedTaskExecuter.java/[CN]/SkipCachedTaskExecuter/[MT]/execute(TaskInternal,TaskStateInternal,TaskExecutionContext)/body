@@ -1,0 +1,57 @@
+{
+  Clock clock=new Clock();
+  TaskOutputsInternal taskOutputs=task.getOutputs();
+  boolean cacheAllowed=taskOutputs.isCacheAllowed();
+  boolean shouldCache;
+  try {
+    shouldCache=cacheAllowed && taskOutputs.isCacheEnabled();
+  }
+ catch (  Throwable t) {
+    state.executed(new GradleException(String.format("Could not evaluate TaskOutputs.isCacheEnabled() for %s.",task),t));
+    return;
+  }
+  LOGGER.debug("Determining if {} is cached already",task);
+  TaskCacheKey cacheKey=null;
+  if (shouldCache) {
+    TaskArtifactState taskState=repository.getStateFor(task);
+    try {
+      cacheKey=taskState.calculateCacheKey();
+      LOGGER.debug("Cache key for {} is {}",task,cacheKey);
+    }
+ catch (    Exception e) {
+      LOGGER.info(String.format("Could not build cache key for task %s",task),e);
+    }
+  }
+ else {
+    if (!cacheAllowed) {
+      LOGGER.debug("Not caching {} as it is not allowed",task);
+    }
+ else {
+      LOGGER.debug("Not caching {} as task output is not cacheable.",task);
+    }
+  }
+  if (cacheKey != null) {
+    try {
+      TaskOutputReader cachedOutput=cache.get(cacheKey);
+      if (cachedOutput != null) {
+        packer.unpack(taskOutputs,cachedOutput);
+        LOGGER.info("Unpacked output for {} from cache (took {}).",task,clock.getTime());
+        state.upToDate("CACHED");
+        return;
+      }
+    }
+ catch (    IOException e) {
+      LOGGER.info(String.format("Could not load cached output for %s with cache key %s",task,cacheKey),e);
+    }
+  }
+  delegate.execute(task,state,context);
+  if (cacheKey != null && state.getFailure() == null) {
+    try {
+      TaskOutputWriter cachedOutput=packer.createWriter(taskOutputs);
+      cache.put(cacheKey,cachedOutput);
+    }
+ catch (    IOException e) {
+      LOGGER.info(String.format("Could not cache results for %s for cache key %s",task,cacheKey),e);
+    }
+  }
+}

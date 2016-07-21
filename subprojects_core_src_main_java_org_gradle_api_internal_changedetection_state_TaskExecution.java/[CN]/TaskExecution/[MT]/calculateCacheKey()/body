@@ -1,0 +1,17 @@
+{
+  TaskCacheKeyBuilder builder=new DefaultTaskCacheKeyBuilder();
+  builder.putString(taskClass);
+  builder.putHashCode(taskClassLoaderHash);
+  builder.putHashCode(taskActionsClassLoaderHash);
+  for (  Map.Entry<String,Object> entry : sortEntries(inputProperties.entrySet())) {
+    builder.putString(entry.getKey());
+    Object value=entry.getValue();
+    appendToCacheKey(builder,value);
+  }
+  for (  Map.Entry<String,FileCollectionSnapshot> entry : sortEntries(getInputFilesSnapshot().entrySet())) {
+    builder.putString(entry.getKey());
+    FileCollectionSnapshot snapshot=entry.getValue();
+    snapshot.appendToCacheKey(builder);
+  }
+  return builder.build();
+}
