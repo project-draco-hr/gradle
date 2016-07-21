@@ -20,12 +20,14 @@
     }
   }
   final List<DaemonStopEvent> stopEvents=DaemonStopEvents.uniqueRecentDaemonStopEvents(daemonRegistry.getStopEvents());
-  if (statuses.isEmpty() && stopEvents.isEmpty()) {
+  if (statuses.isEmpty()) {
     LOGGER.quiet(DaemonMessages.NO_DAEMONS_RUNNING);
   }
- else {
-    printRunningDaemons(statuses);
-    printStoppedDaemons(stopEvents);
+  if (!(statuses.isEmpty() && stopEvents.isEmpty())) {
+    LOGGER.quiet(String.format(STATUS_FORMAT,"PID","STATUS","INFO"));
   }
+  printRunningDaemons(statuses);
+  printStoppedDaemons(stopEvents);
+  LOGGER.quiet("");
   LOGGER.quiet(STATUS_FOOTER + " See " + documentationRegistry.getDocumentationFor("gradle_daemon","sec:status"));
 }

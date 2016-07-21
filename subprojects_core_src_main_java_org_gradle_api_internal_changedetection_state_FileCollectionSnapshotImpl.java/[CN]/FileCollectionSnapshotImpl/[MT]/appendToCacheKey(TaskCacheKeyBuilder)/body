@@ -1,9 +1,10 @@
 {
+  FileCollectionHashBuilder hashBuilder=orderSensitive ? new OrderInsensitiveFileCollectionHashBuilder(snapshots.size(),builder) : new OrderSensitiveFileCollectionHashBuilder(builder);
   List<String> keys=Lists.newArrayList(snapshots.keySet());
   Collections.sort(keys);
   for (  String key : keys) {
-    builder.putString(key);
     IncrementalFileSnapshot snapshot=snapshots.get(key);
-    snapshot.appendToCacheKey(builder);
+    hashBuilder.hash(key,snapshot.getHash());
   }
+  hashBuilder.close();
 }
