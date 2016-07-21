@@ -1,0 +1,29 @@
+{
+  final Map<String,IncrementalFileSnapshot> remainingPrevious=new HashMap<String,IncrementalFileSnapshot>(previous);
+  final Iterator<String> currentFiles=current.keySet().iterator();
+  return new AbstractIterator<TaskStateChange>(){
+    private Iterator<String> removedFiles;
+    @Override protected TaskStateChange computeNext(){
+      while (currentFiles.hasNext()) {
+        String currentFile=currentFiles.next();
+        IncrementalFileSnapshot previousFile=remainingPrevious.remove(currentFile);
+        if (previousFile == null) {
+          if (includeAdded) {
+            return new FileChange(currentFile,ChangeType.ADDED,fileType);
+          }
+        }
+ else         if (!current.get(currentFile).isContentUpToDate(previousFile)) {
+          return new FileChange(currentFile,ChangeType.MODIFIED,fileType);
+        }
+      }
+      if (removedFiles == null) {
+        removedFiles=remainingPrevious.keySet().iterator();
+      }
+      if (removedFiles.hasNext()) {
+        return new FileChange(removedFiles.next(),ChangeType.REMOVED,fileType);
+      }
+      return endOfData();
+    }
+  }
+;
+}
