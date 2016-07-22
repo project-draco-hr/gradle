@@ -1,0 +1,26 @@
+{
+  final Set<Long> uniqueStoppedPids=new HashSet<Long>(stopEvents.size());
+  final List<DaemonStopEvent> recentStopEvents=new ArrayList<DaemonStopEvent>(stopEvents.size());
+  final List<DaemonStopEvent> sortedEvents=CollectionUtils.sort(stopEvents,new Comparator<DaemonStopEvent>(){
+    @Override public int compare(    DaemonStopEvent event1,    DaemonStopEvent event2){
+      if (event1.getStatus() != null && event2.getStatus() == null) {
+        return -1;
+      }
+ else       if (event1.getStatus() == null && event2.getStatus() != null) {
+        return 1;
+      }
+ else       if (event1.getStatus() != null && event2.getStatus() != null) {
+        return event2.getStatus().compareTo(event1.getStatus());
+      }
+      return 0;
+    }
+  }
+);
+  for (  DaemonStopEvent event : sortedEvents) {
+    if (event.occurredInLastHours(RECENTLY) && !uniqueStoppedPids.contains(event.getPid())) {
+      uniqueStoppedPids.add(event.getPid());
+      recentStopEvents.add(event);
+    }
+  }
+  return recentStopEvents;
+}
