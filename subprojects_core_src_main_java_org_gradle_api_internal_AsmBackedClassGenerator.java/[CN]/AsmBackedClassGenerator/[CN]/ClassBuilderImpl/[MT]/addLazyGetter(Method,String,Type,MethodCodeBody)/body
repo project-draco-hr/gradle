@@ -1,0 +1,22 @@
+{
+  String methodDescriptor=Type.getMethodDescriptor(method);
+  String methodName=method.getName();
+  addGetter(methodName,methodDescriptor,new MethodCodeBody(){
+    @Override public void add(    MethodVisitor visitor) throws Exception {
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),fieldName,fieldType.getDescriptor());
+      visitor.visitVarInsn(Opcodes.ASTORE,1);
+      visitor.visitVarInsn(Opcodes.ALOAD,1);
+      Label returnValue=new Label();
+      visitor.visitJumpInsn(Opcodes.IFNONNULL,returnValue);
+      initializer.add(visitor);
+      visitor.visitVarInsn(Opcodes.ASTORE,1);
+      visitor.visitVarInsn(Opcodes.ALOAD,0);
+      visitor.visitVarInsn(Opcodes.ALOAD,1);
+      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),fieldName,fieldType.getDescriptor());
+      visitor.visitLabel(returnValue);
+      visitor.visitVarInsn(Opcodes.ALOAD,1);
+    }
+  }
+);
+}
