@@ -1,8 +1,7 @@
 {
-  visitor.visitField(Opcodes.ACC_PRIVATE,META_CLASS_FIELD,METACLASS_TYPE_DESCRIPTOR,null,null);
+  visitor.visitField(Opcodes.ACC_PRIVATE,META_CLASS_FIELD,META_CLASS_TYPE_DESCRIPTOR,null,null);
   final MethodCodeBody initMetaClass=new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
-      visitor.visitVarInsn(Opcodes.ALOAD,0);
       String getMetaClassRegistryDesc=Type.getMethodDescriptor(GroovySystem.class.getDeclaredMethod("getMetaClassRegistry"));
       visitor.visitMethodInsn(Opcodes.INVOKESTATIC,GROOVY_SYSTEM_TYPE.getInternalName(),"getMetaClassRegistry",getMetaClassRegistryDesc,false);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
@@ -10,30 +9,15 @@
       visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,OBJECT_TYPE.getInternalName(),"getClass",getClassDesc,false);
       String getMetaClassDesc=Type.getMethodDescriptor(MetaClassRegistry.class.getDeclaredMethod("getMetaClass",Class.class));
       visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE,META_CLASS_REGISTRY_TYPE.getInternalName(),"getMetaClass",getMetaClassDesc,true);
-      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),META_CLASS_FIELD,METACLASS_TYPE_DESCRIPTOR);
     }
   }
 ;
-  addGetter(GroovyObject.class.getDeclaredMethod("getMetaClass"),new MethodCodeBody(){
-    public void add(    MethodVisitor visitor) throws Exception {
-      visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),META_CLASS_FIELD,METACLASS_TYPE_DESCRIPTOR);
-      visitor.visitInsn(Opcodes.DUP);
-      Label returnValue=new Label();
-      visitor.visitJumpInsn(Opcodes.IFNONNULL,returnValue);
-      visitor.visitInsn(Opcodes.POP);
-      initMetaClass.add(visitor);
-      visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),META_CLASS_FIELD,METACLASS_TYPE_DESCRIPTOR);
-      visitor.visitLabel(returnValue);
-    }
-  }
-);
+  addLazyGetter(GroovyObject.class.getDeclaredMethod("getMetaClass"),META_CLASS_FIELD,META_CLASS_TYPE,initMetaClass);
   addSetter(GroovyObject.class.getDeclaredMethod("setMetaClass",MetaClass.class),new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitVarInsn(Opcodes.ALOAD,1);
-      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),META_CLASS_FIELD,METACLASS_TYPE_DESCRIPTOR);
+      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),META_CLASS_FIELD,META_CLASS_TYPE_DESCRIPTOR);
     }
   }
 );
