@@ -6,30 +6,14 @@
   hasMappingField=true;
   final MethodCodeBody initConventionAwareHelper=new MethodCodeBody(){
     public void add(    MethodVisitor visitor) throws Exception {
-      visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitTypeInsn(Opcodes.NEW,CONVENTION_AWARE_HELPER_TYPE.getInternalName());
       visitor.visitInsn(Opcodes.DUP);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitVarInsn(Opcodes.ALOAD,0);
       visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,generatedType.getInternalName(),"getConvention",RETURN_CONVENTION,false);
       visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,CONVENTION_AWARE_HELPER_TYPE.getInternalName(),"<init>",RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION,false);
-      visitor.visitFieldInsn(Opcodes.PUTFIELD,generatedType.getInternalName(),MAPPING_FIELD,CONVENTION_MAPPING_FIELD_DESCRIPTOR);
     }
   }
 ;
-  addGetter(IConventionAware.class.getDeclaredMethod("getConventionMapping"),new MethodCodeBody(){
-    public void add(    MethodVisitor visitor) throws Exception {
-      visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),MAPPING_FIELD,CONVENTION_MAPPING_FIELD_DESCRIPTOR);
-      visitor.visitInsn(Opcodes.DUP);
-      Label returnValue=new Label();
-      visitor.visitJumpInsn(Opcodes.IFNONNULL,returnValue);
-      visitor.visitInsn(Opcodes.POP);
-      initConventionAwareHelper.add(visitor);
-      visitor.visitVarInsn(Opcodes.ALOAD,0);
-      visitor.visitFieldInsn(Opcodes.GETFIELD,generatedType.getInternalName(),MAPPING_FIELD,CONVENTION_MAPPING_FIELD_DESCRIPTOR);
-      visitor.visitLabel(returnValue);
-    }
-  }
-);
+  addLazyGetter(IConventionAware.class.getDeclaredMethod("getConventionMapping"),MAPPING_FIELD,CONVENTION_MAPPING_TYPE,initConventionAwareHelper);
 }
