@@ -11,23 +11,17 @@
     if (buildDependentComponents != null) {
       buildDependentComponents.dependsOn(buildDependents);
     }
-    Callable<Iterable<Task>> deferredDependencies=new Callable<Iterable<Task>>(){
+    assembleDependents.dependsOn(new Callable<Iterable<Task>>(){
       @Override public Iterable<Task> call(){
-        List<Task> dependencies=Lists.newArrayList();
-        DependentBinariesResolvedResult result=dependentsResolver.resolve(binary).getRoot();
-        for (        DependentBinariesResolvedResult dependent : result.getChildren()) {
-          if (dependent.isBuildable()) {
-            ModelRegistry modelRegistry=projectModelResolver.resolveProjectModel(dependent.getId().getProjectPath());
-            ModelMap<NativeBinarySpecInternal> projectBinaries=modelRegistry.realize("binaries",ModelTypes.modelMap(NativeBinarySpecInternal.class));
-            NativeBinarySpecInternal dependentBinary=projectBinaries.get(dependent.getProjectScopedName());
-            dependencies.add(dependentBinary.getBuildTask());
-          }
-        }
-        return dependencies;
+        return getDependentTaskDependencies("assembleDependents",binary,tasks,dependentsResolver,projectModelResolver);
       }
     }
-;
-    assembleDependents.dependsOn(deferredDependencies);
-    buildDependents.dependsOn(deferredDependencies);
+);
+    buildDependents.dependsOn(new Callable<Iterable<Task>>(){
+      @Override public Iterable<Task> call(){
+        return getDependentTaskDependencies("buildDependents",binary,tasks,dependentsResolver,projectModelResolver);
+      }
+    }
+);
   }
 }
