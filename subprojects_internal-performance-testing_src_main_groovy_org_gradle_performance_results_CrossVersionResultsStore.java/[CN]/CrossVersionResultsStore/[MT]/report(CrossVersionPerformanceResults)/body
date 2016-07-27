@@ -1,0 +1,61 @@
+{
+  try {
+    db.withConnection(new ConnectionAction<Void>(){
+      public Void execute(      Connection connection) throws Exception {
+        long testId;
+        PreparedStatement statement=null;
+        ResultSet keys=null;
+        try {
+          statement=connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+          statement.setString(1,results.getTestId());
+          statement.setTimestamp(2,new Timestamp(results.getTestTime()));
+          statement.setString(3,results.getVersionUnderTest());
+          statement.setString(4,results.getTestProject());
+          statement.setObject(5,toArray(results.getTasks()));
+          statement.setObject(6,toArray(results.getArgs()));
+          statement.setObject(7,toArray(results.getGradleOpts()));
+          statement.setObject(8,results.getDaemon());
+          statement.setString(9,results.getOperatingSystem());
+          statement.setString(10,results.getJvm());
+          statement.setString(11,results.getVcsBranch());
+          String vcs=results.getVcsCommits() == null ? null : Joiner.on(",").join(results.getVcsCommits());
+          statement.setString(12,vcs);
+          statement.execute();
+          keys=statement.getGeneratedKeys();
+          keys.next();
+          testId=keys.getLong(1);
+        }
+  finally {
+          closeStatement(statement);
+          closeResultSet(keys);
+        }
+        try {
+          statement=connection.prepareStatement("insert into testOperation(testExecution, version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+          addOperations(statement,testId,null,results.getCurrent());
+          for (          BaselineVersion baselineVersion : results.getBaselineVersions()) {
+            addOperations(statement,testId,baselineVersion.getVersion(),baselineVersion.getResults());
+          }
+        }
+  finally {
+          closeStatement(statement);
+        }
+        for (        String previousId : results.getPreviousTestIds()) {
+          statement=connection.prepareStatement("update testExecution set testId = ? where testId = ?");
+          try {
+            statement.setString(1,results.getTestId());
+            statement.setString(2,previousId);
+            statement.execute();
+          }
+  finally {
+            closeStatement(statement);
+          }
+        }
+        return null;
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(String.format("Could not open results datastore '%s'.",db.getUrl()),e);
+  }
+}
