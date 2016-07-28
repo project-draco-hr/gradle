@@ -1,8 +1,8 @@
 {
   final ModelMap<NativeBinarySpecInternal> nativeBinaries=binaries.withType(NativeBinarySpecInternal.class);
   for (  final BinarySpecInternal binary : nativeBinaries) {
-    Task assembleDependents=tasks.get(binary.getNamingScheme().getTaskName("assembleDependents"));
-    Task buildDependents=tasks.get(binary.getNamingScheme().getTaskName("buildDependents"));
+    Task assembleDependents=tasks.get(binary.getNamingScheme().getTaskName(ASSEMBLE_DEPENDENTS_TASK_NAME));
+    Task buildDependents=tasks.get(binary.getNamingScheme().getTaskName(BUILD_DEPENDENTS_TASK_NAME));
     Task assembleDependentComponents=tasks.get(getAssembleDependentComponentsTaskName(binary.getComponent()));
     if (assembleDependentComponents != null) {
       assembleDependentComponents.dependsOn(assembleDependents);
@@ -13,13 +13,13 @@
     }
     assembleDependents.dependsOn(new Callable<Iterable<Task>>(){
       @Override public Iterable<Task> call(){
-        return getDependentTaskDependencies("assembleDependents",binary,dependentsResolver,projectModelResolver);
+        return getDependentTaskDependencies(ASSEMBLE_DEPENDENTS_TASK_NAME,binary,dependentsResolver,projectModelResolver);
       }
     }
 );
     buildDependents.dependsOn(new Callable<Iterable<Task>>(){
       @Override public Iterable<Task> call(){
-        return getDependentTaskDependencies("buildDependents",binary,dependentsResolver,projectModelResolver);
+        return getDependentTaskDependencies(BUILD_DEPENDENTS_TASK_NAME,binary,dependentsResolver,projectModelResolver);
       }
     }
 );
