@@ -1,0 +1,30 @@
+{
+  if (sourceObject == null) {
+    return null;
+  }
+  Class<? extends T> viewType=targetTypeProvider.getTargetType(targetType,sourceObject);
+  DefaultSourceObjectMapping mapping=new DefaultSourceObjectMapping(sourceObject,targetType,viewType);
+  graphDetails.mapper.execute(mapping);
+  viewType=mapping.wrapperType.asSubclass(targetType);
+  if (viewType.isInstance(sourceObject)) {
+    return viewType.cast(sourceObject);
+  }
+  if (targetType.isEnum()) {
+    return adaptToEnum(targetType,sourceObject);
+  }
+  Object view=graphDetails.adaptedObjects.get(sourceObject);
+  if (view != null) {
+    return targetType.cast(view);
+  }
+  MixInMethodInvoker mixInMethodInvoker=null;
+  if (mapping.mixInType != null) {
+    mixInMethodInvoker=new MixInMethodInvoker(mapping.mixInType,new AdaptingMethodInvoker(graphDetails,new ReflectionMethodInvoker()));
+  }
+  MethodInvoker overrideInvoker=chainInvokers(mixInMethodInvoker,mapping.overrideInvoker);
+  Object proxy=Proxy.newProxyInstance(viewType.getClassLoader(),new Class<?>[]{viewType},new InvocationHandlerImpl(sourceObject,overrideInvoker,graphDetails));
+  if (mixInMethodInvoker != null) {
+    mixInMethodInvoker.setProxy(proxy);
+  }
+  graphDetails.adaptedObjects.put(sourceObject,proxy);
+  return viewType.cast(proxy);
+}
