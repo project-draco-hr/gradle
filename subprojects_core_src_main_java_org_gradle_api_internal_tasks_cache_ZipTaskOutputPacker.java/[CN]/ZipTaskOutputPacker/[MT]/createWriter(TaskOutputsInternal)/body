@@ -1,60 +1,50 @@
 {
   return new TaskOutputWriter(){
-    @Override public void writeTo(    ByteSink output) throws IOException {
-      Closer closer=Closer.create();
-      OutputStream outputStream=closer.register(output.openBufferedStream());
-      try {
-        final ZipOutputStream zipOutput=new ZipOutputStream(outputStream);
-        for (        TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
-          final String propertyName=propertySpec.getPropertyName();
+    @Override public void writeTo(    OutputStream outputStream) throws IOException {
+      final ZipOutputStream zipOutput=new ZipOutputStream(outputStream);
+      for (      TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
+        final String propertyName=propertySpec.getPropertyName();
 switch (propertySpec.getOutputType()) {
 case DIRECTORY:
-            final String propertyRoot="property-" + propertyName + "/";
-          zipOutput.putNextEntry(new ZipEntry(propertyRoot));
-        new DirectoryFileTree(propertySpec.getOutputFile()).visit(new FileVisitor(){
-          @Override public void visitDir(          FileVisitDetails dirDetails){
-            String path=dirDetails.getRelativePath().getPathString();
-            try {
-              zipOutput.putNextEntry(new ZipEntry(propertyRoot + path + "/"));
-            }
- catch (            IOException e) {
-              throw Throwables.propagate(e);
-            }
+          final String propertyRoot="property-" + propertyName + "/";
+        zipOutput.putNextEntry(new ZipEntry(propertyRoot));
+      new DirectoryFileTree(propertySpec.getOutputFile()).visit(new FileVisitor(){
+        @Override public void visitDir(        FileVisitDetails dirDetails){
+          String path=dirDetails.getRelativePath().getPathString();
+          try {
+            zipOutput.putNextEntry(new ZipEntry(propertyRoot + path + "/"));
           }
-          @Override public void visitFile(          FileVisitDetails fileDetails){
-            String path=fileDetails.getRelativePath().getPathString();
-            try {
-              zipOutput.putNextEntry(new ZipEntry(propertyRoot + path));
-              fileDetails.copyTo(zipOutput);
-            }
- catch (            IOException e) {
-              throw Throwables.propagate(e);
-            }
+ catch (          IOException e) {
+            throw Throwables.propagate(e);
           }
         }
+        @Override public void visitFile(        FileVisitDetails fileDetails){
+          String path=fileDetails.getRelativePath().getPathString();
+          try {
+            zipOutput.putNextEntry(new ZipEntry(propertyRoot + path));
+            fileDetails.copyTo(zipOutput);
+          }
+ catch (          IOException e) {
+            throw Throwables.propagate(e);
+          }
+        }
+      }
 );
-      break;
+    break;
 case FILE:
-    try {
-      zipOutput.putNextEntry(new ZipEntry("property-" + propertyName));
-      Files.copy(propertySpec.getOutputFile(),zipOutput);
-    }
- catch (    IOException e) {
-      throw Throwables.propagate(e);
-    }
-  break;
+  try {
+    zipOutput.putNextEntry(new ZipEntry("property-" + propertyName));
+    Files.copy(propertySpec.getOutputFile(),zipOutput);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+break;
 default :
 throw new AssertionError();
 }
 }
-zipOutput.close();
-}
- catch (Exception e) {
-throw closer.rethrow(e);
-}
- finally {
-closer.close();
-}
+zipOutput.finish();
 }
 }
 ;
