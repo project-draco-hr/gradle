@@ -2,9 +2,15 @@
   PerformanceTestHistory history=resultsStore.getTestResults(testId,1);
   PerformanceTestExecution lastRun=Iterables.getFirst(history.getExecutions(),null);
   if (lastRun == null) {
-    return 0;
+    return BigDecimal.ZERO;
   }
  else {
-    return lastRun.getTestTime();
+    BigDecimal sum=BigDecimal.ZERO;
+    for (    MeasuredOperationList operation : lastRun.getScenarios()) {
+      for (      Amount<Duration> duration : operation.getTotalTime()) {
+        sum=sum.add(duration.getValue());
+      }
+    }
+    return sum;
   }
 }
