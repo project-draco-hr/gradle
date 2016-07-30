@@ -2,7 +2,7 @@
   if (sourceObject == null) {
     return null;
   }
-  Class<? extends T> viewType=targetTypeProvider.getTargetType(targetType,sourceObject);
+  Class<? extends T> viewType=graphDetails.typeProvider.getTargetType(targetType,sourceObject);
   DefaultSourceObjectMapping mapping=new DefaultSourceObjectMapping(sourceObject,targetType,viewType);
   graphDetails.mapper.execute(mapping);
   viewType=mapping.wrapperType.asSubclass(targetType);
@@ -17,15 +17,12 @@
   if (view != null) {
     return targetType.cast(view);
   }
-  MixInMethodInvoker mixInMethodInvoker=null;
+  MethodInvoker mixInMethodInvoker=NO_OP_HANDLER;
   if (mapping.mixInType != null) {
-    mixInMethodInvoker=new MixInMethodInvoker(mapping.mixInType,new AdaptingMethodInvoker(graphDetails,new ReflectionMethodInvoker()));
+    mixInMethodInvoker=new MixInMethodInvoker(mapping.mixInType,new AdaptingMethodInvoker(graphDetails,REFLECTION_METHOD_INVOKER));
   }
   MethodInvoker overrideInvoker=chainInvokers(mixInMethodInvoker,mapping.overrideInvoker);
   Object proxy=Proxy.newProxyInstance(viewType.getClassLoader(),new Class<?>[]{viewType},new InvocationHandlerImpl(sourceObject,overrideInvoker,graphDetails));
-  if (mixInMethodInvoker != null) {
-    mixInMethodInvoker.setProxy(proxy);
-  }
   graphDetails.adaptedObjects.put(viewKey,proxy);
   return viewType.cast(proxy);
 }
