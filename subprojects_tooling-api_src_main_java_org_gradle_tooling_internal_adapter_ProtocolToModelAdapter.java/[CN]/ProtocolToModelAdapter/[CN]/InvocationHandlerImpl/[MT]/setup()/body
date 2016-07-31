@@ -1,12 +1,7 @@
 {
   DefaultSourceObjectMapping mapping=new DefaultSourceObjectMapping(sourceObject,targetType);
+  mapping.invokers.add(REFLECTION_METHOD_INVOKER);
   graphDetails.mapper.execute(mapping);
-  MethodInvoker mixInMethodInvoker=NO_OP_HANDLER;
-  if (mapping.mixInType != null) {
-    mixInMethodInvoker=new ClassMixInMethodInvoker(mapping.mixInType,new AdaptingMethodInvoker(graphDetails,REFLECTION_METHOD_INVOKER));
-  }
- else   if (mapping.mixInBean != null) {
-    mixInMethodInvoker=new BeanMixInMethodInvoker(mapping.mixInBean,new AdaptingMethodInvoker(graphDetails,REFLECTION_METHOD_INVOKER));
-  }
-  invoker=new SupportedPropertyInvoker(new SafeMethodInvoker(new PropertyCachingMethodInvoker(new AdaptingMethodInvoker(graphDetails,new ChainedMethodInvoker(mixInMethodInvoker,REFLECTION_METHOD_INVOKER)))));
+  MethodInvoker mixInMethodInvoker=mapping.invokers.size() == 1 ? mapping.invokers.get(0) : new ChainedMethodInvoker(mapping.invokers);
+  invoker=new SupportedPropertyInvoker(new SafeMethodInvoker(new PropertyCachingMethodInvoker(new AdaptingMethodInvoker(graphDetails,mixInMethodInvoker))));
 }
