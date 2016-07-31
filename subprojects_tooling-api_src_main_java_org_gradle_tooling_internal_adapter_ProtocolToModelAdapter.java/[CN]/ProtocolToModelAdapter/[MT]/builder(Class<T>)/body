@@ -1,0 +1,42 @@
+{
+  return new ViewBuilder<T>(){
+    List<Class<?>> mixInClasses=new ArrayList<Class<?>>();
+    List<Action<SourceObjectMapping>> mappers=new ArrayList<Action<SourceObjectMapping>>();
+    @Override public ViewBuilder<T> mixIn(    Class<?> mixInType){
+      mixInClasses.add(mixInType);
+      return this;
+    }
+    @Override public ViewBuilder<T> mixInTo(    Class<?> targetType,    Object mixIn){
+      throw new UnsupportedOperationException();
+    }
+    @Override public ViewBuilder<T> mixInTo(    final Class<?> targetType,    final Class<?> mixInType){
+      mappers.add(new Action<SourceObjectMapping>(){
+        @Override public void execute(        SourceObjectMapping sourceObjectMapping){
+          if (targetType.isAssignableFrom(sourceObjectMapping.getTargetType())) {
+            sourceObjectMapping.mixIn(mixInType);
+          }
+        }
+      }
+);
+      return this;
+    }
+    @Override public T build(    @Nullable Object sourceObject){
+      if (sourceObject == null) {
+        return null;
+      }
+      Action<SourceObjectMapping> mapper;
+      if (mappers.isEmpty() && mixInClasses.isEmpty()) {
+        mapper=NO_OP_MAPPER;
+      }
+ else {
+        List<Action<SourceObjectMapping>> mappers=new ArrayList<Action<SourceObjectMapping>>(this.mappers);
+        for (        Class<?> mixInClass : mixInClasses) {
+          mappers.add(new MixInObjectMappingAction(sourceObject,mixInClass));
+        }
+        mapper=Actions.composite(mappers);
+      }
+      return createView(viewType,sourceObject,new AdaptedGraphDetails(mapper,targetTypeProvider));
+    }
+  }
+;
+}
