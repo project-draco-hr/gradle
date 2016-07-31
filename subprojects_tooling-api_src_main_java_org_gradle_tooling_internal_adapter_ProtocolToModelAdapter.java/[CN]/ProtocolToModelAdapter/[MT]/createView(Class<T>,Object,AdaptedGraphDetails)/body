@@ -14,7 +14,8 @@
   if (view != null) {
     return targetType.cast(view);
   }
-  Object proxy=Proxy.newProxyInstance(viewType.getClassLoader(),new Class<?>[]{viewType},new InvocationHandlerImpl(targetType,sourceObject,graphDetails));
-  graphDetails.adaptedObjects.put(viewKey,proxy);
+  InvocationHandlerImpl handler=new InvocationHandlerImpl(targetType,sourceObject,graphDetails);
+  Object proxy=Proxy.newProxyInstance(viewType.getClassLoader(),new Class<?>[]{viewType},handler);
+  handler.attachProxy(proxy);
   return viewType.cast(proxy);
 }
