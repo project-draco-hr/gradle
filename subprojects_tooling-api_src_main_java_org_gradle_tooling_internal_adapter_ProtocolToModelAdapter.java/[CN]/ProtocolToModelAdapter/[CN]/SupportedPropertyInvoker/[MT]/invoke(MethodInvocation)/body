@@ -1,10 +1,14 @@
 {
-  Matcher matcher=IS_SUPPORT_METHOD.matcher(invocation.getName());
-  if (!matcher.matches()) {
-    next.invoke(invocation);
+  next.invoke(invocation);
+  if (invocation.found()) {
     return;
   }
-  String getterName="get" + matcher.group(1);
+  String methodName=invocation.getName();
+  boolean isSupportMethod=methodName.length() > 11 && methodName.startsWith("is") && methodName.endsWith("Supported");
+  if (!isSupportMethod) {
+    return;
+  }
+  String getterName="get" + methodName.substring(2,methodName.length() - 9);
   MethodInvocation getterInvocation=new MethodInvocation(getterName,invocation.getReturnType(),invocation.getGenericReturnType(),EMPTY_CLASS_ARRAY,invocation.getView(),invocation.getViewType(),invocation.getDelegate(),EMPTY);
   next.invoke(getterInvocation);
   invocation.setResult(getterInvocation.found());
