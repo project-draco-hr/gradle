@@ -1,3 +1,12 @@
 {
-  invoker=new SupportedPropertyInvoker(new SafeMethodInvoker(new PropertyCachingMethodInvoker(new AdaptingMethodInvoker(graphDetails,new ChainedMethodInvoker(overrideMethodInvoker,REFLECTION_METHOD_INVOKER)))));
+  DefaultSourceObjectMapping mapping=new DefaultSourceObjectMapping(sourceObject,targetType);
+  graphDetails.mapper.execute(mapping);
+  MethodInvoker mixInMethodInvoker=NO_OP_HANDLER;
+  if (mapping.mixInType != null) {
+    mixInMethodInvoker=new ClassMixInMethodInvoker(mapping.mixInType,new AdaptingMethodInvoker(graphDetails,REFLECTION_METHOD_INVOKER));
+  }
+ else   if (mapping.mixInBean != null) {
+    mixInMethodInvoker=new BeanMixInMethodInvoker(mapping.mixInBean,new AdaptingMethodInvoker(graphDetails,REFLECTION_METHOD_INVOKER));
+  }
+  invoker=new SupportedPropertyInvoker(new SafeMethodInvoker(new PropertyCachingMethodInvoker(new AdaptingMethodInvoker(graphDetails,new ChainedMethodInvoker(mixInMethodInvoker,REFLECTION_METHOD_INVOKER)))));
 }
