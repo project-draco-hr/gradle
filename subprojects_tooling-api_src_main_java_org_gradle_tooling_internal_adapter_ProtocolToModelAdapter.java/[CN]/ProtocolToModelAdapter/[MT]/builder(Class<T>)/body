@@ -1,32 +1,3 @@
 {
-  return new ViewBuilder<T>(){
-    List<Class<?>> mixInClasses=new ArrayList<Class<?>>();
-    List<Action<SourceObjectMapping>> mappers=new ArrayList<Action<SourceObjectMapping>>();
-    @Override public ViewBuilder<T> mixIn(    Class<?> mixInType){
-      mixInClasses.add(mixInType);
-      return this;
-    }
-    @Override public ViewBuilder<T> mixInTo(    final Class<?> targetType,    final Object mixIn){
-      mappers.add(new MixInBeanMappingAction(targetType,mixIn));
-      return this;
-    }
-    @Override public ViewBuilder<T> mixInTo(    final Class<?> targetType,    final Class<?> mixInType){
-      mappers.add(new MixInTypeMappingAction(targetType,mixInType));
-      return this;
-    }
-    @Override public T build(    @Nullable final Object sourceObject){
-      if (sourceObject == null) {
-        return null;
-      }
-      Action<SourceObjectMapping> mapper;
-      if (mappers.isEmpty() && mixInClasses.isEmpty()) {
-        mapper=NO_OP_MAPPER;
-      }
- else {
-        mapper=new MixInMappingAction(sourceObject,mixInClasses,mappers);
-      }
-      return createView(viewType,sourceObject,new AdaptedGraphDetails(mapper,targetTypeProvider));
-    }
-  }
-;
+  return new DefaultViewBuilder<T>(viewType);
 }
