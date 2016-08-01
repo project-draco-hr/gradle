@@ -6,14 +6,14 @@
   try {
     shouldCache=cacheAllowed && taskOutputs.isCacheEnabled();
   }
- catch (  Throwable t) {
+ catch (  Exception t) {
     state.executed(new GradleException(String.format("Could not evaluate TaskOutputs.isCacheEnabled() for %s.",task),t));
     return;
   }
   LOGGER.debug("Determining if {} is cached already",task);
   TaskCacheKey cacheKey=null;
   if (shouldCache) {
-    TaskArtifactState taskState=repository.getStateFor(task);
+    TaskArtifactState taskState=context.getTaskArtifactState();
     try {
       cacheKey=taskState.calculateCacheKey();
       LOGGER.debug("Cache key for {} is {}",task,cacheKey);
@@ -36,7 +36,7 @@
       if (cachedOutput != null) {
         packer.unpack(taskOutputs,cachedOutput);
         LOGGER.info("Unpacked output for {} from cache (took {}).",task,clock.getTime());
-        state.upToDate("CACHED");
+        state.upToDate("FROM-CACHE");
         return;
       }
     }

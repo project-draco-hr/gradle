@@ -1,0 +1,22 @@
+{
+  if (sourceObject == null) {
+    return null;
+  }
+  Class<? extends T> viewType=graphDetails.typeProvider.getTargetType(targetType,sourceObject);
+  if (viewType.isInstance(sourceObject)) {
+    return viewType.cast(sourceObject);
+  }
+  if (targetType.isEnum()) {
+    return adaptToEnum(targetType,sourceObject);
+  }
+  ViewDecoration decorationsForThisType=decoration.isNoOp() ? decoration : decoration.restrictTo(TYPE_INSPECTOR.getReachableTypes(targetType));
+  ViewKey viewKey=new ViewKey(viewType,sourceObject,decorationsForThisType);
+  Object view=graphDetails.views.get(viewKey);
+  if (view != null) {
+    return targetType.cast(view);
+  }
+  InvocationHandlerImpl handler=new InvocationHandlerImpl(targetType,sourceObject,decorationsForThisType,graphDetails);
+  Object proxy=Proxy.newProxyInstance(viewType.getClassLoader(),new Class<?>[]{viewType},handler);
+  handler.attachProxy(proxy);
+  return viewType.cast(proxy);
+}
