@@ -1,0 +1,16 @@
+{
+  MethodInvocation beanInvocation=new MethodInvocation(invocation.getName(),invocation.getReturnType(),invocation.getGenericReturnType(),invocation.getParameterTypes(),invocation.getView(),invocation.getViewType(),instance,invocation.getParameters());
+  next.invoke(beanInvocation);
+  if (beanInvocation.found()) {
+    invocation.setResult(beanInvocation.getResult());
+    return;
+  }
+  if (!invocation.isGetter()) {
+    return;
+  }
+  beanInvocation=new MethodInvocation(invocation.getName(),invocation.getReturnType(),invocation.getGenericReturnType(),new Class<?>[]{invocation.getViewType()},invocation.getView(),invocation.getViewType(),instance,new Object[]{invocation.getView()});
+  next.invoke(beanInvocation);
+  if (beanInvocation.found()) {
+    invocation.setResult(beanInvocation.getResult());
+  }
+}
