@@ -3,12 +3,12 @@
   CompositeBuildContext context=sharedServices.get(CompositeBuildContext.class);
   CompositeContextBuildActionRunner contextBuilder=new CompositeContextBuildActionRunner(context,propagateFailures);
   for (  IncludedBuild build : includedBuilds) {
-    StartParameter participantStartParam=buildStartParam.newInstance();
-    participantStartParam.setProjectDir(build.getProjectDir());
-    participantStartParam.setIncludedBuilds(Collections.<File>emptyList());
-    participantStartParam.setConfigureOnDemand(false);
+    StartParameter includedBuildStartParam=buildStartParam.newBuild();
+    includedBuildStartParam.setProjectDir(build.getProjectDir());
+    includedBuildStartParam.setSearchUpwards(false);
+    includedBuildStartParam.setConfigureOnDemand(false);
     LOGGER.lifecycle("[composite-build] Configuring build: " + build.getProjectDir());
-    GradleLauncher gradleLauncher=createGradleLauncher(participantStartParam,requestContext,gradleLauncherFactory);
+    GradleLauncher gradleLauncher=createGradleLauncher(includedBuildStartParam,requestContext,gradleLauncherFactory);
     contextBuilder.run(new GradleBuildController(gradleLauncher));
   }
 }
