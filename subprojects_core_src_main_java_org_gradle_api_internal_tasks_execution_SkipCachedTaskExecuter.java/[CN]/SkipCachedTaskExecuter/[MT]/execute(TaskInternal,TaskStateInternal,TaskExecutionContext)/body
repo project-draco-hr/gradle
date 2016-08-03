@@ -7,8 +7,7 @@
     shouldCache=cacheAllowed && taskOutputs.isCacheEnabled();
   }
  catch (  Exception t) {
-    state.executed(new GradleException(String.format("Could not evaluate TaskOutputs.isCacheEnabled() for %s.",task),t));
-    return;
+    throw new GradleException(String.format("Could not evaluate TaskOutputs.cacheIf for %s.",task),t);
   }
   LOGGER.debug("Determining if {} is cached already",task);
   TaskCacheKey cacheKey=null;
@@ -19,7 +18,7 @@
       LOGGER.debug("Cache key for {} is {}",task,cacheKey);
     }
  catch (    Exception e) {
-      LOGGER.info(String.format("Could not build cache key for task %s",task),e);
+      throw new GradleException(String.format("Could not build cache key for %s.",task),e);
     }
   }
  else {
@@ -40,8 +39,8 @@
         return;
       }
     }
- catch (    IOException e) {
-      LOGGER.info(String.format("Could not load cached output for %s with cache key %s",task,cacheKey),e);
+ catch (    Exception e) {
+      LOGGER.warn("Could not load cached output for {} with cache key {}",task,cacheKey,e);
     }
   }
   delegate.execute(task,state,context);
@@ -50,8 +49,8 @@
       TaskOutputWriter cachedOutput=packer.createWriter(taskOutputs);
       getCache().put(cacheKey,cachedOutput);
     }
- catch (    IOException e) {
-      LOGGER.info(String.format("Could not cache results for %s for cache key %s",task,cacheKey),e);
+ catch (    Exception e) {
+      LOGGER.warn("Could not cache results for {} for cache key {}",task,cacheKey,e);
     }
   }
 }
