@@ -1,0 +1,27 @@
+{
+  CloseableHttpClient httpClient=HttpClients.createDefault();
+  try {
+    final URI uri=root.resolve("./" + key.getHashCode());
+    HttpGet httpGet=new HttpGet(uri);
+    final CloseableHttpResponse response=httpClient.execute(httpGet);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Response for GET {}: {}",uri,response.getStatusLine());
+    }
+    try {
+      int statusCode=response.getStatusLine().getStatusCode();
+      if (statusCode >= 200 && statusCode < 300) {
+        reader.readFrom(response.getEntity().getContent());
+        return true;
+      }
+ else {
+        return false;
+      }
+    }
+  finally {
+      response.close();
+    }
+  }
+  finally {
+    httpClient.close();
+  }
+}
