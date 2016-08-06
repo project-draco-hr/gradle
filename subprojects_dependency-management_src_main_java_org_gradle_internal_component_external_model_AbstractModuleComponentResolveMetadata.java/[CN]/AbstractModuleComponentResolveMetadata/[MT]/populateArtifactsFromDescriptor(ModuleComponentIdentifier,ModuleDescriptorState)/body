@@ -1,10 +1,12 @@
 {
-  Multimap<String,ModuleComponentArtifactMetadata> artifactsByConfig=LinkedHashMultimap.create();
   for (  Artifact artifact : descriptor.getArtifacts()) {
     ModuleComponentArtifactMetadata artifactMetadata=new DefaultModuleComponentArtifactMetadata(componentId,artifact.getArtifactName());
     for (    String configuration : artifact.getConfigurations()) {
-      artifactsByConfig.put(configuration,artifactMetadata);
+      configurations.get(configuration).artifacts.add(artifactMetadata);
     }
   }
-  return artifactsByConfig;
+  Set<ConfigurationMetadata> visited=new HashSet<ConfigurationMetadata>();
+  for (  DefaultConfigurationMetadata configuration : configurations.values()) {
+    configuration.collectInheritedArtifacts(visited);
+  }
 }
