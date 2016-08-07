@@ -1,41 +1,26 @@
 {
-  long waitUntil=System.currentTimeMillis() + cancelTimeoutMs;
-  Date expiry=new Date(waitUntil);
-  LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
-  try {
-    requestCancel();
-    cancellationToken.cancel();
-  }
- catch (  Exception ex) {
-    LOGGER.error("Cancel processing failed. Will continue.",ex);
-  }
+  requestCancel();
   lock.lock();
   try {
-    while (System.currentTimeMillis() < waitUntil) {
+    while (true) {
       try {
 switch (state) {
 case Idle:
-          LOGGER.debug("Cancel: daemon is idle now.");
-        return;
+case Stopped:
+          return;
 case Busy:
 case Canceled:
 case StopRequested:
-      LOGGER.debug("Cancel: daemon is busy, sleeping until state changes.");
-    condition.awaitUntil(expiry);
-  break;
+        condition.await();
+      break;
 case Broken:
-throw new IllegalStateException("This daemon is in a broken state.");
-case Stopped:
-LOGGER.debug("Cancel: daemon has stopped.");
-return;
+    throw new IllegalStateException("This daemon is in a broken state.");
 }
 }
  catch (InterruptedException e) {
 throw UncheckedException.throwAsUncheckedException(e);
 }
 }
-LOGGER.debug("Cancel: daemon is still busy after grace period. Will force stop.");
-stopNow("cancel requested but timed out");
 }
   finally {
 lock.unlock();
