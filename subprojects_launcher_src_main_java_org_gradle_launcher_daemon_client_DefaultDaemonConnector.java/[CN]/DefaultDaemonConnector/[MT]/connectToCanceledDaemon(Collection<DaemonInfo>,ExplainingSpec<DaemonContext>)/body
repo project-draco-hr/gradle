@@ -1,0 +1,22 @@
+{
+  DaemonClientConnection connection=null;
+  final Pair<Collection<DaemonInfo>,Collection<DaemonInfo>> canceledBusy=partitionByState(busyDaemons,Canceled);
+  final Collection<DaemonInfo> compatibleCanceledDaemons=getCompatibleDaemons(canceledBusy.getLeft(),constraint);
+  if (!compatibleCanceledDaemons.isEmpty()) {
+    LOGGER.info(DaemonMessages.WAITING_ON_CANCELED);
+    long waitUntil=System.currentTimeMillis() + CANCELED_WAIT_TIMEOUT;
+    while (connection == null && System.currentTimeMillis() < waitUntil) {
+      try {
+        sleep(200);
+        Collection<DaemonInfo> nowAvailableDaemons=checkCanceledDaemonsForIdle(compatibleCanceledDaemons);
+        if (!nowAvailableDaemons.isEmpty()) {
+          connection=findConnection(CollectionUtils.toList(nowAvailableDaemons));
+        }
+      }
+ catch (      InterruptedException e) {
+        throw UncheckedException.throwAsUncheckedException(e);
+      }
+    }
+  }
+  return connection;
+}
