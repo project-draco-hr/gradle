@@ -1,0 +1,15 @@
+{
+  for (  DaemonConnectDetails daemon : daemons) {
+    DaemonClientConnection connection=connector.maybeConnect(daemon);
+    if (connection == null) {
+      continue;
+    }
+    try {
+      LOGGER.debug("Requesting daemon {} stop immediately",daemon);
+      stopDispatcher.dispatch(connection,new Stop(idGenerator.generateId(),connection.getDaemon().getToken()));
+    }
+  finally {
+      connection.stop();
+    }
+  }
+}
