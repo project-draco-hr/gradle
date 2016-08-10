@@ -17,7 +17,10 @@
     child.getDependencies().add("testCompile","org.testng:testng:6.4");
     child.getDependencies().add("runtime","com.googlecode:reflectasm:1.01");
     Test test=(Test)(child.getTasks().getByName("test"));
-    test.jvmArgs("-XX:MaxPermSize=512m","-XX:+HeapDumpOnOutOfMemoryError");
+    if (!JavaVersion.current().isJava8Compatible()) {
+      test.jvmArgs("-XX:MaxPermSize=512m");
+    }
+    test.jvmArgs("-XX:+HeapDumpOnOutOfMemoryError");
     child.getTasks().add("dependencyReport",DependencyReportTask.class).setOutputFile(new File(child.getBuildDir(),"dependencies.txt"));
   }
 }
