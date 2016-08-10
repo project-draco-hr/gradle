@@ -1,4 +1,10 @@
 {
   CompositeContextBuilder contextBuilder=sharedServices.get(CompositeContextBuilder.class);
-  contextBuilder.addToCompositeContext(compositeParameters.getBuilds(),buildRequestContext);
+  Iterable<IncludedBuild> includedBuilds=CollectionUtils.collect(compositeParameters.getBuilds(),new Transformer<IncludedBuild,GradleParticipantBuild>(){
+    @Override public IncludedBuild transform(    GradleParticipantBuild gradleParticipantBuild){
+      return new DefaultIncludedBuild(gradleParticipantBuild.getProjectDir());
+    }
+  }
+);
+  contextBuilder.addToCompositeContext(includedBuilds,buildRequestContext);
 }
