@@ -1,18 +1,18 @@
 {
-  GradleLauncherFactory gradleLauncherFactory=sharedServices.get(GradleLauncherFactory.class);
   CompositeBuildContext context=sharedServices.get(CompositeBuildContext.class);
   for (  IncludedBuild build : includedBuilds) {
+    IncludedBuildInternal buildInternal=(IncludedBuildInternal)build;
     StartParameter includedBuildStartParam=buildStartParam.newBuild();
     includedBuildStartParam.setProjectDir(build.getProjectDir());
     includedBuildStartParam.setSearchUpwards(false);
     includedBuildStartParam.setConfigureOnDemand(false);
     DependencySubstitutionsInternal substitutions=((IncludedBuildInternal)build).getDependencySubstitution();
     if (!substitutions.hasDependencySubstitutionRules()) {
-      configureBuildToDetermineSubstitutions(requestContext,gradleLauncherFactory,context,includedBuildStartParam);
+      configureBuildToDetermineSubstitutions(buildInternal.createGradleLauncher(),context,includedBuildStartParam);
     }
  else {
       context.registerSubstitution(substitutions.getDependencySubstitutionRule());
     }
-    configureBuildToRegisterDependencyMetadata(requestContext,gradleLauncherFactory,context,includedBuildStartParam);
+    configureBuildToRegisterDependencyMetadata(buildInternal.createGradleLauncher(),context,includedBuildStartParam);
   }
 }
