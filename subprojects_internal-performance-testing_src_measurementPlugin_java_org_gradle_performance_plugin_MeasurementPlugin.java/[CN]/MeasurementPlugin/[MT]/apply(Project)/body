@@ -1,0 +1,19 @@
+{
+  Gradle gradle=project.getGradle();
+  gradle.addBuildListener(new BuildAdapter(){
+    @Override public void buildFinished(    BuildResult result){
+      BuildEventTimeStamps.buildFinished(result);
+      Project rootProject=result.getGradle().getRootProject();
+      handleHeapDump(rootProject,rootProject.getLogger());
+      handleHeapMeasurement(rootProject,rootProject.getLogger());
+      handleExternalResourcesStats();
+    }
+  }
+);
+  gradle.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener(){
+    @Override public void graphPopulated(    TaskExecutionGraph graph){
+      BuildEventTimeStamps.configurationEvaluated();
+    }
+  }
+);
+}
