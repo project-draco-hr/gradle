@@ -3,15 +3,17 @@
     return;
   }
   BuildModelAction buildModelAction=(BuildModelAction)action;
+  CompositeParameters compositeParameters=actionParameters.getCompositeParameters();
+  ServiceRegistry compositeServices=buildController.getBuildScopeServices();
   List<Object> results=null;
   if (isModelRequest(buildModelAction)) {
-    results=fetchCompositeModelsInProcess(buildModelAction,requestContext,actionParameters.getCompositeParameters(),buildController.getBuildScopeServices());
+    results=fetchCompositeModelsInProcess(buildModelAction,requestContext,compositeParameters,compositeServices);
   }
  else {
     if (!buildModelAction.isRunTasks()) {
       throw new IllegalStateException("No tasks defined.");
     }
-    executeTasksInProcess(buildModelAction,actionParameters,requestContext,buildController.getBuildScopeServices());
+    executeTasksInProcess(buildModelAction,compositeParameters,requestContext,compositeServices);
   }
   PayloadSerializer payloadSerializer=buildController.getBuildScopeServices().get(PayloadSerializer.class);
   buildController.setResult(new BuildActionResult(payloadSerializer.serialize(results),null));

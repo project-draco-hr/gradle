@@ -1,18 +1,15 @@
 {
-  final Pair<Collection<DaemonInfo>,Collection<DaemonInfo>> idleBusy=partitionByIdleState(daemonRegistry.getAll());
+  final Pair<Collection<DaemonInfo>,Collection<DaemonInfo>> idleBusy=partitionByState(daemonRegistry.getAll(),Idle);
   final Collection<DaemonInfo> idleDaemons=idleBusy.getLeft();
   final Collection<DaemonInfo> busyDaemons=idleBusy.getRight();
-  final List<DaemonInfo> compatibleIdleDaemons=getCompatibleDaemons(idleDaemons,constraint);
-  DaemonClientConnection connection=findConnection(compatibleIdleDaemons);
+  DaemonClientConnection connection=connectToIdleDaemon(idleDaemons,constraint);
   if (connection != null) {
     return connection;
   }
-  final List<DaemonStopEvent> stopEvents=daemonRegistry.getStopEvents();
-  daemonRegistry.removeStopEvents(DaemonStopEvents.oldStopEvents(stopEvents));
-  final List<DaemonStopEvent> recentStopEvents=DaemonStopEvents.uniqueRecentDaemonStopEvents(stopEvents);
-  for (  DaemonStopEvent stopEvent : recentStopEvents) {
-    LOGGER.info("Previous Daemon (" + stopEvent.getPid() + ") stopped at "+ stopEvent.getTimestamp()+ " "+ stopEvent.getReason());
+  connection=connectToCanceledDaemon(busyDaemons,constraint);
+  if (connection != null) {
+    return connection;
   }
-  LOGGER.lifecycle(DaemonStartupMessage.generate(busyDaemons.size(),idleDaemons.size(),recentStopEvents.size()));
+  handleStopEvents(idleDaemons,busyDaemons);
   return startDaemon(constraint);
 }

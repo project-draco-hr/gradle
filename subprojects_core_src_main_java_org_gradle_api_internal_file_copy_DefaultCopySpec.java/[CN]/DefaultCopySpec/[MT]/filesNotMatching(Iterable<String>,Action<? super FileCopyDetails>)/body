@@ -1,0 +1,11 @@
+{
+  if (!patterns.iterator().hasNext()) {
+    throw new InvalidUserDataException("must provide at least one pattern to not match");
+  }
+  List<Spec> matchers=new ArrayList<Spec>();
+  for (  String pattern : patterns) {
+    matchers.add(PatternMatcherFactory.getPatternMatcher(true,isCaseSensitive(),pattern));
+  }
+  Spec unionMatcher=Specs.union(matchers.toArray(new Spec[matchers.size()]));
+  return eachFile(new MatchingCopyAction(Specs.<RelativePath>negate(unionMatcher),action));
+}

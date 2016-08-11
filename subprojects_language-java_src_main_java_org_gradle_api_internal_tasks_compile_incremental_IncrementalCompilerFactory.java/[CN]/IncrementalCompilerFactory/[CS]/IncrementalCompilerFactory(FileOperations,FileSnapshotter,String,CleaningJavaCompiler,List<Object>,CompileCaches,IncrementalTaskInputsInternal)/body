@@ -1,0 +1,13 @@
+{
+  this.inputs=inputs;
+  Hasher hasher=new DefaultHasher();
+  ClassDependenciesAnalyzer analyzer=new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(),hasher,compileCaches.getClassAnalysisCache());
+  JarSnapshotter jarSnapshotter=new CachingJarSnapshotter(snapshotter,analyzer,compileCaches.getJarSnapshotCache());
+  JarClasspathSnapshotMaker jarClasspathSnapshotMaker=new JarClasspathSnapshotMaker(compileCaches.getLocalJarClasspathSnapshotStore(),new JarClasspathSnapshotFactory(jarSnapshotter),new ClasspathJarFinder(fileOperations));
+  CompilationSourceDirs sourceDirs=new CompilationSourceDirs(source);
+  SourceToNameConverter sourceToNameConverter=new SourceToNameConverter(sourceDirs);
+  RecompilationSpecProvider recompilationSpecProvider=new RecompilationSpecProvider(sourceToNameConverter,fileOperations);
+  ClassSetAnalysisUpdater classSetAnalysisUpdater=new ClassSetAnalysisUpdater(compileCaches.getLocalClassSetAnalysisStore(),fileOperations,analyzer);
+  IncrementalCompilationInitializer compilationInitializer=new IncrementalCompilationInitializer(fileOperations);
+  incrementalSupport=new IncrementalCompilerDecorator(jarClasspathSnapshotMaker,compileCaches,compilationInitializer,cleaningJavaCompiler,compileDisplayName,recompilationSpecProvider,classSetAnalysisUpdater,sourceDirs);
+}

@@ -1,25 +1,24 @@
 {
-  Clock clock=new Clock();
-  TaskOutputsInternal taskOutputs=task.getOutputs();
+  final Clock clock=new Clock();
+  final TaskOutputsInternal taskOutputs=task.getOutputs();
   boolean cacheAllowed=taskOutputs.isCacheAllowed();
   boolean shouldCache;
   try {
     shouldCache=cacheAllowed && taskOutputs.isCacheEnabled();
   }
- catch (  Throwable t) {
-    state.executed(new GradleException(String.format("Could not evaluate TaskOutputs.isCacheEnabled() for %s.",task),t));
-    return;
+ catch (  Exception t) {
+    throw new GradleException(String.format("Could not evaluate TaskOutputs.cacheIf for %s.",task),t);
   }
   LOGGER.debug("Determining if {} is cached already",task);
   TaskCacheKey cacheKey=null;
   if (shouldCache) {
-    TaskArtifactState taskState=repository.getStateFor(task);
+    TaskArtifactState taskState=context.getTaskArtifactState();
     try {
       cacheKey=taskState.calculateCacheKey();
       LOGGER.debug("Cache key for {} is {}",task,cacheKey);
     }
  catch (    Exception e) {
-      LOGGER.info(String.format("Could not build cache key for task %s",task),e);
+      throw new GradleException(String.format("Could not build cache key for %s.",task),e);
     }
   }
  else {
@@ -32,26 +31,34 @@
   }
   if (cacheKey != null) {
     try {
-      TaskOutputReader cachedOutput=cache.get(cacheKey);
-      if (cachedOutput != null) {
-        packer.unpack(taskOutputs,cachedOutput);
-        LOGGER.info("Unpacked output for {} from cache (took {}).",task,clock.getTime());
-        state.upToDate("CACHED");
+      boolean found=getCache().load(cacheKey,new TaskOutputReader(){
+        @Override public void readFrom(        InputStream input) throws IOException {
+          packer.unpack(taskOutputs,input);
+          LOGGER.info("Unpacked output for {} from cache (took {}).",task,clock.getTime());
+        }
+      }
+);
+      if (found) {
+        state.upToDate("FROM-CACHE");
         return;
       }
     }
- catch (    IOException e) {
-      LOGGER.info(String.format("Could not load cached output for %s with cache key %s",task,cacheKey),e);
+ catch (    Exception e) {
+      LOGGER.warn("Could not load cached output for {} with cache key {}",task,cacheKey,e);
     }
   }
   delegate.execute(task,state,context);
   if (cacheKey != null && state.getFailure() == null) {
     try {
-      TaskOutputWriter cachedOutput=packer.createWriter(taskOutputs);
-      cache.put(cacheKey,cachedOutput);
+      getCache().store(cacheKey,new TaskOutputWriter(){
+        @Override public void writeTo(        OutputStream output) throws IOException {
+          packer.pack(taskOutputs,output);
+        }
+      }
+);
     }
- catch (    IOException e) {
-      LOGGER.info(String.format("Could not cache results for %s for cache key %s",task,cacheKey),e);
+ catch (    Exception e) {
+      LOGGER.warn("Could not cache results for {} for cache key {}",task,cacheKey,e);
     }
   }
 }

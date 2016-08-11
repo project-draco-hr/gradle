@@ -4,9 +4,10 @@
       public List<String> execute(      Connection connection) throws Exception {
         List<String> testNames=new ArrayList<String>();
         ResultSet testGroups=connection.createStatement().executeQuery("select distinct testGroup from testExecution order by testGroup");
-        PreparedStatement testIdsStatement=connection.prepareStatement("select distinct testId from testExecution where testGroup = ? order by testId");
+        PreparedStatement testIdsStatement=connection.prepareStatement("select distinct testId from testExecution where testGroup = ? and resultType = ? order by testId");
         while (testGroups.next()) {
           testIdsStatement.setString(1,testGroups.getString(1));
+          testIdsStatement.setString(2,resultType);
           ResultSet testExecutions=testIdsStatement.executeQuery();
           while (testExecutions.next()) {
             testNames.add(testExecutions.getString(1));
@@ -21,6 +22,6 @@
 );
   }
  catch (  Exception e) {
-    throw new RuntimeException(String.format("Could not load test history from datastore '%s'.",dbFile),e);
+    throw new RuntimeException(String.format("Could not load test history from datastore '%s'.",db.getUrl()),e);
   }
 }

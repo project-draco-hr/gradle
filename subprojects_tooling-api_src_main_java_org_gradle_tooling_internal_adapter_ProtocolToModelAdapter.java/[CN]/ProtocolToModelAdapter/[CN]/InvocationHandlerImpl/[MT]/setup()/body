@@ -1,3 +1,7 @@
 {
-  invoker=new SupportedPropertyInvoker(new SafeMethodInvoker(new PropertyCachingMethodInvoker(new AdaptingMethodInvoker(mapper,new ChainedMethodInvoker(overrideMethodInvoker,new ReflectionMethodInvoker())))));
+  List<MethodInvoker> invokers=new ArrayList<MethodInvoker>();
+  invokers.add(REFLECTION_METHOD_INVOKER);
+  decoration.collectInvokers(sourceObject,targetType,invokers);
+  MethodInvoker mixInMethodInvoker=invokers.size() == 1 ? invokers.get(0) : new ChainedMethodInvoker(invokers);
+  invoker=new SupportedPropertyInvoker(new SafeMethodInvoker(new PropertyCachingMethodInvoker(new AdaptingMethodInvoker(decoration,graphDetails,mixInMethodInvoker))));
 }

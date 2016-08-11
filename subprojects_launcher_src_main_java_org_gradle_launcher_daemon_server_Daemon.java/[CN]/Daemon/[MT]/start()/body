@@ -8,7 +8,7 @@
     SecureRandom secureRandom=new SecureRandom();
     byte[] token=new byte[16];
     secureRandom.nextBytes(token);
-    registryUpdater=new DomainRegistryUpdater(daemonRegistry,daemonContext,token);
+    registryUpdater=new DaemonRegistryUpdater(daemonRegistry,daemonContext,token);
     Runtime.getRuntime().addShutdownHook(new Thread(){
       @Override public void run(){
         try {
@@ -32,7 +32,14 @@
       }
     }
 ;
-    stateCoordinator=new DaemonStateCoordinator(executorFactory,onStartCommand,onFinishCommand);
+    Runnable onCancelCommand=new Runnable(){
+      @Override public void run(){
+        LOGGER.warn(DaemonMessages.CANCELED_BUILD);
+        registryUpdater.onCancel();
+      }
+    }
+;
+    stateCoordinator=new DaemonStateCoordinator(executorFactory,onStartCommand,onFinishCommand,onCancelCommand);
     connectionHandler=new DefaultIncomingConnectionHandler(commandExecuter,daemonContext,stateCoordinator,executorFactory,token);
     Runnable connectionErrorHandler=new Runnable(){
       @Override public void run(){

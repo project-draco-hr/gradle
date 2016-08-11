@@ -1,35 +1,18 @@
 {
   encoder.writeSmallInt(value.compareType.ordinal());
-  final List<TreeSnapshot> treeSnapshots=value.treeSnapshots;
-  if (treeSnapshots != null) {
-    TreeSnapshot nonShared=null;
-    for (    TreeSnapshot snapshot : treeSnapshots) {
-      if (!snapshot.isShareable()) {
-        if (nonShared != null) {
-          throw new RuntimeException("Multiple non-shared snapshots aren't supported.");
-        }
-        nonShared=snapshot;
-      }
+  encoder.writeSmallInt(value.snapshots.size());
+  for (  String key : value.snapshots.keySet()) {
+    encoder.writeString(key);
+    IncrementalFileSnapshot incrementalFileSnapshot=value.snapshots.get(key);
+    if (incrementalFileSnapshot instanceof DirSnapshot) {
+      encoder.writeByte((byte)1);
     }
-    encoder.writeSmallInt(treeSnapshots.size() - ((nonShared != null) ? 1 : 0));
-    for (    TreeSnapshot snapshot : treeSnapshots) {
-      if (snapshot.isShareable()) {
-        encoder.writeLong(treeSnapshotRepository.maybeStoreTreeSnapshot(snapshot));
-      }
+ else     if (incrementalFileSnapshot instanceof MissingFileSnapshot) {
+      encoder.writeByte((byte)2);
     }
-    if (nonShared != null) {
-      TreeSnapshotSerializer.writeTreeSnapshot(nonShared,encoder,incrementalFileSnapshotSerializer);
-    }
- else {
-      encoder.writeSmallInt(0);
-    }
-  }
- else {
-    encoder.writeSmallInt(0);
-    encoder.writeSmallInt(value.snapshots.size());
-    for (    Map.Entry<String,IncrementalFileSnapshot> entry : value.snapshots.entrySet()) {
-      encoder.writeString(entry.getKey());
-      incrementalFileSnapshotSerializer.write(encoder,entry.getValue());
+ else     if (incrementalFileSnapshot instanceof FileHashSnapshot) {
+      encoder.writeByte((byte)3);
+      hashValueSerializer.write(encoder,incrementalFileSnapshot.getHash());
     }
   }
 }

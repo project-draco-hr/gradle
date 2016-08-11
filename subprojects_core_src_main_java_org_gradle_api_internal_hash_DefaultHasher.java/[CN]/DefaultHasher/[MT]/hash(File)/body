@@ -1,6 +1,9 @@
 {
   try {
-    return Files.asByteSource(file).hash(Hashing.md5());
+    com.google.common.hash.Hasher hasher=Hashing.md5().newHasher();
+    hasher.putBytes(SIGNATURE);
+    Files.copy(file,Funnels.asOutputStream(hasher));
+    return hasher.hash();
   }
  catch (  IOException e) {
     throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s'.",file),e);

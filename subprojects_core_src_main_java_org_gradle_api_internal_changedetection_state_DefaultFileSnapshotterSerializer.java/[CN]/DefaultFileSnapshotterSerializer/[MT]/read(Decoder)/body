@@ -1,14 +1,22 @@
 {
   TaskFilePropertyCompareType compareType=TaskFilePropertyCompareType.values()[decoder.readSmallInt()];
-  List<TreeSnapshot> treeSnapshots=new ArrayList<TreeSnapshot>();
-  int sharedTreeCount=decoder.readSmallInt();
-  for (int i=0; i < sharedTreeCount; i++) {
-    long treeId=decoder.readLong();
-    treeSnapshots.add(treeSnapshotRepository.getTreeSnapshot(treeId));
+  Map<String,IncrementalFileSnapshot> snapshots=Maps.newLinkedHashMap();
+  int snapshotsCount=decoder.readSmallInt();
+  for (int i=0; i < snapshotsCount; i++) {
+    String key=stringInterner.intern(decoder.readString());
+    byte fileSnapshotKind=decoder.readByte();
+    if (fileSnapshotKind == 1) {
+      snapshots.put(key,DirSnapshot.getInstance());
+    }
+ else     if (fileSnapshotKind == 2) {
+      snapshots.put(key,MissingFileSnapshot.getInstance());
+    }
+ else     if (fileSnapshotKind == 3) {
+      snapshots.put(key,new FileHashSnapshot(hashValueSerializer.read(decoder)));
+    }
+ else {
+      throw new RuntimeException("Unable to read serialized file collection snapshot. Unrecognized value found in the data stream.");
+    }
   }
-  TreeSnapshot nonShared=TreeSnapshotSerializer.readStoredTreeSnapshot(-1,decoder,incrementalFileSnapshotSerializer,stringInterner);
-  if (!nonShared.getFileSnapshots().isEmpty()) {
-    treeSnapshots.add(nonShared);
-  }
-  return new FileCollectionSnapshotImpl(treeSnapshots,compareType);
+  return new FileCollectionSnapshotImpl(snapshots,compareType);
 }
