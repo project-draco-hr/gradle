@@ -1,0 +1,16 @@
+{
+  return cacheAccess.useCache("Load task history",new Factory<TaskExecutionList>(){
+    public TaskExecutionList create(){
+      ClassLoader original=serializer.getClassLoader();
+      serializer.setClassLoader(task.getClass().getClassLoader());
+      try {
+        TaskExecutionList history=taskHistoryCache.get(task.getPath());
+        return history == null ? new TaskExecutionList() : history;
+      }
+  finally {
+        serializer.setClassLoader(original);
+      }
+    }
+  }
+);
+}
