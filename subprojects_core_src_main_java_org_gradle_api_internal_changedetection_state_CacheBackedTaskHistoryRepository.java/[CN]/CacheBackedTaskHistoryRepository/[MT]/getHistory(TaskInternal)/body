@@ -1,10 +1,10 @@
 {
-  final TaskHistory history=loadHistory(task);
+  final TaskExecutionList previousExecutions=loadPreviousExecutions(task);
   final LazyTaskExecution currentExecution=new LazyTaskExecution();
   currentExecution.snapshotRepository=snapshotRepository;
   currentExecution.cacheAccess=cacheAccess;
-  currentExecution.setOutputFiles(outputFiles(task));
-  final LazyTaskExecution previousExecution=findPreviousExecution(currentExecution,history);
+  currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
+  final LazyTaskExecution previousExecution=findBestMatchingPreviousExecution(currentExecution,previousExecutions.executions);
   if (previousExecution != null) {
     previousExecution.snapshotRepository=snapshotRepository;
     previousExecution.cacheAccess=cacheAccess;
@@ -19,7 +19,7 @@
     public void update(){
       cacheAccess.useCache("Update task history",new Runnable(){
         public void run(){
-          history.configurations.add(0,currentExecution);
+          previousExecutions.executions.addFirst(currentExecution);
           if (currentExecution.inputFilesSnapshotIds == null && currentExecution.inputFilesSnapshot != null) {
             ImmutableSortedMap.Builder<String,Long> builder=ImmutableSortedMap.naturalOrder();
             for (            Map.Entry<String,FileCollectionSnapshot> entry : currentExecution.inputFilesSnapshot.entrySet()) {
@@ -37,8 +37,8 @@
           if (currentExecution.discoveredFilesSnapshotId == null && currentExecution.discoveredFilesSnapshot != null) {
             currentExecution.discoveredFilesSnapshotId=snapshotRepository.add(currentExecution.discoveredFilesSnapshot);
           }
-          while (history.configurations.size() > TaskHistory.MAX_HISTORY_ENTRIES) {
-            LazyTaskExecution execution=history.configurations.remove(history.configurations.size() - 1);
+          while (previousExecutions.executions.size() > MAX_HISTORY_ENTRIES) {
+            LazyTaskExecution execution=previousExecutions.executions.removeLast();
             if (execution.inputFilesSnapshotIds != null) {
               for (              Long id : execution.inputFilesSnapshotIds.values()) {
                 snapshotRepository.remove(id);
@@ -53,8 +53,8 @@
               snapshotRepository.remove(execution.discoveredFilesSnapshotId);
             }
           }
-          history.beforeSerialized();
-          taskHistoryCache.put(task.getPath(),history);
+          previousExecutions.beforeSerialized();
+          taskHistoryCache.put(task.getPath(),previousExecutions);
         }
       }
 );
