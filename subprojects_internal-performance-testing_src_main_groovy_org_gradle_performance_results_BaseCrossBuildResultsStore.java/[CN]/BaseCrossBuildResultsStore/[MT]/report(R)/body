@@ -3,17 +3,18 @@
     db.withConnection(new ConnectionAction<Void>(){
       public Void execute(      Connection connection) throws SQLException {
         long executionId;
-        PreparedStatement statement=connection.prepareStatement("insert into testExecution(testId, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement statement=connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         try {
           statement.setString(1,results.getTestId());
-          statement.setTimestamp(2,new Timestamp(results.getTestTime()));
-          statement.setString(3,results.getVersionUnderTest());
-          statement.setString(4,results.getOperatingSystem());
-          statement.setString(5,results.getJvm());
-          statement.setString(6,results.getVcsBranch());
-          statement.setString(7,Joiner.on(",").join(results.getVcsCommits()));
-          statement.setString(8,results.getTestGroup());
-          statement.setString(9,resultType);
+          statement.setTimestamp(2,new Timestamp(results.getStartTime()));
+          statement.setTimestamp(3,new Timestamp(results.getEndTime()));
+          statement.setString(4,results.getVersionUnderTest());
+          statement.setString(5,results.getOperatingSystem());
+          statement.setString(6,results.getJvm());
+          statement.setString(7,results.getVcsBranch());
+          statement.setString(8,Joiner.on(",").join(results.getVcsCommits()));
+          statement.setString(9,results.getTestGroup());
+          statement.setString(10,resultType);
           statement.execute();
           ResultSet keys=statement.getGeneratedKeys();
           keys.next();

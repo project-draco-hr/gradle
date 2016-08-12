@@ -9,7 +9,7 @@
           }
         }
 );
-        PreparedStatement executionsForName=connection.prepareStatement("select top ? id, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by executionTime desc");
+        PreparedStatement executionsForName=connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by startTime desc");
         PreparedStatement operationsForExecution=connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
         executionsForName.setInt(1,mostRecentN);
         executionsForName.setString(2,testName);
@@ -18,13 +18,14 @@
           long id=testExecutions.getLong(1);
           CrossBuildPerformanceResults performanceResults=new CrossBuildPerformanceResults();
           performanceResults.setTestId(testName);
-          performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
-          performanceResults.setVersionUnderTest(testExecutions.getString(3));
-          performanceResults.setOperatingSystem(testExecutions.getString(4));
-          performanceResults.setJvm(testExecutions.getString(5));
-          performanceResults.setVcsBranch(testExecutions.getString(6).trim());
-          performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(7)));
-          performanceResults.setTestGroup(testExecutions.getString(8));
+          performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
+          performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
+          performanceResults.setVersionUnderTest(testExecutions.getString(4));
+          performanceResults.setOperatingSystem(testExecutions.getString(5));
+          performanceResults.setJvm(testExecutions.getString(6));
+          performanceResults.setVcsBranch(testExecutions.getString(7).trim());
+          performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(8)));
+          performanceResults.setTestGroup(testExecutions.getString(9));
           if (ignore(performanceResults)) {
             continue;
           }
