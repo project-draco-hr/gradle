@@ -1,27 +1,13 @@
 {
-  MemoryUsage heap=ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-  MemoryUsage nonHeap=ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
+  final MemoryMXBean memoryMXBean=ManagementFactory.getMemoryMXBean();
+  MemoryUsage heap=memoryMXBean.getHeapMemoryUsage();
+  MemoryUsage nonHeap=memoryMXBean.getNonHeapMemoryUsage();
   logger.lifecycle("BEFORE GC");
-  logger.lifecycle("heap: " + formatBytes(heap.getUsed()) + " (initial "+ formatBytes(heap.getInit())+ ", committed "+ formatBytes(heap.getCommitted())+ ", max "+ formatBytes(heap.getMax()));
-  logger.lifecycle("nonHeap: " + formatBytes(nonHeap.getUsed()) + " (initial "+ formatBytes(nonHeap.getInit())+ ", committed "+ formatBytes(nonHeap.getCommitted())+ ", max "+ formatBytes(nonHeap.getMax()));
-  ManagementFactory.getMemoryMXBean().gc();
-  heap=ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-  nonHeap=ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
+  logHeap(logger,heap,nonHeap);
+  memoryMXBean.gc();
+  heap=memoryMXBean.getHeapMemoryUsage();
+  nonHeap=memoryMXBean.getNonHeapMemoryUsage();
   logger.lifecycle("AFTER GC");
-  logger.lifecycle("heap: " + formatBytes(heap.getUsed()) + " (initial "+ formatBytes(heap.getInit())+ ", committed "+ formatBytes(heap.getCommitted())+ ", max "+ formatBytes(heap.getMax()));
-  logger.lifecycle("nonHeap: " + formatBytes(nonHeap.getUsed()) + " (initial "+ formatBytes(nonHeap.getInit())+ ", committed "+ formatBytes(nonHeap.getCommitted())+ ", max "+ formatBytes(nonHeap.getMax()));
-  project.getBuildDir().mkdirs();
-  File totalMemoryUsedFile=new File(project.getBuildDir(),"totalMemoryUsed.txt");
-  try {
-    FileWriter writer=new FileWriter(totalMemoryUsedFile);
-    try {
-      writer.write(String.valueOf(heap.getUsed()));
-    }
-  finally {
-      writer.close();
-    }
-  }
- catch (  IOException e) {
-    throw new RuntimeException(e);
-  }
+  logHeap(logger,heap,nonHeap);
+  storeTotalMemoryUsed(project,heap);
 }
