@@ -1,15 +1,15 @@
 {
   long id=idGenerator.generateId();
   ResolvedConfigurationIdentifier configurationIdentifier=childConfiguration.getNodeId();
-  ConfigurationMetadata metaData=childConfiguration.getMetaData();
+  ConfigurationMetadata configuration=childConfiguration.getMetaData();
   ComponentResolveMetadata component=childConfiguration.getComponent();
-  Set<ComponentArtifactMetadata> artifacts=dependency.getArtifacts(metaData);
+  Set<? extends ComponentArtifactMetadata> artifacts=dependency.getArtifacts(configuration);
   if (!artifacts.isEmpty()) {
     return new DefaultArtifactSet(component.getId(),component.getSource(),ModuleExclusions.excludeNone(),artifacts,artifactResolver,allResolvedArtifacts,id);
   }
   ArtifactSet configurationArtifactSet=artifactSetsByConfiguration.get(configurationIdentifier);
   if (configurationArtifactSet == null) {
-    artifacts=doResolve(component,configurationIdentifier);
+    artifacts=doResolve(component,configuration);
     configurationArtifactSet=new DefaultArtifactSet(component.getId(),component.getSource(),dependency.getExclusions(),artifacts,artifactResolver,allResolvedArtifacts,id);
     if (!dependency.getExclusions().mayExcludeArtifacts()) {
       artifactSetsByConfiguration.put(configurationIdentifier,configurationArtifactSet);
