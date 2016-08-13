@@ -1,0 +1,16 @@
+{
+  ComponentSelector requested=componentSelectorSerializer.read(decoder);
+  byte resultByte=decoder.readByte();
+  if (resultByte == SUCCESSFUL) {
+    ModuleVersionIdentifier selected=moduleVersionIdentifierSerializer.read(decoder);
+    return new DefaultDependencyResult(requested,selected,null,null);
+  }
+ else   if (resultByte == FAILED) {
+    ComponentSelectionReason reason=componentSelectionReasonSerializer.read(decoder);
+    ModuleVersionResolveException failure=failures.get(requested);
+    return new DefaultDependencyResult(requested,null,reason,failure);
+  }
+ else {
+    throw new IllegalArgumentException("Unknown result byte: " + resultByte);
+  }
+}

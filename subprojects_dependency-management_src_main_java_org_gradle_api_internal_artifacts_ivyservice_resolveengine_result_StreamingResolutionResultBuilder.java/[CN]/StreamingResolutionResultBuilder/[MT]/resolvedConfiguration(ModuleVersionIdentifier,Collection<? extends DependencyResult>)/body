@@ -1,0 +1,18 @@
+{
+  if (!dependencies.isEmpty()) {
+    store.write(new BinaryStore.WriteAction(){
+      public void write(      Encoder encoder) throws IOException {
+        encoder.writeByte(DEPENDENCY);
+        moduleVersionIdentifierSerializer.write(encoder,from);
+        encoder.writeSmallInt(dependencies.size());
+        for (        DependencyResult dependency : dependencies) {
+          dependencyResultSerializer.write(encoder,dependency);
+          if (dependency.getFailure() != null) {
+            failures.put(dependency.getRequested(),dependency.getFailure());
+          }
+        }
+      }
+    }
+);
+  }
+}
