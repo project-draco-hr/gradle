@@ -9,22 +9,21 @@
       valuesRead++;
 switch (type) {
 case ROOT:
-        ModuleVersionIdentifier id=moduleVersionIdentifierSerializer.read(decoder);
-      ComponentIdentifier componentIdentifier=componentIdentifierSerializer.read(decoder);
-    builder.start(id,componentIdentifier);
-  break;
-case MODULE:
-ComponentResult sel=componentResultSerializer.read(decoder);
-builder.resolvedModuleVersion(sel);
+        ComponentResult component=componentResultSerializer.read(decoder);
+      builder.start(component);
+    break;
+case COMPONENT:
+  component=componentResultSerializer.read(decoder);
+builder.visitComponent(component);
 break;
 case DEPENDENCY:
-id=moduleVersionIdentifierSerializer.read(decoder);
+Long fromId=decoder.readSmallLong();
 int size=decoder.readSmallInt();
 List<DependencyResult> deps=new ArrayList<DependencyResult>(size);
 for (int i=0; i < size; i++) {
 deps.add(dependencyResultSerializer.read(decoder,failures));
 }
-builder.resolvedConfiguration(id,deps);
+builder.visitOutgoingEdges(fromId,deps);
 break;
 case DONE:
 ResolvedComponentResult root=builder.complete().getRoot();
