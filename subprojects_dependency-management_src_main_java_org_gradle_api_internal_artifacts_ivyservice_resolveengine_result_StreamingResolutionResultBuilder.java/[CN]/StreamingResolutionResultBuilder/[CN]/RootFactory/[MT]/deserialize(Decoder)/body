@@ -9,11 +9,12 @@
       valuesRead++;
 switch (type) {
 case ROOT:
-        ComponentResult component=componentResultSerializer.read(decoder);
-      builder.start(component);
-    break;
+        Long rootId=decoder.readSmallLong();
+      ResolvedComponentResult root=builder.complete(rootId).getRoot();
+    LOG.debug("Loaded resolution results ({}) from {}",clock.getTime(),data);
+  return root;
 case COMPONENT:
-  component=componentResultSerializer.read(decoder);
+ComponentResult component=componentResultSerializer.read(decoder);
 builder.visitComponent(component);
 break;
 case DEPENDENCY:
@@ -25,10 +26,6 @@ deps.add(dependencyResultSerializer.read(decoder,failures));
 }
 builder.visitOutgoingEdges(fromId,deps);
 break;
-case DONE:
-ResolvedComponentResult root=builder.complete().getRoot();
-LOG.debug("Loaded resolution results ({}) from {}",clock.getTime(),data);
-return root;
 default :
 throw new IOException("Unknown value type read from stream: " + type);
 }
