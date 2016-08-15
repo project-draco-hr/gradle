@@ -1,17 +1,14 @@
 {
-  CompositeBuildContext context=sharedServices.get(CompositeBuildContext.class);
+  CompositeSubstitutionsActionRunner contextBuilder=new CompositeSubstitutionsActionRunner(context);
   for (  IncludedBuild build : includedBuilds) {
     IncludedBuildInternal buildInternal=(IncludedBuildInternal)build;
-    StartParameter includedBuildStartParam=buildStartParam.newBuild();
-    includedBuildStartParam.setProjectDir(build.getProjectDir());
-    includedBuildStartParam.setSearchUpwards(false);
-    includedBuildStartParam.setConfigureOnDemand(false);
-    DependencySubstitutionsInternal substitutions=((IncludedBuildInternal)build).resolveDependencySubstitutions();
+    context.registerBuild(buildInternal.getName(),build);
+    DependencySubstitutionsInternal substitutions=buildInternal.resolveDependencySubstitutions();
     if (!substitutions.hasRules()) {
-      configureBuildToDetermineSubstitutions(buildInternal,context,includedBuildStartParam);
+      LOGGER.lifecycle("[composite-build] Configuring build: " + buildInternal.getProjectDir());
+      contextBuilder.run(buildInternal);
     }
  else {
-      context.registerBuild(((IncludedBuildInternal)build).getName(),build);
       context.registerSubstitution(substitutions.getRuleAction());
     }
   }
