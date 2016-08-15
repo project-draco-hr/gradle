@@ -39,7 +39,7 @@
             results.put(id,performanceResults);
             allBranches.add(performanceResults.getVcsBranch());
           }
-          operationsForExecution=connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, testExecution from testOperation where testExecution in (select * from table(x int = ?))");
+          operationsForExecution=connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, testExecution, compileTotalTime, gcTotalTime from testOperation where testExecution in (select * from table(x int = ?))");
           operationsForExecution.setFetchSize(10 * results.size());
           operationsForExecution.setObject(1,results.keySet().toArray());
           operations=operationsForExecution.executeQuery();
@@ -58,6 +58,14 @@
             operation.setMaxHeapUsage(DataAmount.bytes(operations.getBigDecimal(7)));
             operation.setMaxUncollectedHeap(DataAmount.bytes(operations.getBigDecimal(8)));
             operation.setMaxCommittedHeap(DataAmount.bytes(operations.getBigDecimal(9)));
+            BigDecimal compileTotalTime=operations.getBigDecimal(10);
+            if (compileTotalTime != null) {
+              operation.setCompileTotalTime(Duration.millis(compileTotalTime));
+            }
+            BigDecimal gcTotalTime=operations.getBigDecimal(11);
+            if (gcTotalTime != null) {
+              operation.setGcTotalTime(Duration.millis(gcTotalTime));
+            }
             if (version == null) {
               result.getCurrent().add(operation);
             }

@@ -10,7 +10,7 @@
         }
 );
         PreparedStatement executionsForName=connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by startTime desc");
-        PreparedStatement operationsForExecution=connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+        PreparedStatement operationsForExecution=connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation where testExecution = ?");
         executionsForName.setInt(1,mostRecentN);
         executionsForName.setString(2,testName);
         ResultSet testExecutions=executionsForName.executeQuery();
@@ -43,6 +43,14 @@
             operation.setMaxHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(12)));
             operation.setMaxUncollectedHeap(DataAmount.bytes(resultSet.getBigDecimal(13)));
             operation.setMaxCommittedHeap(DataAmount.bytes(resultSet.getBigDecimal(14)));
+            BigDecimal compileTotalTime=resultSet.getBigDecimal(15);
+            if (compileTotalTime != null) {
+              operation.setCompileTotalTime(Duration.millis(compileTotalTime));
+            }
+            BigDecimal gcTotalTime=resultSet.getBigDecimal(16);
+            if (gcTotalTime != null) {
+              operation.setGcTotalTime(Duration.millis(gcTotalTime));
+            }
             performanceResults.buildResult(displayInfo).add(operation);
             builds.add(displayInfo);
           }
