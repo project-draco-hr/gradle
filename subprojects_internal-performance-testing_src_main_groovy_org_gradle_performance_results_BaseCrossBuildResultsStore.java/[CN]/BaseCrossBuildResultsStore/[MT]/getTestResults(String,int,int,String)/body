@@ -9,10 +9,13 @@
           }
         }
 );
-        PreparedStatement executionsForName=connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by startTime desc");
+        PreparedStatement executionsForName=connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
         PreparedStatement operationsForExecution=connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation where testExecution = ?");
         executionsForName.setInt(1,mostRecentN);
         executionsForName.setString(2,testName);
+        Timestamp minDate=new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
+        executionsForName.setTimestamp(3,minDate);
+        executionsForName.setString(4,channel);
         ResultSet testExecutions=executionsForName.executeQuery();
         while (testExecutions.next()) {
           long id=testExecutions.getLong(1);
@@ -24,8 +27,9 @@
           performanceResults.setOperatingSystem(testExecutions.getString(5));
           performanceResults.setJvm(testExecutions.getString(6));
           performanceResults.setVcsBranch(testExecutions.getString(7).trim());
-          performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(8)));
+          performanceResults.setVcsCommits(split(testExecutions.getString(8)));
           performanceResults.setTestGroup(testExecutions.getString(9));
+          performanceResults.setChannel(testExecutions.getString(10));
           if (ignore(performanceResults)) {
             continue;
           }

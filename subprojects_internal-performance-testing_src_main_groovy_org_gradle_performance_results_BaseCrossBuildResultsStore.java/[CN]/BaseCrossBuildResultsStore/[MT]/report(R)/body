@@ -3,7 +3,7 @@
     db.withConnection(new ConnectionAction<Void>(){
       public Void execute(      Connection connection) throws SQLException {
         long executionId;
-        PreparedStatement statement=connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement statement=connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         try {
           statement.setString(1,results.getTestId());
           statement.setTimestamp(2,new Timestamp(results.getStartTime()));
@@ -15,6 +15,7 @@
           statement.setString(8,Joiner.on(",").join(results.getVcsCommits()));
           statement.setString(9,results.getTestGroup());
           statement.setString(10,resultType);
+          statement.setString(11,results.getChannel());
           statement.execute();
           ResultSet keys=statement.getGeneratedKeys();
           keys.next();
@@ -23,7 +24,7 @@
   finally {
           statement.close();
         }
-        statement=connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        statement=connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, startTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         try {
           for (          BuildDisplayInfo displayInfo : results.getBuilds()) {
             addOperations(statement,executionId,displayInfo,results.buildResult(displayInfo));

@@ -15,10 +15,13 @@
         ResultSet testExecutions=null;
         ResultSet operations=null;
         try {
-          executionsForName=connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by startTime desc");
+          executionsForName=connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
           executionsForName.setFetchSize(mostRecentN);
           executionsForName.setInt(1,mostRecentN);
           executionsForName.setString(2,testName);
+          Timestamp minDate=new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
+          executionsForName.setTimestamp(3,minDate);
+          executionsForName.setString(4,channel);
           testExecutions=executionsForName.executeQuery();
           while (testExecutions.next()) {
             long id=testExecutions.getLong(1);
@@ -35,7 +38,8 @@
             performanceResults.setOperatingSystem(testExecutions.getString(10));
             performanceResults.setJvm(testExecutions.getString(11));
             performanceResults.setVcsBranch(testExecutions.getString(12).trim());
-            performanceResults.setVcsCommits(ResultsStoreHelper.splitVcsCommits(testExecutions.getString(13)));
+            performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(13)));
+            performanceResults.setChannel(testExecutions.getString(14));
             results.put(id,performanceResults);
             allBranches.add(performanceResults.getVcsBranch());
           }
