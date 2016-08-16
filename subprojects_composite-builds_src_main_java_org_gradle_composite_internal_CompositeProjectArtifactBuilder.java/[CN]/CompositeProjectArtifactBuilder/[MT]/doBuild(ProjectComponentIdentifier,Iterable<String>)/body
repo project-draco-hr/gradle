@@ -1,5 +1,4 @@
 {
-  File buildDirectory=compositeBuildContext.getProjectDirectory(buildId);
   List<String> tasksToExecute=Lists.newArrayList();
   for (  String taskPath : taskPaths) {
     if (executedTasks.put(buildId,taskPath)) {
@@ -10,15 +9,6 @@
     return;
   }
   LOGGER.info("Executing " + buildId + " tasks "+ taskPaths);
-  StartParameter param=requestedStartParameter.newBuild();
-  param.setProjectDir(buildDirectory);
-  param.setSearchUpwards(false);
-  param.setTaskNames(tasksToExecute);
-  GradleLauncher launcher=gradleLauncherFactory.nestedInstance(param,serviceRegistry);
-  try {
-    launcher.run();
-  }
-  finally {
-    launcher.stop();
-  }
+  IncludedBuildInternal build=(IncludedBuildInternal)compositeBuildContext.getBuild(buildId);
+  build.execute(tasksToExecute);
 }
