@@ -1,6 +1,13 @@
 {
-  if (buildTimeClock != null) {
-    return buildTimeClock.getTimeInMs();
+  if (!useBuildTimeClock) {
+    return 0;
   }
-  return 0;
+  try {
+    return getService(buildResult.getGradle(),BuildRequestMetaData.class).getBuildTimeClock().getTimeInMs();
+  }
+ catch (  Exception e) {
+    System.err.println("Exception in getting build time " + e.getMessage());
+    useBuildTimeClock=false;
+    return 0;
+  }
 }

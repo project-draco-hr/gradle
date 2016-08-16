@@ -1,0 +1,74 @@
+{
+  try {
+    return db.withConnection(new ConnectionAction<CrossBuildPerformanceTestHistory>(){
+      public CrossBuildPerformanceTestHistory execute(      Connection connection) throws SQLException {
+        List<CrossBuildPerformanceResults> results=Lists.newArrayList();
+        Set<BuildDisplayInfo> builds=Sets.newTreeSet(new Comparator<BuildDisplayInfo>(){
+          @Override public int compare(          BuildDisplayInfo o1,          BuildDisplayInfo o2){
+            return o1.getDisplayName().compareTo(o2.getDisplayName());
+          }
+        }
+);
+        PreparedStatement executionsForName=connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
+        PreparedStatement operationsForExecution=connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation where testExecution = ?");
+        executionsForName.setInt(1,mostRecentN);
+        executionsForName.setString(2,testName);
+        Timestamp minDate=new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
+        executionsForName.setTimestamp(3,minDate);
+        executionsForName.setString(4,channel);
+        ResultSet testExecutions=executionsForName.executeQuery();
+        while (testExecutions.next()) {
+          long id=testExecutions.getLong(1);
+          CrossBuildPerformanceResults performanceResults=new CrossBuildPerformanceResults();
+          performanceResults.setTestId(testName);
+          performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
+          performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
+          performanceResults.setVersionUnderTest(testExecutions.getString(4));
+          performanceResults.setOperatingSystem(testExecutions.getString(5));
+          performanceResults.setJvm(testExecutions.getString(6));
+          performanceResults.setVcsBranch(testExecutions.getString(7).trim());
+          performanceResults.setVcsCommits(split(testExecutions.getString(8)));
+          performanceResults.setTestGroup(testExecutions.getString(9));
+          performanceResults.setChannel(testExecutions.getString(10));
+          if (ignore(performanceResults)) {
+            continue;
+          }
+          results.add(performanceResults);
+          operationsForExecution.setLong(1,id);
+          ResultSet resultSet=operationsForExecution.executeQuery();
+          while (resultSet.next()) {
+            BuildDisplayInfo displayInfo=new BuildDisplayInfo(resultSet.getString(1),resultSet.getString(2),toList(resultSet.getObject(3)),toList(resultSet.getObject(4)),toList(resultSet.getObject(5)),(Boolean)resultSet.getObject(6));
+            MeasuredOperation operation=new MeasuredOperation();
+            operation.setTotalTime(Duration.millis(resultSet.getBigDecimal(7)));
+            operation.setConfigurationTime(Duration.millis(resultSet.getBigDecimal(8)));
+            operation.setExecutionTime(Duration.millis(resultSet.getBigDecimal(9)));
+            operation.setTotalMemoryUsed(DataAmount.bytes(resultSet.getBigDecimal(10)));
+            operation.setTotalHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(11)));
+            operation.setMaxHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(12)));
+            operation.setMaxUncollectedHeap(DataAmount.bytes(resultSet.getBigDecimal(13)));
+            operation.setMaxCommittedHeap(DataAmount.bytes(resultSet.getBigDecimal(14)));
+            BigDecimal compileTotalTime=resultSet.getBigDecimal(15);
+            if (compileTotalTime != null) {
+              operation.setCompileTotalTime(Duration.millis(compileTotalTime));
+            }
+            BigDecimal gcTotalTime=resultSet.getBigDecimal(16);
+            if (gcTotalTime != null) {
+              operation.setGcTotalTime(Duration.millis(gcTotalTime));
+            }
+            performanceResults.buildResult(displayInfo).add(operation);
+            builds.add(displayInfo);
+          }
+          resultSet.close();
+        }
+        testExecutions.close();
+        operationsForExecution.close();
+        executionsForName.close();
+        return new CrossBuildPerformanceTestHistory(testName,ImmutableList.copyOf(builds),results);
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(String.format("Could not load results from datastore '%s'.",db.getUrl()),e);
+  }
+}
