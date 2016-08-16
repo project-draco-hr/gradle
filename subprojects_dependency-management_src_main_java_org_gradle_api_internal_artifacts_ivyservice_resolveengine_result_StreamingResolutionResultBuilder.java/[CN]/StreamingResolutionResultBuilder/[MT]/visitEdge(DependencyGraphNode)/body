@@ -1,0 +1,20 @@
+{
+  final Long fromComponent=resolvedConfiguration.getOwner().getResultId();
+  final Set<? extends DependencyGraphEdge> dependencies=resolvedConfiguration.getOutgoingEdges();
+  if (!dependencies.isEmpty()) {
+    store.write(new BinaryStore.WriteAction(){
+      public void write(      Encoder encoder) throws IOException {
+        encoder.writeByte(DEPENDENCY);
+        encoder.writeSmallLong(fromComponent);
+        encoder.writeSmallInt(dependencies.size());
+        for (        DependencyResult dependency : dependencies) {
+          dependencyResultSerializer.write(encoder,dependency);
+          if (dependency.getFailure() != null) {
+            failures.put(dependency.getRequested(),dependency.getFailure());
+          }
+        }
+      }
+    }
+);
+  }
+}

@@ -1,21 +1,22 @@
 {
   Clock clock=new Clock();
-  Map<ResolvedConfigurationIdentifier,DefaultResolvedDependency> allDependencies=new HashMap<ResolvedConfigurationIdentifier,DefaultResolvedDependency>();
+  Map<Long,DefaultResolvedDependency> allDependencies=new HashMap<Long,DefaultResolvedDependency>();
   DefaultTransientConfigurationResults results=new DefaultTransientConfigurationResults();
   int valuesRead=0;
   byte type=-1;
   try {
     while (true) {
       type=decoder.readByte();
-      ResolvedConfigurationIdentifier id;
+      long id;
       valuesRead++;
 switch (type) {
 case NEW_DEP:
-        id=resolvedConfigurationIdentifierSerializer.read(decoder);
-      allDependencies.put(id,new DefaultResolvedDependency(id.getId(),id.getConfiguration()));
-    break;
+        id=decoder.readSmallLong();
+      ResolvedConfigurationIdentifier details=resolvedConfigurationIdentifierSerializer.read(decoder);
+    allDependencies.put(id,new DefaultResolvedDependency(details.getId(),details.getConfiguration()));
+  break;
 case ROOT:
-  id=resolvedConfigurationIdentifierSerializer.read(decoder);
+id=decoder.readSmallLong();
 results.root=allDependencies.get(id);
 if (results.root == null) {
 throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s",id,allDependencies.keySet()));
@@ -23,7 +24,7 @@ throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: 
 LOG.debug("Loaded resolved configuration results ({}) from {}",clock.getTime(),binaryStore);
 return results;
 case FIRST_LVL:
-id=resolvedConfigurationIdentifierSerializer.read(decoder);
+id=decoder.readSmallLong();
 DefaultResolvedDependency dependency=allDependencies.get(id);
 if (dependency == null) {
 throw new IllegalStateException(String.format("Unexpected first level id %s. Seen ids: %s",id,allDependencies.keySet()));
@@ -31,8 +32,8 @@ throw new IllegalStateException(String.format("Unexpected first level id %s. See
 results.firstLevelDependencies.put(mapping.getModuleDependency(id),dependency);
 break;
 case PARENT_CHILD:
-ResolvedConfigurationIdentifier parentId=resolvedConfigurationIdentifierSerializer.read(decoder);
-ResolvedConfigurationIdentifier childId=resolvedConfigurationIdentifierSerializer.read(decoder);
+long parentId=decoder.readSmallLong();
+long childId=decoder.readSmallLong();
 DefaultResolvedDependency parent=allDependencies.get(parentId);
 DefaultResolvedDependency child=allDependencies.get(childId);
 if (parent == null) {
@@ -42,7 +43,7 @@ if (child == null) {
 throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s",childId,allDependencies.keySet()));
 }
 parent.addChild(child);
-child.addParentSpecificArtifacts(parent,newHashSet(mapping.getArtifacts(decoder.readLong())));
+child.addParentSpecificArtifacts(parent,newHashSet(mapping.getArtifacts(decoder.readSmallLong())));
 break;
 default :
 throw new IOException("Unknown value type read from stream: " + type);

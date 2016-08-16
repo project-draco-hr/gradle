@@ -1,0 +1,31 @@
+{
+  if (method == null || !isPublic(method)) {
+    return null;
+  }
+  Class<?> clazz=method.getDeclaringClass();
+  if (isPublic(clazz)) {
+    return method;
+  }
+  Set<Class<?>> allInterfaces=new LinkedHashSet<Class<?>>();
+  while (clazz != null) {
+    if (isPublic(clazz)) {
+      try {
+        return clazz.getMethod(method.getName(),method.getParameterTypes());
+      }
+ catch (      NoSuchMethodException e) {
+      }
+    }
+    collectInterfaces(allInterfaces,clazz);
+    clazz=clazz.getSuperclass();
+  }
+  for (  Class<?> ifc : allInterfaces) {
+    if (isPublic(ifc)) {
+      try {
+        return ifc.getMethod(method.getName(),method.getParameterTypes());
+      }
+ catch (      NoSuchMethodException e) {
+      }
+    }
+  }
+  return null;
+}

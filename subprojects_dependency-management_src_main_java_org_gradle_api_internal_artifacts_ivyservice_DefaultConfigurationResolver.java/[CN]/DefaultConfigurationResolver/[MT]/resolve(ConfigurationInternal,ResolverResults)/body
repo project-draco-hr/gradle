@@ -8,12 +8,11 @@
   ResolvedConfigurationDependencyGraphVisitor oldModelVisitor=new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
   BinaryStore newModelStore=stores.nextBinaryStore();
   Store<ResolvedComponentResult> newModelCache=stores.newModelCache();
-  ResolutionResultBuilder newModelBuilder=new StreamingResolutionResultBuilder(newModelStore,newModelCache);
-  DependencyGraphVisitor newModelVisitor=new ResolutionResultDependencyGraphVisitor(newModelBuilder);
+  StreamingResolutionResultBuilder newModelBuilder=new StreamingResolutionResultBuilder(newModelStore,newModelCache);
   ResolvedLocalComponentsResultBuilder localComponentsResultBuilder=new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
   DependencyGraphVisitor projectModelVisitor=new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
   ResolvedArtifactsBuilder artifactsBuilder=new DefaultResolvedArtifactsBuilder();
-  DependencyGraphVisitor graphVisitor=new CompositeDependencyGraphVisitor(oldModelVisitor,newModelVisitor,projectModelVisitor);
+  DependencyGraphVisitor graphVisitor=new CompositeDependencyGraphVisitor(oldModelVisitor,newModelBuilder,projectModelVisitor);
   DependencyArtifactsVisitor artifactsVisitor=new CompositeDependencyArtifactsVisitor(oldModelVisitor,artifactsBuilder);
   resolver.resolve(configuration,resolutionAwareRepositories,metadataHandler,graphVisitor,artifactsVisitor);
   DefaultResolverResults defaultResolverResults=(DefaultResolverResults)results;

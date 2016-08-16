@@ -1,8 +1,10 @@
 {
+  IdGenerator<Long> idGenerator=new LongIdGenerator();
   DefaultBuildableComponentResolveResult rootModule=new DefaultBuildableComponentResolveResult();
   moduleResolver.resolve(resolveContext,rootModule);
-  ResolveState resolveState=new ResolveState(rootModule,resolveContext.getName(),idResolver,metaDataResolver,dependencyToConfigurationResolver);
+  ResolveState resolveState=new ResolveState(idGenerator,rootModule,resolveContext.getName(),idResolver,metaDataResolver,dependencyToConfigurationResolver);
   conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
   traverseGraph(resolveState,conflictHandler);
+  resolveState.root.moduleRevision.setSelectionReason(VersionSelectionReasons.ROOT);
   assembleResult(resolveState,modelVisitor);
 }

@@ -9,27 +9,23 @@
       valuesRead++;
 switch (type) {
 case ROOT:
-        ModuleVersionIdentifier id=moduleVersionIdentifierSerializer.read(decoder);
-      ComponentIdentifier componentIdentifier=componentIdentifierSerializer.read(decoder);
-    builder.start(id,componentIdentifier);
-  break;
-case MODULE:
-ModuleVersionSelection sel=moduleVersionSelectionSerializer.read(decoder);
-builder.resolvedModuleVersion(sel);
+        Long rootId=decoder.readSmallLong();
+      ResolvedComponentResult root=builder.complete(rootId).getRoot();
+    LOG.debug("Loaded resolution results ({}) from {}",clock.getTime(),data);
+  return root;
+case COMPONENT:
+ComponentResult component=componentResultSerializer.read(decoder);
+builder.visitComponent(component);
 break;
 case DEPENDENCY:
-id=moduleVersionIdentifierSerializer.read(decoder);
+Long fromId=decoder.readSmallLong();
 int size=decoder.readSmallInt();
-List<InternalDependencyResult> deps=new LinkedList<InternalDependencyResult>();
+List<DependencyResult> deps=new ArrayList<DependencyResult>(size);
 for (int i=0; i < size; i++) {
-deps.add(internalDependencyResultSerializer.read(decoder,failures));
+deps.add(dependencyResultSerializer.read(decoder,failures));
 }
-builder.resolvedConfiguration(id,deps);
+builder.visitOutgoingEdges(fromId,deps);
 break;
-case DONE:
-ResolvedComponentResult root=builder.complete().getRoot();
-LOG.debug("Loaded resolution results ({}) from {}",clock.getTime(),data);
-return root;
 default :
 throw new IOException("Unknown value type read from stream: " + type);
 }
