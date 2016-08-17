@@ -1,16 +1,11 @@
 {
-  final File jarFile=jarFile(type);
-  if (!jarFile.exists()) {
-    cache.useCache("Generating " + jarFile.getName(),new Runnable(){
-      public void run(){
-        if (!jarFile.exists()) {
-          RuntimeShadedJarCreator creator=new RuntimeShadedJarCreator(progressLoggerFactory,new ImplementationDependencyRelocator(type));
-          creator.create(jarFile,classpath);
-        }
-      }
+  final File jarFile=cache.get(type.getIdentifier(),new Action<File>(){
+    @Override public void execute(    File file){
+      RuntimeShadedJarCreator creator=new RuntimeShadedJarCreator(progressLoggerFactory,new ImplementationDependencyRelocator(type));
+      creator.create(file,classpath);
     }
-);
   }
+);
   LOGGER.debug("Using Gradle runtime shaded JAR file: {}",jarFile);
   return jarFile;
 }
