@@ -1,7 +1,18 @@
 {
   ModuleVersionSelector requested=DefaultModuleVersionSelector.newSelector(readString(),readString(),readString());
-  Dependency dep=md.addDependency(requested,readString(),readBoolean(),readBoolean(),readBoolean());
-  readDependencyConfigurationMapping(dep);
-  readDependencyArtifactDescriptors(dep);
-  readExcludeRules(dep);
+  byte type=decoder.readByte();
+  Dependency dep;
+switch (type) {
+case TYPE_IVY:
+    dep=md.addDependency(new IvyDependency(requested,readString(),readBoolean(),readBoolean(),readBoolean()));
+  break;
+case TYPE_MAVEN:
+dep=md.addDependency(new MavenDependency(MavenScope.values()[decoder.readSmallInt()],requested));
+break;
+default :
+throw new IllegalArgumentException("Unexpected dependency type found.");
+}
+readDependencyConfigurationMapping(dep);
+readDependencyArtifactDescriptors(dep);
+readExcludeRules(dep);
 }

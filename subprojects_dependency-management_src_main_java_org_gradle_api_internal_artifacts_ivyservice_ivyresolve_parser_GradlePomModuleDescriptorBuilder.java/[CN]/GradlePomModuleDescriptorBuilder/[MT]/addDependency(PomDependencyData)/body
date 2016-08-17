@@ -1,7 +1,14 @@
 {
-  String scope=dep.getScope();
-  if ((scope != null) && (scope.length() > 0) && !MAVEN2_CONF_MAPPING.containsKey(scope)) {
-    scope="compile";
+  String scopeString=dep.getScope();
+  if (scopeString == null || scopeString.length() == 0) {
+    scopeString=getDefaultScope(dep);
+  }
+  MavenScope scope;
+  if (SCOPES.containsKey(scopeString)) {
+    scope=SCOPES.get(scopeString);
+  }
+ else {
+    scope=MavenScope.Compile;
   }
   String version=determineVersion(dep);
   String mappedVersion=convertVersionFromMavenSyntax(version);
@@ -9,8 +16,7 @@
   if (selector.getGroup().equals(descriptor.getComponentIdentifier().getGroup()) && selector.getName().equals(descriptor.getComponentIdentifier().getModule())) {
     return;
   }
-  Dependency dependency=descriptor.addDependency(selector);
-  scope=(scope == null || scope.length() == 0) ? getDefaultScope(dep) : scope;
+  MavenDependency dependency=descriptor.addDependency(new MavenDependency(scope,selector));
   ConfMapper mapping=MAVEN2_CONF_MAPPING.get(scope);
   mapping.addMappingConfs(dependency,dep.isOptional());
   boolean hasClassifier=dep.getClassifier() != null && dep.getClassifier().length() > 0;
@@ -22,7 +28,7 @@
     }
     String ext=determineExtension(type);
     String classifier=hasClassifier ? dep.getClassifier() : getClassifierForType(type);
-    String optionalizedScope=dep.isOptional() ? "optional" : scope;
+    String optionalizedScope=dep.isOptional() ? "optional" : scope.toString().toLowerCase();
     IvyArtifactName artifactName=new DefaultIvyArtifactName(selector.getName(),type,ext,classifier);
     dependency.addArtifact(artifactName,Collections.singleton(optionalizedScope));
   }
