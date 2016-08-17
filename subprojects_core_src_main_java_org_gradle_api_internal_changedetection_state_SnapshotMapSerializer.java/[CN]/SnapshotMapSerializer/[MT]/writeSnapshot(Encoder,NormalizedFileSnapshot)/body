@@ -1,0 +1,33 @@
+{
+  IncrementalFileSnapshot snapshot=value.getSnapshot();
+  if (snapshot instanceof DirSnapshot) {
+    encoder.writeByte(DIR_SNAPSHOT);
+  }
+ else   if (snapshot instanceof MissingFileSnapshot) {
+    encoder.writeByte(MISSING_FILE_SNAPSHOT);
+  }
+ else   if (snapshot instanceof FileHashSnapshot) {
+    encoder.writeByte(REGULAR_FILE_SNAPSHOT);
+    hashCodeSerializer.write(encoder,snapshot.getHash());
+  }
+ else {
+    throw new AssertionError();
+  }
+  if (value instanceof NonNormalizedFileSnapshot) {
+    encoder.writeByte(NO_NORMALIZATION);
+  }
+ else   if (value instanceof DefaultNormalizedFileSnapshot) {
+    encoder.writeByte(DEFAULT_NORMALIZATION);
+    encoder.writeString(value.getNormalizedPath());
+  }
+ else   if (value instanceof IndexedNormalizedFileSnapshot) {
+    encoder.writeByte(INDEXED_NORMALIZATION);
+    encoder.writeSmallInt(((IndexedNormalizedFileSnapshot)value).getIndex());
+  }
+ else   if (value instanceof IgnoredPathFileSnapshot) {
+    encoder.writeByte(IGNORED_PATH_NORMALIZATION);
+  }
+ else {
+    throw new AssertionError();
+  }
+}

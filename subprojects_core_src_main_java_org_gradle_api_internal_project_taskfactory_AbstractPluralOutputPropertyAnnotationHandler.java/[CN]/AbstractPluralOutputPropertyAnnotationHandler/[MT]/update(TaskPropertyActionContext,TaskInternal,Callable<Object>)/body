@@ -1,10 +1,12 @@
 {
+  TaskOutputFilePropertyBuilder propertyBuilder;
   if (Map.class.isAssignableFrom(context.getType())) {
-    task.getOutputs().namedFiles(Cast.<Callable<Map<?,?>>>uncheckedCast(futureValue));
+    propertyBuilder=task.getOutputs().namedFiles(Cast.<Callable<Map<?,?>>>uncheckedCast(futureValue));
   }
  else {
-    task.getOutputs().files(futureValue);
+    propertyBuilder=task.getOutputs().files(futureValue);
   }
+  propertyBuilder.withPathSensitivity(getPathSensitivity(context));
   task.prependParallelSafeAction(new Action<Task>(){
     public void execute(    Task task){
       for (      File file : toFiles(uncheckedCall(futureValue))) {

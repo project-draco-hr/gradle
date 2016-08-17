@@ -1,0 +1,32 @@
+{
+  byte fileSnapshotKind=decoder.readByte();
+  IncrementalFileSnapshot snapshot;
+switch (fileSnapshotKind) {
+case DIR_SNAPSHOT:
+    snapshot=DirSnapshot.getInstance();
+  break;
+case MISSING_FILE_SNAPSHOT:
+snapshot=MissingFileSnapshot.getInstance();
+break;
+case REGULAR_FILE_SNAPSHOT:
+snapshot=new FileHashSnapshot(hashCodeSerializer.read(decoder));
+break;
+default :
+throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
+}
+int normalizedSnapshotKind=decoder.readByte();
+switch (normalizedSnapshotKind) {
+case NO_NORMALIZATION:
+return new NonNormalizedFileSnapshot(absolutePath,snapshot);
+case DEFAULT_NORMALIZATION:
+String normalizedPath=stringInterner.intern(decoder.readString());
+return new DefaultNormalizedFileSnapshot(normalizedPath,snapshot);
+case INDEXED_NORMALIZATION:
+int index=decoder.readSmallInt();
+return new IndexedNormalizedFileSnapshot(absolutePath,index,snapshot);
+case IGNORED_PATH_NORMALIZATION:
+return new IgnoredPathFileSnapshot(snapshot);
+default :
+throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
+}
+}
