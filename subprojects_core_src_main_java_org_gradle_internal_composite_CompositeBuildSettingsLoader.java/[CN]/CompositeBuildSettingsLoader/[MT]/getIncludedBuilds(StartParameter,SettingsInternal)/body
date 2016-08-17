@@ -1,11 +1,11 @@
 {
-  Set<File> buildRoots=Sets.newTreeSet();
-  buildRoots.addAll(startParameter.getIncludedBuilds());
-  buildRoots.addAll(settings.getIncludedBuilds());
-  return CollectionUtils.collect(buildRoots,new Transformer<IncludedBuild,File>(){
-    @Override public IncludedBuild transform(    File buildRoot){
-      return new DefaultIncludedBuild(buildRoot,null,null,null);
+  Map<File,IncludedBuild> includedBuildMap=Maps.newLinkedHashMap();
+  includedBuildMap.putAll(settings.getIncludedBuilds());
+  for (  File file : startParameter.getIncludedBuilds()) {
+    IncludedBuildFactory includedBuildFactory=buildServices.get(IncludedBuildFactory.class);
+    if (!includedBuildMap.containsKey(file)) {
+      includedBuildMap.put(file,includedBuildFactory.createBuild(file));
     }
   }
-);
+  return includedBuildMap.values();
 }
