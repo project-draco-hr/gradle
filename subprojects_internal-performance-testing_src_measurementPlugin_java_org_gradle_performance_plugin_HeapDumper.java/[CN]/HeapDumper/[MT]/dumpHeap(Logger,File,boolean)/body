@@ -1,0 +1,15 @@
+{
+  PlatformManagedObject hotspotDiagnosticMXBean=null;
+  try {
+    Class<? extends PlatformManagedObject> hotspotDiagnosticMXBeanClass=(Class<? extends PlatformManagedObject>)Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
+    hotspotDiagnosticMXBean=ManagementFactory.getPlatformMXBean(hotspotDiagnosticMXBeanClass);
+  }
+ catch (  Exception e) {
+    logger.error("Couldn't locate MBean for doing heap dump.",e);
+  }
+  if (hotspotDiagnosticMXBean != null) {
+    logger.lifecycle("Creating heap dump...");
+    invokeMethod(hotspotDiagnosticMXBean,getMethodByName(hotspotDiagnosticMXBean.getClass(),"dumpHeap"),dumpFile.getAbsolutePath(),liveObjectsOnly);
+    logger.lifecycle("Dumped to " + dumpFile.getAbsolutePath() + ".");
+  }
+}

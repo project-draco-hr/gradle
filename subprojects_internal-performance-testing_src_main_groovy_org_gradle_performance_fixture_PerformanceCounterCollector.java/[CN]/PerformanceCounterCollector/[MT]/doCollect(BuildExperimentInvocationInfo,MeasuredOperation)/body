@@ -1,0 +1,13 @@
+{
+  File buildDir=new File(invocationInfo.getProjectDir(),"build");
+  File performanceCounterFileStart=new File(buildDir,"perf_counters_start.txt");
+  File performanceCounterFileFinish=new File(buildDir,"perf_counters_finish.txt");
+  if (performanceCounterFileStart.exists() && performanceCounterFileFinish.exists()) {
+    PerformanceCounterFile startCounters=new PerformanceCounterFile(performanceCounterFileStart);
+    PerformanceCounterFile finishCounters=new PerformanceCounterFile(performanceCounterFileFinish);
+    long compileTotalTimeMs=finishCounters.tickToMs(finishCounters.getCompileTotalTimeTicks() - startCounters.getCompileTotalTimeTicks());
+    operation.setCompileTotalTime(Duration.millis(compileTotalTimeMs));
+    long gcTotalTimeMs=finishCounters.tickToMs(finishCounters.getGcTotalTimeTicks() - startCounters.getGcTotalTimeTicks());
+    operation.setGcTotalTime(Duration.millis(gcTotalTimeMs));
+  }
+}
