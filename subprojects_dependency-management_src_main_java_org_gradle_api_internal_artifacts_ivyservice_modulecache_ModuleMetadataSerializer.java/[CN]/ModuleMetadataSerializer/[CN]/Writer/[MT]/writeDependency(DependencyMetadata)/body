@@ -1,0 +1,28 @@
+{
+  ModuleVersionSelector selector=dep.getRequested();
+  writeString(selector.getGroup());
+  writeString(selector.getName());
+  writeString(selector.getVersion());
+  if (dep instanceof IvyDependencyMetadata) {
+    IvyDependencyMetadata ivyDependency=(IvyDependencyMetadata)dep;
+    encoder.writeByte(TYPE_IVY);
+    writeDependencyConfigurationMapping(ivyDependency);
+    writeArtifacts(ivyDependency.getDependencyArtifacts());
+    writeExcludeRules(ivyDependency.getDependencyExcludes());
+    writeString(ivyDependency.getDynamicConstraintVersion());
+    writeBoolean(ivyDependency.isForce());
+    writeBoolean(ivyDependency.isChanging());
+    writeBoolean(ivyDependency.isTransitive());
+  }
+ else   if (dep instanceof MavenDependencyMetadata) {
+    MavenDependencyMetadata mavenDependency=(MavenDependencyMetadata)dep;
+    encoder.writeByte(TYPE_MAVEN);
+    writeDependencyConfigurationMapping(mavenDependency);
+    writeArtifacts(mavenDependency.getDependencyArtifacts());
+    writeExcludeRules(mavenDependency.getDependencyExcludes());
+    encoder.writeSmallInt(mavenDependency.getScope().ordinal());
+  }
+ else {
+    throw new IllegalStateException("Unexpected dependency type");
+  }
+}

@@ -1,18 +1,25 @@
 {
   ModuleVersionSelector requested=DefaultModuleVersionSelector.newSelector(readString(),readString(),readString());
   byte type=decoder.readByte();
-  Dependency dep;
 switch (type) {
 case TYPE_IVY:
-    dep=md.addDependency(new IvyDependency(requested,readString(),readBoolean(),readBoolean(),readBoolean()));
-  break;
+    ListMultimap<String,String> configMappings=readDependencyConfigurationMapping();
+  List<Artifact> artifacts=readDependencyArtifactDescriptors();
+List<Exclude> excludes=readExcludeRules();
+String dynamicConstraintVersion=readString();
+boolean force=readBoolean();
+boolean changing=readBoolean();
+boolean transitive=readBoolean();
+md.addDependency(new IvyDependencyMetadata(requested,dynamicConstraintVersion,force,changing,transitive,configMappings,artifacts,excludes));
+break;
 case TYPE_MAVEN:
-dep=md.addDependency(new MavenDependency(MavenScope.values()[decoder.readSmallInt()],requested));
+configMappings=readDependencyConfigurationMapping();
+artifacts=readDependencyArtifactDescriptors();
+excludes=readExcludeRules();
+MavenScope scope=MavenScope.values()[decoder.readSmallInt()];
+md.addDependency(new MavenDependencyMetadata(scope,requested,configMappings,artifacts,excludes));
 break;
 default :
 throw new IllegalArgumentException("Unexpected dependency type found.");
 }
-readDependencyConfigurationMapping(dep);
-readDependencyArtifactDescriptors(dep);
-readExcludeRules(dep);
 }
