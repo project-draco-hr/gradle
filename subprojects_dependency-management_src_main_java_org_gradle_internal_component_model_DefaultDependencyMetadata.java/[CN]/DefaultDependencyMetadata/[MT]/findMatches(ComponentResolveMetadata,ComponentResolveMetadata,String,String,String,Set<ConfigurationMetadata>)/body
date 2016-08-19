@@ -1,0 +1,34 @@
+{
+  int startFallback=targetPattern.indexOf('(');
+  if (startFallback >= 0) {
+    if (targetPattern.endsWith(")")) {
+      String preferred=targetPattern.substring(0,startFallback);
+      ConfigurationMetadata configuration=targetComponent.getConfiguration(preferred);
+      if (configuration != null) {
+        targetConfigurations.add(configuration);
+        return;
+      }
+      targetPattern=targetPattern.substring(startFallback + 1,targetPattern.length() - 1);
+    }
+  }
+  if (targetPattern.equals("*")) {
+    for (    String targetName : targetComponent.getConfigurationNames()) {
+      ConfigurationMetadata configuration=targetComponent.getConfiguration(targetName);
+      if (configuration.isVisible()) {
+        targetConfigurations.add(configuration);
+      }
+    }
+    return;
+  }
+  if (targetPattern.equals("@")) {
+    targetPattern=patternConfiguration;
+  }
+ else   if (targetPattern.equals("#")) {
+    targetPattern=fromConfiguration;
+  }
+  ConfigurationMetadata configuration=targetComponent.getConfiguration(targetPattern);
+  if (configuration == null) {
+    throw new ConfigurationNotFoundException(fromComponent.getComponentId(),fromConfiguration,targetPattern,targetComponent.getComponentId());
+  }
+  targetConfigurations.add(configuration);
+}
