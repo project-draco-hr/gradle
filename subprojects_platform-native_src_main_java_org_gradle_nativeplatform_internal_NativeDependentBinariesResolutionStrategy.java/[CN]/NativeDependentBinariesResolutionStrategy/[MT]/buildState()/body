@@ -6,25 +6,20 @@
       ModelRegistry modelRegistry=projectModelResolver.resolveProjectModel(project.getPath());
       ModelMap<NativeComponentSpec> components=modelRegistry.realize("components",ModelTypes.modelMap(NativeComponentSpec.class));
       for (      NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
-        state.binaries.put(state.keyOf(binary),binary);
+        state.registerBinary(binary);
       }
     }
     for (    NativeBinarySpecInternal extraBinary : getExtraBinaries(project,projectModelResolver)) {
-      state.binaries.put(state.keyOf(extraBinary),extraBinary);
+      state.registerBinary(extraBinary);
     }
   }
-  for (  Map.Entry<String,NativeBinarySpecInternal> entry : state.binaries.entrySet()) {
-    String key=entry.getKey();
-    NativeBinarySpecInternal nativeBinary=entry.getValue();
-    if (state.dependencies.get(key) == null) {
-      state.dependencies.put(key,Lists.<NativeBinarySpecInternal>newArrayList());
-    }
+  for (  NativeBinarySpecInternal nativeBinary : state.dependencies.keySet()) {
     for (    NativeLibraryBinary libraryBinary : nativeBinary.getDependentBinaries()) {
       if (libraryBinary instanceof NativeBinarySpecInternal) {
-        state.dependencies.get(key).add((NativeBinarySpecInternal)libraryBinary);
+        state.dependencies.get(nativeBinary).add((NativeBinarySpecInternal)libraryBinary);
       }
     }
-    state.dependencies.get(key).addAll(getExtraDependents(nativeBinary));
+    state.dependencies.get(nativeBinary).addAll(getExtraDependents(nativeBinary));
   }
   return state;
 }
