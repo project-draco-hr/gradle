@@ -2,6 +2,17 @@
   encoder.writeInt(infosSize);
   ObjectOutputStream oos=new ObjectOutputStream(encoder.getOutputStream());
   for (  Address address : addresses) {
-    oos.writeObject(address);
-  }
+    byte type=(byte)(address instanceof SocketInetAddress ? 0 : address instanceof MultiChoiceAddress ? 1 : 2);
+    encoder.writeByte(type);
+switch (type) {
+case 0:
+      SocketInetAddress.SERIALIZER.write(encoder,(SocketInetAddress)address);
+    break;
+case 1:
+  MULTI_CHOICE_ADDRESS_SERIALIZER.write(encoder,(MultiChoiceAddress)address);
+break;
+default :
+oos.writeObject(address);
+}
+}
 }
