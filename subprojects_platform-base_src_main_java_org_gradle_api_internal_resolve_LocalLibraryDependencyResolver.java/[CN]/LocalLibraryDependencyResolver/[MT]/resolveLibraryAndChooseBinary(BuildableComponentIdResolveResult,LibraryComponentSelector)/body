@@ -10,15 +10,16 @@
     result.failed(failure);
     return;
   }
-  Collection<? extends BinarySpec> matchingVariants=chooseMatchingVariants(selectedLibrary,variant);
+  Collection<? extends Binary> matchingVariants=chooseMatchingVariants(selectedLibrary,variant);
   if (matchingVariants.isEmpty()) {
-    result.failed(new ModuleVersionResolveException(selector,errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName,selectedLibrary.getBinaries().values())));
+    Collection<BinarySpec> values=selectedLibrary.getBinaries().values();
+    result.failed(new ModuleVersionResolveException(selector,errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName,values)));
   }
  else   if (matchingVariants.size() > 1) {
     result.failed(new ModuleVersionResolveException(selector,errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName,matchingVariants)));
   }
  else {
-    BinarySpec selectedBinary=matchingVariants.iterator().next();
+    Binary selectedBinary=matchingVariants.iterator().next();
     LocalComponentMetadata metaData;
     if (variant == null) {
       metaData=libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary,selectorProjectPath,false);
