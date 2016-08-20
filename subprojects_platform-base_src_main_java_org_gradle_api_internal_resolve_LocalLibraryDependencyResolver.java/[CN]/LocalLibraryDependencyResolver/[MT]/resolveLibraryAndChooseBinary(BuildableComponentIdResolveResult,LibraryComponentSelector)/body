@@ -2,17 +2,17 @@
   final String selectorProjectPath=selector.getProjectPath();
   final String libraryName=selector.getLibraryName();
   final String variant=selector.getVariant();
-  LibraryResolutionErrorMessageBuilder.LibraryResolutionResult resolutionResult=doResolve(selectorProjectPath,libraryName);
-  VariantComponentSpec selectedLibrary=resolutionResult.getSelectedLibrary();
+  LibraryResolutionResult resolutionResult=doResolve(selectorProjectPath,libraryName);
+  VariantComponent selectedLibrary=resolutionResult.getSelectedLibrary();
   if (selectedLibrary == null) {
-    String message=resolutionResult.toResolutionErrorMessage(binaryType,selector);
+    String message=resolutionResult.toResolutionErrorMessage(selector);
     ModuleVersionResolveException failure=new ModuleVersionResolveException(selector,new LibraryResolveException(message));
     result.failed(failure);
     return;
   }
   Collection<? extends Binary> matchingVariants=chooseMatchingVariants(selectedLibrary,variant);
   if (matchingVariants.isEmpty()) {
-    Collection<BinarySpec> values=selectedLibrary.getBinaries().values();
+    Iterable<? extends Binary> values=selectedLibrary.getVariants();
     result.failed(new ModuleVersionResolveException(selector,errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName,values)));
   }
  else   if (matchingVariants.size() > 1) {

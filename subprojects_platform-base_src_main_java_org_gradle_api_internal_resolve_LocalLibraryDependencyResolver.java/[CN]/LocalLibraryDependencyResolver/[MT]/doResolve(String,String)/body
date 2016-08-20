@@ -1,13 +1,13 @@
 {
   try {
-    ModelRegistry projectModel=projectModelResolver.resolveProjectModel(projectPath);
-    LibraryResolutionErrorMessageBuilder.LibraryResolutionResult libraries=findLocalComponent(libraryName,projectModel);
-    if (libraries != null) {
-      return libraries;
+    ModelRegistry projectModel=projectModelResolver.resolveProjectModel(selectorProjectPath);
+    Collection<VariantComponent> candidates=libraryResolver.resolveCandidates(projectModel,libraryName);
+    if (candidates.isEmpty()) {
+      return LibraryResolutionResult.emptyResolutionResult(binaryType);
     }
-    return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.emptyResolutionResult();
+    return LibraryResolutionResult.of(binaryType,candidates,libraryName,binaryPredicate);
   }
  catch (  UnknownProjectException e) {
-    return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.projectNotFound();
+    return LibraryResolutionResult.projectNotFound(binaryType);
   }
 }
