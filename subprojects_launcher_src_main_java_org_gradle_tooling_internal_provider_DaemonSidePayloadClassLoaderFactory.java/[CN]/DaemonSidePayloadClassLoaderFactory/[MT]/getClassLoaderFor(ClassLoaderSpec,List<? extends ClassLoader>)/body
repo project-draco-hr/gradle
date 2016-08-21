@@ -4,32 +4,25 @@
     if (parents.size() != 1) {
       throw new IllegalStateException("Expected exactly one parent ClassLoader");
     }
-    List<URL> cachedClassPath=new ArrayList<URL>(urlSpec.getClasspath().size());
-    for (    URL url : urlSpec.getClasspath()) {
-      if (url.getProtocol().equals("file")) {
-        try {
-          final File file=new File(url.toURI());
-          if (file.isFile()) {
-            File cached=cache.useCache("Locate Jar file",new Factory<File>(){
-              public File create(){
-                return jarCache.getCachedJar(file,Factories.constant(cache.getBaseDir()));
-              }
-            }
+    Pair<Collection<URL>,Collection<URL>> urls=CollectionUtils.partition(urlSpec.getClasspath(),new Spec<URL>(){
+      @Override public boolean isSatisfiedBy(      URL url){
+        return url.getProtocol().equals("file");
+      }
+    }
 );
-            cachedClassPath.add(cached.toURI().toURL());
-            continue;
-          }
+    ClassPath classPath=DefaultClassPath.of(CollectionUtils.collect(urls.left(),new Transformer<File,URL>(){
+      @Override public File transform(      URL url){
+        try {
+          return new File(url.toURI());
         }
- catch (        MalformedURLException e) {
-          throw UncheckedException.throwAsUncheckedException(e);
-        }
-catch (        URISyntaxException e) {
+ catch (        URISyntaxException e) {
           throw UncheckedException.throwAsUncheckedException(e);
         }
       }
-      cachedClassPath.add(url);
     }
-    return new VisitableURLClassLoader(parents.get(0),cachedClassPath);
+));
+    ClassPath cachedClassPath=cachedClasspathTransformer.transform(classPath);
+    return new VisitableURLClassLoader(parents.get(0),CollectionUtils.addAll(cachedClassPath.getAsURLs(),urls.right()));
   }
   return delegate.getClassLoaderFor(spec,parents);
 }
