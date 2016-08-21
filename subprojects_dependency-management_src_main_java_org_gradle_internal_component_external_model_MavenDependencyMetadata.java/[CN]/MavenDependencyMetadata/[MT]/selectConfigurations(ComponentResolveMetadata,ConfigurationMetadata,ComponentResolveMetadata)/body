@@ -1,0 +1,17 @@
+{
+  Set<ConfigurationMetadata> result=Sets.newLinkedHashSet();
+  boolean requiresCompile=fromConfiguration.getName().equals("compile");
+  if (!requiresCompile) {
+    ConfigurationMetadata runtime=findTargetConfiguration(fromComponent,fromConfiguration,targetComponent,"runtime");
+    result.add(runtime);
+    requiresCompile=!runtime.getHierarchy().contains("compile");
+  }
+  if (requiresCompile) {
+    result.add(findTargetConfiguration(fromComponent,fromConfiguration,targetComponent,"compile"));
+  }
+  ConfigurationMetadata master=targetComponent.getConfiguration("master");
+  if (master != null && (!master.getDependencies().isEmpty() || !master.getArtifacts().isEmpty())) {
+    result.add(master);
+  }
+  return result;
+}

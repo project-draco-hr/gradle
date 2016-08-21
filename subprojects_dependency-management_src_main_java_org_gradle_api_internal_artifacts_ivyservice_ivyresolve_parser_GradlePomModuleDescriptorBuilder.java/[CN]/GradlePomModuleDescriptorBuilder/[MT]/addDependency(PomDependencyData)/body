@@ -18,7 +18,8 @@
   }
   ConfMapper mapping=MAVEN2_CONF_MAPPING.get(scope);
   ListMultimap<String,String> confMappings=ArrayListMultimap.create();
-  mapping.addMappingConfs(confMappings,dep.isOptional());
+  boolean optional=dep.isOptional();
+  mapping.addMappingConfs(confMappings,optional);
   List<Artifact> artifacts=Lists.newArrayList();
   boolean hasClassifier=dep.getClassifier() != null && dep.getClassifier().length() > 0;
   boolean hasNonJarType=dep.getType() != null && !"jar".equals(dep.getType());
@@ -29,7 +30,7 @@
     }
     String ext=determineExtension(type);
     String classifier=hasClassifier ? dep.getClassifier() : getClassifierForType(type);
-    String optionalizedScope=dep.isOptional() ? "optional" : scope.toString().toLowerCase();
+    String optionalizedScope=optional ? "optional" : scope.toString().toLowerCase();
     IvyArtifactName artifactName=new DefaultIvyArtifactName(selector.getName(),type,ext,classifier);
     artifacts.add(new Artifact(artifactName,Collections.singleton(optionalizedScope)));
   }
@@ -44,5 +45,5 @@
     DefaultExclude rule=new DefaultExclude(excludedModule.getGroup(),excludedModule.getName(),confArray,PatternMatchers.EXACT);
     excludes.add(rule);
   }
-  descriptor.addDependency(new MavenDependencyMetadata(scope,selector,confMappings,artifacts,excludes));
+  descriptor.addDependency(new MavenDependencyMetadata(scope,optional,selector,artifacts,excludes));
 }
