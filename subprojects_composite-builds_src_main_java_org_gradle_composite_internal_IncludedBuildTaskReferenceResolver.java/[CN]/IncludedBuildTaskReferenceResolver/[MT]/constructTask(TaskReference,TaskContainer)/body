@@ -1,16 +1,15 @@
 {
-  if (!path.contains("::")) {
+  if (!(reference instanceof IncludedBuildTaskReference)) {
     return null;
   }
+  final IncludedBuildTaskReference ref=(IncludedBuildTaskReference)reference;
+  String path=ref.getName();
   Task task=tasks.findByName(path);
   if (task == null) {
-    String[] split=path.split("::",2);
-    final String buildName=split[0];
-    final String taskToExecute=":" + split[1];
     task=tasks.create(path,CompositeBuildTaskDelegate.class,new Action<CompositeBuildTaskDelegate>(){
       @Override public void execute(      CompositeBuildTaskDelegate compositeBuildTaskDelegate){
-        compositeBuildTaskDelegate.setBuild(buildName);
-        compositeBuildTaskDelegate.setTask(taskToExecute);
+        compositeBuildTaskDelegate.setBuild(ref.getBuildName());
+        compositeBuildTaskDelegate.setTask(ref.getTaskPath());
       }
     }
 );
