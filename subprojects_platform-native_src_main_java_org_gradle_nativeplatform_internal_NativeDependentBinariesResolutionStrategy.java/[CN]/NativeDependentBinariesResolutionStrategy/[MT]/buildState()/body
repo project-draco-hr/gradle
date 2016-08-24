@@ -8,9 +8,12 @@
       for (      NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
         state.registerBinary(binary);
       }
-    }
-    for (    NativeBinarySpecInternal extraBinary : getExtraBinaries(project,projectModelResolver)) {
-      state.registerBinary(extraBinary);
+      ModelMap<Object> testSuites=modelRegistry.find("testSuites",ModelTypes.modelMap(Object.class));
+      if (testSuites != null) {
+        for (        NativeBinarySpecInternal binary : allBinariesOf(testSuites.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class))) {
+          state.registerBinary(binary);
+        }
+      }
     }
   }
   for (  NativeBinarySpecInternal nativeBinary : state.dependencies.keySet()) {
@@ -19,7 +22,9 @@
         state.dependencies.get(nativeBinary).add((NativeBinarySpecInternal)libraryBinary);
       }
     }
-    state.dependencies.get(nativeBinary).addAll(getExtraDependents(nativeBinary));
+    if (testSupport != null) {
+      state.dependencies.get(nativeBinary).addAll(testSupport.getTestDependencies(nativeBinary));
+    }
   }
   return state;
 }
