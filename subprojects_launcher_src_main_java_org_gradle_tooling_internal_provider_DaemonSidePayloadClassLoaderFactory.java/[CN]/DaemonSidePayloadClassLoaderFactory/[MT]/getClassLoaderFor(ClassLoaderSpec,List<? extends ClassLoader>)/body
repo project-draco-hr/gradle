@@ -4,25 +4,8 @@
     if (parents.size() != 1) {
       throw new IllegalStateException("Expected exactly one parent ClassLoader");
     }
-    Pair<Collection<URL>,Collection<URL>> urls=CollectionUtils.partition(urlSpec.getClasspath(),new Spec<URL>(){
-      @Override public boolean isSatisfiedBy(      URL url){
-        return url.getProtocol().equals("file");
-      }
-    }
-);
-    ClassPath classPath=DefaultClassPath.of(CollectionUtils.collect(urls.left(),new Transformer<File,URL>(){
-      @Override public File transform(      URL url){
-        try {
-          return new File(url.toURI());
-        }
- catch (        URISyntaxException e) {
-          throw UncheckedException.throwAsUncheckedException(e);
-        }
-      }
-    }
-));
-    ClassPath cachedClassPath=cachedClasspathTransformer.transform(classPath);
-    return new VisitableURLClassLoader(parents.get(0),CollectionUtils.addAll(cachedClassPath.getAsURLs(),urls.right()));
+    Collection<URL> cachedClassPathUrls=cachedClasspathTransformer.transform(urlSpec.getClasspath());
+    return new VisitableURLClassLoader(parents.get(0),cachedClassPathUrls);
   }
   return delegate.getClassLoaderFor(spec,parents);
 }
