@@ -76,7 +76,11 @@
   eclipseProject.setProjectNatures(natures);
   List<DefaultEclipseBuildCommand> buildCommands=new ArrayList<DefaultEclipseBuildCommand>();
   for (  BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
-    buildCommands.add(new DefaultEclipseBuildCommand(b.getName(),b.getArguments()));
+    Map<String,String> arguments=Maps.newLinkedHashMap();
+    for (    Map.Entry<String,String> entry : b.getArguments().entrySet()) {
+      arguments.put(convertGString(entry.getKey()),convertGString(entry.getValue()));
+    }
+    buildCommands.add(new DefaultEclipseBuildCommand(b.getName(),arguments));
   }
   eclipseProject.setBuildCommands(buildCommands);
   EclipseJdt jdt=eclipseModel.getJdt();
