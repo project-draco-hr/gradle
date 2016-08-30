@@ -1,0 +1,36 @@
+{
+  IoActions.writeTextFile(out,new ErroringAction<BufferedWriter>(){
+    @Override protected void doExecute(    BufferedWriter writer) throws Exception {
+      BufferedReader reader=new BufferedReader(new InputStreamReader(new FileInputStream(in)));
+      String line;
+      StringBuilder sb=new StringBuilder();
+      while ((line=reader.readLine()) != null) {
+        if (sanitizeFunction.skipLine(line)) {
+          continue;
+        }
+        List<String> data=LINE_SPLITTER.splitToList(line);
+        if (data.size() == 2) {
+          String stackTraces=data.get(0);
+          String suffix=data.get(1);
+          List<String> stackTraceElements=STACKTRACE_SPLITTER.splitToList(stackTraces);
+          List<String> remapped=new ArrayList<String>(stackTraceElements.size());
+          for (          String stackTraceElement : stackTraceElements) {
+            String mapped=sanitizeFunction.map(stackTraceElement);
+            if (mapped != null) {
+              remapped.add(mapped);
+            }
+          }
+          if (!remapped.isEmpty()) {
+            sb.setLength(0);
+            STACKTRACE_JOINER.appendTo(sb,remapped);
+            sb.append(' ');
+            sb.append(suffix);
+            sb.append("\n");
+            writer.write(sb.toString());
+          }
+        }
+      }
+    }
+  }
+);
+}
