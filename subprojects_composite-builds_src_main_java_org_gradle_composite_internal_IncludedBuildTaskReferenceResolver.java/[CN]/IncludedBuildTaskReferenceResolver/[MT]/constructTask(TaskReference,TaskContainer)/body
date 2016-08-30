@@ -14,8 +14,11 @@
     }
 );
   }
-  CompositeBuildTaskDelegate delegateTask=(CompositeBuildTaskDelegate)task;
-  Preconditions.checkState(((CompositeBuildTaskDelegate)task).getBuild().equals(ref.getBuildName()));
-  delegateTask.addTask(ref.getTaskPath());
-  return task;
+  if (task instanceof CompositeBuildTaskDelegate) {
+    CompositeBuildTaskDelegate delegateTask=(CompositeBuildTaskDelegate)task;
+    Preconditions.checkState(((CompositeBuildTaskDelegate)task).getBuild().equals(ref.getBuildName()));
+    delegateTask.addTask(ref.getTaskPath());
+    return task;
+  }
+  throw new TaskInstantiationException("Cannot create delegating task '" + delegateTaskName + "' as task with same name already exists.");
 }
