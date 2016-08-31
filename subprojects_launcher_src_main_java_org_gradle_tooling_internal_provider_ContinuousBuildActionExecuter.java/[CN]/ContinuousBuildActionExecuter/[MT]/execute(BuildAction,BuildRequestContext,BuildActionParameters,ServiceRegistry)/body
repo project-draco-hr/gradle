@@ -1,16 +1,11 @@
 {
   ServiceRegistry buildSessionScopeServices=new BuildSessionScopeServices(contextServices,action.getStartParameter(),actionParameters.getInjectedPluginClasspath());
   try {
-    if (actionParameters instanceof CompositeBuildActionParameters) {
-      return compositeDelegate.execute(action,requestContext,(CompositeBuildActionParameters)actionParameters,buildSessionScopeServices);
+    if (actionParameters.isContinuous()) {
+      return executeMultipleBuilds(action,requestContext,actionParameters,buildSessionScopeServices);
     }
  else {
-      if (actionParameters.isContinuous()) {
-        return executeMultipleBuilds(action,requestContext,actionParameters,buildSessionScopeServices);
-      }
- else {
-        return delegate.execute(action,requestContext,actionParameters,buildSessionScopeServices);
-      }
+      return delegate.execute(action,requestContext,actionParameters,buildSessionScopeServices);
     }
   }
   finally {

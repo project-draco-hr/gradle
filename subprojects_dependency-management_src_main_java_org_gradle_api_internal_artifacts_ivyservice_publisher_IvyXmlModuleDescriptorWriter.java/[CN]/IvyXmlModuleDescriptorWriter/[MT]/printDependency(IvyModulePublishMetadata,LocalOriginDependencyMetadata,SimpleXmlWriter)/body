@@ -1,0 +1,25 @@
+{
+  writer.startElement("dependency");
+  ModuleVersionSelector requested=dep.getRequested();
+  writer.attribute("org",requested.getGroup());
+  writer.attribute("name",requested.getName());
+  writer.attribute("rev",requested.getVersion());
+  if (dep.getDynamicConstraintVersion() != null && !dep.getDynamicConstraintVersion().equals(requested.getVersion())) {
+    writer.attribute("revConstraint",dep.getDynamicConstraintVersion());
+  }
+  if (dep.isForce()) {
+    writer.attribute("force","true");
+  }
+  if (dep.isChanging()) {
+    writer.attribute("changing","true");
+  }
+  if (!dep.isTransitive()) {
+    writer.attribute("transitive","false");
+  }
+  writer.attribute("conf",getConfMapping(dep));
+  for (  IvyArtifactName dependencyArtifact : dep.getArtifacts()) {
+    printDependencyArtifact(writer,dependencyArtifact,dep.getModuleConfiguration());
+  }
+  printDependencyExcludeRules(metadata,writer,dep.getExcludes());
+  writer.endElement();
+}

@@ -28,14 +28,14 @@
  else     if (entry instanceof ProjectDependency) {
       final ProjectDependency projectDependency=(ProjectDependency)entry;
       final String path=StringUtils.removeStart(projectDependency.getPath(),"/");
-      DefaultEclipseProject targetProject=projectMapping.get(projectDependency.getGradlePath());
       DefaultEclipseProjectDependency dependency;
-      if (targetProject == null) {
-        File projectDirectory=compositeProjectMapper.getProjectDirectory(projectDependency.getGradlePath());
-        dependency=new DefaultEclipseProjectDependency(path,projectDirectory,projectDependency.isExported(),createAttributes(projectDependency),createAccessRules(projectDependency));
+      DefaultEclipseProject targetProject=findEclipseProjectByName(path);
+      if (targetProject != null) {
+        dependency=new DefaultEclipseProjectDependency(path,targetProject,projectDependency.isExported(),createAttributes(projectDependency),createAccessRules(projectDependency));
       }
  else {
-        dependency=new DefaultEclipseProjectDependency(path,targetProject,projectDependency.isExported(),createAttributes(projectDependency),createAccessRules(projectDependency));
+        File projectDirectory=compositeProjectMapper.getProjectDirectory(projectDependency.getGradleProjectId());
+        dependency=new DefaultEclipseProjectDependency(path,projectDirectory,projectDependency.isExported(),createAttributes(projectDependency),createAccessRules(projectDependency));
       }
       projectDependencies.add(dependency);
     }
@@ -55,7 +55,7 @@
       outputLocation=new DefaultEclipseOutputLocation(((Output)entry).getPath());
     }
   }
-  DefaultEclipseProject eclipseProject=projectMapping.get(project.getPath());
+  DefaultEclipseProject eclipseProject=findEclipseProject(project);
   eclipseProject.setClasspath(externalDependencies);
   eclipseProject.setProjectDependencies(projectDependencies);
   eclipseProject.setSourceDirectories(sourceDirectories);
@@ -76,7 +76,11 @@
   eclipseProject.setProjectNatures(natures);
   List<DefaultEclipseBuildCommand> buildCommands=new ArrayList<DefaultEclipseBuildCommand>();
   for (  BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
-    buildCommands.add(new DefaultEclipseBuildCommand(b.getName(),b.getArguments()));
+    Map<String,String> arguments=Maps.newLinkedHashMap();
+    for (    Map.Entry<String,String> entry : b.getArguments().entrySet()) {
+      arguments.put(convertGString(entry.getKey()),convertGString(entry.getValue()));
+    }
+    buildCommands.add(new DefaultEclipseBuildCommand(b.getName(),arguments));
   }
   eclipseProject.setBuildCommands(buildCommands);
   EclipseJdt jdt=eclipseModel.getJdt();
