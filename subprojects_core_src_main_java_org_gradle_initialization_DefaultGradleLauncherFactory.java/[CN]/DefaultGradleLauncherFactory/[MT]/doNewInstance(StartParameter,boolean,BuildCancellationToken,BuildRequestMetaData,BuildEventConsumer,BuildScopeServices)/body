@@ -20,9 +20,17 @@
   }
   ScriptUsageLocationReporter usageLocationReporter=new ScriptUsageLocationReporter();
   listenerManager.addListener(usageLocationReporter);
-  DeprecationLogger.useLocationReporter(usageLocationReporter);
-  SettingsLoaderFactory settingsLoaderFactory=serviceRegistry.get(SettingsLoaderFactory.class);
-  SettingsLoader settingsLoader=nestedInstance ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
-  GradleInternal gradle=serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class,tracker.getCurrentBuild(),startParameter,serviceRegistry.get(ServiceRegistryFactory.class));
-  return new DefaultGradleLauncher(gradle,serviceRegistry.get(InitScriptHandler.class),settingsLoader,serviceRegistry.get(BuildConfigurer.class),serviceRegistry.get(ExceptionAnalyser.class),loggingManager,gradle.getBuildListenerBroadcaster(),listenerManager.getBroadcaster(ModelConfigurationListener.class),listenerManager.getBroadcaster(BuildCompletionListener.class),serviceRegistry.get(BuildOperationExecutor.class),gradle.getServices().get(BuildConfigurationActionExecuter.class),gradle.getServices().get(BuildExecuter.class),serviceRegistry);
+  ShowStacktrace showStacktrace=startParameter.getShowStacktrace();
+switch (showStacktrace) {
+case ALWAYS:
+case ALWAYS_FULL:
+    LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(true);
+default :
+  LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
+}
+DeprecationLogger.useLocationReporter(usageLocationReporter);
+SettingsLoaderFactory settingsLoaderFactory=serviceRegistry.get(SettingsLoaderFactory.class);
+SettingsLoader settingsLoader=nestedInstance ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
+GradleInternal gradle=serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class,tracker.getCurrentBuild(),startParameter,serviceRegistry.get(ServiceRegistryFactory.class));
+return new DefaultGradleLauncher(gradle,serviceRegistry.get(InitScriptHandler.class),settingsLoader,serviceRegistry.get(BuildConfigurer.class),serviceRegistry.get(ExceptionAnalyser.class),loggingManager,gradle.getBuildListenerBroadcaster(),listenerManager.getBroadcaster(ModelConfigurationListener.class),listenerManager.getBroadcaster(BuildCompletionListener.class),serviceRegistry.get(BuildOperationExecutor.class),gradle.getServices().get(BuildConfigurationActionExecuter.class),gradle.getServices().get(BuildExecuter.class),serviceRegistry);
 }

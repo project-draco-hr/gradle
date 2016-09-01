@@ -1,0 +1,25 @@
+{
+  StackTraceElement[] originalStack=new Exception().getStackTrace();
+  final String calledFromName=calledFrom.getName();
+  boolean calledFromFound=false;
+  int caller;
+  for (caller=0; caller < originalStack.length; caller++) {
+    StackTraceElement current=originalStack[caller];
+    if (!calledFromFound) {
+      if (current.getClassName().startsWith(calledFromName)) {
+        calledFromFound=true;
+      }
+    }
+ else {
+      if (!current.getClassName().startsWith(calledFromName)) {
+        break;
+      }
+    }
+  }
+  caller=skipSystemStackElements(originalStack,caller);
+  List<StackTraceElement> result=new ArrayList<StackTraceElement>();
+  for (; caller < originalStack.length; caller++) {
+    result.add(originalStack[caller]);
+  }
+  return result;
+}
