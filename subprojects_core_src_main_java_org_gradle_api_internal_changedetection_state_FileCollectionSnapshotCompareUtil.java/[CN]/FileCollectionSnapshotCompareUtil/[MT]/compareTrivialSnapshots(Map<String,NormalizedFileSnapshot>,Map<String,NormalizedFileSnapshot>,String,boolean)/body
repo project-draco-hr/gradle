@@ -1,0 +1,68 @@
+{
+  TaskStateChange change;
+switch (current.size()) {
+case 0:
+switch (previous.size()) {
+case 0:
+      change=null;
+    break;
+case 1:
+  String path=previous.keySet().iterator().next();
+change=new FileChange(path,ChangeType.REMOVED,fileType);
+break;
+default :
+return null;
+}
+break;
+case 1:
+switch (previous.size()) {
+case 0:
+if (includeAdded) {
+String path=current.keySet().iterator().next();
+change=new FileChange(path,ChangeType.ADDED,fileType);
+}
+ else {
+change=null;
+}
+break;
+case 1:
+Entry<String,NormalizedFileSnapshot> previousEntry=previous.entrySet().iterator().next();
+Entry<String,NormalizedFileSnapshot> currentEntry=current.entrySet().iterator().next();
+NormalizedFileSnapshot normalizedPrevious=previousEntry.getValue();
+NormalizedFileSnapshot normalizedCurrent=currentEntry.getValue();
+if (normalizedCurrent.getNormalizedPath().equals(normalizedPrevious.getNormalizedPath())) {
+IncrementalFileSnapshot previousSnapshot=normalizedPrevious.getSnapshot();
+IncrementalFileSnapshot currentSnapshot=normalizedCurrent.getSnapshot();
+if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
+String path=currentEntry.getKey();
+change=new FileChange(path,ChangeType.MODIFIED,fileType);
+}
+ else {
+change=null;
+}
+}
+ else {
+if (includeAdded) {
+String path=currentEntry.getKey();
+change=new FileChange(path,ChangeType.REPLACED,fileType);
+}
+ else {
+String path=previousEntry.getKey();
+change=new FileChange(path,ChangeType.REMOVED,fileType);
+}
+}
+break;
+default :
+return null;
+}
+break;
+default :
+return null;
+}
+if (change == null) {
+return Iterators.emptyIterator();
+}
+ else {
+return Iterators.singletonIterator(change);
+}
+}
