@@ -1,5 +1,5 @@
 {
-  final ListMultimap<NormalizedFileSnapshot,IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots=MultimapBuilder.treeKeys().linkedListValues().build();
+  final ListMultimap<NormalizedFileSnapshot,IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots=MultimapBuilder.hashKeys().linkedListValues().build();
   for (  Entry<String,NormalizedFileSnapshot> entry : previous.entrySet()) {
     String absolutePath=entry.getKey();
     NormalizedFileSnapshot previousSnapshot=entry.getValue();
@@ -30,7 +30,14 @@
         }
       }
       if (unaccountedForPreviousSnapshotsIterator == null) {
-        unaccountedForPreviousSnapshotsIterator=unaccountedForPreviousSnapshots.entries().iterator();
+        if (unaccountedForPreviousSnapshots.isEmpty()) {
+          unaccountedForPreviousSnapshotsIterator=Iterators.emptyIterator();
+        }
+ else {
+          List<Entry<NormalizedFileSnapshot,IncrementalFileSnapshotWithAbsolutePath>> entries=Lists.newArrayList(unaccountedForPreviousSnapshots.entries());
+          Collections.sort(entries,ENTRY_COMPARATOR);
+          unaccountedForPreviousSnapshotsIterator=entries.iterator();
+        }
       }
       if (unaccountedForPreviousSnapshotsIterator.hasNext()) {
         Entry<NormalizedFileSnapshot,IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshotEntry=unaccountedForPreviousSnapshotsIterator.next();
