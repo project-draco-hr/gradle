@@ -1,8 +1,8 @@
 {
   try {
-    final LowMemoryDaemonExpirationStrategy lowMemoryDaemonExpirationStrategy=LowMemoryDaemonExpirationStrategy.belowFreeBytes(1024 * 1024 * 1024);
+    final LowMemoryDaemonExpirationStrategy lowMemoryDaemonExpirationStrategy=LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.05);
     lowMemoryDaemonExpirationStrategy.checkExpiration();
-    strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(new DaemonIdleTimeoutExpirationStrategy(daemon,idleTimeout / 8,TimeUnit.MILLISECONDS),lowMemoryDaemonExpirationStrategy)));
+    strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(new DaemonIdleTimeoutExpirationStrategy(daemon,idleTimeout / 10,TimeUnit.MILLISECONDS),new NotMostRecentlyUsedDaemonExpirationStrategy(daemon),lowMemoryDaemonExpirationStrategy)));
   }
  catch (  UnsupportedOperationException e) {
     LOGGER.info("This JVM does not support getting free system memory, so daemons will not check for it");
