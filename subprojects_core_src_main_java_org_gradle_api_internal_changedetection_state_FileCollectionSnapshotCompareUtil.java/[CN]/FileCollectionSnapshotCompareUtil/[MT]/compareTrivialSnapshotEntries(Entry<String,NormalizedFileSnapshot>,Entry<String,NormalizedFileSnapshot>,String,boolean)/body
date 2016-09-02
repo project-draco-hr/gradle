@@ -1,0 +1,28 @@
+{
+  NormalizedFileSnapshot normalizedPrevious=previousEntry.getValue();
+  NormalizedFileSnapshot normalizedCurrent=currentEntry.getValue();
+  if (normalizedCurrent.getNormalizedPath().equals(normalizedPrevious.getNormalizedPath())) {
+    IncrementalFileSnapshot previousSnapshot=normalizedPrevious.getSnapshot();
+    IncrementalFileSnapshot currentSnapshot=normalizedCurrent.getSnapshot();
+    if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
+      String path=currentEntry.getKey();
+      TaskStateChange change=new FileChange(path,ChangeType.MODIFIED,fileType);
+      return singletonIterator(change);
+    }
+ else {
+      return emptyIterator();
+    }
+  }
+ else {
+    if (includeAdded) {
+      String path=currentEntry.getKey();
+      TaskStateChange change=new FileChange(path,ChangeType.REPLACED,fileType);
+      return singletonIterator(change);
+    }
+ else {
+      String path=previousEntry.getKey();
+      TaskStateChange change=new FileChange(path,ChangeType.REMOVED,fileType);
+      return singletonIterator(change);
+    }
+  }
+}
