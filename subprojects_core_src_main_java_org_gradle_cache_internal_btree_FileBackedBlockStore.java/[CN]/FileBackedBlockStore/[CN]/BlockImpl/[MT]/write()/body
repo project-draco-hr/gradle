@@ -1,16 +1,14 @@
 {
   long pos=getPos().getPos();
-  file.seek(pos);
-  CountingOutputStream countingOutputStream=new CountingOutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(file)));
-  DataOutputStream outputStream=new DataOutputStream(countingOutputStream);
+  DataOutputStream outputStream=output.start(pos);
   BlockPayload payload=getPayload();
   outputStream.writeByte(BLOCK_MARKER);
   outputStream.writeByte(payload.getType());
   outputStream.writeInt(payloadSize);
   long finalSize=pos + HEADER_SIZE + TAIL_SIZE+ payloadSize;
   payload.write(outputStream);
-  outputStream.writeLong(countingOutputStream.getCount());
-  outputStream.close();
+  outputStream.writeLong(output.getBytesWritten());
+  output.done();
   if (currentFileSize < finalSize) {
     file.setLength(finalSize);
     currentFileSize=finalSize;
