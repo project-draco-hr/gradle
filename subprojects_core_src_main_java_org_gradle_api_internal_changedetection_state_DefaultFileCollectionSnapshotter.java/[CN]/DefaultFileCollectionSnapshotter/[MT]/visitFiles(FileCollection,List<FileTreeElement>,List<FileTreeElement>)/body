@@ -1,8 +1,16 @@
 {
-  DefaultFileCollectionResolveContext context=new DefaultFileCollectionResolveContext(fileResolver);
+  ResolvableFileCollectionResolveContext context=new DefaultFileCollectionResolveContext(fileResolver);
   context.add(input);
   List<FileTreeInternal> fileTrees=context.resolveAsFileTrees();
   for (  FileTreeInternal fileTree : fileTrees) {
-    fileTreeElements.addAll(visitTreeForSnapshotting(fileTree));
+    fileTree.visitTreeOrBackingFile(new FileVisitor(){
+      @Override public void visitDir(      FileVisitDetails dirDetails){
+        fileTreeElements.add(dirDetails);
+      }
+      @Override public void visitFile(      FileVisitDetails fileDetails){
+        fileTreeElements.add(fileDetails);
+      }
+    }
+);
   }
 }

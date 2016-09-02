@@ -1,3 +1,21 @@
 {
-  return getMbeanAttribute("java.lang:type=OperatingSystem","FreePhysicalMemorySize",Long.class);
+  OperatingSystem operatingSystem=OperatingSystem.current();
+  if (operatingSystem.isMacOsX()) {
+    List<String> vmstatOutputLines=exec(VMSTAT_EXECUTABLE_PATH);
+    long freeMemoryFromVmstat=parseFreeMemoryFromVmstat(vmstatOutputLines);
+    if (freeMemoryFromVmstat != -1) {
+      return freeMemoryFromVmstat;
+    }
+  }
+ else   if (operatingSystem.isLinux()) {
+    List<String> meminfoOutputLines=exec(MEMINFO_EXECUTABLE_PATH);
+    long freeMemoryFromProcMeminfo=parseFreeMemoryFromMeminfo(meminfoOutputLines);
+    if (freeMemoryFromProcMeminfo != -1) {
+      return freeMemoryFromProcMeminfo;
+    }
+  }
+ else {
+    return getMbeanAttribute("java.lang:type=OperatingSystem","FreePhysicalMemorySize",Long.class);
+  }
+  throw new UnsupportedOperationException("Unable to get free memory");
 }

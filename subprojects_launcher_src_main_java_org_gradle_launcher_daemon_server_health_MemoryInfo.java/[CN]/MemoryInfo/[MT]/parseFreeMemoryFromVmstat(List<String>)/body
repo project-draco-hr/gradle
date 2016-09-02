@@ -1,0 +1,15 @@
+{
+  final AvailableMemory availableMemory=new AvailableMemory();
+  if (!vmstatLines.isEmpty()) {
+    long pageSize=parseVmstatBytes(vmstatLines.get(0));
+    for (    String line : vmstatLines) {
+      if (line.startsWith("Pages free")) {
+        availableMemory.setFreeBytes(parseVmstatBytes(line) * pageSize);
+      }
+ else       if (line.startsWith("File-backed pages")) {
+        availableMemory.setReclaimableBytes(parseVmstatBytes(line) * pageSize);
+      }
+    }
+  }
+  return availableMemory.getAvailableBytes();
+}
