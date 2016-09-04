@@ -1,5 +1,12 @@
 {
-  List<BuildIdentifier> candidateCycle=Lists.newArrayList();
-  checkNoCycles(buildRequest,buildRequest.targetBuild,candidateCycle);
-  executingBuilds.add(buildRequest);
+  lock.lock();
+  try {
+    List<BuildIdentifier> candidateCycle=Lists.newArrayList();
+    checkNoCycles(buildRequest,buildRequest.targetBuild,candidateCycle);
+    waitForExistingBuildToComplete(buildRequest.targetBuild);
+    executingBuilds.add(buildRequest);
+  }
+  finally {
+    lock.unlock();
+  }
 }
