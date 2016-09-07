@@ -18,22 +18,14 @@
         writeUTF(targetClass.getName());
       }
       private void writeClassLoader(      Class<?> targetClass) throws IOException {
-        ClassLoader classLoader=targetClass.getClassLoader();
-        if (classLoader == null || SYSTEM_CLASS_LOADERS.contains(classLoader)) {
-          writeShort(SYSTEM_CLASS_LOADER_ID);
-        }
- else {
-          writeShort(map.visitClass(targetClass));
-        }
+        writeShort(map.visitClass(targetClass));
       }
     }
 ;
     objectStream.writeObject(payload);
     objectStream.close();
-    Map<Short,ClassLoaderDetails> classLoaders=map.getClassLoaders();
-    if (classLoaders.containsKey(SYSTEM_CLASS_LOADER_ID)) {
-      throw new IllegalArgumentException("Unexpected ClassLoader id found");
-    }
+    Map<Short,ClassLoaderDetails> classLoaders=new HashMap<Short,ClassLoaderDetails>();
+    map.collectClassLoaderDefinitions(classLoaders);
     return new SerializedPayload(classLoaders,content.toByteArray());
   }
  catch (  IOException e) {

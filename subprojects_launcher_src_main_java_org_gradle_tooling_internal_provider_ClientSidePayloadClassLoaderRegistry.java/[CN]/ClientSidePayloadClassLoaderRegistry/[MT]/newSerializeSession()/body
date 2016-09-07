@@ -21,7 +21,7 @@
       candidates.add(target.getClassLoader());
       return CLIENT_CLASS_LOADER_ID;
     }
-    public Map<Short,ClassLoaderDetails> getClassLoaders(){
+    @Override public void collectClassLoaderDefinitions(    Map<Short,ClassLoaderDetails> details){
       lock.lock();
       UUID uuid;
       try {
@@ -30,9 +30,8 @@
   finally {
         lock.unlock();
       }
-      ClassLoaderDetails details=new ClassLoaderDetails(uuid,new VisitableURLClassLoader.Spec(new ArrayList<URL>(classPath)));
-      classLoaderDetails.put(CLIENT_CLASS_LOADER_ID,details);
-      return classLoaderDetails;
+      details.putAll(classLoaderDetails);
+      details.put(CLIENT_CLASS_LOADER_ID,new ClassLoaderDetails(uuid,new VisitableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
     }
   }
 ;
