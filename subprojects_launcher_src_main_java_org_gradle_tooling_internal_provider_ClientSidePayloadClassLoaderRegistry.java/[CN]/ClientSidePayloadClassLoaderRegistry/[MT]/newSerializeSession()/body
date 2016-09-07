@@ -1,8 +1,22 @@
 {
   final Set<ClassLoader> candidates=new LinkedHashSet<ClassLoader>();
   final Set<URL> classPath=new LinkedHashSet<URL>();
+  final Map<ClassLoader,Short> classLoaderIds=new HashMap<ClassLoader,Short>();
+  final Map<Short,ClassLoaderDetails> classLoaderDetails=new HashMap<Short,ClassLoaderDetails>();
   return new SerializeMap(){
     public short visitClass(    Class<?> target){
+      ClassLoader classLoader=target.getClassLoader();
+      Short id=classLoaderIds.get(classLoader);
+      if (id != null) {
+        return id;
+      }
+      ClassLoaderDetails details=classLoaderCache.maybeGetDetails(classLoader);
+      if (details != null) {
+        id=(short)(classLoaderIds.size() + CLIENT_CLASS_LOADER_ID + 1);
+        classLoaderIds.put(classLoader,id);
+        classLoaderDetails.put(id,details);
+        return id;
+      }
       classpathInferer.getClassPathFor(target,classPath);
       candidates.add(target.getClassLoader());
       return CLIENT_CLASS_LOADER_ID;
@@ -11,12 +25,14 @@
       lock.lock();
       UUID uuid;
       try {
-        uuid=getUuid(candidates);
+        uuid=getUuidForLocalClassLoaders(candidates);
       }
   finally {
         lock.unlock();
       }
-      return Collections.singletonMap(CLIENT_CLASS_LOADER_ID,new ClassLoaderDetails(uuid,new VisitableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
+      ClassLoaderDetails details=new ClassLoaderDetails(uuid,new VisitableURLClassLoader.Spec(new ArrayList<URL>(classPath)));
+      classLoaderDetails.put(CLIENT_CLASS_LOADER_ID,details);
+      return classLoaderDetails;
     }
   }
 ;

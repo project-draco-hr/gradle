@@ -1,0 +1,20 @@
+{
+  ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
+  ExecHandleBuilder builder=new DefaultExecActionFactory(new IdentityFileResolver()).newExec();
+  builder.setWorkingDir(new File(".").getAbsolutePath());
+  builder.setCommandLine(VMSTAT_EXECUTABLE_PATH);
+  builder.setStandardOutput(outputStream);
+  builder.build().start().waitForFinish().assertNormalExitValue();
+  BufferedReader reader=new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray())));
+  List<String> lines=Lists.newArrayList();
+  try {
+    String line;
+    while ((line=reader.readLine()) != null) {
+      lines.add(line);
+    }
+  }
+ catch (  IOException e) {
+    throw new UnsupportedOperationException("Unable to read memory info from " + VMSTAT_EXECUTABLE_PATH,e);
+  }
+  return lines;
+}
