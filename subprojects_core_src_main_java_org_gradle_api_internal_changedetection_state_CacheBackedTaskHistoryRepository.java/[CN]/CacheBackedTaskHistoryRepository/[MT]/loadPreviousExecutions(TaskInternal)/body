@@ -2,7 +2,8 @@
   return cacheAccess.useCache("Load task history",new Factory<TaskExecutionList>(){
     public TaskExecutionList create(){
       ClassLoader original=serializer.getClassLoader();
-      serializer.setClassLoader(task.getClass().getClassLoader());
+      ClassLoader projectClassLoader=Cast.cast(ProjectInternal.class,task.getProject()).getClassLoaderScope().getLocalClassLoader();
+      serializer.setClassLoader(projectClassLoader);
       try {
         TaskExecutionList history=taskHistoryCache.get(task.getPath());
         return history == null ? new TaskExecutionList() : history;
