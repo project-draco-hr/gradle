@@ -1,7 +1,8 @@
 {
   Configuration selectedConfiguration=null;
-  if (clientAttributes != null && !clientAttributes.isEmpty()) {
-    ConfigurationContainer dependencyConfigurations=getDependencyProject().getConfigurations();
+  ConfigurationContainer dependencyConfigurations=getDependencyProject().getConfigurations();
+  String declaredConfiguration=getTargetConfiguration().orNull();
+  if (declaredConfiguration == null && clientAttributes != null && !clientAttributes.isEmpty()) {
     for (    Configuration dependencyConfiguration : dependencyConfigurations) {
       if (dependencyConfiguration.hasAttributes()) {
         Map<String,String> attributes=dependencyConfiguration.getAttributes();
@@ -13,7 +14,7 @@
     }
   }
   if (selectedConfiguration == null) {
-    selectedConfiguration=getProjectConfiguration();
+    selectedConfiguration=dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration,Dependency.DEFAULT_CONFIGURATION));
   }
   return selectedConfiguration;
 }
