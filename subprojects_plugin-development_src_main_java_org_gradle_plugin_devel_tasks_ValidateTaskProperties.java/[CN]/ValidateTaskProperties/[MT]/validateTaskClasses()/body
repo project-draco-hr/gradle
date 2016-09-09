@@ -1,10 +1,13 @@
 {
+  ClassLoader previousContextClassLoader=Thread.currentThread().getContextClassLoader();
   ClassPath classPath=new DefaultClassPath(Iterables.concat(Collections.singleton(getClassesDir()),getClasspath()));
   ClassLoader classLoader=getClassLoaderFactory().createIsolatedClassLoader(classPath);
+  Thread.currentThread().setContextClassLoader(classLoader);
   try {
     validateTaskClasses(classLoader);
   }
   finally {
+    Thread.currentThread().setContextClassLoader(previousContextClassLoader);
     ClassLoaderUtils.tryClose(classLoader);
   }
 }
