@@ -1,4 +1,25 @@
 {
   this.rootSpec=createRootSpec();
+  rootSpec.addChildSpecListener(new CopySpecInternal.ChildSpecListener(){
+    @Override public void childSpecAdded(    CopySpecInternal.ChildSpecAddedEvent event){
+      StringBuilder specPropertyNameBuilder=new StringBuilder("rootSpec");
+      CopySpecResolver parentResolver=event.getPath().unroll(specPropertyNameBuilder);
+      final CopySpecResolver resolver=event.getSpec().buildResolverRelativeToParent(parentResolver);
+      String specPropertyName=specPropertyNameBuilder.toString();
+      getInputs().files(new Callable<FileTree>(){
+        @Override public FileTree call() throws Exception {
+          return resolver.getSource();
+        }
+      }
+).withPropertyName(specPropertyName).withPathSensitivity(PathSensitivity.RELATIVE).skipWhenEmpty();
+      getInputs().property(specPropertyName + ".destPath",new Callable<String>(){
+        @Override public String call() throws Exception {
+          return resolver.getDestPath().getPathString();
+        }
+      }
+);
+    }
+  }
+);
   this.mainSpec=rootSpec.addChild();
 }
