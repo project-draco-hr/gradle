@@ -1,16 +1,30 @@
 {
-  ResolvableFileCollectionResolveContext context=new DefaultFileCollectionResolveContext(fileResolver);
-  context.add(input);
-  List<FileTreeInternal> fileTrees=context.resolveAsFileTrees();
-  for (  FileTreeInternal fileTree : fileTrees) {
-    fileTree.visitTreeOrBackingFile(new FileVisitor(){
-      @Override public void visitDir(      FileVisitDetails dirDetails){
-        fileTreeElements.add(dirDetails);
-      }
-      @Override public void visitFile(      FileVisitDetails fileDetails){
-        fileTreeElements.add(fileDetails);
+  FileCollectionInternal fileCollection=(FileCollectionInternal)input;
+  fileCollection.visitRootElements(new FileCollectionVisitor(){
+    @Override public void visitCollection(    FileCollectionInternal fileCollection){
+      for (      File file : fileCollection) {
+        if (file.isFile()) {
+          fileTreeElements.add(new DefaultFileVisitDetails(file,fileSystem,fileSystem));
+        }
+ else         if (file.isDirectory()) {
+          visitTree(new FileTreeAdapter(new DirectoryFileTree(file,patternSetFactory.create())));
+        }
+ else {
+          missingFiles.add(new MissingFileVisitDetails(file));
+        }
       }
     }
+    @Override public void visitTree(    FileTreeInternal fileTree){
+      fileTree.visitTreeOrBackingFile(new FileVisitor(){
+        @Override public void visitDir(        FileVisitDetails dirDetails){
+          fileTreeElements.add(dirDetails);
+        }
+        @Override public void visitFile(        FileVisitDetails fileDetails){
+          fileTreeElements.add(fileDetails);
+        }
+      }
 );
+    }
   }
+);
 }
