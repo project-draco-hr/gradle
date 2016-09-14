@@ -1,0 +1,39 @@
+{
+  final Map<String,DefaultTaskPropertyActionContext> propertyContexts=Maps.newHashMap();
+  Types.walkTypeHierarchy(type,IGNORED_SUPER_CLASSES,new Types.TypeVisitor<T>(){
+    @Override public void visitType(    Class<? super T> type){
+      Map<String,Field> fields=getFields(type);
+      Method[] methods=type.getDeclaredMethods();
+      for (      Method method : methods) {
+        PropertyAccessorType accessorType=PropertyAccessorType.of(method);
+        if (accessorType == null || accessorType == PropertyAccessorType.SETTER || method.isBridge() || GroovyMethods.isObjectMethod(method)) {
+          continue;
+        }
+        String fieldName=accessorType.propertyNameFor(method);
+        Field field=fields.get(fieldName);
+        String propertyName=parent != null ? parent.getName() + '.' + fieldName : fieldName;
+        DefaultTaskPropertyActionContext propertyContext=propertyContexts.get(propertyName);
+        if (propertyContext == null) {
+          propertyContext=new DefaultTaskPropertyActionContext(parent,propertyName,method);
+          propertyContexts.put(propertyName,propertyContext);
+        }
+        propertyContext.addAnnotations(method.getDeclaredAnnotations());
+        if (field != null) {
+          propertyContext.setInstanceVariableField(field);
+          propertyContext.addAnnotations(field.getDeclaredAnnotations());
+        }
+      }
+    }
+  }
+);
+  for (  DefaultTaskPropertyActionContext propertyContext : propertyContexts.values()) {
+    TaskPropertyInfo property=createProperty(propertyContext,nonAnnotatedPropertiesBuilder);
+    if (property != null) {
+      validatedPropertiesBuilder.add(property);
+      Class<?> nestedType=propertyContext.getNestedType();
+      if (nestedType != null) {
+        queue.add(new TypeEntry(property,nestedType));
+      }
+    }
+  }
+}
