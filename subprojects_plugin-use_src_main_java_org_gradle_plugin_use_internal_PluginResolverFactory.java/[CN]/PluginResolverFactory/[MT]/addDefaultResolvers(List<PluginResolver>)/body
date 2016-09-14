@@ -4,12 +4,11 @@
   if (!injectedClasspathPluginResolver.isClasspathEmpty()) {
     resolvers.add(injectedClasspathPluginResolver);
   }
-  pluginRepositoryRegistry.lock();
-  for (  PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
-    PluginResolver resolver=((PluginRepositoryInternal)pluginRepository).asResolver();
-    resolvers.add(resolver);
-  }
-  if (Iterables.isEmpty(pluginRepositoryRegistry.getPluginRepositories())) {
+  ImmutableList<PluginRepository> pluginRepositories=getPluginRepositories();
+  if (pluginRepositories.isEmpty()) {
     resolvers.add(pluginResolutionServiceResolver);
+  }
+ else {
+    addPluginRepositoryResolvers(resolvers,pluginRepositories);
   }
 }
