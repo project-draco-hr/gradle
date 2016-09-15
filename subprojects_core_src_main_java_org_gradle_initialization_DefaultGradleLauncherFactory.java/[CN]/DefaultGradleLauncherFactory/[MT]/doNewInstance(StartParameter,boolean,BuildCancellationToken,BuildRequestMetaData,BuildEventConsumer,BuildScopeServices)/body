@@ -14,6 +14,10 @@
     listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class),serviceRegistry.get(StyledTextOutputFactory.class),startParameter,requestMetaData));
   }
   listenerManager.addListener(tracker);
+  if (startParameter.isTaskOutputCacheEnabled()) {
+    listenerManager.addListener(serviceRegistry.get(TaskExecutionEventAdapter.class));
+    listenerManager.addListener(new CacheStatisticsReporter(serviceRegistry.get(StyledTextOutputFactory.class)));
+  }
   listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
   if (startParameter.isProfile()) {
     listenerManager.addListener(new ReportGeneratingProfileListener());
