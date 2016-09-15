@@ -1,0 +1,37 @@
+{
+  final String propertyName=propertySpec.getPropertyName();
+switch (propertySpec.getOutputType()) {
+case DIRECTORY:
+    final String propertyRoot="property-" + propertyName + "/";
+  zipOutput.putNextEntry(new ZipEntry(propertyRoot));
+new DirectoryFileTree(propertySpec.getOutputFile()).visit(new FileVisitor(){
+  @Override public void visitDir(  FileVisitDetails dirDetails){
+    String path=dirDetails.getRelativePath().getPathString();
+    try {
+      zipOutput.putNextEntry(new ZipEntry(propertyRoot + path + "/"));
+    }
+ catch (    IOException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+  @Override public void visitFile(  FileVisitDetails fileDetails){
+    String path=fileDetails.getRelativePath().getPathString();
+    try {
+      zipOutput.putNextEntry(new ZipEntry(propertyRoot + path));
+      fileDetails.copyTo(zipOutput);
+    }
+ catch (    IOException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+}
+);
+break;
+case FILE:
+zipOutput.putNextEntry(new ZipEntry("property-" + propertyName));
+Files.copy(propertySpec.getOutputFile(),zipOutput);
+break;
+default :
+throw new AssertionError();
+}
+}
