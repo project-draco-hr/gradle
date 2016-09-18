@@ -1,6 +1,6 @@
 {
-  final ByteArrayOutputStream output=new ByteArrayOutputStream();
-  final OutputStream syncOutput=new SynchronizedOutputStream(output);
+  final StreamByteBuffer outputBuffer=new StreamByteBuffer();
+  final OutputStream syncOutput=new SynchronizedOutputStream(outputBuffer.getOutputStream());
   final List<BuildTask> tasks=new ArrayList<BuildTask>();
   maybeRegisterCleanup();
   GradleConnector gradleConnector=buildConnector(parameters.getGradleUserHome(),parameters.getProjectDir(),parameters.isEmbedded(),parameters.getGradleProvider());
@@ -30,7 +30,7 @@
     throw new InvalidRunnerConfigurationException("The build could not be executed due to a feature not being supported by the target Gradle version",e);
   }
 catch (  BuildException t) {
-    return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion,parameters.isEmbedded()),output.toString(),tasks,t);
+    return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion,parameters.isEmbedded()),outputBuffer.readAsString(),tasks,t);
   }
 catch (  GradleConnectionException t) {
     StringBuilder message=new StringBuilder("An error occurred executing build with ");
@@ -43,7 +43,7 @@ catch (  GradleConnectionException t) {
       message.append("'");
     }
     message.append(" in directory '").append(parameters.getProjectDir().getAbsolutePath()).append("'");
-    String capturedOutput=output.toString();
+    String capturedOutput=outputBuffer.readAsString();
     if (!capturedOutput.isEmpty()) {
       message.append(". Output before error:").append(SystemProperties.getInstance().getLineSeparator()).append(capturedOutput);
     }
@@ -54,5 +54,5 @@ catch (  GradleConnectionException t) {
       connection.close();
     }
   }
-  return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion,parameters.isEmbedded()),output.toString(),tasks);
+  return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion,parameters.isEmbedded()),outputBuffer.readAsString(),tasks);
 }
