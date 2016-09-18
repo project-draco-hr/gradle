@@ -1,10 +1,10 @@
 {
-  ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
+  StreamByteBuffer buffer=new StreamByteBuffer();
   ExecHandleBuilder builder=execHandleFactory.newExec();
   builder.setWorkingDir(new File(".").getAbsolutePath());
   builder.setCommandLine(javaCommand,"-version");
-  builder.setStandardOutput(new ByteArrayOutputStream());
-  builder.setErrorOutput(outputStream);
+  builder.setStandardOutput(NullOutputStream.INSTANCE);
+  builder.setErrorOutput(buffer.getOutputStream());
   builder.build().start().waitForFinish().assertNormalExitValue();
-  return parseJavaVersionCommandOutput(javaCommand,new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
+  return parseJavaVersionCommandOutput(javaCommand,new BufferedReader(new InputStreamReader(buffer.getInputStream())));
 }
