@@ -1,14 +1,23 @@
 {
   for (  File file : fileCollection) {
-    if (file.isFile()) {
-      fileTreeElements.add(new SingletonFileTree.SingletonFileVisitDetails(file,fileSystem,false));
+    FileSnapshotDetails details=rootFiles.get(file.getPath());
+    if (details == null) {
+      details=calculateDetails(file);
+      rootFiles.put(details.path,details);
     }
- else     if (file.isDirectory()) {
-      fileTreeElements.add(new SingletonFileTree.SingletonFileVisitDetails(file,fileSystem,true));
-      visitDirectoryTree(directoryFileTreeFactory.create(file));
-    }
- else {
-      missingFiles.add(new MissingFileVisitDetails(file));
-    }
-  }
+switch (details.type) {
+case RegularFile:
+      fileTreeElements.add(details);
+    break;
+case Directory:
+  fileTreeElements.add(details);
+visitDirectoryTree(directoryFileTreeFactory.create(file));
+break;
+case Missing:
+missingFiles.add(details);
+break;
+default :
+throw new IllegalArgumentException();
+}
+}
 }

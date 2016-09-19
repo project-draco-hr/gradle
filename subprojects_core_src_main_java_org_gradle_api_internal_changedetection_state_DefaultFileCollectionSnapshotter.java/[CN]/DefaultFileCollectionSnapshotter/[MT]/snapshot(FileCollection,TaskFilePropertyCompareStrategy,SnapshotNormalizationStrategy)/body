@@ -1,6 +1,6 @@
 {
-  final List<FileTreeElement> fileTreeElements=Lists.newLinkedList();
-  final List<FileTreeElement> missingFiles=Lists.newArrayList();
+  final List<FileSnapshotDetails> fileTreeElements=Lists.newLinkedList();
+  final List<FileSnapshotDetails> missingFiles=Lists.newArrayList();
   FileCollectionInternal fileCollection=(FileCollectionInternal)input;
   FileCollectionVisitorImpl visitor=new FileCollectionVisitorImpl(fileTreeElements,missingFiles);
   fileCollection.visitRootElements(visitor);
@@ -10,26 +10,26 @@
   final Map<String,NormalizedFileSnapshot> snapshots=Maps.newLinkedHashMap();
   cacheAccess.useCache("Create file snapshot",new Runnable(){
     public void run(){
-      for (      FileTreeElement fileDetails : fileTreeElements) {
-        String absolutePath=getInternedAbsolutePath(fileDetails.getFile());
+      for (      FileSnapshotDetails fileDetails : fileTreeElements) {
+        String absolutePath=fileDetails.path;
         if (!snapshots.containsKey(absolutePath)) {
           IncrementalFileSnapshot snapshot;
-          if (fileDetails.isDirectory()) {
+          if (fileDetails.type == FileType.Directory) {
             snapshot=DirSnapshot.getInstance();
           }
  else {
-            snapshot=new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(),fileDetails.getLastModified());
+            snapshot=new FileHashSnapshot(snapshotter.snapshot(fileDetails.details).getHash(),fileDetails.details.getLastModified());
           }
-          NormalizedFileSnapshot normalizedSnapshot=snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails,snapshot,stringInterner);
+          NormalizedFileSnapshot normalizedSnapshot=snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails.details,snapshot,stringInterner);
           if (normalizedSnapshot != null) {
             snapshots.put(absolutePath,normalizedSnapshot);
           }
         }
       }
-      for (      FileTreeElement missingFileDetails : missingFiles) {
-        String absolutePath=getInternedAbsolutePath(missingFileDetails.getFile());
+      for (      FileSnapshotDetails missingFileDetails : missingFiles) {
+        String absolutePath=missingFileDetails.path;
         if (!snapshots.containsKey(absolutePath)) {
-          snapshots.put(absolutePath,snapshotNormalizationStrategy.getNormalizedSnapshot(missingFileDetails,MissingFileSnapshot.getInstance(),stringInterner));
+          snapshots.put(absolutePath,snapshotNormalizationStrategy.getNormalizedSnapshot(missingFileDetails.details,MissingFileSnapshot.getInstance(),stringInterner));
         }
       }
     }
