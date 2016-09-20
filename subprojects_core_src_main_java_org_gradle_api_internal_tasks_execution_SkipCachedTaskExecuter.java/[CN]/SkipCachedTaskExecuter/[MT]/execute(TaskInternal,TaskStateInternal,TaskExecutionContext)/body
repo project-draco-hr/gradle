@@ -10,10 +10,11 @@
   }
   LOGGER.debug("Determining if {} is cached already",task);
   TaskCacheKey cacheKey=null;
-  NotCachedReason reason=null;
+  boolean cacheable=false;
   if (cacheEnabled) {
     if (taskOutputs.hasDeclaredOutputs()) {
       if (taskOutputs.isCacheAllowed()) {
+        cacheable=true;
         TaskArtifactState taskState=context.getTaskArtifactState();
         try {
           cacheKey=taskState.calculateCacheKey();
@@ -36,29 +37,24 @@
               taskOutputCacheListener.fromCache(task);
               return;
             }
-            reason=NotCachedReason.NOT_IN_CACHE;
           }
  catch (          Exception e) {
             LOGGER.warn("Could not load cached output for {} with cache key {}",task,cacheKey,e);
-            reason=NotCachedReason.ERROR_LOADING_CACHE_ENTRY;
           }
         }
       }
  else {
         LOGGER.info("Not caching {} because it declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`",task);
-        reason=NotCachedReason.MULTIPLE_OUTPUTS;
       }
     }
  else {
       LOGGER.info("Not caching {} as task has declared no outputs",task);
-      reason=NotCachedReason.NO_OUTPUTS;
     }
   }
  else {
     LOGGER.debug("Not caching {} as task output is not cacheable.",task);
-    reason=NotCachedReason.NOT_CACHEABLE;
   }
-  taskOutputCacheListener.notCached(task,reason);
+  taskOutputCacheListener.notCached(task,cacheable);
   delegate.execute(task,state,context);
   if (cacheKey != null && state.getFailure() == null) {
     try {
