@@ -1,0 +1,23 @@
+{
+  Collection<T> projectCandidates=null;
+  T foundProjectCandidate=null;
+  for (  T candidate : candidates) {
+    ComponentResolveMetadata metaData=candidate.getMetaData();
+    if (metaData != null && metaData.getComponentId() instanceof ProjectComponentIdentifier) {
+      if (foundProjectCandidate == null) {
+        foundProjectCandidate=candidate;
+      }
+ else {
+        if (projectCandidates == null) {
+          projectCandidates=new ArrayList<T>();
+          projectCandidates.add(foundProjectCandidate);
+        }
+        projectCandidates.add(candidate);
+      }
+    }
+  }
+  if (projectCandidates != null) {
+    return delegate.select(projectCandidates);
+  }
+  return foundProjectCandidate != null ? foundProjectCandidate : delegate.select(candidates);
+}

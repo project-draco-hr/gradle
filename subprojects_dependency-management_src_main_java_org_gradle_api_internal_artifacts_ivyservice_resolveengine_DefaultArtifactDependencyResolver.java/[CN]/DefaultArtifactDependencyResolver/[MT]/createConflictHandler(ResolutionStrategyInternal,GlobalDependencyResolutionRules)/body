@@ -1,10 +1,14 @@
 {
   ModuleConflictResolver conflictResolver;
-  if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
+  ConflictResolution conflictResolution=resolutionStrategy.getConflictResolution();
+  if (conflictResolution instanceof StrictConflictResolution) {
     conflictResolver=new StrictConflictResolver();
   }
  else {
     conflictResolver=new LatestModuleConflictResolver(versionComparator);
+    if (conflictResolution instanceof LatestConflictResolution && ((LatestConflictResolution)conflictResolution).isPreferProjectModules()) {
+      conflictResolver=new ProjectDependencyForcingResolver(conflictResolver);
+    }
   }
   conflictResolver=new VersionSelectionReasonResolver(conflictResolver);
   return new DefaultConflictHandler(conflictResolver,metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
