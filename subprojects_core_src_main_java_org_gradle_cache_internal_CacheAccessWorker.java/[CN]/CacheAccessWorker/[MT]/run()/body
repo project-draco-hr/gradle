@@ -4,8 +4,12 @@
     while (!Thread.currentThread().isInterrupted() && !closed) {
       try {
         final Runnable runnable=workQueue.take();
-        if (runnable.getClass() == ShutdownOperationsCommand.class) {
+        final Class<? extends Runnable> runnableClass=runnable.getClass();
+        if (runnableClass == ShutdownOperationsCommand.class) {
           break;
+        }
+ else         if (runnableClass == FlushOperationsCommand.class) {
+          runnable.run();
         }
  else {
           flushOperations(runnable,batchWindow,maximumLockingTimeMillis);
@@ -19,7 +23,15 @@
       flushOperations(null,0L,-1L);
     }
   }
-  finally {
+ catch (  Throwable t) {
+synchronized (failureLock) {
+      failureHolder.set(t);
+      for (      Runnable runnable : pendingFlushOperations) {
+        runnable.run();
+      }
+    }
+  }
+ finally {
     closed=true;
     running=false;
     doneSignal.countDown();

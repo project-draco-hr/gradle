@@ -9,7 +9,8 @@
       try {
         while ((otherOperation=workQueue.poll(timeoutMillis,TimeUnit.MILLISECONDS)) != null) {
           otherOperation.run();
-          if (otherOperation.getClass() == ShutdownOperationsCommand.class || maximumLockingTimeMillis > 0L && System.currentTimeMillis() - lockingStarted > maximumLockingTimeMillis) {
+          final Class<? extends Runnable> runnableClass=otherOperation.getClass();
+          if (runnableClass == ShutdownOperationsCommand.class || runnableClass == FlushOperationsCommand.class || maximumLockingTimeMillis > 0L && System.currentTimeMillis() - lockingStarted > maximumLockingTimeMillis) {
             break;
           }
         }

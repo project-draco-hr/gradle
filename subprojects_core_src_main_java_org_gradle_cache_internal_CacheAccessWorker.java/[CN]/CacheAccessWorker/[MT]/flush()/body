@@ -1,0 +1,21 @@
+{
+  rethrowFailure();
+  if (running && !closed) {
+    FlushOperationsCommand flushOperationsCommand=new FlushOperationsCommand();
+    try {
+synchronized (failureLock) {
+        pendingFlushOperations.add(flushOperationsCommand);
+        enqueue(flushOperationsCommand);
+        rethrowFailure();
+      }
+synchronized (failureLock) {
+        rethrowFailure();
+      }
+      flushOperationsCommand.await();
+    }
+  finally {
+      pendingFlushOperations.remove(flushOperationsCommand);
+    }
+    rethrowFailure();
+  }
+}
