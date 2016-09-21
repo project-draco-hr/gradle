@@ -12,7 +12,12 @@
   CommandLineParser parser=new CommandLineParser();
   ParametersConverter parametersConverter=new ParametersConverter();
   parametersConverter.configure(parser);
-  parametersConverter.convert(parser.parse(getAllArgs()),new Parameters(startParameter));
+  final Parameters parameters=new Parameters(startParameter);
+  parametersConverter.convert(parser.parse(getAllArgs()),parameters);
+  if (parameters.getDaemonParameters().isStop()) {
+    cleanupCachedClassLoaders();
+    GLOBAL_SERVICES.get(InMemoryTaskArtifactCache.class).invalidateAll();
+  }
   BuildActionExecuter<BuildActionParameters> actionExecuter=GLOBAL_SERVICES.get(BuildActionExecuter.class);
   ListenerManager listenerManager=GLOBAL_SERVICES.get(ListenerManager.class);
   listenerManager.addListener(listener);
