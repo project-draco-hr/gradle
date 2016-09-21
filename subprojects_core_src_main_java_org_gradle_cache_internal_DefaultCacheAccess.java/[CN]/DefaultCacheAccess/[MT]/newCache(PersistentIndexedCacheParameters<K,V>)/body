@@ -8,7 +8,9 @@
 ;
   MultiProcessSafePersistentIndexedCache<K,V> indexedCache=new DefaultMultiProcessSafePersistentIndexedCache<K,V>(indexedCacheFactory,fileAccess);
   CacheDecorator decorator=parameters.getCacheDecorator();
-  indexedCache=decorator == null ? indexedCache : decorator.decorate(cacheFile.getAbsolutePath(),parameters.getCacheName(),indexedCache);
+  if (decorator != null) {
+    indexedCache=decorator.decorate(cacheFile.getAbsolutePath(),parameters.getCacheName(),indexedCache,getCacheAccessWorker());
+  }
   lock.lock();
   try {
     caches.add(indexedCache);

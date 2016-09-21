@@ -1,0 +1,27 @@
+{
+  running=true;
+  try {
+    while (!Thread.currentThread().isInterrupted() && !closed) {
+      try {
+        final Runnable runnable=workQueue.take();
+        if (runnable.getClass() == ShutdownOperationsCommand.class) {
+          break;
+        }
+ else {
+          flushOperations(runnable,batchWindow,maximumLockingTimeMillis);
+        }
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
+    if (!workQueue.isEmpty()) {
+      flushOperations(null,0L,-1L);
+    }
+  }
+  finally {
+    closed=true;
+    running=false;
+    doneSignal.countDown();
+  }
+}
