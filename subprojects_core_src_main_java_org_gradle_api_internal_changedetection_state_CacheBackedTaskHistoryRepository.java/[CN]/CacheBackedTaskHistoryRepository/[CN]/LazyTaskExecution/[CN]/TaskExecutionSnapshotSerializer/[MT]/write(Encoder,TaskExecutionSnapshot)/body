@@ -1,0 +1,33 @@
+{
+  writeSnapshotIds(encoder,execution.getInputFilesSnapshotIds());
+  writeSnapshotIds(encoder,execution.getOutputFilesSnapshotIds());
+  encoder.writeLong(execution.getDiscoveredFilesSnapshotId());
+  encoder.writeString(execution.getTaskClass());
+  HashCode classLoaderHash=execution.getTaskClassLoaderHash();
+  if (classLoaderHash == null) {
+    encoder.writeBoolean(false);
+  }
+ else {
+    encoder.writeBoolean(true);
+    encoder.writeBinary(classLoaderHash.asBytes());
+  }
+  HashCode actionsClassLoaderHash=execution.getTaskActionsClassLoaderHash();
+  if (actionsClassLoaderHash == null) {
+    encoder.writeBoolean(false);
+  }
+ else {
+    encoder.writeBoolean(true);
+    encoder.writeBinary(actionsClassLoaderHash.asBytes());
+  }
+  encoder.writeSmallInt(execution.getDeclaredOutputFilePaths().size());
+  for (  String outputFile : execution.getDeclaredOutputFilePaths()) {
+    encoder.writeString(outputFile);
+  }
+  if (execution.getInputProperties() == null || execution.getInputProperties().isEmpty()) {
+    encoder.writeBoolean(false);
+  }
+ else {
+    encoder.writeBoolean(true);
+    inputPropertiesSerializer.write(encoder,execution.getInputProperties());
+  }
+}

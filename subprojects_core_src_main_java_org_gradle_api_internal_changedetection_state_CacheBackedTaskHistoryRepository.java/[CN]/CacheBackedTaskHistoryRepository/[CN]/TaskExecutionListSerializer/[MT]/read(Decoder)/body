@@ -1,10 +1,10 @@
 {
-  byte executions=decoder.readByte();
-  TaskExecutionList history=new TaskExecutionList();
-  LazyTaskExecution.LazyTaskExecutionSerializer executionSerializer=new LazyTaskExecution.LazyTaskExecutionSerializer(classLoader,stringInterner);
-  for (int i=0; i < executions; i++) {
-    LazyTaskExecution exec=executionSerializer.read(decoder);
-    history.executions.add(exec);
+  byte count=decoder.readByte();
+  List<TaskExecutionSnapshot> executions=new ArrayList<TaskExecutionSnapshot>(count);
+  LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer=new LazyTaskExecution.TaskExecutionSnapshotSerializer(classLoader,stringInterner);
+  for (int i=0; i < count; i++) {
+    TaskExecutionSnapshot exec=executionSerializer.read(decoder);
+    executions.add(exec);
   }
-  return history;
+  return ImmutableList.copyOf(executions);
 }
