@@ -8,16 +8,17 @@
   }
   processed.put(file,false);
   CompilationFileState previousState=previous.getState(file);
-  CompilationFileState newState=new CompilationFileState(snapshotter.snapshot(file).getHash());
-  if (!sameHash(previousState,newState)) {
+  HashCode newHash=snapshotter.snapshot(file).getHash();
+  IncludeDirectives includeDirectives;
+  if (!sameHash(previousState,newHash)) {
     changed=true;
-    newState.setIncludeDirectives(sourceIncludesParser.parseIncludes(file));
+    includeDirectives=sourceIncludesParser.parseIncludes(file);
   }
  else {
-    newState.setIncludeDirectives(previousState.getIncludeDirectives());
+    includeDirectives=previousState.getIncludeDirectives();
   }
-  SourceIncludesResolver.ResolvedSourceIncludes resolutionResult=resolveIncludes(file,newState.getIncludeDirectives());
-  newState.setResolvedIncludes(resolutionResult.getResolvedIncludes());
+  SourceIncludesResolver.ResolvedSourceIncludes resolutionResult=resolveIncludes(file,includeDirectives);
+  CompilationFileState newState=new CompilationFileState(newHash,includeDirectives,ImmutableSet.copyOf(resolutionResult.getResolvedIncludes()));
   discoveredInputs.addAll(resolutionResult.getCheckedLocations());
   if (!sameResolved(previousState,newState)) {
     changed=true;
