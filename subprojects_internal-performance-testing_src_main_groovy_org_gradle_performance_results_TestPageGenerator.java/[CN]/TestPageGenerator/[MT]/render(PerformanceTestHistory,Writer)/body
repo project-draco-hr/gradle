@@ -76,20 +76,15 @@
       th().text("Gradle JVM opts").end();
       th().text("Daemon").end();
       end();
-      for (      PerformanceTestExecution results : testHistory.getExecutions()) {
+      final int executionsLen=testHistory.getExecutions().size();
+      for (int i=0; i < executionsLen; i++) {
+        PerformanceTestExecution results=testHistory.getExecutions().get(i);
         tr();
         id("result" + results.getExecutionId());
         textCell(format.timestamp(new Date(results.getStartTime())));
         textCell(results.getVcsBranch());
         td();
-        List<Link> vcsCommits=urlify(results.getVcsCommits());
-        for (int i=0; i < vcsCommits.size(); i++) {
-          Link vcsCommit=vcsCommits.get(i);
-          a().href(vcsCommit.getValue()).text(vcsCommit.getLabel()).end();
-          if (i != vcsCommits.size() - 1) {
-            text(" | ");
-          }
-        }
+        renderVcsLinks(results,i < executionsLen - 1 ? testHistory.getExecutions().get(i + 1) : null);
         end();
         final List<MeasuredOperationList> scenarios=results.getScenarios();
         renderSamplesForExperiment(scenarios,new Transformer<DataSeries<Duration>,MeasuredOperationList>(){
@@ -166,6 +161,20 @@
       end();
       footer(this);
       endAll();
+    }
+    private void renderVcsLinks(    PerformanceTestExecution results,    PerformanceTestExecution previousResults){
+      List<GitHubLink> vcsCommits=createGitHubLinks(results.getVcsCommits());
+      for (int i=0; i < vcsCommits.size(); i++) {
+        GitHubLink vcsCommit=vcsCommits.get(i);
+        vcsCommit.renderCommitLink(this);
+        if (previousResults != null) {
+          text(" ");
+          vcsCommit.renderCompareLink(this,previousResults.getVcsCommits().get(i));
+        }
+        if (i != vcsCommits.size() - 1) {
+          text(" | ");
+        }
+      }
     }
     private void addPerformanceGraph(    String heading,    String chartId,    String jsonFieldName,    String fieldLabel,    String fieldUnit){
       h3().text(heading).end();
