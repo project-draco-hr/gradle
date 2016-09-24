@@ -1,13 +1,15 @@
 {
-  ModuleMetadataCacheEntry entry=getCache().get(createKey(repository,componentId));
+  ModuleComponentAtRepositoryKey key=createKey(repository,componentId);
+  ModuleMetadataCacheEntry entry=getCache().get(key);
   if (entry == null) {
     return null;
   }
   if (entry.isMissing()) {
     return new DefaultCachedMetaData(entry,null,timeProvider);
   }
-  MutableModuleComponentResolveMetadata metadata=moduleMetadataStore.getModuleDescriptor(repository,componentId);
+  MutableModuleComponentResolveMetadata metadata=moduleMetadataStore.getModuleDescriptor(key);
   if (metadata == null) {
+    getCache().remove(key);
     return null;
   }
   return new DefaultCachedMetaData(entry,entry.configure(metadata),timeProvider);
