@@ -4,11 +4,11 @@
     TaskArtifactState taskArtifactState=context.getTaskArtifactState();
     FileCollection outputFiles=taskArtifactState.getExecutionHistory().getOutputFiles();
     if (outputFiles == null) {
-      state.upToDate();
+      state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
       LOGGER.info("Skipping {} as it has no source files and no history of previous output files.",task);
     }
  else     if (outputFiles.isEmpty()) {
-      state.upToDate();
+      state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
       LOGGER.info("Skipping {} as it has no source files and no previous output files.",task);
     }
  else {
@@ -31,10 +31,10 @@
       }
       if (deletedFiles) {
         LOGGER.info("Cleaned previous output of {} as it has no source files.",task);
-        state.executed();
+        state.setOutcome(TaskExecutionOutcome.EXECUTED);
       }
  else {
-        state.upToDate();
+        state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
       }
     }
     taskInputsListener.onExecute(task,Cast.cast(FileCollectionInternal.class,sourceFiles));
