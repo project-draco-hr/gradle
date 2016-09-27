@@ -2,12 +2,10 @@
   final TaskExecutionList previousExecutions=loadPreviousExecutions(task);
   final LazyTaskExecution currentExecution=new LazyTaskExecution();
   currentExecution.snapshotRepository=snapshotRepository;
-  currentExecution.cacheAccess=cacheAccess;
   currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
   final LazyTaskExecution previousExecution=findBestMatchingPreviousExecution(currentExecution,previousExecutions.executions);
   if (previousExecution != null) {
     previousExecution.snapshotRepository=snapshotRepository;
-    previousExecution.cacheAccess=cacheAccess;
   }
   return new History(){
     public TaskExecution getPreviousExecution(){
@@ -17,47 +15,41 @@
       return currentExecution;
     }
     public void update(){
-      cacheAccess.useCache("Update task history",new Runnable(){
-        public void run(){
-          previousExecutions.executions.addFirst(currentExecution);
-          if (currentExecution.inputFilesSnapshotIds == null && currentExecution.inputFilesSnapshot != null) {
-            ImmutableSortedMap.Builder<String,Long> builder=ImmutableSortedMap.naturalOrder();
-            for (            Map.Entry<String,FileCollectionSnapshot> entry : currentExecution.inputFilesSnapshot.entrySet()) {
-              builder.put(entry.getKey(),snapshotRepository.add(entry.getValue()));
-            }
-            currentExecution.inputFilesSnapshotIds=builder.build();
+      previousExecutions.executions.addFirst(currentExecution);
+      if (currentExecution.inputFilesSnapshotIds == null && currentExecution.inputFilesSnapshot != null) {
+        ImmutableSortedMap.Builder<String,Long> builder=ImmutableSortedMap.naturalOrder();
+        for (        Map.Entry<String,FileCollectionSnapshot> entry : currentExecution.inputFilesSnapshot.entrySet()) {
+          builder.put(entry.getKey(),snapshotRepository.add(entry.getValue()));
+        }
+        currentExecution.inputFilesSnapshotIds=builder.build();
+      }
+      if (currentExecution.outputFilesSnapshotIds == null && currentExecution.outputFilesSnapshot != null) {
+        ImmutableSortedMap.Builder<String,Long> builder=ImmutableSortedMap.naturalOrder();
+        for (        Map.Entry<String,FileCollectionSnapshot> entry : currentExecution.outputFilesSnapshot.entrySet()) {
+          builder.put(entry.getKey(),snapshotRepository.add(entry.getValue()));
+        }
+        currentExecution.outputFilesSnapshotIds=builder.build();
+      }
+      if (currentExecution.discoveredFilesSnapshotId == null && currentExecution.discoveredFilesSnapshot != null) {
+        currentExecution.discoveredFilesSnapshotId=snapshotRepository.add(currentExecution.discoveredFilesSnapshot);
+      }
+      while (previousExecutions.executions.size() > MAX_HISTORY_ENTRIES) {
+        LazyTaskExecution execution=previousExecutions.executions.removeLast();
+        if (execution.inputFilesSnapshotIds != null) {
+          for (          Long id : execution.inputFilesSnapshotIds.values()) {
+            snapshotRepository.remove(id);
           }
-          if (currentExecution.outputFilesSnapshotIds == null && currentExecution.outputFilesSnapshot != null) {
-            ImmutableSortedMap.Builder<String,Long> builder=ImmutableSortedMap.naturalOrder();
-            for (            Map.Entry<String,FileCollectionSnapshot> entry : currentExecution.outputFilesSnapshot.entrySet()) {
-              builder.put(entry.getKey(),snapshotRepository.add(entry.getValue()));
-            }
-            currentExecution.outputFilesSnapshotIds=builder.build();
+        }
+        if (execution.outputFilesSnapshotIds != null) {
+          for (          Long id : execution.outputFilesSnapshotIds.values()) {
+            snapshotRepository.remove(id);
           }
-          if (currentExecution.discoveredFilesSnapshotId == null && currentExecution.discoveredFilesSnapshot != null) {
-            currentExecution.discoveredFilesSnapshotId=snapshotRepository.add(currentExecution.discoveredFilesSnapshot);
-          }
-          while (previousExecutions.executions.size() > MAX_HISTORY_ENTRIES) {
-            LazyTaskExecution execution=previousExecutions.executions.removeLast();
-            if (execution.inputFilesSnapshotIds != null) {
-              for (              Long id : execution.inputFilesSnapshotIds.values()) {
-                snapshotRepository.remove(id);
-              }
-            }
-            if (execution.outputFilesSnapshotIds != null) {
-              for (              Long id : execution.outputFilesSnapshotIds.values()) {
-                snapshotRepository.remove(id);
-              }
-            }
-            if (execution.discoveredFilesSnapshotId != null) {
-              snapshotRepository.remove(execution.discoveredFilesSnapshotId);
-            }
-          }
-          previousExecutions.beforeSerialized();
-          taskHistoryCache.put(task.getPath(),previousExecutions);
+        }
+        if (execution.discoveredFilesSnapshotId != null) {
+          snapshotRepository.remove(execution.discoveredFilesSnapshotId);
         }
       }
-);
+      taskHistoryCache.put(task.getPath(),previousExecutions.snapshot());
     }
   }
 ;

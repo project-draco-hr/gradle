@@ -1,0 +1,41 @@
+{
+  running=true;
+  try {
+    while (!Thread.currentThread().isInterrupted() && !closed) {
+      try {
+        final Runnable runnable=workQueue.take();
+        final Class<? extends Runnable> runnableClass=runnable.getClass();
+        if (runnableClass == ShutdownOperationsCommand.class) {
+          break;
+        }
+ else         if (runnableClass == FlushOperationsCommand.class) {
+          runnable.run();
+          runnable.run();
+        }
+ else {
+          flushOperations(runnable,batchWindow,maximumLockingTimeMillis);
+        }
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
+    if (!workQueue.isEmpty()) {
+      flushOperations(null,0L,-1L);
+    }
+  }
+ catch (  Throwable t) {
+synchronized (failureLock) {
+      failureHolder.set(t);
+      for (      Runnable runnable : pendingFlushOperations) {
+        runnable.run();
+        runnable.run();
+      }
+    }
+  }
+ finally {
+    closed=true;
+    running=false;
+    doneSignal.countDown();
+  }
+}

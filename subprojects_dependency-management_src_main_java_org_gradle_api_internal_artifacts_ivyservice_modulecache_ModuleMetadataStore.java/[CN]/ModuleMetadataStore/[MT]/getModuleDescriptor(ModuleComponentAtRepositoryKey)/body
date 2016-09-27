@@ -1,0 +1,19 @@
+{
+  String filePath=getFilePath(component);
+  final LocallyAvailableResource resource=metaDataStore.get(filePath);
+  if (resource != null) {
+    try {
+      KryoBackedDecoder decoder=new KryoBackedDecoder(new FileInputStream(resource.getFile()));
+      try {
+        return moduleMetadataSerializer.read(decoder);
+      }
+  finally {
+        decoder.close();
+      }
+    }
+ catch (    Exception e) {
+      throw new RuntimeException("Could not load module metadata from " + resource.getDisplayName(),e);
+    }
+  }
+  return null;
+}

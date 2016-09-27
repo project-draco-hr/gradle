@@ -1,7 +1,7 @@
 {
   LOGGER.debug("Determining if {} is up-to-date",task);
   Clock clock=new Clock();
-  TaskArtifactState taskArtifactState=repository.getStateFor(task);
+  TaskArtifactState taskArtifactState=context.getTaskArtifactState();
   try {
     List<String> messages=LOGGER.isInfoEnabled() ? new ArrayList<String>() : null;
     if (taskArtifactState.isUpToDate(messages)) {
@@ -11,7 +11,6 @@
     }
     logOutOfDateMessages(messages,task,clock.getTime());
     task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
-    context.setTaskArtifactState(taskArtifactState);
     taskArtifactState.beforeTask();
     try {
       executer.execute(task,state,context);
@@ -21,7 +20,6 @@
     }
   finally {
       task.getOutputs().setHistory(null);
-      context.setTaskArtifactState(null);
     }
   }
   finally {

@@ -1,17 +1,20 @@
 {
-  return cacheAccess.useCache("Load task history",new Factory<TaskExecutionList>(){
-    public TaskExecutionList create(){
-      ClassLoader original=serializer.getClassLoader();
-      ClassLoader projectClassLoader=Cast.cast(ProjectInternal.class,task.getProject()).getClassLoaderScope().getLocalClassLoader();
-      serializer.setClassLoader(projectClassLoader);
-      try {
-        TaskExecutionList history=taskHistoryCache.get(task.getPath());
-        return history == null ? new TaskExecutionList() : history;
+synchronized (serializer) {
+    ClassLoader original=serializer.getClassLoader();
+    ClassLoader projectClassLoader=Cast.cast(ProjectInternal.class,task.getProject()).getClassLoaderScope().getLocalClassLoader();
+    serializer.setClassLoader(projectClassLoader);
+    try {
+      List<TaskExecutionSnapshot> history=taskHistoryCache.get(task.getPath());
+      TaskExecutionList result=new TaskExecutionList();
+      if (history != null) {
+        for (        TaskExecutionSnapshot taskExecutionSnapshot : history) {
+          result.executions.add(new LazyTaskExecution(taskExecutionSnapshot));
+        }
       }
+      return result;
+    }
   finally {
-        serializer.setClassLoader(original);
-      }
+      serializer.setClassLoader(original);
     }
   }
-);
 }

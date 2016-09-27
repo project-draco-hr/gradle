@@ -1,0 +1,29 @@
+{
+  ImmutableSortedMap<String,Long> inputFilesSnapshotIds=readSnapshotIds(decoder);
+  ImmutableSortedMap<String,Long> outputFilesSnapshotIds=readSnapshotIds(decoder);
+  Long discoveredFilesSnapshotId=decoder.readLong();
+  String taskClass=decoder.readString();
+  HashCode taskClassLoaderHash=null;
+  if (decoder.readBoolean()) {
+    taskClassLoaderHash=HashCode.fromBytes(decoder.readBinary());
+  }
+  HashCode taskActionsClassLoaderHash=null;
+  if (decoder.readBoolean()) {
+    taskActionsClassLoaderHash=HashCode.fromBytes(decoder.readBinary());
+  }
+  int outputFiles=decoder.readSmallInt();
+  Set<String> files=new HashSet<String>();
+  for (int j=0; j < outputFiles; j++) {
+    files.add(stringInterner.intern(decoder.readString()));
+  }
+  ImmutableSet<String> declaredOutputFilePaths=ImmutableSet.copyOf(files);
+  boolean hasInputProperties=decoder.readBoolean();
+  Map<String,Object> inputProperties;
+  if (hasInputProperties) {
+    inputProperties=inputPropertiesSerializer.read(decoder);
+  }
+ else {
+    inputProperties=ImmutableMap.of();
+  }
+  return new TaskExecutionSnapshot(taskClass,declaredOutputFilePaths,taskClassLoaderHash,taskActionsClassLoaderHash,inputProperties,inputFilesSnapshotIds,discoveredFilesSnapshotId,outputFilesSnapshotIds);
+}

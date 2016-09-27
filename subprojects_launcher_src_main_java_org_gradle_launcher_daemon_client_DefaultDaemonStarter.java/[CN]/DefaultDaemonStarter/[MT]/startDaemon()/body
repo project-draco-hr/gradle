@@ -31,8 +31,8 @@
   LOGGER.debug("Using daemon args: {}",daemonArgs);
   daemonArgs.add(GradleDaemon.class.getName());
   daemonArgs.add(GradleVersion.current().getVersion());
-  ByteArrayOutputStream serializedConfig=new ByteArrayOutputStream();
-  FlushableEncoder encoder=new KryoBackedEncoder(new EncodedStream.EncodedOutput(serializedConfig));
+  StreamByteBuffer buffer=new StreamByteBuffer();
+  FlushableEncoder encoder=new KryoBackedEncoder(new EncodedStream.EncodedOutput(buffer.getOutputStream()));
   try {
     encoder.writeString(daemonParameters.getGradleUserHomeDir().getAbsolutePath());
     encoder.writeString(daemonDir.getBaseDir().getAbsolutePath());
@@ -52,6 +52,6 @@
  catch (  IOException e) {
     throw new UncheckedIOException(e);
   }
-  ByteArrayInputStream stdInput=new ByteArrayInputStream(serializedConfig.toByteArray());
+  InputStream stdInput=buffer.getInputStream();
   return startProcess(daemonArgs,daemonDir.getVersionedDir(),stdInput);
 }

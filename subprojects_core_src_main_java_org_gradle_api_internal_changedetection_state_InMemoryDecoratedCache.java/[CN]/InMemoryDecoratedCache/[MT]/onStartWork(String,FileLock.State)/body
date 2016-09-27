@@ -1,0 +1,15 @@
+{
+  boolean outOfDate=false;
+  FileLock.State previousState=fileLockStateReference.get();
+  if (previousState == null) {
+    outOfDate=true;
+  }
+ else   if (currentCacheState.hasBeenUpdatedSince(previousState)) {
+    LOG.info("Invalidating in-memory cache of {}",cacheId);
+    outOfDate=true;
+  }
+  if (outOfDate) {
+    inMemoryCache.invalidateAll();
+  }
+  super.onStartWork(operationDisplayName,currentCacheState);
+}

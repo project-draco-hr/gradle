@@ -1,0 +1,35 @@
+{
+  final List<Runnable> flushOperations=new ArrayList<Runnable>();
+  try {
+    cacheAccess.useCache("CacheAccessWorker flushing operations",new Runnable(){
+      @Override public void run(){
+        long lockingStarted=System.currentTimeMillis();
+        if (updateOperation != null) {
+          updateOperation.run();
+        }
+        Runnable otherOperation;
+        try {
+          while ((otherOperation=workQueue.poll(timeoutMillis,TimeUnit.MILLISECONDS)) != null) {
+            otherOperation.run();
+            final Class<? extends Runnable> runnableClass=otherOperation.getClass();
+            if (runnableClass == FlushOperationsCommand.class) {
+              flushOperations.add(otherOperation);
+            }
+            if (runnableClass == ShutdownOperationsCommand.class || runnableClass == FlushOperationsCommand.class || maximumLockingTimeMillis > 0L && System.currentTimeMillis() - lockingStarted > maximumLockingTimeMillis) {
+              break;
+            }
+          }
+        }
+ catch (        InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+    }
+);
+  }
+  finally {
+    for (    Runnable flushOperation : flushOperations) {
+      flushOperation.run();
+    }
+  }
+}

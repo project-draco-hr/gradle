@@ -26,8 +26,8 @@
     causeTmp=null;
   }
   final Throwable causeFinal=causeTmp;
-  ByteArrayOutputStream outstr=new ByteArrayOutputStream();
-  ObjectOutputStream oos=new ExceptionReplacingObjectOutputStream(outstr){
+  StreamByteBuffer buffer=new StreamByteBuffer();
+  ObjectOutputStream oos=new ExceptionReplacingObjectOutputStream(buffer.getOutputStream()){
     boolean seenFirst;
     @Override protected Object replaceObject(    Object obj) throws IOException {
       if (!seenFirst) {
@@ -44,7 +44,7 @@
   try {
     oos.writeObject(throwable);
     oos.close();
-    serializedException=outstr.toByteArray();
+    serializedException=buffer.readAsByteArray();
   }
  catch (  Throwable ignored) {
   }

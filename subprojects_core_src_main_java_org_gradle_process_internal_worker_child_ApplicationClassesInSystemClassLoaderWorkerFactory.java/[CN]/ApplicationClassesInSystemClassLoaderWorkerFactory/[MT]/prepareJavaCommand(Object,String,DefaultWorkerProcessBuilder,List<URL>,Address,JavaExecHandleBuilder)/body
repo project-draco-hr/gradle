@@ -15,9 +15,9 @@
     execSpec.classpath(workerMainClassPath.getAsFiles());
     execSpec.systemProperty("java.security.manager","worker." + BootstrapSecurityManager.class.getName());
   }
-  ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+  StreamByteBuffer buffer=new StreamByteBuffer();
   try {
-    DataOutputStream outstr=new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
+    DataOutputStream outstr=new DataOutputStream(new EncodedStream.EncodedOutput(buffer.getOutputStream()));
     if (!useOptionsFile) {
       outstr.writeInt(applicationClasspath.size());
       for (      File file : applicationClasspath) {
@@ -44,6 +44,5 @@
  catch (  IOException e) {
     throw new UncheckedIOException(e);
   }
-  byte[] encodedConfig=bytes.toByteArray();
-  execSpec.setStandardInput(new ByteArrayInputStream(encodedConfig));
+  execSpec.setStandardInput(buffer.getInputStream());
 }
