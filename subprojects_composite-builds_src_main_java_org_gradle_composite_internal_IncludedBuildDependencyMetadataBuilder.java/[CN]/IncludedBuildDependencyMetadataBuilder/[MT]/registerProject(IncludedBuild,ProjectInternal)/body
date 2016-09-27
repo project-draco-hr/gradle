@@ -1,0 +1,11 @@
+{
+  LocalComponentRegistry localComponentRegistry=project.getServices().get(LocalComponentRegistry.class);
+  ProjectComponentIdentifier originalIdentifier=newProjectId(project);
+  DefaultLocalComponentMetadata originalComponent=(DefaultLocalComponentMetadata)localComponentRegistry.getComponent(originalIdentifier);
+  ProjectComponentIdentifier componentIdentifier=newProjectId(build,project.getPath());
+  LocalComponentMetadata compositeComponent=createCompositeCopy(build,componentIdentifier,originalComponent);
+  context.register(componentIdentifier,compositeComponent,project.getProjectDir());
+  for (  LocalComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
+    context.registerAdditionalArtifact(componentIdentifier,createCompositeCopy(componentIdentifier,artifactMetaData));
+  }
+}

@@ -1,6 +1,6 @@
 {
   ClassLoader targetClassLoader=target.getClassLoader();
-  if (targetClassLoader == null || targetClassLoader.getClass().getName().equals("jdk.internal.loader.ClassLoaders$PlatformClassLoader")) {
+  if (targetClassLoader == null || targetClassLoader == ClassLoaderUtils.getPlatformClassLoader()) {
     return;
   }
   if (!visited.add(target)) {
@@ -16,7 +16,11 @@
     File classPathRoot=ClasspathUtil.getClasspathForClass(target);
     dest.add(classPathRoot.toURI().toURL());
     ClassReader reader;
-    InputStream inputStream=resource.openStream();
+    URLConnection urlConnection=resource.openConnection();
+    if (urlConnection instanceof JarURLConnection) {
+      urlConnection.setUseCaches(false);
+    }
+    InputStream inputStream=urlConnection.getInputStream();
     try {
       reader=new Java9ClassReader(ByteStreams.toByteArray(inputStream));
     }

@@ -1,0 +1,27 @@
+{
+  List<String> variantDescriptors=new ArrayList<String>();
+  StringBuilder variantDescriptor=new StringBuilder();
+  for (  Binary binary : binaries) {
+    BinarySpec variant=(BinarySpec)binary;
+    variantDescriptor.setLength(0);
+    boolean first=true;
+    variantDescriptor.append("    - ").append(variant.getDisplayName()).append(" [");
+    VariantsMetaData metaData=DefaultVariantsMetaData.extractFrom(variant,schemaStore.getSchema(((BinarySpecInternal)variant).getPublicType()));
+    for (    String axis : metaData.getNonNullVariantAxes()) {
+      if (first) {
+        first=false;
+      }
+ else {
+        variantDescriptor.append(", ");
+      }
+      variantDescriptor.append(renderAxisName(axis)).append(":'").append(metaData.getValueAsString(axis)).append("'");
+    }
+    variantDescriptor.append(TextUtil.toPlatformLineSeparators("]\n"));
+    variantDescriptors.add(variantDescriptor.toString());
+  }
+  StringBuilder sb=new StringBuilder(String.format(TextUtil.toPlatformLineSeparators("Multiple compatible variants found for library '%s':\n"),libraryName));
+  for (  String descriptor : variantDescriptors) {
+    sb.append(descriptor);
+  }
+  return sb.toString();
+}

@@ -1,12 +1,9 @@
 {
-  final Set<JavaVersion> remaining=new HashSet<JavaVersion>();
-  for (  String version : versions) {
-    remaining.add(JavaVersion.toVersion(version));
-  }
-  return getAvailableJdks(new Spec<JvmInstallation>(){
-    @Override public boolean isSatisfiedBy(    JvmInstallation element){
-      return remaining.remove(element.getJavaVersion());
+  List<JavaVersion> javaVersions=Lists.transform(Arrays.asList(versions),new Function<String,JavaVersion>(){
+    @Override public JavaVersion apply(    @javax.annotation.Nullable String version){
+      return JavaVersion.toVersion(version);
     }
   }
 );
+  return getJdks(Iterables.toArray(javaVersions,JavaVersion.class));
 }

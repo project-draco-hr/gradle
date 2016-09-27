@@ -7,17 +7,17 @@
   }
 );
   List<IdeProjectDependency> ideProjectDependencies=new ArrayList<IdeProjectDependency>();
+  ProjectComponentIdentifier thisProjectId=DefaultProjectComponentIdentifier.newProjectId(project);
   for (  ResolvedComponentResult projectComponent : projectComponents) {
     ProjectComponentIdentifier projectId=(ProjectComponentIdentifier)projectComponent.getId();
-    String resolvedProjectPath=projectId.getProjectPath();
-    if (project.getPath().equals(resolvedProjectPath)) {
+    if (thisProjectId.equals(projectId)) {
       continue;
     }
-    Project resolvedProject=project.findProject(resolvedProjectPath);
-    if (resolvedProject == null) {
+    if (!projectId.getBuild().isCurrentBuild()) {
       ideProjectDependencies.add(new IdeProjectDependency(projectId));
     }
  else {
+      Project resolvedProject=project.project(projectId.getProjectPath());
       ideProjectDependencies.add(new IdeProjectDependency(projectId,resolvedProject.getName()));
     }
   }

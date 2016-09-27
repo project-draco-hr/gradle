@@ -1,5 +1,5 @@
 {
-  Object bean=rootObject;
+  final Object bean;
   if (parent != null) {
     TaskPropertyValue parentValue=parent.getValue(rootObject);
     if (parentValue.getValue() == null) {
@@ -7,10 +7,12 @@
     }
     bean=parentValue.getValue();
   }
-  final Object finalBean=bean;
+ else {
+    bean=rootObject;
+  }
   final Object value=DeprecationLogger.whileDisabled(new Factory<Object>(){
     public Object create(){
-      return JavaReflectionUtil.method(finalBean,Object.class,method).invoke(finalBean);
+      return JavaReflectionUtil.method(Object.class,method).invoke(bean);
     }
   }
 );
@@ -19,7 +21,9 @@
       return value;
     }
     @Override public void checkNotNull(    Collection<String> messages){
-      notNullValidator.validate(propertyName,value,messages);
+      if (value == null && !optional) {
+        messages.add(String.format("No value has been specified for property '%s'.",propertyName));
+      }
     }
     @Override public void checkValid(    Collection<String> messages){
       if (value != null) {

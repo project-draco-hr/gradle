@@ -1,0 +1,45 @@
+{
+  final Set<String> unaccountedForPreviousSnapshots=new LinkedHashSet<String>(previous.keySet());
+  final Iterator<Entry<String,NormalizedFileSnapshot>> currentEntries=current.entrySet().iterator();
+  final List<String> added=new ArrayList<String>();
+  return new AbstractIterator<TaskStateChange>(){
+    private Iterator<String> unaccountedForPreviousSnapshotsIterator;
+    private Iterator<String> addedIterator;
+    @Override protected TaskStateChange computeNext(){
+      while (currentEntries.hasNext()) {
+        Entry<String,NormalizedFileSnapshot> currentEntry=currentEntries.next();
+        String currentAbsolutePath=currentEntry.getKey();
+        NormalizedFileSnapshot currentNormalizedSnapshot=currentEntry.getValue();
+        IncrementalFileSnapshot currentSnapshot=currentNormalizedSnapshot.getSnapshot();
+        if (unaccountedForPreviousSnapshots.remove(currentAbsolutePath)) {
+          NormalizedFileSnapshot previousNormalizedSnapshot=previous.get(currentAbsolutePath);
+          IncrementalFileSnapshot previousSnapshot=previousNormalizedSnapshot.getSnapshot();
+          if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
+            return new FileChange(currentAbsolutePath,ChangeType.MODIFIED,fileType);
+          }
+        }
+ else {
+          added.add(currentAbsolutePath);
+        }
+      }
+      if (unaccountedForPreviousSnapshotsIterator == null) {
+        unaccountedForPreviousSnapshotsIterator=unaccountedForPreviousSnapshots.iterator();
+      }
+      if (unaccountedForPreviousSnapshotsIterator.hasNext()) {
+        String previousAbsolutePath=unaccountedForPreviousSnapshotsIterator.next();
+        return new FileChange(previousAbsolutePath,ChangeType.REMOVED,fileType);
+      }
+      if (includeAdded) {
+        if (addedIterator == null) {
+          addedIterator=added.iterator();
+        }
+        if (addedIterator.hasNext()) {
+          String newAbsolutePath=addedIterator.next();
+          return new FileChange(newAbsolutePath,ChangeType.ADDED,fileType);
+        }
+      }
+      return endOfData();
+    }
+  }
+;
+}

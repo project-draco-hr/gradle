@@ -1,0 +1,15 @@
+{
+  candidateCycle.add(target);
+  for (  BuildRequest executingBuild : executingBuilds) {
+    if (executingBuild.requestingBuild.equals(target)) {
+      BuildIdentifier nextTarget=executingBuild.targetBuild;
+      if (nextTarget.equals(buildRequest.requestingBuild)) {
+        candidateCycle.add(nextTarget);
+        ProjectComponentSelector selector=DefaultProjectComponentSelector.newSelector(buildRequest.targetBuild,":");
+        throw new ModuleVersionResolveException(selector,"Included build dependency cycle: " + reportCycle(candidateCycle));
+      }
+      checkNoCycles(buildRequest,nextTarget,candidateCycle);
+    }
+  }
+  candidateCycle.remove(target);
+}

@@ -1,0 +1,39 @@
+{
+  final List<DefaultFileDetails> fileTreeElements=Lists.newLinkedList();
+  final List<DefaultFileDetails> missingFiles=Lists.newArrayList();
+  FileCollectionInternal fileCollection=(FileCollectionInternal)input;
+  FileCollectionVisitorImpl visitor=new FileCollectionVisitorImpl(fileTreeElements,missingFiles);
+  fileCollection.visitRootElements(visitor);
+  if (fileTreeElements.isEmpty() && missingFiles.isEmpty()) {
+    return emptySnapshot();
+  }
+  final Map<String,NormalizedFileSnapshot> snapshots=Maps.newLinkedHashMap();
+  cacheAccess.useCache("Create file snapshot",new Runnable(){
+    public void run(){
+      for (      DefaultFileDetails fileDetails : fileTreeElements) {
+        String absolutePath=fileDetails.path;
+        if (!snapshots.containsKey(absolutePath)) {
+          IncrementalFileSnapshot snapshot;
+          if (fileDetails.type == Directory) {
+            snapshot=DirSnapshot.getInstance();
+          }
+ else {
+            snapshot=new FileHashSnapshot(snapshotter.snapshot(fileDetails.details).getHash(),fileDetails.details.getLastModified());
+          }
+          NormalizedFileSnapshot normalizedSnapshot=snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails,snapshot,stringInterner);
+          if (normalizedSnapshot != null) {
+            snapshots.put(absolutePath,normalizedSnapshot);
+          }
+        }
+      }
+      for (      DefaultFileDetails missingFileDetails : missingFiles) {
+        String absolutePath=missingFileDetails.path;
+        if (!snapshots.containsKey(absolutePath)) {
+          snapshots.put(absolutePath,snapshotNormalizationStrategy.getNormalizedSnapshot(missingFileDetails,MissingFileSnapshot.getInstance(),stringInterner));
+        }
+      }
+    }
+  }
+);
+  return new DefaultFileCollectionSnapshot(snapshots,compareStrategy,snapshotNormalizationStrategy.isPathAbsolute());
+}

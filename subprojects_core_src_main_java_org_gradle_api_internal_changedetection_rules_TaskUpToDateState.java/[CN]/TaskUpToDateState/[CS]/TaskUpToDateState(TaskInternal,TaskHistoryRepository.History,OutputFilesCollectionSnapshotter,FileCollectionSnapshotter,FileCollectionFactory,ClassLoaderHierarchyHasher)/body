@@ -1,0 +1,15 @@
+{
+  TaskExecution thisExecution=history.getCurrentExecution();
+  TaskExecution lastExecution=history.getPreviousExecution();
+  TaskStateChanges noHistoryState=new NoHistoryTaskStateChanges(lastExecution);
+  TaskStateChanges taskTypeState=new TaskTypeTaskStateChanges(lastExecution,thisExecution,task.getPath(),task.getClass(),task.getActionClassLoaders(),classLoaderHierarchyHasher);
+  TaskStateChanges inputPropertiesState=new InputPropertiesTaskStateChanges(lastExecution,thisExecution,task);
+  TaskStateChanges outputFileChanges=caching(new OutputFilesTaskStateChanges(lastExecution,thisExecution,task,outputFilesSnapshotter));
+  this.directInputFileChanges=new InputFilesTaskStateChanges(lastExecution,thisExecution,task,inputFilesSnapshotter);
+  this.inputFileChanges=caching(directInputFileChanges);
+  DiscoveredInputsTaskStateChanges discoveredChanges=new DiscoveredInputsTaskStateChanges(lastExecution,thisExecution,inputFilesSnapshotter,fileCollectionFactory,task);
+  this.discoveredInputsListener=discoveredChanges;
+  TaskStateChanges discoveredInputFilesChanges=caching(discoveredChanges);
+  allTaskChanges=new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES,noHistoryState,taskTypeState,inputPropertiesState,outputFileChanges,inputFileChanges,discoveredInputFilesChanges);
+  rebuildChanges=new SummaryTaskStateChanges(1,noHistoryState,taskTypeState,inputPropertiesState,outputFileChanges);
+}

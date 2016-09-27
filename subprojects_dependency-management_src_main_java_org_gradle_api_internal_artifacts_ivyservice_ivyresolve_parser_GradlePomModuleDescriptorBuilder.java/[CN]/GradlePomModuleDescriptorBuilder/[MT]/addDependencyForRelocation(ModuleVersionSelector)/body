@@ -2,11 +2,11 @@
   if (selector.getGroup().equals(descriptor.getComponentIdentifier().getGroup()) && selector.getName().equals(descriptor.getComponentIdentifier().getModule())) {
     return;
   }
-  Dependency dependency=descriptor.addDependency(selector);
-  Configuration[] m2Confs=GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
-  for (  Configuration m2Conf : m2Confs) {
-    if (Visibility.PUBLIC.equals(m2Conf.getVisibility())) {
-      dependency.addDependencyConfiguration(m2Conf.getName(),m2Conf.getName());
+  ListMultimap<String,String> confMappings=ArrayListMultimap.create();
+  for (  Configuration m2Conf : GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS.values()) {
+    if (m2Conf.isVisible()) {
+      confMappings.put(m2Conf.getName(),m2Conf.getName());
     }
   }
+  dependencies.add(new IvyDependencyMetadata(selector,confMappings));
 }

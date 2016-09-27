@@ -4,5 +4,9 @@
   }
   LOGGER.debug("Attempting to download resource {}.",source);
   this.wasOpened=true;
-  return response.getEntity().getContent();
+  final HttpEntity entity=response.getEntity();
+  if (entity == null) {
+    throw new IOException(String.format("Response %d: %s has no content!",getStatusCode(),response.getStatusLine().getReasonPhrase()));
+  }
+  return entity.getContent();
 }

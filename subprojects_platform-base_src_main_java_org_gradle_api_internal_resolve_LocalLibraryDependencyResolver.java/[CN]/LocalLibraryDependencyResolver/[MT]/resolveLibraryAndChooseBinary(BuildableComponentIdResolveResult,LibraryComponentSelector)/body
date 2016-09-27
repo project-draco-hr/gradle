@@ -2,19 +2,31 @@
   final String selectorProjectPath=selector.getProjectPath();
   final String libraryName=selector.getLibraryName();
   final String variant=selector.getVariant();
-  LibraryResolutionErrorMessageBuilder.LibraryResolutionResult resolutionResult=doResolve(selectorProjectPath,libraryName);
-  VariantComponentSpec selectedLibrary=resolutionResult.getSelectedLibrary();
-  if (selectedLibrary != null) {
-    if (variant == null) {
-      selectMatchingVariant(result,selectedLibrary,selector,selectorProjectPath,libraryName);
-    }
- else {
-      selectExplicitlyProvidedVariant(result,selectedLibrary,selectorProjectPath,variant);
-    }
-  }
-  if (!result.hasResult()) {
-    String message=resolutionResult.toResolutionErrorMessage(binaryType,selector);
+  LibraryResolutionResult resolutionResult=doResolve(selectorProjectPath,libraryName);
+  VariantComponent selectedLibrary=resolutionResult.getSelectedLibrary();
+  if (selectedLibrary == null) {
+    String message=resolutionResult.toResolutionErrorMessage(selector);
     ModuleVersionResolveException failure=new ModuleVersionResolveException(selector,new LibraryResolveException(message));
     result.failed(failure);
+    return;
+  }
+  Collection<? extends Binary> matchingVariants=chooseMatchingVariants(selectedLibrary,variant);
+  if (matchingVariants.isEmpty()) {
+    Iterable<? extends Binary> values=selectedLibrary.getVariants();
+    result.failed(new ModuleVersionResolveException(selector,errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName,values)));
+  }
+ else   if (matchingVariants.size() > 1) {
+    result.failed(new ModuleVersionResolveException(selector,errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName,matchingVariants)));
+  }
+ else {
+    Binary selectedBinary=matchingVariants.iterator().next();
+    LocalComponentMetadata metaData;
+    if (variant == null) {
+      metaData=libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary,selectorProjectPath,false);
+    }
+ else {
+      metaData=libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary,selectorProjectPath,true);
+    }
+    result.resolved(metaData);
   }
 }

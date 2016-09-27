@@ -1,0 +1,16 @@
+{
+  Set<String> names=Sets.newHashSet();
+  for (  IncludedBuild build : builds) {
+    String buildName=build.getName();
+    if (!names.add(buildName)) {
+      throw new GradleException("Included build '" + buildName + "' is not unique in composite.");
+    }
+    if (settings.getRootProject().getName().equals(buildName)) {
+      throw new GradleException("Included build '" + buildName + "' collides with root project name.");
+    }
+    if (settings.findProject(":" + buildName) != null) {
+      throw new GradleException("Included build '" + buildName + "' collides with subproject of the same name.");
+    }
+  }
+  return builds;
+}

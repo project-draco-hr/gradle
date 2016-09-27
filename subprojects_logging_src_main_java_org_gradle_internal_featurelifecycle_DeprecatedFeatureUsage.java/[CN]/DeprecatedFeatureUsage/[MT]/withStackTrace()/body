@@ -3,19 +3,26 @@
     return this;
   }
   StackTraceElement[] originalStack=new Exception().getStackTrace();
-  int caller=0;
-  while (caller < originalStack.length && !originalStack[caller].getClassName().startsWith(calledFrom.getName())) {
-    caller++;
-  }
-  while (caller < originalStack.length && originalStack[caller].getClassName().startsWith(calledFrom.getName())) {
-    caller++;
+  final String calledFromName=calledFrom.getName();
+  boolean calledFromFound=false;
+  int caller;
+  for (caller=0; caller < originalStack.length; caller++) {
+    StackTraceElement current=originalStack[caller];
+    if (!calledFromFound) {
+      if (current.getClassName().startsWith(calledFromName)) {
+        calledFromFound=true;
+      }
+    }
+ else {
+      if (!current.getClassName().startsWith(calledFromName)) {
+        break;
+      }
+    }
   }
   caller=skipSystemStackElements(originalStack,caller);
-  caller++;
-  caller=skipSystemStackElements(originalStack,caller);
-  List<StackTraceElement> stack=new ArrayList<StackTraceElement>();
+  List<StackTraceElement> result=new ArrayList<StackTraceElement>();
   for (; caller < originalStack.length; caller++) {
-    stack.add(originalStack[caller]);
+    result.add(originalStack[caller]);
   }
-  return new DeprecatedFeatureUsage(this,stack);
+  return new DeprecatedFeatureUsage(this,result);
 }

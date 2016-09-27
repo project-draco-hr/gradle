@@ -1,9 +1,9 @@
 {
   ImmutableList.Builder<DaemonExpirationStrategy> strategies=ImmutableList.<DaemonExpirationStrategy>builder();
   strategies.add(healthExpirationStrategy);
-  strategies.add(new DuplicateIdleDaemonExpirationStrategy(daemon));
+  strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(new CompatibleDaemonExpirationStrategy(daemon),new DaemonIdleTimeoutExpirationStrategy(daemon,DUPLICATE_DAEMON_GRACE_PERIOD_MS,TimeUnit.MILLISECONDS),new NotMostRecentlyUsedDaemonExpirationStrategy(daemon))));
   strategies.add(new DaemonIdleTimeoutExpirationStrategy(daemon,params.getIdleTimeout(),TimeUnit.MILLISECONDS));
-  addLowMemoryDaemonExpirationStrategyWhenSupported(daemon,params.getIdleTimeout(),strategies);
+  addLowMemoryDaemonExpirationStrategyWhenSupported(daemon,strategies);
   strategies.add(new DaemonRegistryUnavailableExpirationStrategy(daemon));
   this.strategy=new AnyDaemonExpirationStrategy(strategies.build());
 }

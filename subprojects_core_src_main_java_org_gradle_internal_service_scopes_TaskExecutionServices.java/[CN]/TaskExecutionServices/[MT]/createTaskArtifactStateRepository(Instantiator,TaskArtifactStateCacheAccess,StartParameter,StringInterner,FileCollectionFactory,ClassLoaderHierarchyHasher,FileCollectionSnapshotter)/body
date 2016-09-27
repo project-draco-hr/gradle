@@ -1,0 +1,8 @@
+{
+  OutputFilesCollectionSnapshotter outputFilesSnapshotter=new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter);
+  SerializerRegistry serializerRegistry=new DefaultSerializerRegistry();
+  fileCollectionSnapshotter.registerSerializers(serializerRegistry);
+  outputFilesSnapshotter.registerSerializers(serializerRegistry);
+  TaskHistoryRepository taskHistoryRepository=new CacheBackedTaskHistoryRepository(cacheAccess,new CacheBackedFileSnapshotRepository(cacheAccess,serializerRegistry.build(FileCollectionSnapshot.class),new RandomLongIdGenerator()),stringInterner);
+  return new ShortCircuitTaskArtifactStateRepository(startParameter,instantiator,new DefaultTaskArtifactStateRepository(taskHistoryRepository,instantiator,outputFilesSnapshotter,fileCollectionSnapshotter,fileCollectionFactory,classLoaderHierarchyHasher));
+}

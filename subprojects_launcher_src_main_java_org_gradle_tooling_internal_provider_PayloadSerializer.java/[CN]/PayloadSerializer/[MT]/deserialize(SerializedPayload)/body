@@ -1,12 +1,11 @@
 {
   final DeserializeMap map=classLoaderRegistry.newDeserializeSession();
   try {
-    final ClassLoader systemClassLoader=SYSTEM_CLASS_LOADER;
     final Map<Short,ClassLoaderDetails> classLoaderDetails=(Map<Short,ClassLoaderDetails>)payload.getHeader();
     final ObjectInputStream objectStream=new ObjectInputStream(new ByteArrayInputStream(payload.getSerializedModel())){
       @Override protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
         Class<?> aClass=readClass();
-        ObjectStreamClass descriptor=classLookup.transform(aClass);
+        ObjectStreamClass descriptor=ObjectStreamClass.lookupAny(aClass);
         if (descriptor == null) {
           throw new ClassNotFoundException(aClass.getName());
         }
@@ -18,9 +17,6 @@
       private Class<?> readClass() throws IOException, ClassNotFoundException {
         short id=readShort();
         String className=readUTF();
-        if (id == SYSTEM_CLASS_LOADER_ID) {
-          return Class.forName(className,false,systemClassLoader);
-        }
         ClassLoaderDetails classLoader=classLoaderDetails.get(id);
         return map.resolveClass(classLoader,className);
       }

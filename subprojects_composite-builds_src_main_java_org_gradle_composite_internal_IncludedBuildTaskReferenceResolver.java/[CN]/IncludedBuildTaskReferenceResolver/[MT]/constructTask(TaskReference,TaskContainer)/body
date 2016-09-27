@@ -1,0 +1,24 @@
+{
+  if (!(reference instanceof IncludedBuildTaskReference)) {
+    return null;
+  }
+  final IncludedBuildTaskReference ref=(IncludedBuildTaskReference)reference;
+  String delegateTaskName=ref.getBuildName();
+  Task task=tasks.findByName(delegateTaskName);
+  if (task == null) {
+    return tasks.create(delegateTaskName,CompositeBuildTaskDelegate.class,new Action<CompositeBuildTaskDelegate>(){
+      @Override public void execute(      CompositeBuildTaskDelegate compositeBuildTaskDelegate){
+        compositeBuildTaskDelegate.setBuild(ref.getBuildName());
+        compositeBuildTaskDelegate.addTask(ref.getTaskPath());
+      }
+    }
+);
+  }
+  if (task instanceof CompositeBuildTaskDelegate) {
+    CompositeBuildTaskDelegate delegateTask=(CompositeBuildTaskDelegate)task;
+    Preconditions.checkState(((CompositeBuildTaskDelegate)task).getBuild().equals(ref.getBuildName()));
+    delegateTask.addTask(ref.getTaskPath());
+    return task;
+  }
+  throw new TaskInstantiationException("Cannot create delegating task '" + delegateTaskName + "' as task with same name already exists.");
+}

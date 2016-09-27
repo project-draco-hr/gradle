@@ -1,4 +1,61 @@
 {
   this.rootSpec=createRootSpec();
+  rootSpec.addChildSpecListener(new CopySpecInternal.CopySpecListener(){
+    @Override public void childSpecAdded(    CopySpecInternal.CopySpecAddress path,    final CopySpecInternal spec){
+      StringBuilder specPropertyNameBuilder=new StringBuilder("rootSpec");
+      CopySpecResolver parentResolver=path.unroll(specPropertyNameBuilder);
+      final CopySpecResolver resolver=spec.buildResolverRelativeToParent(parentResolver);
+      String specPropertyName=specPropertyNameBuilder.toString();
+      getInputs().files(new Callable<FileTree>(){
+        @Override public FileTree call() throws Exception {
+          return resolver.getSource();
+        }
+      }
+).withPropertyName(specPropertyName).withPathSensitivity(PathSensitivity.RELATIVE).skipWhenEmpty();
+      getInputs().property(specPropertyName + ".destPath",new Callable<String>(){
+        @Override public String call() throws Exception {
+          return resolver.getDestPath().getPathString();
+        }
+      }
+);
+      getInputs().property(specPropertyName + ".caseSensitive",new Callable<Boolean>(){
+        @Override public Boolean call() throws Exception {
+          return spec.isCaseSensitive();
+        }
+      }
+);
+      getInputs().property(specPropertyName + ".includeEmptyDirs",new Callable<Boolean>(){
+        @Override public Boolean call() throws Exception {
+          return spec.getIncludeEmptyDirs();
+        }
+      }
+);
+      getInputs().property(specPropertyName + ".duplicatesStrategy",new Callable<DuplicatesStrategy>(){
+        @Override public DuplicatesStrategy call() throws Exception {
+          return spec.getDuplicatesStrategy();
+        }
+      }
+);
+      getInputs().property(specPropertyName + ".dirMode",new Callable<Integer>(){
+        @Override public Integer call() throws Exception {
+          return spec.getDirMode();
+        }
+      }
+);
+      getInputs().property(specPropertyName + ".fileMode",new Callable<Integer>(){
+        @Override public Integer call() throws Exception {
+          return spec.getFileMode();
+        }
+      }
+);
+      getInputs().property(specPropertyName + ".filteringCharset",new Callable<String>(){
+        @Override public String call() throws Exception {
+          return spec.getFilteringCharset();
+        }
+      }
+);
+    }
+  }
+);
   this.mainSpec=rootSpec.addChild();
 }

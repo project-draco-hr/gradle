@@ -1,0 +1,18 @@
+{
+  ModuleRevisionId revisionId=dependencyDescriptor.getDependencyRevisionId();
+  ModuleVersionSelector requested=DefaultModuleVersionSelector.newSelector(revisionId.getOrganisation(),revisionId.getName(),revisionId.getRevision());
+  ListMultimap<String,String> configMappings=ArrayListMultimap.create();
+  for (  Map.Entry<String,List<String>> entry : readConfigMappings(dependencyDescriptor).entrySet()) {
+    configMappings.putAll(entry.getKey(),entry.getValue());
+  }
+  List<Artifact> artifacts=Lists.newArrayList();
+  for (  DependencyArtifactDescriptor ivyArtifact : dependencyDescriptor.getAllDependencyArtifacts()) {
+    IvyArtifactName ivyArtifactName=new DefaultIvyArtifactName(ivyArtifact.getName(),ivyArtifact.getType(),ivyArtifact.getExt(),(String)ivyArtifact.getExtraAttributes().get(CLASSIFIER));
+    artifacts.add(new Artifact(ivyArtifactName,Sets.newHashSet(ivyArtifact.getConfigurations())));
+  }
+  List<Exclude> excludes=Lists.newArrayList();
+  for (  ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
+    excludes.add(forIvyExclude(excludeRule));
+  }
+  result.add(new IvyDependencyMetadata(requested,dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision(),false,dependencyDescriptor.isChanging(),dependencyDescriptor.isTransitive(),configMappings,artifacts,excludes));
+}

@@ -1,0 +1,15 @@
+{
+  final VmstatOutput vmstatOutput=new VmstatOutput();
+  if (!vmstatLines.isEmpty()) {
+    long pageSize=parseVmstatBytes(vmstatLines.get(0));
+    for (    String line : vmstatLines) {
+      if (line.startsWith("Pages free")) {
+        vmstatOutput.setFreeBytes(parseVmstatBytes(line) * pageSize);
+      }
+ else       if (line.startsWith("File-backed pages")) {
+        vmstatOutput.setReclaimableBytes(parseVmstatBytes(line) * pageSize);
+      }
+    }
+  }
+  return vmstatOutput.getAvailableBytes();
+}

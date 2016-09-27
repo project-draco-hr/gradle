@@ -1,7 +1,14 @@
 {
-  String scope=dep.getScope();
-  if ((scope != null) && (scope.length() > 0) && !MAVEN2_CONF_MAPPING.containsKey(scope)) {
-    scope="compile";
+  String scopeString=dep.getScope();
+  if (scopeString == null || scopeString.length() == 0) {
+    scopeString=getDefaultScope(dep);
+  }
+  MavenScope scope;
+  if (SCOPES.containsKey(scopeString)) {
+    scope=SCOPES.get(scopeString);
+  }
+ else {
+    scope=MavenScope.Compile;
   }
   String version=determineVersion(dep);
   String mappedVersion=convertVersionFromMavenSyntax(version);
@@ -9,10 +16,8 @@
   if (selector.getGroup().equals(descriptor.getComponentIdentifier().getGroup()) && selector.getName().equals(descriptor.getComponentIdentifier().getModule())) {
     return;
   }
-  Dependency dependency=descriptor.addDependency(selector);
-  scope=(scope == null || scope.length() == 0) ? getDefaultScope(dep) : scope;
-  ConfMapper mapping=MAVEN2_CONF_MAPPING.get(scope);
-  mapping.addMappingConfs(dependency,dep.isOptional());
+  boolean optional=dep.isOptional();
+  List<Artifact> artifacts=Lists.newArrayList();
   boolean hasClassifier=dep.getClassifier() != null && dep.getClassifier().length() > 0;
   boolean hasNonJarType=dep.getType() != null && !"jar".equals(dep.getType());
   if (hasClassifier || hasNonJarType) {
@@ -22,18 +27,18 @@
     }
     String ext=determineExtension(type);
     String classifier=hasClassifier ? dep.getClassifier() : getClassifierForType(type);
-    String optionalizedScope=dep.isOptional() ? "optional" : scope;
+    String optionalizedScope=optional ? "optional" : scope.toString().toLowerCase();
     IvyArtifactName artifactName=new DefaultIvyArtifactName(selector.getName(),type,ext,classifier);
-    dependency.addArtifact(artifactName,Collections.singleton(optionalizedScope));
+    artifacts.add(new Artifact(artifactName,Collections.singleton(optionalizedScope)));
   }
+  List<Exclude> excludes=Lists.newArrayList();
   List<ModuleIdentifier> excluded=dep.getExcludedModules();
   if (excluded.isEmpty()) {
     excluded=getDependencyMgtExclusions(dep);
   }
-  Set<String> confs=dependency.getConfMappings().keySet();
-  String[] confArray=confs.toArray(new String[confs.size()]);
   for (  ModuleIdentifier excludedModule : excluded) {
-    DefaultExclude rule=new DefaultExclude(excludedModule.getGroup(),excludedModule.getName(),confArray,PatternMatchers.EXACT);
-    dependency.addExcludeRule(rule);
+    DefaultExclude rule=new DefaultExclude(excludedModule.getGroup(),excludedModule.getName(),WILDCARD,PatternMatchers.EXACT);
+    excludes.add(rule);
   }
+  dependencies.add(new MavenDependencyMetadata(scope,optional,selector,artifacts,excludes));
 }

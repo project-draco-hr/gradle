@@ -1,7 +1,8 @@
 {
   final ModelSchemaStore schemaStore=registry.get(ModelSchemaStore.class);
-  VariantsMetaData variants=((LocalComponentResolveContext)context).getVariants();
+  VariantsMetaData variants=((JvmLibraryResolveContext)context).getVariants();
+  VariantSelector variantSelector=new JvmVariantSelector(registry.getAll(VariantAxisCompatibilityFactory.class),JvmBinarySpec.class,schemaStore,variants);
   JvmLocalLibraryMetaDataAdapter libraryMetaDataAdapter=new JvmLocalLibraryMetaDataAdapter();
-  LocalLibraryDependencyResolver<JvmBinarySpec> delegate=new LocalLibraryDependencyResolver<JvmBinarySpec>(JvmBinarySpec.class,projectModelResolver,registry.getAll(VariantAxisCompatibilityFactory.class),variants,schemaStore,libraryMetaDataAdapter,new DefaultLibraryResolutionErrorMessageBuilder(variants,schemaStore));
+  LocalLibraryDependencyResolver delegate=new LocalLibraryDependencyResolver(JvmBinarySpec.class,projectModelResolver,new DefaultLocalLibraryResolver(),variantSelector,libraryMetaDataAdapter,new DefaultLibraryResolutionErrorMessageBuilder(variants,schemaStore));
   return DelegatingComponentResolvers.of(delegate);
 }
