@@ -2,18 +2,21 @@
   try {
     long hashCode=keyHasher.getHashCode(key);
     Lookup lookup=header.getRoot().find(hashCode);
-    boolean needNewBlock=true;
+    DataBlock newBlock=null;
     if (lookup.entry != null) {
       DataBlock block=store.read(lookup.entry.dataBlock,DataBlock.class);
-      needNewBlock=!block.useNewValue(value);
-      if (needNewBlock) {
+      DataBlockUpdateResult updateResult=block.useNewValue(value);
+      if (updateResult.isFailed()) {
         store.remove(block);
+        newBlock=new DataBlock(value,updateResult.getSerializedValue());
       }
     }
-    if (needNewBlock) {
-      DataBlock block=new DataBlock(value);
-      store.write(block);
-      lookup.indexBlock.put(hashCode,block.getPos());
+ else {
+      newBlock=new DataBlock(value);
+    }
+    if (newBlock != null) {
+      store.write(newBlock);
+      lookup.indexBlock.put(hashCode,newBlock.getPos());
     }
     store.flush();
   }
