@@ -1,0 +1,19 @@
+{
+  if (stack.contains(target)) {
+    onCircularDependencies(state,stack,target);
+  }
+  List<DependentBinariesResolvedResult> result=resultsCache.getIfPresent(target);
+  if (result != null) {
+    return result;
+  }
+  stack.push(target);
+  result=Lists.newArrayList();
+  List<NativeBinarySpecInternal> dependents=state.getDependents(target);
+  for (  NativeBinarySpecInternal dependent : dependents) {
+    List<DependentBinariesResolvedResult> children=doBuildResolvedResult(dependent,state,stack);
+    result.add(new DefaultDependentBinariesResolvedResult(dependent.getId(),dependent.getProjectScopedName(),dependent.isBuildable(),isTestSuite(dependent),children));
+  }
+  stack.pop();
+  resultsCache.put(target,result);
+  return result;
+}

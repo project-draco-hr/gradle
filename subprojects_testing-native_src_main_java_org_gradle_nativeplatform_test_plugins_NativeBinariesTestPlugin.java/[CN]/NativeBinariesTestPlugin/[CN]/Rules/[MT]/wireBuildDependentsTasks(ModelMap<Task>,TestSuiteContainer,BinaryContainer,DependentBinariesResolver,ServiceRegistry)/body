@@ -1,0 +1,29 @@
+{
+  final ProjectModelResolver projectModelResolver=serviceRegistry.get(ProjectModelResolver.class);
+  final ModelMap<NativeBinarySpecInternal> nativeBinaries=binaries.withType(NativeBinarySpecInternal.class);
+  for (  final NativeBinarySpecInternal binary : nativeBinaries) {
+    Task buildDependents=tasks.get(binary.getNamingScheme().getTaskName("buildDependents"));
+    Callable<Iterable<Task>> deferredDependencies=new Callable<Iterable<Task>>(){
+      @Override public Iterable<Task> call(){
+        List<Task> dependencies=Lists.newArrayList();
+        DependentBinariesResolvedResult result=dependentsResolver.resolve(binary).getRoot();
+        for (        DependentBinariesResolvedResult dependent : result.getChildren()) {
+          if (dependent.isBuildable() && dependent.isTestSuite()) {
+            ModelRegistry modelRegistry=projectModelResolver.resolveProjectModel(dependent.getId().getProjectPath());
+            ModelMap<NativeBinarySpecInternal> projectBinaries=modelRegistry.realize("binaries",ModelTypes.modelMap(NativeBinarySpecInternal.class));
+            NativeBinarySpecInternal dependentBinary=projectBinaries.get(dependent.getProjectScopedName());
+            NativeTestSuiteBinarySpecInternal testSuiteBinary=(NativeTestSuiteBinarySpecInternal)dependentBinary;
+            dependencies.add(testSuiteBinary.getCheckTask());
+          }
+        }
+        return dependencies;
+      }
+    }
+;
+    buildDependents.dependsOn(deferredDependencies);
+  }
+  for (  NativeTestSuiteBinarySpecInternal testSuiteBinary : nativeBinaries.withType(NativeTestSuiteBinarySpecInternal.class)) {
+    Task buildDependents=tasks.get(testSuiteBinary.getNamingScheme().getTaskName("buildDependents"));
+    buildDependents.dependsOn(testSuiteBinary.getCheckTask());
+  }
+}

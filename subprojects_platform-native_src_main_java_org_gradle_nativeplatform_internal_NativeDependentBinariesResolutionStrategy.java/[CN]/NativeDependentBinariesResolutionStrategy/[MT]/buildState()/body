@@ -1,0 +1,30 @@
+{
+  State state=new State();
+  List<ProjectInternal> orderedProjects=Ordering.usingToString().sortedCopy(projectRegistry.getAllProjects());
+  for (  ProjectInternal project : orderedProjects) {
+    if (project.getPlugins().hasPlugin(ComponentModelBasePlugin.class)) {
+      ModelRegistry modelRegistry=projectModelResolver.resolveProjectModel(project.getPath());
+      ModelMap<NativeComponentSpec> components=modelRegistry.realize("components",ModelTypes.modelMap(NativeComponentSpec.class));
+      for (      NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
+        state.registerBinary(binary);
+      }
+      ModelMap<Object> testSuites=modelRegistry.find("testSuites",ModelTypes.modelMap(Object.class));
+      if (testSuites != null) {
+        for (        NativeBinarySpecInternal binary : allBinariesOf(testSuites.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class))) {
+          state.registerBinary(binary);
+        }
+      }
+    }
+  }
+  for (  NativeBinarySpecInternal nativeBinary : state.dependencies.keySet()) {
+    for (    NativeLibraryBinary libraryBinary : nativeBinary.getDependentBinaries()) {
+      if (libraryBinary instanceof NativeBinarySpecInternal) {
+        state.dependencies.get(nativeBinary).add((NativeBinarySpecInternal)libraryBinary);
+      }
+    }
+    if (testSupport != null) {
+      state.dependencies.get(nativeBinary).addAll(testSupport.getTestDependencies(nativeBinary));
+    }
+  }
+  return state;
+}

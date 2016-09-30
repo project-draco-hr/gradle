@@ -1,0 +1,17 @@
+{
+  ComponentSpecIdentifier id=internalProtocol.getIdentifier();
+  String name=DependentComponentsUtils.getBuildScopedTerseName(id);
+  String description=componentSpec.getDisplayName();
+  boolean buildable=true;
+  if (componentSpec instanceof VariantComponentSpec) {
+    VariantComponentSpec variantComponentSpec=(VariantComponentSpec)componentSpec;
+    buildable=Iterables.any(variantComponentSpec.getBinaries().values(),new Predicate<BinarySpec>(){
+      @Override public boolean apply(      BinarySpec binarySpec){
+        return binarySpec.isBuildable();
+      }
+    }
+);
+  }
+  boolean testSuite=false;
+  return new DependentComponentsRenderableDependency(id,name,description,buildable,testSuite,children);
+}

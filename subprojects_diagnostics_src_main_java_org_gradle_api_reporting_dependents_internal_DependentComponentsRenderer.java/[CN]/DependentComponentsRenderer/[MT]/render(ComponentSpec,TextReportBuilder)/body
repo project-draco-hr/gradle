@@ -1,0 +1,35 @@
+{
+  ComponentSpecInternal internalProtocol=(ComponentSpecInternal)component;
+  DependentComponentsRenderableDependency root=getRenderableDependencyOf(component,internalProtocol);
+  if (!showNonBuildable && !root.isBuildable()) {
+    hiddenNonBuildable=true;
+    return;
+  }
+  StyledTextOutput output=builder.getOutput();
+  GraphRenderer renderer=new GraphRenderer(output);
+  renderer.visit(new Action<StyledTextOutput>(){
+    @Override public void execute(    StyledTextOutput output){
+      output.withStyle(Identifier).text(component.getName());
+      output.withStyle(Description).text(" - Components that depend on " + component.getDisplayName());
+    }
+  }
+,true);
+  DependentComponentsGraphRenderer dependentsGraphRenderer=new DependentComponentsGraphRenderer(renderer,showNonBuildable,showTestSuites);
+  if (root.getChildren().isEmpty()) {
+    output.withStyle(Info).text("No dependents");
+    output.println();
+  }
+ else {
+    dependentsGraphRenderer.render(root);
+    output.println();
+  }
+  if (dependentsGraphRenderer.hasSeenTestSuite()) {
+    seenTestSuite=true;
+  }
+  if (dependentsGraphRenderer.hasHiddenTestSuite()) {
+    hiddenTestSuite=true;
+  }
+  if (dependentsGraphRenderer.hasHiddenNonBuildable()) {
+    hiddenNonBuildable=true;
+  }
+}

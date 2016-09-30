@@ -1,0 +1,17 @@
+{
+  Project project=getProject();
+  ModelRegistry modelRegistry=getModelRegistry();
+  DependentBinariesResolver dependentBinariesResolver=modelRegistry.find("dependentBinariesResolver",DependentBinariesResolver.class);
+  StyledTextOutput textOutput=getTextOutputFactory().create(DependentComponentsReport.class);
+  TextDependentComponentsReportRenderer reportRenderer=new TextDependentComponentsReportRenderer(dependentBinariesResolver,showNonBuildable,showTestSuites);
+  reportRenderer.setOutput(textOutput);
+  reportRenderer.startProject(project);
+  Set<ComponentSpec> allComponents=getAllComponents(modelRegistry);
+  if (showTestSuites) {
+    allComponents.addAll(getAllTestSuites(modelRegistry));
+  }
+  reportRenderer.renderComponents(getReportedComponents(allComponents));
+  reportRenderer.renderLegend();
+  reportRenderer.completeProject(project);
+  reportRenderer.complete();
+}
