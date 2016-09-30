@@ -4,18 +4,21 @@
   if (dirCacheReference == null) {
     ReferencablePersistentCache cache;
     if (!properties.isEmpty() || validator != null || initializer != null) {
-      cache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,validator,properties,lockOptions,initializer,lockManager,executorFactory);
+      cache=new DefaultPersistentDirectoryCache(canonicalDir,displayName,validator,properties,lockTarget,lockOptions,initializer,lockManager,executorFactory);
     }
  else {
-      cache=new DefaultPersistentDirectoryStore(canonicalDir,displayName,lockOptions,lockManager,executorFactory);
+      cache=new DefaultPersistentDirectoryStore(canonicalDir,displayName,lockTarget,lockOptions,lockManager,executorFactory);
     }
     cache.open();
-    dirCacheReference=new DirCacheReference(cache,properties,lockOptions);
+    dirCacheReference=new DirCacheReference(cache,properties,lockTarget,lockOptions);
     dirCaches.put(canonicalDir,dirCacheReference);
   }
  else {
     if (!lockOptions.equals(dirCacheReference.lockOptions)) {
-      throw new IllegalStateException(String.format("Cache '%s' is already open with different options.",cacheDir));
+      throw new IllegalStateException(String.format("Cache '%s' is already open with different lock options.",cacheDir));
+    }
+    if (lockTarget != dirCacheReference.lockTarget) {
+      throw new IllegalStateException(String.format("Cache '%s' is already open with different lock target.",cacheDir));
     }
     if (!properties.equals(dirCacheReference.properties)) {
       throw new IllegalStateException(String.format("Cache '%s' is already open with different properties.",cacheDir));
