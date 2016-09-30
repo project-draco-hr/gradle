@@ -8,13 +8,20 @@
       return GCEvent.IGNORED;
     }
  else {
-      throw new IllegalArgumentException("Unrecognized garbage collection event found in garbage collection log: " + line);
+      notParsed.add(line);
+      return GCEvent.IGNORED;
     }
   }
-  DateTime timestamp=DateTime.parse(matcher.group(1));
-  timestamp=timestamp.toLocalDateTime().toDateTime(DateTimeZone.getDefault());
-  long start=Long.parseLong(matcher.group(2));
-  long end=Long.parseLong(matcher.group(3));
-  long committed=Long.parseLong(matcher.group(4));
-  return new GCEvent(start,end,committed,timestamp);
+  try {
+    DateTime timestamp=DateTime.parse(matcher.group(1));
+    timestamp=timestamp.toLocalDateTime().toDateTime(DateTimeZone.getDefault());
+    long start=Long.parseLong(matcher.group(2));
+    long end=Long.parseLong(matcher.group(3));
+    long committed=Long.parseLong(matcher.group(4));
+    return new GCEvent(start,end,committed,timestamp);
+  }
+ catch (  Exception ex) {
+    notParsed.add(line);
+    return GCEvent.IGNORED;
+  }
 }

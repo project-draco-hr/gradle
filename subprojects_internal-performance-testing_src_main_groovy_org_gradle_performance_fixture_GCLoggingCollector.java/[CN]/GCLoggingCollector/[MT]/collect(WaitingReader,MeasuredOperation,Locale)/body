@@ -24,7 +24,7 @@
     }
     events++;
     if (event.start < usageAtPreviousCollection) {
-      throw new IllegalArgumentException("Unexpected max heap size found in garbage collection event: " + line);
+      LOG.warn("Unexpected max heap size found in garbage collection event: " + line);
     }
     if (event.timestamp.isAfter(operation.getEnd())) {
       break;
@@ -38,7 +38,7 @@
     usageAtPreviousCollection=event.end;
   }
   if (events == 0) {
-    throw new IllegalArgumentException("Did not find any garbage collection events in garbage collection log.");
+    LOG.warn("Did not find any garbage collection events in garbage collection log.");
   }
   long finalHeapUsage=0;
   long finalCommittedHeap=0;
@@ -75,4 +75,10 @@
   operation.setMaxHeapUsage(DataAmount.kbytes(BigDecimal.valueOf(maxUsage)));
   operation.setMaxUncollectedHeap(DataAmount.kbytes(BigDecimal.valueOf(maxUncollectedUsage)));
   operation.setMaxCommittedHeap(DataAmount.kbytes(BigDecimal.valueOf(maxCommittedUsage)));
+  List<String> notParsed=eventParser.getNotParsed();
+  if (!notParsed.isEmpty()) {
+    for (    String line : notParsed) {
+      LOG.warn("Unable to parse GC log entry: {}",line);
+    }
+  }
 }

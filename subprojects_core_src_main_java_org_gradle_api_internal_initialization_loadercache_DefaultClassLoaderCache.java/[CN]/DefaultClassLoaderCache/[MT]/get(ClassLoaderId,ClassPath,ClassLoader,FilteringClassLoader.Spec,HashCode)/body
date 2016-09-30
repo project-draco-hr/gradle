@@ -1,0 +1,19 @@
+{
+  ClassPathSnapshot classPathSnapshot=snapshotter.snapshot(classPath);
+  ClassLoaderSpec spec=new ClassLoaderSpec(parent,classPathSnapshot,filterSpec,overrideHashCode);
+synchronized (lock) {
+    CachedClassLoader cachedLoader=byId.get(id);
+    if (cachedLoader == null || !cachedLoader.is(spec)) {
+      CachedClassLoader newLoader=getAndRetainLoader(classPath,spec,id);
+      byId.put(id,newLoader);
+      if (cachedLoader != null) {
+        LOGGER.debug("Releasing previous classloader for {}",id);
+        cachedLoader.release(id);
+      }
+      return newLoader.classLoader;
+    }
+ else {
+      return cachedLoader.classLoader;
+    }
+  }
+}

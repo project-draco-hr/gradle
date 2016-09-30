@@ -1,5 +1,6 @@
 {
   boolean isOuterBuild=gradle.getParent() == null;
   TaskInputsListener taskInputsListener=isOuterBuild ? listenerManager.getBroadcaster(TaskInputsListener.class) : TaskInputsListener.NOOP;
-  return new ExecuteAtMostOnceTaskExecuter(new SkipOnlyIfTaskExecuter(new SkipTaskWithNoActionsExecuter(new ResolveTaskArtifactStateTaskExecuter(repository,new SkipEmptySourceFilesTaskExecuter(taskInputsListener,new ValidatingTaskExecuter(new SkipUpToDateTaskExecuter(createSkipCachedExecuterIfNecessary(startParameter,gradle.getTaskCaching(),packer,listenerManager,new PostExecutionAnalysisTaskExecuter(new ExecuteActionsTaskExecuter(listenerManager.getBroadcaster(TaskOutputsGenerationListener.class),listenerManager.getBroadcaster(TaskActionListener.class)))))))))));
+  TaskOutputsGenerationListener taskOutputsGenerationListener=listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
+  return new CatchExceptionTaskExecuter(new ExecuteAtMostOnceTaskExecuter(new SkipOnlyIfTaskExecuter(new SkipTaskWithNoActionsExecuter(new ResolveTaskArtifactStateTaskExecuter(repository,new SkipEmptySourceFilesTaskExecuter(taskInputsListener,new ValidatingTaskExecuter(new SkipUpToDateTaskExecuter(createSkipCachedExecuterIfNecessary(startParameter,gradle.getTaskCaching(),packer,taskOutputsGenerationListener,new ExecuteActionsTaskExecuter(taskOutputsGenerationListener,listenerManager.getBroadcaster(TaskActionListener.class)))))))))));
 }
