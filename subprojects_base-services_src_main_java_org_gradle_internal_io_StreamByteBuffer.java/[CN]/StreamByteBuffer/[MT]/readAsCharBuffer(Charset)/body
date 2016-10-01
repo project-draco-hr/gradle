@@ -1,0 +1,46 @@
+{
+  CharsetDecoder decoder=charset.newDecoder().onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE);
+  CharBuffer charbuffer=CharBuffer.allocate(totalBytesUnread());
+  ByteBuffer buf=null;
+  boolean wasUnderflow=false;
+  ByteBuffer nextBuf=null;
+  while (hasRemaining(nextBuf) || hasRemaining(buf) || prepareRead() != -1) {
+    if (hasRemaining(buf)) {
+      if (!wasUnderflow) {
+        throw new IllegalStateException("Unexpected state. Buffer has remaining bytes without underflow in decoding.");
+      }
+      if (!hasRemaining(nextBuf) && prepareRead() != -1) {
+        nextBuf=currentReadChunk.readToNioBuffer();
+      }
+      buf=ByteBuffer.allocate(buf.remaining() + 1).put(buf);
+      buf.put(nextBuf.get());
+      buf.flip();
+    }
+ else {
+      if (hasRemaining(nextBuf)) {
+        buf=nextBuf;
+      }
+ else {
+        buf=currentReadChunk.readToNioBuffer();
+      }
+      nextBuf=null;
+    }
+    boolean endOfInput=!hasRemaining(nextBuf) && prepareRead() == -1;
+    CoderResult result=decoder.decode(buf,charbuffer,endOfInput);
+    if (endOfInput) {
+      if (!result.isUnderflow()) {
+        result.throwException();
+      }
+    }
+    wasUnderflow=result.isUnderflow();
+  }
+  CoderResult result=decoder.flush(charbuffer);
+  if (buf.hasRemaining()) {
+    throw new IllegalStateException("Unexpected state. Buffer has remaining bytes after decoding.");
+  }
+  if (!result.isUnderflow()) {
+    result.throwException();
+  }
+  charbuffer.flip();
+  return charbuffer;
+}

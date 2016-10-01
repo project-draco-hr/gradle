@@ -1,28 +1,7 @@
 {
   int unreadSize=totalBytesUnread();
   if (unreadSize > 0) {
-    CharsetDecoder decoder=charset.newDecoder().onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE);
-    CharBuffer charbuffer=CharBuffer.allocate(unreadSize);
-    ByteBuffer buf=null;
-    while (prepareRead() != -1) {
-      buf=currentReadChunk.readToNioBuffer(buf);
-      boolean endOfInput=prepareRead() == -1;
-      CoderResult result=decoder.decode(buf,charbuffer,endOfInput);
-      if (endOfInput) {
-        if (!result.isUnderflow()) {
-          result.throwException();
-        }
-      }
-    }
-    CoderResult result=decoder.flush(charbuffer);
-    if (buf.hasRemaining()) {
-      throw new IllegalStateException("There's a bug here, buffer wasn't read fully.");
-    }
-    if (!result.isUnderflow()) {
-      result.throwException();
-    }
-    charbuffer.flip();
-    return charbuffer.toString();
+    return readAsCharBuffer(charset).toString();
   }
   return "";
 }
