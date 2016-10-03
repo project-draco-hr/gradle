@@ -5,9 +5,9 @@
     }
   }
 );
-  ZipInputStream zipInput=new ZipInputStream(input);
-  ZipEntry entry;
-  while ((entry=zipInput.getNextEntry()) != null) {
+  TarInputStream tarInput=new TarInputStream(input);
+  TarEntry entry;
+  while ((entry=tarInput.getNextEntry()) != null) {
     String name=entry.getName();
     Matcher matcher=PROPERTY_PATH.matcher(name);
     if (!matcher.matches()) {
@@ -34,7 +34,9 @@
     }
  else {
       Files.createParentDirs(outputFile);
-      Files.asByteSink(outputFile).writeFrom(zipInput);
+      Files.asByteSink(outputFile).writeFrom(tarInput);
     }
+    fileSystem.chmod(outputFile,entry.getMode() & 0777);
+    outputFile.setLastModified(entry.getModTime().getTime());
   }
 }
