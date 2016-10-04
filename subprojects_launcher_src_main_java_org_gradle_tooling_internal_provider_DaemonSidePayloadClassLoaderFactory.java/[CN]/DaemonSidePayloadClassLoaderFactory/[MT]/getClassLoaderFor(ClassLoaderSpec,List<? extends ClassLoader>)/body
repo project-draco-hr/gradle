@@ -1,11 +1,11 @@
 {
+  if (spec instanceof ClientOwnedClassLoaderSpec) {
+    ClientOwnedClassLoaderSpec clientSpec=(ClientOwnedClassLoaderSpec)spec;
+    return createClassLoaderForClassPath(parents,clientSpec.getClasspath());
+  }
   if (spec instanceof VisitableURLClassLoader.Spec) {
     VisitableURLClassLoader.Spec urlSpec=(VisitableURLClassLoader.Spec)spec;
-    if (parents.size() != 1) {
-      throw new IllegalStateException("Expected exactly one parent ClassLoader");
-    }
-    Collection<URL> cachedClassPathUrls=cachedClasspathTransformer.transform(urlSpec.getClasspath());
-    return new VisitableURLClassLoader(parents.get(0),cachedClassPathUrls);
+    return createClassLoaderForClassPath(parents,urlSpec.getClasspath());
   }
   return delegate.getClassLoaderFor(spec,parents);
 }

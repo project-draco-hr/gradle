@@ -1,3 +1,14 @@
 {
-  return cache.getClassLoader(details,detailsToClassLoader);
+  ClassLoader classLoader=cache.getClassLoader(details,detailsToClassLoader);
+  if (details.spec instanceof ClientOwnedClassLoaderSpec) {
+    ClientOwnedClassLoaderSpec spec=(ClientOwnedClassLoaderSpec)details.spec;
+    VisitableURLClassLoader urlClassLoader=(VisitableURLClassLoader)classLoader;
+    Set<URL> currentClassPath=ImmutableSet.copyOf(urlClassLoader.getURLs());
+    for (    URL url : spec.getClasspath()) {
+      if (!currentClassPath.contains(url)) {
+        JavaReflectionUtil.method(URLClassLoader.class,Void.class,"addURL",URL.class).invoke(urlClassLoader,url);
+      }
+    }
+  }
+  return classLoader;
 }
