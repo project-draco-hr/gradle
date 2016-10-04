@@ -1,0 +1,29 @@
+{
+  try {
+    URI sha1Location=new URI(location.toASCIIString() + ".sha1");
+    ExternalResource resource=delegate.getResource(sha1Location,revalidate);
+    if (resource == null) {
+      return null;
+    }
+    try {
+      return resource.withContent(new Transformer<HashValue,InputStream>(){
+        @Override public HashValue transform(        InputStream inputStream){
+          try {
+            String sha=IOUtils.toString(inputStream,"us-ascii");
+            return HashValue.parse(sha);
+          }
+ catch (          IOException e) {
+            throw new UncheckedIOException(e);
+          }
+        }
+      }
+);
+    }
+  finally {
+      resource.close();
+    }
+  }
+ catch (  Exception e) {
+    throw new ResourceException(location,String.format("Failed to download SHA1 for resource '%s'.",location),e);
+  }
+}
